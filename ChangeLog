@@ -1,3 +1,7 @@
+2004-02-10  Kouji 'kekyo' Suzuki <k@kekyo.net>
+	* configs/msc7-project.zip, timidity/calcnewt.c:
+	  Fix.
+
 2004-02-09  mput <root@mput.dip.jp>
 
 	* Makefile.am (install-data-local): ditto
