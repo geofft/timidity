@@ -6822,12 +6822,12 @@ void playmidi_stream_init(void)
     check_eot_flag = 0;
 
     /* Setup default drums */
-    COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
-    COPY_CHANNELMASK(drumchannel_mask, current_file_info->drumchannel_mask);
+	COPY_CHANNELMASK(current_file_info->drumchannels, default_drumchannels);
+	COPY_CHANNELMASK(current_file_info->drumchannel_mask, default_drumchannel_mask);
     for(i = 0; i < MAX_CHANNELS; i++)
 	memset(channel[i].drums, 0, sizeof(channel[i].drums));
-    reset_midi(0);
     change_system_mode(DEFAULT_SYSTEM_MODE);
+    reset_midi(0);
 
     playmidi_tmr_reset();
 }

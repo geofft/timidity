@@ -1,3 +1,8 @@
+2003-10-31  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c:
+	  Fix initialization of drumsets on synthesizer modes.
+
 2003-10-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (set_reverb_level, get_reverb_level):
