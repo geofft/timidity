@@ -3730,6 +3730,7 @@ static inline int parse_opt_h(const char *arg)
 "                   112-127 : TiMidity++ specification purposes",
 		NULL
 	};
+	void show_ao_device_info(FILE *fp);
 	FILE *fp;
 	char version[32], *help_args[3];
 	int i, j;
@@ -4943,6 +4944,21 @@ static void timidity_arc_error_handler(char *error_message)
 	ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "%s", error_message);
 }
 
+static PlayMode null_play_mode = {
+    0,                          /* rate */
+    0,                          /* encoding */
+    0,                          /* flag */
+    -1,                         /* fd */
+    {0,0,0,0,0},                /* extra_param */
+    "Null output device",       /* id_name */
+    '\0',                       /* id_character */
+    NULL,                       /* open_output */
+    NULL,                       /* close_output */
+    NULL,                       /* output_data */
+    NULL,                       /* acntl */
+    NULL                        /* detect */
+};
+
 MAIN_INTERFACE void timidity_start_initialize(void)
 {
     int i;
@@ -5004,47 +5020,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
     }
     arc_error_handler = timidity_arc_error_handler;
 
-    if(play_mode == NULL)
-    {
-	char *output_id;
-	int i;
-
-	output_id = getenv("TIMIDITY_OUTPUT_ID");
-#ifdef TIMIDITY_OUTPUT_ID
-	if(output_id == NULL)
-	    output_id = TIMIDITY_OUTPUT_ID;
-#endif /* TIMIDITY_OUTPUT_ID */
-	if(output_id != NULL)
-	{
-	    for(i = 0; play_mode_list[i]; i++)
-		if(play_mode_list[i]->id_character == *output_id)
-		{
-		    if (! play_mode_list[i]->detect ||
-			play_mode_list[i]->detect()) {
-			play_mode = play_mode_list[i];
-			break;
-		    }
-		}
-	}
-    }
-
-    if (play_mode == NULL) {
-	/* try to detect the first available device */  
-	for(i = 0; play_mode_list[i]; i++) {
-	    /* check only the devices with detect callback */
-	    if (play_mode_list[i]->detect) {
-		if (play_mode_list[i]->detect()) {
-		    play_mode = play_mode_list[i];
-		    break;
-		}
-	    }
-	}
-    }
-    
-    if (play_mode == NULL) {
-	fprintf(stderr, "Couldn't open output device" NLS);
-	exit(1);
-    }
+    if(play_mode == NULL) play_mode = &null_play_mode;
 
     if(is_first) /* initialize once time */
     {
@@ -5169,9 +5145,58 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 
 MAIN_INTERFACE int timidity_post_load_configuration(void)
 {
-    int cmderr;
+    int i, cmderr = 0;
 
-    cmderr = 0;
+    if(play_mode == &null_play_mode)
+    {
+	char *output_id;
+
+	output_id = getenv("TIMIDITY_OUTPUT_ID");
+#ifdef TIMIDITY_OUTPUT_ID
+	if(output_id == NULL)
+	    output_id = TIMIDITY_OUTPUT_ID;
+#endif /* TIMIDITY_OUTPUT_ID */
+	if(output_id != NULL)
+	{
+	    for(i = 0; play_mode_list[i]; i++)
+		if(play_mode_list[i]->id_character == *output_id)
+		{
+		    if (! play_mode_list[i]->detect ||
+			play_mode_list[i]->detect()) {
+			play_mode = play_mode_list[i];
+			break;
+		    }
+		}
+	}
+    }
+
+    if (play_mode == &null_play_mode) {
+	/* try to detect the first available device */
+	for(i = 0; play_mode_list[i]; i++) {
+	    /* check only the devices with detect callback */
+	    if (play_mode_list[i]->detect) {
+		if (play_mode_list[i]->detect()) {
+		    play_mode = play_mode_list[i];
+		    break;
+		}
+	    }
+	}
+    }
+
+    if (play_mode == &null_play_mode) {
+	fprintf(stderr, "Couldn't open output device" NLS);
+	exit(1);
+    }
+    else {
+        /* apply changes made for null play mode to actual play mode */
+        if(null_play_mode.encoding != 0) {
+            play_mode->encoding |= null_play_mode.encoding;
+        }
+        if(null_play_mode.rate != 0) {
+            play_mode->rate = null_play_mode.rate;
+        }
+    }
+
     if(!got_a_configuration)
     {
 	if(try_config_again && !read_config_file(CONFIG_FILE, 0))
@@ -5181,7 +5206,6 @@ MAIN_INTERFACE int timidity_post_load_configuration(void)
     if(opt_config_string.nstring > 0)
     {
 	char **config_string_list;
-	int i;
 
 	config_string_list = make_string_array(&opt_config_string);
 	if(config_string_list != NULL)

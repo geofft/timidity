@@ -1,3 +1,10 @@
+2004-09-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/timidity.c: add null_play_mode
+	  (fix for [timidity-bugs-en:00031])
+	* timidity/timidity.c (parse_opt_h): add prototype for
+	  show_ao_device_info()
+
 2004-09-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c : Fix for linkage error in W32
