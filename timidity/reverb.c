@@ -44,6 +44,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+int opt_effect_quality = 0;
 static int32 sample_rate = 44100;
 static double REV_INP_LEV = 1.0;
 
@@ -320,7 +321,7 @@ void do_standard_reverb(int32 *comp, int32 n)
 
 void do_ch_reverb(int32* buf, int32 count)
 {
-	if(opt_effect_quality >= 2) {
+	if(opt_reverb_control == 3) {
 		do_freeverb(buf, count);
 	} else {
 		do_standard_reverb(buf, count);
@@ -430,7 +431,7 @@ void reverb_rc_event(int rc, int32 val)
 /*                             */
 /*   Delay (Celeste) Effect    */
 /*                             */
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 static int32 delay_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 /* circular buffers and pointers */
 #define DELAY_BUFFER_SIZE 48000
@@ -441,7 +442,7 @@ static int32 delay_wpt0;
 static int32 delay_spt0;
 static int32 delay_spt1;
 static int32 delay_spt2;
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 
 void do_basic_delay(int32* buf, int32 count);
 void do_cross_delay(int32* buf, int32 count);
@@ -449,7 +450,7 @@ void do_3tap_delay(int32* buf, int32 count);
 
 void init_ch_delay()
 {
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 	memset(delay_buf0_L,0,sizeof(delay_buf0_L));
 	memset(delay_buf0_R,0,sizeof(delay_buf0_R));
 	memset(delay_effect_buffer,0,sizeof(delay_effect_buffer));
@@ -459,13 +460,13 @@ void init_ch_delay()
 	delay_spt0 = 0;
 	delay_spt1 = 0;
 	delay_spt2 = 0;
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 }
 
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 void do_ch_delay(int32* buf, int32 count)
 {
-	if(opt_effect_quality && delay_status.pre_lpf) {
+	if(opt_reverb_control == 3 && delay_status.pre_lpf) {
 		do_lowpass_24db(delay_effect_buffer,count,delay_status.lpf_coef,delay_status.lpf_val);
 	}
 
@@ -740,13 +741,13 @@ void do_3tap_delay(int32* buf, int32 count)
 	}
 }
 #endif /* OPT_MODE != 0 */
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 
 
 /*                             */
 /*        Chorus Effect        */
 /*                             */
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 static int32 chorus_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 /* circular buffers and pointers */
 #define CHORUS_BUFFER_SIZE 9600
@@ -761,11 +762,11 @@ static int32 chorus_lfo0[SINE_CYCLE_LENGTH];
 static int32 chorus_lfo1[SINE_CYCLE_LENGTH];
 static int32 chorus_cyc0;
 static int32 chorus_cnt0;
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 
 void init_chorus_lfo(void)
 {
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 	int32 i;
 
 	chorus_cyc0 = chorus_param.cycle_in_sample;
@@ -778,12 +779,12 @@ void init_chorus_lfo(void)
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
 		chorus_lfo1[i] = TIM_FSCALE((lookup_triangular(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 24);
 	}
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 }
 
 void init_ch_chorus()
 {
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 	memset(chorus_buf0_L,0,sizeof(chorus_buf0_L));
 	memset(chorus_buf0_R,0,sizeof(chorus_buf0_R));
 	memset(chorus_effect_buffer,0,sizeof(chorus_effect_buffer));
@@ -794,10 +795,10 @@ void init_ch_chorus()
 	chorus_wpt1 = 0;
 	chorus_spt0 = 0;
 	chorus_spt1 = 0;
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 }
 
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 void do_stereo_chorus(int32* buf, register int32 count)
 {
 #if OPT_MODE != 0	/* fixed-point implementation */
@@ -911,12 +912,12 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 
 void do_ch_chorus(int32* buf, int32 count)
 {
-	if(opt_effect_quality && chorus_param.chorus_pre_lpf) {
+	if(opt_reverb_control == 3 && chorus_param.chorus_pre_lpf) {
 		do_lowpass_24db(chorus_effect_buffer, count, chorus_param.lpf_coef, chorus_param.lpf_val);
 	}
 	do_stereo_chorus(buf, count);
 }
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 
 
 /*                             */
@@ -1864,7 +1865,7 @@ static void do_freeverb(int32 *buf, int32 count)
 void init_reverb(int32 output_rate)
 {
 	sample_rate = output_rate;
-	if(opt_effect_quality >= 2) {
+	if(opt_reverb_control == 3) {
 		alloc_revmodel();
 		update_revmodel(revmodel);
 		init_revmodel(revmodel);

@@ -88,31 +88,30 @@ double newt_coeffs[58][58];		/* for start/end of samples */
 		     /(6L<<FRACTION_BITS); \
 		dest[i] = (v1 > 32767)? 32767: ((v1 < -32768)? -32768: v1); \
 	}
-#elif defined(LAGRANGE_INTERPOLATION)	/* must be fixed for uint32 */
-# define INTERPVARS_CACHE      splen_t ofsd; int32 v0, v1, v2, v3;
+#elif defined(LAGRANGE_INTERPOLATION)
+# define INTERPVARS_CACHE      int32 ofsi, ofsf, v0, v1, v2, v3;
 # define RESAMPLATION_CACHE \
-	v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-	v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
+	ofsi = ofs >> FRACTION_BITS; \
+	v1 = (int32)src[ofsi]; \
+	v2 = (int32)src[ofsi+1]; \
 	if(reduce_quality_flag || (ofs<ls+(1L<<FRACTION_BITS)) || \
 	   ((ofs+(2L<<FRACTION_BITS))>le)){ \
 	        dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
-	    v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
-	    v3 = (int32)src[(ofs>>FRACTION_BITS)+2]; \
-	    ofsd = ofs; \
-	    ofs &= FRACTION_MASK; \
+	    v0 = (int32)src[ofsi-1]; \
+	    v3 = (int32)src[ofsi+2]; \
+	    ofsf = ofs & FRACTION_MASK; \
 	    v3 += -3*v2 + 3*v1 - v0; \
-	    v3 *= (ofs - (2<<FRACTION_BITS)) / 6; \
+	    v3 *= (ofsf - (2<<FRACTION_BITS)) / 6; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v2 - v1 - v1 + v0; \
-	    v3 *= (ofs - (1<<FRACTION_BITS)) >> 1; \
+	    v3 *= (ofsf - (1<<FRACTION_BITS)) >> 1; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v1 - v0; \
-	    v3 *= ofs; \
+	    v3 *= ofsf; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v0; \
 	    dest[i] = (v3 > 32767)? 32767: ((v3 < -32768)? -32768: v3); \
-	    ofs = ofsd; \
 	}
 #elif defined(GAUSS_INTERPOLATION)
 extern float *gauss_table[(1<<FRACTION_BITS)];

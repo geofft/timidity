@@ -32,6 +32,7 @@
 
 #define DEFAULT_REVERB_SEND_LEVEL 40
 
+extern int opt_reverb_control;
 extern int opt_effect_quality;
 
 extern void set_dry_signal(register int32 *, int32);

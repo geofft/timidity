@@ -1,17 +1,33 @@
+
+2003-05-30  Kentaro Sato <kentaro@ps.catv.ne.jp>
+
+	* timidity/resample.c, recache.c:
+	 Fix LAGRANGE_INTERPOLATION for uint32.
+
+2003-05-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/reverb.[ch], timidity/timidity.[ch]:
+	  Support for command line option below.
+	  -E e/E : Enable/Disable modulation envelope.
+	  -EFreverb=3 : Enable NEW MIDI reverb effect control (freeverb)
+	                This effect is only available in stereo
+	  Rename NEW_CHORUS as USE_DSP_EFFECT.
+
+2003-05-30  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Fix around set_rootkey().
+
 2003-05-29  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/timidity.h (DEFAULT_VOICES): to 256 (was 64)
 	* timidity/playmidi.c (do_compute_data_midi):
 	  Fix -EFchorus optoin interpretation
 
-2003-05-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+2003-05-29  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
-	* timidity/playmidi.[ch], timidity/reverb.c, timidity/timidity.[ch]:
-	  Support for command line option below.
-	  -E e/E: Enable/Disable modulation envelope.
-	  -EFquality=0: Standard reverb quality
-	  -EFquality=1: Enable LPF in chorus & delay
-	  -EFquality=2: Enable same as 1 and new reverb (freeverb)
+	* timidity/resample.c:
+	  Fasten initialize_gauss_table().
 
 2003-05-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
@@ -52,7 +68,6 @@
 	* au_a.c, wave_a.c:
 	  Fix the file headers when > 1 audio file was output per timidity
 	  session; the data length was not being reset between midi before
-
 	* recache.c, resample.c, timidity.c, timidity.h, playmidi.c,
 	  playmidi.h:	
 	  Add Newton interpolation (slower and less accurate than Gauss).
@@ -60,30 +75,26 @@
 	  extra mem); defaults to -N 25 (best compromise between speed and
 	  accuracy), -N 34 is maximum quality and should run in realtime
 	  on many systems.
-
 	* recache.c, resample.c:
 	  Speed up cubic Lagrange interpolation.  Fix some loop and sample
 	  start/end related bugs in all interpolation methods.
-
 	* resample.c:
 	  Rewrite most of pre_resample(), so that it can properly handle
 	  higher order interpolation methods.  pre-resample with pentic
 	  B-splines, instead of cubic spline, if Gauss or Newton is not
 	  compiled in.
-
 	* sndfont.c, instrum.c, mod2midi.c, recache.c:
 	  Allocate an extra sample at the end of all sample data, in order
 	  for all interpolation methods to not read beyond the bounds of
 	  the arrays.  Initialize the extra sample to zero, so that there
 	  will be no reads from unintialized memory.  Initialize the
 	  entire recache buffer to zero, for the same reason.
-
 	* playmidi.c:	
 	  Fix a problem with voice reduction under Linux, maybe other
 	  systems as well; rate is now calculated as it is displayed in
 	  ncurs_c.c.  No more premature mass voice killings /
 	  auto-polyphony capping.
-	
+
 2003-05-25  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
 	* timidity/timidity.c:

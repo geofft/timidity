@@ -1473,7 +1473,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	if(tbl->set[SF_lfo1ToFilterFc])
 		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
 	if(tbl->set[SF_env1ToPitch])
-		vp->v.modenv_to_pitch = val;
+		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
 	if(tbl->set[SF_env1ToFilterFc])
 		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }

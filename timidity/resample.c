@@ -72,31 +72,30 @@ double newt_coeffs[58][58];		/* for start/end of samples */
  		     / (6L << FRACTION_BITS); \
  		*dest++ = (v1 > 32767) ? 32767: ((v1 < -32768)? -32768: v1); \
 	}
-#elif defined(LAGRANGE_INTERPOLATION)	/* must be fixed for uint32 */
-# define INTERPVARS      splen_t ofsd; int32 v0, v1, v2, v3;
+#elif defined(LAGRANGE_INTERPOLATION)
+# define INTERPVARS      int32 ofsi, ofsf, v0, v1, v2, v3;
 # define RESAMPLATION \
-	v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-	v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
+	ofsi = ofs >> FRACTION_BITS; \
+	v1 = (int32)src[ofsi]; \
+	v2 = (int32)src[ofsi + 1]; \
 	if(reduce_quality_flag || \
 	   (ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
 		*dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
-	    v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
-	    v3 = (int32)src[(ofs>>FRACTION_BITS)+2]; \
-	    ofsd = ofs; \
-	    ofs &= FRACTION_MASK; \
+	    v0 = (int32)src[ofsi - 1]; \
+	    v3 = (int32)src[ofsi + 2]; \
+	    ofsf = ofs & FRACTION_MASK; \
 	    v3 += -3*v2 + 3*v1 - v0; \
-	    v3 *= (ofs - (2<<FRACTION_BITS)) / 6; \
+	    v3 *= (ofsf - (2<<FRACTION_BITS)) / 6; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v2 - v1 - v1 + v0; \
-	    v3 *= (ofs - (1<<FRACTION_BITS)) >> 1; \
+	    v3 *= (ofsf - (1<<FRACTION_BITS)) >> 1; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v1 - v0; \
-	    v3 *= ofs; \
+	    v3 *= ofsf; \
 	    v3 >>= FRACTION_BITS; \
 	    v3 += v0; \
 	    *dest++ = (v3 > 32767)? 32767: ((v3 < -32768)? -32768: v3); \
-	    ofs = ofsd; \
 	}
 #elif defined(GAUSS_INTERPOLATION)
 float *gauss_table[(1<<FRACTION_BITS)] = {0};	/* don't need doubles */
@@ -275,17 +274,23 @@ void initialize_gauss_table(int n)
     int m, i, k, n_half = (n>>1);
     double ck;
     double x, x_inc, xz;
-    double z[35];
+    double z[35], zsin_[34 + 35], *zsin, xzsin[35];
     float *gptr;
 
     for (i = 0; i <= n; i++)
     	z[i] = i / (4*M_PI);
+    zsin = &zsin_[34];
+    for (i = -n; i <= n; i++)
+    	zsin[i] = sin(i / (4*M_PI));
 
     x_inc = 1.0 / (1<<FRACTION_BITS);
+    gptr = safe_realloc(gauss_table[0], (n+1)*sizeof(float)*(1<<FRACTION_BITS));
     for (m = 0, x = 0.0; m < (1<<FRACTION_BITS); m++, x += x_inc)
     {
     	xz = (x + n_half) / (4*M_PI);
-    	gptr = gauss_table[m] = realloc(gauss_table[m], (n+1)*sizeof(float));
+    	for (i = 0; i <= n; i++)
+	    xzsin[i] = sin(xz - z[i]);
+    	gauss_table[m] = gptr;
 
     	for (k = 0; k <= n; k++)
     	{
@@ -296,7 +301,7 @@ void initialize_gauss_table(int n)
     	    	if (i == k)
     	    	    continue;
     	
-    	    	ck *= (sin(xz - z[i])) / (sin(z[k] - z[i]));
+    	    	ck *= xzsin[i] / zsin[k - i];
     	    }
     	    
     	    *gptr++ = ck;

@@ -589,21 +589,21 @@ NULL
 "  -EFdelay=0 : Disabled delay effect" NLS
 "  -EFchorus=0 : Disable MIDI chorus effect control" NLS
 "  -EFchorus=1[,level] : Enable MIDI chorus effect control" NLS
-"                        `level' is optional to specify chorus level [0..127]"  NLS
+"                        `level' is optional to specify chorus level [0..127]" NLS
 "  -EFchorus=2[,level] : Surround sound, chorus detuned to a lesser degree." NLS
 "                        `level' is optional to specify chorus level [0..127]" NLS
 "                        (default)" NLS
 "  -EFreverb=0 : Disable MIDI reverb effect control" NLS
 "  -EFreverb=1[,level] : Enable MIDI reverb effect control" NLS
-"                        `level' is optional to specify reverb level [0..127]"  NLS
-"                        This effect is only available in stereo"  NLS
-"                        (default)" NLS
+"                        `level' is optional to specify reverb level [0..127]" NLS
+"                        This effect is only available in stereo" NLS
 "  -EFreverb=2 : Global reverb effect" NLS
-"  -EFns=n : Enable the n th degree noiseshaping filter. n:[0..4]" NLS
-"            This effect is only available for 8-bit linear encoding" NLS
-"  -EFquality=0 : Standard reverb quality" NLS
-"  -EFquality=1 : Enable LPF in chorus & delay" NLS
-"  -EFquality=2 : Enable same as 1 and new reverb (freeverb) (default)" NLS
+"  -EFreverb=3 : Enable NEW MIDI reverb effect control (freeverb)" NLS
+"                This effect is only available in stereo" NLS
+"                (default)" NLS
+"  -EFns=n : Enable the n th degree noiseshaping filter." NLS
+"            n:[0..4] (for 8-bit linear encoding)" NLS
+"            n:[0..2] (for 16-bit linear encoding)" NLS
 NLS
 , fp);
 
@@ -2602,30 +2602,31 @@ static int parse_effect_option(char *effect_opts)
 	return 0;
     }
 
-    if(strncmp(effect_opts, "reverb=", 7) == 0)
-    {
-	effect_opts += 7;
-	switch(*effect_opts)
-	{
-	  case '0':
-	    opt_reverb_control = 0;
-	    break;
-	  case '1':
-	    if(*(effect_opts + 1) == ',')
-		opt_reverb_control = -(atoi(effect_opts + 2) & 0x7f);
-	    else
-		opt_reverb_control = 1;
-	    break;
-	  case '2':
-	    opt_reverb_control = 2;
-	    break;
-	  default:
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "Invalid -EFreverb parameter.");
-	    return 1;
+	if (strncmp(effect_opts, "reverb=", 7) == 0) {
+		effect_opts += 7;
+		switch(*effect_opts) {
+		case '0':
+			opt_reverb_control = 0;
+			break;
+		case '1':
+			if (*(effect_opts + 1) == ',')
+				opt_reverb_control = -(atoi(effect_opts + 2) & 0x7f);
+			else
+				opt_reverb_control = 1;
+			break;
+		case '2':
+			opt_reverb_control = 2;
+			break;
+		case '3':
+			opt_reverb_control = 3;
+			break;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Invalid -EFreverb parameter.");
+			return 1;
+		}
+		return 0;
 	}
-	return 0;
-    }
 
     if(strncmp(effect_opts, "chorus=", 7) == 0)
     {
@@ -2669,17 +2670,6 @@ static int parse_effect_option(char *effect_opts)
 	noise_sharp_type = i;
 	return 0;
     }
-
-	if (strncmp(effect_opts, "quality=", 8) == 0) {
-		i = atoi(effect_opts + 8);
-		if (i < 0 || i > 2) {
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"-EFquality argument range is 0 to 2");
-			return 1;
-		}
-		opt_effect_quality = i;
-		return 0;
-	}
 
     return 1;
 }

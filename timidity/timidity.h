@@ -213,6 +213,11 @@ typedef double FLOAT_T;
 #endif
 
 
+/* Defining USE_DSP_EFFECT to refine chorus, delay, EQ and insertion effect.
+   This is definitely worth the slight increase in CPU usage. */
+#define USE_DSP_EFFECT
+
+
 /* This is an experimental kludge that needs to be done right, but if
    you've got an 8-bit sound card, or cheap multimedia speakers hooked
    to your 16-bit output device, you should definitely give it a try.
@@ -228,7 +233,7 @@ typedef double FLOAT_T;
 /* #define LOOKUP_INTERPOLATION */
 
 /* Greatly reduces popping due to large volume/pan changes.
- * This is definately worth the slight increase in CPU usage. */
+ * This is definitely worth the slight increase in CPU usage. */
 #define SMOOTH_MIXING
 
 /* Make envelopes twice as fast. Saves ~20% CPU time (notes decay
@@ -367,18 +372,12 @@ typedef double FLOAT_T;
 #define NRPN_VIBRATO_ALLOW
 
 
-/* Define if you want to use reverb controls in defaults.
+/* Define if you want to use reverb / freeverb controls in defaults.
  * This mode needs high CPU power.
  * There is a command line option to enable/disable this mode.
  */
-#define REVERB_CONTROL_ALLOW
-
-
-/* Define if you want to use freeverb in defaults.
- * This mode needs high CPU power.
- * There is a command line option to enable/disable this mode.
- */
-#define FREEVERB_ALLOW
+/* #define REVERB_CONTROL_ALLOW */
+#define FREEVERB_CONTROL_ALLOW
 
 
 /* Define if you want to use chorus controls in defaults.
@@ -387,7 +386,6 @@ typedef double FLOAT_T;
  */
 #define CHORUS_CONTROL_ALLOW
 
-#define NEW_CHORUS
 
 /* Define if you want to use channel pressure.
  * Channel pressure effect is different in sequencers.
@@ -407,7 +405,7 @@ typedef double FLOAT_T;
  * This mode needs high CPU power.
  * There is a command line option to enable/disable this mode.
  */
-#define MODULATION_ENVELOPE_ALLOW
+/* #define MODULATION_ENVELOPE_ALLOW */
 
 
 /* Define if you want to trace text meta event at playing.

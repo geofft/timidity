@@ -151,7 +151,11 @@ int opt_nrpn_vibrato = 0;
 #ifdef REVERB_CONTROL_ALLOW
 int opt_reverb_control = 1;
 #else
+#ifdef FREEVERB_CONTROL_ALLOW
+int opt_reverb_control = 3;
+#else
 int opt_reverb_control = 0;
+#endif /* FREEVERB_CONTROL_ALLOW */
 #endif /* REVERB_CONTROL_ALLOW */
 
 #ifdef CHORUS_CONTROL_ALLOW
@@ -188,18 +192,7 @@ int opt_insertion_effect = 0;	/* insertion effect control */
 int opt_drum_effect = 0;	/* drumpart effect control */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
-
-#ifdef MODULATION_ENVELOPE_ALLOW
-int opt_modulation_envelope = 1;
-#else
 int opt_modulation_envelope = 0;
-#endif /* MODULATION_ENVELOPE_ALLOW */
-
-#ifdef FREEVERB_ALLOW
-int opt_effect_quality = 2;
-#else
-int opt_effect_quality = 0;
-#endif /* FREEVERB_ALLOW */
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -233,9 +226,9 @@ static int16 wav_buffer[AUDIO_BUFFER_SIZE*2];
 static int32 buffered_count;
 static char *reverb_buffer = NULL; /* MAX_CHANNELS*AUDIO_BUFFER_SIZE*8 */
 
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 static int32 insertion_effect_buffer[AUDIO_BUFFER_SIZE*2];
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
 
 static MidiEvent *event_list;
 static MidiEvent *current_event;
@@ -2422,7 +2415,7 @@ static void note_on(MidiEvent *e)
 	voice[v].left_mix_inc = voice[v].left_mix_offset =
 	voice[v].right_mix_inc = voice[v].right_mix_offset = 0;
 #endif
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 #else
 	if((channel[ch].chorus_level || opt_surround_chorus))
 	{
@@ -2435,7 +2428,7 @@ static void note_on(MidiEvent *e)
 	{
 		new_delay_voice(v, channel[ch].delay_level);
 	}
-#endif /* NEW_CHORUS */
+#endif /* USE_DSP_EFFECT */
     }
 
     channel[ch].legato_flag = 1;
@@ -2623,7 +2616,7 @@ static void adjust_panning(int c)
             /* adjust pan to include drum/sample pan offsets */
 			pan = get_panning(c,i,i);
 
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 			voice[i].panning = pan;
 #else
 		/* Hack to handle -EFchorus=2 in a "reasonable" way */
@@ -4667,7 +4660,7 @@ static int apply_controls(void)
     return jump_flag ? RC_JUMP : RC_NONE;
 }
 
-#ifdef NEW_CHORUS
+#ifdef USE_DSP_EFFECT
 /* do_compute_data_midi() for new chorus */
 static void do_compute_data_midi(int32 count)
 {
@@ -4685,7 +4678,8 @@ static void do_compute_data_midi(int32 count)
 	memset(insertion_effect_buffer, 0, n);
 
 	/* are effects valid? / don't supported in mono */
-	channel_reverb = (opt_reverb_control == 1 && stereo);
+	channel_reverb = ((opt_reverb_control == 1 || opt_reverb_control == 3)
+			&& stereo);
 	channel_chorus = (opt_chorus_control != 0 && stereo);
 	channel_delay = (opt_delay_control > 0 && stereo);
 
@@ -4826,7 +4820,8 @@ static void do_compute_data_midi(int32 count)
 	
 	stereo = ! (play_mode->encoding & PE_MONO);
 	n = count * ((stereo) ? 8 : 4); /* in bytes */
-	channel_reverb = (opt_reverb_control == 1 && stereo);
+	channel_reverb = ((opt_reverb_control == 1 || opt_reverb_control == 3)
+			&& stereo);
 		/* don't supported in mono */
 	memset(buffer_pointer, 0, n);
 
