@@ -1,10 +1,18 @@
+2004-02-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
+	  Update man page of timidity.1
+	* timidity/playmidi.c (select_play_sample):
+	  Fix determination method of frequency for sample selection
+
 2004-02-08  Daisuke Aoki <dai@sweetparty.ne.jp>
 
 	* timidity/sndfont.c: Fix cfgforsf.
 
 2004-02-08  Saito <saito2@digitalme.com>
 
-	* interface/w32g_tracer.bmp, interface/w32g_subwin3.c, timidity/playmidi.c:
+	* interface/w32g_tracer.bmp, interface/w32g_subwin3.c,
+	  timidity/playmidi.c:
 	  Change tracer window.
 	* configs/msc[67]-project.zip:
 	  Fix projects for cfgforsf.
@@ -23,8 +31,8 @@
 2004-02-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/Makefile.{am,in}:
-	  Rename for msc-project[67].zip to msc[67]-project.zip entry
-	  Rename for msc-sjis.txt to msc6-sjis.txt entry
+	  Rename entry for msc-project[67].zip to msc[67]-project.zip
+	  Rename entry for msc-sjis.txt to msc6-sjis.txt
 	  Add entry for msc7-sjis.txt
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
 	  Update man page of timidity.1

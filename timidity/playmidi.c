@@ -1955,7 +1955,7 @@ static int select_play_sample(Sample *splist,
 	Sample *sp, *spc, *spr;
 	int16 sf, sn;
 	double ratio;
-	int i, j, k, nv, nvc;
+	int i, j, k, ns, nv, nvc;
 	
 	if (ISDRUMCHANNEL(ch))
 		f = fs = freq_table[note];
@@ -2006,9 +2006,12 @@ static int select_play_sample(Sample *splist,
 			}
 		else
 			f = freq_table[note];
-		if (opt_temper_control)
-			fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
-		else
+		if (! opt_pure_intonation && opt_temper_control
+				&& tt == 0 && f != freq_table[note]) {
+			ns = log(f / 440000.0) / log(2) * 12 + 69.5;
+			ns = (ns < 0) ? 0 : ((ns > 127) ? 127 : ns);
+			fs = freq_table[ns];
+		} else
 			fs = freq_table[note];
 	}
 	nv = 0;
