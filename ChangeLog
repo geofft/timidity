@@ -1,3 +1,8 @@
+2004-12-08  Kentaro Sato <kentaro@ranvis.com>
+
+	* libarc/arc.c:
+	  Fixed to skip the platform specific path separators right after #.
+
 2004-12-04  Henrique de Moraes Holschuh <hmh@debian.org>
 
 	* timidity/aRts_a.c (open_output): Fix for gcc >= 3.4.x [timidity-bugs-en:00025]

@@ -727,7 +727,13 @@ URL url_arc_open(char *name)
 	return NULL;
     reuse_mblock(&arc_buffer);	/* free `base' */
     name += len + 1;
-    while(name[0] == '/') name++;	/* skip '/'s right after # */
+    while(*name == '/') name++;	/* skip '/'s right after # (slash is always processed) */
+#if PATH_SEP != '/'
+    while(*name == PATH_SEP) name++;	/* skip PATH_SEPs */
+#endif
+#if defined(PATH_SEP2) && (PATH_SEP2 != '/')
+    while(*name == PATH_SEP2) name++;	/* skip PATH_SEP2s */
+#endif
 
     for(entry = afl->entry_list; entry; entry = entry->next)
     {
