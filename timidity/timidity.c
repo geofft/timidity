@@ -1155,8 +1155,8 @@ static char *expand_variables(char *string, MBlockList *varbuf, const char *base
 				for(p = string; isalnum(*p) || *p == '_'; p++) ;
 			if (p == string)	/* empty */
 			{
-				copystr = "$";
-				copylen = 1;
+				copystr = "${";
+				copylen = 1 + braced;
 			}
 			else
 			{
