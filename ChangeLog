@@ -1,4 +1,4 @@
-2003-08-04  URABE Shyouhei  <shyouhei@YahooBB218133008108.bbtec.net>
+2003-08-04  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c: Some option renamed
 	  --auto-volume-compensation -> --[no-]volume-compensation
@@ -6,6 +6,9 @@
 	  --keysig                   -> --force-keysig
 	  --key                      -> --adjust-key
 	  --[no-]recomposer-dll      -> --[no-]-rcpcv-dll
+	  --tempo                    -> --adjust-tempo
+	  --[no-]overlap             -> --[no-]overlap-voice
+	  --text-conversion          -> --output-charset
 	(parse_opt_204): Add
 
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
