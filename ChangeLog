@@ -1,3 +1,8 @@
+2004-10-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* NEWS: Add new entry for 2.13.2
+	* configure.in: Change version to 2.13.2
+
 2004-10-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* interface/wrdt_wcon.c : Fix double definition of print_ecmd()
