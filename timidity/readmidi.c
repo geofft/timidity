@@ -4338,8 +4338,6 @@ void init_delay_status()
 
 void recompute_delay_status()
 {
-	FLOAT_T dBGain;
-
 	delay_status.sample_c = delay_status.time_center * play_mode->rate / 1000;
 	delay_status.sample_l = delay_status.sample_c * delay_status.time_ratio_left;
 	delay_status.sample_r = delay_status.sample_c * delay_status.time_ratio_right;
@@ -4357,8 +4355,8 @@ void recompute_delay_status()
 	}
 
 	if(delay_status.pre_lpf) {
-		delay_status.lpf.freq = (double)(7 - delay_status.pre_lpf) / 7 * 7000 + 350;
-		calc_filter_iir1_lowpass(&(delay_status.lpf));
+		delay_status.lpf.a = (double)(7 - delay_status.pre_lpf) / 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(delay_status.lpf));
 	}
 }
 
@@ -4390,14 +4388,12 @@ void init_reverb_status()
 
 void recompute_reverb_status()
 {
-	FLOAT_T dBGain;
-
 	reverb_status.level_ratio = (double)reverb_status.level / 127.0f;
 	reverb_status.time_ratio = (double)reverb_status.time / 128.0f + 0.5f;
 
 	if(reverb_status.pre_lpf) {
-		reverb_status.lpf.freq = (double)(7 - reverb_status.pre_lpf) / 7 * 7000 + 350;
-		calc_filter_iir1_lowpass(&(reverb_status.lpf));
+		reverb_status.lpf.a = (double)(7 - reverb_status.pre_lpf)/ 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(reverb_status.lpf));
 	}
 }
 
@@ -4431,8 +4427,6 @@ void init_chorus_status()
 
 void recompute_chorus_status()
 {
-	FLOAT_T dBGain;
-
 	chorus_param.delay_in_sample = chorus_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
 	chorus_param.depth_in_sample = chorus_param.delay_in_sample * (double)chorus_param.chorus_depth / 127.0 * CHORUS_WIDTH_RATIO;
 	chorus_param.delay_in_sample -= chorus_param.depth_in_sample;	/* NOMINAL_DELAY to delay */
@@ -4445,8 +4439,8 @@ void recompute_chorus_status()
 	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
 
 	if(chorus_param.chorus_pre_lpf) {
-		chorus_param.lpf.freq = (double)(7 - chorus_param.chorus_pre_lpf) / 7 * 7000 + 350;
-		calc_filter_iir1_lowpass(&(chorus_param.lpf));
+		chorus_param.lpf.a = (double)(7 - chorus_param.chorus_pre_lpf) / 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(chorus_param.lpf));
 	}
 }
 
@@ -4482,7 +4476,9 @@ void recompute_eq_status()
 	else {freq = 400;}
 	dbGain = eq_status.low_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
-		calc_lowshelf_coefs(eq_status.low_coef,freq,dbGain,play_mode->rate);
+		eq_status.lsf.freq = freq;
+		eq_status.lsf.gain = dbGain;
+		calc_filter_shelving_low(&(eq_status.lsf));
 	}
 
 	/* Highpass Shelving Filter */
@@ -4490,7 +4486,9 @@ void recompute_eq_status()
 	else {freq = 6000;}
 	dbGain = eq_status.high_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
-		calc_highshelf_coefs(eq_status.high_coef,freq,dbGain,play_mode->rate);
+		eq_status.hsf.freq = freq;
+		eq_status.hsf.gain = dbGain;
+		calc_filter_shelving_high(&(eq_status.hsf));
 	}
 }
 

@@ -5085,7 +5085,7 @@ static void do_compute_data_midi(int32 count)
 	if(channel_effect) {
 		if(opt_insertion_effect) { 	/* insertion effect */
 			/* applying insertion effect */
-			do_insertion_effect(insertion_effect_buffer, cnt);
+			do_insertion_effect_gs(insertion_effect_buffer, cnt);
 			/* sending insertion effect voice to channel effect */
 			set_ch_chorus(insertion_effect_buffer, cnt, gs_ieffect.send_chorus);
 			set_ch_delay(insertion_effect_buffer, cnt, gs_ieffect.send_delay);

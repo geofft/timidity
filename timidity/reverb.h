@@ -37,6 +37,7 @@ extern int opt_effect_quality;
 
 extern void set_dry_signal(register int32 *, int32);
 extern void mix_dry_signal(register int32 *, int32);
+extern void free_effect_buffers(void);
 
 /*                    */
 /*  Effect Utitities  */
@@ -96,13 +97,6 @@ typedef struct {
 	double ay1, ay2, aout, lastin, kres, value, kp, kp1h;
 } filter_lpf18;
 
-/*! 1st order IIR lowpass / highpass filter for stereo */
-typedef struct {
-	int16 freq, last_freq;	/* in Hz */
-	int32 a0i, a1i, b1i;	/* coefficients in fixed-point */
-	int32 x1l, y1l, x1r, y1r;
-} filter_iir1;
-
 /*! 1st order lowpass filter */
 typedef struct {
 	double a;
@@ -110,7 +104,17 @@ typedef struct {
 	int32 x1l, x1r;
 } filter_lowpass1;
 
-extern void calc_filter_iir1_lowpass(filter_iir1 *);
+extern void init_filter_lowpass1(filter_lowpass1 *);
+
+/*! shelving filter */
+typedef struct {
+	double freq, gain;
+	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
+	int32 a1, a2, b0, b1, b2;
+} filter_shelving;
+
+extern void calc_filter_shelving_high(filter_shelving *);
+extern void calc_filter_shelving_low(filter_shelving *);
 
 /*! allpass filter */
 typedef struct _allpass {
@@ -126,9 +130,13 @@ typedef struct _comb {
 	int32 feedbacki, damp1i, damp2i;
 } comb;
 
-/*                                    */
-/* for Insertion and Variation Effect */
-/*                                    */
+/*                                  */
+/*  Insertion and Variation Effect  */
+/*                                  */
+extern void do_insertion_effect_gs(int32*, int32);
+extern void do_insertion_effect_xg(int32*, int32);
+extern void do_variation_effect_xg(int32*, int32);
+
 enum {
 	EFFECT_NONE,
 	EFFECT_EQ2,
@@ -155,17 +163,9 @@ extern void free_effect_list(EffectList *);
 
 /*! 2-Band EQ */
 typedef struct {
-    int16 low_freq;		/* in Hz */
-	int16 high_freq;	/* in Hz */
-	int16 low_gain;		/* in dB */
-	int16 high_gain;	/* in dB */
-
-	/* for highpass shelving filter */
-	int32 high_coef[5];
-	int32 high_val[8];
-	/* for lowpass shelving filter */
-	int32 low_coef[5];
-	int32 low_val[8];
+    int16 low_freq, high_freq;		/* in Hz */
+	int16 low_gain, high_gain;		/* in dB */
+	filter_shelving hsf, lsf;
 } InfoEQ2;
 
 /*! Overdrive 1 / Distortion 1 */
@@ -217,14 +217,21 @@ typedef struct {
 } InfoPlateReverb;
 
 /*! Freeverb */
+#define numcombs 8
+#define numallpasses 4
+
 typedef struct {
-	double level;
+	double roomsize, roomsize1, damp, damp1, wet, wet1, wet2, width;
+	comb combL[numcombs], combR[numcombs];
+	allpass allpassL[numallpasses], allpassR[numallpasses];
+	int32 wet1i, wet2i;
+	int8 alloc_flag;
 } InfoFreeverb;
 
-/*                                  */
-/*        for System Effects        */
-/*                                  */
-/* channel-by-channel reverberation effect */
+/*                             */
+/*        System Effect        */
+/*                             */
+/* Reverb Effect */
 extern void do_reverb(int32 *, int32);
 extern void do_ch_reverb(int32 *, int32);
 extern void set_ch_reverb(register int32 *, int32, int32);
@@ -233,125 +240,75 @@ extern void init_reverb(int32);
 extern void reverb_rc_event(int, int32);
 extern void recompute_reverb_value(int32);
 
-/* channel-by-channel delay effect */
-extern void do_ch_delay(int32 *, int32);
-extern void set_ch_delay(register int32 *, int32, int32);
-extern void init_ch_delay();
-
-/* channel-by-channel chorus effect */
+/* Chorus Effect */
 extern void do_ch_chorus(int32 *, int32);
 extern void set_ch_chorus(register int32 *, int32, int32);
-extern void init_chorus_lfo();
-extern void init_ch_chorus();
+extern void init_chorus_lfo(void);
+extern void init_ch_chorus(void);
 
-/* channel-by-channel equalizer */
+/* Delay (Celeste) Effect */
+extern void do_ch_delay(int32 *, int32);
+extern void set_ch_delay(register int32 *, int32, int32);
+extern void init_ch_delay(void);
+
+/* EQ */
 extern void init_eq();
 extern void set_ch_eq(register int32 *, int32);
 extern void do_ch_eq(int32 *, int32);
-extern void calc_lowshelf_coefs(int32*,int32,FLOAT_T,int32);
-extern void calc_highshelf_coefs(int32*,int32,FLOAT_T,int32);
-
-/* insertion effect */
-extern void init_insertion_effect();
-extern void do_insertion_effect(int32*, int32);
-
-/* lowpass filter for system effects */
-extern void do_lowpass_24db(register int32*,int32,int32*,int32*);
-extern void calc_lowpass_coefs_24db(int32*,int32,int16,int32);
-
-extern void free_effect_buffers(void);
 
 /* GS parameters of delay effect */
 struct delay_status_t
 {
 	/* GS parameters */
-	uint8 type;
-	uint8 level;
-    uint8 level_center;
-    uint8 level_left;
-    uint8 level_right;
+	uint8 type, level, level_center, level_left, level_right,
+		feedback, pre_lpf, send_reverb;
     double time_center;			/* in ms */
-    double time_ratio_left;		/* in pct */
-    double time_ratio_right;	/* in pct */
-    uint8 feedback;
-	uint8 pre_lpf;
-	uint8 send_reverb;
+    double time_ratio_left, time_ratio_right;		/* in pct */
 
 	/* for pre-calculation */
-	int32 sample_c;
-	int32 sample_l;
-	int32 sample_r;
-	double level_ratio_c;
-	double level_ratio_l;
-	double level_ratio_r;
-	double feedback_ratio;
-	double send_reverb_ratio;
+	int32 sample_c, sample_l, sample_r;
+	double level_ratio_c, level_ratio_l, level_ratio_r,
+		feedback_ratio, send_reverb_ratio;
 
-	filter_iir1 lpf;
+	filter_lowpass1 lpf;
 };
 
 /* GS parameters of reverb effect */
 struct reverb_status_t
 {
 	/* GS parameters */
-	uint8 character;
-	uint8 pre_lpf;
-	uint8 level;
-	uint8 time;
-	uint8 delay_feedback;
-	uint8 pre_delay_time;	/* in ms */
+	uint8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
 
 	/* for pre-calculation */
-	double level_ratio;
-	double time_ratio;
+	double level_ratio, time_ratio;
 
 	InfoPlateReverb info_plate_reverb;
 	InfoFreeverb info_freeverb;
-	filter_iir1 lpf;
+	filter_lowpass1 lpf;
 };
 
 /* GS parameters of chorus effect */
 struct chorus_param_t
 {
 	/* GS parameters */
-	uint8 chorus_macro;
-	uint8 chorus_pre_lpf;
-	uint8 chorus_level;
-	uint8 chorus_feedback;
-	uint8 chorus_delay;
-	uint8 chorus_rate;
-	uint8 chorus_depth;
-	uint8 chorus_send_level_to_reverb;
-	uint8 chorus_send_level_to_delay;
+	uint8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
+		chorus_delay, chorus_rate, chorus_depth, chorus_send_level_to_reverb,
+		chorus_send_level_to_delay;
 
 	/* for pre-calculation */
-	double level_ratio;
-	double feedback_ratio;
-	double send_reverb_ratio;
-	double send_delay_ratio;
-	int32 cycle_in_sample;
-	int32 depth_in_sample;
-	int32 delay_in_sample;
+	double level_ratio, feedback_ratio, send_reverb_ratio, send_delay_ratio;
+	int32 cycle_in_sample, depth_in_sample, delay_in_sample;
 
-	filter_iir1 lpf;
+	filter_lowpass1 lpf;
 };
 
 /* GS parameters of channel EQ */
 struct eq_status_t
 {
 	/* GS parameters */
-    uint8 low_freq;
-	uint8 high_freq;
-	uint8 low_gain;
-	uint8 high_gain;
+    uint8 low_freq, high_freq, low_gain, high_gain;
 
-	/* for highpass shelving filter */
-	int32 high_coef[5];
-	int32 high_val[8];
-
-	/* for lowpass shelving filter */
-	int32 low_coef[5];
-	int32 low_val[8];
+	filter_shelving hsf, lsf;
 };
 
 struct GSInsertionEffect {
@@ -362,19 +319,12 @@ struct GSInsertionEffect {
 	struct _EffectList *ef;
 } gs_ieffect;
 
-/* see also readmidi.c */
+/* dummy. see also readmidi.c */
 struct chorus_status_t
 {
     int status;
-    uint8 voice_reserve[18];
-    uint8 macro[3];
-    uint8 pre_lpf[3];
-    uint8 level[3];
-    uint8 feed_back[3];
-    uint8 delay[3];
-    uint8 rate[3];
-    uint8 depth[3];
-    uint8 send_level[3];
+    uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
+		delay[3], rate[3], depth[3], send_level[3];
 };
 
 extern struct delay_status_t delay_status;

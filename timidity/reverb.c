@@ -45,9 +45,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-int opt_effect_quality = 0;
-static int32 sample_rate = 44100;
-
 enum play_system_modes
 {
     DEFAULT_SYSTEM_MODE,
@@ -55,10 +52,415 @@ enum play_system_modes
     GS_SYSTEM_MODE,
     XG_SYSTEM_MODE
 };
+
+int opt_effect_quality = 0;
 extern int play_system_mode;
-
 static double REV_INP_LEV = 1.0;
+#define MASTER_CHORUS_LEVEL 1.7
+#define MASTER_DELAY_LEVEL 3.25
 
+/*              */
+/*  Dry Signal  */
+/*              */
+static int32  direct_buffer[AUDIO_BUFFER_SIZE * 2];
+static int32  direct_bufsize = sizeof(direct_buffer);
+
+#if OPT_MODE != 0 && _MSC_VER
+void set_dry_signal(int32 *buf, int32 count)
+{
+	int32 *dbuf = direct_buffer;
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		mov		ebx, [edi]
+		add		esi, 4
+		add		ebx, eax
+		mov		[edi], ebx
+		add		edi, 4
+		dec		ecx
+		jnz		L1
+L2:
+	}
+}
+#else
+void set_dry_signal(register int32 *buf, int32 n)
+{
+#if USE_ALTIVEC
+  if(is_altivec_available()) {
+    v_set_dry_signal(direct_buffer, buf, n);
+  } else {
+#endif
+    register int32 i;
+	register int32 *dbuf = direct_buffer;
+
+    for(i = n-1; i >= 0; i--)
+    {
+        dbuf[i] += buf[i];
+    }
+#if USE_ALTIVEC
+  }
+#endif
+}
+#endif
+
+void mix_dry_signal(register int32 *buf, int32 n)
+{
+ 	memcpy(buf, direct_buffer, sizeof(int32) * n);
+	memset(direct_buffer, 0, sizeof(int32) * n);
+}
+
+/*                    */
+/*  Effect Utitities  */
+/*                    */
+
+/* temporary variables */
+static int32 _output, _bufout, _temp1, _temp2, _temp3;
+
+/*! delay */
+static void free_delay(delay *delay)
+{
+	if(delay->buf != NULL) {free(delay->buf);}
+}
+
+static void set_delay(delay *delay, int32 size)
+{
+	if(size < 1) {size = 1;} 
+	free_delay(delay);
+	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(delay->buf == NULL) {return;}
+	delay->index = 0;
+	delay->size = size;
+	memset(delay->buf, 0, sizeof(int32) * delay->size);
+}
+
+#define do_delay(_stream, _buf, _size, _index) \
+{ \
+	_output = _buf[_index];	\
+	_buf[_index] = _stream;	\
+	if(++_index >= _size) {	\
+		_index = 0;	\
+	}	\
+	_stream = _output;	\
+}
+
+/*! LFO (low frequency oscillator) */
+static void init_lfo(lfo *lfo, double freq, int type)
+{
+	int32 i, cycle;
+
+	lfo->count = 0;
+	lfo->freq = freq;
+	cycle = (double)play_mode->rate / freq;
+	if(cycle < 1) {cycle = 1;}
+	lfo->cycle = cycle;
+	lfo->icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)cycle, 24) - 0.5;
+
+	if(lfo->type != type) {	/* generate LFO waveform */
+		switch(type) {
+		case LFO_SINE:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
+				lfo->buf[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2.0, 16);
+			break;
+		case LFO_TRIANGULAR:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
+				lfo->buf[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2.0, 16);
+			break;
+		default:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++) {lfo->buf[i] = TIM_FSCALE(0.5, 16);}
+			break;
+		}
+	}
+	lfo->type = type;
+}
+
+/* returned value is between 0 and (1 << 16) */
+inline int32 do_lfo(lfo *lfo)
+{
+	int32 val;
+	val = lfo->buf[imuldiv24(lfo->count, lfo->icycle)];
+	if(++lfo->count == lfo->cycle) {lfo->count = 0;}
+	return val;
+}
+
+/*! modulated delay with allpass interpolation (for Chorus Effect,...) */
+static void free_mod_delay(mod_delay *delay)
+{
+	if(delay->buf != NULL) {free(delay->buf);}
+}
+
+static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
+{
+	int32 size = ndelay + depth;
+	free_mod_delay(delay);
+	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(delay->buf == NULL) {return;}
+	delay->rindex = 0;
+	delay->windex = 0;
+	delay->hist = 0;
+	delay->ndelay = ndelay;
+	delay->depth = depth;
+	delay->size = size;
+	memset(delay->buf, 0, sizeof(int32) * delay->size);
+}
+
+#define do_mod_delay(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist) \
+{ \
+	if(++_windex == _size) {_windex = 0;}	\
+	_temp1 = _buf[_rindex];	\
+	_temp2 = imuldiv24(_lfoval, _depth);	\
+	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
+	if(_rindex < 0) {_rindex += _size;}	\
+	_temp2 = 0xFF - (_temp2 & 0xFF);	\
+	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
+	_buf[_windex] = _stream;	\
+	_stream = _hist;	\
+}
+
+/*! modulated allpass filter with allpass interpolation (for Plate Reverberator,...) */
+static void free_mod_allpass(mod_allpass *delay)
+{
+	if(delay->buf != NULL) {free(delay->buf);}
+}
+
+static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, double feedback)
+{
+	int32 size = ndelay + depth;
+	free_mod_allpass(delay);
+	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(delay->buf == NULL) {return;}
+	delay->rindex = 0;
+	delay->windex = 0;
+	delay->hist = 0;
+	delay->ndelay = ndelay;
+	delay->depth = depth;
+	delay->size = size;
+	delay->feedback = feedback;
+	delay->feedbacki = TIM_FSCALE(feedback, 24);
+	memset(delay->buf, 0, sizeof(int32) * delay->size);
+}
+
+#define do_mod_allpass(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist, _feedback) \
+{ \
+	if(++_windex == _size) {_windex = 0;}	\
+	_temp3 = _stream + imuldiv24(_hist, _feedback);	\
+	_temp1 = _buf[_rindex];	\
+	_temp2 = imuldiv24(_lfoval, _depth);	\
+	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
+	if(_rindex < 0) {_rindex += _size;}	\
+	_temp2 = 0xFF - (_temp2 & 0xFF);	\
+	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
+	_buf[_windex] = _temp3;	\
+	_stream = _hist - imuldiv24(_temp3, _feedback);	\
+}
+
+/* allpass filter */
+static void free_allpass(allpass *allpass)
+{
+	if(allpass->buf != NULL) {free(allpass->buf);}
+}
+
+static void set_allpass(allpass *allpass, int32 size, double feedback)
+{
+	if(allpass->buf != NULL) {free(allpass->buf);}
+	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(allpass->buf == NULL) {return;}
+	allpass->index = 0;
+	allpass->size = size;
+	allpass->feedback = feedback;
+	allpass->feedbacki = TIM_FSCALE(feedback, 24);
+	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
+}
+
+#define do_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
+{ \
+	_bufout = _apbuf[_apindex];	\
+	_output = _stream - imuldiv24(_bufout, _apfeedback);	\
+	_apbuf[_apindex] = _output;	\
+	if(++_apindex >= _apsize) {	\
+		_apindex = 0;	\
+	}	\
+	_stream = _bufout + imuldiv24(_output, _apfeedback);	\
+}
+
+
+/*! calculate Moog VCF coefficients */
+void calc_filter_moog(filter_moog *svf)
+{
+	double res, fr, p, q, f;
+
+	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB) {
+		if(svf->last_freq == 0) {	/* clear delay-line */
+			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
+		}
+		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB;
+
+		res = pow(10, (svf->res_dB - 96) / 20);
+		fr = 2.0 * (double)svf->freq / (double)play_mode->rate;
+		q = 1.0 - fr;
+		p = fr + 0.8 * fr * q;
+		f = p + p - 1.0;
+		q = res * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
+		svf->f = TIM_FSCALE(f, 24);
+		svf->p = TIM_FSCALE(p, 24);
+		svf->q = TIM_FSCALE(q, 24);
+	}
+}
+
+/*! calculate LPF18 coefficients */
+void calc_filter_lpf18(filter_lpf18 *p)
+{
+	double kfcn, kp, kp1, kp1h, kres, value;
+
+	if(p->freq != p->last_freq || p->dist != p->last_dist
+		|| p->res != p->last_res) {
+		if(p->last_freq == 0) {	/* clear delay-line */
+			p->ay1 = p->ay2 = p->aout = p->lastin = 0;
+		}
+		p->last_freq = p->freq, p->last_dist = p->dist, p->last_res = p->res;
+
+		kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
+		kp = ((-2.7528 * kfcn + 3.0429) * kfcn + 1.718) * kfcn - 0.9984;
+		kp1 = kp + 1.0;
+		kp1h = 0.5 * kp1;
+		kres = p->res * (((-2.7079 * kp1 + 10.963) * kp1 - 14.934) * kp1 + 8.4974);
+		value = 1.0 + (p->dist * (1.5 + 2.0 * kres * (1.0 - kfcn)));
+
+		p->kp = kp, p->kp1h = kp1h, p->kres = kres, p->value = value;
+	}
+}
+
+/*! 1st order lowpass filter */
+void init_filter_lowpass1(filter_lowpass1 *p)
+{
+	p->x1l = p->x1r = 0;
+	p->ai = TIM_FSCALE(p->a, 24);
+	p->iai = TIM_FSCALE(1.0 - p->a, 24);
+}
+
+#define do_filter_lowpass1(_stream, _x1, _a, _ia) \
+{ \
+	_stream = _x1 = imuldiv24(_x1, _ia) + imuldiv24(_stream, _a);	\
+}
+
+void do_filter_lowpass1_stereo(int32 *buf, int32 count, filter_lowpass1 *p)
+{
+	int32 i, a = p->ai, ia = p->iai, x1l = p->x1l, x1r = p->x1r;
+
+	for(i = 0; i < count; i++) {
+		/* left */
+		do_filter_lowpass1(buf[i], x1l, a, ia);
+
+		++i;
+
+		/* right */
+		do_filter_lowpass1(buf[i], x1r, a, ia);
+	}
+	x1l = p->x1l, x1r = p->x1r;
+}
+
+/*! shelving filter */
+void calc_filter_shelving_low(filter_shelving *p)
+{
+	double a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
+
+	A = pow(10, p->gain / 40);
+	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
+	sn = sin(omega);
+	cs = cos(omega);
+	beta = sqrt(A + A);
+
+	a0 = 1.0 / ((A + 1) + (A - 1) * cs + beta * sn);
+	a1 = 2.0 * ((A - 1) + (A + 1) * cs);
+	a2 = -((A + 1) + (A - 1) * cs - beta * sn);
+	b0 = A * ((A + 1) - (A - 1) * cs + beta * sn);
+	b1 = 2.0 * A * ((A - 1) - (A + 1) * cs);
+	b2 = A * ((A + 1) - (A - 1) * cs - beta * sn);
+
+	a1 *= a0;
+	a2 *= a0;
+	b1 *= a0;
+	b2 *= a0;
+	b0 *= a0;
+
+	p->a1 = TIM_FSCALE(a1, 24);
+	p->a2 = TIM_FSCALE(a2, 24);
+	p->b0 = TIM_FSCALE(b0, 24);
+	p->b1 = TIM_FSCALE(b1, 24);
+	p->b2 = TIM_FSCALE(b2, 24);
+}
+
+void calc_filter_shelving_high(filter_shelving *p)
+{
+	double a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
+
+	A = pow(10, p->gain / 40);
+	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
+	sn = sin(omega);
+	cs = cos(omega);
+	beta = sqrt(A + A);
+
+	a0 = 1.0 / ((A + 1) - (A - 1) * cs + beta * sn);
+	a1 = (-2 * ((A - 1) - (A + 1) * cs));
+	a2 = -((A + 1) - (A - 1) * cs - beta * sn);
+	b0 = A * ((A + 1) + (A - 1) * cs + beta * sn);
+	b1 = -2 * A * ((A - 1) + (A + 1) * cs);
+	b2 = A * ((A + 1) + (A - 1) * cs - beta * sn);
+
+	a1 *= a0;
+	a2 *= a0;
+	b0 *= a0;
+	b1 *= a0;
+	b2 *= a0;
+
+	p->a1 = TIM_FSCALE(a1, 24);
+	p->a2 = TIM_FSCALE(a2, 24);
+	p->b0 = TIM_FSCALE(b0, 24);
+	p->b1 = TIM_FSCALE(b1, 24);
+	p->b2 = TIM_FSCALE(b2, 24);
+}
+
+void init_filter_shelving(filter_shelving *p)
+{
+	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
+		p->x2r = 0, p->y1r = 0, p->y2r = 0;
+}
+
+static void do_shelving_filter_stereo(int32* buf, int32 count, filter_shelving *p)
+{
+#if OPT_MODE != 0
+	int32 i;
+	int32 x1l = p->x1l, x2l = p->x2l, y1l = p->y1l, y2l = p->y2l,
+		x1r = p->x1r, x2r = p->x2r, y1r = p->y1r, y2r = p->y2r, yout;
+	int32 a1 = p->a1, a2 = p->a2, b0 = p->b0, b1 = p->b1, b2 = p->b2;
+
+	for(i = 0; i < count; i++) {
+		yout = imuldiv24(buf[i], b0) + imuldiv24(x1l, b1) + imuldiv24(x2l, b2) + imuldiv24(y1l, a1) + imuldiv24(y2l, a2);
+		x2l = x1l;
+		x1l = buf[i];
+		y2l = y1l;
+		y1l = yout;
+		buf[i] = yout;
+
+		yout = imuldiv24(buf[++i], b0) + imuldiv24(x1r, b1) + imuldiv24(x2r, b2) + imuldiv24(y1r, a1) + imuldiv24(y2r, a2);
+		x2r = x1r;
+		x1r = buf[i];
+		y2r = y1r;
+		y1r = yout;
+		buf[i] = yout;
+	}
+	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
+		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
+#endif /* OPT_MODE != 0 */
+}
+
+
+/*                          */
+/*  Standard Reverb Effect  */
+/*                          */
 /* delay buffers @65kHz */
 #define REV_BUF0       344 * 2
 #define REV_BUF1       684 * 2
@@ -109,17 +511,15 @@ static int32  buf1_L[REV_BUF1], buf1_R[REV_BUF1];
 static int32  buf2_L[REV_BUF2], buf2_R[REV_BUF2];
 static int32  buf3_L[REV_BUF3], buf3_R[REV_BUF3];
 
-static int32  effect_buffer[AUDIO_BUFFER_SIZE*2];
-static int32  direct_buffer[AUDIO_BUFFER_SIZE*2];
-static int32  effect_bufsize = sizeof(effect_buffer);
-static int32  direct_bufsize = sizeof(direct_buffer);
+static int32  reverb_effect_buffer[AUDIO_BUFFER_SIZE * 2];
+static int32  effect_bufsize = sizeof(reverb_effect_buffer);
 
 static int32  ta, tb;
 static int32  HPFL, HPFR;
 static int32  LPFL, LPFR;
 static int32  EPFL, EPFR;
 
-#define rev_memset(xx)     memset(xx,0,sizeof(xx));
+#define rev_memset(xx)     memset(xx, 0, sizeof(xx));
 
 #define rev_ptinc() \
 spt0++; if(spt0 == rpt0) spt0 = 0;\
@@ -127,332 +527,11 @@ spt1++; if(spt1 == rpt1) spt1 = 0;\
 spt2++; if(spt2 == rpt2) spt2 = 0;\
 spt3++; if(spt3 == rpt3) spt3 = 0;
 
-#define MASTER_CHORUS_LEVEL 1.7
-#define MASTER_DELAY_LEVEL 3.25
-
-static void do_shelving_filter(register int32 *, int32, int32 *, int32 *);
-static void do_freeverb(int32 *, int32);
-static void do_ch_plate_reverb(int32 *, int32, InfoPlateReverb *);
-static void alloc_revmodel(void);
-
-#if OPT_MODE != 0 && _MSC_VER
-void set_dry_signal(int32 *buf, int32 count)
-{
-	int32 *dbuf = direct_buffer;
-	_asm {
-		mov		ecx, [count]
-		mov		esi, [buf]
-		test	ecx, ecx
-		jz		short L2
-		mov		edi, [dbuf]
-L1:		mov		eax, [esi]
-		mov		ebx, [edi]
-		add		esi, 4
-		add		ebx, eax
-		mov		[edi], ebx
-		add		edi, 4
-		dec		ecx
-		jnz		L1
-L2:
-	}
-}
-#else
-void set_dry_signal(register int32 *buf, int32 n)
-{
-#if USE_ALTIVEC
-  if(is_altivec_available()) {
-    v_set_dry_signal(direct_buffer,buf,n);
-  } else {
-#endif
-    register int32 i;
-	register int32 *dbuf = direct_buffer;
-
-    for(i=n-1;i>=0;i--)
-    {
-        dbuf[i] += buf[i];
-    }
-#if USE_ALTIVEC
-  }
-#endif
-}
-#endif
-
-void mix_dry_signal(register int32 *buf, int32 n)
-{
- 	memcpy(buf,direct_buffer,sizeof(int32) * n);
-	memset(direct_buffer,0,sizeof(int32) * n);
-}
-
-/*                    */
-/*  Effect Utitities  */
-/*                    */
-
-/* temporary variables */
-static int32 _output, _bufout, _temp1, _temp2, _temp3;
-
-static void free_delay(delay *delay)
-{
-	if(delay->buf != NULL) {free(delay->buf);}
-}
-
-static void set_delay(delay *delay, int32 size)
-{
-	if(size < 1) {size = 1;} 
-	free_delay(delay);
-	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(delay->buf == NULL) {return;}
-	delay->index = 0;
-	delay->size = size;
-	memset(delay->buf, 0, sizeof(int32) * delay->size);
-}
-
-/*! simple delay */
-#define do_delay(_stream, _buf, _size, _index) \
-{ \
-	_output = _buf[_index];	\
-	_buf[_index] = _stream;	\
-	if(++_index >= _size) {	\
-		_index = 0;	\
-	}	\
-	_stream = _output;	\
-}
-
-static void init_lfo(lfo *lfo, double freq, int type)
-{
-	int32 i, cycle;
-
-	lfo->count = 0;
-	lfo->freq = freq;
-	cycle = (double)play_mode->rate / freq;
-	if(cycle < 1) {cycle = 1;}
-	lfo->cycle = cycle;
-	lfo->icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)cycle, 24) - 0.5;
-
-	if(lfo->type != type) {	/* generate waveform of LFO */
-		switch(type) {
-		case LFO_SINE:
-			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
-				lfo->buf[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2.0, 16);
-			break;
-		case LFO_TRIANGULAR:
-			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
-				lfo->buf[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2.0, 16);
-			break;
-		default:
-			for(i = 0; i < SINE_CYCLE_LENGTH; i++) {lfo->buf[i] = TIM_FSCALE(0.5, 16);}
-			break;
-		}
-	}
-	lfo->type = type;
-}
-
-/*! LFO */
-/* returned value is between 0 and (1 << 16) */
-inline int32 do_lfo(lfo *lfo)
-{
-	int32 val;
-	val = lfo->buf[imuldiv24(lfo->count, lfo->icycle)];
-	if(++lfo->count == lfo->cycle) {lfo->count = 0;}
-	return val;
-}
-
-static void free_mod_delay(mod_delay *delay)
-{
-	if(delay->buf != NULL) {free(delay->buf);}
-}
-
-static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
-{
-	int32 size = ndelay + depth;
-	free_mod_delay(delay);
-	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(delay->buf == NULL) {return;}
-	delay->rindex = 0;
-	delay->windex = 0;
-	delay->hist = 0;
-	delay->ndelay = ndelay;
-	delay->depth = depth;
-	delay->size = size;
-	memset(delay->buf, 0, sizeof(int32) * delay->size);
-}
-
-/*! modulated delay with allpass interpolation */
-#define do_mod_delay(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist) \
-{ \
-	if(++_windex == _size) {_windex = 0;}	\
-	_temp1 = _buf[_rindex];	\
-	_temp2 = imuldiv24(_lfoval, _depth);	\
-	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
-	if(_rindex < 0) {_rindex += _size;}	\
-	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
-	_buf[_windex] = _stream;	\
-	_stream = _hist;	\
-}
-
-static void free_mod_allpass(mod_allpass *delay)
-{
-	if(delay->buf != NULL) {free(delay->buf);}
-}
-
-static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, double feedback)
-{
-	int32 size = ndelay + depth;
-	free_mod_delay(delay);
-	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(delay->buf == NULL) {return;}
-	delay->rindex = 0;
-	delay->windex = 0;
-	delay->hist = 0;
-	delay->ndelay = ndelay;
-	delay->depth = depth;
-	delay->size = size;
-	delay->feedback = feedback;
-	delay->feedbacki = TIM_FSCALE(feedback, 24);
-	memset(delay->buf, 0, sizeof(int32) * delay->size);
-}
-
-#define do_simple_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = _stream - imuldiv24(_bufout, _apfeedback);	\
-	_apbuf[_apindex] = _output;	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _bufout + imuldiv24(_output, _apfeedback);	\
-}
-
-/*! modulated delay with allpass interpolation */
-#define do_mod_allpass(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist, _feedback) \
-{ \
-	if(++_windex == _size) {_windex = 0;}	\
-	_temp3 = _stream + imuldiv24(_hist, _feedback);	\
-	_temp1 = _buf[_rindex];	\
-	_temp2 = imuldiv24(_lfoval, _depth);	\
-	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
-	if(_rindex < 0) {_rindex += _size;}	\
-	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
-	_buf[_windex] = _temp3;	\
-	_stream = _hist - imuldiv24(_temp3, _feedback);	\
-}
-
-/*! calculate Moog VCF coefficients */
-void calc_filter_moog(filter_moog *svf)
-{
-	double res, fr, p, q, f;
-
-	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB) {
-		if(svf->last_freq == 0) {	/* clear delay-line */
-			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
-		}
-		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB;
-
-		res = pow(10, (svf->res_dB - 96) / 20);
-		fr = 2.0 * (double)svf->freq / (double)play_mode->rate;
-		q = 1.0 - fr;
-		p = fr + 0.8 * fr * q;
-		f = p + p - 1.0;
-		q = res * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
-		svf->f = TIM_FSCALE(f, 24);
-		svf->p = TIM_FSCALE(p, 24);
-		svf->q = TIM_FSCALE(q, 24);
-	}
-}
-
-/*! calculate LPF18 coefficients */
-void calc_filter_lpf18(filter_lpf18 *p)
-{
-	double kfcn, kp, kp1, kp1h, kres, value;
-
-	if(p->freq != p->last_freq || p->dist != p->last_dist
-		|| p->res != p->last_res) {
-		if(p->last_freq == 0) {	/* clear delay-line */
-			p->ay1 = p->ay2 = p->aout = p->lastin = 0;
-		}
-		p->last_freq = p->freq, p->last_dist = p->dist, p->last_res = p->res;
-
-		kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
-		kp = ((-2.7528 * kfcn + 3.0429) * kfcn + 1.718) * kfcn - 0.9984;
-		kp1 = kp + 1.0;
-		kp1h = 0.5 * kp1;
-		kres = p->res * (((-2.7079 * kp1 + 10.963) * kp1 - 14.934) * kp1 + 8.4974);
-		value = 1.0 + (p->dist * (1.5 + 2.0 * kres * (1.0 - kfcn)));
-
-		p->kp = kp, p->kp1h = kp1h, p->kres = kres, p->value = value;
-	}
-}
-
-/*! calculate 1st order IIR lowpass filter coefficients */
-void calc_filter_iir1_lowpass(filter_iir1 *p)
-{
-	double freq, norm, w = 2.0 * (double)play_mode->rate, b1, a0, a1;
-
-	if(p->freq != p->last_freq) {
-		if(p->last_freq == 0) {	/* clear delay-line */
-			p->x1l = p->y1l = p->x1r = p->y1r = 0;
-		}
-		p->last_freq = p->freq;
-
-		freq = p->freq;
-		freq *= 2.0 * M_PI;
-		norm = 1.0 / (freq + w);
-		b1 = (w - freq) * norm;
-		a0 = a1 = freq * norm;
-
-		p->a0i = TIM_FSCALE(a0, 24);
-		p->a1i = TIM_FSCALE(a1, 24);
-		p->b1i = TIM_FSCALE(b1, 24);
-	}
-}
-
-/*! 1st order IIR lowpass filter */
-void do_filter_iir1_lowpass_stereo(int32 *buf, int32 count, filter_iir1 *p)
-{
-	int32 i, a0, b1, x1l, y1l, x1r, y1r, input;
-
-	a0 = p->a0i, b1 = p->b1i, x1l = p->x1l, y1l = p->y1l, x1r = p->x1r, y1r = p->y1r;
-	for(i = 0; i < count; i++) {
-		/* left */
-		input = buf[i];
-		y1l = buf[i] = imuldiv24(input + x1l, a0) + imuldiv24(y1l, b1);
-		x1l = input;
-
-		/* right */
-		input = buf[++i];
-		y1r = buf[i] = imuldiv24(input + x1r, a0) + imuldiv24(y1r, b1);
-		x1r = input;
-	}
-	p->x1l = x1l, p->y1l = y1l, p->x1r = x1r, p->y1r = y1r;
-}
-
-#define do_filter_iir1_lowpass(_stream, _x1, _y1, _a0, _b1) \
-{ \
-	_temp1 = _stream;	\
-	_y1 = _stream = imuldiv24(_temp1 + _x1, _a0) + imuldiv24(_y1, _b1);	\
-	_x1 = _temp1;	\
-}
-
-/*! initialize 1st order lowpass filter */
-void init_filter_lowpass1(filter_lowpass1 *p, double a)
-{
-	p->x1l = p->x1r = 0;
-	p->a = a;
-	p->ai = TIM_FSCALE(a, 24);
-	p->iai = TIM_FSCALE(1.0 - a, 24);
-}
-
-#define do_filter_lowpass1(_stream, _x1, _a, _ia) \
-{ \
-	_stream = _x1 = imuldiv24(_x1, _ia) + imuldiv24(_stream, _a);	\
-}
-
 #if OPT_MODE != 0
 #if _MSC_VER
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
-	int32 *dbuf = effect_buffer;
+	int32 *dbuf = reverb_effect_buffer;
 	level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	_asm {
@@ -480,7 +559,7 @@ L2:
 #else
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
-    int32 i, *dbuf = effect_buffer;
+    int32 i, *dbuf = reverb_effect_buffer;
     level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	for(i=count-1;i>=0;i--) {dbuf[i] += imuldiv24(buf[i], level);}
@@ -494,7 +573,7 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 	
 	for(i = 0; i < n; i++)
     {
-        effect_buffer[i] += sbuffer[i] * send_level;
+        reverb_effect_buffer[i] += sbuffer[i] * send_level;
     }
 }
 #endif /* OPT_MODE != 0 */
@@ -508,8 +587,8 @@ void do_standard_reverb(register int32 *comp, int32 n)
     for(i = 0; i < n; i++)
     {
         /* L */
-        fixp = effect_buffer[i];
-        effect_buffer[i] = 0;
+        fixp = reverb_effect_buffer[i];
+        reverb_effect_buffer[i] = 0;
 
         LPFL = imuldiv24(LPFL,REV_LPF_LEV) + imuldiv24(buf2_L[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
         ta = buf3_L[spt3];
@@ -527,8 +606,8 @@ void do_standard_reverb(register int32 *comp, int32 n)
         comp[i] += ta + EPFL;
 
         /* R */
-        fixp = effect_buffer[++i];
-        effect_buffer[i] = 0;
+        fixp = reverb_effect_buffer[++i];
+        reverb_effect_buffer[i] = 0;
 
         LPFR = imuldiv24(LPFR,REV_LPF_LEV) + imuldiv24(buf2_R[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
         ta = buf3_R[spt3];
@@ -556,8 +635,8 @@ void do_standard_reverb(int32 *comp, int32 n)
     for(i = 0; i < n; i++)
     {
         /* L */
-        fixp = effect_buffer[i];
-        effect_buffer[i] = 0;
+        fixp = reverb_effect_buffer[i];
+        reverb_effect_buffer[i] = 0;
 
         LPFL = LPFL*REV_LPF_LEV + (buf2_L[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
         ta = buf3_L[spt3];
@@ -576,8 +655,8 @@ void do_standard_reverb(int32 *comp, int32 n)
         direct_buffer[i] = 0;
 
         /* R */
-        fixp = effect_buffer[++i];
-        effect_buffer[i] = 0;
+        fixp = reverb_effect_buffer[++i];
+        reverb_effect_buffer[i] = 0;
 
         LPFR = LPFR*REV_LPF_LEV + (buf2_R[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
         ta = buf3_R[spt3];
@@ -599,25 +678,6 @@ void do_standard_reverb(int32 *comp, int32 n)
     }
 }
 #endif /* OPT_MODE != 0 */
-
-void do_ch_reverb(int32 *buf, int32 count)
-{
-	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
-		do_filter_iir1_lowpass_stereo(effect_buffer, count, &(reverb_status.lpf));
-	if (opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 2) {
-		if(reverb_status.character == 5) {	/* Plate Reverb */
-			do_ch_plate_reverb(buf, count, &(reverb_status.info_plate_reverb));
-		} else {	/* Freeverb */
-			do_freeverb(buf, count);
-		}
-	} else {
-		do_standard_reverb(buf, count);
-	}
-}
 
 void do_reverb(int32 *comp, int32 n)
 {
@@ -718,6 +778,671 @@ void reverb_rc_event(int rc, int32 val)
     }
 }
 
+/*             */
+/*  Freeverb   */
+/*             */
+static void set_freeverb_allpass(allpass *allpass, int32 size)
+{
+	if(allpass->buf != NULL) {free(allpass->buf);}
+	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(allpass->buf == NULL) {return;}
+	allpass->index = 0;
+	allpass->size = size;
+}
+
+static void init_freeverb_allpass(allpass *allpass)
+{
+	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
+}
+
+static void set_freeverb_comb(comb *comb, int32 size)
+{
+	if(comb->buf != NULL) {free(comb->buf);}
+	comb->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(comb->buf == NULL) {return;}
+	comb->index = 0;
+	comb->size = size;
+	comb->filterstore = 0;
+}
+
+static void init_freeverb_comb(comb *comb)
+{
+	memset(comb->buf, 0, sizeof(int32) * comb->size);
+}
+
+#define scalewet 0.06f
+#define scaledamp 0.4f
+#define scaleroom 0.28f
+#define offsetroom 0.7f
+#define initialroom 0.5f
+#define initialdamp 0.5f
+#define initialwet 1 / scalewet
+#define initialdry 0
+#define initialwidth 0.5f
+#define initialallpassfbk 0.65f
+#define stereospread 23
+static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
+static int allpasstunings[numallpasses] = {225, 341, 441, 556};
+#define fixedgain 0.025f
+
+static inline int isprime(int val)
+{
+  int i;
+  if (val == 2) {return 1;}
+  if (val & 1) {
+	for (i=3; i<(int)sqrt((double)val)+1; i+=2) {
+		if ((val%i) == 0) {return 0;}
+	}
+	return 1; /* prime */
+  } else {return 0;} /* even */
+}
+
+static double gs_revchar_to_roomsize(int character)
+{
+	double rs;
+	switch(character) {
+	case 0: rs = 1.0;	break;	/* Room 1 */
+	case 1: rs = 0.94;	break;	/* Room 2 */
+	case 2: rs = 0.97;	break;	/* Room 3 */
+	case 3: rs = 0.90;	break;	/* Hall 1 */
+	case 4: rs = 0.85;	break;	/* Hall 2 */
+	default: rs = 1.0;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return rs;
+}
+
+static double gs_revchar_to_level(int character)
+{
+	double level;
+	switch(character) {
+	case 0: level = 0.744025605;	break;	/* Room 1 */
+	case 1: level = 1.224309745;	break;	/* Room 2 */
+	case 2: level = 0.858592403;	break;	/* Room 3 */
+	case 3: level = 1.0471802;	break;	/* Hall 1 */
+	case 4: level = 1.0;	break;	/* Hall 2 */
+	case 5: level = 0.865335496;	break;	/* Plate */
+	default: level = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return level;
+}
+
+static double gs_revchar_to_rt(int character)
+{
+	double rt;
+	switch(character) {
+	case 0: rt = 0.516850262;	break;	/* Room 1 */
+	case 1: rt = 1.004226004;	break;	/* Room 2 */
+	case 2: rt = 0.691046825;	break;	/* Room 3 */
+	case 3: rt = 0.893006004;	break;	/* Hall 1 */
+	case 4: rt = 1.0;	break;	/* Hall 2 */
+	case 5: rt = 0.538476488;	break;	/* Plate */
+	default: rt = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return rt;
+}
+
+static double gs_revchar_to_width(int character)
+{
+	double width;
+	switch(character) {
+	case 0: width = 0.5;	break;	/* Room 1 */
+	case 1: width = 0.5;	break;	/* Room 2 */
+	case 2: width = 0.5;	break;	/* Room 3 */
+	case 3: width = 0.5;	break;	/* Hall 1 */
+	case 4: width = 0.5;	break;	/* Hall 2 */
+	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return width;
+}
+
+static double gs_revchar_to_apfbk(int character)
+{
+	double apf;
+	switch(character) {
+	case 0: apf = 0.7;	break;	/* Room 1 */
+	case 1: apf = 0.7;	break;	/* Room 2 */
+	case 2: apf = 0.7;	break;	/* Room 3 */
+	case 3: apf = 0.6;	break;	/* Hall 1 */
+	case 4: apf = 0.55;	break;	/* Hall 2 */
+	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return apf;
+}
+
+static void realloc_freeverb_buf(InfoFreeverb *rev)
+{
+	int i;
+	int32 tmpL, tmpR;
+	double time, samplerate = play_mode->rate;
+
+	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character)
+		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
+
+	for(i = 0; i < numcombs; i++)
+	{
+		tmpL = combtunings[i] * samplerate * time / 44100.0;
+		tmpR = (combtunings[i] + stereospread) * samplerate * time / 44100.0;
+		if(tmpL < 10) tmpL = 10;
+		if(tmpR < 10) tmpR = 10;
+		while(!isprime(tmpL)) tmpL++;
+		while(!isprime(tmpR)) tmpR++;
+		rev->combL[i].size = tmpL;
+		rev->combR[i].size = tmpR;
+		set_freeverb_comb(&rev->combL[i], rev->combL[i].size);
+		set_freeverb_comb(&rev->combR[i], rev->combR[i].size);
+	}
+
+	for(i = 0; i < numallpasses; i++)
+	{
+		tmpL = allpasstunings[i] * samplerate * time / 44100.0;
+		tmpR = (allpasstunings[i] + stereospread) * samplerate * time / 44100.0;
+		tmpL *= samplerate / 44100.0;
+		tmpR *= samplerate / 44100.0;
+		if(tmpL < 10) tmpL = 10;
+		if(tmpR < 10) tmpR = 10;
+		while(!isprime(tmpL)) tmpL++;
+		while(!isprime(tmpR)) tmpR++;
+		rev->allpassL[i].size = tmpL;
+		rev->allpassR[i].size = tmpR;
+		set_freeverb_allpass(&rev->allpassL[i], rev->allpassL[i].size);
+		set_freeverb_allpass(&rev->allpassR[i], rev->allpassR[i].size);
+	}
+}
+
+static void update_freeverb(InfoFreeverb *rev)
+{
+	int i;
+	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase;
+
+	rev->wet = (double)reverb_status.level / 127.0 * gs_revchar_to_level(reverb_status.character);
+	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
+	rev->width = gs_revchar_to_width(reverb_status.character);
+
+	rev->wet1 = rev->width / 2 + 0.5f;
+	rev->wet2 = (1 - rev->width) / 2;
+	rev->roomsize1 = rev->roomsize;
+	rev->damp1 = rev->damp;
+
+	realloc_freeverb_buf(rev);
+	rtbase = 1.0 / (44100.0 * reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character));
+
+	for(i = 0; i < numcombs; i++)
+	{
+		rev->combL[i].feedback = pow(10, -3 * (double)combtunings[i] * rtbase);
+		rev->combR[i].feedback = pow(10, -3 * (double)(combtunings[i] /*+ stereospread*/) * rtbase);
+		rev->combL[i].damp1 = rev->damp1;
+		rev->combR[i].damp1 = rev->damp1;
+		rev->combL[i].damp2 = 1 - rev->damp1;
+		rev->combR[i].damp2 = 1 - rev->damp1;
+		rev->combL[i].damp1i = TIM_FSCALE(rev->combL[i].damp1, 24);
+		rev->combR[i].damp1i = TIM_FSCALE(rev->combR[i].damp1, 24);
+		rev->combL[i].damp2i = TIM_FSCALE(rev->combL[i].damp2, 24);
+		rev->combR[i].damp2i = TIM_FSCALE(rev->combR[i].damp2, 24);
+		rev->combL[i].feedbacki = TIM_FSCALE(rev->combL[i].feedback, 24);
+		rev->combR[i].feedbacki = TIM_FSCALE(rev->combR[i].feedback, 24);
+	}
+
+	for(i = 0; i < numallpasses; i++)
+	{
+		rev->allpassL[i].feedback = allpassfbk;
+		rev->allpassR[i].feedback = allpassfbk;
+		rev->allpassL[i].feedbacki = TIM_FSCALE(rev->allpassL[i].feedback, 24);
+		rev->allpassR[i].feedbacki = TIM_FSCALE(rev->allpassR[i].feedback, 24);
+	}
+
+	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
+	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
+}
+
+static void init_freeverb(InfoFreeverb *rev)
+{
+	int i;
+	for(i = 0; i < numcombs; i++) {
+		init_freeverb_comb(&rev->combL[i]);
+		init_freeverb_comb(&rev->combR[i]);
+	}
+	for(i = 0; i < numallpasses; i++) {
+		init_freeverb_allpass(&rev->allpassL[i]);
+		init_freeverb_allpass(&rev->allpassR[i]);
+	}
+}
+
+static void alloc_freeverb_buf(InfoFreeverb *rev)
+{
+	if(rev->alloc_flag) {return;}
+	set_freeverb_comb(&rev->combL[0], combtunings[0]);
+	set_freeverb_comb(&rev->combR[0], combtunings[0] + stereospread);
+	set_freeverb_comb(&rev->combL[1], combtunings[1]);
+	set_freeverb_comb(&rev->combR[1], combtunings[1] + stereospread);
+	set_freeverb_comb(&rev->combL[2], combtunings[2]);
+	set_freeverb_comb(&rev->combR[2], combtunings[2] + stereospread);
+	set_freeverb_comb(&rev->combL[3], combtunings[3]);
+	set_freeverb_comb(&rev->combR[3], combtunings[3] + stereospread);
+	set_freeverb_comb(&rev->combL[4], combtunings[4]);
+	set_freeverb_comb(&rev->combR[4], combtunings[4] + stereospread);
+	set_freeverb_comb(&rev->combL[5], combtunings[5]);
+	set_freeverb_comb(&rev->combR[5], combtunings[5] + stereospread);
+	set_freeverb_comb(&rev->combL[6], combtunings[6]);
+	set_freeverb_comb(&rev->combR[6], combtunings[6] + stereospread);
+	set_freeverb_comb(&rev->combL[7], combtunings[7]);
+	set_freeverb_comb(&rev->combR[7], combtunings[7] + stereospread);
+
+	set_freeverb_allpass(&rev->allpassL[0], allpasstunings[0]);
+	set_freeverb_allpass(&rev->allpassR[0], allpasstunings[0] + stereospread);
+	set_freeverb_allpass(&rev->allpassL[1], allpasstunings[1]);
+	set_freeverb_allpass(&rev->allpassR[1], allpasstunings[1] + stereospread);
+	set_freeverb_allpass(&rev->allpassL[2], allpasstunings[2]);
+	set_freeverb_allpass(&rev->allpassR[2], allpasstunings[2] + stereospread);
+	set_freeverb_allpass(&rev->allpassL[3], allpasstunings[3]);
+	set_freeverb_allpass(&rev->allpassR[3], allpasstunings[3] + stereospread);
+
+	rev->allpassL[0].feedback = initialallpassfbk;
+	rev->allpassR[0].feedback = initialallpassfbk;
+	rev->allpassL[1].feedback = initialallpassfbk;
+	rev->allpassR[1].feedback = initialallpassfbk;
+	rev->allpassL[2].feedback = initialallpassfbk;
+	rev->allpassR[2].feedback = initialallpassfbk;
+	rev->allpassL[3].feedback = initialallpassfbk;
+	rev->allpassR[3].feedback = initialallpassfbk;
+
+	rev->wet = initialwet * scalewet;
+	rev->damp = initialdamp * scaledamp;
+	rev->width = initialwidth;
+	rev->roomsize = initialroom * scaleroom + offsetroom;
+
+	rev->alloc_flag = 1;
+}
+
+static void free_freeverb_buf(InfoFreeverb *rev)
+{
+	int i;
+	
+	for(i = 0; i < numcombs; i++)
+	{
+		if(rev->combL[i].buf != NULL)
+			free(rev->combL[i].buf);
+		if(rev->combR[i].buf != NULL)
+			free(rev->combR[i].buf);
+	}
+	for(i = 0; i < numallpasses; i++)
+	{
+		if(rev->allpassL[i].buf != NULL)
+			free(rev->allpassL[i].buf);
+		if(rev->allpassR[i].buf != NULL)
+			free(rev->allpassR[i].buf);
+	}
+}
+
+#if OPT_MODE != 0	/* fixed-point implementation */
+#define do_freeverb_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
+{ \
+	_bufout = _apbuf[_apindex];	\
+	_output = -_stream + _bufout;	\
+	_apbuf[_apindex] = _stream + imuldiv24(_bufout, _apfeedback);	\
+	if(++_apindex >= _apsize) {	\
+		_apindex = 0;	\
+	}	\
+	_stream = _output;	\
+}
+
+#define do_freeverb_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
+{	\
+	_output = _cbuf[_cindex];	\
+	_cfs = imuldiv24(_output, _cdamp2) + imuldiv24(_cfs, _cdamp1);	\
+	_cbuf[_cindex] = _input + imuldiv24(_cfs, _cfeedback);	\
+	if(++_cindex >= _csize) {	\
+		_cindex = 0;	\
+	}	\
+	_ostream += _output;	\
+}
+
+static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
+{
+	int32 i, k = 0;
+	int32 outl, outr, input;
+	comb *combL = rev->combL, *combR = rev->combR;
+	allpass *allpassL = rev->allpassL, *allpassR = rev->allpassR;
+
+	for (k = 0; k < count; k++)
+	{
+		outl = outr = 0;
+		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
+		reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+
+		for (i = 0; i < numcombs; i++) {
+			do_freeverb_comb(input, outl, combL[i].buf, combL[i].size, combL[i].index,
+				combL[i].damp1i, combL[i].damp2i, combL[i].filterstore, combL[i].feedbacki);
+			do_freeverb_comb(input, outr, combR[i].buf, combR[i].size, combR[i].index,
+				combR[i].damp1i, combR[i].damp2i, combR[i].filterstore, combR[i].feedbacki);
+		}
+		for (i = 0; i < numallpasses; i++) {
+			do_freeverb_allpass(outl, allpassL[i].buf, allpassL[i].size, allpassL[i].index, allpassL[i].feedbacki);
+			do_freeverb_allpass(outr, allpassR[i].buf, allpassR[i].size, allpassR[i].index, allpassR[i].feedbacki);
+		}
+		buf[k] += imuldiv24(outl, rev->wet1i) + imuldiv24(outr, rev->wet2i);
+		buf[k + 1] += imuldiv24(outr, rev->wet1i) + imuldiv24(outl, rev->wet2i);
+		++k;
+	}
+}
+#else	/* floating-point implementation */
+#define do_freeverb_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
+{ \
+	_bufout = _apbuf[_apindex];	\
+	_output = -_stream + _bufout;	\
+	_apbuf[_apindex] = _stream + (_bufout * _apfeedback);	\
+	if(++_apindex >= _apsize) {	\
+		_apindex = 0;	\
+	}	\
+	_stream = _output;	\
+}
+
+#define do_freeverb_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
+{	\
+	_output = _cbuf[_cindex];	\
+	_cfs = (_output * _cdamp2) + (_cfs * _cdamp1);	\
+	_cbuf[_cindex] = _input + (_cfs * _cfeedback);	\
+	if(++_cindex >= _csize) {	\
+		_cindex = 0;	\
+	}	\
+	_ostream += _output;	\
+}
+
+static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
+{
+	int32 i, k = 0;
+	int32 outl, outr, input;
+
+	for (k = 0; k < count; k++)
+	{
+		outl = outr = 0;
+		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
+		reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+
+		for (i = 0; i < numcombs; i++) {
+			do_freeverb_comb(input, outl, rev->combL[i].buf, rev->combL[i].size, rev->combL[i].index,
+				rev->combL[i].damp1, rev->combL[i].damp2, rev->combL[i].filterstore, rev->combL[i].feedback);
+			do_freeverb_comb(input, outr, rev->combR[i].buf, rev->combR[i].size, rev->combR[i].index,
+				rev->combR[i].damp1, rev->combR[i].damp2, rev->combR[i].filterstore, rev->combR[i].feedback);
+		}
+		for (i = 0; i < numallpasses; i++) {
+			do_freeverb_allpass(outl, rev->allpassL[i].buf, rev->allpassL[i].size, rev->allpassL[i].index, rev->allpassL[i].feedback);
+			do_freeverb_allpass(outr, rev->allpassR[i].buf, rev->allpassR[i].size, rev->allpassR[i].index, rev->allpassR[i].feedback);
+		}
+		buf[k] += outl * rev->wet1 + outr * rev->wet2;
+		buf[k + 1] += outr * rev->wet1 + outl * rev->wet2;
+		++k;
+	}
+}
+#endif	/* OPT_MODE != 0 */
+
+/*                      */
+/*  Plate Reverberator  */
+/*                      */
+#define PLATE_SAMPLERATE 29761.0
+#define PLATE_DECAY 0.50
+#define PLATE_DECAY_DIFFUSION1 0.70
+#define PLATE_DECAY_DIFFUSION2 0.50
+#define PLATE_INPUT_DIFFUSION1 0.750
+#define PLATE_INPUT_DIFFUSION2 0.625
+#define PLATE_BANDWIDTH 0.9955
+#define PLATE_DAMPING 0.0005
+#define PLATE_WET 0.25
+
+/*! calculate delay sample in current sample-rate */
+static inline int32 get_plate_delay(double delay, double t)
+{
+	return (int32)(delay * play_mode->rate * t / PLATE_SAMPLERATE);
+}
+
+/*! Plate Reverberator; this implementation is specialized for system effect. */
+static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
+{
+	int32 i;
+	int32 x, xd, val, outl, outr, temp1, temp2, temp3;
+	delay *pd = &(info->pd), *od1l = &(info->od1l), *od2l = &(info->od2l),
+		*od3l = &(info->od3l), *od4l = &(info->od4l), *od5l = &(info->od5l),
+		*od6l = &(info->od6l), *od1r = &(info->od1r), *od2r = &(info->od2r),
+		*od3r = &(info->od3r), *od4r = &(info->od4r), *od5r = &(info->od5r),
+		*od7r = &(info->od7r), *od7l = &(info->od7l), *od6r = &(info->od6r),
+		*td1 = &(info->td1), *td2 = &(info->td2), *td1d = &(info->td1d), *td2d = &(info->td2d);
+	allpass *ap1 = &(info->ap1), *ap2 = &(info->ap2), *ap3 = &(info->ap3),
+		*ap4 = &(info->ap4), *ap6 = &(info->ap6), *ap6d = &(info->ap6d);
+	mod_allpass *ap5 = &(info->ap5), *ap5d = &(info->ap5d);
+	lfo *lfo1 = &(info->lfo1), *lfo1d = &(info->lfo1d);
+	filter_lowpass1 *lpf1 = &(info->lpf1), *lpf2 = &(info->lpf2);
+	int32 t1 = info->t1, t1d = info->t1d;
+	int32 decayi = info->decayi, ddif1i = info->ddif1i, ddif2i = info->ddif2i,
+		idif1i = info->idif1i, idif2i = info->idif2i;
+	double t;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_lfo(lfo1, 1, LFO_SINE);
+		init_lfo(lfo1d, 1, LFO_SINE);
+		t = reverb_time_table[reverb_status.time] / reverb_time_table[64] - 1.0;
+		t = 1.0 + t / 2;
+		set_delay(pd, reverb_status.pre_delay_time * play_mode->rate / 1000);
+		set_delay(td1, get_plate_delay(4453, t)),
+		set_delay(td1d, get_plate_delay(4217, t));
+		set_delay(td2, get_plate_delay(3720, t));
+		set_delay(td2d, get_plate_delay(3163, t));
+		set_delay(od1l, get_plate_delay(266, t));
+		set_delay(od2l, get_plate_delay(2974, t));
+		set_delay(od3l, get_plate_delay(1913, t));
+		set_delay(od4l, get_plate_delay(1996, t));
+		set_delay(od5l, get_plate_delay(1990, t));
+		set_delay(od6l, get_plate_delay(187, t));
+		set_delay(od7l, get_plate_delay(1066, t));
+		set_delay(od1r, get_plate_delay(353, t));
+		set_delay(od2r, get_plate_delay(3627, t));
+		set_delay(od3r, get_plate_delay(1228, t));
+		set_delay(od4r, get_plate_delay(2673, t));
+		set_delay(od5r, get_plate_delay(2111, t));
+		set_delay(od6r, get_plate_delay(335, t));
+		set_delay(od7r, get_plate_delay(121, t));
+		set_allpass(ap1, get_plate_delay(142, t), PLATE_INPUT_DIFFUSION1);
+		set_allpass(ap2, get_plate_delay(107, t), PLATE_INPUT_DIFFUSION1);
+		set_allpass(ap3, get_plate_delay(379, t), PLATE_INPUT_DIFFUSION2);
+		set_allpass(ap4, get_plate_delay(277, t), PLATE_INPUT_DIFFUSION2);
+		set_allpass(ap6, get_plate_delay(1800, t), PLATE_DECAY_DIFFUSION2);
+		set_allpass(ap6d, get_plate_delay(2656, t), PLATE_DECAY_DIFFUSION2);
+		set_mod_allpass(ap5, get_plate_delay(672, t), get_plate_delay(16, t), PLATE_DECAY_DIFFUSION1);
+		set_mod_allpass(ap5d, get_plate_delay(908, t), get_plate_delay(16, t), PLATE_DECAY_DIFFUSION1);
+		lpf1->a = PLATE_BANDWIDTH, lpf2->a = 1.0 - PLATE_DAMPING;
+		init_filter_lowpass1(lpf1);
+		init_filter_lowpass1(lpf2);
+		info->t1 = info->t1d = 0;
+		info->decay = PLATE_DECAY;
+		info->decayi = TIM_FSCALE(info->decay, 24);
+		info->ddif1 = PLATE_DECAY_DIFFUSION1;
+		info->ddif1i = TIM_FSCALE(info->ddif1, 24);
+		info->ddif2 = PLATE_DECAY_DIFFUSION2;
+		info->ddif2i = TIM_FSCALE(info->ddif2, 24);
+		info->idif1 = PLATE_INPUT_DIFFUSION1;
+		info->idif1i = TIM_FSCALE(info->idif1, 24);
+		info->idif2 = PLATE_INPUT_DIFFUSION2;
+		info->idif2i = TIM_FSCALE(info->idif2, 24);
+		info->wet = PLATE_WET * (double)reverb_status.level / 127.0;
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(pd);
+		free_delay(td1);
+		free_delay(td1d);
+		free_delay(td2);
+		free_delay(td2d);
+		free_delay(od1l);
+		free_delay(od2l);
+		free_delay(od3l);
+		free_delay(od4l);
+		free_delay(od5l);
+		free_delay(od6l);
+		free_delay(od7l);
+		free_delay(od1r);
+		free_delay(od2r);
+		free_delay(od3r);
+		free_delay(od4r);
+		free_delay(od5r);
+		free_delay(od6r);
+		free_delay(od7r);
+		free_allpass(ap1);
+		free_allpass(ap2);
+		free_allpass(ap3);
+		free_allpass(ap4);
+		free_allpass(ap6);
+		free_allpass(ap6d);
+		free_mod_allpass(ap5);
+		free_mod_allpass(ap5d);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		outr = outl = 0;
+		x = (reverb_effect_buffer[i] + reverb_effect_buffer[i + 1]) >> 1;
+		reverb_effect_buffer[i] = reverb_effect_buffer[i + 1] = 0;
+
+		do_delay(x, pd->buf, pd->size, pd->index);
+		do_filter_lowpass1(x, lpf1->x1l, lpf1->ai, lpf1->iai);
+		do_allpass(x, ap1->buf, ap1->size, ap1->index, idif1i);
+		do_allpass(x, ap2->buf, ap2->size, ap2->index, idif1i);
+		do_allpass(x, ap3->buf, ap3->size, ap3->index, idif2i);
+		do_allpass(x, ap4->buf, ap4->size, ap4->index, idif2i);
+
+		/* tank structure */
+		xd = x;
+		x += imuldiv24(t1d, decayi);
+		val = do_lfo(lfo1);
+		do_mod_allpass(x, ap5->buf, ap5->size, ap5->rindex, ap5->windex,
+			ap5->ndelay, ap5->depth, val, ap5->hist, ddif1i);
+		temp1 = temp2 = temp3 = x;	/* n_out_1 */
+		do_delay(temp1, od5l->buf, od5l->size, od5l->index);
+		outl -= temp1;	/* left output 5 */
+		do_delay(temp2, od1r->buf, od1r->size, od1r->index);
+		outr += temp2;	/* right output 1 */
+		do_delay(temp3, od2r->buf, od2r->size, od2r->index);
+		outr += temp3;	/* right output 2 */
+		do_delay(x, td1->buf, td1->size, td1->index);
+		do_filter_lowpass1(x, lpf2->x1l, lpf2->ai, lpf2->iai);
+		temp1 = temp2 = x;	/* n_out_2 */
+		do_delay(temp1, od6l->buf, od6l->size, od6l->index);
+		outl -= temp1;	/* left output 6 */
+		do_delay(temp2, od3r->buf, od3r->size, od3r->index);
+		outr -= temp2;	/* right output 3 */
+		x = imuldiv24(x, decayi);
+		do_allpass(x, ap6->buf, ap6->size, ap6->index, ddif2i);
+		temp1 = temp2 = x;	/* n_out_3 */
+		do_delay(temp1, od7l->buf, od7l->size, od7l->index);
+		outl -= temp1;	/* left output 7 */
+		do_delay(temp2, od4r->buf, od4r->size, od4r->index);
+		outr += temp2;	/* right output 4 */
+		do_delay(x, td2->buf, td2->size, td2->index);
+		t1 = x;
+
+		xd += imuldiv24(t1, decayi);
+		val = do_lfo(lfo1d);
+		do_mod_allpass(x, ap5d->buf, ap5d->size, ap5d->rindex, ap5d->windex,
+			ap5d->ndelay, ap5d->depth, val, ap5d->hist, ddif1i);
+		temp1 = temp2 = temp3 = xd;	/* n_out_4 */
+		do_delay(temp1, od1l->buf, od1l->size, od1l->index);
+		outl += temp1;	/* left output 1 */
+		do_delay(temp2, od2l->buf, od2l->size, od2l->index);
+		outl += temp2;	/* left output 2 */
+		do_delay(temp3, od6r->buf, od6r->size, od6r->index);
+		outr -= temp3;	/* right output 6 */
+		do_delay(xd, td1d->buf, td1d->size, td1d->index);
+		do_filter_lowpass1(xd, lpf2->x1r, lpf2->ai, lpf2->iai);
+		temp1 = temp2 = xd;	/* n_out_5 */
+		do_delay(temp1, od3l->buf, od3l->size, od3l->index);
+		outl -= temp1;	/* left output 3 */
+		do_delay(temp2, od6r->buf, od6r->size, od6r->index);
+		outr -= temp2;	/* right output 6 */
+		xd = imuldiv24(xd, decayi);
+		do_allpass(xd, ap6d->buf, ap6d->size, ap6d->index, ddif2i);
+		temp1 = temp2 = xd;	/* n_out_6 */
+		do_delay(temp1, od4l->buf, od4l->size, od4l->index);
+		outl += temp1;	/* left output 4 */
+		do_delay(temp2, od7r->buf, od7r->size, od7r->index);
+		outr -= temp2;	/* right output 7 */
+		do_delay(xd, td2d->buf, td2d->size, td2d->index);
+		t1d = xd;
+
+		buf[i] += outl;
+		buf[i + 1] += outr;
+
+		++i;
+	}
+	info->t1 = t1, info->t1d = t1d;
+}
+
+/*! initialize Reverb Effect */
+void init_reverb(int32 output_rate)
+{
+	init_filter_lowpass1(&(reverb_status.lpf));
+	/* Only initialize freeverb if stereo output */
+	/* Old non-freeverb must be initialized for mono reverb not to crash */
+	if (! (play_mode->encoding & PE_MONO)
+			&& (opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))
+			|| opt_effect_quality >= 2) {
+		if(reverb_status.character == 5) {	/* Plate Reverb */
+			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
+			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
+		} else {	/* Freeverb */
+			alloc_freeverb_buf(&(reverb_status.info_freeverb));
+			update_freeverb(&(reverb_status.info_freeverb));
+			init_freeverb(&(reverb_status.info_freeverb));
+			REV_INP_LEV = fixedgain * reverb_status.info_freeverb.wet;
+		}
+	} else {	/* Old Reverb */
+		ta = tb = 0;
+		HPFL = HPFR = LPFL = LPFR = EPFL = EPFR = 0;
+		spt0 = spt1 = spt2 = spt3 = 0;
+		rev_memset(buf0_L);
+		rev_memset(buf0_R);
+		rev_memset(buf1_L);
+		rev_memset(buf1_R);
+		rev_memset(buf2_L);
+		rev_memset(buf2_R);
+		rev_memset(buf3_L);
+		rev_memset(buf3_R);
+		if (output_rate > 65000) {output_rate = 65000;}
+		else if (output_rate < 4000) {output_rate = 4000;}
+		def_rpt0 = rpt0 = REV_VAL0 * output_rate / 1000;
+		def_rpt1 = rpt1 = REV_VAL1 * output_rate / 1000;
+		def_rpt2 = rpt2 = REV_VAL2 * output_rate / 1000;
+		def_rpt3 = rpt3 = REV_VAL3 * output_rate / 1000;
+		rpt0 = def_rpt0 * reverb_status.time_ratio;
+		rpt1 = def_rpt1 * reverb_status.time_ratio;
+		rpt2 = def_rpt2 * reverb_status.time_ratio;
+		rpt3 = def_rpt3 * reverb_status.time_ratio;
+		while (! isprime(rpt0)) {rpt0++;}
+		while (! isprime(rpt1))	{rpt1++;}
+		while (! isprime(rpt2))	{rpt2++;}
+		while (! isprime(rpt3))	{rpt3++;}
+		REV_INP_LEV = 1.0;
+	}
+	memset(reverb_effect_buffer, 0, effect_bufsize);
+	memset(direct_buffer, 0, direct_bufsize);
+}
+
+void do_ch_reverb(int32 *buf, int32 count)
+{
+	if ((opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
+		do_filter_lowpass1_stereo(reverb_effect_buffer, count, &(reverb_status.lpf));
+	if (opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 2) {
+		if(reverb_status.character == 5) {	/* Plate Reverb */
+			do_ch_plate_reverb(buf, count, &(reverb_status.info_plate_reverb));
+		} else {	/* Freeverb */
+			do_ch_freeverb(buf, count, &(reverb_status.info_freeverb));
+		}
+	} else {	/* Old Reverb */
+		do_standard_reverb(buf, count);
+	}
+}
+
 
 /*                             */
 /*   Delay (Celeste) Effect    */
@@ -746,8 +1471,7 @@ void init_ch_delay()
 	memset(delay_buf0_R, 0, sizeof(delay_buf0_R));
 	memset(delay_effect_buffer, 0, sizeof(delay_effect_buffer));
 	/* clear delay-line of LPF */
-	delay_status.lpf.last_freq = 0;
-	calc_filter_iir1_lowpass(&(delay_status.lpf));
+	init_filter_lowpass1(&(delay_status.lpf));
 
 	delay_wpt0 = 0;
 	delay_spt0 = 0;
@@ -762,7 +1486,7 @@ void do_ch_delay(int32 *buf, int32 count)
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 1) && delay_status.pre_lpf)
-		do_filter_iir1_lowpass_stereo(delay_effect_buffer, count, &(delay_status.lpf));
+		do_filter_lowpass1_stereo(delay_effect_buffer, count, &(delay_status.lpf));
 	switch (delay_status.type) {
 	case 1:
 		do_3tap_delay(buf, count);
@@ -847,13 +1571,13 @@ void do_basic_delay(int32* buf, int32 count)
 		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_L[delay_spt0], feedback);
 		output = imuldiv24(delay_buf0_L[delay_spt0], level);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output, send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_R[delay_spt0], feedback);
 		output = imuldiv24(delay_buf0_R[delay_spt0], level);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output, send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
@@ -912,13 +1636,13 @@ void do_cross_delay(int32* buf, int32 count)
 		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_R[delay_spt0],feedback);
 		output = imuldiv24(delay_buf0_L[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1],level_l);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output,send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_L[delay_spt0],feedback);
 		output = imuldiv24(delay_buf0_R[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2],level_r);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output,send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
@@ -987,13 +1711,13 @@ void do_3tap_delay(int32* buf, int32 count)
 		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_L[delay_spt0],feedback);
 		output = imuldiv24(delay_buf0_L[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1],level_l);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output,send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_R[delay_spt0],feedback);
 		output = imuldiv24(delay_buf0_R[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2],level_r);
 		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output,send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
 		delay_effect_buffer[i] = 0;
 
 		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
@@ -1064,11 +1788,11 @@ void init_chorus_lfo(void)
 	if(chorus_cyc0 == 0) {chorus_cyc0 = 1;}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo0[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2, 16);
+		chorus_lfo0[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2, 16);
 	}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo1[i] = TIM_FSCALE((lookup_sine(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 16);
+		chorus_lfo1[i] = TIM_FSCALE((lookup_triangular(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 16);
 	}
 #endif /* USE_DSP_EFFECT */
 }
@@ -1080,8 +1804,7 @@ void init_ch_chorus()
 	memset(chorus_buf0_R, 0, sizeof(chorus_buf0_R));
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
 	/* clear delay-line of LPF */
-	chorus_param.lpf.last_freq = 0;
-	calc_filter_iir1_lowpass(&(chorus_param.lpf));
+	init_filter_lowpass1(&(chorus_param.lpf));
 
 	chorus_cnt0 = chorus_wpt0 = chorus_wpt1 = 0;
 	chorus_spt0 = chorus_spt1 = chorus_hist0 = chorus_hist1 = 0;
@@ -1139,7 +1862,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 		output = imuldiv24(output, level);
 		buf[i] += output;
 		/* send to other system effects (it's peculiar to GS) */
-		effect_buffer[i] += imuldiv24(output, send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] += imuldiv24(output, send_delay);
 		chorus_effect_buffer[i] = 0;
 
@@ -1150,7 +1873,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 		output = imuldiv24(output, level);
 		buf[i] += output;
 		/* send to other system effects (it's peculiar to GS) */
-		effect_buffer[i] += imuldiv24(output, send_reverb);
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] += imuldiv24(output, send_delay);
 		chorus_effect_buffer[i] = 0;
 	}
@@ -1216,7 +1939,7 @@ void do_ch_chorus(int32 *buf, int32 count)
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf)
-		do_filter_iir1_lowpass_stereo(chorus_effect_buffer, count, &(chorus_param.lpf));
+		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_param.lpf));
 
 	do_stereo_chorus(buf, count);
 }
@@ -1231,129 +1954,18 @@ static int32 eq_buffer[AUDIO_BUFFER_SIZE * 2];
 void init_eq()
 {
 	memset(eq_buffer, 0, sizeof(eq_buffer));
-	memset(eq_status.low_val, 0, sizeof(eq_status.low_val));
-	memset(eq_status.high_val, 0, sizeof(eq_status.high_val));
+	init_filter_shelving(&(eq_status.lsf));
+	init_filter_shelving(&(eq_status.hsf));
 }
 
-void calc_lowshelf_coefs(int32* coef, int32 cutoff_freq, FLOAT_T dbGain, int32 rate)
-{
-	FLOAT_T a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
-
-	A = pow(10, dbGain / 40);
-	omega = 2.0 * M_PI * (FLOAT_T)cutoff_freq / (FLOAT_T)rate;
-	sn = sin(omega);
-	cs = cos(omega);
-	beta = sqrt(A + A);
-
-	a0 = 1.0 / ((A + 1) + (A - 1) * cs + beta * sn);
-	a1 = 2.0 * ((A - 1) + (A + 1) * cs);
-	a2 = -((A + 1) + (A - 1) * cs - beta * sn);
-	b0 = A * ((A + 1) - (A - 1) * cs + beta * sn);
-	b1 = 2.0 * A * ((A - 1) - (A + 1) * cs);
-	b2 = A * ((A + 1) - (A - 1) * cs - beta * sn);
-
-	a1 *= a0;
-	a2 *= a0;
-	b1 *= a0;
-	b2 *= a0;
-	b0 *= a0;
-
-	coef[0] = TIM_FSCALE(a1, 24);
-	coef[1] = TIM_FSCALE(a2, 24);
-	coef[2] = TIM_FSCALE(b0, 24);
-	coef[3] = TIM_FSCALE(b1, 24);
-	coef[4] = TIM_FSCALE(b2, 24);
-}
-
-void calc_highshelf_coefs(int32* coef, int32 cutoff_freq, FLOAT_T dbGain, int32 rate)
-{
-	FLOAT_T a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
-
-	A = pow(10, dbGain / 40);
-	omega = 2.0 * M_PI * (FLOAT_T)cutoff_freq / (FLOAT_T)rate;
-	sn = sin(omega);
-	cs = cos(omega);
-	beta = sqrt(A + A);
-
-	a0 = 1.0 / ((A + 1) - (A - 1) * cs + beta * sn);
-	a1 = (-2 * ((A - 1) - (A + 1) * cs));
-	a2 = -((A + 1) - (A - 1) * cs - beta * sn);
-	b0 = A * ((A + 1) + (A - 1) * cs + beta * sn);
-	b1 = -2 * A * ((A - 1) + (A + 1) * cs);
-	b2 = A * ((A + 1) + (A - 1) * cs - beta * sn);
-
-	a1 *= a0;
-	a2 *= a0;
-	b0 *= a0;
-	b1 *= a0;
-	b2 *= a0;
-
-	coef[0] = TIM_FSCALE(a1, 24);
-	coef[1] = TIM_FSCALE(a2, 24);
-	coef[2] = TIM_FSCALE(b0, 24);
-	coef[3] = TIM_FSCALE(b1, 24);
-	coef[4] = TIM_FSCALE(b2, 24);
-}
-
-
-static void do_shelving_filter(register int32* buf, int32 count, int32* eq_coef, int32* eq_val)
-{
-#if OPT_MODE != 0
-	register int32 i;
-	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r, yout;
-	int32 a1, a2, b0, b1, b2;
-
-	a1 = eq_coef[0];
-	a2 = eq_coef[1];
-	b0 = eq_coef[2];
-	b1 = eq_coef[3];
-	b2 = eq_coef[4];
-
-	x1l = eq_val[0];
-	x2l = eq_val[1];
-	y1l = eq_val[2];
-	y2l = eq_val[3];
-	x1r = eq_val[4];
-	x2r = eq_val[5];
-	y1r = eq_val[6];
-	y2r = eq_val[7];
-
-	for(i=0;i<count;i++) {
-		yout = imuldiv24(buf[i], b0) + imuldiv24(x1l, b1) + imuldiv24(x2l, b2) + imuldiv24(y1l, a1) + imuldiv24(y2l, a2);
-		x2l = x1l;
-		x1l = buf[i];
-		y2l = y1l;
-		y1l = yout;
-		buf[i] = yout;
-
-		yout = imuldiv24(buf[++i], b0) + imuldiv24(x1r, b1) + imuldiv24(x2r, b2) + imuldiv24(y1r, a1) + imuldiv24(y2r, a2);
-		x2r = x1r;
-		x1r = buf[i];
-		y2r = y1r;
-		y1r = yout;
-		buf[i] = yout;
-	}
-
-	eq_val[0] = x1l;
-	eq_val[1] = x2l;
-	eq_val[2] = y1l;
-	eq_val[3] = y2l;
-	eq_val[4] = x1r;
-	eq_val[5] = x2r;
-	eq_val[6] = y1r;
-	eq_val[7] = y2r;
-#endif /* OPT_MODE != 0 */
-}
-
-void do_ch_eq(int32* buf,int32 n)
+void do_ch_eq(int32* buf, int32 count)
 {
 	register int32 i;
-	register int32 count = n;
 
-	do_shelving_filter(eq_buffer,count,eq_status.low_coef,eq_status.low_val);
-	do_shelving_filter(eq_buffer,count,eq_status.high_coef,eq_status.high_val);
+	do_shelving_filter_stereo(eq_buffer, count, &(eq_status.lsf));
+	do_shelving_filter_stereo(eq_buffer, count, &(eq_status.hsf));
 
-	for(i=0;i<count;i++) {
+	for(i = 0; i < count; i++) {
 		buf[i] += eq_buffer[i];
 		eq_buffer[i] = 0;
 	}
@@ -1386,7 +1998,7 @@ void set_ch_eq(register int32 *buf, int32 n)
 {
     register int32 i;
 
-    for(i=n-1;i>=0;i--)
+    for(i = n-1; i >= 0; i--)
     {
         eq_buffer[i] += buf[i];
     }
@@ -1405,822 +2017,21 @@ void set_ch_eq(register int32 *sbuffer, int32 n)
 #endif /* OPT_MODE != 0 */
 
 
-/*                             */
-/*   LPF for System Effects    */
-/*                             */
-
-void calc_lowpass_coefs_24db(int32* lpf_coef,int32 cutoff_freq,int16 resonance,int32 rate)
-{
-	FLOAT_T c,a1,a2,a3,b1,b2,q;
-	const FLOAT_T sqrt2 = 1.4142134;
-
-	/*memset(lpf_coef, 0, sizeof(lpf_coef));*/
-
-	q = sqrt2 - (sqrt2 - 0.1) * (FLOAT_T)resonance / 127;
-
-	c = (cutoff_freq == 0) ? 0 : (1.0 / tan(M_PI * (FLOAT_T)cutoff_freq / (FLOAT_T)rate));
-
-	a1 = 1.0 / (1.0 + q * c + c * c); 
-	a2 = 2* a1; 
-	a3 = a1; 
-	b1 = -(2.0 * (1.0 - c * c) * a1); 
-	b2 = -(1.0 - q * c + c * c) * a1; 
-
-	lpf_coef[0] = TIM_FSCALE(a1, 24);
-	lpf_coef[1] = TIM_FSCALE(a2, 24);
-	lpf_coef[2] = TIM_FSCALE(a3, 24);
-	lpf_coef[3] = TIM_FSCALE(b1, 24);
-	lpf_coef[4] = TIM_FSCALE(b2, 24);
-}
-
-void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_val)
-{
-#if OPT_MODE != 0
-	register int32 i,length;
-	int32 x1l,x2l,y1l,y2l,x1r,x2r,y1r,y2r,yout;
-	int32 a1,a2,a3,b1,b2;
-
-	a1 = lpf_coef[0];
-	a2 = lpf_coef[1];
-	a3 = lpf_coef[2];
-	b1 = lpf_coef[3];
-	b2 = lpf_coef[4];
-
-	length = count;
-
-	x1l = lpf_val[0];
-	x2l = lpf_val[1];
-	y1l = lpf_val[2];
-	y2l = lpf_val[3];
-	x1r = lpf_val[4];
-	x2r = lpf_val[5];
-	y1r = lpf_val[6];
-	y2r = lpf_val[7];
-
-	for(i=0;i<length;i++) {
-		yout = imuldiv24(buf[i] + x2l,a1) + imuldiv24(x1l,a2) + imuldiv24(y1l,b1) + imuldiv24(y2l,b2);
-		x2l = x1l;
-		x1l = buf[i];
-		buf[i] = yout;
-		y2l = y1l;
-		y1l = yout;
-
-		yout = imuldiv24(buf[++i] + x2r,a1) + imuldiv24(x1r,a2) + imuldiv24(y1r,b1) + imuldiv24(y2r,b2);
-		x2r = x1r;
-		x1r = buf[i];
-		buf[i] = yout;
-		y2r = y1r;
-		y1r = yout;
-	}
-
-	lpf_val[0] = x1l;
-	lpf_val[1] = x2l;
-	lpf_val[2] = y1l;
-	lpf_val[3] = y2l;
-	lpf_val[4] = x1r;
-	lpf_val[5] = x2r;
-	lpf_val[6] = y1r;
-	lpf_val[7] = y2r;
-#endif /* OPT_MODE != 0 */
-}
-
-
-/*                             */
-/* Insertion Effect (SC-88Pro) */
-/*                             */
-/* !!! rename this function to do_insertion_effect_gs() !!! */
-void do_insertion_effect(int32 *buf, int32 count)
+/*                                  */
+/*  Insertion and Variation Effect  */
+/*                                  */
+void do_insertion_effect_gs(int32 *buf, int32 count)
 {
 	do_effect_list(buf, count, gs_ieffect.ef);
 }
 
-
-/*                             */
-/* High Quality Reverb Effect  */
-/*                             */
-
-static void free_allpass(allpass *allpass)
+void do_insertion_effect_xg(int32 *buf, int32 count)
 {
-	if(allpass->buf != NULL) {free(allpass->buf);}
 }
 
-static void set_allpass(allpass *allpass, int32 size, double feedback)
+void do_variation_effect_xg(int32 *buf, int32 count)
 {
-	if(allpass->buf != NULL) {free(allpass->buf);}
-	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(allpass->buf == NULL) {return;}
-	allpass->index = 0;
-	allpass->size = size;
-	allpass->feedback = feedback;
-	allpass->feedbacki = TIM_FSCALE(feedback, 24);
-	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
 }
-
-static void setbuf_allpass(allpass *allpass, int32 size)
-{
-	if(allpass->buf != NULL) {free(allpass->buf);}
-	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(allpass->buf == NULL) {return;}
-	allpass->index = 0;
-	allpass->size = size;
-}
-
-static void init_allpass(allpass *allpass)
-{
-	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
-}
-
-static void setbuf_comb(comb *comb, int32 size)
-{
-	if(comb->buf != NULL) {free(comb->buf);}
-	comb->buf = (int32 *)safe_malloc(sizeof(int32) * size);
-	if(comb->buf == NULL) {return;}
-	comb->index = 0;
-	comb->size = size;
-	comb->filterstore = 0;
-}
-
-static void init_comb(comb *comb)
-{
-	memset(comb->buf, 0, sizeof(int32) * comb->size);
-}
-
-#define numcombs 8
-#define numallpasses 4
-#define scalewet 0.06f
-#define scaledamp 0.4f
-#define scaleroom 0.28f
-#define offsetroom 0.7f
-#define initialroom 0.5f
-#define initialdamp 0.5f
-#define initialwet 1 / scalewet
-#define initialdry 0
-#define initialwidth 0.5f
-#define initialallpassfbk 0.65f
-#define stereospread 23
-static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
-static int allpasstunings[numallpasses] = {225, 341, 441, 556};
-#define fixedgain 0.025f
-
-typedef struct _revmodel_t {
-	double roomsize, roomsize1;
-	double damp, damp1;
-	double wet, wet1, wet2;
-	double width;
-	comb combL[numcombs];
-	comb combR[numcombs];
-	allpass allpassL[numallpasses];
-	allpass allpassR[numallpasses];
-	int32 wet1i, wet2i;
-} revmodel_t;
-
-revmodel_t *revmodel = NULL;
-
-static inline int isprime(int val)
-{
-  int i;
-
-  if (val == 2) return 1;
-  if (val & 1)
-	{
-	  for (i=3; i<(int)sqrt((double)val)+1; i+=2)
-		{
-		  if ((val%i) == 0) return 0;
-		}
-	  return 1; /* prime */
-	}
-  else return 0; /* even */
-}
-
-static double gs_revchar_to_roomsize(int character)
-{
-	double rs;
-	switch(character) {
-	case 0: rs = 1.0;	break;	/* Room 1 */
-	case 1: rs = 0.94;	break;	/* Room 2 */
-	case 2: rs = 0.97;	break;	/* Room 3 */
-	case 3: rs = 0.90;	break;	/* Hall 1 */
-	case 4: rs = 0.85;	break;	/* Hall 2 */
-	default: rs = 1.0;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return rs;
-}
-
-static double gs_revchar_to_level(int character)
-{
-	double level;
-	switch(character) {
-	case 0: level = 0.744025605;	break;	/* Room 1 */
-	case 1: level = 1.224309745;	break;	/* Room 2 */
-	case 2: level = 0.858592403;	break;	/* Room 3 */
-	case 3: level = 1.0471802;	break;	/* Hall 1 */
-	case 4: level = 1.0;	break;	/* Hall 2 */
-	case 5: level = 0.865335496;	break;	/* Plate */
-	default: level = 1.0;	break;	/* Delay, Panning Delay */
-	}
-	return level;
-}
-
-static double gs_revchar_to_rt(int character)
-{
-	double rt;
-	switch(character) {
-	case 0: rt = 0.516850262;	break;	/* Room 1 */
-	case 1: rt = 1.004226004;	break;	/* Room 2 */
-	case 2: rt = 0.691046825;	break;	/* Room 3 */
-	case 3: rt = 0.893006004;	break;	/* Hall 1 */
-	case 4: rt = 1.0;	break;	/* Hall 2 */
-	case 5: rt = 0.538476488;	break;	/* Plate */
-	default: rt = 1.0;	break;	/* Delay, Panning Delay */
-	}
-	return rt;
-}
-
-static double gs_revchar_to_width(int character)
-{
-	double width;
-	switch(character) {
-	case 0: width = 0.5;	break;	/* Room 1 */
-	case 1: width = 0.5;	break;	/* Room 2 */
-	case 2: width = 0.5;	break;	/* Room 3 */
-	case 3: width = 0.5;	break;	/* Hall 1 */
-	case 4: width = 0.5;	break;	/* Hall 2 */
-	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return width;
-}
-
-static double gs_revchar_to_apfbk(int character)
-{
-	double apf;
-	switch(character) {
-	case 0: apf = 0.7;	break;	/* Room 1 */
-	case 1: apf = 0.7;	break;	/* Room 2 */
-	case 2: apf = 0.7;	break;	/* Room 3 */
-	case 3: apf = 0.6;	break;	/* Hall 1 */
-	case 4: apf = 0.55;	break;	/* Hall 2 */
-	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return apf;
-}
-
-static void recalc_reverb_buffer(revmodel_t *rev)
-{
-	int i;
-	int32 tmpL, tmpR;
-	double time;
-
-	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character)
-		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
-
-	for(i = 0; i < numcombs; i++)
-	{
-		tmpL = combtunings[i] * sample_rate * time / 44100.0;
-		tmpR = (combtunings[i] + stereospread) * sample_rate * time / 44100.0;
-		if(tmpL < 10) tmpL = 10;
-		if(tmpR < 10) tmpR = 10;
-		while(!isprime(tmpL)) tmpL++;
-		while(!isprime(tmpR)) tmpR++;
-		rev->combL[i].size = tmpL;
-		rev->combR[i].size = tmpR;
-		setbuf_comb(&rev->combL[i], rev->combL[i].size);
-		setbuf_comb(&rev->combR[i], rev->combR[i].size);
-	}
-
-	for(i = 0; i < numallpasses; i++)
-	{
-		tmpL = allpasstunings[i] * sample_rate * time / 44100.0;
-		tmpR = (allpasstunings[i] + stereospread) * sample_rate * time / 44100.0;
-		tmpL *= sample_rate / 44100.0;
-		tmpR *= sample_rate / 44100.0;
-		if(tmpL < 10) tmpL = 10;
-		if(tmpR < 10) tmpR = 10;
-		while(!isprime(tmpL)) tmpL++;
-		while(!isprime(tmpR)) tmpR++;
-		rev->allpassL[i].size = tmpL;
-		rev->allpassR[i].size = tmpR;
-		setbuf_allpass(&rev->allpassL[i], rev->allpassL[i].size);
-		setbuf_allpass(&rev->allpassR[i], rev->allpassR[i].size);
-	}
-}
-
-static void update_revmodel(revmodel_t *rev)
-{
-	int i;
-	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase;
-
-	rev->wet = (double)reverb_status.level / 127.0 * gs_revchar_to_level(reverb_status.character);
-	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
-	rev->width = gs_revchar_to_width(reverb_status.character);
-
-	rev->wet1 = rev->width / 2 + 0.5f;
-	rev->wet2 = (1 - rev->width) / 2;
-	rev->roomsize1 = rev->roomsize;
-	rev->damp1 = rev->damp;
-
-	recalc_reverb_buffer(rev);
-	rtbase = 1.0 / (44100.0 * reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character));
-
-	for(i = 0; i < numcombs; i++)
-	{
-		rev->combL[i].feedback = pow(10, -3 * (double)combtunings[i] * rtbase);
-		rev->combR[i].feedback = pow(10, -3 * (double)(combtunings[i] /*+ stereospread*/) * rtbase);
-		rev->combL[i].damp1 = rev->damp1;
-		rev->combR[i].damp1 = rev->damp1;
-		rev->combL[i].damp2 = 1 - rev->damp1;
-		rev->combR[i].damp2 = 1 - rev->damp1;
-		rev->combL[i].damp1i = TIM_FSCALE(rev->combL[i].damp1, 24);
-		rev->combR[i].damp1i = TIM_FSCALE(rev->combR[i].damp1, 24);
-		rev->combL[i].damp2i = TIM_FSCALE(rev->combL[i].damp2, 24);
-		rev->combR[i].damp2i = TIM_FSCALE(rev->combR[i].damp2, 24);
-		rev->combL[i].feedbacki = TIM_FSCALE(rev->combL[i].feedback, 24);
-		rev->combR[i].feedbacki = TIM_FSCALE(rev->combR[i].feedback, 24);
-	}
-
-	for(i = 0; i < numallpasses; i++)
-	{
-		rev->allpassL[i].feedback = allpassfbk;
-		rev->allpassR[i].feedback = allpassfbk;
-		rev->allpassL[i].feedbacki = TIM_FSCALE(rev->allpassL[i].feedback, 24);
-		rev->allpassR[i].feedbacki = TIM_FSCALE(rev->allpassR[i].feedback, 24);
-	}
-
-	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
-	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
-}
-
-static void init_revmodel(revmodel_t *rev)
-{
-	int i;
-	for(i = 0; i < numcombs; i++) {
-		init_comb(&rev->combL[i]);
-		init_comb(&rev->combR[i]);
-	}
-	for(i = 0; i < numallpasses; i++) {
-		init_allpass(&rev->allpassL[i]);
-		init_allpass(&rev->allpassR[i]);
-	}
-}
-
-static void alloc_revmodel(void)
-{
-	static int revmodel_alloc_flag = 0;
-	revmodel_t *rev;
-	if(revmodel_alloc_flag) {return;}
-	if(revmodel == NULL) {
-		revmodel = (revmodel_t *)safe_malloc(sizeof(revmodel_t));
-		if(revmodel == NULL) {return;}
-		memset(revmodel, 0, sizeof(revmodel_t));
-	}
-	rev = revmodel;
-
-	setbuf_comb(&rev->combL[0], combtunings[0]);
-	setbuf_comb(&rev->combR[0], combtunings[0] + stereospread);
-	setbuf_comb(&rev->combL[1], combtunings[1]);
-	setbuf_comb(&rev->combR[1], combtunings[1] + stereospread);
-	setbuf_comb(&rev->combL[2], combtunings[2]);
-	setbuf_comb(&rev->combR[2], combtunings[2] + stereospread);
-	setbuf_comb(&rev->combL[3], combtunings[3]);
-	setbuf_comb(&rev->combR[3], combtunings[3] + stereospread);
-	setbuf_comb(&rev->combL[4], combtunings[4]);
-	setbuf_comb(&rev->combR[4], combtunings[4] + stereospread);
-	setbuf_comb(&rev->combL[5], combtunings[5]);
-	setbuf_comb(&rev->combR[5], combtunings[5] + stereospread);
-	setbuf_comb(&rev->combL[6], combtunings[6]);
-	setbuf_comb(&rev->combR[6], combtunings[6] + stereospread);
-	setbuf_comb(&rev->combL[7], combtunings[7]);
-	setbuf_comb(&rev->combR[7], combtunings[7] + stereospread);
-
-	setbuf_allpass(&rev->allpassL[0], allpasstunings[0]);
-	setbuf_allpass(&rev->allpassR[0], allpasstunings[0] + stereospread);
-	setbuf_allpass(&rev->allpassL[1], allpasstunings[1]);
-	setbuf_allpass(&rev->allpassR[1], allpasstunings[1] + stereospread);
-	setbuf_allpass(&rev->allpassL[2], allpasstunings[2]);
-	setbuf_allpass(&rev->allpassR[2], allpasstunings[2] + stereospread);
-	setbuf_allpass(&rev->allpassL[3], allpasstunings[3]);
-	setbuf_allpass(&rev->allpassR[3], allpasstunings[3] + stereospread);
-
-	rev->allpassL[0].feedback = initialallpassfbk;
-	rev->allpassR[0].feedback = initialallpassfbk;
-	rev->allpassL[1].feedback = initialallpassfbk;
-	rev->allpassR[1].feedback = initialallpassfbk;
-	rev->allpassL[2].feedback = initialallpassfbk;
-	rev->allpassR[2].feedback = initialallpassfbk;
-	rev->allpassL[3].feedback = initialallpassfbk;
-	rev->allpassR[3].feedback = initialallpassfbk;
-
-	rev->wet = initialwet * scalewet;
-	rev->damp = initialdamp * scaledamp;
-	rev->width = initialwidth;
-	rev->roomsize = initialroom * scaleroom + offsetroom;
-
-	revmodel_alloc_flag = 1;
-}
-
-static void free_revmodel(void)
-{
-	int i;
-	if(revmodel != NULL) {
-		for(i = 0; i < numcombs; i++)
-		{
-			if(revmodel->combL[i].buf != NULL)
-				free(revmodel->combL[i].buf);
-			if(revmodel->combR[i].buf != NULL)
-				free(revmodel->combR[i].buf);
-		}
-		for(i = 0; i < numallpasses; i++)
-		{
-			if(revmodel->allpassL[i].buf != NULL)
-				free(revmodel->allpassL[i].buf);
-			if(revmodel->allpassR[i].buf != NULL)
-				free(revmodel->allpassR[i].buf);
-		}
-		free(revmodel);
-	}
-}
-
-#if OPT_MODE != 0	/* fixed-point implementation */
-#define do_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = -_stream + _bufout;	\
-	_apbuf[_apindex] = _stream + imuldiv24(_bufout, _apfeedback);	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _output;	\
-}
-
-#define do_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
-{	\
-	_output = _cbuf[_cindex];	\
-	_cfs = imuldiv24(_output, _cdamp2) + imuldiv24(_cfs, _cdamp1);	\
-	_cbuf[_cindex] = _input + imuldiv24(_cfs, _cfeedback);	\
-	if(++_cindex >= _csize) {	\
-		_cindex = 0;	\
-	}	\
-	_ostream += _output;	\
-}
-
-static void do_freeverb(int32 *buf, int32 count)
-{
-	int32 i, k = 0;
-	int32 outl, outr, input;
-	revmodel_t *rev = revmodel;
-	comb *combL = rev->combL, *combR = rev->combR;
-	allpass *allpassL = rev->allpassL, *allpassR = rev->allpassR;
-
-	if(rev == NULL) {
-		for (k = 0; k < count; k++)
-		{
-			effect_buffer[k] = 0;
-		}
-		return;
-	}
-
-	for (k = 0; k < count; k++)
-	{
-		outl = outr = 0;
-		input = effect_buffer[k] + effect_buffer[k + 1];
-		effect_buffer[k] = effect_buffer[k + 1] = 0;
-
-		for (i = 0; i < numcombs; i++) {
-			do_comb(input, outl, combL[i].buf, combL[i].size, combL[i].index,
-				combL[i].damp1i, combL[i].damp2i, combL[i].filterstore, combL[i].feedbacki);
-			do_comb(input, outr, combR[i].buf, combR[i].size, combR[i].index,
-				combR[i].damp1i, combR[i].damp2i, combR[i].filterstore, combR[i].feedbacki);
-		}
-		for (i = 0; i < numallpasses; i++) {
-			do_allpass(outl, allpassL[i].buf, allpassL[i].size, allpassL[i].index, allpassL[i].feedbacki);
-			do_allpass(outr, allpassR[i].buf, allpassR[i].size, allpassR[i].index, allpassR[i].feedbacki);
-		}
-		buf[k] += imuldiv24(outl, rev->wet1i) + imuldiv24(outr, rev->wet2i);
-		buf[k + 1] += imuldiv24(outr, rev->wet1i) + imuldiv24(outl, rev->wet2i);
-		++k;
-	}
-}
-#else	/* floating-point implementation */
-#define do_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = -_stream + _bufout;	\
-	_apbuf[_apindex] = _stream + (_bufout * _apfeedback);	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _output;	\
-}
-
-#define do_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
-{	\
-	_output = _cbuf[_cindex];	\
-	_cfs = (_output * _cdamp2) + (_cfs * _cdamp1);	\
-	_cbuf[_cindex] = _input + (_cfs * _cfeedback);	\
-	if(++_cindex >= _csize) {	\
-		_cindex = 0;	\
-	}	\
-	_ostream += _output;	\
-}
-
-static void do_freeverb(int32 *buf, int32 count)
-{
-	int32 i, k = 0;
-	int32 outl, outr, input;
-	revmodel_t *rev = revmodel;
-
-	if(rev == NULL) {
-		for (k = 0; k < count; k++)
-		{
-			effect_buffer[k] = 0;
-		}
-		return;
-	}
-
-	for (k = 0; k < count; k++)
-	{
-		outl = outr = 0;
-		input = effect_buffer[k] + effect_buffer[k + 1];
-		effect_buffer[k] = effect_buffer[k + 1] = 0;
-
-		for (i = 0; i < numcombs; i++) {
-			do_comb(input, outl, rev->combL[i].buf, rev->combL[i].size, rev->combL[i].index,
-				rev->combL[i].damp1, rev->combL[i].damp2, rev->combL[i].filterstore, rev->combL[i].feedback);
-			do_comb(input, outr, rev->combR[i].buf, rev->combR[i].size, rev->combR[i].index,
-				rev->combR[i].damp1, rev->combR[i].damp2, rev->combR[i].filterstore, rev->combR[i].feedback);
-		}
-		for (i = 0; i < numallpasses; i++) {
-			do_allpass(outl, rev->allpassL[i].buf, rev->allpassL[i].size, rev->allpassL[i].index, rev->allpassL[i].feedback);
-			do_allpass(outr, rev->allpassR[i].buf, rev->allpassR[i].size, rev->allpassR[i].index, rev->allpassR[i].feedback);
-		}
-		buf[k] += outl * rev->wet1 + outr * rev->wet2;
-		buf[k + 1] += outr * rev->wet1 + outl * rev->wet2;
-		++k;
-	}
-}
-#endif	/* OPT_MODE != 0 */
-
-#define PLATE_SAMPLERATE 29761.0
-#define PLATE_DECAY 0.50
-#define PLATE_DECAY_DIFFUSION1 0.70
-#define PLATE_DECAY_DIFFUSION2 0.50
-#define PLATE_INPUT_DIFFUSION1 0.750
-#define PLATE_INPUT_DIFFUSION2 0.625
-#define PLATE_BANDWIDTH 0.9955
-#define PLATE_DAMPING 0.0005
-#define PLATE_WET 0.25
-
-static inline int32 get_plate_delay(double delay, double t)
-{
-	return (int32)(delay * play_mode->rate * t / PLATE_SAMPLERATE);
-}
-
-static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
-{
-	int32 i;
-	int32 x, xd, val, outl, outr, temp1, temp2, temp3;
-	delay *pd = &(info->pd), *od1l = &(info->od1l), *od2l = &(info->od2l),
-		*od3l = &(info->od3l), *od4l = &(info->od4l), *od5l = &(info->od5l),
-		*od6l = &(info->od6l), *od1r = &(info->od1r), *od2r = &(info->od2r),
-		*od3r = &(info->od3r), *od4r = &(info->od4r), *od5r = &(info->od5r),
-		*od7r = &(info->od7r), *od7l = &(info->od7l), *od6r = &(info->od6r),
-		*td1 = &(info->td1), *td2 = &(info->td2), *td1d = &(info->td1d), *td2d = &(info->td2d);
-	allpass *ap1 = &(info->ap1), *ap2 = &(info->ap2), *ap3 = &(info->ap3),
-		*ap4 = &(info->ap4), *ap6 = &(info->ap6), *ap6d = &(info->ap6d);
-	mod_allpass *ap5 = &(info->ap5), *ap5d = &(info->ap5d);
-	lfo *lfo1 = &(info->lfo1), *lfo1d = &(info->lfo1d);
-	filter_lowpass1 *lpf1 = &(info->lpf1), *lpf2 = &(info->lpf2);
-	int32 t1 = info->t1, t1d = info->t1d;
-	int32 decayi = info->decayi, ddif1i = info->ddif1i, ddif2i = info->ddif2i,
-		idif1i = info->idif1i, idif2i = info->idif2i;
-	double t;
-
-	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(lfo1, 1, LFO_SINE);
-		init_lfo(lfo1d, 1, LFO_SINE);
-		t = reverb_time_table[reverb_status.time] / reverb_time_table[64] - 1.0;
-		t = 1.0 + t / 2;
-		set_delay(pd, reverb_status.pre_delay_time * play_mode->rate / 1000);
-		set_delay(td1, get_plate_delay(4453, t));
-		set_delay(td1d, get_plate_delay(4217, t));
-		set_delay(td2, get_plate_delay(3720, t));
-		set_delay(td2d, get_plate_delay(3163, t));
-		set_delay(od1l, get_plate_delay(266, t));
-		set_delay(od2l, get_plate_delay(2974, t));
-		set_delay(od3l, get_plate_delay(1913, t));
-		set_delay(od4l, get_plate_delay(1996, t));
-		set_delay(od5l, get_plate_delay(1990, t));
-		set_delay(od6l, get_plate_delay(187, t));
-		set_delay(od7l, get_plate_delay(1066, t));
-		set_delay(od1r, get_plate_delay(353, t));
-		set_delay(od2r, get_plate_delay(3627, t));
-		set_delay(od3r, get_plate_delay(1228, t));
-		set_delay(od4r, get_plate_delay(2673, t));
-		set_delay(od5r, get_plate_delay(2111, t));
-		set_delay(od6r, get_plate_delay(335, t));
-		set_delay(od7r, get_plate_delay(121, t));
-		set_allpass(ap1, get_plate_delay(142, t), PLATE_INPUT_DIFFUSION1);
-		set_allpass(ap2, get_plate_delay(107, t), PLATE_INPUT_DIFFUSION1);
-		set_allpass(ap3, get_plate_delay(379, t), PLATE_INPUT_DIFFUSION2);
-		set_allpass(ap4, get_plate_delay(277, t), PLATE_INPUT_DIFFUSION2);
-		set_allpass(ap6, get_plate_delay(1800, t), PLATE_DECAY_DIFFUSION2);
-		set_allpass(ap6d, get_plate_delay(2656, t), PLATE_DECAY_DIFFUSION2);
-		set_mod_allpass(ap5, get_plate_delay(672, t), get_plate_delay(16, t), PLATE_DECAY_DIFFUSION1);
-		set_mod_allpass(ap5d, get_plate_delay(908, t), get_plate_delay(16, t), PLATE_DECAY_DIFFUSION1);
-		init_filter_lowpass1(lpf1, PLATE_BANDWIDTH);
-		init_filter_lowpass1(lpf2, 1.0 - PLATE_DAMPING);
-		info->t1 = info->t1d = 0;
-		info->decay = PLATE_DECAY;
-		info->decayi = TIM_FSCALE(info->decay, 24);
-		info->ddif1 = PLATE_DECAY_DIFFUSION1;
-		info->ddif1i = TIM_FSCALE(info->ddif1, 24);
-		info->ddif2 = PLATE_DECAY_DIFFUSION2;
-		info->ddif2i = TIM_FSCALE(info->ddif2, 24);
-		info->idif1 = PLATE_INPUT_DIFFUSION1;
-		info->idif1i = TIM_FSCALE(info->idif1, 24);
-		info->idif2 = PLATE_INPUT_DIFFUSION2;
-		info->idif2i = TIM_FSCALE(info->idif2, 24);
-		info->wet = PLATE_WET * (double)reverb_status.level / 127.0;
-		return;
-	} else if(count == MAGIC_FREE_EFFECT_INFO) {
-		free_delay(pd);
-		free_delay(td1);
-		free_delay(td1d);
-		free_delay(td2);
-		free_delay(td2d);
-		free_delay(od1l);
-		free_delay(od2l);
-		free_delay(od3l);
-		free_delay(od4l);
-		free_delay(od5l);
-		free_delay(od6l);
-		free_delay(od7l);
-		free_delay(od1r);
-		free_delay(od2r);
-		free_delay(od3r);
-		free_delay(od4r);
-		free_delay(od5r);
-		free_delay(od6r);
-		free_delay(od7r);
-		free_allpass(ap1);
-		free_allpass(ap2);
-		free_allpass(ap3);
-		free_allpass(ap4);
-		free_allpass(ap6);
-		free_allpass(ap6d);
-		free_mod_allpass(ap5);
-		free_mod_allpass(ap5d);
-		return;
-	}
-
-	for (i = 0; i < count; i++)
-	{
-		outr = outl = 0;
-		x = (effect_buffer[i] + effect_buffer[i + 1]) >> 1;
-		effect_buffer[i] = effect_buffer[i + 1] = 0;
-
-		do_delay(x, pd->buf, pd->size, pd->index);
-		do_filter_lowpass1(x, lpf1->x1l, lpf1->ai, lpf1->iai);
-		do_simple_allpass(x, ap1->buf, ap1->size, ap1->index, idif1i);
-		do_simple_allpass(x, ap2->buf, ap2->size, ap2->index, idif1i);
-		do_simple_allpass(x, ap3->buf, ap3->size, ap3->index, idif2i);
-		do_simple_allpass(x, ap4->buf, ap4->size, ap4->index, idif2i);
-
-		/* tank structure */
-		xd = x;
-		x += imuldiv24(t1d, decayi);
-		val = do_lfo(lfo1);
-		do_mod_allpass(x, ap5->buf, ap5->size, ap5->rindex, ap5->windex,
-			ap5->ndelay, ap5->depth, val, ap5->hist, ddif1i);
-		temp1 = temp2 = temp3 = x;	/* n_out_1 */
-		do_delay(temp1, od5l->buf, od5l->size, od5l->index);
-		outl -= temp1;	/* left output 5 */
-		do_delay(temp2, od1r->buf, od1r->size, od1r->index);
-		outr += temp2;	/* right output 1 */
-		do_delay(temp3, od2r->buf, od2r->size, od2r->index);
-		outr += temp3;	/* right output 2 */
-		do_delay(x, td1->buf, td1->size, td1->index);
-		do_filter_lowpass1(x, lpf2->x1l, lpf2->ai, lpf2->iai);
-		temp1 = temp2 = x;	/* n_out_2 */
-		do_delay(temp1, od6l->buf, od6l->size, od6l->index);
-		outl -= temp1;	/* left output 6 */
-		do_delay(temp2, od3r->buf, od3r->size, od3r->index);
-		outr -= temp2;	/* right output 3 */
-		x = imuldiv24(x, decayi);
-		do_simple_allpass(x, ap6->buf, ap6->size, ap6->index, ddif2i);
-		temp1 = temp2 = x;	/* n_out_3 */
-		do_delay(temp1, od7l->buf, od7l->size, od7l->index);
-		outl -= temp1;	/* left output 7 */
-		do_delay(temp2, od4r->buf, od4r->size, od4r->index);
-		outr += temp2;	/* right output 4 */
-		do_delay(x, td2->buf, td2->size, td2->index);
-		t1 = x;
-
-		xd += imuldiv24(t1, decayi);
-		val = do_lfo(lfo1d);
-		do_mod_allpass(x, ap5d->buf, ap5d->size, ap5d->rindex, ap5d->windex,
-			ap5d->ndelay, ap5d->depth, val, ap5d->hist, ddif1i);
-		temp1 = temp2 = temp3 = xd;	/* n_out_4 */
-		do_delay(temp1, od1l->buf, od1l->size, od1l->index);
-		outl += temp1;	/* left output 1 */
-		do_delay(temp2, od2l->buf, od2l->size, od2l->index);
-		outl += temp2;	/* left output 2 */
-		do_delay(temp3, od6r->buf, od6r->size, od6r->index);
-		outr -= temp3;	/* right output 6 */
-		do_delay(xd, td1d->buf, td1d->size, td1d->index);
-		do_filter_lowpass1(xd, lpf2->x1r, lpf2->ai, lpf2->iai);
-		temp1 = temp2 = xd;	/* n_out_5 */
-		do_delay(temp1, od3l->buf, od3l->size, od3l->index);
-		outl -= temp1;	/* left output 3 */
-		do_delay(temp2, od6r->buf, od6r->size, od6r->index);
-		outr -= temp2;	/* right output 6 */
-		xd = imuldiv24(xd, decayi);
-		do_simple_allpass(xd, ap6d->buf, ap6d->size, ap6d->index, ddif2i);
-		temp1 = temp2 = xd;	/* n_out_6 */
-		do_delay(temp1, od4l->buf, od4l->size, od4l->index);
-		outl += temp1;	/* left output 4 */
-		do_delay(temp2, od7r->buf, od7r->size, od7r->index);
-		outr -= temp2;	/* right output 7 */
-		do_delay(xd, td2d->buf, td2d->size, td2d->index);
-		t1d = xd;
-
-		buf[i] += outl;
-		buf[i + 1] += outr;
-
-		++i;
-	}
-	info->t1 = t1, info->t1d = t1d;
-}
-
-void init_reverb(int32 output_rate)
-{
-	sample_rate = output_rate;
-	/* clear delay-line of LPF */
-	reverb_status.lpf.last_freq = 0;
-	calc_filter_iir1_lowpass(&(reverb_status.lpf));
-	/* Only initialize freeverb if stereo output */
-	/* Old non-freeverb must be initialized for mono reverb not to crash */
-	if (! (play_mode->encoding & PE_MONO)
-			&& (opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))
-			|| opt_effect_quality >= 2) {
-		if(reverb_status.character == 5) {	/* Plate Reverb */
-			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
-			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
-		} else {	/* Freeverb */
-			alloc_revmodel();
-			update_revmodel(revmodel);
-			init_revmodel(revmodel);
-			REV_INP_LEV = fixedgain * revmodel->wet;
-		}
-		memset(effect_buffer, 0, effect_bufsize);
-		memset(direct_buffer, 0, direct_bufsize);
-	} else {
-		ta = tb = 0;
-		HPFL = HPFR = LPFL = LPFR = EPFL = EPFR = 0;
-		spt0 = spt1 = spt2 = spt3 = 0;
-		rev_memset(buf0_L);
-		rev_memset(buf0_R);
-		rev_memset(buf1_L);
-		rev_memset(buf1_R);
-		rev_memset(buf2_L);
-		rev_memset(buf2_R);
-		rev_memset(buf3_L);
-		rev_memset(buf3_R);
-		memset(effect_buffer, 0, effect_bufsize);
-		memset(direct_buffer, 0, direct_bufsize);
-		if (output_rate > 65000)
-			output_rate = 65000;
-		else if (output_rate < 4000)
-			output_rate = 4000;
-		def_rpt0 = rpt0 = REV_VAL0 * output_rate / 1000;
-		def_rpt1 = rpt1 = REV_VAL1 * output_rate / 1000;
-		def_rpt2 = rpt2 = REV_VAL2 * output_rate / 1000;
-		def_rpt3 = rpt3 = REV_VAL3 * output_rate / 1000;
-		REV_INP_LEV = 1.0;
-		rpt0 = def_rpt0 * reverb_status.time_ratio;
-		rpt1 = def_rpt1 * reverb_status.time_ratio;
-		rpt2 = def_rpt2 * reverb_status.time_ratio;
-		rpt3 = def_rpt3 * reverb_status.time_ratio;
-		while (! isprime(rpt0))
-			rpt0++;
-		while (! isprime(rpt1))
-			rpt1++;
-		while (! isprime(rpt2))
-			rpt2++;
-		while (! isprime(rpt3))
-			rpt3++;
-	}
-}
-
-void free_effect_buffers(void)
-{
-	free_revmodel();
-	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
-}
-
-/*                                  */
-/*  Insertion and Variation Effect  */
-/*                                  */
 
 /*! allocate new effect item and add it into the tail of effect list.
     EffectList *efc: pointer to the top of effect list.
@@ -2282,19 +2093,23 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoEQ2 *eq = (InfoEQ2 *)ef->info;
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		calc_lowshelf_coefs(eq->low_coef, eq->low_freq, eq->low_gain, play_mode->rate);
-		calc_highshelf_coefs(eq->high_coef, eq->high_freq, eq->high_gain, play_mode->rate);
-		memset(eq->low_val, 0, sizeof(eq->low_val));
-		memset(eq->high_val, 0, sizeof(eq->high_val));
+		eq->lsf.freq = eq->low_freq;
+		eq->lsf.gain = eq->low_gain;
+		calc_filter_shelving_low(&(eq->lsf));
+		init_filter_shelving(&(eq->lsf));
+		eq->hsf.freq = eq->high_freq;
+		eq->hsf.gain = eq->high_gain;
+		calc_filter_shelving_high(&(eq->hsf));
+		init_filter_shelving(&(eq->hsf));
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	if(eq->low_gain != 0) {
-		do_shelving_filter(buf, count, eq->low_coef, eq->low_val);
+		do_shelving_filter_stereo(buf, count, &(eq->lsf));
 	}
 	if(eq->high_gain != 0) {
-		do_shelving_filter(buf, count, eq->high_coef, eq->high_val);
+		do_shelving_filter_stereo(buf, count, &(eq->hsf));
 	}
 }
 
@@ -2309,12 +2124,13 @@ static inline int32 do_right_panning(int32 sample, int32 pan)
 	return imuldiv8(sample, 256 - pan - pan);
 }
 
-#define INT32_MAX_NEG (1.0 / (double)(1 << 31))
+#define OD_BITS 28
+#define OD_MAX_NEG (1.0 / (double)(1 << OD_BITS))
 #define OVERDRIVE_DIST 4.0
 #define OVERDRIVE_RES 0.1
-#define OVERDRIVE_LEVEL 0.8
+#define OVERDRIVE_LEVEL 1.0
 #define OVERDRIVE_OFFSET 0
-#define DISTORTION_DIST 16.0
+#define DISTORTION_DIST 40.0
 #define DISTORTION_RES 0.2
 #define DISTORTION_LEVEL 0.2
 #define DISTORTION_OFFSET 0
@@ -2339,9 +2155,6 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
 		/* set parameters of waveshaper */
-		/* ideally speaking:
-		   lpf->res = table_res[drive];
-		   lpf->dist = table_dist[drive]; */
 		lpf->freq = 6000;
 		lpf->res = OVERDRIVE_RES;
 		lpf->dist = OVERDRIVE_DIST * sqrt((double)info->drive / 127.0) + OVERDRIVE_OFFSET;
@@ -2363,7 +2176,7 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		b0 = input;
 		high = input - b4;
 		/* waveshaping */
-		sig = (double)high * INT32_MAX_NEG;
+		sig = (double)high * OD_MAX_NEG;
 		ax1 = lastin;
 		ay11 = ay1;
 		ay31 = ay2;
@@ -2372,7 +2185,7 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
 		aout = kp1h * (ay2 + ay31) - kp * aout;
 		sig = tanh(aout * value);
-		high = TIM_FSCALE(sig, 31);
+		high = TIM_FSCALE(sig, OD_BITS);
 		/* mixing */
 		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
 		buf[i] = do_left_panning(input, pan);
@@ -2403,9 +2216,6 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
 		/* set parameters of waveshaper */
-		/* ideally speaking:
-		   lpf->res = table_res[drive];
-		   lpf->dist = table_dist[drive]; */
 		lpf->freq = 6000;
 		lpf->res = DISTORTION_RES;
 		lpf->dist = DISTORTION_DIST * sqrt((double)info->drive / 127.0) + DISTORTION_OFFSET;
@@ -2427,7 +2237,7 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		b0 = input;
 		high = input - b4;
 		/* waveshaping */
-		sig = (double)high * INT32_MAX_NEG;
+		sig = (double)high * OD_MAX_NEG;
 		ax1 = lastin;
 		ay11 = ay1;
 		ay31 = ay2;
@@ -2436,7 +2246,7 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
 		aout = kp1h * (ay2 + ay31) - kp * aout;
 		sig = tanh(aout * value);
-		high = TIM_FSCALE(sig, 31);
+		high = TIM_FSCALE(sig, OD_BITS);
 		/* mixing */
 		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
 		buf[i] = do_left_panning(input, pan);
@@ -2520,7 +2330,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		b0l = inputl;
 		high = inputl - b4l;
 		/* waveshaping */
-		sig = (double)high * INT32_MAX_NEG;
+		sig = (double)high * OD_MAX_NEG;
 		ax1l = lastinl;
 		ay11l = ay1l;
 		ay31l = ay2l;
@@ -2529,7 +2339,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
 		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
 		sig = tanh(aoutl * valuel);
-		high = TIM_FSCALE(sig, 31);
+		high = TIM_FSCALE(sig, OD_BITS);
 		inputl = imuldiv24(high, levelli) + imuldiv24(low, leveldli);
 
 		/* right */
@@ -2543,7 +2353,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		b0r = inputr;
 		high = inputr - b4r;
 		/* waveshaping */
-		sig = (double)high * INT32_MAX_NEG;
+		sig = (double)high * OD_MAX_NEG;
 		ax1r = lastinr;
 		ay11r = ay1r;
 		ay31r = ay2r;
@@ -2552,7 +2362,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
 		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
 		sig = tanh(aoutr * valuer);
-		high = TIM_FSCALE(sig, 31);
+		high = TIM_FSCALE(sig, OD_BITS);
 		inputr = imuldiv24(high, levelri) + imuldiv24(low, leveldri);
 
 		/* mixing */
@@ -2587,28 +2397,28 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 		depth3 = info->depth3, depth4 = info->depth4, depth5 = info->depth5,
 		pdelay0 = info->pdelay0, pdelay1 = info->pdelay1, pdelay2 = info->pdelay2,
 		pdelay3 = info->pdelay3, pdelay4 = info->pdelay4, pdelay5 = info->pdelay5;
-	int32 i, inputw, inputd, lfo_val, wetl, wetr,
+	int32 i, lfo_val,
 		v0, v1, v2, v3, v4, v5, f0, f1, f2, f3, f4, f5;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		set_delay(buf0, 9600);
-		init_lfo(lfo, lfo->freq, LFO_SINE);
+		init_lfo(lfo, lfo->freq, LFO_TRIANGULAR);
 		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
 		info->weti = TIM_FSCALE(info->level * info->wet * HEXA_CHORUS_WET_LEVEL, 24);
 		v0 = info->depth * ((double)info->depth_dev * HEXA_CHORUS_DEPTH_DEV);
-		info->depth0 = info->depth + v0;
+		info->depth0 = info->depth - v0;
 		info->depth1 = info->depth;
-		info->depth2 = info->depth - v0;
-		info->depth3 = info->depth - v0;
+		info->depth2 = info->depth + v0;
+		info->depth3 = info->depth + v0;
 		info->depth4 = info->depth;
-		info->depth5 = info->depth + v0;
+		info->depth5 = info->depth - v0;
 		v0 = info->pdelay * ((double)info->pdelay_dev * HEXA_CHORUS_DELAY_DEV);
-		info->pdelay0 = info->pdelay + v0 * 3;
+		info->pdelay0 = info->pdelay + v0;
 		info->pdelay1 = info->pdelay + v0 * 2;
-		info->pdelay2 = info->pdelay + v0;
-		info->pdelay3 = info->pdelay + v0;
+		info->pdelay2 = info->pdelay + v0 * 3;
+		info->pdelay3 = info->pdelay + v0 * 3;
 		info->pdelay4 = info->pdelay + v0 * 2;
-		info->pdelay5 = info->pdelay + v0 * 3;
+		info->pdelay5 = info->pdelay + v0;
 		/* in this part, validation check may be necessary. */
 		info->pan0 = 64 - info->pan_dev * 3;
 		info->pan1 = 64 - info->pan_dev * 2;
@@ -2736,6 +2546,13 @@ void convert_effect(EffectList *ef)
 	}
 
 	(*ef->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, ef);
+}
+
+void free_effect_buffers(void)
+{
+	free_freeverb_buf(&(reverb_status.info_freeverb));
+	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
+	free_effect_list(gs_ieffect.ef);
 }
 
 struct delay_status_t delay_status;

@@ -1,3 +1,9 @@
+2003-12-21  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.c, timidity/playmidi.c:
+	  Fix about Insertion Effect.
+	  Sort out codes.
+
 2003-12-16  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/readmidi.c:
