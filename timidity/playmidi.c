@@ -882,7 +882,7 @@ FLOAT_T calc_drum_tva_level(int ch,int note,int level)
 	if(def_level == -1 || def_level == 0) {def_level = 127;}
 	else if(def_level > 127) {def_level = 127;}
 
-	return ((FLOAT_T)level / (FLOAT_T)def_level);
+	return (sc_drum_level_table[level] / sc_drum_level_table[def_level]);
 }
 
 void recompute_bank_parameter(int ch,int note)

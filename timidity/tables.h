@@ -62,6 +62,7 @@ extern FLOAT_T envelope_coef[];
 extern FLOAT_T sc_vel_table[];
 extern FLOAT_T sc_vol_table[];
 extern FLOAT_T sc_pan_table[];
+extern FLOAT_T sc_drum_level_table[];
 extern FLOAT_T concave_table[];
 extern FLOAT_T convex_table[];
 extern FLOAT_T sb_vol_table[];

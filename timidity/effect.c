@@ -260,14 +260,10 @@ static void effect_left_right_delay(int32* buff, int32 count)
 }
 
 static int32 ns9_order;
-static int32 ns9_histposl;
-static int32 ns9_histposr;
+static int32 ns9_histposl, ns9_histposr;
 static int32 ns9_ehl[18];
 static int32 ns9_ehr[18];
-static int32 ns9_r1l;
-static int32 ns9_r2l;
-static int32 ns9_r1r;
-static int32 ns9_r2r;
+static uint32 ns9_r1l, ns9_r2l, ns9_r1r, ns9_r2r;
 static double ns9_d = 1.0f / (double)(1U<<15) / RAND_MAX;
 static float ns9_coef[9] = {2.412f, -3.370f, 3.937f, -4.174f, 3.353f, -2.205f, 1.281f, -0.569f, 0.0847f};
 static int32 ns9_c[9];
