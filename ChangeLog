@@ -1,3 +1,9 @@
+2004-02-17  Kouji 'kekyo' Suzuki <k@kekyo.net>
+
+	* configs/msc7-project.zip:
+	  Support for Windows Installer in VC7.
+	  Fix portaudio output in VC7.
+
 2004-02-17  Saito <saito2@digitalme.com>
 
 	* timidity/readmidi.[ch], timidity/playmidi.c:
