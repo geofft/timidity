@@ -1035,7 +1035,7 @@ void m2m_process_events(MidiEvent * ev)
 
 	    if (is_drum_sample[mod_sample])
 	    {
-		event[2] = expression;
+		event[2] = vol_nonlin_to_lin[expression][0];
 	    }
 	    /* current expression may not be what's wanted for the sample */
 	    /* HACK -- insert a prior expression event */
