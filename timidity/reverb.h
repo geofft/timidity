@@ -55,6 +55,7 @@ typedef struct {
 
 extern void init_pink_noise(pink_noise *);
 extern float get_pink_noise(pink_noise *);
+extern float get_pink_noise_light(pink_noise *);
 
 #ifndef SINE_CYCLE_LENGTH
 #define SINE_CYCLE_LENGTH 1024
@@ -369,6 +370,6 @@ struct insertion_effect_gs {
 	struct _EffectList *ef;
 } ie_gs;
 
-pink_noise global_pink_noise;
+pink_noise global_pink_noise_light;
 
 #endif /* ___REVERB_H_ */

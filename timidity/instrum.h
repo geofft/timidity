@@ -104,6 +104,7 @@ typedef struct {
 		    3-255: reserved
 		    */
   int16 amp;
+  int16 rnddelay;
   int tunenum;
   float *tune;
   int fcnum;

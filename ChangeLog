@@ -2,8 +2,10 @@
 
 	* timidity/playmidi.c:
 	  Fix SysEx.
-	* timidity/reverb.[ch], timidity/effect.c, timidity/mt19937ar.h:
+	* timidity/reverb.[ch], timidity/effect.c, timidity/mt19937ar.h,
+	  timidity/playmidi.[ch], timidity/instrum.h, timidity/timidity.c:
 	  Implement pink noise generator.
+	  Support for #extension rnddelay [ms].
 
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 

@@ -1643,6 +1643,34 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 	    bank->tone[i].redamper = atoi(w[2]);
+	}	/* #extension rnddelay [program] [0 or 1] */
+	else if(strcmp(w[0], "rnddelay") == 0)
+	{
+	    if(words != 3)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: syntax error", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if(!bank)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Must specify tone bank or drum set "
+			  "before assignment", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    i = atoi(w[1]);
+	    if(i < 0 || i > 127)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension rnddelay "
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    bank->tone[i].rnddelay = atoi(w[2]);
 	}	/* #extension level program tva_level */
 	else if(strcmp(w[0], "level") == 0)
 	{

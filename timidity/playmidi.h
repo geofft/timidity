@@ -428,8 +428,6 @@ typedef struct {
   uint8 chorus_link;	/* Chorus link */
   int8 proximate_flag;
 
-  int sample_panning_average;
-
   FilterCoefficients fc;
 
   FLOAT_T envelope_scale, last_envelope_volume;

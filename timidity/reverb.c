@@ -602,6 +602,23 @@ float get_pink_noise(pink_noise *p)
 	return pink;
 }
 
+float get_pink_noise_light(pink_noise *p)
+{
+	float b0 = p->b0, b1 = p->b1, b2 = p->b2, pink, white;
+
+	white = genrand_real1() * 2.0 - 1.0;
+	b0 = 0.99765 * b0 + white * 0.0990460;
+	b1 = 0.96300 * b1 + white * 0.2965164;
+	b2 = 0.57000 * b2 + white * 1.0526913;
+	pink = b0 + b1 + b2 + white * 0.1848;
+	pink *= 0.22;
+	pink = (pink > 1.0) ? 1.0 : (pink < -1.0) ? -1.0 : pink;
+
+	p->b0 = b0, p->b1 = b1, p->b2 = b2;
+
+	return pink;
+}
+
 /*                          */
 /*  Standard Reverb Effect  */
 /*                          */

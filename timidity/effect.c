@@ -80,7 +80,7 @@ void init_effect(void)
 {
 	effect_left_right_delay(NULL, 0);
 	init_mtrand();
-	init_pink_noise(&global_pink_noise);
+	init_pink_noise(&global_pink_noise_light);
 	init_ns_tap();
 	init_reverb(play_mode->rate);
 	init_ch_delay();
