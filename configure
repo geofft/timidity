@@ -7279,8 +7279,12 @@ fi
 
 done
 
-if test "x$CYGNUS" = xno; then
-if test "x$MINGW" = xno; then
+if test "x$CYGNUS" = xyes; then
+:
+else
+if test "x$MINGW" = xyes; then
+:
+else
 
 for ac_header in getopt.h
 do
@@ -10040,8 +10044,24 @@ _ACEOF
 fi
 done
 
-if test "x$CYGNUS" = xno; then
-if test "x$MINGW" = xno; then
+if test "x$CYGNUS" = xyes; then
+tm_cv_needgetopt="yes"
+{ echo "$as_me:$LINENO: WARNING: GETOPT in MINGW may be broken! It is unused." >&5
+echo "$as_me: WARNING: GETOPT in MINGW may be broken! It is unused." >&2;}
+{ echo "$as_me:$LINENO: WARNING: If you use native CYGWIN. " >&5
+echo "$as_me: WARNING: If you use native CYGWIN. " >&2;}
+{ echo "$as_me:$LINENO: WARNING: Define it in config.h. manually." >&5
+echo "$as_me: WARNING: Define it in config.h. manually." >&2;}
+else
+if test "x$MINGW" = xyes; then
+tm_cv_needgetopt="yes"
+{ echo "$as_me:$LINENO: WARNING: GETOPT in MINGW may be broken! It is unused." >&5
+echo "$as_me: WARNING: GETOPT in MINGW may be broken! It is unused." >&2;}
+{ echo "$as_me:$LINENO: WARNING: If you use native CYGWIN. " >&5
+echo "$as_me: WARNING: If you use native CYGWIN. " >&2;}
+{ echo "$as_me:$LINENO: WARNING: Define it in config.h. manually." >&5
+echo "$as_me: WARNING: Define it in config.h. manually." >&2;}
+else
 
 for ac_func in getopt
 do
@@ -10209,21 +10229,7 @@ else
   tm_cv_needgetopt="yes"
 fi
 
-else
-tm_cv_needgetopt="yes"
-{ echo "$as_me:$LINENO: WARNING: GETOPT in MINGW may be broken! It is unused." >&5
-echo "$as_me: WARNING: GETOPT in MINGW may be broken! It is unused." >&2;}
-{ echo "$as_me:$LINENO: WARNING: If you use native CYGWIN. " >&5
-echo "$as_me: WARNING: If you use native CYGWIN. " >&2;}
-{ echo "$as_me:$LINENO: WARNING: Define it in config.h. manually." >&5
-echo "$as_me: WARNING: Define it in config.h. manually." >&2;}
 fi
-else
-tm_cv_needgetopt="yes"
-{ echo "$as_me:$LINENO: WARNING: GETOPT in MINGW may be broken! It is unused." >&5
-echo "$as_me: WARNING: GETOPT in MINGW may be broken! It is unused." >&2;}
-{ echo "$as_me:$LINENO: WARNING: If you use native CYGWIN. Define it in config.h. manually." >&5
-echo "$as_me: WARNING: If you use native CYGWIN. Define it in config.h. manually." >&2;}
 fi
 
 

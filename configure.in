@@ -389,8 +389,12 @@ AC_CHECK_HEADERS( \
   unistd.h \
   X11/extensions/XShm.h \
   X11/Xmu/ExtAgent.h])
-if test "x$CYGNUS" = xno; then
-if test "x$MINGW" = xno; then
+if test "x$CYGNUS" = xyes; then
+:
+else
+if test "x$MINGW" = xyes; then
+:
+else 
 AC_CHECK_HEADERS([getopt.h])
 fi
 fi
@@ -492,23 +496,24 @@ AC_CHECK_FUNCS( \
   strstr \
   strtol \
   usleep])
-if test "x$CYGNUS" = xno; then
-if test "x$MINGW" = xno; then
+if test "x$CYGNUS" = xyes; then
+tm_cv_needgetopt="yes"
+AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
+AC_MSG_WARN(If you use native CYGWIN. )
+AC_MSG_WARN(Define it in config.h. manually.)
+else
+if test "x$MINGW" = xyes; then
+tm_cv_needgetopt="yes"
+AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
+AC_MSG_WARN(If you use native CYGWIN. )
+AC_MSG_WARN(Define it in config.h. manually.)
+else
 AC_CHECK_FUNCS([getopt])
 AC_CHECK_FUNC(getopt_long,
 	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long function'])
 	 tm_cv_needgetopt="no",
 	 tm_cv_needgetopt="yes")
-else 
-tm_cv_needgetopt="yes"
-AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
-AC_MSG_WARN(If you use native CYGWIN. )
-AC_MSG_WARN(Define it in config.h. manually.)
 fi
-else
-tm_cv_needgetopt="yes"
-AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
-AC_MSG_WARN(If you use native CYGWIN. Define it in config.h. manually.)
 fi
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
