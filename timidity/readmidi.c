@@ -5056,7 +5056,7 @@ void readmidi_read_init(void)
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = rhythm_part[1] = 9;
-	for(i = 0; i < 5; i++) {drum_setup_xg[i] = 9;}
+	for(i = 0; i < 6; i++) {drum_setup_xg[i] = 9;}
 
     /* Put a do-nothing event first in the list for easier processing */
     evlist = current_midi_point = alloc_midi_event();

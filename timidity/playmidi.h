@@ -337,6 +337,7 @@ typedef struct {
 
   int8 soft_pedal;
   int8 sostenuto;
+  int8 redamper;
 
   int8 tone_map0_number;
   FLOAT_T pitch_offset_fine;	/* in Hz */

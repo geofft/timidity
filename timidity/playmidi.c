@@ -529,6 +529,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].velocity_sense_offset = 0x40;
   channel[c].pitch_offset_fine = 0;
   channel[c].legato = 0;
+  channel[c].redamper = 0;
   if(play_system_mode == XG_SYSTEM_MODE) {
 	  if(ISDRUMCHANNEL(c)) {channel[c].assign_mode = 1;}
 	  else {channel[c].assign_mode = 2;}
@@ -586,6 +587,7 @@ static void reset_controllers(int c)
 
   channel[c].expression = 127; /* SCC-1 does this. */
   channel[c].sustain = 0;
+  channel[c].sostenuto = 0;
   channel[c].pitchbend = 0x2000;
   channel[c].pitchfactor = 0; /* to be computed */
   channel[c].mod.val = 0;
@@ -1235,6 +1237,7 @@ void recompute_bank_parameter(int ch, int note)
 		bank = tonebank[nbank];
 		if(bank == NULL) {bank = tonebank[0];}
 		channel[ch].legato = bank->tone[nprog].legato;
+		channel[ch].redamper = bank->tone[nprog].redamper;
 	}
 }
 
@@ -2990,6 +2993,40 @@ static void set_voice_timeout(Voice *vp, int ch, int note)
 	vp->timeout = (int32)(bank->tone[prog].loop_timeout
 			      * play_mode->rate * midi_time_ratio
 			      + current_sample);
+}
+
+static void update_sostenuto_controls(int ch)
+{
+  int uv = upper_voices, i;
+
+  if(ISDRUMCHANNEL(ch) || channel[ch].sostenuto == 0) {return;}
+
+  for(i = 0; i < uv; i++)
+  {
+	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
+	  {
+		  voice[i].status = VOICE_SUSTAINED;
+		  set_voice_timeout(voice + i, ch, 0);
+		  ctl_note_event(i);
+	  }
+  }
+}
+
+static void update_redamper_controls(int ch)
+{
+  int uv = upper_voices, i;
+
+  if(ISDRUMCHANNEL(ch) || channel[ch].redamper == 0) {return;}
+
+  for(i = 0; i < uv; i++)
+  {
+	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
+	  {
+		  voice[i].status = VOICE_SUSTAINED;
+		  set_voice_timeout(voice + i, ch, 0);
+		  ctl_note_event(i);
+	  }
+  }
 }
 
 static void note_off(MidiEvent *e)
@@ -5150,10 +5187,11 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	  case ME_SUSTAIN:
-	    channel[ch].sustain = (current_event->a >= 64);
+		  channel[ch].sustain = current_event->a >= 64 ? current_event->a : 0;
 	    break;
 
 	  case ME_SOSTENUTO:
+		  channel[ch].sostenuto = current_event->a >= 64 ? current_event->a : 0;
 	    break;
 
 	  case ME_LEGATO_FOOTSWITCH:
@@ -7094,19 +7132,26 @@ int play_event(MidiEvent *ev)
 	break;
 
       case ME_SUSTAIN:
-	channel[ch].sustain = (ev->a >= 64);
-	if(!ev->a)
+    if (channel[ch].sustain == 0 && ev->a >= 64) {
+		update_redamper_controls(ch);
+	}
+	channel[ch].sustain = ev->a >= 64 ? ev->a : 0;
+	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
 	    drop_sustain(ch);
 	ctl_mode_event(CTLE_SUSTAIN, 1, ch, ev->a >= 64);
 	break;
 
       case ME_SOSTENUTO:
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Sostenuto - this function is not supported.");
+	channel[ch].sostenuto = ev->a >= 64 ? ev->a : 0;
+	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
+	    drop_sustain(ch);
+	else {update_sostenuto_controls(ch);}
+	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Sostenuto %d", channel[ch].sostenuto);
 	break;
 
       case ME_LEGATO_FOOTSWITCH:
     channel[ch].legato = (ev->a >= 64);
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Legato Footswitch (CH:%d VAL:%d)",ch,channel[ch].legato);
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Legato Footswitch (CH:%d VAL:%d)", ch, channel[ch].legato);
 	break;
 
       case ME_HOLD2:

@@ -982,7 +982,7 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	tone->strip_loop = tone->strip_envelope =
 	tone->strip_tail = -1;
     tone->amp = -1;
-    tone->legato = tone->key_to_fc = tone->vel_to_fc = 0;
+    tone->legato = tone->redamper = tone->key_to_fc = tone->vel_to_fc = 0;
 	tone->reverb_send = tone->chorus_send = tone->delay_send = -1;
     tone->tva_level = -1;
 	tone->play_note = -1;
@@ -1615,6 +1615,34 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 	    bank->tone[i].legato = atoi(w[2]);
+	}	/* #extension redamper [program] [0 or 1] */
+	else if(strcmp(w[0], "redamper") == 0)
+	{
+	    if(words != 3)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: syntax error", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if(!bank)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Must specify tone bank or drum set "
+			  "before assignment", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    i = atoi(w[1]);
+	    if(i < 0 || i > 127)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension redamper "
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    bank->tone[i].redamper = atoi(w[2]);
 	}	/* #extension level program tva_level */
 	else if(strcmp(w[0], "level") == 0)
 	{

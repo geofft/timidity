@@ -1466,6 +1466,7 @@ int recompute_envelope(int v)
 {
 	int stage, ch;
 	int32 rate;
+	double sustain_time;
 	Voice *vp = &voice[v];
 	
 	stage = vp->envelope_stage;
@@ -1502,10 +1503,16 @@ int recompute_envelope(int v)
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return next_stage(v);
+			ch = vp->channel;
+			if (channel[ch].sostenuto) {
+				sustain_time = min_sustain_time;
+			} else {
+				sustain_time = (double)min_sustain_time * (double)(channel[ch].sustain - 64) / 63.0;
+			}
 			/* Calculate the release phase speed. */
 			rate = -0x3fffffff * (double) control_ratio * 1000
-					/ (min_sustain_time * play_mode->rate);
-			ch = vp->channel;
+					/ (sustain_time * play_mode->rate);
+			
 			vp->envelope_increment = -vp->sample->envelope_rate[2];
 			/* use the slower of the two rates */
 			if (vp->envelope_increment < rate)
@@ -1882,6 +1889,7 @@ int recompute_modulation_envelope(int v)
 {
 	int stage, ch;
 	int32 rate;
+	double sustain_time;
 	Voice *vp = &voice[v];
 
 	if(!opt_modulation_envelope) {return 0;}
@@ -1904,10 +1912,15 @@ int recompute_modulation_envelope(int v)
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return modenv_next_stage(v);
+			ch = vp->channel;
+			if (channel[ch].sostenuto) {
+				sustain_time = min_sustain_time;
+			} else {
+				sustain_time = (double)min_sustain_time * (double)(channel[ch].sustain - 64) / 63.0;
+			}
 			/* Calculate the release phase speed. */
 			rate = -0x3fffffff * (double) control_ratio * 1000
-					/ (min_sustain_time * play_mode->rate);
-			ch = vp->channel;
+					/ (sustain_time * play_mode->rate);
 			vp->modenv_increment = -vp->sample->modenv_rate[2];
 			/* use the slower of the two rates */
 			if (vp->modenv_increment < rate)

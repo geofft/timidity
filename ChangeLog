@@ -1,3 +1,10 @@
+2004-01-15  Saito <saito2@digitalme.com>
+
+	* timidity/timidity.c, timidity/playmidi.[ch], timidity/instrum.h,
+	  timidity/mix.c, timidity/readmidi.c:
+	  Support for redamper effect (#extension redamper).
+	  Support for Sostenuto and Hold1 Half Pedal.
+
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c: Casting error fixed.
