@@ -111,6 +111,22 @@ static inline int32 imuldiv24(int32 a, int32 b)
     return result;
 }
 
+static inline int32 imuldiv28(int32 a, int32 b)
+{
+    int32 result;
+    __asm__("movl %1, %%eax\n\t"
+	    "movl %2, %%edx\n\t"
+	    "imull %%edx\n\t"
+	    "shr $28, %%eax\n\t"
+	    "shl $4, %%edx\n\t"
+	    "or %%edx, %%eax\n\t"
+	    "movl %%eax, %0\n\t"
+	    : "=g"(result)
+	    : "g"(a), "g"(b)
+	    : "eax", "edx");
+    return result;
+}
+
 #elif _MSC_VER
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
@@ -141,6 +157,17 @@ inline int32 imuldiv24(int32 a, int32 b) {
 		imul edx
 		shr eax, 24
 		shl edx, 8
+		or  eax, edx
+	}
+}
+
+inline int32 imuldiv28(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 28
+		shl edx, 4
 		or  eax, edx
 	}
 }
@@ -204,6 +231,9 @@ static inline int32 imuldiv24(int32 a, int32 b)
 
 #define imuldiv24(a, b) \
     (int32)(((int64)(a) * (int64)(b)) >> 24)
+
+#define imuldiv28(a, b) \
+    (int32)(((int64)(a) * (int64)(b)) >> 28)
 
 #endif /* architectures */
 #endif /* OPT_MODE != 0 */

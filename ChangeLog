@@ -1,3 +1,8 @@
+2004-03-18  Saito <saito@intaa.net>
+
+	* timidity/optcode.h:
+	  Add imuldiv28() for waveshaping.
+
 2004-03-18  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c: Bug fix.
