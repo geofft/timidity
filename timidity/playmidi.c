@@ -1863,16 +1863,26 @@ static int get_panning(int ch, int note,int v)
 {
     int i, pan;
 
-	if(channel[ch].panning != NO_PANNING) {pan = ((int)channel[ch].panning - 64) * 2;}
-	else {pan = 0;}
-
-	if(ISDRUMCHANNEL(ch) &&
-     channel[ch].drums[note] != NULL &&
-     channel[ch].drums[note]->drum_panning != NO_PANNING) {
-	    pan += channel[ch].drums[note]->drum_panning - 64;
+	if(voice[v].sample_panning_average == -1) {	/* mono sample */
+		if(channel[ch].panning != NO_PANNING) {pan = (int)channel[ch].panning - 64;}
+		else {pan = 0;}
+		if(ISDRUMCHANNEL(ch) &&
+		 channel[ch].drums[note] != NULL &&
+		 channel[ch].drums[note]->drum_panning != NO_PANNING) {
+			pan += channel[ch].drums[note]->drum_panning;
+		} else {
+			pan += voice[v].sample->panning;
+		}
+	} else {	/* stereo sample */
+		if(channel[ch].panning != NO_PANNING) {pan = ((int)channel[ch].panning - 64) * 2;}
+		else {pan = 0;}
+		if(ISDRUMCHANNEL(ch) &&
+		 channel[ch].drums[note] != NULL &&
+		 channel[ch].drums[note]->drum_panning != NO_PANNING) {
+			pan += channel[ch].drums[note]->drum_panning - 64;
+		}
+		pan += voice[v].sample->panning - voice[v].sample_panning_average + 64;
 	}
-
-	pan += voice[v].sample->panning - voice[v].sample_panning_average + 64;
 
 	if (pan > 127) pan = 127;
 	else if (pan < 0) pan = 0;
@@ -1884,17 +1894,20 @@ static void calc_sample_panning_average(int nv,int *vlist)
 {
 	int i, v, average = 0;
 
-	if(!nv) {return;}
+	if(!nv) {return;}	/* error! */
+	else if(nv == 1) {	/* mono sample */
+		v = vlist[0];
+		voice[v].sample_panning_average = -1;
+		return;
+	}
 
-	for(i=0;i<nv;i++)
-	{
+	for(i=0;i<nv;i++) {
 		v = vlist[i];
 		average += voice[v].sample->panning;
 	}
 	average /= nv;
 
-	for(i=0;i<nv;i++)
-	{
+	for(i=0;i<nv;i++) {
 		v = vlist[i];
 		voice[v].sample_panning_average = average;
 	}
@@ -3403,6 +3416,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	break;
       case RPN_ADDR_0000: /* Pitch bend sensitivity */
 	ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Pitch Bend Sensitivity (CH:%d VALUE:%d)",ch,val);
+	if(channel[ch].rpnmap[RPN_ADDR_0000] > 24) {channel[ch].rpnmap[RPN_ADDR_0000] = 24;}
 	channel[ch].pitchfactor = 0;
 	break;
       case RPN_ADDR_0001: /* Master Fine Tuning */
