@@ -60,7 +60,8 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MARKER_END_CHAR		')'
 
 static uint8 rhythm_part[2];	/* for GS */
-static uint8 drum_setup_xg[6];	/* for XG */
+static uint8 drum_setup_xg[16] = { 9, 9, 9, 9, 9, 9, 9, 9,
+				   9, 9, 9, 9, 9, 9, 9, 9 };	/* for XG */
 
 enum
 {
@@ -716,12 +717,8 @@ static int set_xg_chorus_type(int msb, int lsb)
 /* XG SysEx parsing function by Eric A. Welsh
  * Also handles GS patch+bank changes
  *
- * This function provides basic support for XG Multi Part Data
- * parameter change SysEx events
- *
- * NOTE - val[1] is documented as only being 0x10, but this rule is not
- * followed in real life, since I have midi that set it to 0x00 and are
- * interpreted correctly on my SW60XG ...
+ * This function provides basic support for XG Bulk Dump and Parameter
+ * Change SysEx events
  */
 int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 {
@@ -734,169 +731,247 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
 	current_file_info->mid = val[0];
 
-    /* First, check for the various XG Bulk Dump events */
-    /* val[7] is the starting value for the event type */
-
-    /* Effect 1 */
-    if(len >= 10 &&
+    /* Effect 1 or Multi EQ */
+    if(len >= 8 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
-       val[5] == 0x02)   /* Effect 1 */
+       ((val[1] <  0x10 && val[5] == 0x02) ||	/* Bulk Dump*/
+        (val[1] >= 0x10 && val[3] == 0x02)))	/* Parameter Change */
     {
 	uint8 addhigh, addmid, addlow;		/* Addresses */
 	uint8 *body;				/* SysEx body */
-	uint8 p;				/* Channel part number [0..15] */
 	int ent, v;				/* Entry # of sub-event */
 	uint8 *body_end;			/* End of SysEx body */
 
-	addhigh = val[5];
-	addmid = val[6];
-	addlow = val[7];
-	body = val + 8;
-	p = val[6];
-	body_end = val + len - 3;
+	if (val[1] < 0x10)	/* Bulk Dump */
+	{
+	    addhigh = val[5];
+	    addmid = val[6];
+	    addlow = val[7];
+	    body = val + 8;
+	    body_end = val + len - 3;
+	}
+	else			/* Parameter Change */
+	{
+	    addhigh = val[3];
+	    addmid = val[4];
+	    addlow = val[5];
+	    body = val + 6;
+	    body_end = val + len - 2;
+	}
 
-	for (ent = val[7]; body <= body_end; body++, ent++) {
-#if 0
-		if (p >= 0x01 && p < 0x40) {
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 1);
-			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
-			num_events += 2;
-		}
-#else
-		if(p == 0x01) {	/* Effect 1 */
+	/* set the SYSEX_XG_MSB info */
+	SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, addhigh, addmid);
+	num_events++;
+
+	for (ent = addlow; body <= body_end; body++, ent++) {
+	  if(addmid == 0x01) {	/* Effect 1 */
 	    switch(ent) {
 		case 0x00:	/* Reverb Type MSB */
 		    xg_reverb_type_msb = *body;
+#if 0	/* XG specific reverb is not supported yet, use GS instead */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
+#endif
 		    break;
 
 		case 0x01:	/* Reverb Type LSB */
 		    xg_reverb_type_lsb = *body;
-			v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
-			if (v >= 0) {
-			    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
-			    num_events++;
-			}
+#if 0	/* XG specific reverb is not supported yet, use GS instead */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
+#else
+		    v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+		    if (v >= 0) {
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, v, 0x05);
+			num_events++;
+		    }
+#endif
 		    break;
 
 		case 0x0C:	/* Reverb Return */
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x00);
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
+		    break;
+
+		case 0x20:	/* Chorus Type MSB */
+		    xg_chorus_type_msb = *body;
+#if 0	/* XG specific chorus is not supported yet, use GS instead */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
+#endif
+		    break;
+
+		case 0x21:	/* Chorus Type LSB */
+		    xg_chorus_type_lsb = *body;
+#if 0	/* XG specific chorus is not supported yet, use GS instead */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
+#else
+		    v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+		    if (v >= 0) {
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, v, 0x0D);
+			num_events++;
+		    }
+#endif
+		    break;
+
+		case 0x2C:	/* Chorus Return */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 		    break;
 
 		default:
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 1);
-			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
-			num_events += 2;
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			num_events++;
 		    break;
 	    }
-		}
-#endif
-		else if(p == 0x40) {	/* Multi EQ */
+	  }
+	  else if(addmid == 0x40) {	/* Multi EQ */
 	    switch(ent) {
 		case 0x00:	/* EQ type */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x50);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 		    break;
 
 		case 0x01:	/* EQ gain1 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x51);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x02:	/* EQ frequency1 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x52);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x03:	/* EQ Q1 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x53);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x04:	/* EQ shape1 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x54);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x05:	/* EQ gain2 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x55);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x06:	/* EQ frequency2 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x56);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x07:	/* EQ Q2 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x57);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x09:	/* EQ gain3 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x59);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x0A:	/* EQ frequency3 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5A);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x0B:	/* EQ Q3 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5B);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x0D:	/* EQ gain4 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5D);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x0E:	/* EQ frequency4 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5E);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x0F:	/* EQ Q4 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5F);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x11:	/* EQ gain5 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x61);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x12:	/* EQ frequency5 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x62);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x13:	/* EQ Q5 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x63);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		case 0x14:	/* EQ shape5 */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x64);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
 			num_events++;
 			break;
 
 		default:
-		    continue;
-		    break;
+		    	break;
 	    }
-		}
+	  }
 	}
     }
 
     /* Effect 2 (Insertion Effects) */
+    else if(len >= 8 &&
+       val[0] == 0x43 && /* Yamaha ID */
+       val[2] == 0x4C && /* XG Model ID */
+       ((val[1] <  0x10 && val[5] == 0x03) ||	/* Bulk Dump*/
+        (val[1] >= 0x10 && val[3] == 0x03)))	/* Parameter Change */
+    {
+	uint8 addhigh, addmid, addlow;		/* Addresses */
+	uint8 *body;				/* SysEx body */
+	int ent;				/* Entry # of sub-event */
+	uint8 *body_end;			/* End of SysEx body */
+
+	if (val[1] < 0x10)	/* Bulk Dump */
+	{
+	    addhigh = val[5];
+	    addmid = val[6];
+	    addlow = val[7];
+	    body = val + 8;
+	    body_end = val + len - 3;
+	}
+	else			/* Parameter Change */
+	{
+	    addhigh = val[3];
+	    addmid = val[4];
+	    addlow = val[5];
+	    body = val + 6;
+	    body_end = val + len - 2;
+	}
+
+	/* set the SYSEX_XG_MSB info */
+	SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, addhigh, addmid);
+	num_events++;
+
+	for (ent = addlow; body <= body_end; body++, ent++) {
+	    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, ent);
+			 num_events++;
+	}
+    }
+
+    /* XG Multi Part Data parameter change */
     else if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
-       val[5] == 0x03)   /* Effect 2 (Insertion Effects) */
+       ((val[1] <  0x10 && val[5] == 0x08 &&	/* Bulk Dump */
+         val[4] == 0x29 || val[4] == 0x3F) ||	/* Blocks 1 or 2 */
+        (val[1] >= 0x10 && val[3] == 0x08)))	/* Parameter Change */
     {
 	uint8 addhigh, addmid, addlow;		/* Addresses */
 	uint8 *body;				/* SysEx body */
@@ -904,44 +979,30 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	int ent;				/* Entry # of sub-event */
 	uint8 *body_end;			/* End of SysEx body */
 
-	addhigh = val[5];
-	addmid = val[6];
-	addlow = val[7];
-	body = val + 8;
-	p = val[6];
-	body_end = val + len-3;
-
-	for (ent = val[7]; body <= body_end; body++, ent++) {
-	    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5], 2);
-		SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
-		num_events += 2;
-    }
+	if (val[1] < 0x10)	/* Bulk Dump */
+	{
+	    addhigh = val[5];
+	    addmid = val[6];
+	    addlow = val[7];
+	    body = val + 8;
+	    p = addmid;
+	    body_end = val + len - 3;
+	}
+	else			/* Parameter Change */
+	{
+	    addhigh = val[3];
+	    addmid = val[4];
+	    addlow = val[5];
+	    body = val + 6;
+	    p = addmid;
+	    body_end = val + len - 2;
 	}
 
-    /* XG Multi Part Data parameter change */
-    /* There are two ways to do this, neither of which match the XG spec... */
+	/* set the SYSEX_XG_MSB info */
+	SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, p, addhigh, addmid);
+	num_events++;
 
-    /* First method via Bulk Dump */
-    else if(len >= 10 &&
-       val[0] == 0x43 && /* Yamaha ID */
-       val[2] == 0x4C && /* XG Model ID */
-       (val[4] == 0x29 || val[4] == 0x3F)) /* Blocks 1 or 2 */
-    {
-	uint8 addhigh, addmid, addlow;		/* Addresses */
-	uint8 *body;				/* SysEx body */
-	uint8 p, dp, note;				/* Channel part number [0..15] */
-	int ent;				/* Entry # of sub-event */
-	uint8 *body_end;			/* End of SysEx body */
-
-	addhigh = val[5];
-	addmid = val[6];
-	addlow = val[7];
-	body = val + 8;
-	p = val[6];
-	body_end = val + len-3;
-
-	if(val[5] == 0x08) {  /* Multi Part */
-	for (ent = val[7]; body <= body_end; body++, ent++) {
+	for (ent = addlow; body <= body_end; body++, ent++) {
 	    switch(ent) {
 		case 0x00:	/* Element Reserve */
 /*			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, *body); */
@@ -963,7 +1024,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x04:	/* Rcv CHANNEL */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x65);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x99);
 			num_events++;
 		    break;
 
@@ -974,7 +1035,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x06:	/* Same Note Number Key On Assign */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x66);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, ent);
 			num_events++;
 		    break;
 
@@ -1033,7 +1094,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 
 		case 0x11:	/* Dry Level */
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x67);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, ent);
 			num_events++;
 			break;
 
@@ -1472,964 +1533,186 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 
 		default:
-		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],ent,*body);
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",addhigh,addlow,ent,*body);
 		    continue;
 		    break;
 	    }
 	}
-	} else if((val[5] & 0xF0) == 0x30) {	/* Drum Setup */
-		dp = drum_setup_xg[val[5] & 0x0F];
-		note = val[6];
-		for (ent = val[7]; body <= body_end; body++, ent++) {
-				switch(ent) {
-				case 0x00:	/* Pitch Coarse */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x18, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x01:	/* Pitch Fine */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x19, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x02:	/* Level */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x03:	/* Alternate Group */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Alternate Group is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
-					break;
-				case 0x04:	/* Pan */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x05:	/* Reverb Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x06:	/* Chorus Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x07:	/* Variation Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x08:	/* Key Assign */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Key Assign is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
-					break;
-				case 0x09:	/* Rcv Note Off */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x46);
-					num_events += 2;
-					break;
-				case 0x0A:	/* Rcv Note On */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x47);
-					num_events += 2;
-					break;
-				case 0x0B:	/* Filter Cutoff Frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x14, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0C:	/* Filter Resonance */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x15, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0D:	/* EG Attack */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x16, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0E:	/* EG Decay1 */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, 0x68);
-					num_events++;
-					break;
-				case 0x0F:	/* EG Decay2 */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, 0x69);
-					num_events++;
-					break;
-				case 0x20:	/* EQ BASS */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x21:	/* EQ TREBLE */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x31, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x24:	/* EQ BASS frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x34, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x25:	/* EQ TREBLE frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x35, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x50:	/* High Pass Filter Cutoff Frequency */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "High Pass Filter Cutoff Frequency is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
-					break;
-				case 0x60:	/* Velocity Pitch Sense */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Pitch Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
-					break;
-				case 0x61:	/* Velocity LPF Cutoff Sense */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity LPF Cutoff Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
-					break;
-				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],ent,*body);
-					break;
-				}
-			}
-		}
     }
 
-    /* Second method: specify them one SYSEX event at a time... */
-    else if(len >= 8 &&
+    /* XG Drum Setup */
+    else if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
-       val[2] == 0x4C) /* XG Model ID */ 
+       val[2] == 0x4C && /* XG Model ID */
+       ((val[1] <  0x10 && (val[5] & 0xF0) == 0x30) ||	/* Bulk Dump*/
+        (val[1] >= 0x10 && (val[3] & 0xF0) == 0x30)))	/* Parameter Change */
     {
-		uint8 p, dp, note;				/* Channel part number [0..15] */
-		int ent, v;				/* Entry # of sub-event */
+	uint8 addhigh, addmid, addlow;		/* Addresses */
+	uint8 *body;				/* SysEx body */
+	uint8 dp, note;				/* Channel part number [0..15] */
+	int ent;				/* Entry # of sub-event */
+	uint8 *body_end;			/* End of SysEx body */
 
-		p = val[4];
-		ent = val[5];
+	if (val[1] < 0x10)	/* Bulk Dump */
+	{
+	    addhigh = val[5];
+	    addmid = val[6];
+	    addlow = val[7];
+	    body = val + 8;
+	    body_end = val + len - 3;
+	}
+	else			/* Parameter Change */
+	{
+	    addhigh = val[3];
+	    addmid = val[4];
+	    addlow = val[5];
+	    body = val + 6;
+	    body_end = val + len - 2;
+	}
 
-		/* set reverb/chorus type on both MSB and LSB events */
-		/* this will give the "intended" result even if the events are
-		   sent in the wrong order */
-		if(val[3] == 0x02) {
-#if 0
-			if(val[4] >= 0x01 && val[4] < 0x40) {	/* Effect 1 */
-				SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 1);
-				SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
-				num_events += 2;
-			}
-#else
-			if(val[4] == 0x01) {	/* Effect 1 */
-			switch(ent) {
-				case 0x00:	/* Reverb Type MSB */
-				  xg_reverb_type_msb = val[6];
-				  v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
-				  num_events++;
-				  break;
+	dp = drum_setup_xg[(addhigh & 0x0F) + 1];
+	note = addmid;
 
-				case 0x01:	/* Reverb Type LSB */
-				  xg_reverb_type_lsb = val[6];
-				  v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
-				  num_events++;
-				  break;
+	/* set the SYSEX_XG_MSB info */
+	SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, dp, addhigh, addmid);
+	num_events++;
 
-				case 0x0C:	/* Reverb Return */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x00);
-				  num_events++;
-				  break;
-
-				default:
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 1);
-				  SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
-				  num_events += 2;
-				  break;
-			}
-			}
-#endif
-			else if(val[4] == 0x40) {	/* Multi EQ */
-			switch(ent) {
-				case 0x00:	/* EQ type */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x50);
-				  num_events++;
-				  break;
-
-				case 0x01:	/* EQ gain1 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x51);
-				  num_events++;
-				  break;
-
-				case 0x02:	/* EQ frequency1 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x52);
-				  num_events++;
-				  break;
-
-				case 0x03:	/* EQ Q1 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x53);
-				  num_events++;
-				  break;
-
-				case 0x04:	/* EQ shape1 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x54);
-				  num_events++;
-				  break;
-
-				case 0x05:	/* EQ gain2 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x55);
-				  num_events++;
-				  break;
-
-				case 0x06:	/* EQ frequency2 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x56);
-				  num_events++;
-				  break;
-
-				case 0x07:	/* EQ Q2 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x57);
-				  num_events++;
-				  break;
-
-				case 0x09:	/* EQ gain3 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x59);
-				  num_events++;
-				  break;
-
-				case 0x0A:	/* EQ frequency3 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5A);
-				  num_events++;
-				  break;
-
-				case 0x0B:	/* EQ Q3 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5B);
-				  num_events++;
-				  break;
-
-				case 0x0D:	/* EQ gain4 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5D);
-				  num_events++;
-				  break;
-
-				case 0x0E:	/* EQ frequency4 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5E);
-				  num_events++;
-				  break;
-
-				case 0x0F:	/* EQ Q4 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5F);
-				  num_events++;
-				  break;
-
-				case 0x11:	/* EQ gain5 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x61);
-				  num_events++;
-				  break;
-
-				case 0x12:	/* EQ frequency5 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x62);
-				  num_events++;
-				  break;
-
-				case 0x13:	/* EQ Q5 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x63);
-				  num_events++;
-				  break;
-
-				case 0x14:	/* EQ shape5 */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x64);
-				  num_events++;
-				  break;
-
-				default:
-				  break;
-			}
-			}
-		} else if (val[3] == 0x03) {	/* Effect 2 */
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4], 2);
-			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
+	for (ent = addlow; body <= body_end; body++, ent++) {
+	    switch(ent) {
+		case 0x00:	/* Pitch Coarse */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x18, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x01:	/* Pitch Fine */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x19, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x02:	/* Level */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x03:	/* Alternate Group */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Alternate Group is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+			break;
+		case 0x04:	/* Pan */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x05:	/* Reverb Send */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x06:	/* Chorus Send */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x07:	/* Variation Send */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x08:	/* Key Assign */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Key Assign is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+			break;
+		case 0x09:	/* Rcv Note Off */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x46);
 			num_events += 2;
-		} else if (val[3] == 0x08) {	/* Multi Part Data parameter change */
-			switch(ent) {
-				case 0x00:	/* Element Reserve */
-			/*		ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, val[6]); */
-					break;
-
-				case 0x01:	/* bank select MSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x02:	/* bank select LSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x03:	/* program number */
-				  SETMIDIEVENT(evm[0], 0, ME_PROGRAM, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x04:	/* Rcv CHANNEL */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x65);
-				  num_events++;
-				  break;
-
-				case 0x05:	/* mono/poly mode */
-				  if(val[6] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[6], SYSEX_TAG);}
-				  else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[6], SYSEX_TAG);}
-				  num_events++;
-				  break;
-
-				case 0x06:	/* Same Note Number Key On Assign */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x66);
-				  num_events++;
-				  break;
-
-				case 0x07:	/* Part Mode */
-				  drum_setup_xg[val[6]] = p;
-				  SETMIDIEVENT(evm[num_events], 0, ME_DRUMPART, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x08:	/* note shift ? */
-				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x09:	/* Detune 1st bit */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 1st bit is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x0A:	/* Detune 2nd bit */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 2nd bit is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x0B:	/* volume */
-				  SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x0C:	/* Velocity Sense Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, val[6], 0x21);
-					num_events++;
-					break;
-
-				case 0x0D:	/* Velocity Sense Offset */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, val[6], 0x22);
-					num_events++;
-					break;
-
-				case 0x0E:	/* pan */
-				  if(val[6] == 0) {
-					SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, SYSEX_TAG);
-				  }
-				  else {
-					SETMIDIEVENT(evm[0], 0, ME_PAN, p, val[6], SYSEX_TAG);
-				  }
-				  num_events++;
-				  break;
-
-				case 0x0F:	/* Note Limit Low */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x42);
-					num_events++;
-					break;
-
-				case 0x10:	/* Note Limit High */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x43);
-					num_events++;
-					break;
-
-				case 0x11:	/* Dry Level */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x67);
-					num_events++;
-					break;
-
-				case 0x12:	/* chorus send */
-				  SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x13:	/* reverb send */
-				  SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[6], SYSEX_TAG);
-				  num_events++;
-				  break;
-
-				case 0x14:	/* Variation Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_CELESTE_EFFECT, p, val[6], SYSEX_TAG);
-					num_events++;
-					break;
-
-				case 0x15:	/* Vibrato Rate */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x08, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x16:	/* Vibrato Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x09, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x17:	/* Vibrato Delay */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x0A, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x18:	/* Filter Cutoff Frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x20, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x19:	/* Filter Resonance */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x21, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x1A:	/* EG Attack Time */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x63, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x1B:	/* EG Decay Time */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x64, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x1C:	/* EG Release Time */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x66, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x1D:	/* MW Pitch Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x16);
-					num_events++;
-					break;
-
-				case 0x1E:	/* MW Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x17);
-					num_events++;
-					break;
-
-				case 0x1F:	/* MW Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x18);
-					num_events++;
-					break;
-
-				case 0x20:	/* MW LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1A);
-					num_events++;
-					break;
-
-				case 0x21:	/* MW LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1B);
-					num_events++;
-					break;
-
-				case 0x22:	/* MW LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1C);
-					num_events++;
-					break;
-
-				case 0x23:	/* bend pitch control */
-				  SETMIDIEVENT(evm[0], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
-				  SETMIDIEVENT(evm[1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
-				  SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, (val[6] - 0x40) & 0x7F, SYSEX_TAG);
-				  num_events += 3;
-				  break;
-
-				case 0x24:	/* Bend Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x22);
-					num_events++;
-					break;
-
-				case 0x25:	/* Bend Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x23);
-					num_events++;
-					break;
-
-				case 0x26:	/* Bend LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x25);
-					num_events++;
-					break;
-
-				case 0x27:	/* Bend LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x26);
-					num_events++;
-					break;
-
-				case 0x28:	/* Bend LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x27);
-					num_events++;
-					break;
-
-				case 0x30:	/* Rcv Pitch Bend */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x48);
-					num_events++;
-					break;
-
-				case 0x31:	/* Rcv Channel Pressure */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x49);
-					num_events++;
-					break;
-
-				case 0x32:	/* Rcv Program Change */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4A);
-					num_events++;
-					break;
-
-				case 0x33:	/* Rcv Control Change */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4B);
-					num_events++;
-					break;
-
-				case 0x34:	/* Rcv Poly Pressure */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4C);
-					num_events++;
-					break;
-
-				case 0x35:	/* Rcv Note Message */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4D);
-					num_events++;
-					break;
-
-				case 0x36:	/* Rcv RPN */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4E);
-					num_events++;
-					break;
-
-				case 0x37:	/* Rcv NRPN */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4F);
-					num_events++;
-					break;
-
-				case 0x38:	/* Rcv Modulation */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x50);
-					num_events++;
-					break;
-
-				case 0x39:	/* Rcv Volume */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x51);
-					num_events++;
-					break;
-
-				case 0x3A:	/* Rcv Pan */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x52);
-					num_events++;
-					break;
-
-				case 0x3B:	/* Rcv Expression */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x53);
-					num_events++;
-					break;
-
-				case 0x3C:	/* Rcv Hold1 */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x54);
-					num_events++;
-					break;
-
-				case 0x3D:	/* Rcv Portamento */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x55);
-					num_events++;
-					break;
-
-				case 0x3E:	/* Rcv Sostenuto */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x56);
-					num_events++;
-					break;
-
-				case 0x3F:	/* Rcv Soft */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x57);
-					num_events++;
-					break;
-
-				case 0x40:	/* Rcv Bank Select */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x58);
-					num_events++;
-					break;
-
-				case 0x41:	/* scale tuning */
-				case 0x42:
-				case 0x43:
-				case 0x44:
-				case 0x45:
-				case 0x46:
-				case 0x47:
-				case 0x48:
-				case 0x49:
-				case 0x4a:
-				case 0x4b:
-				case 0x4c:
-					SETMIDIEVENT(evm[0],
-							0, ME_SCALE_TUNING, p, ent - 0x41, val[6] - 64);
-					num_events++;
-					ctl->cmsg(CMSG_INFO, VERB_NOISY,
-							"Scale Tuning %s (CH:%d %d cent)",
-							note_name[ent - 0x41], p, val[6] - 64);
-					break;
-
-				case 0x4D:	/* CAT Pitch Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x00);
-					num_events++;
-					break;
-
-				case 0x4E:	/* CAT Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x01);
-					num_events++;
-					break;
-
-				case 0x4F:	/* CAT Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x02);
-					num_events++;
-					break;
-
-				case 0x50:	/* CAT LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x04);
-					num_events++;
-					break;
-
-				case 0x51:	/* CAT LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x05);
-					num_events++;
-					break;
-
-				case 0x52:	/* CAT LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x06);
-					num_events++;
-					break;
-
-				case 0x53:	/* PAT Pitch Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0B);
-					num_events++;
-					break;
-
-				case 0x54:	/* PAT Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0C);
-					num_events++;
-					break;
-
-				case 0x55:	/* PAT Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0D);
-					num_events++;
-					break;
-
-				case 0x56:	/* PAT LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0F);
-					num_events++;
-					break;
-
-				case 0x57:	/* PAT LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x10);
-					num_events++;
-					break;
-
-				case 0x58:	/* PAT LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x11);
-					num_events++;
-					break;
-				
-				case 0x59:	/* AC1 Controller Number */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Controller Number is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x5A:	/* AC1 Pitch Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2C);
-					num_events++;
-					break;
-
-				case 0x5B:	/* AC1 Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2D);
-					num_events++;
-					break;
-
-				case 0x5C:	/* AC1 Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2E);
-					num_events++;
-					break;
-
-				case 0x5D:	/* AC1 LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x30);
-					num_events++;
-					break;
-
-				case 0x5E:	/* AC1 LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x31);
-					num_events++;
-					break;
-
-				case 0x5F:	/* AC1 LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x32);
-					num_events++;
-					break;
-
-				case 0x60:	/* AC2 Controller Number */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Controller Number is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x61:	/* AC2 Pitch Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x37);
-					num_events++;
-					break;
-
-				case 0x62:	/* AC2 Filter Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x38);
-					num_events++;
-					break;
-
-				case 0x63:	/* AC2 Amplitude Control */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x39);
-					num_events++;
-					break;
-
-				case 0x64:	/* AC2 LFO PMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3B);
-					num_events++;
-					break;
-
-				case 0x65:	/* AC2 LFO FMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3C);
-					num_events++;
-					break;
-
-				case 0x66:	/* AC2 LFO AMod Depth */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3D);
-					num_events++;
-					break;
-
-				case 0x67:	/* Portamento Switch */
-					SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO, p, val[6], SYSEX_TAG);
-					num_events++;
-
-				case 0x68:	/* Portamento Time */
-					SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO_TIME_MSB, p, val[6], SYSEX_TAG);
-					num_events++;
-
-				case 0x69:	/* Pitch EG Initial Level */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Initial Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x6A:	/* Pitch EG Attack Time */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Attack Time is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x6B:	/* Pitch EG Release Level */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x6C:	/* Pitch EG Release Time */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Time is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x6D:	/* Velocity Limit Low */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x44);
-					num_events++;
-					break;
-
-				case 0x6E:	/* Velocity Limit High */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x45);
-					num_events++;
-					break;
-
-				case 0x70:	/* Bend Pitch Low Control */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Bend Pitch Low Control is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x71:	/* Filter EG Depth */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Filter EG Depth is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
-
-				case 0x72:	/* EQ BASS */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x30, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x73:	/* EQ TREBLE */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x31, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x76:	/* EQ BASS frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x34, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				case 0x77:	/* EQ TREBLE frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x35, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-
-				default:
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
-				  break;
-			}
-			} else if((val[3] & 0xF0) == 0x30) {	/* Drum Setup */
-				dp = drum_setup_xg[val[3] & 0x0F];
-				note = val[4];
-				switch(ent) {
-				case 0x00:	/* Pitch Coarse */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x18, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x01:	/* Pitch Fine */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x19, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x02:	/* Level */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x03:	/* Alternate Group */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Alternate Group is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
-					break;
-				case 0x04:	/* Pan */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x05:	/* Reverb Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x06:	/* Chorus Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x07:	/* Variation Send */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x08:	/* Key Assign */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Key Assign is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
-					break;
-				case 0x09:	/* Rcv Note Off */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, val[6], 0x46);
-					num_events += 2;
-					break;
-				case 0x0A:	/* Rcv Note On */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, val[6], 0x47);
-					num_events += 2;
-					break;
-				case 0x0B:	/* Filter Cutoff Frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x14, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0C:	/* Filter Resonance */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x15, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0D:	/* EG Attack */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x16, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x0E:	/* EG Decay1 */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, val[6], 0x68);
-					num_events++;
-					break;
-				case 0x0F:	/* EG Decay2 */
-					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, val[6], 0x69);
-					num_events++;
-					break;
-				case 0x20:	/* EQ BASS */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x21:	/* EQ TREBLE */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x31, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x24:	/* EQ BASS frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x34, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x25:	/* EQ TREBLE frequency */
-					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x35, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
-					num_events += 3;
-					break;
-				case 0x50:	/* High Pass Filter Cutoff Frequency */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "High Pass Filter Cutoff Frequency is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
-					break;
-				case 0x60:	/* Velocity Pitch Sense */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Pitch Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
-					break;
-				case 0x61:	/* Velocity LPF Cutoff Sense */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity LPF Cutoff Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
-					break;
-				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
-					break;
-			}
-		}
+			break;
+		case 0x0A:	/* Rcv Note On */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x47);
+			num_events += 2;
+			break;
+		case 0x0B:	/* Filter Cutoff Frequency */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x14, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x0C:	/* Filter Resonance */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x15, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x0D:	/* EG Attack */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x16, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x0E:	/* EG Decay1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, ent);
+			num_events++;
+			break;
+		case 0x0F:	/* EG Decay2 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, ent);
+			num_events++;
+			break;
+		case 0x20:	/* EQ BASS */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x21:	/* EQ TREBLE */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x31, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x24:	/* EQ BASS frequency */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x34, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x25:	/* EQ TREBLE frequency */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x35, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+			num_events += 3;
+			break;
+		case 0x50:	/* High Pass Filter Cutoff Frequency */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "High Pass Filter Cutoff Frequency is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+			break;
+		case 0x60:	/* Velocity Pitch Sense */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Pitch Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+			break;
+		case 0x61:	/* Velocity LPF Cutoff Sense */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity LPF Cutoff Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+			break;
+		default:
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",addhigh,addmid,ent,*body);
+			break;
+	    }
+	}
     }
-    /* parsing GS System Exclusive Message... */
-	/* val[4] == Parameter Address(High)
-	   val[5] == Parameter Address(Middle)
-	   val[6] == Parameter Address(Low)
-	   val[7]... == Data...
-	   val[last] == Checksum(== 128 - (sum of addresses&data bytes % 128)) 
-	*/
+
+    /* parsing GS System Exclusive Message...
+     *
+     * val[4] == Parameter Address(High)
+     * val[5] == Parameter Address(Middle)
+     * val[6] == Parameter Address(Low)
+     * val[7]... == Data...
+     * val[last] == Checksum(== 128 - (sum of addresses&data bytes % 128)) 
+     */
     else if(len >= 9 &&
-	   val[0] == 0x41 && /* Roland ID */
+       val[0] == 0x41 && /* Roland ID */
        val[1] == 0x10 && /* Device ID */
        val[2] == 0x42 && /* GS Model ID */
        val[3] == 0x12) /* Data Set Command */
@@ -4531,7 +3814,7 @@ static void move_channels(int *chidx)
 				if (maxch < e->event.channel)
 					maxch = e->event.channel;
 		} else if (e->event.type == ME_SYSEX_XG_LSB) {
-			if (e->event.b == 0x65)
+			if (e->event.b == 0x99)
 				if (maxch < e->event.channel)
 					maxch = e->event.channel;
 		}

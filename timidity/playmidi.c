@@ -2487,10 +2487,9 @@ static void new_chorus_voice(int v1, int level)
     /* Choose lower voice index for base voice (v1) */
     if(v1 > v2)
     {
-	int tmp;
-	tmp = v1;
-	v1 = v2;
-	v2 = v1;
+    	v1 ^= v2;
+    	v2 ^= v1;
+    	v1 ^= v2;
     }
 
     /* v1: Base churos voice
@@ -2591,10 +2590,9 @@ static void new_chorus_voice_alternate(int v1, int level)
     /* Choose lower voice index for base voice (v1) */
     if(v1 > v2)
     {
-	int tmp;
-	tmp = v1;
-	v1 = v2;
-	v2 = v1;
+    	v1 ^= v2;
+    	v2 ^= v1;
+    	v1 ^= v2;
     }
 
     /* lower the volumes so that the two notes add to roughly the orig. vol */
@@ -4367,8 +4365,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 	} else if(ev == ME_SYSEX_XG_LSB) {	/* XG system exclusive message */
 		msb = channel[ch].sysex_xg_msb_addr;
 		note = channel[ch].sysex_xg_msb_val;
-		channel[ch].sysex_xg_msb_addr = channel[ch].sysex_xg_msb_val = 0;
-		if (msb == 2) {	/* Effect 2 */
+		if (note == 3 && msb == 0) {	/* Effect 2 */
+		note = 0;	/* force insertion effect num 0 ?? */
 		if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {return;}
 		switch(b)
 		{
@@ -4512,7 +4510,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		default:
 			break;
 		}
-		} else if (msb == 1) {	/* Effect 1 */
+		} else if (note == 2 && msb == 1) {	/* Effect 1 */
+		note = 0;	/* force variation effect num 0 ?? */
 		switch(b)
 		{
 		case 0x00:	/* Reverb Type MSB */
@@ -4546,11 +4545,20 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x0C:	/* Reverb Return */
+#if 0	/* XG specific reverb is not currently implemented */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Return (%d)", val);
 			if (reverb_status_xg.ret != val) {
 				reverb_status_xg.ret = val;
 				recompute_effect_xg(&reverb_status_xg);
 			}
+#else	/* use GS reverb instead */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
+			if (reverb_status_gs.level != val) {
+				reverb_status_gs.level = val;
+				recompute_reverb_status_gs();
+				init_reverb();
+			}
+#endif
 			break;
 		case 0x0D:	/* Reverb Pan */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Pan (%d)", val);
@@ -4603,11 +4611,20 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x2C:	/* Chorus Return */
+#if 0	/* XG specific chorus is not currently implemented */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Return (%d)", val);
 			if (chorus_status_xg.ret != val) {
 				chorus_status_xg.ret = val;
 				recompute_effect_xg(&chorus_status_xg);
 			}
+#else	/* use GS chorus instead */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
+			if (chorus_status_gs.level != val) {
+				chorus_status_gs.level = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
+#endif
 			break;
 		case 0x2D:	/* Chorus Pan */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Pan (%d)", val);
@@ -4809,26 +4826,10 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		default:
 			break;
 		}
-		} else if (msb == 0) {
+		} else if (note == 2 && msb == 40) {	/* Multi EQ */
 		switch(b)
 		{
-		case 0x00:	/* Reverb Return */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
-			if (reverb_status_gs.level != val) {
-				reverb_status_gs.level = val;
-				recompute_reverb_status_gs();
-				init_reverb();
-			}
-			break;
-		case 0x01:	/* Chorus Return */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
-			if (chorus_status_gs.level != val) {
-				chorus_status_gs.level = val;
-				recompute_chorus_status_gs();
-				init_ch_chorus();
-			}
-			break;
-		case 0x50:	/* EQ type */
+		case 0x00:	/* EQ type */
 			if(opt_eq_control) {
 				if(val == 0) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (0: Flat)");}
 				else if(val == 1) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (1: Jazz)");}
@@ -4840,7 +4841,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x51:	/* EQ gain1 */
+		case 0x01:	/* EQ gain1 */
 			if(opt_eq_control) {
 				if(val > 0x4C) {val = 0x4C;}
 				else if(val < 0x34) {val = 0x34;}
@@ -4849,7 +4850,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x52:	/* EQ frequency1 */
+		case 0x02:	/* EQ frequency1 */
 			if(opt_eq_control) {
 				if(val > 60) {val = 60;}
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d Hz)", (int32)eq_freq_table_xg[val]);
@@ -4857,21 +4858,21 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x53:	/* EQ Q1 */
+		case 0x03:	/* EQ Q1 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q1 (%f)", (double)val / 10.0);
 				multi_eq_xg.q1 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x54:	/* EQ shape1 */
+		case 0x04:	/* EQ shape1 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape1 (%d)", val);
 				multi_eq_xg.shape1 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x55:	/* EQ gain2 */
+		case 0x05:	/* EQ gain2 */
 			if(opt_eq_control) {
 				if(val > 0x4C) {val = 0x4C;}
 				else if(val < 0x34) {val = 0x34;}
@@ -4880,7 +4881,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x56:	/* EQ frequency2 */
+		case 0x06:	/* EQ frequency2 */
 			if(opt_eq_control) {
 				if(val > 60) {val = 60;}
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d Hz)", (int32)eq_freq_table_xg[val]);
@@ -4888,14 +4889,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x57:	/* EQ Q2 */
+		case 0x07:	/* EQ Q2 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q2 (%f)", (double)val / 10.0);
 				multi_eq_xg.q2 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x59:	/* EQ gain3 */
+		case 0x09:	/* EQ gain3 */
 			if(opt_eq_control) {
 				if(val > 0x4C) {val = 0x4C;}
 				else if(val < 0x34) {val = 0x34;}
@@ -4904,7 +4905,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x5A:	/* EQ frequency3 */
+		case 0x0A:	/* EQ frequency3 */
 			if(opt_eq_control) {
 				if(val > 60) {val = 60;}
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d Hz)", (int32)eq_freq_table_xg[val]);
@@ -4912,14 +4913,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x5B:	/* EQ Q3 */
+		case 0x0B:	/* EQ Q3 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q3 (%f)", (double)val / 10.0);
 				multi_eq_xg.q3 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x5D:	/* EQ gain4 */
+		case 0x0D:	/* EQ gain4 */
 			if(opt_eq_control) {
 				if(val > 0x4C) {val = 0x4C;}
 				else if(val < 0x34) {val = 0x34;}
@@ -4928,7 +4929,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x5E:	/* EQ frequency4 */
+		case 0x0E:	/* EQ frequency4 */
 			if(opt_eq_control) {
 				if(val > 60) {val = 60;}
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d Hz)", (int32)eq_freq_table_xg[val]);
@@ -4936,14 +4937,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x5F:	/* EQ Q4 */
+		case 0x0F:	/* EQ Q4 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q4 (%f)", (double)val / 10.0);
 				multi_eq_xg.q4 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x61:	/* EQ gain5 */
+		case 0x11:	/* EQ gain5 */
 			if(opt_eq_control) {
 				if(val > 0x4C) {val = 0x4C;}
 				else if(val < 0x34) {val = 0x34;}
@@ -4952,7 +4953,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x62:	/* EQ frequency5 */
+		case 0x12:	/* EQ frequency5 */
 			if(opt_eq_control) {
 				if(val > 60) {val = 60;}
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d Hz)", (int32)eq_freq_table_xg[val]);
@@ -4960,21 +4961,25 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x63:	/* EQ Q5 */
+		case 0x13:	/* EQ Q5 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q5 (%f)", (double)val / 10.0);
 				multi_eq_xg.q5 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x64:	/* EQ shape5 */
+		case 0x14:	/* EQ shape5 */
 			if(opt_eq_control) {
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape5 (%d)", val);
 				multi_eq_xg.shape5 = val;
 				recompute_multi_eq_xg();
 			}
 			break;
-		case 0x65:	/* Rcv CHANNEL */
+		}
+		} else if (note == 8 && msb == 0) {	/* Multi Part */
+		switch(b)
+		{
+		case 0x99:	/* Rcv CHANNEL, remapped from 0x04 */
 			reset_controllers(ch);
 			redraw_controllers(ch);
 			all_notes_off(ch);
@@ -4989,7 +4994,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				}
 			}
 			break;
-		case 0x66:	/* Same Note Number Key On Assign */
+		case 0x06:	/* Same Note Number Key On Assign */
 			if(val == 0) {
 				channel[ch].assign_mode = 0;
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Same Note Number Key On Assign: Single (CH:%d)",ch);
@@ -5000,11 +5005,16 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Same Note Number Key On Assign: Inst is not supported. (CH:%d)",ch);
 			}
 			break;
-		case 0x67:	/* Dry Level */
+		case 0x11:	/* Dry Level */
 			channel[ch].dry_level = val;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level (CH:%d VAL:%d)", ch, val);
 			break;
-		case 0x68:	/* EG Decay1 */
+		}
+		} else if ((note & 0xF0) == 0x30) {	/* Drum Setup */
+		note = msb;
+		switch(b)
+		{
+		case 0x0E:	/* EG Decay1 */
 			if (channel[ch].drums[note] == NULL)
 				play_midi_setup_drums(ch, note);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
@@ -5012,7 +5022,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				ch, note, val);
 			channel[ch].drums[note]->drum_envelope_rate[EG_DECAY1] = val;
 			break;
-		case 0x69:	/* EG Decay2 */
+		case 0x0F:	/* EG Decay2 */
 			if (channel[ch].drums[note] == NULL)
 				play_midi_setup_drums(ch, note);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,

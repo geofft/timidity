@@ -1,3 +1,14 @@
+2004-08-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* playmidi.c (new_chorus_voice, new_chorus_voice_alternate):
+	  v1 and v2 are now swapped correctly
+	* playmidi.c (process_sysex_event):
+	  many fixes to XG SYSEX parsing
+	* readmidi.c: (parse_sysex_event_multi):
+	  many fixes to XG SYSEX parsing
+	* reverb.c (do_filter_lowpass1_stereo):
+	  p->x1l and p->x1r are now properly updated
+
 2004-08-22  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/mix.c (next_stage):

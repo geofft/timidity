@@ -591,7 +591,7 @@ void do_filter_lowpass1_stereo(int32 *buf, int32 count, filter_lowpass1 *p)
 		++i;
 		do_filter_lowpass1(&buf[i], &x1r, a, ia);
 	}
-	x1l = p->x1l, x1r = p->x1r;
+	p->x1l = x1l, p->x1r = x1r;
 }
 
 void init_filter_biquad(filter_biquad *p)
