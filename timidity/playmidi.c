@@ -3475,114 +3475,150 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_chorus_status_gs();
 			break;
 		case 0x50:	/* EQ type */
-			if(val == 0) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (0: Flat)");}
-			else if(val == 1) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (1: Jazz)");}
-			else if(val == 2) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (2: Pops)");}
-			else if(val == 3) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (3: Rock)");}
-			else if(val == 4) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (4: Concert)");}
-			multi_eq_xg.type = val;
-			set_multi_eq_type_xg(val);
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val == 0) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (0: Flat)");}
+				else if(val == 1) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (1: Jazz)");}
+				else if(val == 2) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (2: Pops)");}
+				else if(val == 3) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (3: Rock)");}
+				else if(val == 4) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (4: Concert)");}
+				multi_eq_xg.type = val;
+				set_multi_eq_type_xg(val);
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x51:	/* EQ gain1 */
-			if(val > 0x4C) {val = 0x4C;}
-			else if(val < 0x34) {val = 0x34;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain1 (%d dB)", val - 0x40);
-			multi_eq_xg.gain1 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 0x4C) {val = 0x4C;}
+				else if(val < 0x34) {val = 0x34;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain1 (%d dB)", val - 0x40);
+				multi_eq_xg.gain1 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x52:	/* EQ frequency1 */
-			if(val > 60) {val = 60;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d Hz)", (int32)eq_freq_table_xg[val]);
-			multi_eq_xg.freq1 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 60) {val = 60;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d Hz)", (int32)eq_freq_table_xg[val]);
+				multi_eq_xg.freq1 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x53:	/* EQ Q1 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q1 (%f)", (double)val / 10.0);
-			multi_eq_xg.q1 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q1 (%f)", (double)val / 10.0);
+				multi_eq_xg.q1 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x54:	/* EQ shape1 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape1 (%d)", val);
-			multi_eq_xg.shape1 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape1 (%d)", val);
+				multi_eq_xg.shape1 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x55:	/* EQ gain2 */
-			if(val > 0x4C) {val = 0x4C;}
-			else if(val < 0x34) {val = 0x34;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain2 (%d dB)", val - 0x40);
-			multi_eq_xg.gain2 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 0x4C) {val = 0x4C;}
+				else if(val < 0x34) {val = 0x34;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain2 (%d dB)", val - 0x40);
+				multi_eq_xg.gain2 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x56:	/* EQ frequency2 */
-			if(val > 60) {val = 60;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d Hz)", (int32)eq_freq_table_xg[val]);
-			multi_eq_xg.freq2 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 60) {val = 60;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d Hz)", (int32)eq_freq_table_xg[val]);
+				multi_eq_xg.freq2 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x57:	/* EQ Q2 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q2 (%f)", (double)val / 10.0);
-			multi_eq_xg.q2 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q2 (%f)", (double)val / 10.0);
+				multi_eq_xg.q2 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x59:	/* EQ gain3 */
-			if(val > 0x4C) {val = 0x4C;}
-			else if(val < 0x34) {val = 0x34;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain3 (%d dB)", val - 0x40);
-			multi_eq_xg.gain3 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 0x4C) {val = 0x4C;}
+				else if(val < 0x34) {val = 0x34;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain3 (%d dB)", val - 0x40);
+				multi_eq_xg.gain3 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x5A:	/* EQ frequency3 */
-			if(val > 60) {val = 60;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d Hz)", (int32)eq_freq_table_xg[val]);
-			multi_eq_xg.freq3 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 60) {val = 60;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d Hz)", (int32)eq_freq_table_xg[val]);
+				multi_eq_xg.freq3 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x5B:	/* EQ Q3 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q3 (%f)", (double)val / 10.0);
-			multi_eq_xg.q3 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q3 (%f)", (double)val / 10.0);
+				multi_eq_xg.q3 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x5D:	/* EQ gain4 */
-			if(val > 0x4C) {val = 0x4C;}
-			else if(val < 0x34) {val = 0x34;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain4 (%d dB)", val - 0x40);
-			multi_eq_xg.gain4 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 0x4C) {val = 0x4C;}
+				else if(val < 0x34) {val = 0x34;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain4 (%d dB)", val - 0x40);
+				multi_eq_xg.gain4 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x5E:	/* EQ frequency4 */
-			if(val > 60) {val = 60;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d Hz)", (int32)eq_freq_table_xg[val]);
-			multi_eq_xg.freq4 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 60) {val = 60;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d Hz)", (int32)eq_freq_table_xg[val]);
+				multi_eq_xg.freq4 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x5F:	/* EQ Q4 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q4 (%f)", (double)val / 10.0);
-			multi_eq_xg.q4 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q4 (%f)", (double)val / 10.0);
+				multi_eq_xg.q4 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x61:	/* EQ gain5 */
-			if(val > 0x4C) {val = 0x4C;}
-			else if(val < 0x34) {val = 0x34;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain5 (%d dB)", val - 0x40);
-			multi_eq_xg.gain5 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 0x4C) {val = 0x4C;}
+				else if(val < 0x34) {val = 0x34;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain5 (%d dB)", val - 0x40);
+				multi_eq_xg.gain5 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x62:	/* EQ frequency5 */
-			if(val > 60) {val = 60;}
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d Hz)", (int32)eq_freq_table_xg[val]);
-			multi_eq_xg.freq5 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				if(val > 60) {val = 60;}
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d Hz)", (int32)eq_freq_table_xg[val]);
+				multi_eq_xg.freq5 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x63:	/* EQ Q5 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q5 (%f)", (double)val / 10.0);
-			multi_eq_xg.q5 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q5 (%f)", (double)val / 10.0);
+				multi_eq_xg.q5 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x64:	/* EQ shape5 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape5 (%d)", val);
-			multi_eq_xg.shape5 = val;
-			recompute_multi_eq_xg();
+			if(opt_eq_control) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape5 (%d)", val);
+				multi_eq_xg.shape5 = val;
+				recompute_multi_eq_xg();
+			}
 			break;
 		case 0x65:	/* Rcv CHANNEL */
 			if (val == 0x7f)
