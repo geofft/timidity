@@ -548,7 +548,7 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 		\
 		if (tf_read(&tmplong, 4, 1, tf) != 1) \
 			goto fail; \
-			thing = LE_LONG(tmplong); \
+		thing = LE_LONG(tmplong); \
 }
 
 /* If panning or note_to_use != -1, it will be used for all samples,
@@ -639,7 +639,7 @@ static Instrument *load_gus_instrument(char *name,
 		return 0;
 	}
 	/* Read some headers and do cursory sanity checks. There are loads
-	 * of magic offsets. This could be rewritten...
+	 * of magic offsets.  This could be rewritten...
 	 */
 	tmp[0] = tf_getc(tf);
 	if (tmp[0] == '\0') {
@@ -662,7 +662,7 @@ static Instrument *load_gus_instrument(char *name,
 		close_file(tf);
 		return 0;
 	}
-	if (tmp[151] != 1 && tmp[151] != 0) {	/* layers. What's a layer? */
+	if (tmp[151] != 1 && tmp[151] != 0) {	/* layers.  What's a layer? */
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				"Can't handle instruments with %d layers", tmp[151]);
 		close_file(tf);
@@ -760,9 +760,9 @@ fail:
 		skip(tf, 36);	/* skip reserved space */
 		/* Mark this as a fixed-pitch instrument if such a deed is desired. */
 		sp->note_to_use = (note_to_use != -1) ? (uint8) note_to_use : 0;
-		/* seashore.pat in the Midia patch set has no Sustain. I don't
+		/* seashore.pat in the Midia patch set has no Sustain.  I don't
 		 * understand why, and fixing it by adding the Sustain flag to
-		 * all looped patches probably breaks something else. We do it
+		 * all looped patches probably breaks something else.  We do it
 		 * anyway.
 		 */
 		if (sp->modes & MODES_LOOPING)
@@ -792,7 +792,7 @@ fail:
 			} else if (! memcmp(tmp, "??????", 6) || tmp[11] >= 100) {
 				/* Envelope rates all maxed out?
 				 * Envelope end at a high "offset"?
-				 * That's a weird envelope. Take it out.
+				 * That's a weird envelope.  Take it out.
 				 */
 				sp->modes &= ~MODES_ENVELOPE;
 				ctl->cmsg(CMSG_INFO, VERB_DEBUG,
@@ -800,7 +800,7 @@ fail:
 			} else if (! (sp->modes & MODES_SUSTAIN)) {
 				/* No sustain? Then no envelope.  I don't know if this is
 				 * justified, but patches without sustain usually don't need
-				 * the envelope either... at least the Gravis ones. They're
+				 * the envelope either... at least the Gravis ones.  They're
 				 * mostly drums.  I think.
 				 */
 				sp->modes &= ~MODES_ENVELOPE;
@@ -878,7 +878,7 @@ fail:
 			sp->modes |= MODES_LOOPING;	/* just in case */
 			ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Reverse loop in %s", name);
 		}
-		/* If necessary do some anti-aliasing filtering  */
+		/* If necessary do some anti-aliasing filtering */
 		if (antialiasing_allowed)
 			antialiasing((int16 *) sp->data, sp->data_length / 2,
 					sp->sample_rate, play_mode->rate);
@@ -924,7 +924,7 @@ fail:
 		sp->data_length <<= FRACTION_BITS;
 		sp->loop_start <<= FRACTION_BITS;
 		sp->loop_end <<= FRACTION_BITS;
-		/* Adjust for fractional loop points. This is a guess. Does anyone
+		/* Adjust for fractional loop points. This is a guess.  Does anyone
 		 * know what "fractions" really stands for?
 		 */
 		sp->loop_start |= (fractions & 0x0f) << (FRACTION_BITS - 4);
