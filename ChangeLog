@@ -1,7 +1,7 @@
 2004-02-23  Saito <saito2@digitalme.com>
 
 	* interface/w32g_res.[h,rc], interface/w32g_i.c,
-	  interface/w32g_subwin.c, interface/w32g_pref.c:
+	  interface/w32g_subwin.c, interface/w32g_pref.c, interface/w32g_icon.ico:
 	  Change and add some items.
 
 2004-02-22  Saito <saito2@digitalme.com>

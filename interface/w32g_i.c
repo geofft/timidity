@@ -1029,6 +1029,23 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
       case IDM_MHHELP:
 		  MessageBox(hwnd, "Not Supported.","Warning!",MB_OK);
 		  break;
+      case IDM_MHONLINEHELP:
+		  if (PlayerLanguage == LANGUAGE_JAPANESE) {
+			  ShellExecute(HWND_DESKTOP, NULL, "http://timidity-docs.sourceforge.jp/", NULL, NULL, SW_SHOWNORMAL);
+		  } else {
+			  ShellExecute(HWND_DESKTOP, NULL, "http://timidity.sourceforge.net/index.html.en", NULL, NULL, SW_SHOWNORMAL);
+		  }
+		  break;
+      case IDM_MHBTS:
+		  if (PlayerLanguage == LANGUAGE_JAPANESE) {
+			  ShellExecute(HWND_DESKTOP, NULL, "http://timidity-docs.sourceforge.jp/cgi-bin/kagemai-ja/guest.cgi", NULL, NULL, SW_SHOWNORMAL);
+		  } else {
+			  ShellExecute(HWND_DESKTOP, NULL, "http://timidity-docs.sourceforge.jp/cgi-bin/kagemai-en/guest.cgi", NULL, NULL, SW_SHOWNORMAL);
+		  }
+		  break;
+      case IDM_MHONLINEHELPCFG:
+		  ShellExecute(HWND_DESKTOP, NULL, "http://timidity-docs.sourceforge.jp/cgi-bin/hiki/hiki.cgi?%28ja%29timidity.cfg", NULL, NULL, SW_SHOWNORMAL);
+		  break;
       case IDM_MHVERSION:
 		  VersionWnd(hwnd);
 		  break;

@@ -694,6 +694,9 @@ BEGIN
     END
     POPUP "Help(&H)"
     BEGIN
+        MENUITEM "Online Help(&O)",             IDM_MHONLINEHELP
+        MENUITEM "Bug Tracking System(&B)",     IDM_MHBTS
+        MENUITEM SEPARATOR
         MENUITEM "Topic(&T)",                   IDM_MHTOPIC, GRAYED
         MENUITEM "Help(&H)",                    IDM_MHHELP, GRAYED
         MENUITEM SEPARATOR
@@ -1417,6 +1420,10 @@ BEGIN
     END
     POPUP "ヘルプ(&H)"
     BEGIN
+        MENUITEM "オンラインヘルプ(&O)",        IDM_MHONLINEHELP
+        MENUITEM "コンフィグファイル詳解(&C)",  IDM_MHONLINEHELPCFG
+        MENUITEM "バグ報告所(&B)",              IDM_MHBTS
+        MENUITEM SEPARATOR
         MENUITEM "トピック(&T)",                IDM_MHTOPIC, GRAYED
         MENUITEM "ヘルプ(&H)",                  IDM_MHHELP, GRAYED
         MENUITEM SEPARATOR
@@ -1575,8 +1582,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,12,0,0
- PRODUCTVERSION 2,12,0,0
+ FILEVERSION 2,13,0,0
+ PRODUCTVERSION 2,13,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1591,13 +1598,18 @@ BEGIN
     BEGIN
         BLOCK "000004e4"
         BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "\0"
             VALUE "FileDescription", "timw32g\0"
-            VALUE "FileVersion", "2, 12, 0, 0\0"
+            VALUE "FileVersion", "2, 13, 0, 0\0"
             VALUE "InternalName", "timw32g\0"
             VALUE "LegalCopyright", "Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>\r\nCopyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>\0"
+            VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "timw32g.exe\0"
+            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TiMidity++ Win32GUI Version\0"
-            VALUE "ProductVersion", "2, 12, 0, 0\0"
+            VALUE "ProductVersion", "2, 13, 0, 0\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
