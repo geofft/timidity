@@ -3,6 +3,7 @@
 
 	* nouse, timw32g, timw32gd, twsyng, cfgforsf, ...:
 	  Add VC++ project files to be able to compile Win32GUI interface.
+	  Fix VC++ project files.
 
 2003-06-17  s_keishi <s_keishi@mutt.freemail.ne.jp>
 
