@@ -46,7 +46,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-int opt_effect_quality = 0;
+#define SYS_EFFECT_PRE_LPF
+
 static double REV_INP_LEV = 1.0;
 #define MASTER_CHORUS_LEVEL 1.7
 #define MASTER_DELAY_LEVEL 3.25
@@ -1576,10 +1577,11 @@ void init_reverb(int32 output_rate)
 
 void do_ch_reverb(int32 *buf, int32 count)
 {
+#ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) && reverb_status.pre_lpf)
 		do_filter_lowpass1_stereo(reverb_effect_buffer, count, &(reverb_status.lpf));
+#endif /* SYS_EFFECT_PRE_LPF */
 	if (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) {
 		if(reverb_status.character == 5) {	/* Plate Reverb */
@@ -1609,10 +1611,11 @@ void init_ch_delay(void)
 
 void do_ch_delay(int32 *buf, int32 count)
 {
+#ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 1) && delay_status.pre_lpf)
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) && delay_status.pre_lpf)
 		do_filter_lowpass1_stereo(delay_effect_buffer, count, &(delay_status.lpf));
+#endif /* SYS_EFFECT_PRE_LPF */
 	switch (delay_status.type) {
 	case 1:
 		do_ch_3tap_delay(buf, count, &(delay_status.info_delay));
@@ -2009,10 +2012,11 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 
 void do_ch_chorus(int32 *buf, int32 count)
 {
+#ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf)
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) && chorus_param.chorus_pre_lpf)
 		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_param.lpf));
+#endif /* SYS_EFFECT_PRE_LPF */
 
 	do_stereo_chorus(buf, count);
 }

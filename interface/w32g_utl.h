@@ -118,7 +118,6 @@ typedef struct SETTING_TIMIDITY_ {
     int opt_reverb_control;	// E Freverb
     int opt_chorus_control;	// E Fchorus
     int noise_sharp_type;	// E Fns
-	int opt_effect_quality;	// E ?
 	int opt_surround_chorus; // E ?
 	int opt_tva_attack;			// E ?
 	int opt_tva_decay;			// E ?

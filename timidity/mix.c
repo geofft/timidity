@@ -1488,7 +1488,6 @@ static int get_eg_stage(int v, int stage)
 int recompute_envelope(int v)
 {
 	int stage, ch;
-	int32 rate;
 	double sustain_time;
 	int32 envelope_width;
 	Voice *vp = &voice[v];
@@ -1905,7 +1904,6 @@ static inline int modenv_next_stage(int v)
 int recompute_modulation_envelope(int v)
 {
 	int stage, ch;
-	int32 rate;
 	double sustain_time;
 	int32 modenv_width;
 	Voice *vp = &voice[v];

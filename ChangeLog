@@ -1,3 +1,12 @@
+2004-02-11  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/playmidi.[ch],
+	  timidity/mix.c, timidity/sndfont.c,
+	  interface/w32g_utl.[ch], interface/w32g_res.rc,
+	  interface/w32g_pref.c, interface/w32g_ini.c:
+	  Remove opt_effect_quality.
+	  Fix typos.
+
 2004-02-10  Saito <saito2@digitalme.com>
 
 	* interface/w32g_pref.c, timidity/w32_gogo.c,

@@ -555,7 +555,6 @@ static double to_msec(int timecent)
  */
 static int32 calc_sustain(int sust_cB)
 {
-	int32 sustain;
 	if(sust_cB <= 0) {return 65533;}
 	else if(sust_cB >= 1000) {return 0;}
 	else {return (1000 - sust_cB) * 65533 / 1000;}
@@ -1224,7 +1223,6 @@ static void set_envelope_parameters(SampleList *vp)
 static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
-	int i;
 
     /* set sample position */
     vp->start = (tbl->val[SF_startAddrsHi] << 15)
@@ -1305,7 +1303,7 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 /* set global information */
 static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
-    int val, pan, i;
+    int val;
     SFSampleInfo *sample;
     sample = &sf->sample[tbl->val[SF_sampleId]];
 
@@ -1380,10 +1378,8 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	}
 
 #ifndef CFG_FOR_SF
-	if(opt_lpf_def) {
-		current_sfrec->def_cutoff_allowed = 1;
-		current_sfrec->def_resonance_allowed = 1;
-	}
+	current_sfrec->def_cutoff_allowed = 1;
+	current_sfrec->def_resonance_allowed = 1;
 #endif
 
     /* initial cutoff & resonance */
@@ -1431,11 +1427,13 @@ static int abscent_to_Hz(int abscents)
 
 /*----------------------------------------------------------------*/
 
+#define SF_MODENV_CENT_MAX 1200	/* Live! allows only +-1200cents. */
+
 /* calculate root key & fine tune */
 static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
 	SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
-	int val, temp;
+	int temp;
 	
 	/* scale factor */
 	vp->v.scale_factor = 1024 * (double) tbl->val[SF_scaleTuning] / 100 + 0.5;
@@ -1467,14 +1465,18 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 			(tbl->set[SF_lfo1ToFilterFc]) ? tbl->val[SF_lfo1ToFilterFc] : 0;
 	vp->v.modenv_to_pitch =
 			(tbl->set[SF_env1ToPitch]) ? tbl->val[SF_env1ToPitch] : 0;
-	if (vp->v.modenv_to_pitch > 1200)
-		vp->v.modenv_to_pitch = 1200;
+	if (get_module() == MODULE_SBLIVE)
+		vp->v.modenv_to_pitch = (vp->v.modenv_to_pitch > SF_MODENV_CENT_MAX) ? SF_MODENV_CENT_MAX
+				: (vp->v.modenv_to_pitch < -SF_MODENV_CENT_MAX) ? -SF_MODENV_CENT_MAX : vp->v.modenv_to_pitch;
 	/* correct tune with the sustain level of modulation envelope */
 	temp = vp->v.modenv_to_pitch
 			* (double) (1000 - tbl->val[SF_sustainEnv1]) / 1000 + 0.5;
 	vp->tune += temp, vp->v.modenv_to_pitch -= temp;
 	vp->v.modenv_to_fc =
 			(tbl->set[SF_env1ToFilterFc]) ? tbl->val[SF_env1ToFilterFc] : 0;
+	if (get_module() == MODULE_SBLIVE)
+		vp->v.modenv_to_fc = (vp->v.modenv_to_fc > SF_MODENV_CENT_MAX) ? SF_MODENV_CENT_MAX
+				: (vp->v.modenv_to_fc < -SF_MODENV_CENT_MAX) ? -SF_MODENV_CENT_MAX : vp->v.modenv_to_fc;
 }
 
 static void set_rootfreq(SampleList *vp)

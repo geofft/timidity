@@ -474,7 +474,7 @@ typedef struct {
 
 #define ISDRUMCHANNEL(c)  IS_SET_CHANNELMASK(drumchannels, c)
 
-/* opt_default_module */
+/* --module */
 extern int opt_default_module;
 
 enum {
@@ -508,6 +508,8 @@ static inline int is_xg_module(void)
     return (opt_default_module >= MODULE_MU50
             && opt_default_module <= MODULE_MU100);
 }
+
+static inline int get_module(void) {return opt_default_module;}
 
 extern Channel channel[];
 extern Voice *voice;

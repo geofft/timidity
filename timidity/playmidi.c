@@ -518,7 +518,8 @@ static void reset_drum_controllers(struct DrumParts *d[], int note)
 
 static void reset_module_dependent_controllers(int c)
 {
-	switch(opt_default_module) {	/* TONE MAP-0 NUMBER */
+	int module = get_module();
+	switch(module) {	/* TONE MAP-0 NUMBER */
 	case MODULE_SC55:
 		channel[c].tone_map0_number = 1;
 		break;
@@ -535,7 +536,7 @@ static void reset_module_dependent_controllers(int c)
 		channel[c].tone_map0_number = 0;
 		break;
 	}
-	switch(opt_default_module) {	/* MIDI Controllers */
+	switch(module) {	/* MIDI Controllers */
 	case MODULE_SC55:
 		channel[c].mod.lfo1_pitch_depth = 10;
 		break;
@@ -553,7 +554,7 @@ static void reset_module_dependent_controllers(int c)
 
 static void reset_nrpn_controllers(int c)
 {
-  int i, j;
+  int i;
 
   /* NRPN */
   reset_drum_controllers(channel[c].drums, -1);
@@ -614,7 +615,7 @@ static void reset_nrpn_controllers(int c)
 /* Process the Reset All Controllers event */
 static void reset_controllers(int c)
 {
-  int i, j;
+  int j;
     /* Some standard says, although the SCC docs say 0. */
     
   if(play_system_mode == XG_SYSTEM_MODE)
@@ -1107,13 +1108,12 @@ void recompute_channel_filter(int ch, int note)
 
 void init_voice_filter(int i)
 {
-  double gain;
   memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f - 3.01f;
 	  if (voice[i].fc.orig_reso_dB < 0.0f) {voice[i].fc.orig_reso_dB = 0.0f;}
-	  if(opt_lpf_def == 2) {
+	  if (opt_lpf_def == 2) {
 		  voice[i].fc.gain = 1.0;
 		  voice[i].fc.type = 2;
 	  } else if(opt_lpf_def == 1) {
@@ -1233,9 +1233,8 @@ float calc_drum_tva_level(int ch, int note, int level)
 
 static int32 calc_random_delay(int ch, int note)
 {
-	int i, nbank, nprog;
+	int nbank, nprog;
 	ToneBank *bank;
-	struct DrumParts *drum;
 
 	if(channel[ch].special_sample > 0) {return 0;}
 
@@ -1261,7 +1260,7 @@ static int32 calc_random_delay(int ch, int note)
 
 void recompute_bank_parameter(int ch, int note)
 {
-	int i, nbank, nprog;
+	int nbank, nprog;
 	ToneBank *bank;
 	struct DrumParts *drum;
 
@@ -2135,7 +2134,7 @@ int32 get_note_freq(Sample *sp, int note)
 
 static int get_panning(int ch, int note,int v)
 {
-    int i, pan;
+    int pan;
 
 	if(channel[ch].panning != NO_PANNING) {pan = (int)channel[ch].panning - 64;}
 	else {pan = 0;}
@@ -2277,7 +2276,7 @@ static void init_voice_tremolo(int v)
 
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
 {
-  int j, ch, note, pan;
+  int j, ch, note;
 
   ch = e->channel;
 
@@ -3018,7 +3017,7 @@ void play_midi_setup_drums(int ch, int note)
 
 static void adjust_drum_panning(int ch, int note)
 {
-    int i, uv = upper_voices, pan;
+    int i, uv = upper_voices;
 
     for(i = 0; i < uv; i++) {
 		if(voice[i].channel == ch &&
@@ -5894,7 +5893,6 @@ static void do_compute_data_midi(int32 count)
 {
 	int i, j, uv, stereo, n, ch, note;
 	int32 *vpblist[MAX_CHANNELS];
-	int vc[MAX_CHANNELS];
 	int channel_effect, channel_reverb, channel_chorus, channel_delay, channel_eq;
 	int32 cnt = count * 2, rev_max_delay_out;
 	struct DrumPartEffect *de;
