@@ -704,7 +704,10 @@ void recompute_freq(int v)
 			f = freq_table_tuning[tp][note];
 			break;
 		case 1:
-			f = freq_table_pytha[current_freq_table][note];
+			if (current_temper_keysig < 8)
+				f = freq_table_pytha[current_freq_table][note];
+			else
+				f = freq_table_pytha[current_freq_table + 12][note];
 			break;
 		case 2:
 			if (current_temper_keysig < 8)
@@ -1719,7 +1722,10 @@ static int select_play_sample(Sample *splist,
 			f = freq_table_tuning[tp][note];
 			break;
 		case 1:
-			f = freq_table_pytha[current_freq_table][note];
+			if (current_temper_keysig < 8)
+				f = freq_table_pytha[current_freq_table][note];
+			else
+				f = freq_table_pytha[current_freq_table + 12][note];
 			break;
 		case 2:
 			if (current_temper_keysig < 8)
