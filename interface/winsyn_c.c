@@ -412,12 +412,6 @@ int ctl_pass_playing_list2(int n, char *args[])
 	if (play_mode->encoding & PE_16BIT)
 		time_advance >>= 1;
 
-	{
-		double btime = (double)time_advance / play_mode->rate;
-		btime *= 1.01; /* to be sure */
-		aq_set_soft_queue(btime, 0.0);
-	}
-
 	if (opt_force_keysig != 8) {
 		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);

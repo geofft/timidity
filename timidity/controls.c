@@ -146,6 +146,10 @@ extern ControlMode alsaseq_control_mode;
 extern ControlMode winsyn_control_mode;
 #endif /* IA_WINSYN */
 
+#ifdef IA_MACOSX
+extern ControlMode macosx_control_mode;
+#endif /* IA_MACOSX */
+
 /* Minimal control mode */
 extern ControlMode dumb_control_mode;
 #ifndef DEFAULT_CONTROL_MODE
@@ -189,6 +193,9 @@ ControlMode *ctl_list[]={
 #ifdef __MACOS__
   &mac_control_mode,
 #endif
+#ifdef IA_MACOSX
+  &macosx_control_mode,
+#endif /* IA_MACOSX */
 #ifdef IA_W32GUI
   &w32gui_control_mode,
 #endif /* IA_W32GUI */
