@@ -801,7 +801,7 @@ static void init_standard_reverb(InfoStandardReverb *info)
 	info->ta = info->tb = 0;
 	info->HPFL = info->HPFR = info->LPFL = info->LPFR = info->EPFL = info->EPFR = 0;
 	info->spt0 = info->spt1 = info->spt2 = info->spt3 = 0;
-	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) 
+	time = reverb_time_table[reverb_status_gs.time] * gs_revchar_to_rt(reverb_status_gs.character) 
 		/ reverb_time_table[64] * 0.8;
 	info->rpt0 = REV_VAL0 * play_mode->rate / 1000.0f * time;
 	info->rpt1 = REV_VAL1 * play_mode->rate / 1000.0f * time;
@@ -829,7 +829,7 @@ static void init_standard_reverb(InfoStandardReverb *info)
 	info->epflev = 0.4f;
 	info->epfinp = 0.48f;
 	info->width = 0.125f;
-	info->wet = 2.0f * (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
+	info->wet = 2.0f * (double)reverb_status_gs.level / 127.0f * gs_revchar_to_level(reverb_status_gs.character);
 	info->fbklevi = TIM_FSCALE(info->fbklev, 24);
 	info->nmixlevi = TIM_FSCALE(info->nmixlev, 24);
 	info->cmixlevi = TIM_FSCALE(info->cmixlev, 24);
@@ -1142,7 +1142,7 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 	int32 tmpL, tmpR;
 	double time, samplerate = play_mode->rate;
 
-	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) * combfbk
+	time = reverb_time_table[reverb_status_gs.time] * gs_revchar_to_rt(reverb_status_gs.character) * combfbk
 		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
 
 	for(i = 0; i < numcombs; i++)
@@ -1177,11 +1177,11 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 static void update_freeverb(InfoFreeverb *rev)
 {
 	int i;
-	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase, rt;
+	double allpassfbk = gs_revchar_to_apfbk(reverb_status_gs.character), rtbase, rt;
 
-	rev->wet = (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character) * fixedgain;
-	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
-	rev->width = gs_revchar_to_width(reverb_status.character);
+	rev->wet = (double)reverb_status_gs.level / 127.0f * gs_revchar_to_level(reverb_status_gs.character) * fixedgain;
+	rev->roomsize = gs_revchar_to_roomsize(reverb_status_gs.character) * scaleroom + offsetroom;
+	rev->width = gs_revchar_to_width(reverb_status_gs.character);
 
 	rev->wet1 = rev->width / 2.0f + 0.5f;
 	rev->wet2 = (1.0f - rev->width) / 2.0f;
@@ -1190,7 +1190,7 @@ static void update_freeverb(InfoFreeverb *rev)
 
 	realloc_freeverb_buf(rev);
 
-	rtbase = 1.0 / (44100.0 * reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character));
+	rtbase = 1.0 / (44100.0 * reverb_time_table[reverb_status_gs.time] * gs_revchar_to_rt(reverb_status_gs.character));
 
 	for(i = 0; i < numcombs; i++)
 	{
@@ -1220,7 +1220,7 @@ static void update_freeverb(InfoFreeverb *rev)
 	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
 	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
 
-	set_delay(&(rev->pdelay), (int32)((double)reverb_status.pre_delay_time * play_mode->rate / 1000.0f));
+	set_delay(&(rev->pdelay), (int32)((double)reverb_status_gs.pre_delay_time * play_mode->rate / 1000.0f));
 }
 
 static void init_freeverb(InfoFreeverb *rev)
@@ -1421,13 +1421,13 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 static void init_ch_reverb_delay(InfoDelay3 *info)
 {
 	int32 x;
-	info->size[0] = (double)reverb_status.time * 3.75f * play_mode->rate / 1000.0f;
+	info->size[0] = (double)reverb_status_gs.time * 3.75f * play_mode->rate / 1000.0f;
 	x = info->size[0] + 1;	/* allowance */
 	set_delay(&(info->delayL), x);
 	set_delay(&(info->delayR), x);
 	info->index[0] = x - info->size[0];
-	info->level[0] = (double)reverb_status.level * 1.82f / 127.0f;
-	info->feedback = sqrt((double)reverb_status.delay_feedback / 127.0f) * 0.98f;
+	info->level[0] = (double)reverb_status_gs.level * 1.82f / 127.0f;
+	info->feedback = sqrt((double)reverb_status_gs.delay_feedback / 127.0f) * 0.98f;
 	info->leveli[0] = TIM_FSCALE(info->level[0], 24);
 	info->feedbacki = TIM_FSCALE(info->feedback, 24);
 }
@@ -1551,9 +1551,9 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		init_lfo(lfo1, 1.0f, LFO_SINE);
 		init_lfo(lfo1d, 1.0f, LFO_SINE);
-		t = reverb_time_table[reverb_status.time] / reverb_time_table[64] - 1.0;
+		t = reverb_time_table[reverb_status_gs.time] / reverb_time_table[64] - 1.0;
 		t = 1.0 + t / 2;
-		set_delay(pd, reverb_status.pre_delay_time * play_mode->rate / 1000);
+		set_delay(pd, reverb_status_gs.pre_delay_time * play_mode->rate / 1000);
 		set_delay(td1, get_plate_delay(4453, t)),
 		set_delay(td1d, get_plate_delay(4217, t));
 		set_delay(td2, get_plate_delay(3720, t));
@@ -1594,7 +1594,7 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 		info->idif1i = TIM_FSCALE(info->idif1, 24);
 		info->idif2 = PLATE_INPUT_DIFFUSION2;
 		info->idif2i = TIM_FSCALE(info->idif2, 24);
-		info->wet = PLATE_WET * (double)reverb_status.level / 127.0;
+		info->wet = PLATE_WET * (double)reverb_status_gs.level / 127.0;
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		free_delay(pd);	free_delay(td1); free_delay(td1d); free_delay(td2);
@@ -1689,32 +1689,32 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 /*! initialize Reverb Effect */
 void init_reverb(void)
 {
-	init_filter_lowpass1(&(reverb_status.lpf));
+	init_filter_lowpass1(&(reverb_status_gs.lpf));
 	/* Only initialize freeverb if stereo output */
 	/* Old non-freeverb must be initialized for mono reverb not to crash */
 	if (! (play_mode->encoding & PE_MONO)
 			&& (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)))) {
-		switch(reverb_status.character) {	/* select reverb algorithm */
+		switch(reverb_status_gs.character) {	/* select reverb algorithm */
 		case 5:	/* Plate Reverb */
-			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
-			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
+			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status_gs.info_plate_reverb));
+			REV_INP_LEV = reverb_status_gs.info_plate_reverb.wet;
 			break;
 		case 6:	/* Delay */
-			do_ch_reverb_normal_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_reverb_delay));
+			do_ch_reverb_normal_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status_gs.info_reverb_delay));
 			REV_INP_LEV = 1.0;
 			break;
 		case 7: /* Panning Delay */
-			do_ch_reverb_panning_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_reverb_delay));
+			do_ch_reverb_panning_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status_gs.info_reverb_delay));
 			REV_INP_LEV = 1.0;
 			break;
 		default: /* Freeverb */
-			do_ch_freeverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_freeverb));
-			REV_INP_LEV = reverb_status.info_freeverb.wet;
+			do_ch_freeverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status_gs.info_freeverb));
+			REV_INP_LEV = reverb_status_gs.info_freeverb.wet;
 			break;
 		}
 	} else {	/* Old Reverb */
-		do_ch_standard_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_standard_reverb));
+		do_ch_standard_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status_gs.info_standard_reverb));
 		REV_INP_LEV = 1.0;
 	}
 	memset(reverb_effect_buffer, 0, reverb_effect_bufsize);
@@ -1725,37 +1725,37 @@ void do_ch_reverb(int32 *buf, int32 count)
 {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && reverb_status.pre_lpf)
-		do_filter_lowpass1_stereo(reverb_effect_buffer, count, &(reverb_status.lpf));
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && reverb_status_gs.pre_lpf)
+		do_filter_lowpass1_stereo(reverb_effect_buffer, count, &(reverb_status_gs.lpf));
 #endif /* SYS_EFFECT_PRE_LPF */
 	if (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) {
-		switch(reverb_status.character) {	/* select reverb algorithm */
+		switch(reverb_status_gs.character) {	/* select reverb algorithm */
 		case 5:	/* Plate Reverb */
-			do_ch_plate_reverb(buf, count, &(reverb_status.info_plate_reverb));
-			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
+			do_ch_plate_reverb(buf, count, &(reverb_status_gs.info_plate_reverb));
+			REV_INP_LEV = reverb_status_gs.info_plate_reverb.wet;
 			break;
 		case 6:	/* Delay */
-			do_ch_reverb_normal_delay(buf, count, &(reverb_status.info_reverb_delay));
+			do_ch_reverb_normal_delay(buf, count, &(reverb_status_gs.info_reverb_delay));
 			REV_INP_LEV = 1.0;
 			break;
 		case 7: /* Panning Delay */
-			do_ch_reverb_panning_delay(buf, count, &(reverb_status.info_reverb_delay));
+			do_ch_reverb_panning_delay(buf, count, &(reverb_status_gs.info_reverb_delay));
 			REV_INP_LEV = 1.0;
 			break;
 		default: /* Freeverb */
-			do_ch_freeverb(buf, count, &(reverb_status.info_freeverb));
-			REV_INP_LEV = reverb_status.info_freeverb.wet;
+			do_ch_freeverb(buf, count, &(reverb_status_gs.info_freeverb));
+			REV_INP_LEV = reverb_status_gs.info_freeverb.wet;
 			break;
 		}
 	} else {	/* Old Reverb */
-		do_ch_standard_reverb(buf, count, &(reverb_status.info_standard_reverb));
+		do_ch_standard_reverb(buf, count, &(reverb_status_gs.info_standard_reverb));
 	}
 }
 
 void do_mono_reverb(int32 *buf, int32 count)
 {
-	do_ch_standard_reverb_mono(buf, count, &(reverb_status.info_standard_reverb));
+	do_ch_standard_reverb_mono(buf, count, &(reverb_status_gs.info_standard_reverb));
 }
 
 /*                   */
@@ -1769,26 +1769,26 @@ static void do_ch_normal_delay(int32 *, int32, InfoDelay3 *);
 void init_ch_delay(void)
 {
 	memset(delay_effect_buffer, 0, sizeof(delay_effect_buffer));
-	init_filter_lowpass1(&(delay_status.lpf));
-	do_ch_3tap_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(delay_status.info_delay));
+	init_filter_lowpass1(&(delay_status_gs.lpf));
+	do_ch_3tap_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(delay_status_gs.info_delay));
 }
 
 void do_ch_delay(int32 *buf, int32 count)
 {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && delay_status.pre_lpf)
-		do_filter_lowpass1_stereo(delay_effect_buffer, count, &(delay_status.lpf));
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && delay_status_gs.pre_lpf)
+		do_filter_lowpass1_stereo(delay_effect_buffer, count, &(delay_status_gs.lpf));
 #endif /* SYS_EFFECT_PRE_LPF */
-	switch (delay_status.type) {
+	switch (delay_status_gs.type) {
 	case 1:
-		do_ch_3tap_delay(buf, count, &(delay_status.info_delay));
+		do_ch_3tap_delay(buf, count, &(delay_status_gs.info_delay));
 		break;
 	case 2:
-		do_ch_cross_delay(buf, count, &(delay_status.info_delay));
+		do_ch_cross_delay(buf, count, &(delay_status_gs.info_delay));
 		break;
 	default:
-		do_ch_normal_delay(buf, count, &(delay_status.info_delay));
+		do_ch_normal_delay(buf, count, &(delay_status_gs.info_delay));
 		break;
 	}
 }
@@ -1853,9 +1853,9 @@ static void init_ch_3tap_delay(InfoDelay3 *info)
 {
 	int32 i, x;
 
-	info->size[0] = delay_status.sample_c;
-	info->size[1] = delay_status.sample_l;
-	info->size[2] = delay_status.sample_r;
+	info->size[0] = delay_status_gs.sample_c;
+	info->size[1] = delay_status_gs.sample_l;
+	info->size[2] = delay_status_gs.sample_r;
 	x = info->size[0];	/* find maximum value */
 	for (i = 1; i < 3; i++) {
 		if (info->size[i] > x) {x = info->size[i];}
@@ -1866,11 +1866,11 @@ static void init_ch_3tap_delay(InfoDelay3 *info)
 	for (i = 0; i < 3; i++) {	/* set start-point */
 		info->index[i] = x - info->size[i];
 	}
-	info->level[0] = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
-	info->level[1] = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
-	info->level[2] = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
-	info->feedback = delay_status.feedback_ratio;
-	info->send_reverb = delay_status.send_reverb_ratio * REV_INP_LEV;
+	info->level[0] = delay_status_gs.level_ratio_c * MASTER_DELAY_LEVEL;
+	info->level[1] = delay_status_gs.level_ratio_l * MASTER_DELAY_LEVEL;
+	info->level[2] = delay_status_gs.level_ratio_r * MASTER_DELAY_LEVEL;
+	info->feedback = delay_status_gs.feedback_ratio;
+	info->send_reverb = delay_status_gs.send_reverb_ratio * REV_INP_LEV;
 	for (i = 0; i < 3; i++) {
 		info->leveli[i] = TIM_FSCALE(info->level[i], 24);
 	}
@@ -2020,19 +2020,19 @@ static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(&(info->lfoL), (double)chorus_status.rate * 0.122f, LFO_SINE);
-		init_lfo(&(info->lfoR), (double)chorus_status.rate * 0.122f, LFO_COSINE);
-		info->pdelay = chorus_delay_time_table[chorus_status.delay] * (double)play_mode->rate / 1000.0f;
-		info->depth = (double)(chorus_status.depth + 1) / 3.2f * (double)play_mode->rate / 1000.0f;
+		init_lfo(&(info->lfoL), (double)chorus_status_gs.rate * 0.122f, LFO_SINE);
+		init_lfo(&(info->lfoR), (double)chorus_status_gs.rate * 0.122f, LFO_COSINE);
+		info->pdelay = chorus_delay_time_table[chorus_status_gs.delay] * (double)play_mode->rate / 1000.0f;
+		info->depth = (double)(chorus_status_gs.depth + 1) / 3.2f * (double)play_mode->rate / 1000.0f;
 		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
 		if (info->pdelay < 1) {info->pdelay = 1;}
 		info->rpt0 = info->pdelay + info->depth + 2;	/* allowance */
 		set_delay(&(info->delayL), info->rpt0);
 		set_delay(&(info->delayR), info->rpt0);
-		info->feedback = (double)chorus_status.feedback * 0.763f / 100.0f;
-		info->level = (double)chorus_status.level / 127.0f * MASTER_CHORUS_LEVEL;
-		info->send_reverb = (double)chorus_status.send_reverb * 0.787f / 100.0f * REV_INP_LEV;
-		info->send_delay = (double)chorus_status.send_delay * 0.787f / 100.0f;
+		info->feedback = (double)chorus_status_gs.feedback * 0.763f / 100.0f;
+		info->level = (double)chorus_status_gs.level / 127.0f * MASTER_CHORUS_LEVEL;
+		info->send_reverb = (double)chorus_status_gs.send_reverb * 0.787f / 100.0f * REV_INP_LEV;
+		info->send_delay = (double)chorus_status_gs.send_delay * 0.787f / 100.0f;
 		info->feedbacki = TIM_FSCALE(info->feedback, 24);
 		info->leveli = TIM_FSCALE(info->level, 24);
 		info->send_reverbi = TIM_FSCALE(info->send_reverb, 24);
@@ -2101,8 +2101,8 @@ void init_ch_chorus(void)
 {
 	if (!opt_surround_chorus) {
 		/* clear delay-line of LPF */
-		init_filter_lowpass1(&(chorus_status.lpf));
-		do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status.info_stereo_chorus));
+		init_filter_lowpass1(&(chorus_status_gs.lpf));
+		do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status_gs.info_stereo_chorus));
 	}
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
 }
@@ -2168,11 +2168,11 @@ void do_ch_chorus(int32 *buf, int32 count)
 	if (!opt_surround_chorus) {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_status.pre_lpf)
-		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_status.lpf));
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_status_gs.pre_lpf)
+		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_status_gs.lpf));
 #endif /* SYS_EFFECT_PRE_LPF */
 
-	do_ch_stereo_chorus(buf, count, &(chorus_status.info_stereo_chorus));
+	do_ch_stereo_chorus(buf, count, &(chorus_status_gs.info_stereo_chorus));
 	}
 }
 
@@ -2289,7 +2289,7 @@ void set_ch_eq_gs(register int32 *sbuffer, int32 n)
 /*                                  */
 void do_insertion_effect_gs(int32 *buf, int32 count)
 {
-	do_effect_list(buf, count, ie_gs.ef);
+	do_effect_list(buf, count, insertion_effect_gs.ef);
 }
 
 void do_insertion_effect_xg(int32 *buf, int32 count)
@@ -2812,19 +2812,37 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 	info->hist3 = hist3, info->hist4 = hist4, info->hist5 = hist5;
 }
 
+static void free_effect_xg(struct effect_xg_t *st)
+{
+	free_effect_list(st->ef);
+	st->ef = NULL;
+}
+
 void free_effect_buffers(void)
 {
-	do_ch_standard_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_standard_reverb));
-	do_ch_freeverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_freeverb));
-	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
-	do_ch_reverb_normal_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_reverb_delay));
-	do_ch_stereo_chorus(NULL, MAGIC_FREE_EFFECT_INFO, &(chorus_status.info_stereo_chorus));
-	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status.info_delay));
-	free_effect_list(ie_gs.ef);
+	int i;
+	/* free GM/GS/GM2 effects */
+	do_ch_standard_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status_gs.info_standard_reverb));
+	do_ch_freeverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status_gs.info_freeverb));
+	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status_gs.info_plate_reverb));
+	do_ch_reverb_normal_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status_gs.info_reverb_delay));
+	do_ch_stereo_chorus(NULL, MAGIC_FREE_EFFECT_INFO, &(chorus_status_gs.info_stereo_chorus));
+	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status_gs.info_delay));
+	free_effect_list(insertion_effect_gs.ef);
+	insertion_effect_gs.ef = NULL;
+	/* free XG effects */
+	free_effect_xg(&reverb_status_xg);
+	free_effect_xg(&chorus_status_xg);
+	for (i = 0; i < XG_VARIATION_EFFECT_NUM; i++) {
+		free_effect_xg(&variation_effect_xg[i]);
+	}
+	for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {
+		free_effect_xg(&insertion_effect_xg[i]);
+	}
 }
 
 /*! convert GS insertion effect parameters for internal 2-Band EQ. */
-static void conv_gs_eq2(struct insertion_effect_gs *ieffect, EffectList *ef)
+static void conv_gs_eq2(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoEQ2 *eq = (InfoEQ2 *)ef->info; 
 
@@ -2835,7 +2853,7 @@ static void conv_gs_eq2(struct insertion_effect_gs *ieffect, EffectList *ef)
 }
 
 /*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
-static void conv_gs_overdrive1(struct insertion_effect_gs *ieffect, EffectList *ef)
+static void conv_gs_overdrive1(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
 	
@@ -2845,7 +2863,7 @@ static void conv_gs_overdrive1(struct insertion_effect_gs *ieffect, EffectList *
 }
 
 /*! convert GS insertion effect parameters for OD1 / OD2. */
-static void conv_gs_dual_od(struct insertion_effect_gs *ieffect, EffectList *ef)
+static void conv_gs_dual_od(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
 
@@ -2861,7 +2879,7 @@ static void conv_gs_dual_od(struct insertion_effect_gs *ieffect, EffectList *ef)
 }
 
 /*! convert GS insertion effect parameters for Hexa-Chorus. */
-static void conv_gs_hexa_chorus(struct insertion_effect_gs *ieffect, EffectList *ef)
+static void conv_gs_hexa_chorus(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoHexaChorus *info = (InfoHexaChorus *)ef->info;
 	
@@ -2880,6 +2898,167 @@ static void conv_gs_hexa_chorus(struct insertion_effect_gs *ieffect, EffectList 
 	if(info->wet > 1.0) {info->wet = 1.0;}
 }
 
+static double calc_dry_xg(int val, int connection)
+{
+	if (connection) {return 0.0f;}
+	else {return ((double)(127 - val) / 127.0f);}
+}
+
+static double calc_wet_xg(int val, int connection)
+{
+	if (connection) {return 1.0f;}
+	else {return ((double)val / 127.0f);}
+}
+
+/*! 3-Band EQ */
+static void do_eq3(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoEQ3 *eq = (InfoEQ3 *)ef->info;
+	if (count == MAGIC_INIT_EFFECT_INFO) {
+		eq->lsf.q = 0;
+		eq->lsf.freq = eq->low_freq;
+		eq->lsf.gain = eq->low_gain;
+		calc_filter_shelving_low(&(eq->lsf));
+		init_filter_shelving(&(eq->lsf));
+		eq->hsf.q = 0;
+		eq->hsf.freq = eq->high_freq;
+		eq->hsf.gain = eq->high_gain;
+		calc_filter_shelving_high(&(eq->hsf));
+		init_filter_shelving(&(eq->hsf));
+		eq->peak.q = 1.0f / eq->mid_width;
+		eq->peak.freq = eq->mid_freq;
+		eq->peak.gain = eq->mid_gain;
+		calc_filter_peaking(&(eq->peak));
+		init_filter_peaking(&(eq->peak));
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	if(eq->low_gain != 0) {
+		do_shelving_filter_stereo(buf, count, &(eq->lsf));
+	}
+	if(eq->high_gain != 0) {
+		do_shelving_filter_stereo(buf, count, &(eq->hsf));
+	}
+	if(eq->mid_gain != 0) {
+		do_peaking_filter_stereo(buf, count, &(eq->peak));
+	}
+}
+
+static void conv_xg_chorus_eq3(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ3 *info = (InfoEQ3 *)ef->info;
+	int val;
+
+	val = st->param_lsb[5];
+	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
+	info->low_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[6] - 64;
+	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[7];
+	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
+	info->high_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[8] - 64;
+	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[10];
+	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
+	info->mid_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[11] - 64;
+	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[12];
+	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
+	info->mid_width = (double)val / 10.0f;
+}
+
+static void conv_xg_chorus(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoChorus *info = (InfoChorus *)ef->info;
+
+/*	info->rate = rate_table_xg[param[0]] */
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
+/*	info->pdelay_ms = delay_tables_xg[param[3]] */
+
+	info->dry = calc_dry_xg(st->param_lsb[9], st->connection);
+	info->wet = calc_wet_xg(st->param_lsb[9], st->connection);
+}
+
+static void do_chorus(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoChorus *info = (InfoChorus *)ef->info;
+	int32 i, output, f0, f1, v0, v1;
+	int32 *bufL = info->delayL.buf, *bufR = info->delayR.buf,
+		*lfobufL = info->lfoL.buf, *lfobufR = info->lfoR.buf,
+		icycle = info->lfoL.icycle, cycle = info->lfoL.cycle,
+		dryi = info->dryi, weti = info->weti, feedbacki = info->feedbacki,
+		depth = info->depth, pdelay = info->pdelay, rpt0 = info->rpt0;
+	int32 wpt0 = info->wpt0, spt0 = info->spt0, spt1 = info->spt1,
+		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
+
+	if (count == MAGIC_INIT_EFFECT_INFO) {
+		init_lfo(&(info->lfoL), info->rate, LFO_SINE);
+		init_lfo(&(info->lfoR), info->rate, LFO_COSINE);
+		info->pdelay = info->pdelay_ms * (double)play_mode->rate / 1000.0f;
+		info->depth = info->depth_ms * (double)play_mode->rate / 1000.0f;
+		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
+		if (info->pdelay < 1) {info->pdelay = 1;}
+		info->rpt0 = info->pdelay + info->depth + 2;	/* allowance */
+		set_delay(&(info->delayL), info->rpt0);
+		set_delay(&(info->delayR), info->rpt0);
+		info->feedbacki = TIM_FSCALE(info->feedback, 24);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		info->wpt0 = info->spt0 = info->spt1 = info->hist0 = info->hist1 = 0;
+		return;
+	} else if (count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
+		return;
+	}
+
+	/* LFO */
+	f0 = imuldiv24(lfobufL[imuldiv24(lfocnt, icycle)], depth);
+	spt0 = wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+	f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
+	if (spt0 < 0) {spt0 += rpt0;}
+	f1 = imuldiv24(lfobufR[imuldiv24(lfocnt, icycle)], depth);
+	spt1 = wpt0 - pdelay - (f1 >> 8);	/* integral part of delay */
+	f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
+	if (spt1 < 0) {spt1 += rpt0;}
+	
+	for (i = 0; i < count; i++) {
+		v0 = bufL[spt0];
+		v1 = bufR[spt1];
+
+		/* LFO */
+		if(++wpt0 == rpt0) {wpt0 = 0;}
+		f0 = imuldiv24(lfobufL[imuldiv24(lfocnt, icycle)], depth);
+		spt0 = wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+		f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt0 < 0) {spt0 += rpt0;}
+		f1 = imuldiv24(lfobufR[imuldiv24(lfocnt, icycle)], depth);
+		spt1 = wpt0 - pdelay - (f1 >> 8);	/* integral part of delay */
+		f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt1 < 0) {spt1 += rpt0;}
+		if(++lfocnt == cycle) {lfocnt = 0;}
+
+		/* left */
+		/* delay with all-pass interpolation */
+		output = hist0 = v0 + imuldiv8(bufL[spt0] - hist0, f0);
+		bufL[wpt0] = buf[i] + imuldiv24(output, feedbacki);
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(output, weti);
+
+		/* right */
+		/* delay with all-pass interpolation */
+		output = hist1 = v1 + imuldiv8(bufR[spt1] - hist1, f1);
+		bufR[wpt0] = buf[++i] + imuldiv24(output, feedbacki);
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(output, weti);
+	}
+	info->wpt0 = wpt0, info->spt0 = spt0, info->spt1 = spt1,
+		info->hist0 = hist0, info->hist1 = hist1;
+	info->lfoL.count = info->lfoR.count = lfocnt;
+}
+
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
 	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
@@ -2887,5 +3066,16 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_DISTORTION1, "Distortion (GS)", do_distortion1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
 	EFFECT_OD1OD2, "OD1/OD2", do_dual_od, conv_gs_dual_od, NULL, sizeof(InfoOD1OD2),
 	EFFECT_HEXA_CHORUS, "Hexa-Chorus", do_hexa_chorus, conv_gs_hexa_chorus, NULL, sizeof(InfoHexaChorus),
-	EFFECT_EOF, "None", NULL, NULL, NULL, 0, 
+	EFFECT_CHORUS, "Chorus", do_chorus, NULL, conv_xg_chorus, sizeof(InfoChorus),
+	EFFECT_CHORUS_EQ3, "3-Band EQ (XG Chorus built-in)", do_eq3, NULL, conv_xg_chorus_eq3, sizeof(InfoEQ3),
+	EFFECT_EOF, "EOF", NULL, NULL, NULL, 0, 
+};
+
+struct effect_parameter_xg_t effect_parameter_xg[] = {
+	0, 0, "NO EFFECT", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0x41, 0, "CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0,
+	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };

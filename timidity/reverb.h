@@ -170,6 +170,8 @@ enum {
 	EFFECT_OVERDRIVE1,
 	EFFECT_DISTORTION1,
 	EFFECT_OD1OD2,
+	EFFECT_CHORUS,	
+	EFFECT_CHORUS_EQ3,	
 	EFFECT_HEXA_CHORUS,
 	EFFECT_EOF,
 };
@@ -177,17 +179,27 @@ enum {
 #define MAGIC_INIT_EFFECT_INFO -1
 #define MAGIC_FREE_EFFECT_INFO -2
 
-struct insertion_effect_gs {
+struct insertion_effect_gs_t {
 	int32 type;
 	int8 type_lsb, type_msb, parameter[20], send_reverb,
 		send_chorus, send_delay, control_source1, control_depth1,
 		control_source2, control_depth2, send_eq_switch;
 	struct _EffectList *ef;
-} ie_gs;
+} insertion_effect_gs;
 
-struct insertion_effect_xg {	/* under construction... */
-	int32 type;
-} ie_xg;
+struct effect_xg_t {
+	int8 type_msb, type_lsb, param_lsb[16], param_msb[10],
+		ret, pan, send_reverb, send_chorus, connection, part,
+		mw_depth, bend_depth, cat_depth, ac1_depth, ac2_depth, cbc1_depth,
+		cbc2_depth;
+	struct _EffectList *ef;
+};
+
+#define XG_INSERTION_EFFECT_NUM 2
+#define XG_VARIATION_EFFECT_NUM 2
+
+struct effect_xg_t insertion_effect_xg[XG_INSERTION_EFFECT_NUM],
+	variation_effect_xg[XG_VARIATION_EFFECT_NUM], reverb_status_xg, chorus_status_xg;
 
 typedef struct _EffectList {
 	int type;
@@ -200,13 +212,21 @@ struct _EffectEngine {
 	int type;
 	char *name;
 	void (*do_effect)(int32 *, int32, struct _EffectList *);
-	void (*conv_gs)(struct insertion_effect_gs *, struct _EffectList *);
-	void (*conv_xg)(struct insertion_effect_xg *, struct _EffectList *);
+	void (*conv_gs)(struct insertion_effect_gs_t *, struct _EffectList *);
+	void (*conv_xg)(struct effect_xg_t *, struct _EffectList *);
 	int info_size;
 };
 
 extern struct _EffectEngine effect_engine[];
 #define EFFECT_ENGINE_NUM EFFECT_EOF
+
+struct effect_parameter_xg_t {
+	int8 type_msb, type_lsb;
+	char *name;
+	int8 param_msb[10], param_lsb[16];
+};
+
+extern struct effect_parameter_xg_t effect_parameter_xg[];
 
 extern EffectList *push_effect(EffectList *, int);
 extern void do_effect_list(int32 *, int32, EffectList *);
@@ -218,6 +238,15 @@ typedef struct {
 	int16 low_gain, high_gain;		/* in dB */
 	filter_shelving hsf, lsf;
 } InfoEQ2;
+
+/*! 3-Band EQ */
+typedef struct {
+    int16 low_freq, high_freq, mid_freq;		/* in Hz */
+	int16 low_gain, high_gain, mid_gain;		/* in dB */
+	double mid_width;
+	filter_shelving hsf, lsf;
+	filter_peaking peak;
+} InfoEQ3;
 
 /*! Overdrive 1 / Distortion 1 */
 typedef struct {
@@ -307,6 +336,16 @@ typedef struct {
 	int32 leveli, feedbacki, send_reverbi, send_delayi;
 } InfoStereoChorus;
 
+/*! Chorus Effect */
+typedef struct {
+	delay delayL, delayR;
+	lfo lfoL, lfoR;
+	int32 wpt0, spt0, spt1, hist0, hist1;
+	int32 rpt0, depth, pdelay;
+	double dry, wet, feedback, pdelay_ms, depth_ms, rate;
+	int32 dryi, weti, feedbacki;
+} InfoChorus;
+
 /*                             */
 /*        System Effect        */
 /*                             */
@@ -316,11 +355,13 @@ extern void do_mono_reverb(int32 *, int32);
 extern void set_ch_reverb(int32 *, int32, int32);
 extern void init_reverb(void);
 extern void reverb_rc_event(int, int32);
+extern void do_ch_reverb_xg(int32 *, int32);
 
 /* Chorus Effect */
 extern void do_ch_chorus(int32 *, int32);
 extern void set_ch_chorus(int32 *, int32, int32);
 extern void init_ch_chorus(void);
+extern void do_ch_chorus_xg(int32 *, int32);
 
 /* Delay (Celeste) Effect */
 extern void do_ch_delay(int32 *, int32);
@@ -335,7 +376,7 @@ extern void do_ch_eq_xg(int32 *, int32, struct part_eq_xg *);
 extern void do_multi_eq_xg(int32 *, int32);
 
 /* GS parameters of reverb effect */
-struct reverb_status_t
+struct reverb_status_gs_t
 {
 	/* GS parameters */
 	int8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
@@ -345,9 +386,9 @@ struct reverb_status_t
 	InfoFreeverb info_freeverb;
 	InfoDelay3 info_reverb_delay;
 	filter_lowpass1 lpf;
-} reverb_status;
+} reverb_status_gs;
 
-struct chorus_text_t
+struct chorus_text_gs_t
 {
     int status;
     uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
@@ -355,19 +396,19 @@ struct chorus_text_t
 };
 
 /* GS parameters of chorus effect */
-struct chorus_status_t
+struct chorus_status_gs_t
 {
 	/* GS parameters */
 	int8 macro, pre_lpf, level, feedback, delay, rate, depth, send_reverb, send_delay;
 
-	struct chorus_text_t text;
+	struct chorus_text_gs_t text;
 
 	InfoStereoChorus info_stereo_chorus;
 	filter_lowpass1 lpf;
-} chorus_status;
+} chorus_status_gs;
 
 /* GS parameters of delay effect */
-struct delay_status_t
+struct delay_status_gs_t
 {
 	/* GS parameters */
 	int8 type, level, level_center, level_left, level_right,
@@ -382,7 +423,7 @@ struct delay_status_t
 
 	filter_lowpass1 lpf;
 	InfoDelay3 info_delay;
-} delay_status;
+} delay_status_gs;
 
 /* GS parameters of channel EQ */
 struct eq_status_gs_t

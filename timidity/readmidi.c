@@ -102,6 +102,7 @@ void init_reverb_status_gs(void);
 void init_eq_status_gs(void);
 void init_insertion_effect_gs(void);
 void init_multi_eq_xg(void);
+static void init_all_effect_xg(void);
 
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
@@ -183,7 +184,7 @@ void recompute_userinst_altassign(int bank,int group);
 int32 readmidi_set_track(int trackno, int rewindp)
 {
     current_read_track = trackno;
-    memset(&chorus_status, 0, sizeof(chorus_status));
+    memset(&chorus_status_gs.text, 0, sizeof(struct chorus_text_gs_t));
     if(karaoke_format == 1 && current_read_track == 2)
 	karaoke_format = 2; /* Start karaoke lyric */
     else if(karaoke_format == 2 && current_read_track == 3)
@@ -504,7 +505,7 @@ static uint16 gm_convert_master_vol(uint16 v1, uint16 v2)
 
 static void check_chorus_text_start(void)
 {
-	struct chorus_text_t *p = &(chorus_status.text);
+	struct chorus_text_gs_t *p = &(chorus_status_gs.text);
     if(p->status != CHORUS_ST_OK && p->voice_reserve[17] &&
        p->macro[2] && p->pre_lpf[2] && p->level[2] &&
        p->feed_back[2] && p->delay[2] && p->rate[2] &&
@@ -760,6 +761,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	body_end = val + len - 3;
 
 	for (ent = val[7]; body <= body_end; body++, ent++) {
+#if 0
+		if (p >= 0x01 && p < 0x40) {
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 1);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
+			num_events += 2;
+		}
+#else
 		if(p == 0x01) {	/* Effect 1 */
 	    switch(ent) {
 		case 0x00:	/* Reverb Type MSB */
@@ -803,7 +811,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    continue;
 		    break;
 	    }
-		} else if(p == 0x40) {	/* Multi EQ */
+		}
+#endif
+		else if(p == 0x40) {	/* Multi EQ */
 	    switch(ent) {
 		case 0x00:	/* EQ type */
 			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x50);
@@ -923,19 +933,11 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	body_end = val + len-3;
 
 	for (ent = val[7]; body <= body_end; body++, ent++) {
-	    switch(ent) {
-
-		/* need to add in insertion effects code */
-		/* need to figure out how XG insertion effects map on to
-		   the GS insertion effects */
-
-		default:
-		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],val[7],ent);
-		    continue;
-		    break;
-	    }
-	}
+	    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 2);
+		SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
+		num_events += 2;
     }
+	}
 
     /* XG Multi Part Data parameter change */
     /* There are two ways to do this, neither of which match the XG spec... */
@@ -1641,6 +1643,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		/* this will give the "intended" result even if the events are
 		   sent in the wrong order */
 		if(val[3] == 0x02) {
+#if 0
+			if(val[4] >= 0x01 && val[4] < 0x40) {	/* Effect 1 */
+				SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 1);
+				SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
+				num_events += 2;
+			}
+#else
 			if(val[4] == 0x01) {	/* Effect 1 */
 			switch(ent) {
 				case 0x00:	/* Reverb Type MSB */
@@ -1684,7 +1693,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				default:
 				  break;
 			}
-			} else if(val[4] == 0x40) {	/* Multi EQ */
+			}
+#endif
+			else if(val[4] == 0x40) {	/* Multi EQ */
 			switch(ent) {
 				case 0x00:	/* EQ type */
 				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x50);
@@ -1780,7 +1791,11 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 			}
 			}
-		} else if(val[3] == 0x08) {	/* Multi Part Data parameter change */
+		} else if (val[3] == 0x03) {	/* Effect 2 */
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 2);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
+			num_events += 2;
+		} else if (val[3] == 0x08) {	/* Multi Part Data parameter change */
 			switch(ent) {
 				case 0x00:	/* Element Reserve */
 					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, val[6]); 
@@ -3725,7 +3740,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 
 	if((addr & 0xFFFFF0) == 0x400130) /* Changing Effects */
 	{
-		struct chorus_text_t *chorus_text = &(chorus_status.text);
+		struct chorus_text_gs_t *chorus_text = &(chorus_status_gs.text);
 	    switch(addr & 0xF)
 	    {
 	      case 0x8: /* macro */
@@ -3765,7 +3780,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	if(addr == 0x400110) /* Voice Reserve */
 	{
 	    if(len >= 25)
-		memcpy(chorus_status.text.voice_reserve, body, 18);
+		memcpy(chorus_status_gs.text.voice_reserve, body, 18);
 	    check_chorus_text_start();
 	    return 0;
 	}
@@ -4165,7 +4180,7 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 		if(type == 5 || /* Lyric */
 		   (type == 1 && (opt_trace_text_meta_event ||
 				  karaoke_format == 2 ||
-				  chorus_status.text.status == CHORUS_ST_OK)) ||
+				  chorus_status_gs.text.status == CHORUS_ST_OK)) ||
 		   (type == 6 &&  (current_file_info->format == 0 ||
 				   (current_file_info->format == 1 &&
 				    current_read_track == 0))))
@@ -4228,7 +4243,7 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 			    readmidi_add_event(&ev);
 			    continue;
 			}
-			if(chorus_status.text.status == CHORUS_ST_OK)
+			if(chorus_status_gs.text.status == CHORUS_ST_OK)
 			{
 			    *text = ME_CHORUS_TEXT;
 			    ev.type = ME_CHORUS_TEXT;
@@ -5147,12 +5162,14 @@ void readmidi_read_init(void)
 	/* initialize effect status */
 	for (i = 0; i < MAX_CHANNELS; i++)
 		init_channel_layer(i);
+	free_effect_buffers();
 	init_reverb_status_gs();
 	init_delay_status_gs();
 	init_chorus_status_gs();
 	init_eq_status_gs();
-	init_multi_eq_xg();
 	init_insertion_effect_gs();
+	init_multi_eq_xg();
+	init_all_effect_xg();
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = rhythm_part[1] = 9;
@@ -6117,7 +6134,7 @@ char *event2string(int id)
 /*! initialize Delay Effect (GS) */
 void init_delay_status_gs(void)
 {
-	struct delay_status_t *p = &delay_status;
+	struct delay_status_gs_t *p = &delay_status_gs;
 	p->type = 0;
 	p->level = 0x40;
 	p->level_center = 0x7F;
@@ -6134,7 +6151,7 @@ void init_delay_status_gs(void)
 /*! recompute Delay Effect (GS) */
 void recompute_delay_status_gs(void)
 {
-	struct delay_status_t *p = &delay_status;
+	struct delay_status_gs_t *p = &delay_status_gs;
 	p->time_center = delay_time_center_table[p->time_c > 0x73 ? 0x73 : p->time_c];
 	p->time_ratio_left = (double)p->time_l / 24;
 	p->time_ratio_right = (double)p->time_r / 24;
@@ -6160,7 +6177,7 @@ void recompute_delay_status_gs(void)
 /*! Delay Macro (GS) */
 void set_delay_macro_gs(int macro)
 {
-	struct delay_status_t *p = &delay_status;
+	struct delay_status_gs_t *p = &delay_status_gs;
 	if(macro >= 4) {p->type = 2;}	/* cross delay */
 	macro *= 10;
 	p->time_center = delay_time_center_table[delay_macro_presets[macro + 1]];
@@ -6176,7 +6193,7 @@ void set_delay_macro_gs(int macro)
 /*! initialize Reverb Effect (GS) */
 void init_reverb_status_gs(void)
 {
-	struct reverb_status_t *p = &reverb_status;
+	struct reverb_status_gs_t *p = &reverb_status_gs;
 	p->character = 0x04;
 	p->pre_lpf = 0;
 	p->level = 0x40;
@@ -6190,7 +6207,7 @@ void init_reverb_status_gs(void)
 /*! recompute Reverb Effect (GS) */
 void recompute_reverb_status_gs(void)
 {
-	struct reverb_status_t *p = &reverb_status;
+	struct reverb_status_gs_t *p = &reverb_status_gs;
 
 	if(p->pre_lpf) {
 		p->lpf.a = 2.0 * ((double)(7 - p->pre_lpf) / 7.0f * 16000.0f + 200.0f) / play_mode->rate;
@@ -6201,7 +6218,7 @@ void recompute_reverb_status_gs(void)
 /*! Reverb Type (GM2) */
 void set_reverb_macro_gm2(int macro)
 {
-	struct reverb_status_t *p = &reverb_status;
+	struct reverb_status_gs_t *p = &reverb_status_gs;
 	int type = macro;
 	if (macro == 8) {macro = 5;}
 	macro *= 6;
@@ -6233,7 +6250,7 @@ void set_reverb_macro_gm2(int macro)
 /*! Reverb Macro (GS) */
 void set_reverb_macro_gs(int macro)
 {
-	struct reverb_status_t *p = &reverb_status;
+	struct reverb_status_gs_t *p = &reverb_status_gs;
 	macro *= 6;
 	p->character = reverb_macro_presets[macro];
 	p->pre_lpf = reverb_macro_presets[macro + 1];
@@ -6246,7 +6263,7 @@ void set_reverb_macro_gs(int macro)
 /*! initialize Chorus Effect (GS) */
 void init_chorus_status_gs(void)
 {
-	struct chorus_status_t *p = &chorus_status;
+	struct chorus_status_gs_t *p = &chorus_status_gs;
 	p->macro = 0;
 	p->pre_lpf = 0;
 	p->level = 0x40;
@@ -6262,7 +6279,7 @@ void init_chorus_status_gs(void)
 /*! recompute Chorus Effect (GS) */
 void recompute_chorus_status_gs()
 {
-	struct chorus_status_t *p = &chorus_status;
+	struct chorus_status_gs_t *p = &chorus_status_gs;
 
 	if(p->pre_lpf) {
 		p->lpf.a = 2.0 * ((double)(7 - p->pre_lpf) / 7.0f * 16000.0f + 200.0f) / play_mode->rate;
@@ -6273,7 +6290,7 @@ void recompute_chorus_status_gs()
 /*! Chorus Macro (GS), Chorus Type (GM2) */
 void set_chorus_macro_gs(int macro)
 {
-	struct chorus_status_t *p = &chorus_status;
+	struct chorus_status_gs_t *p = &chorus_status_gs;
 	macro *= 8;
 	p->pre_lpf = chorus_macro_presets[macro];
 	p->level = chorus_macro_presets[macro + 1];
@@ -6572,11 +6589,47 @@ void free_userinst()
 	userinst_first = userinst_last = NULL;
 }
 
+static void init_effect_xg(struct effect_xg_t *st)
+{
+	int i;
+
+	free_effect_list(st->ef);
+	st->ef = NULL;
+
+	st->type_msb = st->type_lsb	= st->connection =
+		st->send_reverb = st->send_chorus = 0;
+	st->part = 0x7f;
+	st->ret = st->pan = st->mw_depth = st->bend_depth =	st->cat_depth =
+		st->ac1_depth = st->ac2_depth = st->cbc1_depth = st->cbc2_depth = 0x40;
+	for (i = 0; i < 16; i++) {st->param_lsb[i] = 0;}
+	for (i = 0; i < 10; i++) {st->param_msb[i] = 0;}
+}
+
+/*! initialize XG effect parameters */
+static void init_all_effect_xg(void)
+{
+	int i;
+ 	init_effect_xg(&reverb_status_xg);
+	reverb_status_xg.type_msb = 0x01;
+	reverb_status_xg.connection = 1;
+	init_effect_xg(&chorus_status_xg);
+	chorus_status_xg.type_msb = 0x41;
+	chorus_status_xg.connection = 1;
+	for (i = 0; i < XG_VARIATION_EFFECT_NUM; i++) {
+		init_effect_xg(&variation_effect_xg[i]);
+		variation_effect_xg[i].type_msb = 0x05;
+	}
+	for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {
+		init_effect_xg(&insertion_effect_xg[i]);
+		insertion_effect_xg[i].type_msb = 0x49;
+	}
+}
+
 /*! initialize GS insertion effect parameters */
 void init_insertion_effect_gs(void)
 {
 	int i;
-	struct insertion_effect_gs *st = &ie_gs;
+	struct insertion_effect_gs_t *st = &insertion_effect_gs;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
@@ -6599,7 +6652,7 @@ void init_insertion_effect_gs(void)
 /*! set GS default insertion effect parameters according to effect type. */
 void set_insertion_effect_def_gs(void)
 {
-	struct insertion_effect_gs *st = &ie_gs;
+	struct insertion_effect_gs_t *st = &insertion_effect_gs;
 	int8 *param = st->parameter;
 
 	switch(st->type) {
@@ -6652,10 +6705,68 @@ void set_insertion_effect_def_gs(void)
 	}
 }
 
+static void set_effect_param_xg(struct effect_xg_t *st, int msb, int lsb)
+{
+	int i, j;
+	for (i = 0; effect_parameter_xg[i].type_msb != -1
+		&& effect_parameter_xg[i].type_lsb != -1; i++) {
+		if (msb == effect_parameter_xg[i].type_msb
+			&& lsb == effect_parameter_xg[i].type_lsb) {
+			for (j = 0; j < 16; j++) {
+				st->param_lsb[j] = effect_parameter_xg[i].param_lsb[j];
+			}
+			for (j = 0; j < 10; j++) {
+				st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
+			}
+		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name); */
+			break;
+		}
+	}
+}
+
+/*! recompute XG effect parameters. */
+void recompute_effect_xg(struct effect_xg_t *st)
+{
+	EffectList *efc = st->ef;
+
+	if (st->ef == NULL) {return;}
+	while(efc != NULL && efc->info != NULL)
+	{
+		(*efc->engine->conv_xg)(st, efc);
+		(*efc->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
+		efc = efc->next_ef;
+	}
+}
+
+void realloc_effect_xg(struct effect_xg_t *st)
+{
+	int msb = st->type_msb, lsb = st->type_lsb;
+
+	free_effect_list(st->ef);
+	st->ef = NULL;
+
+	switch(msb) {
+	case 0x41:
+	case 0x42:
+	case 0x43:
+	case 0x44:
+		st->ef = push_effect(st->ef, EFFECT_CHORUS);
+		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
+		break;
+	default:
+		msb = lsb = 0;
+		break;
+	}
+
+	set_effect_param_xg(st, msb, lsb);
+
+	recompute_effect_xg(st);
+}
+
 /*! recompute GS insertion effect parameters. */
 void recompute_insertion_effect_gs(void)
 {
-	struct insertion_effect_gs *st = &ie_gs;
+	struct insertion_effect_gs_t *st = &insertion_effect_gs;
 	EffectList *efc = st->ef;
 
 	if (st->ef == NULL) {return;}
@@ -6670,7 +6781,7 @@ void recompute_insertion_effect_gs(void)
 /*! re-allocate GS insertion effect parameters. */
 void realloc_insertion_effect_gs(void)
 {
-	struct insertion_effect_gs *st = &ie_gs;
+	struct insertion_effect_gs_t *st = &insertion_effect_gs;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;

@@ -2447,13 +2447,13 @@ static void new_delay_voice(int v1, int level)
 		level *= (FLOAT_T)channel[ch].drums[voice[v1].note]->delay_level / 127.0;
 	}
 
-	vol = voice[v1].velocity * level / 127.0 * delay_status.level_ratio_c;
+	vol = voice[v1].velocity * level / 127.0 * delay_status_gs.level_ratio_c;
 
 	if (vol > threshold) {
 		delay = 0;
 		if((v2 = find_free_voice()) == -1) {return;}
 		voice[v2].cache = NULL;
-		delay += delay_status.time_center;
+		delay += delay_status_gs.time_center;
 		voice[v2] = voice[v1];	/* copy all parameters */
 		voice[v2].velocity = (uint8)vol;
 		voice[v2].delay += (int32)(play_mode->rate * delay / 1000);
@@ -2682,7 +2682,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     if (level) recompute_freq(v2);
 }
 
-/*! prescanning variation of note_on() */
+/*! note_on() (prescanning) */
 static void note_on_prescan(MidiEvent *ev)
 {
 	int i, ch = ev->channel, note = MIDI_EVENT_NOTE(ev);
@@ -3818,8 +3818,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x06:	/* Reverb Character */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Character (%d)",val);
-			if (reverb_status.character != val) {
-				reverb_status.character = val;
+			if (reverb_status_gs.character != val) {
+				reverb_status_gs.character = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
@@ -3827,39 +3827,39 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x07:	/* Reverb Pre-LPF */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Pre-LPF (%d)",val);
-			if(reverb_status.pre_lpf != val) {
-				reverb_status.pre_lpf = val;
+			if(reverb_status_gs.pre_lpf != val) {
+				reverb_status_gs.pre_lpf = val;
 				recompute_reverb_status_gs();
 			}
 			break;
 		case 0x08:	/* Reverb Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",val);
-			if(reverb_status.level != val) {
-				reverb_status.level = val;
+			if(reverb_status_gs.level != val) {
+				reverb_status_gs.level = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
 			break;
 		case 0x09:	/* Reverb Time */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Time (%d)",val);
-			if(reverb_status.time != val) {
-				reverb_status.time = val;
+			if(reverb_status_gs.time != val) {
+				reverb_status_gs.time = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
 			break;
 		case 0x0A:	/* Reverb Delay Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Delay Feedback (%d)",val);
-			if(reverb_status.delay_feedback != val) {
-				reverb_status.delay_feedback = val;
+			if(reverb_status_gs.delay_feedback != val) {
+				reverb_status_gs.delay_feedback = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
 			break;
 		case 0x0C:	/* Reverb Predelay Time */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Predelay Time (%d)",val);
-			if(reverb_status.pre_delay_time != val) {
-				reverb_status.pre_delay_time = val;
+			if(reverb_status_gs.pre_delay_time != val) {
+				reverb_status_gs.pre_delay_time = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
@@ -3874,63 +3874,63 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x0E:	/* Chorus Pre-LPF */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Pre-LPF (%d)",val);
-			if (chorus_status.pre_lpf != val) {
-				chorus_status.pre_lpf = val;
+			if (chorus_status_gs.pre_lpf != val) {
+				chorus_status_gs.pre_lpf = val;
 				recompute_chorus_status_gs();
 			}
 			break;
 		case 0x0F:	/* Chorus Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",val);
-			if (chorus_status.level != val) {
-				chorus_status.level = val;
+			if (chorus_status_gs.level != val) {
+				chorus_status_gs.level = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x10:	/* Chorus Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Feedback (%d)",val);
-			if (chorus_status.feedback != val) {
-				chorus_status.feedback = val;
+			if (chorus_status_gs.feedback != val) {
+				chorus_status_gs.feedback = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x11:	/* Chorus Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Delay (%d)",val);
-			if (chorus_status.delay != val) {
-				chorus_status.delay = val;
+			if (chorus_status_gs.delay != val) {
+				chorus_status_gs.delay = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x12:	/* Chorus Rate */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Rate (%d)",val);
-			if (chorus_status.rate != val) {
-				chorus_status.rate = val;
+			if (chorus_status_gs.rate != val) {
+				chorus_status_gs.rate = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x13:	/* Chorus Depth */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Depth (%d)",val);
-			if (chorus_status.depth != val) {
-				chorus_status.depth = val;
+			if (chorus_status_gs.depth != val) {
+				chorus_status_gs.depth = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x14:	/* Chorus Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Reverb (%d)",val);
-			if (chorus_status.send_reverb != val) {
-				chorus_status.send_reverb = val;
+			if (chorus_status_gs.send_reverb != val) {
+				chorus_status_gs.send_reverb = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
 			break;
 		case 0x15:	/* Chorus Send Level to Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Delay (%d)",val);
-			if (chorus_status.send_delay != val) {
-				chorus_status.send_delay = val;
+			if (chorus_status_gs.send_delay != val) {
+				chorus_status_gs.send_delay = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
@@ -3946,15 +3946,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Pre-LPF (%d)",val);
 			val &= 0x7;
-			if (delay_status.pre_lpf != val) {
-				delay_status.pre_lpf = val;
+			if (delay_status_gs.pre_lpf != val) {
+				delay_status_gs.pre_lpf = val;
 				recompute_delay_status_gs();
 			}
 			break;
 		case 0x18:	/* Delay Time Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Center (%d)",val);
-			if (delay_status.time_c != val) {
-				delay_status.time_c = val;
+			if (delay_status_gs.time_c != val) {
+				delay_status_gs.time_c = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
@@ -3962,8 +3962,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x19:	/* Delay Time Ratio Left */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Left (%d)",val);
 			if (val == 0) {val = 1;}
-			if (delay_status.time_l != val) {
-				delay_status.time_l = val;
+			if (delay_status_gs.time_l != val) {
+				delay_status_gs.time_l = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
@@ -3971,56 +3971,56 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x1A:	/* Delay Time Ratio Right */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Right (%d)",val);
 			if (val == 0) {val = 1;}
-			if (delay_status.time_r != val) {
-				delay_status.time_r = val;
+			if (delay_status_gs.time_r != val) {
+				delay_status_gs.time_r = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x1B:	/* Delay Level Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Center (%d)",val);
-			if (delay_status.level_center != val) {
-				delay_status.level_center = val;
+			if (delay_status_gs.level_center != val) {
+				delay_status_gs.level_center = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x1C:	/* Delay Level Left */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Left (%d)",val);
-			if (delay_status.level_left != val) {
-				delay_status.level_left = val;
+			if (delay_status_gs.level_left != val) {
+				delay_status_gs.level_left = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x1D:	/* Delay Level Right */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Right (%d)",val);
-			if (delay_status.level_right != val) {
-				delay_status.level_right = val;
+			if (delay_status_gs.level_right != val) {
+				delay_status_gs.level_right = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x1E:	/* Delay Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level (%d)",val);
-			if (delay_status.level != val) {
-				delay_status.level = val;
+			if (delay_status_gs.level != val) {
+				delay_status_gs.level = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x1F:	/* Delay Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Feedback (%d)",val);
-			if (delay_status.feedback != val) {
-				delay_status.feedback = val;
+			if (delay_status_gs.feedback != val) {
+				delay_status_gs.feedback = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
 			break;
 		case 0x20:	/* Delay Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send Level to Reverb (%d)",val);
-			if (delay_status.send_reverb = val) {
-				delay_status.send_reverb = val;
+			if (delay_status_gs.send_reverb = val) {
+				delay_status_gs.send_reverb = val;
 				recompute_delay_status_gs();
 				init_ch_delay();
 			}
@@ -4061,11 +4061,11 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x27:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			temp = ie_gs.type;
-			ie_gs.type_msb = val;
-			ie_gs.type = ((int32)ie_gs.type_msb << 8) | (int32)ie_gs.type_lsb;
+			temp = insertion_effect_gs.type;
+			insertion_effect_gs.type_msb = val;
+			insertion_effect_gs.type = ((int32)insertion_effect_gs.type_msb << 8) | (int32)insertion_effect_gs.type_lsb;
 			set_insertion_effect_def_gs();
-			if(temp == ie_gs.type) {
+			if(temp == insertion_effect_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
@@ -4073,127 +4073,127 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x28:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			temp = ie_gs.type;
-			ie_gs.type_lsb = val;
-			ie_gs.type = ((int32)ie_gs.type_msb << 8) | (int32)ie_gs.type_lsb;
+			temp = insertion_effect_gs.type;
+			insertion_effect_gs.type_lsb = val;
+			insertion_effect_gs.type = ((int32)insertion_effect_gs.type_msb << 8) | (int32)insertion_effect_gs.type_lsb;
 			set_insertion_effect_def_gs();
-			if(temp == ie_gs.type) {
+			if(temp == insertion_effect_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
-			/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",ie_gs.type_msb,ie_gs.type_lsb);*/
+			/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",insertion_effect_gs.type_msb,insertion_effect_gs.type_lsb);*/
 			}
 			break;
 		case 0x29:
-			ie_gs.parameter[0] = val;
+			insertion_effect_gs.parameter[0] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2A:
-			ie_gs.parameter[1] = val;
+			insertion_effect_gs.parameter[1] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2B:
-			ie_gs.parameter[2] = val;
+			insertion_effect_gs.parameter[2] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2C:
-			ie_gs.parameter[3] = val;
+			insertion_effect_gs.parameter[3] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2D:
-			ie_gs.parameter[4] = val;
+			insertion_effect_gs.parameter[4] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2E:
-			ie_gs.parameter[5] = val;
+			insertion_effect_gs.parameter[5] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2F:
-			ie_gs.parameter[6] = val;
+			insertion_effect_gs.parameter[6] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x30:
-			ie_gs.parameter[7] = val;
+			insertion_effect_gs.parameter[7] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x31:
-			ie_gs.parameter[8] = val;
+			insertion_effect_gs.parameter[8] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x32:
-			ie_gs.parameter[9] = val;
+			insertion_effect_gs.parameter[9] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x33:
-			ie_gs.parameter[10] = val;
+			insertion_effect_gs.parameter[10] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x34:
-			ie_gs.parameter[11] = val;
+			insertion_effect_gs.parameter[11] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x35:
-			ie_gs.parameter[12] = val;
+			insertion_effect_gs.parameter[12] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x36:
-			ie_gs.parameter[13] = val;
+			insertion_effect_gs.parameter[13] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x37:
-			ie_gs.parameter[14] = val;
+			insertion_effect_gs.parameter[14] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x38:
-			ie_gs.parameter[15] = val;
+			insertion_effect_gs.parameter[15] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x39:
-			ie_gs.parameter[16] = val;
+			insertion_effect_gs.parameter[16] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3A:
-			ie_gs.parameter[17] = val;
+			insertion_effect_gs.parameter[17] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3B:
-			ie_gs.parameter[18] = val;
+			insertion_effect_gs.parameter[18] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3C:
-			ie_gs.parameter[19] = val;
+			insertion_effect_gs.parameter[19] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3D:
-			ie_gs.send_reverb = val;
+			insertion_effect_gs.send_reverb = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3E:
-			ie_gs.send_chorus = val;
+			insertion_effect_gs.send_chorus = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3F:
-			ie_gs.send_delay = val;
+			insertion_effect_gs.send_delay = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x40:
-			ie_gs.control_source1 = val;
+			insertion_effect_gs.control_source1 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x41:
-			ie_gs.control_depth1 = val;
+			insertion_effect_gs.control_depth1 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x42:
-			ie_gs.control_source2 = val;
+			insertion_effect_gs.control_source2 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x43:
-			ie_gs.control_depth2 = val;
+			insertion_effect_gs.control_depth2 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x44:
-			ie_gs.send_eq_switch = val;
+			insertion_effect_gs.send_eq_switch = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x45:	/* Rx. Channel */
@@ -4228,20 +4228,89 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		msb = channel[ch].sysex_xg_msb_addr;
 		note = channel[ch].sysex_xg_msb_val;
 		channel[ch].sysex_xg_msb_addr = channel[ch].sysex_xg_msb_val = 0;
+		if (msb == 2) {	/* Effect 2 */
+		switch(b)
+		{
+		case 0x00:	/* Insertion Effect Type MSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%d)", val);
+			if (insertion_effect_xg[note].type_msb != val) {
+				insertion_effect_xg[note].type_msb = val;
+				realloc_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x01:	/* Insertion Effect Type LSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%d)", val);
+			if (insertion_effect_xg[note].type_lsb != val) {
+				insertion_effect_xg[note].type_lsb = val;
+				realloc_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		default:
+			break;
+		}
+		} else if (msb == 1) {	/* Effect 1 */
+		switch(b)
+		{
+		case 0x00:	/* Reverb Type MSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type MSB (%d)", val);
+			if (reverb_status_xg.type_msb != val) {
+				reverb_status_xg.type_msb = val;
+				realloc_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x01:	/* Reverb Type LSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type LSB (%d)", val);
+			if (reverb_status_xg.type_lsb != val) {
+				reverb_status_xg.type_lsb = val;
+				realloc_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x20:	/* Chorus Type MSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type MSB (%d)", val);
+			if (chorus_status_xg.type_msb != val) {
+				chorus_status_xg.type_msb = val;
+				realloc_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x21:	/* Chorus Type LSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type LSB (%d)", val);
+			if (chorus_status_xg.type_lsb != val) {
+				chorus_status_xg.type_lsb = val;
+				realloc_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x40:	/* Variation Type MSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type MSB (%d)", val);
+			if (variation_effect_xg[note].type_msb != val) {
+				variation_effect_xg[note].type_msb = val;
+				realloc_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x41:	/* Variation Type LSB */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type LSB (%d)", val);
+			if (variation_effect_xg[note].type_lsb != val) {
+				variation_effect_xg[note].type_lsb = val;
+				realloc_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		default:
+			break;
+		}
+		} else if (msb == 0) {
 		switch(b)
 		{
 		case 0x00:	/* Reverb Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
-			if (reverb_status.level != val) {
-				reverb_status.level = val;
+			if (reverb_status_gs.level != val) {
+				reverb_status_gs.level = val;
 				recompute_reverb_status_gs();
 				init_reverb();
 			}
 			break;
 		case 0x01:	/* Chorus Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
-			if (chorus_status.level != val) {
-				chorus_status.level = val;
+			if (chorus_status_gs.level != val) {
+				chorus_status_gs.level = val;
 				recompute_chorus_status_gs();
 				init_ch_chorus();
 			}
@@ -4440,6 +4509,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		default:
 			break;
+		}
 		}
 		return;
 	}
@@ -6169,10 +6239,10 @@ static void do_compute_data_midi(int32 count)
 			/* applying insertion effect */
 			do_insertion_effect_gs(insertion_effect_buffer, cnt);
 			/* sending insertion effect voice to channel effect */
-			set_ch_chorus(insertion_effect_buffer, cnt, ie_gs.send_chorus);
-			set_ch_delay(insertion_effect_buffer, cnt, ie_gs.send_delay);
-			set_ch_reverb(insertion_effect_buffer, cnt,	ie_gs.send_reverb);
-			if(ie_gs.send_eq_switch && channel_eq) {
+			set_ch_chorus(insertion_effect_buffer, cnt, insertion_effect_gs.send_chorus);
+			set_ch_delay(insertion_effect_buffer, cnt, insertion_effect_gs.send_delay);
+			set_ch_reverb(insertion_effect_buffer, cnt,	insertion_effect_gs.send_reverb);
+			if(insertion_effect_gs.send_eq_switch && channel_eq) {
 				set_ch_eq_gs(insertion_effect_buffer, cnt);
 			} else {
 				set_dry_signal(insertion_effect_buffer, cnt);
