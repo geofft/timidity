@@ -1,3 +1,24 @@
+2004-05-24  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+	* configure.in 
+	  interface/Makefile.am 
+	  libarc/Makefile.am
+	  libunimod/Makefile.am 
+	  timidity/Makefile.am
+	  timidity/sysdep.h
+	  utils/Makefile.am
+	  utils/nkflib.c
+	  utils/support.h
+	  timidity/wrdt.c
+	  timidity/flac_a.c
+	  timidity/timidity.c
+	  timidity/timidity.c
+	  interface/wrdt_wcon.c:
+	  Can compile VCC or BCC in Msys or Cygwin environment.	  
+	* timidity/timidity.c
+	  interface.h.in:
+	  Don't use ANOTHER_MAIN in timw32g and twsyn.
+
 2004-05-23  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c: Fixed to compile with MrC.
