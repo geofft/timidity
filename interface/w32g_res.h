@@ -328,6 +328,7 @@
 #define IDC_COMBO_CHORUS                2105
 #define IDC_COMBO_DELAY                 2106
 #define IDC_COMBO_LPF                   2107
+#define IDC_CHECKBOX_INIT_KEYSIG        2108
 #define IDM_MHSUPPLEMENT                40002
 #define IDM_FORCE_RELOAD                40003
 #define IDM_MHONLINEHELP                40004
@@ -341,7 +342,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        157
 #define _APS_NEXT_COMMAND_VALUE         40007
-#define _APS_NEXT_CONTROL_VALUE         2105
+#define _APS_NEXT_CONTROL_VALUE         2109
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
