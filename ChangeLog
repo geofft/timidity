@@ -1,10 +1,14 @@
-2003-02-16  Takaya Nogami  <t-nogami@happy.email.ne.jp>
+2003-02-22  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
+
+	* interface/xaw_i.c: Hack up arround color resources
+
+2003-02-16  Takaya Nogami <t-nogami@happy.email.ne.jp>
 
 	* timidity/controls.c: Add macosx_control_mode
 
 	* libarc/arc.c: Add NeoWrd Support
 
-2003-02-16  Daisuke Aoki  <dai@sweetparty.ne.jp>
+2003-02-16  Daisuke Aoki <dai@sweetparty.ne.jp>
 
 	* interface/winsyn_c.c (ctl_pass_playing_list): Fasten
 
@@ -18,12 +22,12 @@
 
 2003-02-08  Saito <timidity@flashmail.com>
 	* interface/w32g_ini.c, interface/w32g_pref.c,
-	interface/w32g_res.c, interface/w32g_utl.c, timidity/mix.c,
-	timidity/rayimidi.c, timidity/readmidi.c,
-	timidity/tables.ctimidity/tables.h:	
-	  Obsolete "Attack
-	  Env. (0..3)" option (W32GUI version) Improve envelope precision
-	  for SoundFont * ChangeLog: updated
+	  interface/w32g_res.c, interface/w32g_utl.c, timidity/mix.c,
+	  timidity/playimidi.c, timidity/readmidi.c,
+	  timidity/tables.c, timidity/tables.h:
+	  Obsolete "Attack Env. (0..3)" option (W32GUI version)
+	  Improve envelope precision for SoundFont
+	* ChangeLog: updated
 
 2003-02-07  Tamuki <tamuki@linet.gr.jp>
 	* timidity/playmidi.c
@@ -39,17 +43,17 @@
 	  # thanks to Mr.342
 
 2003-01-23  s_keishi <s_keishi@mutt.freemail.ne.jp>
-	* interface/w32g_syn.c, interface/w32g_utl.c,interface/winsyn_c.c,
-	timitidy/playmidi.c:
+	* interface/w32g_syn.c, interface/w32g_utl.c, interface/winsyn_c.c,
+	  timitidy/playmidi.c:
 	  Add time management on Windows synthesizer
 
 2003-01-18  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* interface/w32g_ini.c, interface/w32g_pref.c,
-	interface/w32g_res.h, interface/w32g_res.rc,
-	interface/w32g_subwin2.c, interface/w32g_syn.c,
-	interface/w32g_utl.c, interface/w32g_utl.h, interface/winsyn_c.c,
-	libarc/unlzh.c, timidity/optcode.c, timidity/optcode.h,
-	timidity/playmidi.c, timidity/smplfile.c:
+	  interface/w32g_res.h, interface/w32g_res.rc,
+	  interface/w32g_subwin2.c, interface/w32g_syn.c,
+	  interface/w32g_utl.c, interface/w32g_utl.h, interface/winsyn_c.c,
+	  libarc/unlzh.c, timidity/optcode.c, timidity/optcode.h,
+	  timidity/playmidi.c, timidity/smplfile.c:
 	  Add version information (Windows synthesizer GUI version)
 	  Bug fix arround GUI (Windows synthesizer GUI version)
 	  Add max calculate time option (Windows synthesizer GUI version)
@@ -68,12 +72,12 @@
 	  Hack up playing performance on Windows synthesizer
 
 2003-01-16  mput <root@mput.dip.jp>
-	* libarc/unlzh.c, timidity/optcode.c, timiddity/optcode.h:
+	* libarc/unlzh.c, timidity/optcode.c, timidity/optcode.h:
 	  Compilable on Solaris 8
 
 2003-01-16  Saito <timidity@flashmail.com>
 	* imidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
-	timidity/readmidi.c:
+	  timidity/readmidi.c:
 	  Support for real time SysEx. generally
 	  Hack up each voiced LPF faster (maybe)
 
@@ -87,7 +91,7 @@
 
 2003-01-11  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* interface/w32g_i.c, interface/w32g_subwin2.c,
-	interface/w32g_wrd.h:	
+	  interface/w32g_wrd.h:
 	  Bug fix text and graphic color on WRD window (W32GUI version)
 	  Bug fix quitting with iconized (W32GUI version)
 
@@ -97,8 +101,8 @@
 
 2002-12-05  Tamuki <tamuki@linet.gr.jp>
 	* interface/winsyn_c.c, timidity/playmidi.c, timidity/playmidi.h,
-	timidity/readmidi.c, timidity/tables.c, timidity/tables.h,
-	timidity/timidity.c:	
+	  timidity/readmidi.c, timidity/tables.c, timidity/tables.h,
+	  timidity/timidity.c:
 	  Support for real time SysEx. scale tuning
 
 2002-11-20  Saito <timidity@flashmail.com>
@@ -115,8 +119,8 @@
 
 2002-11-09  Tamuki <tamuki@linet.gr.jp>
 	* interface/w32g_ini.c, interface/w32g_pref.c,
-	interface/w32g_utl.c, interface/w32g_utl.h, timidity/mix.c,
-	timidity/playmidi.c, timidity/playmidi.h, timidity/timidity.c:	
+	  interface/w32g_utl.c, interface/w32g_utl.h, timidity/mix.c,
+	  timidity/playmidi.c, timidity/playmidi.h, timidity/timidity.c:
 	  Support for command line option -A
 	  as drumpower and auto volume adjustment
 	  Change handling drumpower in % value (W32GUI version)
@@ -124,16 +128,16 @@
 
 2002-11-09  Saito <timidity@flashmail.com>
 	* interface/w32g_i.c, interface/w32g_subwin2.c,
-	interface/w32g_subwin3.c, timidity/playmidi.c,
-	timidity/playmidi.h:	
+	  interface/w32g_subwin3.c, timidity/playmidi.c,
+	  timidity/playmidi.h:
 	  Hacked up channel pressure (after touch)
 
 2002-11-08  Saito <timidity@flashmail.com>
 	* interface/w32g_ini.c, interface/w32g_pref.c,
-	interface/w32g_res.h, interface/w32g_res.rc, interface/w32g_utl.c,
-	interface/w32g_utl.h, libunimod/load_xm.c, libunimod/mlutil.c,
-	timidity/gogo_a.c, timidity/playmidi.c, timidity/playmidi.h,
-	timidity/vorbis_a.c, timidity/w32g_vorbis_dll.c:	
+	  interface/w32g_res.h, interface/w32g_res.rc, interface/w32g_utl.c,
+	  interface/w32g_utl.h, libunimod/load_xm.c, libunimod/mlutil.c,
+	  timidity/gogo_a.c, timidity/playmidi.c, timidity/playmidi.h,
+	  timidity/vorbis_a.c, timidity/w32g_vorbis_dll.c:
 	  Support for auto volume adjustment
 	  Support for embedded title TAG on MP3 output
 	  Support for embedded title TAG on OggVorbis output
@@ -141,14 +145,14 @@
 
 2002-11-03  Saito <timidity@flashmail.com>
 	* timidity/mix.c, timidity/playmidi.c, timidity/reverb.c,
-	timidity/sndfont.c:	
+	  timidity/sndfont.c:
 	  Bug fixed noisy LPF except 44.1kHz
 	  Disabled drum detection on NRPN
 	  Fasten mixing a little
 
 2002-11-03  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* interface/w32g_i.c, interface/w32g_subwin2.c,
-	interface/w32g_subwin3.c:	
+	  interface/w32g_subwin3.c:
 	  Bug fixed GM/GS/XG display on tracer window (W32GUI version)
 	  Hacked up drawing WRD window a little (W32GUI version)
 	  Support for saving playlist to add .pls extension by force
@@ -156,7 +160,7 @@
 
 2002-10-30  Saito <timidity@flashmail.com>
 	* imidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
-	timidity/tables.h:	
+	  timidity/tables.h:
 	  Hack up envelope generator
 
 2002-10-29  Saito <timidity@flashmail.com>
@@ -170,18 +174,18 @@
 
 2002-10-27  Saito <timidity@flashmail.com>
 	* timidity/instrum.h, timidity/mix.c, timidity/playmidi.h,
-	timidity/sndfont.c:	
+	  timidity/sndfont.c:
 	  Bug fix arround SoundFont modification
 
 2002-10-26  Saito <timidity@flashmail.com>
 	* libunimod/load_xm.c, libunimod/mlutil.c, timidity/mix.c,
-	timidity/playmidi.c, timidity/readmidi.c, timidity/sndfont.c,
-	timidity/tables.c, timidity/tables.h:	
+	  timidity/playmidi.c, timidity/readmidi.c, timidity/sndfont.c,
+	  timidity/tables.c, timidity/tables.h:
 	  Hack up for SoundFont reducing curve same as SB
 
 2002-10-25  Saito <timidity@flashmail.com>
 	* timidity/instrum.h, timidity/mix.c, timidity/playmidi.c,
-	timidity/playmidi.h, timidity/readmidi.c, timidity/sndfont.c:	
+	  timidity/playmidi.h, timidity/readmidi.c, timidity/sndfont.c:
 	  Bug fix arround real time SysEx.
 	  Change for envelope calculation on SoundFont
 	  Support for velocity and note envelope change
@@ -201,7 +205,7 @@
 
 2002-10-17  Saito <timidity@flashmail.com>
 	* timidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
-	timidity/sndfont.c:	
+	  timidity/sndfont.c:
 	  Modify CC10 panning change as twice
 	  according to SF2.01 documentation
 	  Modify handling parameter of each voiced LPF
@@ -430,7 +434,7 @@
 	  Modify moving ch. with not only c/C but only j/k (ncurses)
 
 2002-06-01  Daisuke Aoki <dai@sweetparty.ne.jp>
-	*
+	* 
 	  Support for WRD graphic surface (W32GUI version)
 
 2002-05-28  Saito <timidity@flashmail.com>
