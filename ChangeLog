@@ -1,3 +1,8 @@
+2003-08-18  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Bug fix --{default,force}-{bank,program}
+
 2003-08-17  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/timidity.c:

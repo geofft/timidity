@@ -2586,20 +2586,19 @@ static inline int parse_opt_E(char *arg)
 		case 'B':
 			if (parse_opt_ED(arg + 1))
 				err++;
-			while (*(arg + 1) == '-' || isdigit(*(arg + 1)))
+			while (isdigit(*(arg + 1)))
 				arg++;
 			break;
 		case 'i':
 			if (parse_opt_EE(arg + 1))
 				err++;
-			while (isdigit(*(arg + 1)))
+			while (isdigit(*(arg + 1)) || *(arg + 1) == '/')
 				arg++;
 			break;
 		case 'I':
 			if (parse_opt_EF(arg + 1))
 				err++;
-			while (*(arg + 1) == '-' || isdigit(*(arg + 1))
-					|| *(arg + 1) == '/')
+			while (isdigit(*(arg + 1)) || *(arg + 1) == '/')
 				arg++;
 			break;
 		case 'F':
@@ -2730,6 +2729,7 @@ static inline int parse_opt_EC(const char *arg)
 	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
 		return 1;
 	default_tonebank = tmpi32;
+	special_tonebank = -1;
 	return 0;
 }
 
@@ -2738,7 +2738,7 @@ static inline int parse_opt_ED(const char *arg)
 	/* --force-bank */
 	int32 tmpi32;
 	
-	if (set_value(&tmpi32, atoi(arg), -1, 0x7f, "Bank number"))
+	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
 		return 1;
 	special_tonebank = tmpi32;
 	return 0;
@@ -2772,10 +2772,10 @@ static inline int parse_opt_EF(const char *arg)
 	const char *p;
 	int i;
 	
-	if (set_value(&tmpi32, atoi(arg), -1, 0x7f, "Program number"))
+	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Program number"))
 		return 1;
 	def_prog = tmpi32;
-	if (ctl->trace_playing)
+	if (ctl->opened)
 		set_default_program(def_prog);
 	if (p = strchr(arg, '/')) {
 		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
