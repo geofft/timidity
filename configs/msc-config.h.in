@@ -271,6 +271,7 @@
 #define DEFAULT_PATH	".\\"
 #define AU_W32
 #define AU_VORBIS
+#define AU_VORBIS_DLL
 #define AU_GOGO
 #define AU_GOGO_DLL
 #define WINSOCK

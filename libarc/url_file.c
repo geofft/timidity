@@ -163,7 +163,7 @@ static void *w32_mmap(char *fname, long *size_ret, HANDLE *hFilePtr, HANDLE *hMa
 {
     void *map;
 
-    *hFilePtr = CreateFile(fname, GENERIC_READ, 0, NULL,
+    *hFilePtr = CreateFile(fname, GENERIC_READ, FILE_SHARE_READ	, NULL,
 			   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if(*hFilePtr == INVALID_HANDLE_VALUE)
 	return NULL;

@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include $(top_builddir)/common.makefile
+include $(top_srcdir)/common.makefile.in
 
 SUFFIXES = .ptcl .tcl .@so@
 
@@ -108,7 +108,17 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_btn.bmp \
 	w32g_icon.ico \
 	w32g_sleep.bmp \
-	w32g_subbtn.bmp
+	w32g_subbtn.bmp \
+	w32g_subwin2.c \
+	w32g_wrd.h \
+	wrdt_w32g.c \
+	w32g_subwin3.c \
+	w32g_tracer.h \
+	w32g_tracer.bmp \
+	w32g_mag.c \
+	w32g_mag.h \
+	w32g_dib.c \
+	w32g_dib.h
 
 if ENABLE_WRD
 WRD_OBJS = \

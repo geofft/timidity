@@ -46,7 +46,8 @@
 #endif
 #include <fcntl.h>
 
-#include <musenc.h>		/* for gogo */
+/* #include <musenc.h>		/* for gogo */
+#include <gogo.h>		/* for gogo */
 
 #include "w32_gogo.h"
 #include "gogo_a.h"
@@ -361,18 +362,10 @@ static int __cdecl gogoUserFunc(char *buf, unsigned long nLength )
 			gogo_unlock();
 			if(size>0 && nLength>0){
 				if(dpm.encoding & PE_16BIT){
-					unsigned long i;
-					for(i=0;i+1<nLength;i+=2){
-#ifdef LITTLE_ENDIAN
-						buf[i] = (char)0;
-						buf[i+1] = (char)0x80;
-#else
-						buf[i] = (char)0x80;
-						buf[i+1] = (char)0;
-#endif
-					}
-				} else
+					memset(buf,0x00,nLength);
+				} else {
 					memset(buf,0x80,nLength);
+				}
 				return ME_NOERR;
 			} else {
 				return ME_EMPTYSTREAM;
@@ -479,6 +472,14 @@ static void set_gogo_opts(void)
 		MPGE_setConfigure(MC_USEKNI,(UPARAM)gogo_opts.optUSEKNI,(UPARAM)0);
 	if(gogo_opts.optUSEE3DNOW>=0)
 		MPGE_setConfigure(MC_USEE3DNOW,(UPARAM)gogo_opts.optUSEE3DNOW,(UPARAM)0);
+	if(gogo_opts.optUSESSE>=0)
+		MPGE_setConfigure(MC_USESSE,(UPARAM)gogo_opts.optUSESSE,(UPARAM)0);
+	if(gogo_opts.optUSECMOV>=0)
+		MPGE_setConfigure(MC_USECMOV,(UPARAM)gogo_opts.optUSECMOV,(UPARAM)0);
+	if(gogo_opts.optUSEEMMX>=0)
+		MPGE_setConfigure(MC_USEEMMX,(UPARAM)gogo_opts.optUSEEMMX,(UPARAM)0);
+	if(gogo_opts.optUSESSE2>=0)
+		MPGE_setConfigure(MC_USESSE2,(UPARAM)gogo_opts.optUSESSE2,(UPARAM)0);
 	if(gogo_opts.optADDTAGnum>=0){
 		int i;
 		for(i=0;i<gogo_opts.optADDTAGnum;i++)
@@ -738,6 +739,10 @@ void set_gogo_opts_use_commandline_options(char *commandline)
 		// -on sse
 		// -on kni
 		// -on e3dn
+		// -on sse
+		// -on cmov
+		// -on emmx
+		// -on sse2
 		if(strcasecmp("-on",argv[num])==0){
 			if(num+1>=argc) break;
 			if(strcasecmp("3dn",argv[num+1])==0){
@@ -748,6 +753,14 @@ void set_gogo_opts_use_commandline_options(char *commandline)
 				gogo_opts.optUSEKNI = 1;
 			} else if(strcasecmp("e3dn",argv[num+1])==0){
 				gogo_opts.optUSEE3DNOW = 1;
+			} else if(strcasecmp("sse",argv[num+1])==0){
+				gogo_opts.optUSESSE = 1;
+			} else if(strcasecmp("cmov",argv[num+1])==0){
+				gogo_opts.optUSECMOV = 1;
+			} else if(strcasecmp("emmx",argv[num+1])==0){
+				gogo_opts.optUSEEMMX = 1;
+			} else if(strcasecmp("sse2",argv[num+1])==0){
+				gogo_opts.optUSESSE2 = 1;
 			}
 			num += 2;
 			continue;
@@ -757,6 +770,10 @@ void set_gogo_opts_use_commandline_options(char *commandline)
 		// -off sse
 		// -off kni
 		// -off e3dn
+		// -off sse
+		// -off cmov
+		// -off emmx
+		// -off sse2
 		if(strcasecmp("-on",argv[num])==0){
 			if(num+1>=argc) break;
 			if(strcasecmp("3dn",argv[num+1])==0){
@@ -767,6 +784,14 @@ void set_gogo_opts_use_commandline_options(char *commandline)
 				gogo_opts.optUSEKNI = 0;
 			} else if(strcasecmp("e3dn",argv[num+1])==0){
 				gogo_opts.optUSEE3DNOW = 0;
+			} else if(strcasecmp("sse",argv[num+1])==0){
+				gogo_opts.optUSESSE = 0;
+			} else if(strcasecmp("cmov",argv[num+1])==0){
+				gogo_opts.optUSECMOV = 0;
+			} else if(strcasecmp("emmx",argv[num+1])==0){
+				gogo_opts.optUSEEMMX = 0;
+			} else if(strcasecmp("sse2",argv[num+1])==0){
+				gogo_opts.optUSESSE2 = 0;
 			}
 			num += 2;
 			continue;

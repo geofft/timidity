@@ -179,15 +179,12 @@ BEGIN
     EDITTEXT        IDC_EDIT_INFO,0,168,56,12,ES_READONLY
 END
 
-IDD_DIALOG_WRD DIALOGEX 0, 0, 320, 220
+IDD_DIALOG_WRD DIALOGEX 0, 0, 366, 215
 STYLE DS_3DLOOK | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_ACCEPTFILES
 CAPTION "Wrd Tracer Window (TiMidity Win32GUI)"
 FONT 9, "Times New Roman", 400, 0
 BEGIN
-    PUSHBUTTON      "FLUSH",IDFLUSH,256,200,60,16,BS_CENTER
-    CONTROL         "VALID",IDC_CHECKBOX_DEBUG_WND_VALID,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,200,36,16
-    CONTROL         "Frame_Valid",-1,"Static",SS_ETCHEDFRAME,12,200,44,16
 END
 
 IDD_DIALOG_SOUNDSPEC DIALOG DISCARDABLE  0, 0, 240, 180
@@ -979,6 +976,12 @@ BEGIN
     CONTROL         "エンファシス",IDC_CHECK_EMPHASIS_TYPE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,268,28,62,8
     GROUPBOX        "ビットレート",IDC_STATIC,2,55,167,86
+    CONTROL         "CMOV",IDC_CHECK_CPUCMOV,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,276,140,39,9
+    CONTROL         "EMMX",IDC_CHECK_CPUEMMX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,276,152,39,9
+    CONTROL         "SSE2",IDC_CHECK_CPUSSE2,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,276,164,39,8
 END
 
 IDD_DIALOG_GOGO_EN DIALOG DISCARDABLE  0, 0, 346, 196
@@ -1022,9 +1025,9 @@ BEGIN
     CONTROL         "SSE",IDC_CHECK_CPUSSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,193,163,27,10
     CONTROL         "3DNOW",IDC_CHECK_CPU3DNOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,227,151,39,10
+                    WS_TABSTOP,228,152,39,10
     CONTROL         "E3DNOW",IDC_CHECK_CPUE3DNOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,227,163,40,10
+                    WS_TABSTOP,227,163,45,10
     COMBOBOX        IDC_COMBO_EMPHASIS_TYPE,268,36,76,64,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_VBR,37,92,124,72,CBS_DROPDOWNLIST | CBS_SORT | 
@@ -1059,6 +1062,12 @@ BEGIN
     CONTROL         "Emphasis type",IDC_CHECK_EMPHASIS_TYPE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,268,28,62,8
     GROUPBOX        "Bitrate",IDC_STATIC,2,55,167,86
+    CONTROL         "CMOV",IDC_CHECK_CPUCMOV,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,280,140,39,10
+    CONTROL         "EMMX",IDC_CHECK_CPUEMMX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,280,152,39,10
+    CONTROL         "SSE2",IDC_CHECK_CPUSSE2,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,280,164,39,10
 END
 
 
@@ -1100,7 +1109,7 @@ BEGIN
         MENUITEM "play List(&L)",               IDM_MWPLAYLIST
         MENUITEM "Tracer(&T)",                  IDM_MWTRACER, GRAYED
         MENUITEM "Document(&D)",                IDM_MWDOCUMENT
-        MENUITEM "Wrd tracer(&W)",              IDM_MWWRDTRACER, GRAYED
+        MENUITEM "Wrd tracer(&W)",              IDM_MWWRDTRACER
         MENUITEM "sound Spectogram(&S)",        IDM_MWSOUNDSPEC, GRAYED
         MENUITEM "Console(&C)",                 IDM_MWCONSOLE
         MENUITEM SEPARATOR
@@ -1140,7 +1149,7 @@ BEGIN
         MENUITEM "プレイリスト(&L)",            IDM_MWPLAYLIST
         MENUITEM "トレーサ(&T)",                IDM_MWTRACER, GRAYED
         MENUITEM "ドキュメント(&D)",            IDM_MWDOCUMENT
-        MENUITEM "WRD(&W)",                     IDM_MWWRDTRACER, GRAYED
+        MENUITEM "WRD(&W)",                     IDM_MWWRDTRACER
         MENUITEM "Sound Spectogram(&S)",        IDM_MWSOUNDSPEC, GRAYED
         MENUITEM "コンソール(&C)",              IDM_MWCONSOLE
         MENUITEM SEPARATOR
@@ -1220,6 +1229,12 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 241
         BOTTOMMARGIN, 185
+    END
+
+    IDD_DIALOG_WRD, DIALOG
+    BEGIN
+        RIGHTMARGIN, 320
+        BOTTOMMARGIN, 192
     END
 
     IDD_DIALOG_SIMPLE_LIST_EN, DIALOG
@@ -1305,14 +1320,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "timw32g\0"
-            VALUE "FileVersion", "2, 11, 2, 0\0"
+            VALUE "FileVersion", "2, 12, 0, 0\0"
             VALUE "InternalName", "timw32g\0"
             VALUE "LegalCopyright", "Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>\r\nCopyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "timw32g.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TiMidity++ Win32GUI Version\0"
-            VALUE "ProductVersion", "2, 11, 2, 0\0"
+            VALUE "ProductVersion", "2, 12, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END

@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include $(top_builddir)/common.makefile
+include $(top_srcdir)/common.makefile.in
 
 INCLUDES = \
 	-I$(top_srcdir) \
@@ -51,6 +51,7 @@ timidity_SOURCES = \
 	list_a.c \
 	loadtab.c \
 	m2m.c \
+	mfi.c \
 	mid-j.defs \
 	mid.defs \
 	miditrace.c \
@@ -62,6 +63,8 @@ timidity_SOURCES = \
 	mod2midi.c \
 	mod2midi.h \
 	modmid_a.c \
+	optcode.c \
+	optcode.h \
 	output.c \
 	output.h \
 	playmidi.c \
@@ -85,6 +88,7 @@ timidity_SOURCES = \
 	smfconv.c \
 	smfconv.h \
 	sndfont.c \
+	sysdep.h \
 	tables.c \
 	tables.h \
 	timidity.c \
@@ -102,9 +106,11 @@ EXTRA_timidity_SOURCES = \
 	audriv_al.c \
 	audriv_mme.c \
 	audriv_none.c \
+	darwin_a.c \
 	dl_w32.c \
 	dl_dld.c \
 	dl_dlopen.c \
+	dl_dyld.c \
 	dl_hpux.c \
 	bsd20_a.c \
 	esd_a.c \

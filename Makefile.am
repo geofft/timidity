@@ -28,6 +28,7 @@ SUBDIRS = \
 	script
 
 EXTRA_DIST = \
+	autoconf \
 	AUTHORS \
 	COPYING \
 	ChangeLog \
@@ -40,7 +41,9 @@ EXTRA_DIST = \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad \
-	TiMidity.ad
+	TiMidity.ad \
+	bootstrap.sh \
+	configs
 
 TOOLSDIR = timidity-tools
 UMPDIR = ump

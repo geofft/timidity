@@ -47,7 +47,8 @@
 #endif
 //#include <dir.h>
 #ifdef AU_GOGO
-#include <musenc.h>		/* for gogo */
+/* #include <musenc.h>		/* for gogo */
+#include <gogo.h>		/* for gogo */
 #endif
 
 #include "timidity.h"
@@ -1867,7 +1868,7 @@ CB_INFO_TYPE2_END
 #define EDIT_GET(id,size) SendDlgItemMessage(hwnd,id,WM_GETTEXT,(WPARAM)size,(LPARAM)gogo_ConfigDialogInfo.opt ## id);
 #define EDIT_GET_RANGE(id,size,min,max) \
 { \
-	char tmpbuf[64]; \
+	char tmpbuf[1024]; \
 	int value; \
 	SendDlgItemMessage(hwnd,id,WM_GETTEXT,(WPARAM)size,(LPARAM)gogo_ConfigDialogInfo.opt ## id); \
 	value = atoi((char *)gogo_ConfigDialogInfo.opt ## id); \
@@ -2023,6 +2024,12 @@ static BOOL APIENTRY gogoConfigDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, 
 			break;
 		case IDC_CHECK_CPUE3DNOW:
 			break;
+		case IDC_CHECK_CPUCMOV:
+			break;
+		case IDC_CHECK_CPUEMMX:
+			break;
+		case IDC_CHECK_CPUSSE2:
+			break;
 		case IDC_CHECK_VBR:
 			if(IS_CHECK(IDC_CHECK_VBR)){
 				UNCHECK(IDC_COMBO_MPEG1_AUDIO_BITRATE);
@@ -2107,6 +2114,9 @@ static void gogoConfigDialogProcControlEnableDisable(HWND hwnd)
 		DISABLE_CONTROL(IDC_CHECK_CPUSSE);
 		DISABLE_CONTROL(IDC_CHECK_CPU3DNOW);
 		DISABLE_CONTROL(IDC_CHECK_CPUE3DNOW);
+		DISABLE_CONTROL(IDC_CHECK_CPUCMOV);
+		DISABLE_CONTROL(IDC_CHECK_CPUEMMX);
+		DISABLE_CONTROL(IDC_CHECK_CPUSSE2);
 		DISABLE_CONTROL(IDC_CHECK_VBR);
 		DISABLE_CONTROL(IDC_COMBO_VBR);
 		DISABLE_CONTROL(IDC_CHECK_VBR_BITRATE);
@@ -2142,6 +2152,9 @@ static void gogoConfigDialogProcControlEnableDisable(HWND hwnd)
 			DISABLE_CONTROL(IDC_CHECK_CPUSSE);
 			DISABLE_CONTROL(IDC_CHECK_CPU3DNOW);
 			DISABLE_CONTROL(IDC_CHECK_CPUE3DNOW);
+			DISABLE_CONTROL(IDC_CHECK_CPUCMOV);
+			DISABLE_CONTROL(IDC_CHECK_CPUEMMX);
+			DISABLE_CONTROL(IDC_CHECK_CPUSSE2);
 			DISABLE_CONTROL(IDC_CHECK_VBR);
 			DISABLE_CONTROL(IDC_COMBO_VBR);
 			DISABLE_CONTROL(IDC_CHECK_VBR_BITRATE);
@@ -2206,11 +2219,17 @@ static void gogoConfigDialogProcControlEnableDisable(HWND hwnd)
 				ENABLE_CONTROL(IDC_CHECK_CPUSSE);
 				ENABLE_CONTROL(IDC_CHECK_CPU3DNOW);
 				ENABLE_CONTROL(IDC_CHECK_CPUE3DNOW);
+				ENABLE_CONTROL(IDC_CHECK_CPUCMOV);
+				ENABLE_CONTROL(IDC_CHECK_CPUEMMX);
+				ENABLE_CONTROL(IDC_CHECK_CPUSSE2);
 			} else {
 				DISABLE_CONTROL(IDC_CHECK_CPUMMX);
 				DISABLE_CONTROL(IDC_CHECK_CPUSSE);
 				DISABLE_CONTROL(IDC_CHECK_CPU3DNOW);
 				DISABLE_CONTROL(IDC_CHECK_CPUE3DNOW);
+				DISABLE_CONTROL(IDC_CHECK_CPUCMOV);
+				DISABLE_CONTROL(IDC_CHECK_CPUEMMX);
+				DISABLE_CONTROL(IDC_CHECK_CPUSSE2);
 			}
 			ENABLE_CONTROL(IDC_CHECK_VBR);
 			ENABLE_CONTROL(IDC_CHECK_MPEG1AUDIOBITRATE);
@@ -2279,6 +2298,9 @@ static void gogoConfigDialogProcControlReset(HWND hwnd)
 	CHECKBOX_SET(IDC_CHECK_CPUSSE)
 	CHECKBOX_SET(IDC_CHECK_CPU3DNOW)
 	CHECKBOX_SET(IDC_CHECK_CPUE3DNOW)
+	CHECKBOX_SET(IDC_CHECK_CPUCMOV)
+	CHECKBOX_SET(IDC_CHECK_CPUEMMX)
+	CHECKBOX_SET(IDC_CHECK_CPUSSE2)
 	CHECKBOX_SET(IDC_CHECK_VBR)
 	CHECKBOX_SET(IDC_CHECK_VBR_BITRATE)
 	CHECKBOX_SET(IDC_CHECK_USEPSY)
@@ -2322,6 +2344,9 @@ static void gogoConfigDialogProcControlApply(HWND hwnd)
 	CHECKBOX_GET(IDC_CHECK_CPUSSE)
 	CHECKBOX_GET(IDC_CHECK_CPU3DNOW)
 	CHECKBOX_GET(IDC_CHECK_CPUE3DNOW)
+	CHECKBOX_GET(IDC_CHECK_CPUCMOV)
+	CHECKBOX_GET(IDC_CHECK_CPUEMMX)
+	CHECKBOX_GET(IDC_CHECK_CPUSSE2)
 	CHECKBOX_GET(IDC_CHECK_VBR)
 	CHECKBOX_GET(IDC_CHECK_VBR_BITRATE)
 	CHECKBOX_GET(IDC_CHECK_USEPSY)
@@ -2411,6 +2436,9 @@ int gogo_ConfigDialogInfoInit(void)
 	gogo_ConfigDialogInfo.optIDC_CHECK_CPUSSE = 0;
 	gogo_ConfigDialogInfo.optIDC_CHECK_CPU3DNOW = 0;
 	gogo_ConfigDialogInfo.optIDC_CHECK_CPUE3DNOW = 0;
+	gogo_ConfigDialogInfo.optIDC_CHECK_CPUCMOV = 0;
+	gogo_ConfigDialogInfo.optIDC_CHECK_CPUEMMX = 0;
+	gogo_ConfigDialogInfo.optIDC_CHECK_CPUSSE2 = 0;
 	gogo_ConfigDialogInfo.optIDC_CHECK_VBR = 0;
 	gogo_ConfigDialogInfo.optIDC_COMBO_VBR = 0;
 	gogo_ConfigDialogInfo.optIDC_CHECK_VBR_BITRATE = 0;
@@ -2463,10 +2491,17 @@ int gogo_ConfigDialogInfoApply(void)
 		gogo_opts.optMSTHRESHOLD_mspower = atoi((char *)gogo_ConfigDialogInfo.optIDC_EDIT_MSTHRESHOLD_MSPOWER);
 	}
 	if(gogo_ConfigDialogInfo.optIDC_CHECK_USE_CPU_OPTS>0){
+		gogo_opts.optUSECPUOPT = 1;
 		gogo_opts.optUSEMMX = gogo_ConfigDialogInfo.optIDC_CHECK_CPUMMX;
 		gogo_opts.optUSEKNI = gogo_ConfigDialogInfo.optIDC_CHECK_CPUSSE;
 		gogo_opts.optUSE3DNOW = gogo_ConfigDialogInfo.optIDC_CHECK_CPU3DNOW;
 		gogo_opts.optUSEE3DNOW = gogo_ConfigDialogInfo.optIDC_CHECK_CPUE3DNOW;
+		gogo_opts.optUSESSE = gogo_ConfigDialogInfo.optIDC_CHECK_CPUSSE;
+		gogo_opts.optUSECMOV = gogo_ConfigDialogInfo.optIDC_CHECK_CPUCMOV;
+		gogo_opts.optUSEEMMX = gogo_ConfigDialogInfo.optIDC_CHECK_CPUEMMX;
+		gogo_opts.optUSESSE2 = gogo_ConfigDialogInfo.optIDC_CHECK_CPUSSE2;
+	} else {
+		gogo_opts.optUSECPUOPT = 0;
 	}
 	if(gogo_ConfigDialogInfo.optIDC_CHECK_VBR>0){
 		gogo_opts.optVBR = gogo_ConfigDialogInfo.optIDC_COMBO_VBR;
@@ -2539,6 +2574,9 @@ int gogo_ConfigDialogInfoSaveINI(void)
 	NUMSAVE(optIDC_CHECK_CPUSSE)
 	NUMSAVE(optIDC_CHECK_CPU3DNOW)
 	NUMSAVE(optIDC_CHECK_CPUE3DNOW)
+	NUMSAVE(optIDC_CHECK_CPUCMOV)
+	NUMSAVE(optIDC_CHECK_CPUEMMX)
+	NUMSAVE(optIDC_CHECK_CPUSSE2)
 	NUMSAVE(optIDC_CHECK_VBR)
 	NUMSAVE(optIDC_COMBO_VBR)
 	NUMSAVE(optIDC_CHECK_VBR_BITRATE)
@@ -2593,6 +2631,9 @@ int gogo_ConfigDialogInfoLoadINI(void)
 	NUMLOAD(optIDC_CHECK_CPUSSE)
 	NUMLOAD(optIDC_CHECK_CPU3DNOW)
 	NUMLOAD(optIDC_CHECK_CPUE3DNOW)
+	NUMLOAD(optIDC_CHECK_CPUCMOV)
+	NUMLOAD(optIDC_CHECK_CPUEMMX)
+	NUMLOAD(optIDC_CHECK_CPUSSE2)
 	NUMLOAD(optIDC_CHECK_VBR)
 	NUMLOAD(optIDC_COMBO_VBR)
 	NUMLOAD(optIDC_CHECK_VBR_BITRATE)
@@ -2745,7 +2786,7 @@ static char **cb_info_IDC_COMBO_MODE;
 #define EDIT_GET(id,size) SendDlgItemMessage(hwnd,id,WM_GETTEXT,(WPARAM)size,(LPARAM)vorbis_ConfigDialogInfo.opt ## id);
 #define EDIT_GET_RANGE(id,size,min,max) \
 { \
-	char tmpbuf[64]; \
+	char tmpbuf[1024]; \
 	int value; \
 	SendDlgItemMessage(hwnd,id,WM_GETTEXT,(WPARAM)size,(LPARAM)vorbis_ConfigDialogInfo.opt ## id); \
 	value = atoi((char *)vorbis_ConfigDialogInfo.opt ## id); \

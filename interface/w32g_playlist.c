@@ -269,15 +269,15 @@ void w32g_update_playlist_pos(int pos)
 	if(!notitle)
 	{
 	if(i == playlist.selected)
-	    snprintf(item1, maxlen, "==>%-80s   (%s)", title, filename);
+	    snprintf(item1, maxlen, "==>%-80s   ==>(%s)", title, filename);
 	else
-	    snprintf(item1, maxlen, "   %-80s   (%s)", title, filename);
+	    snprintf(item1, maxlen, "   %-80s      (%s)", title, filename);
 	} else
 	{
 	if(i == playlist.selected)
 	    snprintf(item1, maxlen, "==>%s   (%s)", title, filename);
 	else
-	    snprintf(item1, maxlen, "   %s   (%s)", title, filename);
+	    snprintf(item1, maxlen, "   %s      (%s)", title, filename);
 	}
 	item2_len = ListBox_GetTextLen(hListBox, i);
 	item2 = (char *)new_segment(&tmpbuffer, item2_len + 1);

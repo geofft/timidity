@@ -100,6 +100,9 @@ extern WRDTracer x_wrdt_mode;
 #if defined(__W32__) && !defined(IA_W32GUI)
 extern WRDTracer wcon_wrdt_mode; /* wrdt_wcon.c */
 #endif /* __W32__ */
+#if defined(__W32__) && defined(IA_W32GUI)
+extern WRDTracer w32g_wrdt_mode; /* wrdt_w32g.c */
+#endif /* __W32__ */
 
 WRDTracer *wrdt_list[] =
 {
@@ -108,6 +111,9 @@ WRDTracer *wrdt_list[] =
 #endif /* WRDT_X */
 #if defined(__W32__) && !defined(IA_W32GUI)
 	&wcon_wrdt_mode,
+#endif /* __W32__ */
+#if defined(__W32__) && defined(IA_W32GUI)
+	&w32g_wrdt_mode,
 #endif /* __W32__ */
 #ifndef __MACOS__
     &tty_wrdt_mode,

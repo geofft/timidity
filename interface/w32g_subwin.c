@@ -526,13 +526,35 @@ ListWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					case 0x56:	// VK_V
 						SendMessage(hListWnd,WM_COMMAND,MAKEWPARAM(IDC_BUTTON_DOC,0),0);
 						return -2;
+					case 0x57:	// VK_W
+						SendMessage(hMainWnd,WM_COMMAND,MAKEWPARAM(IDM_WRD,0),0);
+						return -2;
 					case VK_F1:
 					case 0x48:	// VK_H
+						if ( PlayerLanguage == LANGUAGE_JAPANESE ){
+						MessageBox(hListWnd,
+							"キーコマンド\n"
+							"リストウインドウコマンド\n"
+							"  ESC: ヘルプを閉じる      H: ヘルプを出す\n"
+							"  V: ドキュメントを見る      W: WRD ウインドウを開く\n"
+							"プレイヤーコマンド\n"
+							"  SPACE/ENTER: 演奏開始    E: 停止    S: 一時停止\n"
+							"  P: 前の曲    N: 次の曲\n"
+							"プレイリスト操作コマンド\n"
+							"  M: MIDIファイル以外を削除    U: 重複ファイルを削除\n"
+							"  C: プレイリストのクリア\n"
+							"  D: カーソルの曲を削除    BS: カーソルの前の曲を削除\n"
+							"  INS: カーソルの曲をリストの最後に移す (Push)\n"
+							"  DEL: リストの最後の曲をカーソルの前に挿入 (Pop)\n"
+							"TiMidity コマンド\n"
+							"  Q: 終了\n"
+							,"ヘルプ", MB_OK);
+						} else {
 						MessageBox(hListWnd,
 							"Usage of key.\n"
 							"List window command.\n"
 							"  ESC: Close Help      H: Help\n"
-							"  V: View Document\n"
+							"  V: View Document   W: Open WRD window\n"
 							"Player command.\n"
 							"  SPACE/ENTER: PLAY    E: Stop    S: Pause\n"
 							"  P: Prev    N: Next\n"
@@ -544,6 +566,7 @@ ListWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 							"TiMidity command.\n"
 							"  Q: Quit\n"
 							,"Help", MB_OK);
+						}
 						return -2;
 					default:
 						break;
@@ -772,48 +795,6 @@ TracerWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		case WM_CLOSE:
 			ShowWindow(hTracerWnd, SW_HIDE);
 			MainWndUpdateTracerButton();
-			break;
-		default:
-			return FALSE;
-	}
-	return FALSE;
-}
-
-
-
-
-// ****************************************************************************
-// Wrd Window
-
-BOOL CALLBACK WrdWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
-void InitWrdWnd(HWND hParentWnd)
-{
-	hWrdWnd = CreateDialog
-		(hInst,MAKEINTRESOURCE(IDD_DIALOG_WRD),hParentWnd,WrdWndProc);
-	ShowWindow(hWrdWnd,SW_HIDE);
-	UpdateWindow(hWrdWnd);
-}
-
-BOOL CALLBACK
-WrdWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
-{
-	switch (uMess){
-	case WM_INITDIALOG:
-		return FALSE;
-	case WM_COMMAND:
-		switch (LOWORD(wParam)) {
-		case IDCLOSE:
-			ShowWindow(hwnd, SW_HIDE);
-			MainWndUpdateWrdButton();
-			break;
-		default:
-			return FALSE;
-		}
-		case WM_SIZE:
-			return FALSE;
-		case WM_CLOSE:
-			ShowWindow(hWrdWnd, SW_HIDE);
-			MainWndUpdateWrdButton();
 			break;
 		default:
 			return FALSE;

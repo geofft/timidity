@@ -45,8 +45,6 @@
 #include <stdio.h>
 #endif
 
-#include <musenc.h>		/* for gogo.dll */
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
@@ -58,7 +56,8 @@
 #endif
 #include <fcntl.h>
 
-#include <musenc.h>		/* for gogo */
+/* #include <musenc.h>		/* for gogo */
+#include <gogo.h>		/* for gogo */
 
 #include "w32_gogo.h"
 
@@ -74,8 +73,8 @@
 
 static	HINSTANCE	hModule = NULL;
 typedef MERET (*me_init)(void);
-typedef MERET (*me_setconf)(MPARAM mode, UPARAM dwPara1, UPARAM dwPara2 );
-typedef MERET (*me_getconf)(MPARAM mode, void *para1 );
+typedef MERET (*me_setconf)(UPARAM mode, UPARAM dwPara1, UPARAM dwPara2 );
+typedef MERET (*me_getconf)(UPARAM mode, void *para1 );
 typedef MERET (*me_detect)();
 typedef MERET (*me_procframe)();
 typedef MERET (*me_close)();
@@ -195,14 +194,14 @@ MERET	MPGE_terminateWork(void)	// ã≠êßèIóπ
 }
 
 
-MERET	MPGE_setConfigure(MPARAM mode, UPARAM dwPara1, UPARAM dwPara2 )
+MERET	MPGE_setConfigure(UPARAM mode, UPARAM dwPara1, UPARAM dwPara2 )
 {
 	if(!mpge_setconf)
 		return ME_INTERNALERROR;
 	return (mpge_setconf)( mode, dwPara1, dwPara2 );
 }
 
-MERET	MPGE_getConfigure(MPARAM mode, void *para1 )
+MERET	MPGE_getConfigure(UPARAM mode, void *para1 )
 {
 	if(!mpge_getconf)
 		return ME_INTERNALERROR;

@@ -457,8 +457,13 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     reduce_voice_threshold = st->reduce_voice_threshold;
     set_play_mode(st->opt_playmode);
     strncpy(OutputName,st->OutputName,MAXPATH);
+#if 0
     if(OutputName[0] && !is_device_output_ID(play_mode->id_character))
 		play_mode->name = strdup(OutputName);		// メモリリークするかな？ はずすとだめだし。
+#else
+    if(OutputName[0] && !is_device_output_ID(play_mode->id_character))
+		play_mode->name = OutputName;
+#endif
     strncpy(w32g_output_dir,st->OutputDirName,MAXPATH);
 	w32g_output_dir[MAXPATH-1] = '\0';
 	w32g_auto_output_mode = st->auto_output_mode;
@@ -829,6 +834,8 @@ void w32g_initialize(void)
 
     memcpy(sp_temp, sp_current, sizeof(SETTING_PLAYER));
     memcpy(st_temp, st_current, sizeof(SETTING_TIMIDITY));
+
+	wrdt=wrdt_list[0];
 
     w32g_i_init();
 }

@@ -1,246 +1,429 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define if you have the <curses.h> header file. */
+/* Define to 1 if you use cubic-spline complemention. */
+#undef CSPLINE_INTERPOLATION
+
+/* Define to 1 if you are in debug mode */
+#undef DEBUG
+
+/* place to install patches */
+#undef DEFAULT_PATH
+
+/* Define to 1 if you have to add "_" to every identifiers. */
+#undef DLSYM_NEEDS_UNDERSCORE
+
+/* Define to 1 if you enable Sherry WRD */
+#undef ENABLE_SHERRY
+
+/* Define to 1 if you have the `alarm' function. */
+#undef HAVE_ALARM
+
+/* Define to 1 if you have the <arpa/inet.h> header file. */
+#undef HAVE_ARPA_INET_H
+
+/* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
-/* Define if you have the <dirent.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
 #undef HAVE_DIRENT_H
 
-/* Define if you have the <dlfcn.h> header file. */
+/* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define if you don't have `vprintf' but do have `_doprnt.' */
+/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
-/* Define if you have the <errno.h> header file. */
+/* Define to 1 if you have the `dup2' function. */
+#undef HAVE_DUP2
+
+/* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
 
-/* Define if you have the <fcntl.h> header file. */
+/* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define if you have the `getcwd' function. */
+/* Define to 1 if you have the `floor' function. */
+#undef HAVE_FLOOR
+
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
+
+/* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
-/* Define if you have the `gethostbyname' function. */
+/* Define to 1 if you have the `gethostbyname' function. */
 #undef HAVE_GETHOSTBYNAME
 
-/* Define if you have the `getopt' function. */
+/* Define to 1 if you have the `getopt' function. */
 #undef HAVE_GETOPT
 
-/* Define if you have the <getopt.h> header file. */
+/* Define to 1 if you have the <getopt.h> header file. */
 #undef HAVE_GETOPT_H
 
-/* Define if you have the `getpagesize' function. */
+/* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
-/* Define if you have the `gettimeofday' function. */
+/* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
-/* Define if you have the <glob.h> header file. */
+/* Define to 1 if you have the `getwd' function. */
+#undef HAVE_GETWD
+
+/* Define to 1 if you have the <glob.h> header file. */
 #undef HAVE_GLOB_H
 
-/* Define if you have the <inttypes.h> header file. */
+/* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have the `isatty' function. */
+/* Define to 1 if you have the `isatty' function. */
 #undef HAVE_ISATTY
 
-/* Define if you have the `asound' library (-lasound). */
+/* Define to 1 if you have the `asound' library (-lasound). */
 #undef HAVE_LIBASOUND
 
-/* Define if you have the `ICE' library (-lICE). */
+/* Define to 1 if you have the `ICE' library (-lICE). */
 #undef HAVE_LIBICE
 
-/* Define if you have the `m' library (-lm). */
+/* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
-/* Define if you have the `nsl' library (-lnsl). */
+/* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
-/* Define if you have the `ossaudio' library (-lossaudio). */
+/* Define to 1 if you have the `ossaudio' library (-lossaudio). */
 #undef HAVE_LIBOSSAUDIO
 
-/* Define if you have the `socket' library (-lsocket). */
+/* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
-/* Define if you have the `X11' library (-lX11). */
+/* Define to 1 if you have the `X11' library (-lX11). */
 #undef HAVE_LIBX11
 
-/* Define if you have the <limits.h> header file. */
+/* Define to 1 if you have the `xpg4' library (-lxpg4). */
+#undef HAVE_LIBXPG4
+
+/* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define if you have the <machine/endian.h> header file. */
+/* Define to 1 if you have the <machine/endian.h> header file. */
 #undef HAVE_MACHINE_ENDIAN_H
 
-/* Define if you have the <malloc.h> header file. */
+/* Define to 1 if your system has a working `malloc' function. */
+#undef HAVE_MALLOC
+
+/* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define if you have the <memory.h> header file. */
+/* Define to 1 if you have the `memchr' function. */
+#undef HAVE_MEMCHR
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define if you have a working `mmap' system call. */
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
-/* Define if you have the <ncurses/curses.h> header file. */
+/* Define to 1 if you have the `modf' function. */
+#undef HAVE_MODF
+
+/* Define to 1 if you have the `munmap' function. */
+#undef HAVE_MUNMAP
+
+/* Define to 1 if you have the <ncurses/curses.h> header file. */
 #undef HAVE_NCURSES_CURSES_H
 
-/* Define if you have the <ncurses.h> header file. */
+/* Define to 1 if you have the <ncurses.h> header file. */
 #undef HAVE_NCURSES_H
 
-/* Define if you have the <ndir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
-/* Define if you have the `popen' function. */
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have <mmsystem.h> file */
+#undef HAVE_NEW_MMSYSTEM
+
+/* Define to 1 if you have the <nlist.h> header file. */
+#undef HAVE_NLIST_H
+
+/* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
 
-/* Define if you have the `select' function. */
+/* Define to 1 if you have the `pow' function. */
+#undef HAVE_POW
+
+/* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
 
-/* Define if you have the `signal' function. */
+/* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL
 
-/* Define if you have the <slang.h> header file. */
+/* Define to 1 if you have the <slang.h> header file. */
 #undef HAVE_SLANG_H
 
-/* Define if you have the <slang/slang.h> header file. */
+/* Define to 1 if you have the <slang/slang.h> header file. */
 #undef HAVE_SLANG_SLANG_H
 
-/* Define if you have the `sleep' function. */
+/* Define to 1 if you have the `sleep' function. */
 #undef HAVE_SLEEP
 
-/* Define if you have the `snprintf' function. */
+/* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
-/* Define if you have the `socket' function. */
+/* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
-/* Define if you have the <soundcard.h> header file. */
+/* Define to 1 if you have the <soundcard.h> header file. */
 #undef HAVE_SOUNDCARD_H
 
-/* Define if you have the <stdint.h> header file. */
+/* Define to 1 if you have the `sqrt' function. */
+#undef HAVE_SQRT
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
-/* Define if you have the <stdlib.h> header file. */
+/* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define if you have the `strdup' function. */
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the `strdup' function. */
 #undef HAVE_STRDUP
 
-/* Define if you have the `strerror' function. */
+/* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
-/* Define if you have the <strings.h> header file. */
+/* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
-/* Define if you have the <string.h> header file. */
+/* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define if you have the `strncasecmp' function. */
+/* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
 
-/* Define if you have the <stropts.h> header file. */
+/* Define to 1 if you have the <stropts.h> header file. */
 #undef HAVE_STROPTS_H
 
-/* Define if you have the `strstr' function. */
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
+
+/* Define to 1 if you have the `strstr' function. */
 #undef HAVE_STRSTR
 
-/* Define if you have the <sun/audioio.h> header file. */
-#undef HAVE_SUN_AUDIOIO_H
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
 
-/* Define if you have the <sys/asoundlib.h> header file. */
+/* Define to 1 if you have the <sys/asoundlib.h> header file. */
 #undef HAVE_SYS_ASOUNDLIB_H
 
-/* Define if you have the <sys/audioio.h> header file. */
+/* Define to 1 if you have the <sys/audioio.h> header file. */
 #undef HAVE_SYS_AUDIOIO_H
 
-/* Define if you have the <sys/awe_voice.h> header file. */
+/* Define to 1 if you have the <sys/awe_voice.h> header file. */
 #undef HAVE_SYS_AWE_VOICE_H
 
-/* Define if you have the <sys/dir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
 #undef HAVE_SYS_DIR_H
 
-/* Define if you have the <sys/ioctl.h> header file. */
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
 
-/* Define if you have the <sys/ipc.h> header file. */
+/* Define to 1 if you have the <sys/ipc.h> header file. */
 #undef HAVE_SYS_IPC_H
 
-/* Define if you have the <sys/ndir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
 #undef HAVE_SYS_NDIR_H
 
-/* Define if you have the <sys/param.h> header file. */
+/* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
 
-/* Define if you have the <sys/shm.h> header file. */
+/* Define to 1 if you have the <sys/shm.h> header file. */
 #undef HAVE_SYS_SHM_H
 
-/* Define if you have the <sys/soundcard.h> header file. */
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/soundcard.h> header file. */
 #undef HAVE_SYS_SOUNDCARD_H
 
-/* Define if you have the <sys/stat.h> header file. */
+/* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
-/* Define if you have the <sys/time.h> header file. */
+/* Define to 1 if you have the <sys/sysctl.h> header file. */
+#undef HAVE_SYS_SYSCTL_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
 
-/* Define if you have the <sys/types.h> header file. */
+/* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
-/* Define if you have <sys/wait.h> that is POSIX.1 compatible. */
+/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
 
-/* Define if you have the <unistd.h> header file. */
+/* Define to 1 if you have the <termios.h> header file. */
+#undef HAVE_TERMIOS_H
+
+/* Define to 1 if you use semun keyword */
+#undef HAVE_UNION_SEMUN
+
+/* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define if you have the `usleep' function. */
+/* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
-/* Define if you have the `vprintf' function. */
+/* Define to 1 if you have the `vfork' function. */
+#undef HAVE_VFORK
+
+/* Define to 1 if you have the <vfork.h> header file. */
+#undef HAVE_VFORK_H
+
+/* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
-/* Define if you have the `vsnprintf' function. */
+/* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
 
-/* Define if you have the <X11/extensions/XShm.h> header file. */
+/* Define to 1 if `fork' works. */
+#undef HAVE_WORKING_FORK
+
+/* Define to 1 if `vfork' works. */
+#undef HAVE_WORKING_VFORK
+
+/* Define to 1 if you have the <X11/extensions/XShm.h> header file. */
 #undef HAVE_X11_EXTENSIONS_XSHM_H
 
-/* Define if you have the <X11/Xmu/ExtAgent.h> header file. */
+/* Define to 1 if you have the <X11/Xmu/ExtAgent.h> header file. */
 #undef HAVE_X11_XMU_EXTAGENT_H
 
-/* Define if you have the `XmuRegisterExternalAgent' function. */
+/* Define to 1 if you have the `XmuRegisterExternalAgent' function. */
 #undef HAVE_XMUREGISTEREXTERNALAGENT
 
-/* Define if you have the `XShmCreatePixmap' function. */
+/* Define to 1 if you have the `XShmCreatePixmap' function. */
 #undef HAVE_XSHMCREATEPIXMAP
+
+/* Define to 1 if you use lagrange complemention. */
+#undef LAGRANGE_INTERPOLATION
+
+/* Define to 1 if you use linear complemention. */
+#undef LINEAR_INTERPOLATION
+
+/* Define to 1 if you are NOT in debug mode */
+#undef NDEBUG
+
+/* Define to 1 if you do not use complemention. */
+#undef NO_INTERPOLATION
+
+/* Define to 1 if you do not have <string.h>. */
+#undef NO_STRING_H
+
+/* Define to 1 if you cannot use volatile keyword */
+#undef NO_VOLATILE
+
+/* Define to 1 if you need offix support */
+#undef OFFIX
+
+/* oss device name */
+#undef OSS_DEVICE
 
 /* Name of package */
 #undef PACKAGE
 
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* a compatibility matter. ignore it. */
+#undef PKGDATADIR
+
+/* place to install modules */
+#undef PKGLIBDIR
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
-/* Define if the `setvbuf' function takes the buffering type as its second
-   argument and the buffer pointer as the third, as on System V before release
-   3. */
+/* Define to 1 if the `setvbuf' function takes the buffering type as its
+   second argument and the buffer pointer as the third, as on System V before
+   release 3. */
 #undef SETVBUF_REVERSED
 
-/* Define if you have the ANSI C header files. */
+/* shared library extention */
+#undef SHARED_LIB_EXT
+
+/* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define if you can safely include both <sys/time.h> and <time.h>. */
+/* Define to 1 if you need network support */
+#undef SUPPORT_SOCKET
+
+/* Define to 1 if you need spectrogram vewer. */
+#undef SUPPORT_SOUNDSPEC
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
+
+/* the output specification */
+#undef TIMIDITY_OUTPUT_ID
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Define to 1 if you use altivec */
+#undef USE_ALTIVEC
+
+/* Define to 1 if you use PDcurses */
+#undef USE_PDCURSES
 
 /* Version number of package */
 #undef VERSION
 
-/* Define if your processor stores words with the most significant byte first
-   (like Motorola and SPARC, unlike Intel and VAX). */
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define if the X Window System is missing or not being used. */
+/* Define to 1 if you need wrd support for X. */
+#undef WRDT_X
+
+/* Define to 1 if you have libXaw3d. */
+#undef XAW3D
+
+/* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
 
-/* Define if type `char' is unsigned and you are not using gcc.  */
+/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
 #ifndef __CHAR_UNSIGNED__
 # undef __CHAR_UNSIGNED__
 #endif
@@ -260,3 +443,6 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+
+/* Define as `fork' if `vfork' does not work. */
+#undef vfork

@@ -30,10 +30,15 @@ typedef struct gogo_opts_t_ {
 	long optSTARTOFFSET;
 	int optUSEPSY;
 	int optUSELPF16;
+	int optUSECPUOPT;
 	int optUSEMMX;
 	int optUSE3DNOW;
 	int optUSEKNI;
 	int optUSEE3DNOW;
+	int optUSESSE;
+	int optUSECMOV;
+	int optUSEEMMX;
+	int optUSESSE2;
 	int optADDTAGnum;
 	int optADDTAG_len[64];
 	char *optADDTAG_buf[64];

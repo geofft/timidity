@@ -69,6 +69,8 @@ int WINAPI timeKillEvent(UINT uTimerID);
 #include "output.h"
 #include "controls.h"
 
+#include "wrd.h"
+
 #include "w32g.h"
 #include "w32g_res.h"
 #include "w32g_utl.h"
@@ -268,6 +270,7 @@ LPSTR lpCmdLine, int nCmdShow)
 	} else
 		return -1;
 #else
+	wrdt=wrdt_list[0];
 	return win_main(argc, argv);
 #endif
 }
@@ -771,8 +774,9 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
 		  break;
       case IDM_WRD:
       case IDM_MWWRDTRACER:
-		  MainWndUpdateWrdButton();
-		  MessageBox(hwnd, "Not Supported.","Warning!",MB_OK);
+		  ToggleSubWindow(hWrdWnd);
+//		  MainWndUpdateWrdButton();
+//		  MessageBox(hwnd, "Not Supported.","Warning!",MB_OK);
 		  break;
       case IDM_SOUNDSPEC:
       case IDM_MWSOUNDSPEC:
@@ -1124,7 +1128,7 @@ static void InitSubWndToolbar(HWND hwnd)
 //-----------------------------------------------------------------------------
 // Canvas Window
 
-#define MAPBAR_LIKE_TIMIDI	// note bar view like timidi
+#define MAPBAR_LIKE_TMIDI	// note bar view like tmidi
 #define TM_CANVAS_XMAX 160
 #define TM_CANVAS_YMAX 160
 #define TM_CANVASMAP_XMAX 16
@@ -1462,7 +1466,7 @@ static void CanvasMapReset(void)
 	switch(Canvas.MapMode){
    case CMAP_MODE_32:
 		Canvas.MapCh = 32;
-#ifdef MAPBAR_LIKE_TIMIDI
+#ifdef MAPBAR_LIKE_TMIDI
 		Canvas.MapBarWidth = 5;
 		Canvas.MapBarMax = 10+1;
 		Canvas.rcMapMap.bottom = Canvas.rcMapMap.top + 3*Canvas.MapBarMax*2 + 6 - 1;
@@ -1757,7 +1761,7 @@ static void CanvasMapUpdate(int flag)
 	if(!Canvas.MapResidual && !flag)
    	return;
 	change_flag = 0;
-#ifndef MAPBAR_LIKE_TIMIDI
+#ifndef MAPBAR_LIKE_TMIDI
 	for(i=0;i<Canvas.MapCh;i++){
 		for(j=0;j<Canvas.MapBarMax;j++){
 			if(Canvas.MapMap[i][j]!=Canvas.MapMapOld[i][j] || flag){
@@ -2069,7 +2073,7 @@ static void CanvasKeyboardClear(void)
 	rc.bottom =	Canvas.rcMe.bottom;
 	SetTextColor(Canvas.hmdc,RGB(0xff,0xff,0xff));
 	SetBkColor(Canvas.hmdc,RGB(0x00,0x00,0x00));
-	strcpy(buffer,"Part");
+	strcpy(buffer," ");
  	ExtTextOut(Canvas.hmdc,rc.left,rc.top,ETO_CLIPPED|ETO_OPAQUE,&rc,
  		buffer,strlen(buffer),NULL);
 	for(i=1;i<=3;i++){
@@ -2080,11 +2084,11 @@ static void CanvasKeyboardClear(void)
    		SetTextColor(Canvas.hmdc,RGB(0x80,0x80,0x80));
    		SetBkColor(Canvas.hmdc,RGB(0x00,0x00,0x00));
 		}
-		rc.left =	Canvas.rcMe.left+1 + 40 + (i-1)*13;
+		rc.left =	Canvas.rcMe.left+1 + 0 + (i-1)*24;
 		rc.top =		Canvas.rcMe.bottom-7;
-		rc.right =	Canvas.rcMe.left+1 + 40 + (i)*13 - 1;
+		rc.right =	Canvas.rcMe.left+1 + 0 + (i)*24 - 1;
 		rc.bottom =	Canvas.rcMe.bottom;
-		sprintf(buffer,"%c",i+'A'-1);
+		sprintf(buffer,"[%c]",i+'A'-1);
  	 	ExtTextOut(Canvas.hmdc,rc.left,rc.top,ETO_CLIPPED|ETO_OPAQUE,&rc,
    		buffer,strlen(buffer),NULL);
 	}
@@ -2103,14 +2107,15 @@ static void CanvasKeyboardClear(void)
 
 static void CanvasPaintDo(void)
 {
-	PAINTSTRUCT ps;
 	RECT rc;
-	gdi_lock(); // gdi_lock
-	Canvas.hdc = BeginPaint(Canvas.hwnd, &ps);
-	GetClientRect(Canvas.hwnd, &rc);
-	BitBlt(Canvas.hdc,rc.left,rc.top,rc.right,rc.bottom,Canvas.hmdc,0,0,SRCCOPY);
-	EndPaint(Canvas.hwnd, &ps);
-	gdi_unlock(); // gdi_lock
+	if ( GetUpdateRect(Canvas.hwnd, &rc, FALSE) ) {
+		PAINTSTRUCT ps;
+		gdi_lock(); // gdi_lock
+		Canvas.hdc = BeginPaint(Canvas.hwnd, &ps);
+		BitBlt(Canvas.hdc,rc.left,rc.top,rc.right,rc.bottom,Canvas.hmdc,rc.left,rc.top,SRCCOPY);
+		EndPaint(Canvas.hwnd, &ps);
+		gdi_unlock(); // gdi_lock
+	}
 }
 void CanvasPaint(void)
 {
@@ -2295,6 +2300,7 @@ struct MPanel_ {
 	HFONT hfont;
 	char Font[256];
 	char FontLang[256];
+	char FontLangFixed[256];
 	RECT rcMe;
 	RECT rcTitle;
 	RECT rcFile;
@@ -2334,7 +2340,27 @@ struct MPanel_ {
 } MPanel;
 extern volatile int MPanelOK;
 
+static struct MPanelMessageData_ {
+	int len;	// メッセージボックスの長さ。
+	char buff[1024];	// 実バッファ。
+	DWORD prevtime;
+	int msec;	// 実残り秒。
+	int pointer;		// 現在のポインタ。
 
+	char curbuff[1024];
+	int curbuffsize;
+	int curmode;	// 現在メッセージのモード。
+	int curmsec;		// 現在メッセージの残り秒。
+	char nextbuff[1024];
+	int nextmode;	// 現在メッセージのモード。
+	int nextmsec;		// 現在メッセージの残り秒。
+} MPanelMessageData;
+void MPanelMessageInit(void);
+void MPanelMessageAdd(char *message, int msec, int mode);
+void MPanelMessageClearAll(void);
+void MPanelMessageClear(void);
+void MPanelMessageNext(void);
+void MPanelMessageUpdate(void);
 
 static HWND hPanelWnd;
 static char PanelWndClassName[] = "TiMidity Main Panel";
@@ -2397,6 +2423,7 @@ volatile int MPanelOK = 0;
 static void MPanelInit(HWND hwnd)
 {
 	RECT rc;
+	int tmp;
 	gdi_lock(); // gdi_lock
 	MPanel.hwnd = hwnd;
 	MPanel.hParentWnd = GetParent(MPanel.hwnd);
@@ -2416,13 +2443,23 @@ static void MPanelInit(HWND hwnd)
 	rc = MPanel.rcMe;
 	SetRect(&(MPanel.rcTitle),	rc.left+2,	rc.top+2,				rc.right-2,				rc.top+2+14);
 	SetRect(&(MPanel.rcFile),	rc.left+2,	rc.top+2+14+1,		rc.right-2,				rc.top+2+14+1+12);
+#if 0
 	SetRect(&(MPanel.rcTime),	rc.left+2,	rc.top+2+14+1+12+1,	rc.left+2+180,		rc.top+2+14+1+12+1+25);
 	SetRect(&(MPanel.rcVoices), rc.right-2-36-1-24-48,	rc.top+2+14+1+12+1,	rc.right-2-36-1-24,	rc.top+2+14+1+12+1+12);
 	SetRect(&(MPanel.rcMVolume),rc.right-2-36,			rc.top+2+14+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12);
-	SetRect(&(MPanel.rcRate), 	rc.right-2-60-1-18-48,	rc.top+2+14+1+12+1+12+1,	rc.right-2-60-1-18,	rc.top+2+14+1+12+1+12+1+12);
+	SetRect(&(MPanel.rcRate), 	rc.right-2-60-1-18-48,	rc.top+2+14+1+12+1+12+1,	rc.right-2-36-1,	rc.top+2+14+1+12+1+12+1+12);
 	SetRect(&(MPanel.rcList),	rc.right-2-60,				rc.top+2+14+1+12+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12+1+12);
 	SetRect(&(MPanel.rcMisc),	rc.left+2,	rc.top+2+14+1+12+1+25+1,rc.right-2,rc.top+2+14+1+12+1+25+1+12);
 	SetRect(&(MPanel.rcMessage),rc.left,rc.top,rc.right,rc.bottom);
+#else
+	SetRect(&(MPanel.rcTime),	rc.left+2,	rc.top+2+14+1+12+1,	rc.left+2+176,		rc.top+2+14+1+12+1+25);
+	SetRect(&(MPanel.rcVoices), rc.left+2+176+2,	rc.top+2+14+1+12+1,rc.left+2+176+2+50,	rc.top+2+14+1+12+1+12);
+	SetRect(&(MPanel.rcMVolume),rc.right-2-38,			rc.top+2+14+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12);
+	SetRect(&(MPanel.rcRate), 	rc.left+2+176+2+50+2,	rc.top+2+14+1+12+1,	rc.right-2-38-2,	rc.top+2+14+1+12+1+12);
+	SetRect(&(MPanel.rcList),	rc.right-2-54,				rc.top+2+14+1+12+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12+1+12);
+	SetRect(&(MPanel.rcMisc),	rc.left+2+176+2,	rc.top+2+14+1+12+1+12+1,rc.right-2-54-2,rc.top+2+14+1+12+1+12+1+12);
+	SetRect(&(MPanel.rcMessage),	rc.left+2,	rc.top+2+14+1+12+1+25+1,rc.right-2,rc.top+2+14+1+12+1+25+1+12);
+#endif
 	MPanel.hFontTitle = NULL;
 	MPanel.hFontFile = NULL;
 	MPanel.hFontTime = NULL;
@@ -2435,20 +2472,22 @@ static void MPanelInit(HWND hwnd)
 	switch(PlayerLanguage){
    case LANGUAGE_ENGLISH:
 		strcpy(MPanel.FontLang,"Times New Roman");
+		strcpy(MPanel.FontLangFixed,"Times New Roman");
      	break;
 	default:
 	case LANGUAGE_JAPANESE:
 		strcpy(MPanel.FontLang,"ＭＳ Ｐ明朝");
+		strcpy(MPanel.FontLangFixed,"ＭＳ 明朝");
 		break;
 	}
 	rc = MPanel.rcTitle;
 	MPanel.hFontTitle =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.FontLang);
 	rc = MPanel.rcFile;
 	MPanel.hFontFile =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.FontLang);
 	rc = MPanel.rcTime;
@@ -2458,36 +2497,38 @@ static void MPanelInit(HWND hwnd)
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
 	rc = MPanel.rcVoices;
 	MPanel.hFontVoices =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
 	rc = MPanel.rcMVolume;
 	MPanel.hFontMVolume =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
 	rc = MPanel.rcRate;
 	MPanel.hFontRate =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
 	rc = MPanel.rcList;
 	MPanel.hFontList =
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
 	rc = MPanel.rcMisc;
+	tmp = (rc.bottom-rc.top+1)/2;
 	MPanel.hFontMisc =
-#if 0
-		CreateFont(rc.bottom-rc.top,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
-			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
-      	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
-#else
-		CreateFont(rc.bottom-rc.top,(rc.bottom-rc.top)/2,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+		CreateFont(tmp*2,tmp,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	FIXED_PITCH | FF_DONTCARE,MPanel.Font);
-#endif
+	rc = MPanel.rcMessage;
+	tmp = (rc.bottom-rc.top+1)/2;
+	MPanel.hFontMessage = 
+		CreateFont(tmp*2,tmp,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
+			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
+      	FIXED_PITCH | FF_DONTCARE,MPanel.FontLangFixed);
 	MPanelOK = 1;
+	MPanelMessageInit();
 	gdi_unlock(); // gdi_lock
 }
 
@@ -2540,6 +2581,7 @@ void MPanelReset(void)
 	MPanel.play_system_mode = DEFAULT_SYSTEM_MODE;
 	MPanel.current_file_info_file_type = IS_OTHER_FILE;
 	MPanel.current_file_info_max_channel = -1;
+	MPanelMessageClearAll();
 }
 
 // パネル構造体を元に更新する。
@@ -2547,8 +2589,9 @@ void MPanelUpdate(void)
 {
 	if(!MPanelOK)
 		return;
+	MPanelMessageUpdate();
 	if(MPanel.UpdateFlag==MP_UPDATE_NONE)
-   	return;
+	   	return;
 	gdi_lock(); // gdi_lock
 	if(MPanel.UpdateFlag & MP_UPDATE_BACKGROUND){
 		// ビットマップを貼り付けるが今は塗りつぶし。
@@ -2581,7 +2624,7 @@ void MPanelUpdate(void)
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
 		InvalidateRect(hPanelWnd, &(MPanel.rcTitle), FALSE);
-   }
+	}
 	if(MPanel.UpdateFlag & MP_UPDATE_FILE){
 		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontFile);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
@@ -2782,7 +2825,36 @@ void MPanelUpdate(void)
 			SelectObject(MPanel.hmdc,hgdiobj);
 		InvalidateRect(hPanelWnd, &(MPanel.rcMisc), FALSE);
    }
-	if(MPanel.UpdateFlag & MP_UPDATE_MESSAGE){
+   if(MPanel.UpdateFlag & MP_UPDATE_MESSAGE){
+		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontMessage);
+		SetTextColor(MPanel.hmdc,MPanel.FGColor);
+		SetBkColor(MPanel.hmdc,MPanel.BGColor);
+		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+		switch ( MPanelMessageData.curmode ) {
+		case 0:
+			ExtTextOut(MPanel.hmdc,MPanel.rcMessage.left,MPanel.rcMessage.top,
+				ETO_CLIPPED	| ETO_OPAQUE,&(MPanel.rcMessage),
+    			MPanelMessageData.buff,strlen(MPanelMessageData.buff),NULL);
+		case 1:
+			ExtTextOut(MPanel.hmdc,MPanel.rcMessage.left,MPanel.rcMessage.top,
+				ETO_CLIPPED	| ETO_OPAQUE,&(MPanel.rcMessage),
+    			MPanelMessageData.buff,strlen(MPanelMessageData.buff),NULL);
+//			ExtTextOut(MPanel.hmdc,MPanel.rcMessage.left-(MPanel.rcMessage.bottom-MPanel.rcMessage.top)*2,
+//				MPanel.rcMessage.top, ETO_CLIPPED	| ETO_OPAQUE,&(MPanel.rcMessage),
+//    			MPanelMessageData.buff,strlen(MPanelMessageData.buff),NULL);
+		case 2:
+			ExtTextOut(MPanel.hmdc,MPanel.rcMessage.left,MPanel.rcMessage.top,
+				ETO_CLIPPED	| ETO_OPAQUE,&(MPanel.rcMessage),
+    			MPanelMessageData.buff,strlen(MPanelMessageData.buff),NULL);
+		case -1:
+		default:
+			ExtTextOut(MPanel.hmdc,MPanel.rcMessage.left,MPanel.rcMessage.top,
+				ETO_CLIPPED	| ETO_OPAQUE,&(MPanel.rcMessage),
+    			MPanelMessageData.buff,strlen(MPanelMessageData.buff),NULL);
+		}
+		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
+			SelectObject(MPanel.hmdc,hgdiobj);
+		InvalidateRect(hPanelWnd, &(MPanel.rcMessage), FALSE);
    }
 	if(MPanel.UpdateFlag==MP_UPDATE_ALL)
 		InvalidateRect(hPanelWnd, NULL, FALSE);
@@ -2792,15 +2864,16 @@ void MPanelUpdate(void)
 
 static void MPanelPaintDo(void)
 {
-	PAINTSTRUCT ps;
-	HDC hdc;
-	gdi_lock(); // gdi_lock
-	hdc = BeginPaint(MPanel.hwnd, &ps);
-	BitBlt(hdc,
-		MPanel.rcMe.left,MPanel.rcMe.top,MPanel.rcMe.right,MPanel.rcMe.bottom,
-  		MPanel.hmdc,0,0,SRCCOPY);
-	EndPaint(MPanel.hwnd, &ps);
-	gdi_unlock(); // gdi_lock
+	RECT rc;
+	if ( GetUpdateRect(MPanel.hwnd, &rc, FALSE) ) {
+		PAINTSTRUCT ps;
+		HDC hdc;
+		gdi_lock(); // gdi_lock
+		hdc = BeginPaint(MPanel.hwnd, &ps);
+		BitBlt(hdc,rc.left,rc.top,rc.right,rc.bottom,MPanel.hmdc,rc.left,rc.top,SRCCOPY);
+		EndPaint(MPanel.hwnd, &ps);
+		gdi_unlock(); // gdi_lock
+	}
 }
 
 // 描画
@@ -2891,7 +2964,6 @@ void MPanelReadPanelInfo(int flag)
 		MPanel.PlaylistMax = playlist_num;
      	MPanel.UpdateFlag |=	MP_UPDATE_PLAYLIST;
    }
-
 	if(flag || MPanel.play_system_mode != play_system_mode){
 		MPanel.play_system_mode = play_system_mode;
      	MPanel.UpdateFlag |=	MP_UPDATE_MISC;
@@ -2913,6 +2985,235 @@ void MPanelStartLoad(char *filename)
     strncpy((char *)MPanel.File, filename, MP_FILE_MAX);
     MPanel.UpdateFlag |= MP_UPDATE_FILE;
     MPanelUpdate();
+}
+
+void MPanelMessageInit(void)
+{
+	int width = (MPanel.rcMessage.bottom - MPanel.rcMessage.top + 1) / 2;
+	MPanelMessageData.len = (MPanel.rcMessage.right - MPanel.rcMessage.left) / width;
+	MPanelMessageClearAll();
+}
+
+// sec 秒で message を流す。
+// mode 0: sec 秒だけ message を表示。デフォルト。
+// mode 1: sec 秒の間に message を右から左に流す。
+// mode 2: sec 秒の間に messege を表示。ポインタを左から右に移す。ポインタを境界に色を変える。
+void MPanelMessageAdd(char *message, int msec, int mode)
+{
+	if ( MPanelMessageData.nextmode >= 0 ) {
+		MPanelMessageNext();
+		strcpy(MPanelMessageData.nextbuff,message);
+		MPanelMessageData.nextmode = mode;
+		MPanelMessageData.nextmsec = msec;
+	} else if ( MPanelMessageData.curmode >= 0 ){
+		strcpy(MPanelMessageData.nextbuff,message);
+		MPanelMessageData.nextmode = mode;
+		MPanelMessageData.nextmsec = msec;
+	} else {
+		strcpy(MPanelMessageData.nextbuff,message);
+		MPanelMessageData.nextmode = mode;
+		MPanelMessageData.nextmsec = msec;
+		MPanelMessageNext();
+	}
+}
+int MPanelMessageHaveMesssage(void)
+{
+	if ( MPanelMessageData.curmode >= 0 || MPanelMessageData.nextmode >= 0 )
+		return 1;
+	else
+		return 0;
+}
+void MPanelMessageClearAll(void)
+{
+	MPanelMessageData.buff[0] = '\0';
+	MPanelMessageData.curmode = -1;
+	MPanelMessageData.nextmode = -1;
+   	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+}
+void MPanelMessageClear(void)
+{
+	MPanelMessageData.buff[0] = '\0';
+   	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+}
+void MPanelMessageNext(void)
+{
+	MPanelMessageClear();
+	if ( MPanelMessageData.nextmode >= 0 ) {
+		strcpy(MPanelMessageData.curbuff,MPanelMessageData.nextbuff);
+		MPanelMessageData.curbuffsize = strlen(MPanelMessageData.curbuff);
+		MPanelMessageData.curmode = MPanelMessageData.nextmode;
+		MPanelMessageData.curmsec = MPanelMessageData.nextmsec;
+		MPanelMessageData.pointer = -1;
+		MPanelMessageData.nextmode = -1;
+		MPanelMessageData.prevtime = -1;
+	} else {
+		MPanelMessageData.curmode = -1;
+		MPanelMessageData.prevtime = -1;
+	}
+   	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+}
+void MPanelMessageUpdate(void)
+{
+//	DWORD curtime = GetCurrentTime();
+	DWORD curtime = 0;
+	int pointer; 
+
+	if ( MPanelMessageData.curmode >= 0 ) {
+		curtime += Panel->cur_time_h; 
+		curtime *= 24;
+		curtime += Panel->cur_time_m;
+		curtime *= 60;
+		curtime += Panel->cur_time_s;
+		curtime *= 1000;
+		curtime += Panel->cur_time_ss;
+	}
+	switch ( MPanelMessageData.curmode ) {
+	case 0:
+		if ( MPanelMessageData.prevtime == -1 ){
+			strcpy( MPanelMessageData.buff, MPanelMessageData.curbuff );
+			MPanelMessageData.prevtime = curtime;
+			MPanelMessageData.msec = MPanelMessageData.curmsec;
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		} else {
+			MPanelMessageData.msec -= curtime - MPanelMessageData.prevtime;
+			MPanelMessageData.prevtime = curtime;
+		}
+		if ( MPanelMessageData.msec <= 0 || curtime < MPanelMessageData.prevtime ) {
+			MPanelMessageNext();
+			MPanelMessageUpdate();
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+			break;
+		}
+		break;
+	case 1:
+		if ( MPanelMessageData.prevtime == -1 ){
+			MPanelMessageData.prevtime = curtime;
+			MPanelMessageData.msec = MPanelMessageData.curmsec;
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		} else {
+			MPanelMessageData.msec -= curtime - MPanelMessageData.prevtime;
+			MPanelMessageData.prevtime = curtime;
+		}
+		if ( MPanelMessageData.msec <= 0 || curtime < MPanelMessageData.prevtime ) {
+			MPanelMessageNext();
+			MPanelMessageUpdate();
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+			return;
+		}
+//		pointer = MPanelMessageData.len * 4 / 5 + ( MPanelMessageData.curmsec - MPanelMessageData.msec ) / 1000 * 2;
+		pointer = MPanelMessageData.len - 8 + ( MPanelMessageData.curmsec - MPanelMessageData.msec ) / 1000 * 2;
+		pointer = (int)( pointer / 2 ) * 2;
+		if ( MPanelMessageData.pointer != pointer ) {
+			int p = MPanelMessageData.len - pointer;
+			MPanelMessageData.buff[0] = '\0';
+			MPanelMessageData.pointer = pointer;
+			if ( p >= 0 ) {
+				memset( MPanelMessageData.buff, 0x20, p );
+				MPanelMessageData.buff[p] = '\0';
+				strcat( MPanelMessageData.buff, MPanelMessageData.curbuff);
+			} else if ( MPanelMessageData.curbuffsize + p > 0 ) { 
+				strcpy( MPanelMessageData.buff, MPanelMessageData.curbuff - p);
+			} else {
+				MPanelMessageData.buff[0] = '\0';
+			}
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		}
+		break;
+	case 2:
+		if ( MPanelMessageData.prevtime == -1 ){
+			strcpy( MPanelMessageData.buff, MPanelMessageData.curbuff );
+			MPanelMessageData.prevtime = curtime;
+			MPanelMessageData.msec = MPanelMessageData.curmsec;
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		} else {
+			MPanelMessageData.msec -= curtime - MPanelMessageData.prevtime;
+			MPanelMessageData.prevtime = curtime;
+		}
+		if ( MPanelMessageData.msec <= 0 || curtime < MPanelMessageData.prevtime ) {
+			MPanelMessageNext();
+			MPanelMessageUpdate();
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+			break;
+		}
+		pointer = ( MPanelMessageData.len + MPanelMessageData.curbuffsize ) * ( MPanelMessageData.curmsec - MPanelMessageData.msec ) / MPanelMessageData.curmsec;
+		if ( MPanelMessageData.pointer != pointer ) {
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		}
+		break;
+	case 3:
+		if ( MPanelMessageData.prevtime == -1 ){
+			MPanelMessageData.prevtime = curtime;
+			MPanelMessageData.msec = MPanelMessageData.curmsec;
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		} else {
+			MPanelMessageData.msec -= curtime - MPanelMessageData.prevtime;
+			MPanelMessageData.prevtime = curtime;
+		}
+		if ( MPanelMessageData.msec <= 0 || curtime < MPanelMessageData.prevtime ) {
+			MPanelMessageNext();
+			MPanelMessageUpdate();
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+			return;
+		}
+		pointer = MPanelMessageData.len * 3 / 4 + ( MPanelMessageData.len / 4 + MPanelMessageData.curbuffsize ) * ( MPanelMessageData.curmsec - MPanelMessageData.msec ) / MPanelMessageData.curmsec;
+		pointer = ((int)(pointer / 2)) * 2;
+		if ( MPanelMessageData.pointer != pointer ) {
+			int p = MPanelMessageData.len - pointer;
+			MPanelMessageData.buff[0] = '\0';
+			MPanelMessageData.pointer = pointer;
+			if ( p >= 0 ) {
+				memset( MPanelMessageData.buff, 0x20, p );
+				MPanelMessageData.buff[p] = '\0';
+				strcat( MPanelMessageData.buff, MPanelMessageData.curbuff);
+			} else if ( MPanelMessageData.curbuffsize + p > 0 ) { 
+				strcpy( MPanelMessageData.buff, MPanelMessageData.curbuff - p);
+			} else {
+				MPanelMessageData.buff[0] = '\0';
+			}
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		}
+		break;
+	case 4:
+		if ( MPanelMessageData.prevtime == -1 ){
+			MPanelMessageData.prevtime = curtime;
+#define MPANELMESSAGE_MODE2_SLEEPMSEC 1000
+			if ( MPanelMessageData.curmsec < MPANELMESSAGE_MODE2_SLEEPMSEC * 2 ) {
+				MPanelMessageData.curmsec = MPANELMESSAGE_MODE2_SLEEPMSEC * 2;
+			}
+			MPanelMessageData.msec = MPanelMessageData.curmsec;
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		} else {
+			MPanelMessageData.msec -= curtime - MPanelMessageData.prevtime;
+			MPanelMessageData.prevtime = curtime;
+		}
+		if ( MPanelMessageData.msec <= 0 || curtime < MPanelMessageData.prevtime ) {
+			MPanelMessageNext();
+			MPanelMessageUpdate();
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+			return;
+		}
+		if ( MPanelMessageData.curmsec - MPanelMessageData.msec <= MPANELMESSAGE_MODE2_SLEEPMSEC ) {
+			pointer = 0;
+		} else {
+			pointer = MPanelMessageData.curbuffsize * ( MPanelMessageData.curmsec - MPanelMessageData.msec - MPANELMESSAGE_MODE2_SLEEPMSEC ) / ( MPanelMessageData.curmsec - MPANELMESSAGE_MODE2_SLEEPMSEC );
+		}
+		pointer = ((int)(pointer / 2)) * 2;
+		if ( MPanelMessageData.pointer != pointer ) {
+			MPanelMessageData.buff[0] = '\0';
+			MPanelMessageData.pointer = pointer;
+			if ( pointer < MPanelMessageData.curbuffsize ) { 
+				strcpy( MPanelMessageData.buff, MPanelMessageData.curbuff + pointer );
+			} else {
+				MPanelMessageData.buff[0] = '\0';
+			}
+	     	MPanel.UpdateFlag |= MP_UPDATE_MESSAGE;
+		}
+		break;
+	case -1:
+	default:
+//		MPanelMessageData.buff[0] = '\0';
+		break;
+	}
 }
 
 
@@ -3375,7 +3676,10 @@ static void DlgDirOpen(HWND hwnd)
 	bi.hwndOwner = NULL;
 	bi.pidlRoot = NULL;
     bi.pszDisplayName = biBuffer;
-	bi.lpszTitle = "Select a directory with MIDI files.";
+	if ( PlayerLanguage == LANGUAGE_JAPANESE ) 
+		bi.lpszTitle = "MIDI ファイルのあるディレクトリを御選択なされますよう。";
+	else
+		bi.lpszTitle = "Select a directory with MIDI files.";
 	bi.ulFlags = 0;
 	bi.lpfn = DlgDirOpenBrowseCallbackProc;
     bi.lParam = 0;
@@ -3814,6 +4118,10 @@ void w32g_restart(void)
 		DeleteObject(MPanel.hFontRate);
 	if(MPanel.hFontList!=NULL)
 		DeleteObject(MPanel.hFontList);
+	if(MPanel.hFontMisc!=NULL)
+		DeleteObject(MPanel.hFontMisc);
+	if(MPanel.hFontMessage!=NULL)
+		DeleteObject(MPanel.hFontMessage);
 
 	/* Reset variable */
     hStartWnd = 0;

@@ -244,6 +244,7 @@
 #define IDC_CHECK_CPU3DNOW              2029
 #define IDC_CHECK_CPUE3DNOW             2030
 #define IDC_COMBO_EMPHASIS_TYPE         2031
+#define IDC_CHECK_CPUCMOV               2032
 #define IDC_COMBO_VBR                   2033
 #define IDC_CHECK_VBR                   2034
 #define IDC_CHECK_OUTFREQ               2035
@@ -255,12 +256,14 @@
 #define IDC_BUTTON_APPLY                2041
 #define IDC_COMBO_OUTPUT_MODE           2042
 #define IDC_CHECK_USE_CPU_OPTS          2043
+#define IDC_CHECK_CPUSSE2               2044
 #define IDC_CHECK_MPEG1AUDIOBITRATE     2045
 #define IDC_CHECK_MPEG2AUDIOBITRATE     2046
 #define IDC_CHECK_VBR_BITRATE           2047
 #define IDC_CHECK_OUTPUT_FORMAT         2048
 #define IDC_CHECK_ENCODE_MODE           2049
 #define IDC_CHECK_EMPHASIS_TYPE         2050
+#define IDC_CHECK_CPUEMMX               2051
 #define IDC_CHECKBOX_TVAA               2057
 #define IDC_CHECKBOX_TVAD               2058
 #define IDC_CHECKBOX_TVAR               2059
@@ -271,7 +274,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        113
+#define _APS_NEXT_RESOURCE_VALUE        114
 #define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         2061
 #define _APS_NEXT_SYMED_VALUE           101

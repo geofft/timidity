@@ -61,7 +61,6 @@ extern void MPanelReset(void);
 extern void MPanelUpdate(void);
 extern void MPanelUpdateAll(void);
 extern void MPanelPaint(void);
-extern int w32g_msg_box(char *message, char *title, int type);
 extern int is_directory(char *path);
 extern int directory_form(char *buffer);
 
@@ -76,6 +75,10 @@ static void ctl_panel_refresh(void);
 
 char *w32g_output_dir = NULL;
 int w32g_auto_output_mode = 0;
+
+extern void MPanelMessageAdd(char *message, int msec, int mode);
+extern void MPanelMessageClearAll(void);
+
 
 //****************************************************************************/
 // Control funcitons
@@ -505,6 +508,11 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
     vsnprintf(buffer, sizeof(buffer), fmt, ap);
     va_end(ap);
 
+	if( type==CMSG_TEXT ) {
+		MPanelMessageClearAll();
+		MPanelMessageAdd(buffer,2000,0);
+	}
+
     if((type==CMSG_TEXT || type==CMSG_INFO || type==CMSG_WARNING) &&
        ctl.verbosity<verbosity_level)
 	return 0;
@@ -529,6 +537,7 @@ static void ctl_master_volume(int mv)
     ctl_panel_refresh();
 }
 
+extern BOOL SetWrdWndActive(void);
 static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
     int rc;
@@ -603,6 +612,8 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 			if(Panel!=NULL && p!=NULL)
 				strcpy(Panel->filename,p);
 		}
+
+		SetWrdWndActive();
 		rc = play_midi_file(w32g_get_playlist(selected));
 
 		if(ctl.flags & CTLF_NOT_CONTINUE)
@@ -1002,8 +1013,19 @@ static void ctl_event(CtlEvent *e)
 	break;
       case CTLE_REVERB_EFFECT:
 	break;
+#if 1
       case CTLE_LYRIC:
+		  {
+			char *lyric;
+		    lyric = event2string((uint16)e->v1);
+			if(lyric != NULL){
+				MPanelMessageClearAll();
+				MPanelMessageAdd(lyric+1,20000,1);
+			}
+		  }
+#else
 	default_ctl_lyric((uint16)e->v1);
+#endif
 	break;
       case CTLE_REFRESH:
       	if(CanvasGetMode() == CANVAS_MODE_KEYBOARD)
