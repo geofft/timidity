@@ -4616,10 +4616,10 @@ __attribute__((noreturn))
 static inline int parse_opt_v(const char *arg)
 {
 	const char *version_list[] = {
-#ifdef __BORLANDC__
+#if defined(__BORLANDC__) || defined(__MRC__)
 		"TiMidity++ ",
-				"current",
-				"               ", NLS,
+				"",
+				NULL, NLS,
 		NLS,
 #else
 		"TiMidity++ ",
@@ -4643,11 +4643,10 @@ static inline int parse_opt_v(const char *arg)
 	FILE *fp = open_pager();
 	int i;
 
-#ifdef __BORLANDC__
-	if( !(strcmp(timidity_version, "current")) ){
-		strcpy(version_list[1],"");
-		strcpy(version_list[2],timidity_version);
-	}
+#if defined(__BORLANDC__) || defined(__MRC__)
+	if (strcmp(timidity_version, "current"))
+		version_list[1] = "version ";
+	version_list[2] = timidity_version;
 #endif
 	for (i = 0; i < sizeof(version_list) / sizeof(char *); i++)
 		fputs(version_list[i], fp);

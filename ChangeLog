@@ -1,3 +1,7 @@
+2004-05-23  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c: Fixed to compile with MrC.
+
 2004-05-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/w32g_syn.c: Fix to fit with case of "current" version
@@ -106,7 +110,7 @@
 
 2004-04-23  Kentaro Sato <kentaro@ranvis.com>
 
-	* timidity/timidity.c: Fixed a bug dealing with an empty var.
+	* timidity/timidity.c: Fixed a bug dealing with a nameless var.
 
 2004-04-23  Saito <saito@intaa.net>
 
