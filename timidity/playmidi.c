@@ -518,13 +518,17 @@ static void reset_nrpn_controllers(int c)
   channel[c].resonance_dB = 0;
 
   /* GS & XG System Exclusive */
+  channel[c].dry_level = 127;
   channel[c].eq_gs = 1;
   channel[c].insertion_effect = 0;
   channel[c].velocity_sense_depth = 0x40;
   channel[c].velocity_sense_offset = 0x40;
   channel[c].pitch_offset_fine = 0;
   channel[c].legato = 0;
-  channel[c].assign_mode = 1;
+  if(play_system_mode == XG_SYSTEM_MODE) {
+	  if(ISDRUMCHANNEL(c)) {channel[c].assign_mode = 1;}
+	  else {channel[c].assign_mode = 2;}
+  } else {channel[c].assign_mode = 1;}
   if(play_system_mode == GS_SYSTEM_MODE) {
 	  channel[c].bank_lsb = channel[c].tone_map0_number;
   }
@@ -4136,6 +4140,21 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				}
 			}
 			break;
+		case 0x66:	/* Same Note Number Key On Assign */
+			if(val == 0) {
+				channel[ch].assign_mode = 0;
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Same Note Number Key On Assign: Single (CH:%d)",ch);
+			} else if(val == 1) {
+				channel[ch].assign_mode = 2;
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Same Note Number Key On Assign: Multi (CH:%d)",ch);
+			} else if(val == 2) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Same Note Number Key On Assign: Inst is not supported. (CH:%d)",ch);
+			}
+			break;
+		case 0x67:	/* Dry Level */
+			channel[ch].dry_level = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level (CH:%d VAL:%d)", ch, val);
+			break;
 		default:
 			break;
 		}
@@ -5749,7 +5768,8 @@ static void do_compute_data_midi(int32 count)
 			} else if(channel[i].eq_gs || (channel[i].reverb_level >= 0
 					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT)
 					|| channel[i].chorus_level > 0 || channel[i].delay_level > 0
-					|| channel[i].eq_xg.valid) {
+					|| channel[i].eq_xg.valid
+					|| channel[i].dry_level != 127) {
 				vpblist[i] = (int32*)(reverb_buffer + buf_index);
 				buf_index += n;
 			} else {
@@ -5811,7 +5831,11 @@ static void do_compute_data_midi(int32 count)
 					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT) {
 					set_ch_reverb(p, cnt, channel[i].reverb_level);
 				}
-				set_dry_signal(p, cnt);
+				if(channel[i].dry_level == 127) {
+					set_dry_signal(p, cnt);
+				} else {
+					set_dry_signal_xg(p, cnt, channel[i].dry_level);
+				}
 			}
 		}
 		

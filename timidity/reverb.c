@@ -98,6 +98,62 @@ void set_dry_signal(register int32 *buf, int32 n)
 }
 #endif
 
+#if OPT_MODE != 0	/* fixed-point implementation */
+#if _MSC_VER
+void set_dry_signal_xg(int32 *buf, int32 count, int32 level)
+{
+	int32 *dbuf = direct_buffer;
+	if(!level) {return;}
+	level = level * 65536 / 127;
+
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		mov		ebx, [level]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		imul	ebx
+		shr		eax, 16
+		shl		edx, 16
+		or		eax, edx	/* u */
+		mov		edx, [edi]	/* v */
+		add		esi, 4		/* u */	
+		add		edx, eax	/* v */
+		mov		[edi], edx	/* u */
+		add		edi, 4		/* v */
+		dec		ecx			/* u */
+		jnz		L1			/* v */
+L2:
+	}
+}
+#else
+void set_dry_signal_xg(register int32 *sbuffer, int32 n, int32 level)
+{
+    register int32 i;
+	int32 *buf = direct_buffer;
+	if(!level) {return;}
+	level = level * 65536 / 127;
+
+	for(i= n - 1; i >= 0; i--) {buf[i] += imuldiv16(sbuffer[i], level);}
+}
+#endif	/* _MSC_VER */
+#else	/* floating-point implementation */
+void set_dry_signal_xg(register int32 *sbuffer, int32 n, int32 level)
+{
+    register int32 i;
+    register int32 count = n;
+	if(!level) {return;}
+    FLOAT_T send_level = (FLOAT_T)level / 127.0;
+
+    for(i = 0; i < count; i++)
+    {
+		direct_buffer[i] += sbuffer[i] * send_level;
+    }
+}
+#endif /* OPT_MODE != 0 */
+
 void mix_dry_signal(register int32 *buf, int32 n)
 {
  	memcpy(buf, direct_buffer, sizeof(int32) * n);
@@ -591,6 +647,7 @@ spt3++; if(spt3 == rpt3) spt3 = 0;
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = reverb_effect_buffer;
+	if(!level) {return;}
 	level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	_asm {
@@ -619,6 +676,7 @@ L2:
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
     int32 i, *dbuf = reverb_effect_buffer;
+	if(!level) {return;}
     level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	for(i=count-1;i>=0;i--) {dbuf[i] += imuldiv24(buf[i], level);}
@@ -628,6 +686,7 @@ void set_ch_reverb(int32 *buf, int32 count, int32 level)
 void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32  i;
+	if(!level) {return;}
     FLOAT_T send_level = (FLOAT_T)level / 127.0 * REV_INP_LEV;
 	
 	for(i = 0; i < n; i++)
@@ -1564,6 +1623,7 @@ void do_ch_delay(int32 *buf, int32 count)
 void set_ch_delay(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = delay_effect_buffer;
+	if(!level) {return;}
 	level = level * 65536 / 127;
 
 	_asm {
@@ -1593,6 +1653,7 @@ void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
 	int32 *buf = delay_effect_buffer;
+	if(!level) {return;}
 	level = level * 65536 / 127;
 
 	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
@@ -1603,6 +1664,7 @@ void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
 	register int32 count = n;
+	if(!level) {return;}
     FLOAT_T send_level = (FLOAT_T)level / 127.0;
 
     for(i=0;i<count;i++)
@@ -1847,11 +1909,11 @@ void init_chorus_lfo(void)
 	if(chorus_cyc0 == 0) {chorus_cyc0 = 1;}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo0[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2, 16);
+		chorus_lfo0[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2, 16);
 	}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo1[i] = TIM_FSCALE((lookup_triangular(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 16);
+		chorus_lfo1[i] = TIM_FSCALE((lookup_sine(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 16);
 	}
 #endif /* USE_DSP_EFFECT */
 }
@@ -1945,6 +2007,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 void set_ch_chorus(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = chorus_effect_buffer;
+	if(!level) {return;}
 	level = level * 65536 / 127;
 
 	_asm {
@@ -1974,6 +2037,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
     register int32 i;
 	int32 *buf = chorus_effect_buffer;
+	if(!level) {return;}
 	level = level * 65536 / 127;
 
 	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
@@ -1984,6 +2048,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
     register int32 i;
     register int32 count = n;
+	if(!level) {return;}
     FLOAT_T send_level = (FLOAT_T)level / 127.0;
 
     for(i=0;i<count;i++)

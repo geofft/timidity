@@ -339,6 +339,7 @@ typedef struct {
 
   struct part_eq_xg eq_xg;
 
+  int8 dry_level;
   int8 note_limit_high, note_limit_low;	/* Note Limit (Keyboard Range) */
   int8 vel_limit_high, vel_limit_low;	/* Velocity Limit */
   int32 rx;	/* Rx. ~ (Rcv ~) */

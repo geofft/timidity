@@ -36,6 +36,7 @@ extern int opt_reverb_control;
 extern int opt_effect_quality;
 
 extern void set_dry_signal(register int32 *, int32);
+extern void set_dry_signal_xg(register int32 *, int32, int32);
 extern void mix_dry_signal(register int32 *, int32);
 extern void free_effect_buffers(void);
 

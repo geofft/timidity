@@ -59,7 +59,8 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MARKER_START_CHAR	'('
 #define MARKER_END_CHAR		')'
 
-static uint8 rhythm_part[2];
+static uint8 rhythm_part[2];	/* for GS */
+static uint8 drum_setup_xg[4];	/* for XG */
 
 enum
 {
@@ -940,12 +941,11 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
     else if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
-       (val[4] == 0x29 || val[4] == 0x3F) && /* Blocks 1 or 2 */
-       val[5] == 0x08)   /* Multi Part */
+       (val[4] == 0x29 || val[4] == 0x3F)) /* Blocks 1 or 2 */
     {
 	uint8 addhigh, addmid, addlow;		/* Addresses */
 	uint8 *body;				/* SysEx body */
-	uint8 p;				/* Channel part number [0..15] */
+	uint8 p, dp, note;				/* Channel part number [0..15] */
 	int ent;				/* Entry # of sub-event */
 	uint8 *body_end;			/* End of SysEx body */
 
@@ -956,6 +956,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	p = val[6];
 	body_end = val + len-3;
 
+	if(val[5] == 0x08) {  /* Multi Part */
 	for (ent = val[7]; body <= body_end; body++, ent++) {
 	    switch(ent) {
 
@@ -986,11 +987,14 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x06:	/* Same Note Number Key On Assign */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Same Note Number Key On Assign is not supported. (CH:%d VAL:%d)", p, *body); 
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x66);
+			num_events++;
 		    break;
 
 		case 0x07:	/* Part Mode */
-		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Part Mode is not supported. (CH:%d VAL:%d)", p, *body); 
+			drum_setup_xg[*body] = p; 
+			SETMIDIEVENT(evm[num_events], 0, ME_DRUMPART, p, *body, SYSEX_TAG);
+			num_events++;
 		    break;
 
 		case 0x08:	/* note shift */
@@ -1042,8 +1046,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 
 		case 0x11:	/* Dry Level */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level is not supported. (CH:%d VAL:%d)", p, *body); 
-		    break;
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x67);
+			num_events++;
+			break;
 
 		case 0x12:	/* chorus send */
 		    SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, SYSEX_TAG);
@@ -1402,6 +1407,132 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 	    }
 	}
+	} else if((val[5] & 0xF0) == 0x30) {	/* Drum Setup */
+		dp = drum_setup_xg[val[5] & 0x0F];
+		note = val[6];
+		for (ent = val[7]; body <= body_end; body++, ent++) {
+				switch(ent) {
+				case 0x00:	/* Pitch Coarse */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x18, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x01:	/* Pitch Fine */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x19, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x02:	/* Level */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x03:	/* Alternate Group */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Alternate Group is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x04:	/* Pan */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x05:	/* Reverb Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x06:	/* Chorus Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x07:	/* Variation Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x08:	/* Key Assign */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Key Assign is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x09:	/* Rcv Note Off */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x46);
+					num_events += 2;
+					break;
+				case 0x0A:	/* Rcv Note On */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, *body, 0x47);
+					num_events += 2;
+					break;
+				case 0x0B:	/* Filter Cutoff Frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x14, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0C:	/* Filter Resonance */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x15, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0D:	/* EG Attack */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x16, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0E:	/* EG Decay1 */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay1 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x0F:	/* EG Decay2 */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay2 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x20:	/* EQ BASS */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x21:	/* EQ TREBLE */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x31, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x24:	/* EQ BASS frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x34, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x25:	/* EQ TREBLE frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x35, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, *body, SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x50:	/* High Pass Filter Cutoff Frequency */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "High Pass Filter Cutoff Frequency is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x60:	/* Velocity Pitch Sense */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Pitch Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				case 0x61:	/* Velocity LPF Cutoff Sense */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity LPF Cutoff Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					break;
+				default:
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],ent,*body);
+					break;
+				}
+			}
+		}
     }
 
     /* Second method: specify them one SYSEX event at a time... */
@@ -1409,7 +1540,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C) /* XG Model ID */ 
     {
-		uint8 p;				/* Channel part number [0..15] */
+		uint8 p, dp, note;				/* Channel part number [0..15] */
 		int ent;				/* Entry # of sub-event */
 
 		p = val[4];
@@ -1579,12 +1710,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x06:	/* Same Note Number Key On Assign */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Same Note Number Key On Assign is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x66);
+				  num_events++;
+				  break;
 
 				case 0x07:	/* Part Mode */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Part Mode is not supported. (CH:%d VAL:%d)", p, val[6]); 
-					break;
+				  drum_setup_xg[val[6]] = p;
+				  SETMIDIEVENT(evm[num_events], 0, ME_DRUMPART, p, val[6], SYSEX_TAG);
+				  num_events++;
+				  break;
 
 				case 0x08:	/* note shift ? */
 				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, val[6], SYSEX_TAG);
@@ -1635,7 +1769,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 
 				case 0x11:	/* Dry Level */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x67);
+					num_events++;
 					break;
 
 				case 0x12:	/* chorus send */
@@ -1994,6 +2129,129 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				default:
 				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
 				  break;
+			}
+			} else if((val[3] & 0xF0) == 0x30) {	/* Drum Setup */
+				dp = drum_setup_xg[val[3] & 0x0F];
+				note = val[4];
+				switch(ent) {
+				case 0x00:	/* Pitch Coarse */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x18, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x01:	/* Pitch Fine */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x19, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x02:	/* Level */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x03:	/* Alternate Group */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Alternate Group is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x04:	/* Pan */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x05:	/* Reverb Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x06:	/* Chorus Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x07:	/* Variation Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x08:	/* Key Assign */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Key Assign is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x09:	/* Rcv Note Off */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, val[6], 0x46);
+					num_events += 2;
+					break;
+				case 0x0A:	/* Rcv Note On */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_MSB, dp, note, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_LSB, dp, val[6], 0x47);
+					num_events += 2;
+					break;
+				case 0x0B:	/* Filter Cutoff Frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x14, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0C:	/* Filter Resonance */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x15, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0D:	/* EG Attack */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x16, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x0E:	/* EG Decay1 */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay1 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x0F:	/* EG Decay2 */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay2 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x20:	/* EQ BASS */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x21:	/* EQ TREBLE */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x31, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x24:	/* EQ BASS frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x34, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x25:	/* EQ TREBLE frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x35, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, dp, note, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, dp, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+				case 0x50:	/* High Pass Filter Cutoff Frequency */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "High Pass Filter Cutoff Frequency is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x60:	/* Velocity Pitch Sense */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Pitch Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				case 0x61:	/* Velocity LPF Cutoff Sense */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity LPF Cutoff Sense is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					break;
+				default:
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
+					break;
 			}
 		}
     }
@@ -4548,8 +4806,8 @@ void readmidi_read_init(void)
 	init_insertion_effect_gs();
 	init_userdrum();
 	init_userinst();
-	rhythm_part[0] = 9;
-	rhythm_part[1] = 9;
+	rhythm_part[0] = rhythm_part[1] = 9;
+	for(i = 0; i < 4; i++) {drum_setup_xg[i] = 9;}
 
     /* Put a do-nothing event first in the list for easier processing */
     evlist = current_midi_point = alloc_midi_event();
