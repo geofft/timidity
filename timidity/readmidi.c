@@ -6589,8 +6589,8 @@ void recompute_effect_xg(struct effect_xg_t *st)
 {
 	EffectList *efc = st->ef;
 
-	if (st->ef == NULL) {return;}
-	while(efc != NULL && efc->info != NULL)
+	if (efc == NULL) {return;}
+	while (efc != NULL && efc->info != NULL)
 	{
 		(*efc->engine->conv_xg)(st, efc);
 		(*efc->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
@@ -6632,9 +6632,7 @@ void realloc_effect_xg(struct effect_xg_t *st)
 		type_msb = type_lsb = 0;
 		break;
 	}
-
 	set_effect_param_xg(st, type_msb, type_lsb);
-
 	recompute_effect_xg(st);
 }
 

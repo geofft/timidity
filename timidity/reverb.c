@@ -2351,12 +2351,14 @@ void alloc_effect(EffectList *ef)
 			break;
 		}
 	}
+	if (ef->engine == NULL) {return;}
 
 	if (ef->info != NULL) {
 		free(ef->info);
 		ef->info = NULL;
 	}
 	ef->info = safe_malloc(ef->engine->info_size);
+	memset(ef->info, 0, ef->engine->info_size);
 
 	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Effect Engine: %s", ef->engine->name);
 }
@@ -2368,10 +2370,12 @@ void alloc_effect(EffectList *ef)
 EffectList *push_effect(EffectList *efc, int type)
 {
 	EffectList *eft, *efn;
-	if(type == EFFECT_NONE) {return NULL;}
+	if (type == EFFECT_NONE) {return NULL;}
 	efn = (EffectList *)safe_malloc(sizeof(EffectList));
+	memset(efn, 0, sizeof(EffectList));
 	efn->type = type;
 	efn->next_ef = NULL;
+	efn->info = NULL;
 	alloc_effect(efn);
 
 	if(efc == NULL) {
@@ -2403,7 +2407,7 @@ void free_effect_list(EffectList *ef)
 {
 	EffectList *efc, *efn;
 	efc = ef;
-	if(efc == NULL) {return;}
+	if (efc == NULL) {return;}
 	do {
 		efn = efc->next_ef;
 		if(efc->info != NULL) {

@@ -245,7 +245,6 @@ struct effect_parameter_xg_t {
 
 extern struct effect_parameter_xg_t effect_parameter_xg[];
 
-
 extern EffectList *push_effect(EffectList *, int);
 extern void do_effect_list(int32 *, int32, EffectList *);
 extern void free_effect_list(EffectList *);
