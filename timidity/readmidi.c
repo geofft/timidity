@@ -6569,7 +6569,7 @@ static void set_effect_param_xg(struct effect_xg_t *st, int type_msb, int type_l
 			for (j = 0; j < 10; j++) {
 				st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
 			}
-		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name); */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name);
 			return;
 		}
 	}
@@ -6583,6 +6583,7 @@ static void set_effect_param_xg(struct effect_xg_t *st, int type_msb, int type_l
 				for (j = 0; j < 10; j++) {
 					st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
 				}
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name);
 				return;
 			}
 		}
@@ -6652,6 +6653,12 @@ void realloc_effect_xg(struct effect_xg_t *st)
 	case 0x4A:
 		st->ef = push_effect(st->ef, EFFECT_STEREO_OVERDRIVE);
 		st->ef = push_effect(st->ef, EFFECT_OD_EQ3);
+		break;
+	case 0x4C:
+		st->ef = push_effect(st->ef, EFFECT_EQ3);
+		break;
+	case 0x4D:
+		st->ef = push_effect(st->ef, EFFECT_EQ2);
 		break;
 	default:	/* Not Supported */
 		type_msb = type_lsb = 0;
@@ -6737,7 +6744,7 @@ static void set_effect_param_gs(struct insertion_effect_gs_t *st, int msb, int l
 			for (j = 0; j < 20; j++) {
 				st->parameter[j] = effect_parameter_gs[i].param[j];
 			}
-		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "GS EFX: %s", effect_parameter_gs[i].name); */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "GS EFX: %s", effect_parameter_gs[i].name);
 			break;
 		}
 	}

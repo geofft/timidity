@@ -174,6 +174,7 @@ extern void init_ch_effect_xg(void);
 enum {
 	EFFECT_NONE,
 	EFFECT_EQ2,
+	EFFECT_EQ3,
 	EFFECT_OVERDRIVE1,
 	EFFECT_DISTORTION1,
 	EFFECT_OD1OD2,

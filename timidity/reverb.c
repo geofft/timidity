@@ -2360,7 +2360,7 @@ void alloc_effect(EffectList *ef)
 	ef->info = safe_malloc(ef->engine->info_size);
 	memset(ef->info, 0, ef->engine->info_size);
 
-	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Effect Engine: %s", ef->engine->name);
+/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Effect Engine: %s", ef->engine->name); */
 }
 
 /*! allocate new effect item and add it into the tail of effect list.
@@ -2994,6 +2994,48 @@ static void do_eq3(int32 *buf, int32 count, EffectList *ef)
 	if(eq->mid_gain != 0) {
 		do_peaking_filter_stereo(buf, count, &(eq->peak));
 	}
+}
+
+static void conv_xg_eq2(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ2 *info = (InfoEQ2 *)ef->info;
+	int val;
+
+	val = st->param_lsb[0];
+	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
+	info->low_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[1] - 64;
+	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[2];
+	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
+	info->high_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[3] - 64;
+	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+}
+
+static void conv_xg_eq3(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ3 *info = (InfoEQ3 *)ef->info;
+	int val;
+
+	val = st->param_lsb[0] - 64;
+	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[1];
+	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
+	info->mid_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[2] - 64;
+	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[3];
+	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
+	info->mid_width = (double)val / 10.0f;
+	val = st->param_lsb[4] - 64;
+	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[5];
+	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
+	info->low_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[6];
+	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
+	info->high_freq = eq_freq_table_xg[val];
 }
 
 static void conv_xg_chorus_eq3(struct effect_xg_t *st, EffectList *ef)
@@ -3643,7 +3685,8 @@ static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
 
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
-	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
+	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, conv_xg_eq2, sizeof(InfoEQ2),
+	EFFECT_EQ3, "3-Band EQ", do_eq3, NULL, conv_xg_eq3, sizeof(InfoEQ3),
 	EFFECT_OVERDRIVE1, "Overdrive", do_overdrive1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
 	EFFECT_DISTORTION1, "Distortion", do_distortion1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
 	EFFECT_OD1OD2, "OD1/OD2", do_dual_od, conv_gs_dual_od, NULL, sizeof(InfoOD1OD2),
@@ -3676,12 +3719,52 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	0x24, 0x56, 111, 1, 10, 0, 0, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
 	0x41, 0, "CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x01, "CHORUS 2", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	8, 63, 64, 30, 0, 28, 62, 42, 58, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x02, "CHORUS 3", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	4, 44, 64, 110, 0, 28, 64, 46, 66, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x03, "GM CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	9, 10, 64, 109, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x04, "GM CHORUS 2", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	28, 34, 67, 105, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x05, "GM CHORUS 3", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	9, 34, 69, 105, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x06, "GM CHORUS 4", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	26, 29, 75, 102, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x07, "FB CHORUS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	6, 43, 107, 111, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
+	0x41, 0x08, "CHORUS 4", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	9, 32, 69, 104, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 1, 0, 9,
+	0x42, 0, "CELESTE 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	12, 32, 64, 0, 0, 28, 64, 46, 64, 127, 40, 68, 10, 0, 0, 0, 9,
+	0x42, 0x01, "CELESTE 2", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	28, 18, 90, 2, 0, 28, 62, 42, 60, 84, 40, 68, 10, 0, 0, 0, 9,
+	0x42, 0x02, "CELESTE 3", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	4, 63, 44, 2, 0, 28, 64, 46, 68, 127, 40, 68, 10, 0, 0, 0, 9,
+	0x42, 0x08, "CELESTE 4", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	8, 29, 64, 0, 0, 28, 64, 51, 66, 127, 40, 68, 10, 0, 1, 0, 9,
 	0x43, 0, "FLANGER 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	14, 14, 104, 2, 0, 28, 64, 46, 64, 96, 40, 64, 10, 4, 0, 0, 9, 
+	0x43, 0x01, "FLANGER 2", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	32, 17, 26, 2, 0, 28, 64, 46, 60, 96, 40, 64, 10, 4, 0, 0, 9, 
+	0x43, 0x07, "GM FLANGER", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	3, 21, 120, 1, 0, 28, 64, 46, 64, 96, 40, 64, 10, 4, 0, 0, 9, 
+	0x43, 0x08, "FLANGER 3", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	4, 109, 109, 2, 0, 28, 64, 46, 64, 127, 40, 64, 10, 4, 0, 0, 9, 
+	0x44, 0, "SYMPHONIC", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	12, 25, 16, 0, 0, 28, 64, 46, 64, 127, 46, 64, 10, 0, 0, 0, 9,
 	0x49, 0, "DISTORTION", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	40, 20, 72, 53, 48, 0, 43, 74, 10, 127, 120, 0, 0, 0, 0, 0, 0, 
+	0x49, 0x08, "STEREO DISTORTION", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	18, 27, 71, 48, 84, 0, 32, 66, 10, 127, 105, 0, 0, 0, 0, 0, 0, 
 	0x4A, 0, "OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	29, 24, 68, 45, 55, 0, 41, 72, 10, 127, 104, 0, 0, 0, 0, 0, 0, 
+	0x4A, 0x08, "STEREO OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	10, 24, 69, 46, 105, 0, 41, 66, 10, 127, 104, 0, 0, 0, 0, 0, 0, 
+	0x4C, 0, "3-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	70, 34, 60, 10, 70, 28, 46, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
+	0x4D, 0, "2-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	28, 70, 46, 70, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };

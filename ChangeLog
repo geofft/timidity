@@ -7,7 +7,7 @@
 
 	* timidity/playmidi.c, timidity/readmidi.c, timidity/reverb.[ch],
 	  timidity/effect.c, timidity/mix.c:
-	  Support for XG variation effect: Echo.
+	  Support for XG variation effect: Echo, Symphonic(incomplete), Celeste, 2-Band EQ, 3-Band EQ.
 	  Fix around envelope.
 
 2004-03-05  Saito <saito@intaa.net>
