@@ -764,15 +764,16 @@ static int set_gus_patchconf_opts(char *name,
 			k = 0;
 		else if (! strcmp(cp, "right"))
 			k = 127;
-		else
+		else {
 			k = ((atoi(cp) + 100) * 100) / 157;
-		if ((k < 0 || k > 127)
-				|| (k == 0 && *cp != '-' && (*cp < '0' || *cp > '9'))) {
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"%s: line %d: panning must be left, right, "
-					"center, or between -100 and 100",
-					name, line);
-			return 1;
+			if ((k < 0 || k > 127)
+					|| (k == 0 && *cp != '-' && (*cp < '0' || *cp > '9'))) {
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+						"%s: line %d: panning must be left, right, "
+						"center, or between -100 and 100",
+						name, line);
+				return 1;
+			}
 		}
 		tone->pan = k;
 	} else if (! strcmp(opts, "tune"))
