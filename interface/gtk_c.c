@@ -203,11 +203,8 @@ ctl_refresh(void)
 static void
 ctl_total_time(int tt)
 {
-  /*int centisecs=tt/(play_mode->rate/100);*/
-  int centisecs=tt*100/play_mode->rate;
-
     gtk_pipe_int_write(TOTALTIME_MESSAGE);
-    gtk_pipe_int_write(centisecs);
+    gtk_pipe_int_write(tt);
 }
 
 static void

@@ -36,6 +36,7 @@
 
 #include "timidity.h"
 #include "common.h"
+#include "output.h"
 #include "gtk_h.h"
 
 #include "pixmaps/playpaus.xpm"
@@ -708,21 +709,20 @@ handle_input(gpointer client_data, gint source, GdkInputCondition ic)
 
     case TOTALTIME_MESSAGE:
 	{
-	    int cseconds;
+	    int tt;
 	    int minutes,seconds;
 	    char local_string[20];
 	    GtkObject *adj;
 
-	    gtk_pipe_int_read(&cseconds);
+	    gtk_pipe_int_read(&tt);
 
-	    seconds=cseconds/100;
+	    seconds=max_sec=tt/play_mode->rate;
 	    minutes=seconds/60;
 	    seconds-=minutes*60;
 	    sprintf(local_string,"/ %i:%02i",minutes,seconds);
 	    gtk_label_set(GTK_LABEL(tot_lbl), local_string);
 
 	    /* Readjust the time scale */
-	    max_sec=cseconds/100;
 	    adj = gtk_adjustment_new(0., 0., (gfloat)max_sec,
 				     1., 10., 0.);
 	    gtk_signal_connect(GTK_OBJECT(adj), "value_changed",

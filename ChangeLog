@@ -1,3 +1,10 @@
+2004-09-09  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* interface/gtk_c.c (ctl_total_time): ditto.
+	* interface/gtk_i.c (handle_input): Fix counter overflow
+	  (fix for [timidity-bugs-en:00032])
+	* NEWS: Fix typo.
+
 2004-09-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* freq.c: mostly rewritten

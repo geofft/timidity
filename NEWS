@@ -7,7 +7,7 @@
           * aRts
           * JACK
           * Windows Synthesizer mode (TWSYMTH)
-          * PortAudio?
+          * PortAudio
           * PortMIDI Synthesizer mode 
     * Newly supported input format
           * MFi (Melody format for i-Mode)
