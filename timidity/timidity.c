@@ -4774,13 +4774,13 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     extern char *ConfigFile;
     if(!ConfigFile[0]) {
       GetWindowsDirectory(ConfigFile, 1023 - 13);
-      strcat(ConfigFile, "\\TIMIDITY.CFG");
+      strncat(ConfigFile, "\\TIMIDITY.CFG", 13);
     }
     strncpy(local, ConfigFile, sizeof(local) - 1);
 #else
     /* !IA_W32GUI */
     GetWindowsDirectory(local, 1023 - 13);
-    strcat(local, "\\TIMIDITY.CFG");
+    strncat(local, "\\TIMIDITY.CFG", 13);
 #endif
 
     /* First, try read system configuration file.
@@ -4798,13 +4798,13 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     /* Next, try read configuration file which is in the
      * TiMidity directory.
      */
-    if(GetModuleFileName(NULL, local, 1023))
+    if(GetModuleFileName(NULL, local, 1023 - 12))
     {
-        local[1023] = '\0';
+        local[1023 - 12] = '\0';
 	if(strp = strrchr(local, '\\'))
 	{
 	    *(++strp)='\0';
-	    strcat(local,"TIMIDITY.CFG");
+	    strncat(local,"TIMIDITY.CFG", 12);
 	    if((check = open(local, 0)) >= 0)
 	    {
 		close(check);
