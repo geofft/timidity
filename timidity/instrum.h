@@ -160,10 +160,14 @@ enum instrument_mapID
     SC_88_DRUM_MAP,
     SC_88PRO_TONE_MAP,
     SC_88PRO_DRUM_MAP,
+    SC_8850_TONE_MAP,
+    SC_8850_DRUM_MAP,
     XG_NORMAL_MAP,
     XG_SFX64_MAP,
     XG_SFX126_MAP,
     XG_DRUM_MAP,
+    GM2_TONE_MAP,
+    GM2_DRUM_MAP,
     NUM_INST_MAP
 };
 

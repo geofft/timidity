@@ -1083,68 +1083,44 @@ static int set_gus_patchconf(char *name, int line,
     return 0;
 }
 
+typedef struct {
+	const char *name;
+	int mapid, isdrum;
+} MapNameEntry;
+
+static int mapnamecompare(const void *name, const void *entry)
+{
+	return strcmp((const char *)name, ((const MapNameEntry *)entry)->name);
+}
+
 static int mapname2id(char *name, int *isdrum)
 {
-    if(strcmp(name, "sc55") == 0)
-    {
-	*isdrum = 0;
-	return SC_55_TONE_MAP;
-    }
-
-    if(strcmp(name, "sc55drum") == 0)
-    {
-	*isdrum = 1;
-	return SC_55_DRUM_MAP;
-    }
-
-    if(strcmp(name, "sc88") == 0)
-    {
-	*isdrum = 0;
-	return SC_88_TONE_MAP;
-    }
-
-    if(strcmp(name, "sc88drum") == 0)
-    {
-	*isdrum = 1;
-	return SC_88_DRUM_MAP;
-    }
-
-    if(strcmp(name, "sc88pro") == 0)
-    {
-	*isdrum = 0;
-	return SC_88PRO_TONE_MAP;
-    }
-
-    if(strcmp(name, "sc88prodrum") == 0)
-    {
-	*isdrum = 1;
-	return SC_88PRO_DRUM_MAP;
-    }
-
-    if(strcmp(name, "xg") == 0)
-    {
-	*isdrum = 0;
-	return XG_NORMAL_MAP;
-    }
-
-    if(strcmp(name, "xgsfx64") == 0)
-    {
-	*isdrum = 0;
-	return XG_SFX64_MAP;
-    }
-
-    if(strcmp(name, "xgsfx126") == 0)
-    {
-	*isdrum = 1;
-	return XG_SFX126_MAP;
-    }
-
-    if(strcmp(name, "xgdrum") == 0)
-    {
-	*isdrum = 1;
-	return XG_DRUM_MAP;
-    }
-    return -1;
+	static const MapNameEntry data[] = {
+		/* sorted in alphabetical order */
+		{"gm2",         GM2_TONE_MAP, 0},
+		{"gm2drum",     GM2_DRUM_MAP, 1},
+		{"sc55",        SC_55_TONE_MAP, 0},
+		{"sc55drum",    SC_55_DRUM_MAP, 1},
+		{"sc88",        SC_88_TONE_MAP, 0},
+		{"sc8850",      SC_8850_TONE_MAP, 0},
+		{"sc8850drum",  SC_8850_DRUM_MAP, 1},
+		{"sc88drum",    SC_88_DRUM_MAP, 1},
+		{"sc88pro",     SC_88PRO_TONE_MAP, 0},
+		{"sc88prodrum", SC_88PRO_DRUM_MAP, 1},
+		{"xg",          XG_NORMAL_MAP, 0},
+		{"xgdrum",      XG_DRUM_MAP, 1},
+		{"xgsfx126",    XG_SFX126_MAP, 1},
+		{"xgsfx64",     XG_SFX64_MAP, 0}
+	};
+	const MapNameEntry *found;
+	
+	found = (MapNameEntry *)bsearch(name, data, sizeof data / sizeof data[0], sizeof data[0], mapnamecompare);
+	if (found != NULL)
+	{
+		*isdrum = found->isdrum;
+		return found->mapid;
+	}
+	return -1;
 }
 
 /* string[0] should not be '#' */
