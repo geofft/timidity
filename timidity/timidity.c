@@ -117,9 +117,9 @@ static const struct option longopts[] = {
 	{ "4-point-interpolation",    optional_argument, NULL, '4' << 8 },
 #endif
 	{ "volume",                   required_argument, NULL, 'A' << 8 },
-	{ "drum-power",               required_argument, NULL, 227 << 8 },
-	{ "no-volume-compensation",   no_argument,       NULL, 228 << 8 },
-	{ "volume-compensation",      optional_argument, NULL, 228 << 8 },
+	{ "drum-power",               required_argument, NULL, 200 << 8 },
+	{ "no-volume-compensation",   no_argument,       NULL, 201 << 8 },
+	{ "volume-compensation",      optional_argument, NULL, 201 << 8 },
 	{ "no-anti-alias",            no_argument,       NULL, 'a' << 8 },
 	{ "anti-alias",               optional_argument, NULL, 'a' << 8 },
 	{ "buffer-fragments",         required_argument, NULL, 'B' << 8 },
@@ -129,30 +129,30 @@ static const struct option longopts[] = {
 	{ "drums",                    required_argument, NULL, 'D' << 8 },
 	{ "interface-path",           required_argument, NULL, 'd' << 8 },
 	{ "effects",                  required_argument, NULL, 'E' << 8 },
-	{ "no-modulation-wheel",      no_argument,       NULL, 216 << 8 },
-	{ "modulation-wheel",         optional_argument, NULL, 216 << 8 },
-	{ "no-portamento",            no_argument,       NULL, 217 << 8 },
-	{ "portamento",               optional_argument, NULL, 217 << 8 },
-	{ "no-vibrato",               no_argument,       NULL, 218 << 8 },
-	{ "vibrato",                  optional_argument, NULL, 218 << 8 },
-	{ "no-channel-pressure",      no_argument,       NULL, 219 << 8 },
-	{ "channel-pressure",         optional_argument, NULL, 219 << 8 },
-	{ "no-new-lpf",               no_argument,       NULL, 220 << 8 },
-	{ "new-lpf",                  optional_argument, NULL, 220 << 8 },
-	{ "no-modulation-envelope",   no_argument,       NULL, 236 << 8 },
-	{ "modulation-envelope",      optional_argument, NULL, 236 << 8 },
-	{ "no-trace-text-meta",       no_argument,       NULL, 214 << 8 },
-	{ "trace-text-meta",          optional_argument, NULL, 214 << 8 },
-	{ "no-overlap-voice",         no_argument,       NULL, 221 << 8 },
-	{ "overlap-voice",            optional_argument, NULL, 221 << 8 },
-	{ "default-mid",              required_argument, NULL, 213 << 8 },
-	{ "system-mid",               required_argument, NULL, 237 << 8 },
-	{ "default-bank",             required_argument, NULL, 211 << 8 },
-	{ "force-bank",               required_argument, NULL, 212 << 8 },
-	{ "delay",                    required_argument, NULL, 224 << 8 },
-	{ "reverb",                   required_argument, NULL, 222 << 8 },
-	{ "chorus",                   required_argument, NULL, 223 << 8 },
-	{ "noise-shaping",            required_argument, NULL, 225 << 8 },
+	{ "no-modulation-wheel",      no_argument,       NULL, 202 << 8 },
+	{ "modulation-wheel",         optional_argument, NULL, 202 << 8 },
+	{ "no-portamento",            no_argument,       NULL, 203 << 8 },
+	{ "portamento",               optional_argument, NULL, 203 << 8 },
+	{ "no-vibrato",               no_argument,       NULL, 204 << 8 },
+	{ "vibrato",                  optional_argument, NULL, 204 << 8 },
+	{ "no-channel-pressure",      no_argument,       NULL, 205 << 8 },
+	{ "channel-pressure",         optional_argument, NULL, 205 << 8 },
+	{ "no-new-lpf",               no_argument,       NULL, 206 << 8 },
+	{ "new-lpf",                  optional_argument, NULL, 206 << 8 },
+	{ "no-modulation-envelope",   no_argument,       NULL, 207 << 8 },
+	{ "modulation-envelope",      optional_argument, NULL, 207 << 8 },
+	{ "no-trace-text-meta",       no_argument,       NULL, 208 << 8 },
+	{ "trace-text-meta",          optional_argument, NULL, 208 << 8 },
+	{ "no-overlap-voice",         no_argument,       NULL, 209 << 8 },
+	{ "overlap-voice",            optional_argument, NULL, 209 << 8 },
+	{ "default-mid",              required_argument, NULL, 210 << 8 },
+	{ "system-mid",               required_argument, NULL, 211 << 8 },
+	{ "default-bank",             required_argument, NULL, 212 << 8 },
+	{ "force-bank",               required_argument, NULL, 213 << 8 },
+	{ "delay",                    required_argument, NULL, 214 << 8 },
+	{ "reverb",                   required_argument, NULL, 215 << 8 },
+	{ "chorus",                   required_argument, NULL, 216 << 8 },
+	{ "noise-shaping",            required_argument, NULL, 217 << 8 },
 	{ "evil",                     required_argument, NULL, 'e' << 8 },
 	{ "no-fast-panning",          no_argument,       NULL, 'F' << 8 },
 	{ "fast-panning",             optional_argument, NULL, 'F' << 8 },
@@ -163,28 +163,28 @@ static const struct option longopts[] = {
 	{ "help",                     optional_argument, NULL, 'h' << 8 },
 	{ "default-program",          required_argument, NULL, 'I' << 8 },
 	{ "interface",                required_argument, NULL, 'i' << 8 },
-	{ "verbose",                  optional_argument, NULL, 205 << 8 },
-	{ "quiet",                    optional_argument, NULL, 206 << 8 },
-	{ "no-trace",                 no_argument,       NULL, 207 << 8 },
-	{ "trace",                    optional_argument, NULL, 207 << 8 },
-	{ "no-loop",                  no_argument,       NULL, 208 << 8 },
-	{ "loop",                     optional_argument, NULL, 208 << 8 },
-	{ "no-random",                no_argument,       NULL, 209 << 8 },
-	{ "random",                   optional_argument, NULL, 209 << 8 },
-	{ "no-sort-list",             no_argument,       NULL, 210 << 8 },
-	{ "sort-list",                optional_argument, NULL, 210 << 8 },
-	{ "no-auto-start",            no_argument,       NULL, 230 << 8 },
-	{ "auto-start",               optional_argument, NULL, 230 << 8 },
-	{ "no-auto-exit",             no_argument,       NULL, 231 << 8 },
-	{ "auto-exit",                optional_argument, NULL, 231 << 8 },
-	{ "no-drag-start",            no_argument,       NULL, 232 << 8 },
-	{ "drag-start",               optional_argument, NULL, 232 << 8 },
-	{ "no-uniq-list",             no_argument,       NULL, 233 << 8 },
-	{ "uniq-list",                optional_argument, NULL, 233 << 8 },
-	{ "no-refine-list",           no_argument,       NULL, 234 << 8 },
-	{ "refine-list",              optional_argument, NULL, 234 << 8 },
-	{ "no-continue",              no_argument,       NULL, 235 << 8 },
-	{ "continue",                 optional_argument, NULL, 235 << 8 },
+	{ "verbose",                  optional_argument, NULL, 218 << 8 },
+	{ "quiet",                    optional_argument, NULL, 219 << 8 },
+	{ "no-trace",                 no_argument,       NULL, 220 << 8 },
+	{ "trace",                    optional_argument, NULL, 220 << 8 },
+	{ "no-loop",                  no_argument,       NULL, 221 << 8 },
+	{ "loop",                     optional_argument, NULL, 221 << 8 },
+	{ "no-random",                no_argument,       NULL, 222 << 8 },
+	{ "random",                   optional_argument, NULL, 222 << 8 },
+	{ "no-sort-list",             no_argument,       NULL, 223 << 8 },
+	{ "sort-list",                optional_argument, NULL, 223 << 8 },
+	{ "no-auto-start",            no_argument,       NULL, 224 << 8 },
+	{ "auto-start",               optional_argument, NULL, 224 << 8 },
+	{ "no-auto-exit",             no_argument,       NULL, 225 << 8 },
+	{ "auto-exit",                optional_argument, NULL, 225 << 8 },
+	{ "no-drag-start",            no_argument,       NULL, 226 << 8 },
+	{ "drag-start",               optional_argument, NULL, 226 << 8 },
+	{ "no-uniq-list",             no_argument,       NULL, 227 << 8 },
+	{ "uniq-list",                optional_argument, NULL, 227 << 8 },
+	{ "no-refine-list",           no_argument,       NULL, 228 << 8 },
+	{ "refine-list",              optional_argument, NULL, 228 << 8 },
+	{ "no-continue",              no_argument,       NULL, 229 << 8 },
+	{ "continue",                 optional_argument, NULL, 229 << 8 },
 	{ "no-realtime-load",         no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",            optional_argument, NULL, 'j' << 8 },
 	{ "adjust-key",               required_argument, NULL, 'K' << 8 },
@@ -196,35 +196,38 @@ static const struct option longopts[] = {
 	{ "interpolation",            required_argument, NULL, 'N' << 8 },
 #endif
 	{ "mode",                     required_argument, NULL, 'O' << 8 },
-	{ "stereo",                   optional_argument, NULL, 229 << 8 },
-	{ "mono",                     optional_argument, NULL, 229 << 8 },
-	{ "output-signed",            optional_argument, NULL, 202 << 8 },
-	{ "output-unsigned",          no_argument,       NULL, 202 << 8 },
-	{ "bit-width",                required_argument, NULL, 200 << 8 },
-	{ "encoding",                 required_argument, NULL, 201 << 8 },
-	{ "no-output-byte-swap",      no_argument,       NULL, 203 << 8 },
-	{ "output-byte-swap",         optional_argument, NULL, 203 << 8 },
+	{ "stereo",                   optional_argument, NULL, 230 << 8 },
+	{ "mono",                     optional_argument, NULL, 230 << 8 },
+	{ "output-signed",            optional_argument, NULL, 231 << 8 },
+	{ "output-unsigned",          no_argument,       NULL, 231 << 8 },
+	{ "bit-width",                required_argument, NULL, 232 << 8 },
+	{ "encoding",                 required_argument, NULL, 233 << 8 },
+	{ "no-output-byte-swap",      no_argument,       NULL, 234 << 8 },
+	{ "output-byte-swap",         optional_argument, NULL, 234 << 8 },
+	{ "output-file",              required_argument, NULL, 'o' << 8 },
 	{ "patch",                    required_argument, NULL, 'P' << 8 },
+	{ "polyphony",                required_argument, NULL, 'p' << 8 },
+	{ "no-polyphony-reduction",   no_argument,       NULL, 235 << 8 },
+	{ "polyphony-reduction",      optional_argument, NULL, 235 << 8 },
 	{ "mute",                     required_argument, NULL, 'Q' << 8 },
+	{ "temper-mute",              required_argument, NULL, 236 << 8 },
+	{ "audio-buffer",             required_argument, NULL, 'q' << 8 },
 	{ "cache-size",               required_argument, NULL, 'S' << 8 },
+	{ "sampling-freq",            required_argument, NULL, 's' << 8 },
 	{ "adjust-tempo",             required_argument, NULL, 'T' << 8 },
+	{ "output-charset",           required_argument, NULL, 't' << 8 },
 	{ "no-unload-instruments",    no_argument,       NULL, 'U' << 8 },
 	{ "unload-instruments",       optional_argument, NULL, 'U' << 8 },
-	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
-	{ "wrd",                      required_argument, NULL, 'W' << 8 },
-	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
-	{ "output-file",              required_argument, NULL, 'o' << 8 },
-	{ "polyphony",                required_argument, NULL, 'p' << 8 },
-	{ "audio-buffer",             required_argument, NULL, 'q' << 8 },
-	{ "sampling-freq",            required_argument, NULL, 's' << 8 },
-	{ "output-charset",           required_argument, NULL, 't' << 8 },
 	{ "version",                  no_argument,       NULL, 'v' << 8 },
+	{ "wrd",                      required_argument, NULL, 'W' << 8 },
+	{ "wrd-read-opts",            required_argument, NULL, 237 << 8 },
+#ifdef __W32__
+	{ "no-rcpcv-dll",             no_argument,       NULL, 'w' << 8 },
+	{ "rcpcv-dll",                optional_argument, NULL, 'w' << 8 },
+#endif
 	{ "exec",                     required_argument, NULL, 'x' << 8 },
-	{ "temper-mute",              required_argument, NULL, 204 << 8 },
-	{ "no-polyphony-reduction",   no_argument,       NULL, 215 << 8 },
-	{ "polyphony-reduction",      optional_argument, NULL, 215 << 8 },
-	{ "temperament",              required_argument, NULL, 226 << 8 },
-	{ "wrd-read-opts",            required_argument, NULL, 238 << 8 },
+	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
+	{ "pure-intonation",          optional_argument, NULL, 238 << 8 },
 	{ NULL,                       no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -307,9 +310,7 @@ static inline int parse_opt_k(const char *);
 static inline int parse_opt_L(char *);
 static inline int parse_opt_M(const char *);
 static inline int parse_opt_m(const char *);
-#ifdef GAUSS_INTERPOLATION
-static inline int parse_opt_N(const char *);
-#elif defined(NEWTON_INTERPOLATION)
+#if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
 static inline int parse_opt_N(const char *);
 #endif
 static inline int parse_opt_O(const char *);
@@ -321,23 +322,28 @@ static inline int parse_opt_O5(const char *);
 static inline int parse_opt_o(char *);
 static inline int parse_opt_P(const char *);
 static inline int parse_opt_p(const char *);
-static inline int parse_opt_215(const char *);	/* --[no-]polyphony-reduction */
+static inline int parse_opt_p1(const char *);
 static inline int parse_opt_Q(const char *);
-static inline int parse_opt_204(const char *);	/* --temper-mute */
+static inline int parse_opt_Q1(const char *);
 static inline int parse_opt_q(const char *);
+static inline int parse_opt_R(const char *);
 static inline int parse_opt_S(const char *);
 static inline int parse_opt_s(const char *);
 static inline int parse_opt_T(const char *);
 static inline int parse_opt_t(const char *);
 static inline int parse_opt_U(const char *);
 static inline int parse_opt_v(const char *);
-static inline int parse_opt_W(const char *);
-static inline int parse_opt_238(char *);		/* --wrd-read-opts */
+static inline int parse_opt_W(char *);
+static inline int parse_opt_W1(char *);
+#ifdef __W32__
+static inline int parse_opt_w(const char *);
+#endif
 static inline int parse_opt_x(char *);
+static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
-static inline int parse_opt_226(const char *);	/* --temperament */
+static inline int parse_opt_Z1(const char *);
 __attribute__((noreturn))
-static inline int parse_opt_666(const char *);	/* getopt_long failed to recognize any options */
+static inline int parse_opt_666(const char *);
 static inline int set_value(int32 *, int32, int32, int32, char *);
 static inline int set_channel_flag(ChannelBitMask *, int32, char *);
 __attribute__((pure))
@@ -1067,31 +1073,23 @@ int set_ctl(char *cp)
 
 int set_wrd(char *w)
 {
-    WRDTracer **wl = wrdt_list;
-
-    if(*w == 'R') /* for WRD reader options */
-    {
-	w++;
-	put_string_table(&wrd_read_opts, w, strlen(w));
-	return 0;
-    }
-
-    while(*wl)
-    {
-	if((*wl)->id == *w)
-	{
-	    wrdt = *wl;
-	    if(wrdt_open_opts != NULL)
-		free(wrdt_open_opts);
-	    wrdt_open_opts = safe_strdup(w + 1);
-	    return 0;
+	WRDTracer *wlp, **wlpp;
+	
+	if (*w == 'R') {	/* for WRD reader options */
+		put_string_table(&wrd_read_opts, w + 1, strlen(w + 1));
+		return 0;
 	}
-	wl++;
-    }
-
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	      "WRD Tracer `%c' is not compiled in.", *w);
-    return 1;
+	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)
+		if (wlp->id == *w) {
+			wrdt = wlp;
+			if (wrdt_open_opts)
+				free(wrdt_open_opts);
+			wrdt_open_opts = safe_strdup(w + 1);
+			return 0;
+		}
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			"WRD Tracer `%c' is not compiled in.", *w);
+	return 1;
 }
 
 static void copybank(ToneBank *to, ToneBank *from)
@@ -2704,42 +2702,6 @@ MAIN_INTERFACE void tmdy_free_config(void)
   clean_up_pathlist();
 }
 
-static void expand_escape_string(char *s)
-{
-    char *t = s;
-    if(s == NULL)
-	return;
-    while(*s)
-    {
-        if(*s == '\\')
-        {
-            s++;
-            switch(*s)
-            {
-#define EXPAND(a, b) case a: *t++ = b; break;
-                EXPAND('n', '\n');
-                EXPAND('t', '\t');
-                EXPAND('v', '\v');
-                EXPAND('b', '\b');
-                EXPAND('r', '\r');
-                EXPAND('f', '\f');
-                EXPAND('a', '\a');
-                EXPAND('0', '\0');
-                EXPAND('\\', '\\');
-#undef EXPAND
-              default:
-		*t++ = *s;
-            }
-	    if(*s == '\0')
-		return;
-	    s++;
-	}
-	else
-	    *t++ = *s++;
-    }
-    *t = '\0';
-}
-
 static int parse_effect_option(char *effect_opts)
 {
 	int i;
@@ -2983,42 +2945,39 @@ int set_extension_modes(char *flag)
 #ifdef __W32__
 #ifdef SMFCONV
 int opt_rcpcv_dll = 0;
-#endif /* SMFCONV */
+#endif	/* SMFCONV */
 static int set_win_modes(char *flag)
 {
-    int err;
-
-    err = 0;
-    while(*flag)
-    {
-	switch(*flag)
-	{
+	int err = 0;
+	
+	while (*flag) {
+		switch (*flag) {
 #ifdef SMFCONV
-	  case 'r':
-	    opt_rcpcv_dll = 1;
-	    break;
-	  case 'R':
-	    opt_rcpcv_dll = 0;
-	    break;
+		case 'r':
+			opt_rcpcv_dll = 1;
+			break;
+		case 'R':
+			opt_rcpcv_dll = 0;
+			break;
 #else
-	  case 'r':
-	  case 'R':
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-w%c option is not supported",
-		      *flag);
-	    err++;
-	    break;
-#endif /* SMFCONV */
-
-	  default:
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-w: Illegal mode `%c'", *flag);
-	    err++;
-	    break;
+		case 'r':
+		case 'R':
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-w%c option is not supported", *flag);
+			err++;
+			break;
+#endif	/* SMFCONV */
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-w: Illegal mode `%c'", *flag);
+			err++;
+			break;
+		}
+		flag++;
 	}
-	flag++;
-    }
-    return err;
+	return err;
 }
-#endif /* __W32__ */
+#endif	/* __W32__ */
 
 #ifdef __W32__
 int opt_evil_mode = 0;
@@ -3387,9 +3346,9 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case 'A':
 		return parse_opt_A(arg);
-	case 227:
+	case 200:
 		return parse_opt_A1(arg);
-	case 228:
+	case 201:
 		return parse_opt_A2(arg);
 	case 'a':
 		return parse_opt_a(arg);
@@ -3407,37 +3366,37 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_d(arg);
 	case 'E':
 		return parse_opt_E(arg);
-	case 216:
+	case 202:
 		return parse_opt_E1(arg);
-	case 217:
+	case 203:
 		return parse_opt_E2(arg);
-	case 218:
+	case 204:
 		return parse_opt_E3(arg);
-	case 219:
+	case 205:
 		return parse_opt_E4(arg);
-	case 220:
+	case 206:
 		return parse_opt_E5(arg);
-	case 236:
+	case 207:
 		return parse_opt_E6(arg);
-	case 214:
+	case 208:
 		return parse_opt_E7(arg);
-	case 221:
+	case 209:
 		return parse_opt_E8(arg);
-	case 213:
+	case 210:
 		return parse_opt_E9(arg);
-	case 237:
-		return parse_opt_EA(arg);
 	case 211:
-		return parse_opt_EB(arg);
+		return parse_opt_EA(arg);
 	case 212:
+		return parse_opt_EB(arg);
+	case 213:
 		return parse_opt_EC(arg);
-	case 224:
+	case 214:
 		return parse_opt_ED(arg);
-	case 222:
+	case 215:
 		return parse_opt_EE(arg);
-	case 223:
+	case 216:
 		return parse_opt_EF(arg);
-	case 225:
+	case 217:
 		return parse_opt_EG(arg);
 	case 'e':
 		return parse_opt_e(arg);
@@ -3455,29 +3414,29 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_I(arg);
 	case 'i':
 		return parse_opt_i(arg);
-	case 205:
+	case 218:
 		return parse_opt_i1(arg);
-	case 206:
+	case 219:
 		return parse_opt_i2(arg);
-	case 207:
+	case 220:
 		return parse_opt_i3(arg);
-	case 208:
+	case 221:
 		return parse_opt_i4(arg);
-	case 209:
+	case 222:
 		return parse_opt_i5(arg);
-	case 210:
+	case 223:
 		return parse_opt_i6(arg);
-	case 230:
+	case 224:
 		return parse_opt_i7(arg);
-	case 231:
+	case 225:
 		return parse_opt_i8(arg);
-	case 232:
+	case 226:
 		return parse_opt_i9(arg);
-	case 233:
+	case 227:
 		return parse_opt_ia(arg);
-	case 234:
+	case 228:
 		return parse_opt_ib(arg);
-	case 235:
+	case 229:
 		return parse_opt_ic(arg);
 	case 'j':
 		return parse_opt_j(arg);
@@ -3497,52 +3456,56 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case 'O':
 		return parse_opt_O(arg);
-	case 229:
+	case 230:
 		return parse_opt_O1(arg);
-	case 202:
+	case 231:
 		return parse_opt_O2(arg);
-	case 200:
+	case 232:
 		return parse_opt_O3(arg);
-	case 201:
+	case 233:
 		return parse_opt_O4(arg);
-	case 203:
+	case 234:
 		return parse_opt_O5(arg);
-	case 'P':
-		return parse_opt_P(arg);
-	case 'Q':
-		return parse_opt_Q(arg);
-	case 'S':
-		return parse_opt_S(arg);
-	case 'T':
-		return parse_opt_T(arg);
-	case 'U':
-		return parse_opt_U(arg);
-	case 'W':
-		return parse_opt_W(arg);
-	case 'Z':
-		return parse_opt_Z(arg);
 	case 'o':
 		return parse_opt_o(arg);
+	case 'P':
+		return parse_opt_P(arg);
 	case 'p':
 		return parse_opt_p(arg);
+	case 235:
+		return parse_opt_p1(arg);
+	case 'Q':
+		return parse_opt_Q(arg);
+	case 236:
+		return parse_opt_Q1(arg);
 	case 'q':
 		return parse_opt_q(arg);
+	case 'S':
+		return parse_opt_S(arg);
 	case 's':
 		return parse_opt_s(arg);
+	case 'T':
+		return parse_opt_T(arg);
 	case 't':
 		return parse_opt_t(arg);
+	case 'U':
+		return parse_opt_U(arg);
 	case 'v':
 		return parse_opt_v(arg);
+	case 'W':
+		return parse_opt_W(arg);
+	case 237:
+		return parse_opt_W1(arg);
+#ifdef __W32__
+	case 'w':
+		return parse_opt_w(arg);
+#endif
 	case 'x':
 		return parse_opt_x(arg);
-	case 204:
-		return parse_opt_204(arg);
-	case 215:
-		return parse_opt_215(arg);
-	case 226:
-		return parse_opt_226(arg);
+	case 'Z':
+		return parse_opt_Z(arg);
 	case 238:
-		return parse_opt_226(arg);
+		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -4169,7 +4132,7 @@ static inline int parse_opt_m(const char *arg)
 	return 0;
 }
 
-#ifdef GAUSS_INTERPOLATION
+#if defined(GAUSS_INTERPOLATION)
 static inline int parse_opt_N(const char *arg)
 {
 	int32 tmpi32;
@@ -4218,6 +4181,7 @@ static inline int parse_opt_N(const char *arg)
 
 static inline int parse_opt_O(const char *arg)
 {
+	/* output mode */
 	static const struct Name2ID {
 		const char *name;
 		const int id;
@@ -4374,7 +4338,7 @@ static inline int parse_opt_p(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_215(const char *arg)
+static inline int parse_opt_p1(const char *arg)
 {
 	/* --[no-]polyphony-reduction */
 	auto_reduce_polyphony = y_or_n_p(arg);
@@ -4385,11 +4349,11 @@ static inline int parse_opt_Q(const char *arg)
 {
 	if (strchr(arg, 't'))
 		/* backward compatibility */
-		return parse_opt_204(arg);
+		return parse_opt_Q1(arg);
 	return set_channel_flag(&quietchannels, atoi(arg), "Quiet channel");
 }
 
-static inline int parse_opt_204(const char *arg)
+static inline int parse_opt_Q1(const char *arg)
 {
 	/* --temper-mute */
 	int32 tmpi32;
@@ -4402,40 +4366,57 @@ static inline int parse_opt_204(const char *arg)
 
 static inline int parse_opt_q(const char *arg)
 {
-	char *m = safe_strdup(arg);
-	char *f = strchr(m, '/');
+	char *max_buff = safe_strdup(arg);
+	char *fill_buff = strchr(max_buff, '/');
 	
-	if (f != m) {
+	if (fill_buff != max_buff) {
 		if (opt_aq_max_buff)
 			free(opt_aq_max_buff);
-		opt_aq_max_buff = m;
+		opt_aq_max_buff = max_buff;
 	}
-	if (f) {
-		f[0] = '\0';
+	if (fill_buff) {
+		*fill_buff = '\0';
 		if (opt_aq_fill_buff)
 			free(opt_aq_fill_buff);
-		opt_aq_fill_buff = f + 1;
+		opt_aq_fill_buff = ++fill_buff;
+	}
+	return 0;
+}
+
+static inline int parse_opt_R(const char *arg)
+{
+	int32 tmpi32;
+	
+	if (atoi(arg) == -1)	/* reset */
+		modify_release = 0;
+	else {
+		if (set_value(&tmpi32, atoi(arg), 0, MAX_MREL, "Modify Release"))
+			return 1;
+		if ((modify_release = tmpi32) == 0)
+			modify_release = DEFAULT_MREL;
 	}
 	return 0;
 }
 
 static inline int parse_opt_S(const char *arg)
 {
-	double val = atof(arg);
-	int figure;
 	int suffix = arg[strlen(arg) - 1];
+	int32 figure;
 	
 	switch (suffix) {
-	case 'm':
 	case 'M':
+	case 'm':
 		figure = 1 << 20;
-	case 'k':
+		break;
 	case 'K':
+	case 'k':
 		figure = 1 << 10;
+		break;
 	default:
 		figure = 1;
+		break;
 	}
-	allocate_cache_size = figure * val;
+	allocate_cache_size = atof(arg) * figure;
 	return 0;
 }
 
@@ -4443,18 +4424,12 @@ static inline int parse_opt_s(const char *arg)
 {
 	/* sampling rate */
 	int32 tmpi32;
-	
-	if (atoi(arg) < 100) {
-		if (set_value(&tmpi32, atoi(arg), 4, 65, "Frequency"))
-			return 1;
-		/* Hey, what's this 0.5? -- mput */
-		opt_output_rate = tmpi32 * 1000 + 0.5;
-	} else {
-		if (set_value(&tmpi32, atoi(arg), MIN_OUTPUT_RATE, MAX_OUTPUT_RATE,
-				"Frequency"))
-			return 1;
-		opt_output_rate = tmpi32;
-	}
+
+	if (atoi(arg) < 100)
+		tmpi32 = atof(optarg) * 1000 + 0.5;
+	if (set_value(&opt_output_rate, tmpi32, MIN_OUTPUT_RATE, MAX_OUTPUT_RATE,
+			"Resampling frequency"))
+		return 1;
 	return 0;
 }
 
@@ -4490,30 +4465,46 @@ static inline int parse_opt_v(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_W(const char *arg)
+static inline int parse_opt_W(char *arg)
 {
-	int id_character = tolower(arg[0]);
-	WRDTracer **wpp = wrdt_list;
-	int i;
+	WRDTracer *wlp, **wlpp;
 	
-	for (i = 0; wpp[i] != NULL; i++) {
-		WRDTracer *wp = wpp[i];
-		
-		if (wp->id == id_character) {
-			wrdt = wp;
-			free(wrdt_open_opts);
+	if (*arg == 'R')	/* for WRD reader options */
+		/* backward compatibility */
+		return parse_opt_W1(arg + 1);
+	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)
+		if (wlp->id == *arg) {
+			wrdt = wlp;
+			if (wrdt_open_opts)
+				free(wrdt_open_opts);
 			wrdt_open_opts = safe_strdup(arg + 1);
 			return 0;
 		}
-	}
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			"WRD Tracer `%c' is not compiled in.", *arg);
+	return 1;
 }
 
-static inline int parse_opt_238(char *arg)
+static inline int parse_opt_W1(char *arg)
 {
 	/* --wrd-read-opts */
 	put_string_table(&wrd_read_opts, arg, strlen(arg));
 	return 0;
 }
+
+#ifdef __W32__
+static inline int parse_opt_w(const char *arg)
+{
+#ifdef SMFCONV
+	opt_rcpcv_dll = y_or_n_p(arg);
+	return 0;
+#else
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			"--rcpcv-dll option is not supported");
+	return 1;
+#endif	/* SMFCONV */
+}
+#endif	/* __W32__ */
 
 static inline int parse_opt_x(char *arg)
 {
@@ -4525,27 +4516,69 @@ static inline int parse_opt_x(char *arg)
 	return 0;
 }
 
+static inline void expand_escape_string(char *s)
+{
+	char *t = s;
+	
+	if (s == NULL)
+		return;
+	for (t = s; *s; s++)
+		if (*s == '\\') {
+			switch (*++s) {
+			case 'a':
+				*t++ = '\a';
+				break;
+			case 'b':
+				*t++ = '\b';
+				break;
+			case 't':
+				*t++ = '\t';
+				break;
+			case 'n':
+				*t++ = '\n';
+				break;
+			case 'f':
+				*t++ = '\f';
+				break;
+			case 'v':
+				*t++ = '\v';
+				break;
+			case 'r':
+				*t++ = '\r';
+				break;
+			case '\\':
+				*t++ = '\\';
+				break;
+			default:
+				if (! (*t++ = *s))
+					return;
+				break;
+			}
+		} else
+			*t++ = *s;
+	*t = *s;
+}
+
 static inline int parse_opt_Z(char *arg)
 {
+	/* load frequency table */
 	return load_table(arg);
 }
 
-static inline int parse_opt_226(const char *arg)
+static inline int parse_opt_Z1(const char *arg)
 {
-	/* --temperament */
+	/* --pure-intonation */
 	int32 tmpi32;
 	
-	if (! strncmp(arg, "pure", 4)) {
-		opt_pure_intonation = 1;
-		if (arg[4] != '\0') {
-			if (set_value(&tmpi32, atoi(arg + 4), -7, -7,
-					"Initial keysig (number of #(+)/b(-)[m(minor)])"))
-				return 1;
-			if (strchr(arg + 4, 'm'))
-				opt_init_keysig = tmpi32 + 16;
-			else
-				opt_init_keysig = tmpi32;
-		}
+	opt_pure_intonation = 1;
+	if (*arg) {
+		if (set_value(&tmpi32, atoi(arg), -7, -7,
+				"Initial keysig (number of #(+)/b(-)[m(minor)])"))
+			return 1;
+		if (strchr(arg, 'm'))
+			opt_init_keysig = tmpi32 + 16;
+		else
+			opt_init_keysig = tmpi32;
 	}
 }
 
