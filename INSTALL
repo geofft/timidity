@@ -3,7 +3,7 @@
 
 					Masanao Izumo
 					<iz@onicos.co.jp>
-					Feb.14.2004
+					Mar.01.2004
 					version 2.13.0 or later
 ======================================================================
 
@@ -615,7 +615,7 @@ by setteing -n flag like
 Search for voice data
 ======================================================================
 
-TiMidity++ uses Either GUS/patch, or SoundFont (,or both) as the voice
+TiMidity++ uses Either GUS/patch, or SoundFont(, or both) as the voice
 data to play.  You must get a SoundFont or GUS/patch files, and make
 the configuration file.  You must make the configuration file (*.cfg).
 By default, timidity.cfg is /usr/local/share/timidity/timidity.cfg (or
