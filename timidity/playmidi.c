@@ -555,40 +555,37 @@ static void redraw_controllers(int c)
 
 static void reset_midi(int playing)
 {
-    int i, cnt;
-    for(i = 0; i < MAX_CHANNELS; i++)
-    {
+	int i, cnt;
 	
-	reset_controllers(i);
-	reset_nrpn_controllers(i);
-	/* The rest of these are unaffected by the Reset All Controllers
-	   event */
-	channel[i].program = default_program[i];
-	channel[i].panning = NO_PANNING;
-	channel[i].pan_random = 0;
-
-	/* tone bank or drum set */
-	if(ISDRUMCHANNEL(i))
-	{
-	    channel[i].bank = 0;
-	    channel[i].altassign = drumset[0]->alt;
+	for (i = 0; i < MAX_CHANNELS; i++) {
+		reset_controllers(i);
+		reset_nrpn_controllers(i);
+		/* The rest of these are unaffected
+		 * by the Reset All Controllers event
+		 */
+		channel[i].program = default_program[i];
+		channel[i].panning = NO_PANNING;
+		channel[i].pan_random = 0;
+		/* tone bank or drum set */
+		if (ISDRUMCHANNEL(i)) {
+			channel[i].bank = 0;
+			channel[i].altassign = drumset[0]->alt;
+		} else {
+			if (special_tonebank >= 0)
+				channel[i].bank = special_tonebank;
+			else
+				channel[i].bank = default_tonebank;
+		}
+		channel[i].bank_lsb = channel[i].bank_msb =
+				channel[i].tone_map0_number = 0;
+		if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
+			channel[i].bank_msb = 127;	/* Use MSB=127 for XG */
+		update_rpn_map(i, RPN_ADDR_FFFF, 0);
+		channel[i].special_sample = 0;
+		channel[i].key_shift = 0;
+		channel[i].mapID = get_default_mapID(i);
+		channel[i].lasttime = 0;
 	}
-	else
-	{
-	    if(special_tonebank >= 0)
-		channel[i].bank = special_tonebank;
-	    else
-		channel[i].bank = default_tonebank;
-	}
-	channel[i].bank_lsb = channel[i].bank_msb = channel[i].tone_map0_number = 0;
-	if(play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
-	    channel[i].bank_msb = 127; /* Use MSB=127 for XG */
-	update_rpn_map(i, RPN_ADDR_FFFF, 0);
-	channel[i].special_sample = 0;
-	channel[i].key_shift = 0;
-	channel[i].mapID = get_default_mapID(i);
-	channel[i].lasttime = 0;
-    }
 	if (playing) {
 		kill_all_voices();
 		if (temper_type_mute) {
@@ -609,23 +606,20 @@ static void reset_midi(int playing)
 		}
 	} else
 		reset_voices();
-
-    master_volume_ratio = 0xFFFF;
-    adjust_amplification();
-    init_freq_table_tuning();
-    if(current_file_info)
-    {
-	COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
-	COPY_CHANNELMASK(drumchannel_mask, current_file_info->drumchannel_mask);
-    }
-    else
-    {
-	COPY_CHANNELMASK(drumchannels, default_drumchannels);
-	COPY_CHANNELMASK(drumchannel_mask, default_drumchannel_mask);
-    }
-    ctl_mode_event(CTLE_MASTER_VOLUME, 0, amplification, 0);
-    ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
-    ctl_mode_event(CTLE_TIME_RATIO, 0, 100 / midi_time_ratio + 0.5, 0);
+	master_volume_ratio = 0xffff;
+	adjust_amplification();
+	init_freq_table_tuning();
+	if (current_file_info) {
+		COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
+		COPY_CHANNELMASK(drumchannel_mask,
+				current_file_info->drumchannel_mask);
+	} else {
+		COPY_CHANNELMASK(drumchannels, default_drumchannels);
+		COPY_CHANNELMASK(drumchannel_mask, default_drumchannel_mask);
+	}
+	ctl_mode_event(CTLE_MASTER_VOLUME, 0, amplification, 0);
+	ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
+	ctl_mode_event(CTLE_TIME_RATIO, 0, 100 / midi_time_ratio + 0.5, 0);
 }
 
 void recompute_freq(int v)
@@ -676,21 +670,16 @@ void recompute_freq(int v)
 		tuning += (channel[ch].drums[note]->fine
 				+ channel[ch].drums[note]->coarse * 64) << 7;
 	}
-	if(opt_modulation_envelope) {
-		if(voice[v].sample->tremolo_to_pitch) {
+	if (opt_modulation_envelope) {
+		if (voice[v].sample->tremolo_to_pitch)
 			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
-				* (double)voice[v].sample->tremolo_to_pitch * (1L << 13) / 100.0f + 0.5;
-		}
-		if(voice[v].sample->modenv_to_pitch) {
+					* (voice[v].sample->tremolo_to_pitch << 13) / 100.0 + 0.5;
+		if (voice[v].sample->modenv_to_pitch)
 			tuning += voice[v].last_modenv_volume
-				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f + 0.5;
-		}
+					* (voice[v].sample->modenv_to_pitch << 13) / 100.0 + 0.5;
 	}
-	if(voice[v].sample->scale_tuning != 100) {	/* SF2 - Scale Tuning */
-		tuning += (double)(voice[v].sample->scale_tuning - 100) * (1L << 13)
-			* (note - 60) / 100.0f + 0.5;
-	}
-	if (! ISDRUMCHANNEL(ch)) {	/* GS - Scale Tuning */
+	/* GS/XG - Scale Tuning */
+	if (! ISDRUMCHANNEL(ch)) {
 		tuning += (st << 13) / 100.0 + 0.5;
 		if (st != channel[ch].prev_scale_tuning) {
 			channel[ch].pitchfactor = 0;
@@ -729,17 +718,13 @@ void recompute_freq(int v)
 		}
 		voice[v].orig_frequency = f;
 	}
-	if(tuning != voice[v].prev_tuning) {
-		voice[v].prev_tuning = tuning;
-		channel[ch].pitchfactor = 0;
-	}
 	if (! voice[v].porta_control_ratio) {
 		if (tuning == 0 && pb == 0x2000)
 			voice[v].frequency = voice[v].orig_frequency;
 		else {
 			pb -= 0x2000;
 			if (! channel[ch].pitchfactor) {
-				/* Damn. Somebody bent the pitch. */
+				/* Damn.  Somebody bent the pitch. */
 				tmp = pb * channel[ch].rpnmap[RPN_ADDR_0000] + tuning;
 				if (tmp >= 0)
 					channel[ch].pitchfactor = bend_fine[tmp >> 5 & 0xff]
@@ -754,7 +739,7 @@ void recompute_freq(int v)
 			if (voice[v].frequency != voice[v].orig_frequency)
 				voice[v].cache = NULL;
 		}
-	} else { /* Portament */
+	} else {	/* Portamento */
 		pb -= 0x2000;
 		tmp = pb * channel[ch].rpnmap[RPN_ADDR_0000]
 				+ (voice[v].porta_pb << 5) + tuning;
@@ -787,7 +772,7 @@ void recompute_freq(int v)
 				(long) play_mode->rate, (voice[v].cache) ? " (Cached)" : "");
 		abort();
 	}
-#endif /* ABORT_AT_FATAL */
+#endif	/* ABORT_AT_FATAL */
 }
 
 static int32 calc_velocity(int32 ch,int32 vel)
@@ -1743,6 +1728,8 @@ static int select_play_sample(Sample *splist,
 	int8 tt = channel[e->channel].temper_type;
 	uint8 tp = channel[e->channel].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *closest;
+	int16 st;
+	double ratio;
 	int i, j, nv, vel;
 	
 	if (opt_pure_intonation) {
@@ -1783,7 +1770,13 @@ static int select_play_sample(Sample *splist,
 	fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
 	vel = e->b;
 	nv = 0;
-	for (i = 0, sp = splist; i < nsp; i++, sp++)
+	for (i = 0, sp = splist; i < nsp; i++, sp++) {
+		/* SF2 - Scale Tuning */
+		if ((st = sp->scale_tuning) != 100) {
+			ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
+			f *= ratio + 0.5;
+			fs *= ratio + 0.5;
+		}
 		if (sp->low_freq <= fs && sp->high_freq >= fs
 				&& sp->low_vel <= vel && sp->high_vel >= vel) {
 			j = vlist[nv] = find_voice(e);
@@ -1793,6 +1786,7 @@ static int select_play_sample(Sample *splist,
 			voice[j].status = VOICE_ON;
 			nv++;
 		}
+	}
 	if (nv == 0) {
 		cdiff = 0x7fffffff;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
@@ -1801,6 +1795,12 @@ static int select_play_sample(Sample *splist,
 				closest = sp;
 				cdiff = diff;
 			}
+		}
+		/* SF2 - Scale Tuning */
+		if ((st = sp->scale_tuning) != 100) {
+			ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
+			f *= ratio + 0.5;
+			fs *= ratio + 0.5;
 		}
 		j = vlist[nv] = find_voice(e);
 		voice[j].orig_frequency = f;
@@ -2035,7 +2035,6 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].vibrato_sweep=voice[i].sample->vibrato_sweep_increment;
   voice[i].vibrato_sweep_position=0;
 
-  voice[i].prev_tuning = 0;
   voice[i].delay_counter = 0;
 
   memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));

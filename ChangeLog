@@ -1,3 +1,9 @@
+2003-07-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Hack up SoundFont scale tuning
+	  Fix around single-note tuning change
+
 2003-07-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch]: Support for RPN tuning program select

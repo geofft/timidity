@@ -355,7 +355,6 @@ typedef struct {
     modenv_volume, modenv_target, modenv_increment;
   FLOAT_T last_modenv_volume;
   int32 tremolo_delay, modenv_delay;
-  int32 prev_tuning;
 
   int32 delay_counter;
 

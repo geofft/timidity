@@ -1609,9 +1609,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 						0, val[4], 0);
 				for (i = 0; i < val[5]; i++) {
 					SETMIDIEVENT(evm[i * 2 + 1], 0, ME_SINGLE_NOTE_TUNING,
-							1, val[6], val[7]);
+							1, val[i * 4 + 6], val[i * 4 + 7]);
 					SETMIDIEVENT(evm[i * 2 + 2], 0, ME_SINGLE_NOTE_TUNING,
-							2, val[8], val[9]);
+							2, val[i * 4 + 8], val[i * 4 + 9]);
 				}
 				num_events += val[5] * 2 + 1;
 				break;
