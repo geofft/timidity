@@ -46,7 +46,7 @@
 #include <math.h>
 #include <signal.h>
 
-#if HAHE_ALSA_ASOUNDLIB_H
+#if HAVE_ALSA_ASOUNDLIB_H
 #include <alsa/asoundlib.h>
 #else
 #include <sys/asoundlib.h>
@@ -275,6 +275,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 	}
 	alsactx.client = snd_seq_client_id(alsactx.handle);
 	alsactx.fd = snd_seq_file_descriptor(alsactx.handle);
+	snd_seq_set_client_name(alsactx.handle, "TiMidity");
 	snd_seq_set_client_pool_input(alsactx.handle, 1000); /* enough? */
 
 	printf("Opening sequencer port:");
