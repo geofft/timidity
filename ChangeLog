@@ -3,6 +3,8 @@
 	  Support for 24-bit output in Win32GUI/TWSYNTH interface.
 	* timidity/w32g_a.c, timidity/Makefile.{am,in}:
 	  Remove w32g_a.c.
+	* configs/msc[67]-sjis.txt:
+	  Update.
 
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 
