@@ -97,6 +97,13 @@ typedef struct {
 	int32 b0, b1, b2, b3, b4;
 } filter_moog;
 
+/*! Moog VCF (resonant IIR state variable filter with distortion) */
+typedef struct {
+	int16 freq, last_freq;	/* in Hz */
+	double res_dB, last_res_dB; /* in dB */
+	double dist, last_dist, f, q, p, d, b0, b1, b2, b3, b4;
+} filter_moog_dist;
+
 /*! LPF18 (resonant IIR lowpass filter with waveshaping) */
 typedef struct {
 	int16 freq, last_freq;	/* in Hz */

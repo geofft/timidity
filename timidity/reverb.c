@@ -185,9 +185,6 @@ void mix_dry_signal(int32 *buf, int32 n)
 /*                    */
 /*  Effect Utilities  */
 /*                    */
-/* general-purpose temporary variables for macros */
-static int32 _output, _bufout, _temp1, _temp2, _temp3;
-
 static inline int isprime(int val)
 {
 	int i;
@@ -220,14 +217,13 @@ static void set_delay(delay *delay, int32 size)
 	memset(delay->buf, 0, sizeof(int32) * delay->size);
 }
 
-#define do_delay(_stream, _buf, _size, _index) \
-{ \
-	_output = _buf[_index];	\
-	_buf[_index] = _stream;	\
-	if(++_index >= _size) {	\
-		_index = 0;	\
-	}	\
-	_stream = _output;	\
+static inline void do_delay(int32 *stream, int32 *buf, int32 size, int32 *index)
+{
+	int32 output;
+	output = buf[*index];
+	buf[*index] = *stream;
+	if (++*index >= size) {*index = 0;}
+	*stream = output;
 }
 
 /*! LFO (low frequency oscillator) */
@@ -263,7 +259,7 @@ static void init_lfo(lfo *lfo, double freq, int type, double phase)
 }
 
 /* returned value is between 0 and (1 << 16) */
-inline int32 do_lfo(lfo *lfo)
+static inline int32 do_lfo(lfo *lfo)
 {
 	int32 val;
 	val = lfo->buf[imuldiv24(lfo->count, lfo->icycle)];
@@ -271,7 +267,6 @@ inline int32 do_lfo(lfo *lfo)
 	return val;
 }
 
-#if 0
 /*! modulated delay with allpass interpolation (for Chorus Effect,...) */
 static void free_mod_delay(mod_delay *delay)
 {
@@ -295,19 +290,20 @@ static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
 	delay->size = size;
 	memset(delay->buf, 0, sizeof(int32) * delay->size);
 }
-#endif
 
-#define do_mod_delay(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist) \
-{ \
-	if(++_windex == _size) {_windex = 0;}	\
-	_temp1 = _buf[_rindex];	\
-	_temp2 = imuldiv24(_lfoval, _depth);	\
-	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
-	if(_rindex < 0) {_rindex += _size;}	\
-	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _temp1 + imuldiv8(_buf[_rindex] - _hist, _temp2);	\
-	_buf[_windex] = _stream;	\
-	_stream = _hist;	\
+static inline void do_mod_delay(int32 *stream, int32 *buf, int32 size, int32 *rindex, int32 *windex,
+								int32 ndelay, int32 depth, int32 lfoval, int32 *hist)
+{
+	int32 t1, t2;
+	if (++*windex == size) {*windex = 0;}
+	t1 = buf[*rindex];
+	t2 = imuldiv24(lfoval, depth);
+	*rindex = *windex - ndelay - (t2 >> 8);
+	if (*rindex < 0) {*rindex += size;}
+	t2 = 0xFF - (t2 & 0xFF);
+	*hist = t1 + imuldiv8(buf[*rindex] - *hist, t2);
+	buf[*windex] = *stream;
+	*stream = *hist;
 }
 
 /*! modulated allpass filter with allpass interpolation (for Plate Reverberator,...) */
@@ -336,18 +332,20 @@ static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, doubl
 	memset(delay->buf, 0, sizeof(int32) * delay->size);
 }
 
-#define do_mod_allpass(_stream, _buf, _size, _rindex, _windex, _ndelay, _depth, _lfoval, _hist, _feedback) \
-{ \
-	if(++_windex == _size) {_windex = 0;}	\
-	_temp3 = _stream + imuldiv24(_hist, _feedback);	\
-	_temp1 = _buf[_rindex];	\
-	_temp2 = imuldiv24(_lfoval, _depth);	\
-	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
-	if(_rindex < 0) {_rindex += _size;}	\
-	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _temp1 + imuldiv8(_buf[_rindex] - _hist, _temp2);	\
-	_buf[_windex] = _temp3;	\
-	_stream = _hist - imuldiv24(_temp3, _feedback);	\
+static inline void do_mod_allpass(int32 *stream, int32 *buf, int32 size, int32 *rindex, int32 *windex,
+								  int32 ndelay, int32 depth, int32 lfoval, int32 *hist, int32 feedback)
+{
+	int t1, t2, t3;
+	if (++*windex == size) {*windex = 0;}
+	t3 = *stream + imuldiv24(*hist, feedback);
+	t1 = buf[*rindex];
+	t2 = imuldiv24(lfoval, depth);
+	*rindex = *windex - ndelay - (t2 >> 8);
+	if (*rindex < 0) {*rindex += size;}
+	t2 = 0xFF - (t2 & 0xFF);
+	*hist = t1 + imuldiv8(buf[*rindex] - *hist, t2);
+	buf[*windex] = t3;
+	*stream = *hist - imuldiv24(t3, feedback);
 }
 
 /* allpass filter */
@@ -374,15 +372,14 @@ static void set_allpass(allpass *allpass, int32 size, double feedback)
 	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
 }
 
-#define do_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = _stream - imuldiv24(_bufout, _apfeedback);	\
-	_apbuf[_apindex] = _output;	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _bufout + imuldiv24(_output, _apfeedback);	\
+static inline void do_allpass(int32 *stream, int32 *buf, int32 size, int32 *index, int32 feedback)
+{
+	int32 bufout, output;
+	bufout = buf[*index];
+	output = *stream - imuldiv24(bufout, feedback);
+	buf[*index] = output;
+	if (++*index >= size) {*index = 0;}
+	*stream = bufout + imuldiv24(output, feedback);
 }
 
 /*! calculate Moog VCF coefficients */
@@ -408,56 +405,65 @@ void calc_filter_moog(filter_moog *svf)
 	}
 }
 
-#if 0
-#define do_filter_moog_lowpass(_stream, _f, _p, _q, _b0, _b1, _b2, _b3, _b4) \
-{ \
-	_temp3 = _stream - imuldiv24(_q, _b4);	\
-	_temp1 = _b1;  _b1 = imuldiv24(_temp3 + _b0, _p) - imuldiv24(_b1, _f);	\
-	_temp2 = _b2;  _b2 = imuldiv24(_b1 + _temp1, _p) - imuldiv24(_b2, _f);	\
-	_temp1 = _b3;  _b3 = imuldiv24(_b2 + _temp2, _p) - imuldiv24(_b3, _f);	\
-	_stream = _b4 = imuldiv24(_b3 + _temp1, _p) - imuldiv24(_b4, _f);	\
-	_b0 = _temp3;	\
-}
-
-void do_filter_moog_lowpass_stereo(int32 *buf, int32 count, filter_moog *left, filter_moog *right)
+static inline void do_filter_moog(int32 *stream, int32 *high, int32 f, int32 p, int32 q,
+								  int32 *b0, int32 *b1, int32 *b2, int32 *b3, int32 *b4)
 {
-	int32 i, t1l, t2l, t1r, t2r, pl = left->p, pr = right->p, fl = left->f, fr = right->f,
-		ql = left->q, qr = right->q, b0l = left->b0l, b1l = left->b1l, b2l = left->b2l, b3l = left->b3l, b4l = left->b4l,
-		b0r = right->b0r, b1r = right->b1r, b2r = right->b2r, b3r = right->b3r, b4r = right->b4r;
-	for(i = 0; i < count; i++) {
-		do_filter_moog_lowpass(buf[i], fl, pl, ql, b0l, b1l, b2l, b3l, b4l);
-		++i;
-		do_filter_moog_lowpass(buf[i], fr, pr, qr, b0r, b1r, b2r, b3r, b4r);
-	}
-	left->b0l = b0l, left->b1l = b1l, left->b2l = b2l, left->b3l = b3l, left->b4l = b4l;
-	right->b0r = b0r, right->b1r = b1r, right->b2r = b2r, right->b3r = b3r, right->b4r = b4r;
+	int32 t1, t2, t3, tb0 = *b0, tb1 = *b1, tb2 = *b2, tb3 = *b3, tb4 = *b4;
+	t3 = *stream - imuldiv24(q, tb4);
+	t1 = tb1;	tb1 = imuldiv24(t3 + tb0, p) - imuldiv24(tb1, f);
+	t2 = tb2;	tb2 = imuldiv24(tb1 + t1, p) - imuldiv24(tb2, f);
+	t1 = tb3;	tb3 = imuldiv24(tb2 + t2, p) - imuldiv24(tb3, f);
+	*stream = tb4 = imuldiv24(tb3 + t1, p) - imuldiv24(tb4, f);
+	tb0 = t3;
+	*stream = tb4;
+	*high = t3 - tb4;
+	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
 }
 
-#define do_filter_moog_highpass(_stream, _f, _p, _q, _b0, _b1, _b2, _b3, _b4) \
-{ \
-	_temp3 = _stream - imuldiv24(_q, _b4);	\
-	_temp1 = _b1;  _b1 = imuldiv24(_temp3 + _b0, _p) - imuldiv24(_b1, _f);	\
-	_temp2 = _b2;  _b2 = imuldiv24(_b1 + _temp1, _p) - imuldiv24(_b2, _f);	\
-	_temp1 = _b3;  _b3 = imuldiv24(_b2 + _temp2, _p) - imuldiv24(_b3, _f);	\
-	_b4 = imuldiv24(_b3 + _temp1, _p) - imuldiv24(_b4, _f);	\
-	_stream = _temp3 - _b4;	\
-	_b0 = _temp3;	\
-}
-
-void do_filter_moog_highpass_stereo(int32 *buf, int32 count, filter_moog *left, filter_moog *right)
+/*! calculate Moog VCF coefficients */
+void calc_filter_moog_dist(filter_moog_dist *svf)
 {
-	int32 i, t1l, t2l, t1r, t2r, pl = left->p, pr = right->p, fl = left->f, fr = right->f,
-		ql = left->q, qr = right->q, b0l = left->b0l, b1l = left->b1l, b2l = left->b2l, b3l = left->b3l, b4l = left->b4l,
-		b0r = right->b0r, b1r = right->b1r, b2r = right->b2r, b3r = right->b3r, b4r = right->b4r;
-	for(i = 0; i < count; i++) {
-		do_filter_moog_highpass(buf[i], fl, pl, ql, b0l, b1l, b2l, b3l, b4l);
-		++i;
-		do_filter_moog_highpass(buf[i], fr, pr, qr, b0r, b1r, b2r, b3r, b4r);
+	double res, fr, p, q, f;
+
+	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB
+		 || svf->dist != svf->last_dist) {
+		if(svf->last_freq == 0) {	/* clear delay-line */
+			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0.0f;
+		}
+		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB,
+			svf->last_dist = svf->dist;
+
+		res = pow(10.0f, (svf->res_dB - 96.0f) / 20.0f);
+		fr = 2.0f * (double)svf->freq / (double)play_mode->rate;
+		q = 1.0f - fr;
+		p = fr + 0.8f * fr * q;
+		f = p + p - 1.0f;
+		q = res * (1.0f + 0.5f * q * (1.0f - q + 5.6f * q * q));
+		svf->f = f;
+		svf->p = p;
+		svf->q = q;
+		svf->d = 1.0f + svf->dist;
 	}
-	left->b0l = b0l, left->b1l = b1l, left->b2l = b2l, left->b3l = b3l, left->b4l = b4l;
-	right->b0r = b0r, right->b1r = b1r, right->b2r = b2r, right->b3r = b3r, right->b4r = b4r;
 }
-#endif
+
+static inline void do_filter_moog_dist(double *stream, double *high, double *band, double f, double p, double q, double d,
+								   double *b0, double *b1, double *b2, double *b3, double *b4)
+{
+	double t1, t2, in, tb0 = *b0, tb1 = *b1, tb2 = *b2, tb3 = *b3, tb4 = *b4;
+	in = *stream;
+	in -= q * tb4;
+	t1 = tb1;  tb1 = (in + tb0) * p - tb1 * f;
+	t2 = tb2;  tb2 = (tb1 + t1) * p - tb2 * f;
+	t1 = tb3;  tb3 = (tb2 + t2) * p - tb3 * f;
+	tb4 = (tb3 + t1) * p - tb4 * f;
+	tb4 *= d;
+	tb4 = tb4 - tb4 * tb4 * tb4 * 0.166667f;
+	tb0 = in;
+	*stream = tb4;
+	*high = in - tb4;
+	*band = 3.0f * (tb3 - tb4);
+	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
+}
 
 /*! calculate LPF18 coefficients */
 void calc_filter_lpf18(filter_lpf18 *p)
@@ -482,6 +488,20 @@ void calc_filter_lpf18(filter_lpf18 *p)
 	}
 }
 
+static inline void do_filter_lpf18(double *stream, double *ay1, double *ay2, double *aout, double *lastin,
+								   double kres, double value, double kp, double kp1h)
+{
+	double ax1, ay11, ay31;
+	ax1 = *lastin;
+	ay11 = *ay1;
+	ay31 = *ay2;
+	*lastin = *stream - tanh(kres * *aout);
+	*ay1 = kp1h * (*lastin + ax1) - kp * *ay1;
+	*ay2 = kp1h * (*ay1 + ay11) - kp * *ay2;
+	*aout = kp1h * (*ay2 + ay31) - kp * *aout;
+	*stream = tanh(*aout * value);
+}
+
 /*! 1st order lowpass filter */
 void init_filter_lowpass1(filter_lowpass1 *p)
 {
@@ -491,9 +511,9 @@ void init_filter_lowpass1(filter_lowpass1 *p)
 	p->iai = TIM_FSCALE(1.0 - p->a, 24);
 }
 
-#define do_filter_lowpass1(_stream, _x1, _a, _ia) \
-{ \
-	_stream = _x1 = imuldiv24(_x1, _ia) + imuldiv24(_stream, _a);	\
+static inline void do_filter_lowpass1(int32 *stream, int32 *x1, int32 a, int32 ia)
+{
+	*stream = *x1 = imuldiv24(*x1, ia) + imuldiv24(*stream, a);
 }
 
 void do_filter_lowpass1_stereo(int32 *buf, int32 count, filter_lowpass1 *p)
@@ -501,13 +521,9 @@ void do_filter_lowpass1_stereo(int32 *buf, int32 count, filter_lowpass1 *p)
 	int32 i, a = p->ai, ia = p->iai, x1l = p->x1l, x1r = p->x1r;
 
 	for(i = 0; i < count; i++) {
-		/* left */
-		do_filter_lowpass1(buf[i], x1l, a, ia);
-
+		do_filter_lowpass1(&buf[i], &x1l, a, ia);
 		++i;
-
-		/* right */
-		do_filter_lowpass1(buf[i], x1r, a, ia);
+		do_filter_lowpass1(&buf[i], &x1r, a, ia);
 	}
 	x1l = p->x1l, x1r = p->x1r;
 }
@@ -578,14 +594,16 @@ void calc_filter_biquad_high(filter_biquad *p)
 	}
 }
 
-#define do_filter_biquad(_stream, _a1, _a2, _b1, _b02, _x1, _x2, _y1, _y2) \
-{ \
-	_temp1 = imuldiv24(_stream + _x2, _b02) + imuldiv24(_x1, _b1) - imuldiv24(_y1, _a1) - imuldiv24(_y2, _a2);	\
-	_x2 = _x1;	\
-	_x1 = _stream;	\
-	_y2 = _y1;	\
-	_y1 = _temp1;	\
-	_stream = _temp1;	\
+static inline void do_filter_biquad(int32 *stream, int32 a1, int32 a2, int32 b1,
+									int32 b02, int32 *x1, int32 *x2, int32 *y1, int32 *y2)
+{
+	int32 t1;
+	t1 = imuldiv24(*stream + *x2, b02) + imuldiv24(*x1, b1) - imuldiv24(*y1, a1) - imuldiv24(*y2, a2);
+	*x2 = *x1;
+	*x1 = *stream;
+	*y2 = *y1;
+	*y1 = t1;
+	*stream = t1;
 }
 
 static void do_biquad_filter_stereo(int32* buf, int32 count, filter_biquad *p)
@@ -596,9 +614,9 @@ static void do_biquad_filter_stereo(int32* buf, int32 count, filter_biquad *p)
 	int32 a1 = p->a1, a2 = p->a2, b02 = p->b02, b1 = p->b1;
 
 	for(i = 0; i < count; i++) {
-		do_filter_biquad(buf[i], a1, a2, b1, b02, x1l, x2l, y1l, y2l);
+		do_filter_biquad(&(buf[i]), a1, a2, b1, b02, &x1l, &x2l, &y1l, &y2l);
 		++i;
-		do_filter_biquad(buf[i], a1, a2, b1, b02, x1r, x2r, y1r, y2r);
+		do_filter_biquad(&(buf[i]), a1, a2, b1, b02, &x1r, &x2r, &y1r, &y2r);
 	}
 	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
 		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
@@ -1426,27 +1444,25 @@ static void free_freeverb_buf(InfoFreeverb *rev)
 	free_delay(&(rev->pdelay));
 }
 
-#if OPT_MODE != 0	/* fixed-point implementation */
-#define do_freeverb_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = -_stream + _bufout;	\
-	_apbuf[_apindex] = _stream + imuldiv24(_bufout, _apfeedback);	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _output;	\
+static inline void do_freeverb_allpass(int32 *stream, int32 *buf, int32 size, int32 *index, int32 feedback)
+{
+	int32 bufout, output;
+	bufout = buf[*index];
+	output = -*stream + bufout;
+	buf[*index] = *stream + imuldiv24(bufout, feedback);
+	if (++*index >= size) {*index = 0;}
+	*stream = output;
 }
 
-#define do_freeverb_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
-{	\
-	_output = _cbuf[_cindex];	\
-	_cfs = imuldiv24(_output, _cdamp2) + imuldiv24(_cfs, _cdamp1);	\
-	_cbuf[_cindex] = _input + imuldiv24(_cfs, _cfeedback);	\
-	if(++_cindex >= _csize) {	\
-		_cindex = 0;	\
-	}	\
-	_ostream += _output;	\
+static inline void do_freeverb_comb(int32 input, int32 *stream, int32 *buf, int32 size, int32 *index,
+									int32 damp1, int32 damp2, int32 *fs, int32 feedback)
+{
+	int32 output;
+	output = buf[*index];
+	*fs = imuldiv24(output, damp2) + imuldiv24(*fs, damp1);
+	buf[*index] = input + imuldiv24(*fs, feedback);
+	if (++*index >= size) {*index = 0;}
+	*stream += output;
 }
 
 static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
@@ -1472,85 +1488,23 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
 		outl = outr = reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
 
-		do_delay(input, pdelay->buf, pdelay->size, pdelay->index);
+		do_delay(&input, pdelay->buf, pdelay->size, &pdelay->index);
 
 		for (i = 0; i < numcombs; i++) {
-			do_freeverb_comb(input, outl, combL[i].buf, combL[i].size, combL[i].index,
-				combL[i].damp1i, combL[i].damp2i, combL[i].filterstore, combL[i].feedbacki);
-			do_freeverb_comb(input, outr, combR[i].buf, combR[i].size, combR[i].index,
-				combR[i].damp1i, combR[i].damp2i, combR[i].filterstore, combR[i].feedbacki);
+			do_freeverb_comb(input, &outl, combL[i].buf, combL[i].size, &combL[i].index,
+				combL[i].damp1i, combL[i].damp2i, &combL[i].filterstore, combL[i].feedbacki);
+			do_freeverb_comb(input, &outr, combR[i].buf, combR[i].size, &combR[i].index,
+				combR[i].damp1i, combR[i].damp2i, &combR[i].filterstore, combR[i].feedbacki);
 		}
 		for (i = 0; i < numallpasses; i++) {
-			do_freeverb_allpass(outl, allpassL[i].buf, allpassL[i].size, allpassL[i].index, allpassL[i].feedbacki);
-			do_freeverb_allpass(outr, allpassR[i].buf, allpassR[i].size, allpassR[i].index, allpassR[i].feedbacki);
+			do_freeverb_allpass(&outl, allpassL[i].buf, allpassL[i].size, &allpassL[i].index, allpassL[i].feedbacki);
+			do_freeverb_allpass(&outr, allpassR[i].buf, allpassR[i].size, &allpassR[i].index, allpassR[i].feedbacki);
 		}
 		buf[k] += imuldiv24(outl, rev->wet1i) + imuldiv24(outr, rev->wet2i);
 		buf[k + 1] += imuldiv24(outr, rev->wet1i) + imuldiv24(outl, rev->wet2i);
 		++k;
 	}
 }
-#else	/* floating-point implementation */
-#define do_freeverb_allpass(_stream, _apbuf, _apsize, _apindex, _apfeedback) \
-{ \
-	_bufout = _apbuf[_apindex];	\
-	_output = -_stream + _bufout;	\
-	_apbuf[_apindex] = _stream + (_bufout * _apfeedback);	\
-	if(++_apindex >= _apsize) {	\
-		_apindex = 0;	\
-	}	\
-	_stream = _output;	\
-}
-
-#define do_freeverb_comb(_input, _ostream, _cbuf, _csize, _cindex, _cdamp1, _cdamp2, _cfs, _cfeedback)	\
-{	\
-	_output = _cbuf[_cindex];	\
-	_cfs = (_output * _cdamp2) + (_cfs * _cdamp1);	\
-	_cbuf[_cindex] = _input + (_cfs * _cfeedback);	\
-	if(++_cindex >= _csize) {	\
-		_cindex = 0;	\
-	}	\
-	_ostream += _output;	\
-}
-
-static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
-{
-	int32 i, k = 0;
-	int32 outl, outr, input;
-	delay *pdelay = &(rev->pdelay);
-
-	if(count == MAGIC_INIT_EFFECT_INFO) {
-		alloc_freeverb_buf(rev);
-		update_freeverb(rev);
-		init_freeverb(rev);
-		return;
-	} else if(count == MAGIC_FREE_EFFECT_INFO) {
-		free_freeverb_buf(rev);
-		return;
-	}
-
-	for (k = 0; k < count; k++)
-	{
-		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
-		outl = outr = reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
-
-		do_delay(input, pdelay->buf, pdelay->size, pdelay->index);
-
-		for (i = 0; i < numcombs; i++) {
-			do_freeverb_comb(input, outl, rev->combL[i].buf, rev->combL[i].size, rev->combL[i].index,
-				rev->combL[i].damp1, rev->combL[i].damp2, rev->combL[i].filterstore, rev->combL[i].feedback);
-			do_freeverb_comb(input, outr, rev->combR[i].buf, rev->combR[i].size, rev->combR[i].index,
-				rev->combR[i].damp1, rev->combR[i].damp2, rev->combR[i].filterstore, rev->combR[i].feedback);
-		}
-		for (i = 0; i < numallpasses; i++) {
-			do_freeverb_allpass(outl, rev->allpassL[i].buf, rev->allpassL[i].size, rev->allpassL[i].index, rev->allpassL[i].feedback);
-			do_freeverb_allpass(outr, rev->allpassR[i].buf, rev->allpassR[i].size, rev->allpassR[i].index, rev->allpassR[i].feedback);
-		}
-		buf[k] += outl * rev->wet1 + outr * rev->wet2;
-		buf[k + 1] += outr * rev->wet1 + outl * rev->wet2;
-		++k;
-	}
-}
-#endif	/* OPT_MODE != 0 */
 
 /*                                 */
 /*  Reverb: Delay & Panning Delay  */
@@ -1751,69 +1705,69 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 		x = (reverb_effect_buffer[i] + reverb_effect_buffer[i + 1]) >> 1;
 		reverb_effect_buffer[i] = reverb_effect_buffer[i + 1] = 0;
 
-		do_delay(x, pd->buf, pd->size, pd->index);
-		do_filter_lowpass1(x, lpf1->x1l, lpf1->ai, lpf1->iai);
-		do_allpass(x, ap1->buf, ap1->size, ap1->index, idif1i);
-		do_allpass(x, ap2->buf, ap2->size, ap2->index, idif1i);
-		do_allpass(x, ap3->buf, ap3->size, ap3->index, idif2i);
-		do_allpass(x, ap4->buf, ap4->size, ap4->index, idif2i);
+		do_delay(&x, pd->buf, pd->size, &pd->index);
+		do_filter_lowpass1(&x, &lpf1->x1l, lpf1->ai, lpf1->iai);
+		do_allpass(&x, ap1->buf, ap1->size, &ap1->index, idif1i);
+		do_allpass(&x, ap2->buf, ap2->size, &ap2->index, idif1i);
+		do_allpass(&x, ap3->buf, ap3->size, &ap3->index, idif2i);
+		do_allpass(&x, ap4->buf, ap4->size, &ap4->index, idif2i);
 
 		/* tank structure */
 		xd = x;
 		x += imuldiv24(t1d, decayi);
 		val = do_lfo(lfo1);
-		do_mod_allpass(x, ap5->buf, ap5->size, ap5->rindex, ap5->windex,
-			ap5->ndelay, ap5->depth, val, ap5->hist, ddif1i);
+		do_mod_allpass(&x, ap5->buf, ap5->size, &ap5->rindex, &ap5->windex,
+			ap5->ndelay, ap5->depth, val, &ap5->hist, ddif1i);
 		temp1 = temp2 = temp3 = x;	/* n_out_1 */
-		do_delay(temp1, od5l->buf, od5l->size, od5l->index);
+		do_delay(&temp1, od5l->buf, od5l->size, &od5l->index);
 		outl -= temp1;	/* left output 5 */
-		do_delay(temp2, od1r->buf, od1r->size, od1r->index);
+		do_delay(&temp2, od1r->buf, od1r->size, &od1r->index);
 		outr += temp2;	/* right output 1 */
-		do_delay(temp3, od2r->buf, od2r->size, od2r->index);
+		do_delay(&temp3, od2r->buf, od2r->size, &od2r->index);
 		outr += temp3;	/* right output 2 */
-		do_delay(x, td1->buf, td1->size, td1->index);
-		do_filter_lowpass1(x, lpf2->x1l, lpf2->ai, lpf2->iai);
+		do_delay(&x, td1->buf, td1->size, &td1->index);
+		do_filter_lowpass1(&x, &lpf2->x1l, lpf2->ai, lpf2->iai);
 		temp1 = temp2 = x;	/* n_out_2 */
-		do_delay(temp1, od6l->buf, od6l->size, od6l->index);
+		do_delay(&temp1, od6l->buf, od6l->size, &od6l->index);
 		outl -= temp1;	/* left output 6 */
-		do_delay(temp2, od3r->buf, od3r->size, od3r->index);
+		do_delay(&temp2, od3r->buf, od3r->size, &od3r->index);
 		outr -= temp2;	/* right output 3 */
 		x = imuldiv24(x, decayi);
-		do_allpass(x, ap6->buf, ap6->size, ap6->index, ddif2i);
+		do_allpass(&x, ap6->buf, ap6->size, &ap6->index, ddif2i);
 		temp1 = temp2 = x;	/* n_out_3 */
-		do_delay(temp1, od7l->buf, od7l->size, od7l->index);
+		do_delay(&temp1, od7l->buf, od7l->size, &od7l->index);
 		outl -= temp1;	/* left output 7 */
-		do_delay(temp2, od4r->buf, od4r->size, od4r->index);
+		do_delay(&temp2, od4r->buf, od4r->size, &od4r->index);
 		outr += temp2;	/* right output 4 */
-		do_delay(x, td2->buf, td2->size, td2->index);
+		do_delay(&x, td2->buf, td2->size, &td2->index);
 		t1 = x;
 
 		xd += imuldiv24(t1, decayi);
 		val = do_lfo(lfo1d);
-		do_mod_allpass(x, ap5d->buf, ap5d->size, ap5d->rindex, ap5d->windex,
-			ap5d->ndelay, ap5d->depth, val, ap5d->hist, ddif1i);
+		do_mod_allpass(&x, ap5d->buf, ap5d->size, &ap5d->rindex, &ap5d->windex,
+			ap5d->ndelay, ap5d->depth, val, &ap5d->hist, ddif1i);
 		temp1 = temp2 = temp3 = xd;	/* n_out_4 */
-		do_delay(temp1, od1l->buf, od1l->size, od1l->index);
+		do_delay(&temp1, od1l->buf, od1l->size, &od1l->index);
 		outl += temp1;	/* left output 1 */
-		do_delay(temp2, od2l->buf, od2l->size, od2l->index);
+		do_delay(&temp2, od2l->buf, od2l->size, &od2l->index);
 		outl += temp2;	/* left output 2 */
-		do_delay(temp3, od6r->buf, od6r->size, od6r->index);
+		do_delay(&temp3, od6r->buf, od6r->size, &od6r->index);
 		outr -= temp3;	/* right output 6 */
-		do_delay(xd, td1d->buf, td1d->size, td1d->index);
-		do_filter_lowpass1(xd, lpf2->x1r, lpf2->ai, lpf2->iai);
+		do_delay(&xd, td1d->buf, td1d->size, &td1d->index);
+		do_filter_lowpass1(&xd, &lpf2->x1r, lpf2->ai, lpf2->iai);
 		temp1 = temp2 = xd;	/* n_out_5 */
-		do_delay(temp1, od3l->buf, od3l->size, od3l->index);
+		do_delay(&temp1, od3l->buf, od3l->size, &od3l->index);
 		outl -= temp1;	/* left output 3 */
-		do_delay(temp2, od6r->buf, od6r->size, od6r->index);
+		do_delay(&temp2, od6r->buf, od6r->size, &od6r->index);
 		outr -= temp2;	/* right output 6 */
 		xd = imuldiv24(xd, decayi);
-		do_allpass(xd, ap6d->buf, ap6d->size, ap6d->index, ddif2i);
+		do_allpass(&xd, ap6d->buf, ap6d->size, &ap6d->index, ddif2i);
 		temp1 = temp2 = xd;	/* n_out_6 */
-		do_delay(temp1, od4l->buf, od4l->size, od4l->index);
+		do_delay(&temp1, od4l->buf, od4l->size, &od4l->index);
 		outl += temp1;	/* left output 4 */
-		do_delay(temp2, od7r->buf, od7r->size, od7r->index);
+		do_delay(&temp2, od7r->buf, od7r->size, &od7r->index);
 		outr -= temp2;	/* right output 7 */
-		do_delay(xd, td2d->buf, td2d->size, td2d->index);
+		do_delay(&xd, td2d->buf, td2d->size, &td2d->index);
 		t1d = xd;
 
 		buf[i] += outl;
@@ -3535,13 +3489,13 @@ static void do_delay_lcr(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		x = imuldiv24(bufL[buf_index], feedbacki);
-		do_filter_lowpass1(x, x1l, ai, iai);
+		do_filter_lowpass1(&x, &x1l, ai, iai);
 		bufL[buf_index] = buf[i] + x;
 		x = bufL[index0] + imuldiv24(bufL[index1], cleveli);
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(x, weti);
 
 		x = imuldiv24(bufR[buf_index], feedbacki);
-		do_filter_lowpass1(x, x1r, ai, iai);
+		do_filter_lowpass1(&x, &x1r, ai, iai);
 		bufR[buf_index] = buf[++i] + x;
 		x = bufR[index2] + imuldiv24(bufR[index1], cleveli);
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(x, weti);
@@ -3637,12 +3591,12 @@ static void do_delay_lr(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		x = imuldiv24(bufL[indexl], feedbacki);
-		do_filter_lowpass1(x, x1l, ai, iai);
+		do_filter_lowpass1(&x, &x1l, ai, iai);
 		bufL[indexl] = buf[i] + x;
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(bufL[index0], weti);
 
 		x = imuldiv24(bufR[indexr], feedbacki);
-		do_filter_lowpass1(x, x1r, ai, iai);
+		do_filter_lowpass1(&x, &x1r, ai, iai);
 		bufR[indexr] = buf[++i] + x;
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(bufR[index1], weti);
 
@@ -3717,13 +3671,13 @@ static void do_echo(int32 *buf, int32 count, EffectList *ef)
 	{
 		y = bufL[indexl] + imuldiv24(bufL[index0], leveli);
 		x = imuldiv24(bufL[indexl], lfeedbacki);
-		do_filter_lowpass1(x, x1l, ai, iai);
+		do_filter_lowpass1(&x, &x1l, ai, iai);
 		bufL[indexl] = buf[i] + x;
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(y, weti);
 
 		y = bufR[indexr] + imuldiv24(bufR[index1], leveli);
 		x = imuldiv24(bufR[indexr], rfeedbacki);
-		do_filter_lowpass1(x, x1r, ai, iai);
+		do_filter_lowpass1(&x, &x1r, ai, iai);
 		bufR[indexr] = buf[++i] + x;
 		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(y, weti);
 
@@ -3764,8 +3718,8 @@ static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
 		dryi = info->dryi, weti = info->weti, ai = lpf->ai, iai = lpf->iai;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		set_delay(&(info->delayL), info->lrdelay * play_mode->rate / 1000.0f);
-		set_delay(&(info->delayR), info->rldelay * play_mode->rate / 1000.0f);
+		set_delay(&(info->delayL), (int32)(info->lrdelay * play_mode->rate / 1000.0f));
+		set_delay(&(info->delayR), (int32)(info->rldelay * play_mode->rate / 1000.0f));
 		info->feedbacki = TIM_FSCALE(info->feedback, 24);
 		info->dryi = TIM_FSCALE(info->dry, 24);
 		info->weti = TIM_FSCALE(info->wet, 24);
@@ -3781,10 +3735,10 @@ static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		lfb = imuldiv24(bufL[indexl], feedbacki);
-		do_filter_lowpass1(lfb, x1l, ai, iai);
+		do_filter_lowpass1(&lfb, &x1l, ai, iai);
 		lout = imuldiv24(buf[i], dryi) + imuldiv24(bufL[indexl], weti);
 		rfb = imuldiv24(bufR[indexr], feedbacki);
-		do_filter_lowpass1(rfb, x1r, ai, iai);
+		do_filter_lowpass1(&rfb, &x1r, ai, iai);
 		rout = imuldiv24(buf[i + 1], dryi) + imuldiv24(bufR[indexr], weti);
 		bufL[indexl] = buf[i] + rfb;
 		buf[i] = lout;
@@ -3890,12 +3844,12 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 	{
 		x = buf[i];
 		y = x & bit_mask;
-		do_filter_biquad(y, fil->a1, fil->a2, fil->b1, fil->b02, fil->x1l, fil->x2l, fil->y1l, fil->y2l);
+		do_filter_biquad(&y, fil->a1, fil->a2, fil->b1, fil->b02, &fil->x1l, &fil->x2l, &fil->y1l, &fil->y2l);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = buf[++i];
 		y = x & bit_mask;
-		do_filter_biquad(y, fil->a1, fil->a2, fil->b1, fil->b02, fil->x1r, fil->x2r, fil->y1r, fil->y2r);
+		do_filter_biquad(&y, fil->a1, fil->a2, fil->b1, fil->b02, &fil->x1r, &fil->x2r, &fil->y1r, &fil->y2r);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 	}
 }
@@ -3939,14 +3893,14 @@ static void do_lofi(int32 *buf, int32 count, EffectList *ef)
 	{
 		x = buf[i];
 		y = x & bit_mask;
-		do_filter_biquad(y, srf->a1, srf->a2, srf->b1, srf->b02, srf->x1l, srf->x2l, srf->y1l, srf->y2l);
-		do_filter_biquad(y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, lpf->x1l, lpf->x2l, lpf->y1l, lpf->y2l);
+		do_filter_biquad(&y, srf->a1, srf->a2, srf->b1, srf->b02, &srf->x1l, &srf->x2l, &srf->y1l, &srf->y2l);
+		do_filter_biquad(&y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1l, &lpf->x2l, &lpf->y1l, &lpf->y2l);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = buf[++i];
 		y = x & bit_mask;
-		do_filter_biquad(y, srf->a1, srf->a2, srf->b1, srf->b02, srf->x1r, srf->x2r, srf->y1r, srf->y2r);
-		do_filter_biquad(y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, lpf->x1r, lpf->x2r, lpf->y1r, lpf->y2r);
+		do_filter_biquad(&y, srf->a1, srf->a2, srf->b1, srf->b02, &srf->x1r, &srf->x2r, &srf->y1r, &srf->y2r);
+		do_filter_biquad(&y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1r, &lpf->x2r, &lpf->y1r, &lpf->y2r);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 	}
 }
