@@ -67,9 +67,9 @@ typedef sample_t mix_t;
 #define MIXATION(a) *lp++ += (a) * s
 #endif
 
-#define DELAYED_MIXATION(a) *lp++ += (a) * pan_delay_buf[pan_delay_wpt--];	\
+#define DELAYED_MIXATION(a) *lp++ += pan_delay_buf[pan_delay_wpt--];	\
 	if(pan_delay_wpt < 0) {pan_delay_wpt = vp->pan_delay_rpt - 1;}	\
-	pan_delay_buf[pan_delay_wpt] = s;
+	pan_delay_buf[pan_delay_wpt] = (a) * s
 
 void mix_voice(int32 *, int, int32);
 #ifdef VOICE_LPF
@@ -544,6 +544,7 @@ static inline void mix_mono(mix_t *sp, int32 *lp, int v, int count)
 	}
 }
 
+#ifdef ENABLE_PAN_DELAY
 static inline void mix_mystery_signal(
 		mix_t *sp, int32 *lp, int v, int count)
 {
@@ -554,8 +555,285 @@ static inline void mix_mystery_signal(
 #ifdef SMOOTH_MIXING
 	int32 linear_left, linear_right;
 #endif
-#ifdef ENABLE_PAN_DELAY
 	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+
+	if (! (cc = vp->control_counter)) {
+		cc = control_ratio;
+		if (update_signal(v))
+			/* Envelope ran out */
+			return;
+		left = vp->left_mix;
+		right = vp->right_mix;
+	}
+#ifdef SMOOTH_MIXING
+	compute_mix_smoothing(vp);
+#endif
+	while (count)
+		if (cc < count) {
+			count -= cc;
+#ifdef SMOOTH_MIXING
+			linear_left = FROM_FINAL_VOLUME(left);
+			if (vp->left_mix_offset) {
+				linear_left += vp->left_mix_offset;
+				if (linear_left > MAX_AMP_VALUE) {
+					linear_left = MAX_AMP_VALUE;
+					vp->left_mix_offset = 0;
+				}
+				left = FINAL_VOLUME(linear_left);
+			}
+			linear_right = FROM_FINAL_VOLUME(right);
+			if (vp->right_mix_offset) {
+				linear_right += vp->right_mix_offset;
+				if (linear_right > MAX_AMP_VALUE) {
+					linear_right = MAX_AMP_VALUE;
+					vp->right_mix_offset = 0;
+				}
+				right = FINAL_VOLUME(linear_right);
+			}
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < cc; i++) {
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			} else if(vp->panning < 64) {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < cc; i++) {
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			} else {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < cc; i++) {
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			}
+			vp->old_left_mix = linear_left;
+			vp->old_right_mix = linear_right;
+			cc -= i;
+#endif
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; i < cc; i++) {
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+				}
+			} else if(vp->panning < 64) {
+				for (i = 0; i < cc; i++) {
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+				}
+			} else {
+				for (i = 0; i < cc; i++) {
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+				}
+			}
+
+			cc = control_ratio;
+			if (update_signal(v))
+				/* Envelope ran out */
+				return;
+			left = vp->left_mix;
+			right = vp->right_mix;
+#ifdef SMOOTH_MIXING
+			compute_mix_smoothing(vp);
+#endif
+		} else {
+			vp->control_counter = cc - count;
+#ifdef SMOOTH_MIXING
+			linear_left = FROM_FINAL_VOLUME(left);
+			if (vp->left_mix_offset) {
+				linear_left += vp->left_mix_offset;
+				if (linear_left > MAX_AMP_VALUE) {
+					linear_left = MAX_AMP_VALUE;
+					vp->left_mix_offset = 0;
+				}
+				left = FINAL_VOLUME(linear_left);
+			}
+			linear_right = FROM_FINAL_VOLUME(right);
+			if (vp->right_mix_offset) {
+				linear_right += vp->right_mix_offset;
+				if (linear_right > MAX_AMP_VALUE) {
+					linear_right = MAX_AMP_VALUE;
+					vp->right_mix_offset = 0;
+				}
+				right = FINAL_VOLUME(linear_right);
+			}
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			} else if(vp->panning < 64) {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			} else {
+				for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+						&& i < count; i++) {
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+					if (vp->left_mix_offset) {
+						vp->left_mix_offset += vp->left_mix_inc;
+						linear_left += vp->left_mix_inc;
+						if (linear_left > MAX_AMP_VALUE) {
+							linear_left = MAX_AMP_VALUE;
+							vp->left_mix_offset = 0;
+						}
+						left = FINAL_VOLUME(linear_left);
+					}
+					if (vp->right_mix_offset) {
+						vp->right_mix_offset += vp->right_mix_inc;
+						linear_right += vp->right_mix_inc;
+						if (linear_right > MAX_AMP_VALUE) {
+							linear_right = MAX_AMP_VALUE;
+							vp->right_mix_offset = 0;
+						}
+						right = FINAL_VOLUME(linear_right);
+					}
+				}
+			}
+
+			vp->old_left_mix = linear_left;
+			vp->old_right_mix = linear_right;
+			count -= i;
+#endif
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+				}
+			} else if(vp->panning < 64) {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+				}
+			} else {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+				}
+			}
+			vp->pan_delay_wpt = pan_delay_wpt;
+			return;
+		}
+}
+#else	/* ENABLE_PAN_DELAY */
+static inline void mix_mystery_signal(
+		mix_t *sp, int32 *lp, int v, int count)
+{
+	Voice *vp = voice + v;
+	final_volume_t left = vp->left_mix, right = vp->right_mix;
+	int cc, i;
+	mix_t s;
+#ifdef SMOOTH_MIXING
+	int32 linear_left, linear_right;
 #endif
 
 	if (! (cc = vp->control_counter)) {
@@ -682,38 +960,17 @@ static inline void mix_mystery_signal(
 			vp->old_right_mix = linear_right;
 			count -= i;
 #endif
-#ifdef ENABLE_PAN_DELAY
-			if(vp->pan_delay_rpt == 0) {
-				for (i = 0; i < count; i++) {
-					s = *sp++;
-					MIXATION(left);
-					MIXATION(right);
-				}
-			} else if(vp->panning < 64) {
-				for (i = 0; i < count; i++) {
-					s = *sp++;
-					MIXATION(left);
-					DELAYED_MIXATION(right);
-				}
-			} else {
-				for (i = 0; i < count; i++) {
-					s = *sp++;
-					DELAYED_MIXATION(left);
-					MIXATION(right);
-				}
-			}
-			vp->pan_delay_wpt = pan_delay_wpt;
-#else
 			for (i = 0; i < count; i++) {
 				s = *sp++;
 				MIXATION(left);
 				MIXATION(right);
 			}
-#endif	/* ENABLE_PAN_DELAY */
 			return;
 		}
 }
+#endif	/* ENABLE_PAN_DELAY */
 
+#ifdef ENABLE_PAN_DELAY
 static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 {
 	final_volume_t left = voice[v].left_mix, right = voice[v].right_mix;
@@ -723,8 +980,139 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	Voice *vp = voice + v;
 	int32 linear_left, linear_right;
 #endif
-#ifdef ENABLE_PAN_DELAY
 	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+
+#ifdef SMOOTH_MIXING
+	compute_mix_smoothing(vp);
+	linear_left = FROM_FINAL_VOLUME(left);
+	if (vp->left_mix_offset) {
+		linear_left += vp->left_mix_offset;
+		if (linear_left > MAX_AMP_VALUE) {
+			linear_left = MAX_AMP_VALUE;
+			vp->left_mix_offset = 0;
+		}
+		left = FINAL_VOLUME(linear_left);
+	}
+	linear_right = FROM_FINAL_VOLUME(right);
+	if (vp->right_mix_offset) {
+		linear_right += vp->right_mix_offset;
+		if (linear_right > MAX_AMP_VALUE) {
+			linear_right = MAX_AMP_VALUE;
+			vp->right_mix_offset = 0;
+		}
+		right = FINAL_VOLUME(linear_right);
+	}
+	if(vp->pan_delay_rpt == 0) {
+		for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+				&& i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			MIXATION(right);
+			if (vp->left_mix_offset) {
+				vp->left_mix_offset += vp->left_mix_inc;
+				linear_left += vp->left_mix_inc;
+				if (linear_left > MAX_AMP_VALUE) {
+					linear_left = MAX_AMP_VALUE;
+					vp->left_mix_offset = 0;
+				}
+				left = FINAL_VOLUME(linear_left);
+			}
+			if (vp->right_mix_offset) {
+				vp->right_mix_offset += vp->right_mix_inc;
+				linear_right += vp->right_mix_inc;
+				if (linear_right > MAX_AMP_VALUE) {
+					linear_right = MAX_AMP_VALUE;
+					vp->right_mix_offset = 0;
+				}
+				right = FINAL_VOLUME(linear_right);
+			}
+		}
+	} else if(vp->panning < 64) {
+		for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+				&& i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			DELAYED_MIXATION(right);
+			if (vp->left_mix_offset) {
+				vp->left_mix_offset += vp->left_mix_inc;
+				linear_left += vp->left_mix_inc;
+				if (linear_left > MAX_AMP_VALUE) {
+					linear_left = MAX_AMP_VALUE;
+					vp->left_mix_offset = 0;
+				}
+				left = FINAL_VOLUME(linear_left);
+			}
+			if (vp->right_mix_offset) {
+				vp->right_mix_offset += vp->right_mix_inc;
+				linear_right += vp->right_mix_inc;
+				if (linear_right > MAX_AMP_VALUE) {
+					linear_right = MAX_AMP_VALUE;
+					vp->right_mix_offset = 0;
+				}
+				right = FINAL_VOLUME(linear_right);
+			}
+		}
+	} else {
+		for (i = 0; (vp->left_mix_offset | vp->right_mix_offset)
+				&& i < count; i++) {
+			s = *sp++;
+			DELAYED_MIXATION(left);
+			MIXATION(right);
+			if (vp->left_mix_offset) {
+				vp->left_mix_offset += vp->left_mix_inc;
+				linear_left += vp->left_mix_inc;
+				if (linear_left > MAX_AMP_VALUE) {
+					linear_left = MAX_AMP_VALUE;
+					vp->left_mix_offset = 0;
+				}
+				left = FINAL_VOLUME(linear_left);
+			}
+			if (vp->right_mix_offset) {
+				vp->right_mix_offset += vp->right_mix_inc;
+				linear_right += vp->right_mix_inc;
+				if (linear_right > MAX_AMP_VALUE) {
+					linear_right = MAX_AMP_VALUE;
+					vp->right_mix_offset = 0;
+				}
+				right = FINAL_VOLUME(linear_right);
+			}
+		}
+	}
+
+	vp->old_left_mix = linear_left;
+	vp->old_right_mix = linear_right;
+	count -= i;
+#endif
+	if(vp->pan_delay_rpt == 0) {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			MIXATION(right);
+		}
+	} else if(vp->panning < 64) {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			DELAYED_MIXATION(right);
+		}
+	} else {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			DELAYED_MIXATION(left);
+			MIXATION(right);
+		}
+	}
+	vp->pan_delay_wpt = pan_delay_wpt;
+}
+#else	/* ENABLE_PAN_DELAY */
+static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
+{
+	final_volume_t left = voice[v].left_mix, right = voice[v].right_mix;
+	mix_t s;
+	int i;
+#ifdef SMOOTH_MIXING
+	Voice *vp = voice + v;
+	int32 linear_left, linear_right;
 #endif
 
 #ifdef SMOOTH_MIXING
@@ -775,35 +1163,14 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	vp->old_right_mix = linear_right;
 	count -= i;
 #endif
-#ifdef ENABLE_PAN_DELAY
-	if(vp->pan_delay_rpt == 0) {
-		for (i = 0; i < count; i++) {
-			s = *sp++;
-			MIXATION(left);
-			MIXATION(right);
-		}
-	} else if(vp->panning < 64) {
-		for (i = 0; i < count; i++) {
-			s = *sp++;
-			MIXATION(left);
-			DELAYED_MIXATION(right);
-		}
-	} else {
-		for (i = 0; i < count; i++) {
-			s = *sp++;
-			DELAYED_MIXATION(left);
-			MIXATION(right);
-		}
-	}
-	vp->pan_delay_wpt = pan_delay_wpt;
-#else
 	for (i = 0; i < count; i++) {
 		s = *sp++;
 		MIXATION(left);
 		MIXATION(right);
 	}
-#endif	/* ENABLE_PAN_DELAY */
 }
+#endif	/* ENABLE_PAN_DELAY */
+
 
 static inline void mix_center_signal(
 		mix_t *sp, int32 *lp, int v, int count)
