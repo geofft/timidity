@@ -120,7 +120,11 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_mag.h \
 	w32g_dib.c \
 	w32g_dib.h \
-	winsyn_c.c
+	winsyn_c.c \
+	rtsyn.h \
+	rtsyn_common.c \
+	rtsyn_winmm.c \
+	rtsyn_portmidi.c
 
 if ENABLE_WRD
 WRD_OBJS = \

@@ -90,7 +90,7 @@ extern char *optarg;
 #endif
 
 #define OPTCOMMANDS "4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:n:O:o:P:p:Q:q:R:rS:s:t:T:UW:w:x:Z:"	/* Only GJluVvXz are remain... */
-#define INTERACTIVE_INTERFACE_IDS "kmqagrwAW"
+#define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
 
 /* main interfaces (To be used another main) */
 #if defined(main) || defined(ANOTHER_MAIN)
@@ -3989,7 +3989,7 @@ int main(int argc, char **argv)
 
     nfiles = argc - optind;
     files  = argv + optind;
-    if(nfiles > 0 && ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W')
+    if(nfiles > 0 && ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
 	files = expand_file_archives(files, &nfiles);
     if(dumb_error_count)
 	sleep(1);

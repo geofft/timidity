@@ -146,6 +146,10 @@ extern ControlMode alsaseq_control_mode;
 extern ControlMode winsyn_control_mode;
 #endif /* IA_WINSYN */
 
+#ifdef IA_PORTMIDISYN
+extern ControlMode portmidisyn_control_mode;
+#endif /* IA_PORTMIDISYN */
+
 #ifdef IA_MACOSX
 extern ControlMode macosx_control_mode;
 #endif /* IA_MACOSX */
@@ -219,6 +223,9 @@ ControlMode *ctl_list[]={
 #endif
 #ifdef IA_WINSYN
   &winsyn_control_mode,
+#endif
+#ifdef IA_PORTMIDISYN
+  &portmidisyn_control_mode,
 #endif
   0
 };

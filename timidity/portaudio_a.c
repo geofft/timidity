@@ -67,9 +67,10 @@ static int stereo=2;
 static int data_nbyte;
 static int numBuffers;
 static unsigned int framesPerInBuffer;
-static unsigned int bytesPerInBuffer;
-static int  firsttime;
+static unsigned int bytesPerInBuffer=0;
+//static int  firsttime;
 static int pa_active=0;
+static int first=1;
 PaDeviceID DeviceID;
 PaDeviceInfo *DeviceInfo;
 PortAudioStream *stream;
@@ -148,58 +149,55 @@ static int open_output(void)
 {
 	double rate;
 	int n, nrates;
+	if(pa_active==0){
+		err = Pa_Initialize();
+		if( err != paNoError ) goto error;
+		pa_active=1;
+	}
+	if(first==1){
+		atexit(close_output);
+		first=0;
+	}
+
 	dpm.encoding = dpm.encoding  & !((int32)PE_ULAW) & !((int32)PE_ALAW) & !((int32)PE_BYTESWAP);
 	dpm.encoding = dpm.encoding|PE_SIGNED;
 	stereo=(dpm.encoding & PE_MONO)?1:2;
 	data_nbyte=(dpm.encoding & PE_16BIT)?sizeof(int16):sizeof(int8);
-	
-	DeviceID=Pa_GetDefaultInputDeviceID();
+
+	DeviceID=Pa_GetDefaultOutputDeviceID();
 	DeviceInfo=Pa_GetDeviceInfo( DeviceID);
 	nrates=DeviceInfo->numSampleRates;
-
 	if(nrates!=-1){
 		rate=DeviceInfo->sampleRates[nrates-1];
 		for(n=nrates-1;n>=0;n--){
-			if(dpm.rate < DeviceInfo->sampleRates[n]) rate=DeviceInfo->sampleRates[n];
+			if(dpm.rate <= DeviceInfo->sampleRates[n]) rate=DeviceInfo->sampleRates[n];
 		}
-		dpm.rate=rate;
 	}else{
-		if(dpm.rate < DeviceInfo->sampleRates[0]) dpm.rate=DeviceInfo->sampleRates[0];
-		if(dpm.rate > DeviceInfo->sampleRates[1]) dpm.rate=DeviceInfo->sampleRates[1];
+		rate=dpm.rate;
+		if(dpm.rate < DeviceInfo->sampleRates[0]) rate=DeviceInfo->sampleRates[0];
+		if(dpm.rate > DeviceInfo->sampleRates[1]) rate=DeviceInfo->sampleRates[1];
 	}
+	dpm.rate=(int32)rate;
 
 	pa_data.samplesToGo=0;
 	pa_data.bufpoint=pa_data.buf;
 	pa_data.bufepoint=pa_data.buf;
-	firsttime=1;
+//	firsttime=1;
 	numBuffers=Pa_GetMinNumBuffers( framesPerBuffer, dpm.rate );
 	framesPerInBuffer=numBuffers*framesPerBuffer;
 	if(framesPerInBuffer<4096) framesPerInBuffer=4096;
 	bytesPerInBuffer=framesPerInBuffer*data_nbyte*stereo;
 //	printf("%d\n",framesPerInBuffer);
-
-	err = Pa_Initialize();
-	pa_active=1;
-
-	if( err != paNoError ) goto error;
+//	printf("%d\n",dpm.rate);
 	err = Pa_OpenDefaultStream(
-
     	&stream,        /* passes back stream pointer */
-
     	0,              /* no input channels */
-
     	stereo,              /* 2:stereo 1:mono output */
-
     	(dpm.encoding & PE_16BIT)?paInt16:paInt8,      /* 16 bit 8bit output */
-
-		dpm.rate,          /* sample rate */
-
+		(double)dpm.rate,          /* sample rate */
     	framesPerBuffer,            /* frames per buffer */
-
     	numBuffers,              /* number of buffers, if zero then use default minimum */
-
     	paCallback, /* specify our custom callback */
-
     	&pa_data);   /* pass our data through to callback */
 	if( err != paNoError ) goto error;
 	return 0;
@@ -212,7 +210,7 @@ error:
 static int output_data(char *buf, int32 nbytes)
 {
 	unsigned int i;
-	
+
 
 //	if(pa_data.samplesToGo > DATA_BLOCK_SIZE){ 
 //		Sleep(  (pa_data.samplesToGo - DATA_BLOCK_SIZE)/dpm.rate/4  );
@@ -224,6 +222,7 @@ static int output_data(char *buf, int32 nbytes)
 		}
 	}
 	pa_data.samplesToGo += nbytes;
+
 /*
 	if(firsttime==1){
 		err = Pa_StartStream( stream );
@@ -237,7 +236,7 @@ static int output_data(char *buf, int32 nbytes)
 
 		if( err != paNoError ) goto error;
 	}
-	while(pa_data.samplesToGo > bytesPerInBuffer){ Pa_Sleep(1);};
+    while(pa_data.samplesToGo > bytesPerInBuffer){ Pa_Sleep(1);};
 //	Pa_Sleep( (pa_data.samplesToGo - bytesPerInBuffer)/dpm.rate * 1000);
 	return 0;
 
@@ -250,16 +249,15 @@ error:
 static void close_output(void)
 {	
 	if( pa_active==0) return;
-	if( 1==Pa_StreamActive(stream)){
+	if(Pa_StreamActive(stream)){
 		Pa_Sleep(  bytesPerInBuffer/dpm.rate*1000  );
-	}
+	}	
 	err = Pa_StopStream( stream );
-
-	if( err != paNoError ) goto error;
+//	if( err != paNoError ) goto error;
 	err = Pa_CloseStream( stream );
-
-	if( err != paNoError ) goto error;
-	Pa_Terminate(); pa_active=0;
+//	if( err != paNoError ) goto error;
+	Pa_Terminate(); 
+	pa_active=0;
 	return;
 
 error:

@@ -198,7 +198,7 @@ extern void winplaymidi(void);
 w32g_syn_message_t msg_loopbuf[W32G_SYN_MESSAGE_MAX];
 int msg_loopbuf_start = -1;
 int msg_loopbuf_end = -1;
-extern int system_mode;
+extern int rtsyn_system_mode;
 HANDLE msg_loopbuf_hMutex = NULL; // 排他処理用
 int syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
@@ -424,7 +424,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 						AppendMenu ( hMenu, MF_STRING | MF_GRAYED, IDM_START, "終了中……");
 					}
 					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "システムリセット");
-					switch ( system_mode ) {
+					switch ( rtsyn_system_mode ) {
 					case GM_SYSTEM_MODE:
 						AppendMenu ( hMenuReset, MF_STRING | MF_CHECKED, IDM_GM_SYSTEM_RESET, "GM リセット");
 						AppendMenu ( hMenuReset, MF_STRING, IDM_GS_SYSTEM_RESET, "GS リセット");
@@ -489,7 +489,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 						AppendMenu ( hMenu, MF_STRING | MF_GRAYED, IDM_START, "Quitting...");
 					}
 					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "System Reset");
-					switch ( system_mode ) {
+					switch ( rtsyn_system_mode ) {
 					case GM_SYSTEM_MODE:
 						AppendMenu ( hMenuReset, MF_STRING | MF_CHECKED, IDM_GM_SYSTEM_RESET, "GM Reset");
 						AppendMenu ( hMenuReset, MF_STRING, IDM_GS_SYSTEM_RESET, "GS Reset");
@@ -782,14 +782,12 @@ int w32g_message_get ( w32g_syn_message_t *msg )
 }
 
 extern int seq_quit;
-extern int playdone;
-extern void seq_play_event(MidiEvent *);
+extern void rtsyn_play_event(MidiEvent *);
 void w32g_syn_doit(void)
 {
 	w32g_syn_message_t msg;
 	MidiEvent ev;
 	DWORD sleep_time;
-	playdone=0;
 	while(seq_quit==0) {
 		int have_msg = 0;
 		sleep_time = 0;
@@ -812,67 +810,67 @@ void w32g_syn_doit(void)
 				sleep_time = 100;
 				break;
 			case W32G_SYN_GM_SYSTEM_RESET:
-					server_reset();
+					rtsyn_server_reset();
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
-					seq_play_event(&ev);
+					rtsyn_play_event(&ev);
 					sleep_time = 100;
 				break;
 			case W32G_SYN_GS_SYSTEM_RESET:
-				server_reset();
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-				seq_play_event(&ev);
+				rtsyn_play_event(&ev);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_XG_SYSTEM_RESET:
-				server_reset();
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
-				seq_play_event(&ev);
+				rtsyn_play_event(&ev);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_SYSTEM_RESET:
-				server_reset();
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
-				ev.a=system_mode;
-				seq_play_event(&ev);
+				ev.a=rtsyn_system_mode;
+				rtsyn_play_event(&ev);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_GM_SYSTEM:
-				system_mode=GM_SYSTEM_MODE;
-				server_reset();
+				rtsyn_system_mode=GM_SYSTEM_MODE;
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=GM_SYSTEM_MODE;
-				seq_play_event(&ev);
-				change_system_mode(system_mode);
+				rtsyn_play_event(&ev);
+				change_system_mode(rtsyn_system_mode);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_GS_SYSTEM:
-				system_mode=GS_SYSTEM_MODE;
-				server_reset();
+				rtsyn_system_mode=GS_SYSTEM_MODE;
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-				seq_play_event(&ev);
-				change_system_mode(system_mode);
+				rtsyn_play_event(&ev);
+				change_system_mode(rtsyn_system_mode);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_XG_SYSTEM:
-				system_mode=XG_SYSTEM_MODE;
-				server_reset();
+				rtsyn_system_mode=XG_SYSTEM_MODE;
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
-				seq_play_event(&ev);
-				change_system_mode(system_mode);
+				rtsyn_play_event(&ev);
+				change_system_mode(rtsyn_system_mode);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_DEFAULT_SYSTEM:
-				system_mode=DEFAULT_SYSTEM_MODE;
-				server_reset();
+				rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
+				rtsyn_server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-				seq_play_event(&ev);
-				change_system_mode(system_mode);
+				rtsyn_play_event(&ev);
+				change_system_mode(rtsyn_system_mode);
 				sleep_time = 100;
 				break;
 			default:
