@@ -192,15 +192,18 @@ static const struct option longopts[] = {
 #elif defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 	{ "interpolation",            required_argument, NULL, 'N' << 8 },
 #endif
-	{ "mode",                     required_argument, NULL, 'O' << 8 },
-	{ "stereo",                   optional_argument, NULL, 224 << 8 },
-	{ "mono",                     optional_argument, NULL, 224 << 8 },
-	{ "output-signed",            optional_argument, NULL, 225 << 8 },
+	{ "output-mode",              required_argument, NULL, 'O' << 8 },
+	{ "output-stereo",            no_argument,       NULL, 224 << 8 },
+	{ "output-mono",              no_argument,       NULL, 224 << 8 },
+	{ "output-signed",            no_argument,       NULL, 225 << 8 },
 	{ "output-unsigned",          no_argument,       NULL, 225 << 8 },
-	{ "bit-width",                required_argument, NULL, 226 << 8 },
-	{ "encoding",                 required_argument, NULL, 227 << 8 },
-	{ "no-output-byte-swap",      no_argument,       NULL, 228 << 8 },
-	{ "output-byte-swap",         optional_argument, NULL, 228 << 8 },
+	{ "output-16bit",             no_argument,       NULL, 226 << 8 },
+	{ "output-8bit",              no_argument,       NULL, 226 << 8 },
+	{ "output-linear",            no_argument,       NULL, 227 << 8 },
+	{ "output-ulaw",              no_argument,       NULL, 227 << 8 },
+	{ "output-alaw",              no_argument,       NULL, 227 << 8 },
+	{ "no-output-swab",           no_argument,       NULL, 228 << 8 },
+	{ "output-swab",              optional_argument, NULL, 228 << 8 },
 	{ "output-file",              required_argument, NULL, 'o' << 8 },
 	{ "patch",                    required_argument, NULL, 'P' << 8 },
 	{ "polyphony",                required_argument, NULL, 'p' << 8 },
@@ -2779,12 +2782,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return set_tim_opt_short(c, optarg);
 	if (! strncmp(the_option->name, "no-", 3))
 		arg = "no";		/* `reverse' switch */
-	else if (! strncmp(the_option->name, "output-un", 9))
-		/* --output-unsigned == --output-signed=no */
-		arg = "no";
-	else if (! strcmp(the_option->name, "mono"))
-		/* --mono == --stereo=no */
-		arg = (y_or_n_p(optarg)) ? "no" : "yes";
 	else
 		arg = optarg;
 	switch (c >> 8) {
@@ -2890,12 +2887,27 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case 'O':
 		return parse_opt_O(arg);
 	case 224:
+		if (! strcmp(the_option->name, "output-mono"))
+			/* --output-mono == --output-stereo=no */
+			arg = "no";
 		return parse_opt_O1(arg);
 	case 225:
+		if (! strcmp(the_option->name, "output-unsigned"))
+			/* --output-unsigned == --output-signed=no */
+			arg = "no";
 		return parse_opt_O2(arg);
 	case 226:
+		if (! strcmp(the_option->name, "output-8bit"))
+			/* --output-8bit == --output-16bit=no */
+			arg = "no";
 		return parse_opt_O3(arg);
 	case 227:
+		if (! strcmp(the_option->name, "output-linear"))
+			arg = "linear";
+		else if (! strcmp(the_option->name, "output-ulaw"))
+			arg = "ulaw";
+		else if (! strcmp(the_option->name, "output-alaw"))
+			arg = "alaw";
 		return parse_opt_O4(arg);
 	case 228:
 		return parse_opt_O5(arg);
@@ -3730,7 +3742,7 @@ static inline int parse_opt_O(const char *arg)
 
 static inline int parse_opt_O1(const char *arg)
 {
-	/* --stereo */
+	/* --output-stereo, --output-mono */
 	if (y_or_n_p(arg))
 		/* I first thought --mono should be the syntax sugae to
 		 * --stereo=no, but the source said stereo should be !PE_MONO,
@@ -3745,7 +3757,7 @@ static inline int parse_opt_O1(const char *arg)
 
 static inline int parse_opt_O2(const char *arg)
 {
-	/* --output-[un]singed */
+	/* --output-singed, --output-unsigned */
 	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg))
 		return 1;
 	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
@@ -3754,25 +3766,17 @@ static inline int parse_opt_O2(const char *arg)
 
 static inline int parse_opt_O3(const char *arg)
 {
-	/* --bit-width */
-	int val = atoi(arg);
-	
-	if (val == 1 || val == 16) {
-		play_mode->encoding |= PE_16BIT;
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return 0;
-	} else if (val == 8) {
-		play_mode->encoding &= ~PE_16BIT;
-		return 0;
-	} else {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "bit width must be 8 or 16");
+	/* --output-16bit, --output-8bit */
+	if (set_flag(&(play_mode->encoding), PE_16BIT, arg))
 		return 1;
-	}
+	if (y_or_n_p(arg))
+		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
 }
 
 static inline int parse_opt_O4(const char *arg)
 {
-	/* --encoding */
+	/* --output-linear, --output-ulaw, --output-alaw */
 	switch (*arg) {
 	case 'l':	/* linear */
 		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
@@ -3787,16 +3791,12 @@ static inline int parse_opt_O4(const char *arg)
 		play_mode->encoding &=
 				~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
 		return 0;
-	default:
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"unknown output encoding `%s'", arg);
-		return 1;
 	}
 }
 
 static inline int parse_opt_O5(const char *arg)
 {
-	/* --[no-]output-byte-swap */
+	/* --[no-]output-swab */
 	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg))
 		return 1;
 	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);

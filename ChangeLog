@@ -1,5 +1,15 @@
 2003-08-09 TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* timidity/timidity.c: Some option renamed
+	  --mode                  -> --output-mode
+	  --stereo                -> --output-stereo
+	  --mono                  -> --output-mono
+	  --bit-width             -> --output-{16,8}bit
+	  --encoding              -> --output-{linear,ulaw,alaw}
+	  --[no-]output-byte-swap -> --[no-]output-swab
+
+2003-08-09 TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* interface/alsaseq_c.c, interface/ncurs_c.c,
 	  interface/rtsyn_common.c, interface/server_c.c,
 	  timidity/playmidi.c, timidity/timidity.c
