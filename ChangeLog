@@ -1,3 +1,10 @@
+2004-05-31  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/common.c (open_file): ignore directories when searching
+	  a normal file
+	* timidity/timidity.c (main): suffix '/' is supplied to each argv
+	  elems when the path IS a directory but IS NOT suffixed by '/'.
+
 2004-05-31  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/instrum.h, timidity/instrum.c, timidity/m2m.c,

@@ -391,6 +391,7 @@ struct timidity_file *open_with_mem(char *mem, int32 memlen, int noise_mode)
    them through a decompressor. */
 struct timidity_file *open_file(char *name, int decompress, int noise_mode)
 {
+  struct stat st;
   struct timidity_file *tf;
   PathList *plp=pathlist;
   int l;
@@ -409,8 +410,10 @@ struct timidity_file *open_file(char *name, int decompress, int noise_mode)
 
   if(noise_mode)
     ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Trying to open %s", current_filename);
-  if ((tf=try_to_open(current_filename, decompress)))
-    return tf;
+  stat(current_filename, &st);
+  if(!S_ISDIR(st.st_mode))
+    if ((tf=try_to_open(current_filename, decompress)))
+      return tf;
 
 #ifdef __MACOS__
   if(errno)
@@ -441,8 +444,10 @@ struct timidity_file *open_file(char *name, int decompress, int noise_mode)
 	if(noise_mode)
 	    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
 		      "Trying to open %s", current_filename);
-	if ((tf=try_to_open(current_filename, decompress)))
-	  return tf;
+	stat(current_filename, &st);
+	if(!S_ISDIR(st.st_mode))
+	  if ((tf=try_to_open(current_filename, decompress)))
+	    return tf;
 #ifdef __MACOS__
 	if(errno)
 #else
