@@ -53,11 +53,11 @@ typedef struct _EffectList {
 } EffectList;
 
 extern void convert_effect(EffectList *);
-extern EffectList *new_effect(EffectList *, int8, void *);
+extern EffectList *push_effect(EffectList *, int8, void *);
 extern void do_effect_list(int32 *, int32, EffectList *);
 extern void free_effect_list(EffectList *);
 
-/* general purpose 2-Band Equalizer */
+/*! general purpose 2-band equalizer information. */
 struct InfoEQ2
 {
     int16 low_freq;		/* in Hz */

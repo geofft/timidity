@@ -1,3 +1,8 @@
+2003-07-06  Saito <timidity@flashmail.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.c:
+	  Fix comments.
+
 2003-07-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c, timidity/tables.[ch],

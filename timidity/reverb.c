@@ -1912,11 +1912,16 @@ void free_effect_buffers(void)
 	free_revmodel();
 }
 
+/*                                                        */
+/* new implementation for insertion and variation effect. */
+/*               (under construction...)                  */
+/*                                                        */
 
-/*                                       */
-/* New Insertion Effect (now testing...) */
-/*                                       */
-EffectList *new_effect(EffectList *efc, int8 type, void *info)
+/*! allocate new effect item and add it into the tail of effect list.
+    EffectList *efc: pointer to the top of effect list.
+    int8 type: type of new effect item.
+    void *info: pointer to infomation of new effect item. */
+EffectList *push_effect(EffectList *efc, int8 type, void *info)
 {
 	EffectList *eft, *efn;
 	if(type == EFFECT_NONE) {return NULL;}
@@ -1938,6 +1943,7 @@ EffectList *new_effect(EffectList *efc, int8 type, void *info)
 	return efc;
 }
 
+/*! process all items of effect list. */
 void do_effect_list(int32 *buf, int32 count, EffectList *ef)
 {
 	EffectList *efc = ef;
@@ -1949,6 +1955,7 @@ void do_effect_list(int32 *buf, int32 count, EffectList *ef)
 	}
 }
 
+/*! free all items of effect list. */
 void free_effect_list(EffectList *ef)
 {
 	EffectList *efc, *efn;
@@ -1962,6 +1969,7 @@ void free_effect_list(EffectList *ef)
 	} while ((efc = efn) != NULL);
 }
 
+/*! general purpose 2-band equalizer engine. */
 void do_eq2(int32 *buf, int32 count, EffectList *ef)
 {
 	struct InfoEQ2 *eq = (struct InfoEQ2 *)ef->info;
@@ -1980,6 +1988,7 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 	}
 }
 
+/*! assign effect engine according to effect type. */
 void convert_effect(EffectList *ef)
 {
 	ef->do_effect = NULL;

@@ -4113,9 +4113,12 @@ char *event2string(int id)
     return string_event_table[id];
 }
 
+/*! fixed filter cutoff frequency for GS system effects in Hz. */
 #define SYSTEM_EFFECT_LPF_FC 110
 
-FLOAT_T gs_system_effect_hsf_gain_table[8] = {	/* in decibels. It works a sort of lowpass-filter. */
+/*! highpass shelving filter gain table for GS system effects in decibels.
+    every value is negative or 0, so that this filter works as a sort of lowpass-filter. */
+FLOAT_T gs_system_effect_hsf_gain_table[8] = {
 	0, -1.9, -4.0, -6.5, -9.0, -12.0, -16.5, -24.0
 };
 
@@ -4290,6 +4293,7 @@ void recompute_eq_status()
 	}
 }
 
+/*! convert GS user drumset assign groups to internal "alternate assign". */
 void recompute_userdrum_altassign(int bank, int group)
 {
 	int number = 0, i;
@@ -4311,6 +4315,7 @@ void recompute_userdrum_altassign(int bank, int group)
 	bk->alt = add_altassign_string(bk->alt, params, number);
 }
 
+/*! initialize GS user drumset. */
 void init_userdrum()
 {
 	int i;
@@ -4326,6 +4331,7 @@ void init_userdrum()
 	}
 }
 
+/*! recompute GS user drumset. */
 void recompute_userdrum(int bank, int prog)
 {
 	UserDrumset *p;
@@ -4346,6 +4352,8 @@ void recompute_userdrum(int bank, int prog)
 	}
 }
 
+/*! get pointer to requested GS user drumset.
+   if it's not found, allocate a new item first. */
 UserDrumset *get_userdrum(int bank, int prog)
 {
 	UserDrumset *p;
@@ -4370,6 +4378,7 @@ UserDrumset *get_userdrum(int bank, int prog)
 	return p;
 }
 
+/*! free GS user drumset. */
 void free_userdrum()
 {
 	UserDrumset *p, *next;
@@ -4381,11 +4390,13 @@ void free_userdrum()
 	userdrum_first = userdrum_last = NULL;
 }
 
+/*! initialize GS user instrument. */
 void init_userinst()
 {
 	free_userinst();
 }
 
+/*! recompute GS user instrument. */
 void recompute_userinst(int bank, int prog)
 {
 	UserInstrument *p;
@@ -4406,6 +4417,8 @@ void recompute_userinst(int bank, int prog)
 	}
 }
 
+/*! get pointer to requested GS user instrument.
+   if it's not found, allocate a new item first. */
 UserInstrument *get_userinst(int bank, int prog)
 {
 	UserInstrument *p;
@@ -4430,6 +4443,7 @@ UserInstrument *get_userinst(int bank, int prog)
 	return p;
 }
 
+/*! free GS user instrument. */
 void free_userinst()
 {
 	UserInstrument *p, *next;
@@ -4441,6 +4455,7 @@ void free_userinst()
 	userinst_first = userinst_last = NULL;
 }
 
+/*! initialize GS insertion effect parameters */
 void init_insertion_effect_status()
 {
 	int i;
@@ -4464,49 +4479,52 @@ void init_insertion_effect_status()
 	st->send_eq_switch = 0x01;
 }
 
+/*! set GS default insertion effect parameters according to effect type. */
 void set_insertion_effect_default_parameter()
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
+	int8 *param = st->parameter;
 
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		st->parameter[0] = 48;
-		st->parameter[1] = 1;
-		st->parameter[2] = 1;
-		st->parameter[16] = 0x40;
-		st->parameter[17] = 0x40;
-		st->parameter[18] = 0x40;
-		st->parameter[19] = 96;
+		param[0] = 48;
+		param[1] = 1;
+		param[2] = 1;
+		param[16] = 0x40;
+		param[17] = 0x40;
+		param[18] = 0x40;
+		param[19] = 96;
 		break;
 	case 0x0111: /* Distortion */
-		st->parameter[0] = 76;
-		st->parameter[1] = 3;
-		st->parameter[2] = 1;
-		st->parameter[16] = 0x40;
-		st->parameter[17] = 0x38;
-		st->parameter[18] = 0x40;
-		st->parameter[19] = 84;
+		param[0] = 76;
+		param[1] = 3;
+		param[2] = 1;
+		param[16] = 0x40;
+		param[17] = 0x38;
+		param[18] = 0x40;
+		param[19] = 84;
 		break;
 	case 0x1103: /* OD1 / OD2 */
-		st->parameter[0] = 0;
-		st->parameter[1] = 48;
-		st->parameter[2] = 1;
-		st->parameter[3] = 1;
-		st->parameter[15] = 0x40;
-		st->parameter[16] = 96;
-		st->parameter[5] = 1;
-		st->parameter[6] = 76;
-		st->parameter[7] = 3;
-		st->parameter[8] = 1;
-		st->parameter[17] = 0x40;
-		st->parameter[18] = 84;
-		st->parameter[19] = 127;
+		param[0] = 0;
+		param[1] = 48;
+		param[2] = 1;
+		param[3] = 1;
+		param[15] = 0x40;
+		param[16] = 96;
+		param[5] = 1;
+		param[6] = 76;
+		param[7] = 3;
+		param[8] = 1;
+		param[17] = 0x40;
+		param[18] = 84;
+		param[19] = 127;
 		break;
 	default: break;
 	}
 }
 
-static void *conv_gs_ieffect_to_eq2(struct GSInsertionEffect *ieffect)
+/*! convert GS insertion effect parameters for internal 2-band equalizer. */
+static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 {
 	struct InfoEQ2 *eq = (struct InfoEQ2 *)safe_malloc(sizeof(struct InfoEQ2));
 
@@ -4518,6 +4536,7 @@ static void *conv_gs_ieffect_to_eq2(struct GSInsertionEffect *ieffect)
 	return eq;
 }
 
+/*! recompute GS insertion effect parameters. */
 void recompute_insertion_effect()
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
@@ -4526,12 +4545,12 @@ void recompute_insertion_effect()
 	free_effect_list(st->ef);
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		info = conv_gs_ieffect_to_eq2(st);
-		st->ef = new_effect(st->ef, EFFECT_EQ2, info);
+		info = conv_gs_ie_to_eq2(st);
+		st->ef = push_effect(st->ef, EFFECT_EQ2, info);
 		break;
 	case 0x0111: /* Distortion */
-		info = conv_gs_ieffect_to_eq2(st);
-		st->ef = new_effect(st->ef, EFFECT_EQ2, info);
+		info = conv_gs_ie_to_eq2(st);
+		st->ef = push_effect(st->ef, EFFECT_EQ2, info);
 		break;
 	case 0x1103: /* OD1 / OD2 */
 		break;
@@ -4539,6 +4558,7 @@ void recompute_insertion_effect()
 	}
 }
 
+/*! initialize channel layers. */
 void init_channel_layer(int ch)
 {
 	if(ch >= MAX_CHANNELS) {return;}
@@ -4550,6 +4570,7 @@ void init_channel_layer(int ch)
 	add_channel_layer(ch, ch);
 }
 
+/*! add a new layer and remove an overlapping layer. */
 void add_channel_layer(int ch, int fromch)
 {
 	int i, j = 0;
@@ -4557,7 +4578,7 @@ void add_channel_layer(int ch, int fromch)
 
 	if(fromch >= MAX_CHANNELS || ch >= MAX_CHANNELS) {return;}
 
-	/* delete overlapping channel layer */
+	/* delete an overlapping channel layer */
 	if(channel[fromch].channel_layer != NULL) {
 		memcpy(layer, channel[fromch].channel_layer, sizeof(channel[fromch].channel_layer));
 		for(i = 0; i < MAX_CHANNELS; i++)
@@ -4571,7 +4592,7 @@ void add_channel_layer(int ch, int fromch)
 			}
 		}
 	}
-	/* add channel layer */
+	/* add a channel layer */
 	for(i = 0; i < MAX_CHANNELS; i++)
 	{
 		if(channel[ch].channel_layer == NULL || channel[ch].channel_layer[i] == -1) {
@@ -4588,6 +4609,7 @@ void add_channel_layer(int ch, int fromch)
 	}
 }
 
+/*! remove all layers for this channel. */
 void remove_channel_layer(int ch)
 {
 	int i, j, k;
@@ -4598,7 +4620,7 @@ void remove_channel_layer(int ch)
 	for(k = 0; k < MAX_CHANNELS; k++)
 	{
 		j = 0;
-		/* remove channel layer */
+		/* remove channel layers */
 		if(channel[k].channel_layer != NULL) {
 			memcpy(layer, channel[k].channel_layer, sizeof(channel[k].channel_layer));
 			for(i = 0; i < MAX_CHANNELS; i++)
