@@ -310,6 +310,7 @@ struct reverb_status_t
 	InfoStandardReverb info_standard_reverb;
 	InfoPlateReverb info_plate_reverb;
 	InfoFreeverb info_freeverb;
+	InfoDelay3 info_reverb_delay;
 	filter_lowpass1 lpf;
 } reverb_status;
 

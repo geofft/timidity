@@ -1404,6 +1404,100 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 }
 #endif	/* OPT_MODE != 0 */
 
+/*                                 */
+/*  Reverb: Delay & Panning Delay  */
+/*                                 */
+/*! initialize Reverb: Delay Effect; this implementation is specialized for system effect. */
+static void init_ch_reverb_delay(InfoDelay3 *info)
+{
+	int32 x;
+	info->size[0] = (double)reverb_status.time * 3.75f * play_mode->rate / 1000.0f;
+	x = info->size[0] + 1;	/* allowance */
+	set_delay(&(info->delayL), x);
+	set_delay(&(info->delayR), x);
+	info->index[0] = x - info->size[0];
+	info->level[0] = (double)reverb_status.level * 1.82f / 127.0f;
+	info->feedback = sqrt((double)reverb_status.delay_feedback / 127.0f) * 0.98f;
+	info->leveli[0] = TIM_FSCALE(info->level[0], 24);
+	info->feedbacki = TIM_FSCALE(info->feedback, 24);
+}
+
+static void free_ch_reverb_delay(InfoDelay3 *info)
+{
+	free_delay(&(info->delayL));
+	free_delay(&(info->delayR));
+}
+
+/*! Reverb: Panning Delay Effect; this implementation is specialized for system effect. */
+static void do_ch_reverb_panning_delay(int32 *buf, int32 count, InfoDelay3 *info)
+{
+	int32 i, l, r;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], level0i = info->leveli[0],
+		feedbacki = info->feedbacki;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_ch_reverb_delay(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_ch_reverb_delay(info);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		bufL[buf_index] = reverb_effect_buffer[i] + imuldiv24(bufR[index0], feedbacki);
+		l = imuldiv24(bufL[index0], level0i);
+		bufR[buf_index] = reverb_effect_buffer[i + 1] + imuldiv24(bufL[index0], feedbacki);
+		r = imuldiv24(bufR[index0], level0i);
+
+		buf[i] += r;
+		buf[++i] += l;
+
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+	info->index[0] = index0;
+	delayL->index = delayR->index = buf_index;
+}
+
+/*! Reverb: Normal Delay Effect; this implementation is specialized for system effect. */
+static void do_ch_reverb_normal_delay(int32 *buf, int32 count, InfoDelay3 *info)
+{
+	int32 i;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], level0i = info->leveli[0],
+		feedbacki = info->feedbacki;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_ch_reverb_delay(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_ch_reverb_delay(info);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		bufL[buf_index] = reverb_effect_buffer[i] + imuldiv24(bufL[index0], feedbacki);
+		buf[i] += imuldiv24(bufL[index0], level0i);
+
+		bufR[buf_index] = reverb_effect_buffer[++i] + imuldiv24(bufR[index0], feedbacki);
+		buf[i] += imuldiv24(bufR[index0], level0i);
+
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+	info->index[0] = index0;
+	delayL->index = delayR->index = buf_index;
+}
+
 /*                      */
 /*  Plate Reverberator  */
 /*                      */
@@ -1591,12 +1685,23 @@ void init_reverb(void)
 	if (! (play_mode->encoding & PE_MONO)
 			&& (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) {
-		if(reverb_status.character == 5) {	/* Plate Reverb */
+		switch(reverb_status.character) {	/* select reverb algorithm */
+		case 5:	/* Plate Reverb */
 			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
 			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
-		} else {	/* Freeverb */
+			break;
+		case 6:	/* Delay */
+			do_ch_reverb_normal_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_reverb_delay));
+			REV_INP_LEV = 1.0;
+			break;
+		case 7: /* Panning Delay */
+			do_ch_reverb_panning_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_reverb_delay));
+			REV_INP_LEV = 1.0;
+			break;
+		default: /* Freeverb */
 			do_ch_freeverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_freeverb));
 			REV_INP_LEV = reverb_status.info_freeverb.wet;
+			break;
 		}
 	} else {	/* Old Reverb */
 		do_ch_standard_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_standard_reverb));
@@ -1615,10 +1720,23 @@ void do_ch_reverb(int32 *buf, int32 count)
 #endif /* SYS_EFFECT_PRE_LPF */
 	if (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) {
-		if(reverb_status.character == 5) {	/* Plate Reverb */
+		switch(reverb_status.character) {	/* select reverb algorithm */
+		case 5:	/* Plate Reverb */
 			do_ch_plate_reverb(buf, count, &(reverb_status.info_plate_reverb));
-		} else {	/* Freeverb */
+			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
+			break;
+		case 6:	/* Delay */
+			do_ch_reverb_normal_delay(buf, count, &(reverb_status.info_reverb_delay));
+			REV_INP_LEV = 1.0;
+			break;
+		case 7: /* Panning Delay */
+			do_ch_reverb_panning_delay(buf, count, &(reverb_status.info_reverb_delay));
+			REV_INP_LEV = 1.0;
+			break;
+		default: /* Freeverb */
 			do_ch_freeverb(buf, count, &(reverb_status.info_freeverb));
+			REV_INP_LEV = reverb_status.info_freeverb.wet;
+			break;
 		}
 	} else {	/* Old Reverb */
 		do_ch_standard_reverb(buf, count, &(reverb_status.info_standard_reverb));
@@ -2028,7 +2146,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 	if(!level) {return;}
 	level = level * 65536 / 127;
 
-	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
+	for(i = n - 1; i >= 0; i--) {buf[i] += imuldiv16(sbuffer[i], level);}
 }
 #endif	/* _MSC_VER */
 #else	/* floating-point implementation */
@@ -2039,7 +2157,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 	if(!level) {return;}
     FLOAT_T send_level = (FLOAT_T)level / 127.0;
 
-    for(i=0;i<count;i++)
+    for(i = 0; i < count; i++)
     {
 		chorus_effect_buffer[i] += sbuffer[i] * send_level;
     }
@@ -2707,6 +2825,7 @@ void free_effect_buffers(void)
 	do_ch_standard_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_standard_reverb));
 	do_ch_freeverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_freeverb));
 	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
+	do_ch_reverb_normal_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_reverb_delay));
 	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status.info_delay));
 	free_effect_list(ie_gs.ef);
 }
