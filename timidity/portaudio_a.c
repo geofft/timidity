@@ -297,7 +297,7 @@ static int open_output(void)
     	numBuffers,              /* number of buffers, if zero then use default minimum */
     	paCallback, /* specify our custom callback */
     	&pa_data);   /* pass our data through to callback */
-	if ( err != paNoError ) goto error;
+	if ( err != paNoError && err != paHostError) goto error;
 	return 0;
 
 error:
