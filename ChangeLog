@@ -1,3 +1,9 @@
+2003-08-17 Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/timidity.c (parse_opt_s): -s option works correctly aain
+	* timidity/reverb.c (init_reverb): -EFchorus=3 was cousing mono
+	  output to crash.
+
 2003-08-15  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/timidity.[ch]:

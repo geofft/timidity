@@ -3858,10 +3858,10 @@ static inline int parse_opt_S(const char *arg)
 static inline int parse_opt_s(const char *arg)
 {
 	/* sampling rate */
-	int32 tmpi32;
+	int32 tmpi32 = atoi(arg);
 
-	if (atoi(arg) < 100)
-		tmpi32 = atof(optarg) * 1000 + 0.5;
+	if (tmpi32 < 100)
+		tmpi32 = atof(arg) * 1000 + 0.5;
 	return set_value(&opt_output_rate, tmpi32,
 			MIN_OUTPUT_RATE, MAX_OUTPUT_RATE, "Resampling frequency");
 }

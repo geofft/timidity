@@ -1863,7 +1863,10 @@ void init_reverb(int32 output_rate)
 {
 	sample_rate = output_rate;
 	memset(reverb_status.high_val, 0, sizeof(reverb_status.high_val));
-	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
+	/* Only initialize freeverb if stereo output */
+        /* Old non-freeverb must be initialized for mono reverb not to crash */
+        if(!(play_mode->encoding & PE_MONO) &&
+	   opt_reverb_control == 3 || opt_effect_quality >= 2) {
 		alloc_revmodel();
 		update_revmodel(revmodel);
 		init_revmodel(revmodel);
