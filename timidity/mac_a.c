@@ -33,8 +33,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <sound.h>
-#include <SoundInput.h>
+#include <Sound.h>
 #include <Threads.h>
 
 #include "timidity.h"
@@ -58,10 +57,10 @@ static int detect(void);
 #define dpm mac_play_mode
 
 PlayMode dpm = {
-	44100, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE,
+	44100, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE|PF_BUFF_FRAGM_OPT,
 	-1,			//file descriptor
 	{0}, /* default: get all the buffer fragments you can */
-	"mac audio driver", 'm',
+	"Mac audio driver", 'm',
 	"",			//device file name
 	open_output,
 	close_output,
@@ -70,21 +69,26 @@ PlayMode dpm = {
 	detect
 };
 
-#define	MACBUFSIZE	((AUDIO_BUFFER_SIZE)*4+100)
-						/* *4 means 16bit stereo */
-						/* 100 means sound header */
-#define	MACBUFNUM	(MAC_SOUNDBUF_QLENGTH/2+1)
+#define SOUND_MANAGER_3_OR_LATER	1	// Always available on System 7.5 or later
+
+#if SOUND_MANAGER_3_OR_LATER
+#define MySoundHeader	CmpSoundHeader
+#else
+#define MySoundHeader	ExtSoundHeader
+#endif
+
 #define	FLUSH_END	-1
 
-Handle	soundHandle[MACBUFNUM];
-int	nextBuf=0;
+static MySoundHeader	*soundHeader;
+static char		**soundBuffer, *soundBufferMasterPtr;
+static int		bufferSize, bufferCount;
+static int		nextBuf, filling_flag;
 
 SndChannelPtr	gSndCannel=0;
 short			mac_amplitude=0x00FF;
-unsigned long	start_tic;
 volatile static int32	play_counter;
 volatile int	mac_buf_using_num, mac_flushing_flag;
-static int	filling_flag;
+
 /* ******************************************************************* */
 static SndChannelPtr MyCreateSndChannel(short synth, long initOptions,
 					SndCallBackUPP userRoutine,	short	queueLength)
@@ -92,14 +96,14 @@ static SndChannelPtr MyCreateSndChannel(short synth, long initOptions,
 	SndChannelPtr	mySndChan; // {pointer to a sound channel}
 	OSErr			myErr;
 						// {Allocate memory for sound channel.}
-	mySndChan = (SndChannelPtr)NewPtr(
+	mySndChan = (SndChannelPtr)malloc(
 				sizeof(SndChannel) + (queueLength-stdQLength)*sizeof(SndCommand) );
 	if( mySndChan != 0 ){
 		mySndChan->qLength = queueLength;	// {set number of commands in queue}
 											// {Create a new sound channel.}
 		myErr = SndNewChannel(&mySndChan, synth, initOptions, userRoutine);
 		if( myErr != noErr ){			// {couldn't allocate channel}
-			DisposePtr((Ptr)mySndChan); // {free memory already allocated}
+			free(mySndChan); // {free memory already allocated}
 			mySndChan = 0;				// {return NIL}
 		}
 		else
@@ -111,15 +115,13 @@ static SndChannelPtr MyCreateSndChannel(short synth, long initOptions,
 // ***************************************
 static void initCounter()
 {
-	start_tic=TickCount();
 	play_counter=0;
 	mac_buf_using_num=0;
 	filling_flag=0;
-	play_mode->extra_param[0]=0;
 	mac_flushing_flag=0;
 }
 
-static pascal void callback( SndChannelPtr /*chan*/, SndCommand * cmd)
+static pascal void callback(SndChannelPtr chan, SndCommand * cmd)
 {
 	if( cmd->param2==FLUSH_END ){
 		mac_flushing_flag=0;
@@ -129,35 +131,94 @@ static pascal void callback( SndChannelPtr /*chan*/, SndCommand * cmd)
 	mac_buf_using_num--;
 }
 
+static int GetCurrentFrameSize(void)
+{
+	int frameSize;
+	
+	frameSize = (dpm.encoding & PE_MONO) ? 1 : 2;
+	if (dpm.encoding & PE_16BIT)
+		frameSize *= 2;
+	else if (dpm.encoding & PE_24BIT)
+		frameSize *= 3;
+	return frameSize;
+}
+
+static void CleanupDriverMemory(void)
+{
+	if (gSndCannel != NULL)
+	{
+		SndDisposeChannel(gSndCannel, 0);
+		free(gSndCannel);
+		gSndCannel = NULL;
+	}
+	free(soundBuffer);
+	soundBuffer = NULL;
+	free(soundHeader);
+	soundHeader = NULL;
+	free(soundBufferMasterPtr);
+	soundBufferMasterPtr = NULL;
+}
+
 static int open_output (void)
 {
-	int		i;
+	int			i, include_enc, exclude_enc, sndBufferSize, sndBufferCount;
 	SndCommand	theCmd;
-	int include_enc, exclude_enc;
+	char		*sndBufferPtr;
 	
-	gSndCannel=MyCreateSndChannel(sampledSynth, 0,
-					NewSndCallBackProc(callback), MAC_SOUNDBUF_QLENGTH);
-	if( gSndCannel==0 )
-			{ StopAlertMessage("\pCan't open Sound Channel"); ExitToShell(); }
-					
-	dpm.encoding = include_enc = exclude_enc = 0;
-	
-	include_enc |= PE_16BIT;
-	include_enc |= PE_SIGNED;
-	
-	exclude_enc |= PE_ULAW;
-	exclude_enc |= PE_ALAW;
-	exclude_enc |= PE_BYTESWAP;
-	dpm.encoding = include_enc;
+	if (dpm.fd != -1)
+		return -1;
+	// buffer fragments
+	sndBufferCount = dpm.extra_param[0];
+	if (sndBufferCount == 0)	// default
+		sndBufferCount = audio_buffer_bits >= 11 ? 256 : 512;
+	else if (sndBufferCount < 64)
+		sndBufferCount = 64;
+	bufferCount = sndBufferCount;
+	// allocate channel
+	gSndCannel = MyCreateSndChannel(sampledSynth, 0,
+					NewSndCallBackUPP(callback), ((sndBufferCount - 1) * 2));
+	if (gSndCannel == NULL)
+		mac_ErrorExit("\pCan't open Sound Channel");
+	// encoding
+	if (dpm.encoding & (PE_16BIT | PE_24BIT))
+		include_enc = PE_SIGNED, exclude_enc = 0;
+	else
+		include_enc = 0, exclude_enc = PE_SIGNED;
+	exclude_enc |= PE_ULAW | PE_ALAW | PE_BYTESWAP;
 	dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
-    
-	for( i=0; i<MACBUFNUM; i++) /*making sound buffer*/
+    // allocate buffer
+	bufferSize = sndBufferSize = audio_buffer_size * GetCurrentFrameSize();
+	if ((soundBuffer = (char **)malloc(sndBufferCount * sizeof(char *))) == NULL)
+		goto bail;
+	if ((soundHeader = (MySoundHeader *)malloc(sndBufferCount * sizeof(MySoundHeader))) == NULL)
+		goto bail;
+	if ((sndBufferPtr = malloc(sndBufferSize * sndBufferCount)) == NULL)
+		goto bail;
+	soundBufferMasterPtr = sndBufferPtr;
+	nextBuf = 0;
+	// make sound headers
+	for(i = 0; i < sndBufferCount; i++)
 	{
-		soundHandle[i]=NewHandle(MACBUFSIZE);
-		if( soundHandle[i]==0 ) return -1;
-		HLock(soundHandle[i]);
+		MySoundHeader	*header = &soundHeader[i];
+		
+		header->samplePtr = soundBuffer[i] = sndBufferPtr;
+		header->loopStart = header->loopEnd = 0;
+		header->encode = SOUND_MANAGER_3_OR_LATER ? cmpSH : extSH;
+		header->baseFrequency = kMiddleC;
+		header->markerChunk = NULL;
+		#if SOUND_MANAGER_3_OR_LATER	// supports fixedCompression
+		header->futureUse2 = 0;
+		header->stateVars = NULL;
+		header->leftOverSamples = NULL;
+		header->compressionID = fixedCompression;
+		header->packetSize = 0;
+		header->snthID = 0;
+		#else
+		header->instrumentChunks = header->AESRecording = NULL;
+		header->futureUse1 = header->futureUse2 = header->futureUse3 = header->futureUse4 = 0;
+		#endif
+		sndBufferPtr += sndBufferSize;
 	}
-	
 	theCmd.cmd=ampCmd;	/*setting volume*/
 	theCmd.param1=mac_amplitude;
 	SndDoCommand(gSndCannel, &theCmd, 0);
@@ -167,7 +228,11 @@ static int open_output (void)
 #else
 	do_initial_filling=0;
 #endif
+	dpm.fd = 0;
 	return 0;
+bail:
+	CleanupDriverMemory();
+	return -1;
 }
 
 static void filling_end()
@@ -209,11 +274,12 @@ static void QuingSndCommand(SndChannelPtr chan, const SndCommand *cmd)
 
 static int output_data (char *buf, int32 nbytes)
 {
-	short			err,headerLen;
-	//long			len = count;
-	int32			samples;
-	long			offset;
+	short			numChannels, sampleSize;
+	int32			samples, rest;
+	MySoundHeader	*header;
+	OSType			codec;
 	SndCommand		theCmd;
+	int				frameSize;
 	
 	if( gCursorIsWatch ){
 		InitCursor();	gCursorIsWatch=false;
@@ -226,44 +292,65 @@ static int output_data (char *buf, int32 nbytes)
 	}
 #endif
 	
-	samples = nbytes;
-	if (!(dpm.encoding & PE_MONO)) /* Stereo sample */
-	{
-		samples /= 2;
-		//len *= 2;
-	}
-
+	if (dpm.encoding & PE_MONO)
+		numChannels = 1, frameSize = 1;
+	else	/* Stereo sample */
+		numChannels = 2, frameSize = 2;
+	
+	#if SOUND_MANAGER_3_OR_LATER
 	if (dpm.encoding & PE_16BIT)
-		samples /= 2;
+		sampleSize = 16, frameSize *= 2, codec = k16BitBigEndianFormat;	// kSoundNotCompressed
+	else if (dpm.encoding & PE_24BIT)
+		sampleSize = 24, frameSize *= 3, codec = k24BitFormat;
 	else
-		mac_ErrorExit("\pSorry, support only 16-bit sound.");
+		sampleSize = 8, codec = k8BitOffsetBinaryFormat;	// kSoundNotCompressed
+	#else
+	if (dpm.encoding & PE_16BIT)
+		sampleSize = 16, frameSize *= 2;
+	else if (dpm.encoding & PE_24BIT)
+		mac_ErrorExit("\pThis build doesn't support 24-bit audio.");
+	else
+		sampleSize = 8;
+	#endif
 	
-	//s32tos16 (buf, count);	/*power mac always 16bit*/
-	
-	if( nbytes>MACBUFSIZE)
-		mac_ErrorExit("\pTiMidity Error--sound packet is too large");	
-	err= SetupSndHeader((SndListHandle)soundHandle[nextBuf],
-			dpm.encoding & PE_MONO? 1:2,
-				dpm.rate<<16, 16, 'NONE',
-					60, nbytes, &headerLen);
-	if( err )
-		mac_ErrorExit("\pTiMidity Error--Cannot make Sound");
-	BlockMoveData(buf, *(soundHandle[nextBuf])+headerLen, nbytes);
-	
-	err= GetSoundHeaderOffset((SndListHandle)(soundHandle[nextBuf]), &offset);
-	if( err )
-		mac_ErrorExit("\pTiMidity Error--Cannot make Sound");
-	theCmd.cmd= bufferCmd;
-	theCmd.param2=(long)( *(soundHandle[nextBuf])+offset);
-	
-	QuingSndCommand(gSndCannel, &theCmd);
-	nextBuf++; mac_buf_using_num++;	if( nextBuf>=MACBUFNUM ) nextBuf=0;
-
-	theCmd.cmd= callBackCmd;	// post set
-	theCmd.param1= 0;
-	theCmd.param2= samples;
-	QuingSndCommand(gSndCannel, &theCmd);
-	play_mode->extra_param[0] += samples;
+	rest = nbytes;
+	do {
+		header = &soundHeader[nextBuf];
+		
+		nbytes = rest;
+		if (nbytes > bufferSize)
+		{
+			samples = bufferSize / frameSize;
+			nbytes = samples * frameSize;
+		}
+		else
+			samples = nbytes / frameSize;
+		rest -= nbytes;
+		
+		header->numChannels = numChannels;
+		header->sampleRate = dpm.rate << 16;
+		header->numFrames = samples;
+		//header->AIFFSampleRate = 0;	// unused
+		#if SOUND_MANAGER_3_OR_LATER
+		header->format = codec;
+		#endif
+		header->sampleSize = sampleSize;
+		BlockMoveData(buf, soundBuffer[nextBuf], nbytes);
+		buf += nbytes;
+		
+		theCmd.cmd= bufferCmd;
+		theCmd.param2=(long)header;
+		
+		QuingSndCommand(gSndCannel, &theCmd);
+		mac_buf_using_num++;
+		if (++nextBuf >= bufferCount)
+			nextBuf = 0;
+		
+		theCmd.cmd= callBackCmd;	// post set
+		theCmd.param1= 0;
+		theCmd.param2= samples;
+		QuingSndCommand(gSndCannel, &theCmd);
+	} while(rest > 0);
 	return 0; /*good*/
 }
 
@@ -315,15 +402,12 @@ static void purge_output (void)
 
 static void close_output (void)
 {
-	int i;
-	
+	if (dpm.fd == -1)
+		return;
 	purge_output();
-	
-	for( i=0; i<MACBUFNUM; i++)
-		DisposeHandle(soundHandle[i]);
-	
-	SndDisposeChannel(gSndCannel, 0); gSndCannel=0;
+	CleanupDriverMemory();
 	initCounter();
+	dpm.fd = -1;
 }
 
 static int flush_output (void)
@@ -371,7 +455,7 @@ static int acntl(int request, void * arg)
       	flush_output();
 	return 0;
       case PM_REQ_GETQSIZ:
-        *(int32*)arg= MACBUFNUM*AUDIO_BUFFER_SIZE*10;
+        *(int32*)arg = bufferCount * bufferSize;
       	return 0;
       case PM_REQ_GETSAMPLES:
       	*(int*)arg= current_samples();
