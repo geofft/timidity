@@ -1,5 +1,5 @@
 # TiMidity++ -- MIDI to WAVE converter and player
-# Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+# Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
 # Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 include $(top_srcdir)/common.makefile.in
 SUFFIXES = .1 .5 .txt .ps
@@ -26,7 +26,7 @@ man_MANS = \
 	timidity.1 \
 	timidity.cfg.5
 
-EXTRA_DIST = m2m.txt
+EXTRA_DIST =
 
 .1.txt:
 	groff -man -Tlatin1 -P-b -P-u $< >$@

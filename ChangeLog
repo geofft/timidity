@@ -1,3 +1,15 @@
+2004-02-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* AUTHORS: Update
+	* interface/Makefile.{am,in}: Fix due to make dist
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1,
+	  doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5: Update
+	* doc/m2m.txt: Move to doc/C/README.m2m
+	* doc/ja_JP.ujis/README.m2m: Add
+	* doc/Makefile.{am,in}, doc/C/Makefile.{am,in},
+	  doc/ja_JP.ujis/Makefile.{am,in}: Fix to fit with change above
+	* script/Makefile.{am,in}, script/lspatch.pl: Fix a little
+
 2004-02-28  Saito <saito@intaa.net>
 	* interface/w32g_icon.ico:
 	  Fix large icon. 
