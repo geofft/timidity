@@ -610,8 +610,9 @@ dnl portaudio(p) PortAudio
 dnl vorbis(v):  Ogg Vorbis
 dnl gogo(g):    MP3 GOGO
 dnl jack(j):    JACK
+dnl ao(O):      Libao
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack ao'
 
 AC_ARG_WITH(nas-library,
   [  --with-nas-library=library NAS absolute library path(Don't use -laudio)])
@@ -637,6 +638,7 @@ AC_ARG_ENABLE(audio,
                               esd:       EsounD - Enlightened Sound Daemon
                               portaudio: PortAudio
                               jack:      JACK
+                              ao:        Libao
                               vorbis:    Ogg Vorbis
                               gogo:      MP3 GOGO (Only Windows is supported)],
   [ enable_audio=$enableval
@@ -659,7 +661,7 @@ AC_ARG_WITH(default-output,
   [  --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
                                 esd|wav|au|aiff|list|vorbis|
-                                gogo|portaudio|jack)],
+                                gogo|portaudio|jack|ao)],
   [ if test "$enable_audio" != no; then
     DEFAULT_PLAYMODE=$withval
     eval "au_enable_$DEFAULT_PLAYMODE=yes"
@@ -1039,6 +1041,31 @@ if test "x$au_enable_jack" = xyes; then
   SYSEXTRAS="$SYSEXTRAS jack_a.c"
   EXTRALIBS="$EXTRALIBS $(pkg-config --libs jack)"
   EXTRADEFS="$EXTRADEFS -DAU_JACK $(pkg-config --cflags jack)"
+else
+  AC_MSG_RESULT(no)
+fi
+
+dnl AO
+AC_MSG_CHECKING(enable_audio=ao)
+if test "x$au_enable_ao" = xyes; then
+  AC_MSG_RESULT([yes, configuring alsa])
+  KEEPCFLAGS=$CFLAGS
+  KEEPLIBS=$LIBS
+  KEEPLDFLAGS=$LDFLAGS
+  XIPH_PATH_AO()
+  if test "x$no_ao" = "x" ; then
+    dnl AC_MSG_RESULT(yes)
+    EXTRADEFS="$EXTRADEFS -DAU_AO"
+    SYSEXTRAS="$SYSEXTRAS ao_a.c"
+    EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$AO_CFLAGS)
+    LIBS="$KEEPLIBS $AO_LIBS"
+    AC_CHECK_FUNCS(snd_seq_port_info_set_timestamping)
+  else
+    AC_MSG_WARN(Couldn't configure libao.)
+    CFLAGS=$KEEPCFLAGS
+    LIBS=$KEEPLIBS
+    LDFLAGS=$KEEPLDFLAGS
+  fi
 else
   AC_MSG_RESULT(no)
 fi

@@ -3793,6 +3793,9 @@ static inline int parse_opt_h(const char *arg)
 	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
 	fputs(NLS, fp);
+#ifdef AU_AO
+	show_ao_device_info(fp);
+#endif /* AU_AO */
 	close_pager(fp);
 	exit(EXIT_SUCCESS);
 }

@@ -1,3 +1,17 @@
+2004-04-13  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* autoconf/ao.m4: Add.
+	* configure.in: Change to use ao.m4
+	* autoconf/Makefile.am (EXTRA_DIST): ditto.
+
+2004-04-13  Iwata <b6330015@ipc.kit.jp>
+
+	* timidity/ao_a.c: Add.
+	* configure.in: Add libao support
+	* timidity/output.c: ditto.
+	* timidity/Makefile.am (EXTRA_timidity_SOURCES): ditto.
+	* timidity/timidity.c (parse_opt_h): ditto.
+
 2004-04-12  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/common.[ch], timidity/timidity.c:

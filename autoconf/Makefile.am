@@ -19,6 +19,7 @@
 
 EXTRA_DIST = \
   alsa.m4 \
+  ao.m4 \
   arts.m4 \
   esd.m4 \
   gtk.m4 \

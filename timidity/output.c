@@ -102,6 +102,10 @@ extern PlayMode jack_play_mode;
 extern PlayMode nas_play_mode;
 #endif /* AU_NAS */
 
+#ifdef AU_AO
+extern PlayMode ao_play_mode;
+#endif /* AU_AO */
+
 #ifndef __MACOS__
 /* These are always compiled in. */
 extern PlayMode raw_play_mode, wave_play_mode, au_play_mode, aiff_play_mode;
@@ -148,6 +152,10 @@ PlayMode *play_mode_list[] = {
 #if defined(AU_NAS)
   &nas_play_mode,
 #endif /* AU_NAS */
+
+#if defined(AU_AO)
+  &ao_play_mode,
+#endif /* AU_PORTAUDIO */
 
 #ifndef __MACOS__
   &wave_play_mode,

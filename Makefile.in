@@ -62,6 +62,8 @@ ALSA_LIBS = @ALSA_LIBS@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
+AO_CFLAGS = @AO_CFLAGS@
+AO_LIBS = @AO_LIBS@
 ARTS_CFLAGS = @ARTS_CFLAGS@
 ARTS_CONFIG = @ARTS_CONFIG@
 ARTS_LIBS = @ARTS_LIBS@
@@ -305,7 +307,7 @@ $(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in autoconf/alsa.m4 autoconf/arts.m4 autoconf/esd.m4 autoconf/gtk.m4 autoconf/ogg.m4 autoconf/utils.m4 autoconf/vorbis.m4
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in autoconf/alsa.m4 autoconf/ao.m4 autoconf/arts.m4 autoconf/esd.m4 autoconf/gtk.m4 autoconf/ogg.m4 autoconf/utils.m4 autoconf/vorbis.m4
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
 config.h: stamp-h1

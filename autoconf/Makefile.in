@@ -61,6 +61,8 @@ ALSA_LIBS = @ALSA_LIBS@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
+AO_CFLAGS = @AO_CFLAGS@
+AO_LIBS = @AO_LIBS@
 ARTS_CFLAGS = @ARTS_CFLAGS@
 ARTS_CONFIG = @ARTS_CONFIG@
 ARTS_LIBS = @ARTS_LIBS@
@@ -246,6 +248,7 @@ w_so_libs = @w_so_libs@
 
 EXTRA_DIST = \
   alsa.m4 \
+  ao.m4 \
   arts.m4 \
   esd.m4 \
   gtk.m4 \

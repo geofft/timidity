@@ -108,6 +108,7 @@ timidity_SOURCES = \
 
 EXTRA_timidity_SOURCES = \
 	alsa_a.c \
+	ao_a.c \
 	aRts_a.c \
 	audriv.h \
 	audriv_a.c \

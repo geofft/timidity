@@ -84,6 +84,8 @@ ALSA_LIBS = @ALSA_LIBS@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
+AO_CFLAGS = @AO_CFLAGS@
+AO_LIBS = @AO_LIBS@
 ARTS_CFLAGS = @ARTS_CFLAGS@
 ARTS_CONFIG = @ARTS_CONFIG@
 ARTS_LIBS = @ARTS_LIBS@
@@ -388,6 +390,7 @@ timidity_SOURCES = \
 
 EXTRA_timidity_SOURCES = \
 	alsa_a.c \
+	ao_a.c \
 	aRts_a.c \
 	audriv.h \
 	audriv_a.c \
@@ -510,10 +513,10 @@ DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/aRts_a.Po ./$(DEPDIR)/aiff_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/alsa_a.Po ./$(DEPDIR)/aq.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/au_a.Po ./$(DEPDIR)/audio_cnv.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/audriv_a.Po ./$(DEPDIR)/audriv_al.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/audriv_mme.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/alsa_a.Po ./$(DEPDIR)/ao_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/aq.Po ./$(DEPDIR)/au_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/audio_cnv.Po ./$(DEPDIR)/audriv_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/audriv_al.Po ./$(DEPDIR)/audriv_mme.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/audriv_none.Po ./$(DEPDIR)/bsd20_a.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/calcnewt.Po ./$(DEPDIR)/common.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/controls.Po ./$(DEPDIR)/darwin_a.Po \
@@ -608,6 +611,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aRts_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aiff_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alsa_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ao_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/au_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audio_cnv.Po@am__quote@
