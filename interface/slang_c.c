@@ -180,8 +180,8 @@ static void SLsmg_printfrc( int r, int c, char *fmt, ...) {
 
 static void ctl_head(void)
 {
-  SLsmg_printfrc(0, 0, "TiMidity++ %s",
-  		(strcmp(timidity_version, "current")) ? "v" : "" timidity_version);
+  SLsmg_printfrc(0, 0, "TiMidity++ %s%s",
+  		(strcmp(timidity_version, "current")) ? "v" : "", timidity_version);
   SLsmg_printfrc(0,SLtt_Screen_Cols-45, "(C) 1995 Tuukka Toivonen <toivonen@clinet.fi>");
   SLsmg_printfrc(1,0, "Press 'h' for help with keys, or 'q' to quit.");
 }
