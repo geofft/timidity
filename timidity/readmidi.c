@@ -827,8 +827,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		/* calculate checksum */
 		checksum = 0;
-		gslen = 9;
-		while(val[gslen] != 0xF7) {gslen++;}
+		for(gslen = 9; gslen < len; gslen++)
+			if(val[gslen] == 0xF7)
+				break;
 		for(i=4;i<gslen-1;i++) {
 			checksum += val[i];
 		}
@@ -1477,8 +1478,9 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 
 	/* check Checksum */
 	checksum = 0;
-	gslen = 9;
-	while(val[gslen] != 0xF7) {gslen++;}
+	for(gslen = 9; gslen < len; gslen++)
+		if(val[gslen] == 0xF7)
+			break;
 	for(i=4;i<gslen-1;i++) {
 		checksum += val[i];
 	}
