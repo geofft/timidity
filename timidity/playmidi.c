@@ -3306,7 +3306,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			recompute_insertion_effect();
 			break;
 		case 0x45:	/* Rx. Channel */
-			if(val == 0x80)
+			if (val == 0x80)
 				remove_all_channel_layer(ch);
 			else
 				add_channel_layer(val, ch);
@@ -3367,10 +3367,13 @@ static void play_midi_prescan(MidiEvent *ev)
 		orig_ch = ev->channel;
 		layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
 		for (j = 0; j < MAX_CHANNELS; j++) {
-			if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j)
-					&& layered) && j != orig_ch)
+			if (! layered && j)
 				continue;
-			ev->channel = j;
+			if (layered) {
+				if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j))
+					continue;
+				ev->channel = j;
+			}
 #endif
 	ch = ev->channel;
 
@@ -3844,10 +3847,13 @@ static void seek_forward(int32 until_time)
 		orig_ch = current_event->channel;
 		layered = ! IS_SYSEX_EVENT_TYPE(current_event->type);
 		for (j = 0; j < MAX_CHANNELS; j++) {
-			if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j)
-					&& layered) && j != orig_ch)
+			if (! layered && j)
 				continue;
-			current_event->channel = j;
+			if (layered) {
+				if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j))
+					continue;
+				current_event->channel = j;
+			}
 #endif
 	ch = current_event->channel;
 	
@@ -5616,10 +5622,13 @@ int play_event(MidiEvent *ev)
 	orig_ch = ev->channel;
 	layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
 	for (k = 0; k < MAX_CHANNELS; k++) {
-		if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, k)
-				&& layered) && k != orig_ch)
+		if (! layered && k)
 			continue;
-		ev->channel = k;
+		if (layered) {
+			if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, k))
+				continue;
+			ev->channel = k;
+		}
 #endif
 	ch = ev->channel;
 

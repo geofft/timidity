@@ -3127,14 +3127,13 @@ static inline int parse_opt_h(const char *arg)
 "                 0 disables",
 "  -N n       --interpolation=n",
 "               Set the interpolation parameter (depends on -EFresamp option)",
+"                 Linear interpolation is used if audio queue < 99%%",
 "                 cspline, lagrange:",
-"                   Toggle 4-point interpolation (default is on)",
+"                   Toggle 4-point interpolation (default on)",
 "                 newton:",
 "                   n'th order Newton polynomial interpolation, n=1-57 odd",
-"                   (default is 11)",
 "                 gauss:",
-"                   n+1 point Gauss-like interpolation, n=1-34 (default is 25)",
-"                 Linear interpolation is used if audio queue < 99%%",
+"                   n+1 point Gauss-like interpolation, n=1-34 (default 25)",
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
 "  -o file    --output-file=file",
@@ -3619,7 +3618,7 @@ static inline int parse_opt_m(const char *arg)
 static inline int parse_opt_N(const char *arg)
 {
 	int val;
-
+	
 	switch (get_current_resampler()) {
 	case RESAMPLE_CSPLINE:
 	case RESAMPLE_LAGRANGE:

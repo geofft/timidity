@@ -992,14 +992,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				case 0x02:	/* Rx. Channel */
 					if (val[7] == 0x10) {
 						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
-								block_to_part(val[5], midi_port_number),
-								block_to_part(val[7], 0x80),
-								0x45);
+								block_to_part(val[5],
+								midi_port_number ^ port),
+								block_to_part(val[7], 0x80), 0x45);
 					} else {
 						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
-								block_to_part(val[5], midi_port_number),
-								block_to_part(val[7], midi_port_number ^ port),
-								0x45);
+								block_to_part(val[5],
+								midi_port_number ^ port),
+								block_to_part(val[7],
+								midi_port_number ^ port), 0x45);
 					}
 					num_events++;
 					break;
@@ -1569,11 +1570,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x00:	/* System */
 			switch(addr & 0xFFF0) {
 				case 0x0100:	/* Channel Msg Rx Port (A) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, 0), block_to_part(addr & 0xF, val[7]), 0x46);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+							block_to_part(addr & 0xf, 0),
+							block_to_part(addr & 0xf, val[7]), 0x46);
 					num_events++;
 					break;
 				case 0x0110:	/* Channel Msg Rx Port (B) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, 1), block_to_part(addr & 0xF, val[7]), 0x46);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+							block_to_part(addr & 0xf, 1),
+							block_to_part(addr & 0xf, val[7]), 0x46);
 					num_events++;
 					break;
 				default:
@@ -4579,6 +4584,7 @@ void init_channel_layer(int ch)
 	if (ch >= MAX_CHANNELS)
 		return;
 	CLEAR_CHANNELMASK(channel[ch].channel_layer);
+	SET_CHANNELMASK(channel[ch].channel_layer, ch);
 }
 
 /*! add a new layer. */
@@ -4588,6 +4594,7 @@ void add_channel_layer(int ch, int fromch)
 		return;
 	/* add a channel layer */
 	SET_CHANNELMASK(channel[ch].channel_layer, fromch);
+	UNSET_CHANNELMASK(channel[fromch].channel_layer, fromch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 		"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
 }
@@ -4599,6 +4606,7 @@ void remove_channel_layer(int ch, int fromch)
 		return;
 	/* remove a channel layer */
 	UNSET_CHANNELMASK(channel[ch].channel_layer, fromch);
+	SET_CHANNELMASK(channel[fromch].channel_layer, fromch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 		"Channel Layer (CH:%d -> CH:%d)", fromch, fromch);
 }
@@ -4611,7 +4619,11 @@ void remove_all_channel_layer(int ch)
 	if (ch >= MAX_CHANNELS)
 		return;
 	/* remove channel layers */
-	for (i = 0; i < MAX_CHANNELS; i++)
-		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
+	if (ch < REDUCE_CHANNELS)
+		for (i = 0; i < REDUCE_CHANNELS; i++)
+			UNSET_CHANNELMASK(channel[i].channel_layer, ch);
+	else
+		for (i = REDUCE_CHANNELS; i < MAX_CHANNELS; i++)
+			UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 }
 
