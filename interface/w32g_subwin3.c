@@ -349,7 +349,6 @@ void InitTracerWnd(HWND hParentWnd)
 		if ( PlayerLanguage == LANGUAGE_JAPANESE )
 			strcpy(fontname,"‚l‚r ‚o–¾’©");
 		else {
-//			strcpy(fontname,"Times New Roman");
 			strcpy(fontname,"Arial");
 			w32g_tracer_wnd.font_common_height = 16; 
 		}
@@ -1000,12 +999,9 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
 		cheap_string_view_draw ( &rc, buff, C_TEXT_FORE, C_TEXT_BACK, CSV_CENTER, lockflag );
 	}
 
-	if ( instrument == NULL )
-		instrument = " ----";
-	if ( w32g_tracer_wnd.instrument[ch] != instrument ) {
-		strncpy ( w32g_tracer_wnd.instrument[ch], (char *)instrument, 250 );
-		w32g_tracer_wnd.instrument[ch][250] = '\0';
-	}
+	if ( instrument == NULL ) {instrument = " ----";}
+	strncpy ( w32g_tracer_wnd.instrument[ch], (char *)instrument, 250 );
+	w32g_tracer_wnd.instrument[ch][250] = '\0';
 	if ( w32g_tracer_wnd.instrument[ch][0] != ' ' ) {
 		char buff[255];
 		strncpy ( buff, w32g_tracer_wnd.instrument[ch], 250 );

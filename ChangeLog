@@ -1,7 +1,7 @@
 2004-03-01  Saito <saito@intaa.net>
 
-	* timidity/timidity.c:
-	  Change some strcat() to strncat().
+	* timidity/w32g_subwin3.c:
+	  Fix Win32GUI tracer window.
 
 2004-02-29  mput <root@mput.dip.jp>
 
