@@ -1,3 +1,12 @@
+2003-05-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/readmidi.c (parse_sysex_event_multi):
+	  Fix XG Bulk Dump SysEx event parsing
+
+2003-05-28  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/reverb.c:
+	  Fix a little.
 
 2003-05-27  Saito <timidity@flashmail.com>
 
@@ -7,10 +16,10 @@
 	* timidity/sndfont.c:
 	  Adapt some parameters to specifications for SoundBlaster Live!.
 
-2003-05-27 Eric A. Welsh<ewelsh@ccb.wustl.edu>
+2003-05-27 Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/readmidi.c (parse_sysex_event_multi):
-	  Fix XG multipart SYSEX events
+	  Fix XG multipart SysEx events
 
 2003-05-26  Saito <timidity@flashmail.com>
 

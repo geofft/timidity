@@ -916,7 +916,7 @@ void recompute_voice_filter(int v)
 
 	freq = (double)fc->orig_freq * coef;
 
-	if (freq > play_mode->rate / 2) {
+	if (fc->filter_calculated == 0 && freq > play_mode->rate / 2) {
 		fc->freq = -1;
 		return;
 	}

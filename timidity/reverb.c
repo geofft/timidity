@@ -1320,7 +1320,7 @@ void do_1103_dual_od(int32* buf, int32 count)
 	FLOAT_T level1,level2,volume,volume1,volume2;
 	int32 (*od1)(int32,FLOAT_T,FLOAT_T,int32),(*od2)(int32,FLOAT_T,FLOAT_T,int32);
 
-	volume = (FLOAT_T)insertion_effect.parameter[19] / 127.0 * 0.5;
+	volume = (FLOAT_T)insertion_effect.parameter[19] / 127.0;
 	volume1 = (FLOAT_T)insertion_effect.parameter[16] / 127.0 * volume;
 	volume2 = (FLOAT_T)insertion_effect.parameter[18] / 127.0 * volume;
 	level1 = (FLOAT_T)insertion_effect.parameter[1] / 127.0;

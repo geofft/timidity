@@ -636,150 +636,206 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
 	current_file_info->mid = val[0];
 
-    /* XG Multi Part Data parameter change */
-    /* There are two ways to do this, neither of which match the XG spec... */
-    /* All variables given in a single big block */
+    /* First, check for the various XG Bulk Dump events */
+    /* val[7] is the starting value for the event type */
+
+    /* Effect 1 */
+    else if(len >= 10 &&
+       val[0] == 0x43 && /* Yamaha ID */
+       val[2] == 0x4C && /* XG Model ID */
+       val[5] == 0x02)   /* Effect 1 */
+    {
+	uint8 addhigh, addmid, addlow;		/* Addresses */
+	uint8 *body;				/* SysEx body */
+	uint8 p;				/* Channel part number [0..15] */
+	int ent;				/* Entry # of sub-event */
+	uint8 *body_end;			/* End of SysEx body */
+
+	addhigh = val[5];
+	addmid = val[6];
+	addlow = val[7];
+	body = val + 8;
+	p = val[6];
+	body_end = val + len-3;
+
+	for (ent = val[7]; body <= body_end; body++, ent++) {
+	    switch(ent) {
+		case 0x0C:	/* Reverb Return */
+		    reverb_status.level = *body;
+		    recompute_reverb_status();
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",*body);
+		    break;
+
+		case 0x2C:	/* Chorus Return */
+		    chorus_param.chorus_level = *body;
+		    recompute_chorus_status();
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",*body);
+		    break;
+
+		default:
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],val[7],ent);
+		    continue;
+		    break;
+	    }
+	}
+    }
+
+    /* Effect 2 (Insertion Effects) */
     if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
-       val[4] == 0x29) /* Total size of data body to be analyzed */  
+       val[5] == 0x03)   /* Effect 2 (Insertion Effects) */
     {
-		uint8 addhigh, addmid, addlow;		/* Addresses */
-		uint8 *body;				/* SysEx body */
-		uint8 p;				/* Channel part number [0..15] */
-		int ent;				/* Entry # of sub-event */
-		uint8 *body_end;			/* End of SysEx body */
+	uint8 addhigh, addmid, addlow;		/* Addresses */
+	uint8 *body;				/* SysEx body */
+	uint8 p;				/* Channel part number [0..15] */
+	int ent;				/* Entry # of sub-event */
+	uint8 *body_end;			/* End of SysEx body */
 
-		addhigh = val[3];
-		addmid = val[4];
-		addlow = val[5];
-		body = val + 8;
-		p = val[6];
-		body_end = val + len-3;
+	addhigh = val[5];
+	addmid = val[6];
+	addlow = val[7];
+	body = val + 8;
+	p = val[6];
+	body_end = val + len-3;
 
-		if(val[5] == 0x01) {	/* Effect 1 */
-			for (ent=0; body <= body_end; body++, ent++) {
-				switch(ent) {
-				case 0x0C:	/* Reverb Return */
-				  reverb_status.level = *body;
-				  recompute_reverb_status();
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",*body);
-				  break;
+	for (ent = val[7]; body <= body_end; body++, ent++) {
+	    switch(ent) {
 
-				case 0x2C:	/* Chorus Return */
-				  chorus_param.chorus_level = *body;
-				  recompute_chorus_status();
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",*body);
-				  break;
+		/* need to add in insertion effects code */
+		/* need to figure out how XG insertion effects map on to
+		   the GS insertion effects */
 
-				default:
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
-				  continue;
-				  break;
-				}
-			}
-		} else if(val[5] == 0x08) {	/* Multi Part Data parameter change */
-			for (ent=0; body <= body_end; body++, ent++) {
-				switch(ent) {
-
-				case 0x01:	/* bank select MSB */
-				  SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x02:	/* bank select LSB */
-				  SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_LSB, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x03:	/* program number */
-				  SETMIDIEVENT(evm[num_events], 0, ME_PROGRAM, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x04:	/* Rcv CHANNEL */
-				  if(*body == 0x7F) {
-					remove_channel_layer(p);
-				   	init_channel_layer(p);
-				  } else {
-					add_channel_layer(*body, p);
-				  }
-				  break;
-
-				case 0x05:	/* mono/poly mode */
-				  if(*body == 0) {
-					  channel[p].mono = 1;
-				  } else {
-					  channel[p].mono = 0;
-				  }
-				  break;
-
-				case 0x08:	/* note shift ? */
-				  SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x0B:	/* volume */
-				  SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x0E:	/* pan */
-				  if(*body == 0) {
-					SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
-				  }
-				  else {
-					SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, 0);
-				  }
-				  num_events++;
-				  break;
-
-				case 0x12:	/* chorus send */
-				  SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x13:	/* reverb send */
-				  SETMIDIEVENT(evm[num_events], 0, ME_REVERB_EFFECT, p, *body, 0);
-				  num_events++;
-				  break;
-
-				case 0x23:	/* bend pitch control */
-				  SETMIDIEVENT(evm[num_events], 0,ME_RPN_MSB,p,0,0);
-				  SETMIDIEVENT(evm[num_events+1], 0,ME_RPN_LSB,p,0,0);
-				  SETMIDIEVENT(evm[num_events+2], 0,ME_DATA_ENTRY_MSB,p,(*body - 0x40) & 0x7F,0);
-				  num_events += 3;
-				  break;
-
-				case 0x41:	/* scale tuning */
-				case 0x42:
-				case 0x43:
-				case 0x44:
-				case 0x45:
-				case 0x46:
-				case 0x47:
-				case 0x48:
-				case 0x49:
-				case 0x4a:
-				case 0x4b:
-				case 0x4c:
-					SETMIDIEVENT(evm[num_events],
-							0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
-					num_events++;
-					ctl->cmsg(CMSG_INFO, VERB_NOISY,
-							"Scale Tuning %s (CH:%d %d cent)",
-							note_name[ent - 0x41], p, *body - 64);
-					break;
-
-				default:
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
-				  continue;
-				  break;
-				}
-			}
-		}
+		default:
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],val[7],ent);
+		    continue;
+		    break;
+	    }
+	}
     }
-    /* Or you can specify them one SYSEX event at a time... */
+
+    /* XG Multi Part Data parameter change */
+    /* There are two ways to do this, neither of which match the XG spec... */
+
+    /* First method via Bulk Dump */
+    else if(len >= 10 &&
+       val[0] == 0x43 && /* Yamaha ID */
+       val[2] == 0x4C && /* XG Model ID */
+       (val[4] == 0x29 || val[4] == 0x3F) && /* Blocks 1 or 2 */
+       val[5] == 0x08)   /* Multi Part */
+    {
+	uint8 addhigh, addmid, addlow;		/* Addresses */
+	uint8 *body;				/* SysEx body */
+	uint8 p;				/* Channel part number [0..15] */
+	int ent;				/* Entry # of sub-event */
+	uint8 *body_end;			/* End of SysEx body */
+
+	addhigh = val[5];
+	addmid = val[6];
+	addlow = val[7];
+	body = val + 8;
+	p = val[6];
+	body_end = val + len-3;
+
+	for (ent = val[7]; body <= body_end; body++, ent++) {
+	    switch(ent) {
+
+		case 0x01:	/* bank select MSB */
+		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x02:	/* bank select LSB */
+		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_LSB, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x03:	/* program number */
+		    SETMIDIEVENT(evm[num_events], 0, ME_PROGRAM, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x04:	/* Rcv CHANNEL */
+		    if(*body == 0x7F) {
+			remove_channel_layer(p);
+			init_channel_layer(p);
+		    } else {
+			add_channel_layer(*body, p);
+		    }
+		    break;
+
+		case 0x05:	/* mono/poly mode */
+		    if(*body == 0) {
+			channel[p].mono = 1;
+		    } else {
+			channel[p].mono = 0;
+		    }
+		    break;
+
+		case 0x08:	/* note shift ? */
+		    SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x0B:	/* volume */
+		    SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x0E:	/* pan */
+		    if(*body == 0) {
+		    	SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
+		    }
+		    else {
+			SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, 0);
+		    }
+		    num_events++;
+		    break;
+
+		case 0x12:	/* chorus send */
+		    SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x13:	/* reverb send */
+		    SETMIDIEVENT(evm[num_events], 0, ME_REVERB_EFFECT, p, *body, 0);
+		    num_events++;
+		    break;
+
+		case 0x23:	/* bend pitch control */
+		    SETMIDIEVENT(evm[num_events], 0,ME_RPN_MSB,p,0,0);
+		    SETMIDIEVENT(evm[num_events+1], 0,ME_RPN_LSB,p,0,0);
+		    SETMIDIEVENT(evm[num_events+2], 0,ME_DATA_ENTRY_MSB,p,(*body - 0x40) & 0x7F,0);
+		    num_events += 3;
+		    break;
+
+		case 0x41:	/* scale tuning */
+		case 0x42:
+		case 0x43:
+		case 0x44:
+		case 0x45:
+		case 0x46:
+		case 0x47:
+		case 0x48:
+		case 0x49:
+		case 0x4a:
+		case 0x4b:
+		case 0x4c:
+		    SETMIDIEVENT(evm[0], 0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
+		    num_events++;
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Scale Tuning %s (CH:%d %d cent)",
+			      note_name[ent - 0x41], p, *body - 64);
+		    break;
+
+		default:
+		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],ent,*body);
+		    continue;
+		    break;
+	    }
+	}
+    }
+
+    /* Second method: specify them one SYSEX event at a time... */
     else if(len == 8 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C) /* XG Model ID */ 
@@ -1887,7 +1943,7 @@ static int read_sysex_event(int32 at, int me, int32 len,
 			    struct timidity_file *tf)
 {
     uint8 *val;
-    MidiEvent ev, evm[16];
+    MidiEvent ev, evm[63]; /* maximum number of XG bulk dump events */
     int ne, i;
 
     if(len == 0)
@@ -1909,11 +1965,13 @@ static int read_sysex_event(int32 at, int me, int32 len,
 	ev.time = at;
 	readmidi_add_event(&ev);
     }
-	if ((ne = parse_sysex_event_multi(val, len, evm)))
-		for (i = 0; i < ne; i++) {
-			evm[i].time = at;
-			readmidi_add_event(&evm[i]);
-		}
+    if ((ne = parse_sysex_event_multi(val, len, evm)))
+    {
+	for (i = 0; i < ne; i++) {
+	    evm[i].time = at;
+	    readmidi_add_event(&evm[i]);
+	}
+    }
     
     reuse_mblock(&tmpbuffer);
 
