@@ -1,3 +1,10 @@
+2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Some option renamed
+	  --mid          -> default-mid
+	  --noise-shaper -> noise-shaping
+	  Hack up around parser of effect option
+
 2003-08-04  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c: Some option renamed
@@ -9,7 +16,7 @@
 	  --tempo                    -> --adjust-tempo
 	  --[no-]overlap             -> --[no-]overlap-voice
 	  --text-conversion          -> --output-charset
-	(parse_opt_204): Add
+	  (parse_opt_204): Add
 
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -18,7 +25,7 @@
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:
-	  Separate independence of --auto-volume-conpensation
+	  Separate independence of --auto-volume-compensation
 	  Merge --buffer-bits to --buffer-fragments
 
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>

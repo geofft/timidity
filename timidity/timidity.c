@@ -118,12 +118,41 @@ static const struct option longopts[] = {
 #endif
     { "volume"                  , required_argument, NULL, 'A' << 8 },
     { "drum-power"              , required_argument, NULL, 227 << 8 },
-    { "no-volume-conpansation"  ,       no_argument, NULL, 228 << 8 },
-    { "volume-conpansation"     , optional_argument, NULL, 228 << 8 },
+    { "no-volume-compensation"  ,       no_argument, NULL, 228 << 8 },
+    { "volume-compensation"     , optional_argument, NULL, 228 << 8 },
+    { "no-anti-alias"           ,       no_argument, NULL, 'a' << 8 },
+    { "anti-alias"              , optional_argument, NULL, 'a' << 8 },
     { "buffer-fragments"        , required_argument, NULL, 'B' << 8 },
+    { "background"              ,       no_argument, NULL, 'b' << 8 },
     { "control-ratio"           , required_argument, NULL, 'C' << 8 },
+    { "config-file"             , required_argument, NULL, 'c' << 8 },
     { "drums"                   , required_argument, NULL, 'D' << 8 },
+    { "interface-path"          , required_argument, NULL, 'd' << 8 },
     { "effects"                 , required_argument, NULL, 'E' << 8 },
+    { "no-modulation-wheel"     ,       no_argument, NULL, 216 << 8 },
+    { "modulation-wheel"        , optional_argument, NULL, 216 << 8 },
+    { "no-portamento"           ,       no_argument, NULL, 217 << 8 },
+    { "portamento"              , optional_argument, NULL, 217 << 8 },
+    { "no-vibrato"              ,       no_argument, NULL, 218 << 8 },
+    { "vibrato"                 , optional_argument, NULL, 218 << 8 },
+    { "no-channel-pressure"     ,       no_argument, NULL, 219 << 8 },
+    { "channel-pressure"        , optional_argument, NULL, 219 << 8 },
+    { "no-new-lpf"              ,       no_argument, NULL, 220 << 8 },
+    { "new-lpf"                 , optional_argument, NULL, 220 << 8 },
+    { "no-modulation-envelope"  ,       no_argument, NULL, 236 << 8 },
+    { "modulation-envelope"     , optional_argument, NULL, 236 << 8 },
+    { "no-trace-text-meta"      ,       no_argument, NULL, 214 << 8 },
+    { "trace-text-meta"         , optional_argument, NULL, 214 << 8 },
+    { "no-overlap-voice"        ,       no_argument, NULL, 221 << 8 },
+    { "overlap-voice"           , optional_argument, NULL, 221 << 8 },
+    { "default-mid"             , required_argument, NULL, 213 << 8 },
+    { "system-mid"              , required_argument, NULL, 237 << 8 },
+    { "default-bank"            , required_argument, NULL, 211 << 8 },
+    { "force-bank"              , required_argument, NULL, 212 << 8 },
+    { "delay"                   , required_argument, NULL, 224 << 8 },
+    { "reverb"                  , required_argument, NULL, 222 << 8 },
+    { "chorus"                  , required_argument, NULL, 223 << 8 },
+    { "noise-shaping"           , required_argument, NULL, 225 << 8 },
     { "no-fast-panning"         ,       no_argument, NULL, 'F' << 8 },
     { "fast-panning"            , optional_argument, NULL, 'F' << 8 },
     { "force-keysig"            , required_argument, NULL, 'H' << 8 },
@@ -143,11 +172,6 @@ static const struct option longopts[] = {
     { "unload-instruments"      , optional_argument, NULL, 'U' << 8 },
     { "freq-table"              , required_argument, NULL, 'Z' << 8 },
     { "wrd"                     , required_argument, NULL, 'W' << 8 },
-    { "no-anti-alias"           ,       no_argument, NULL, 'a' << 8 },
-    { "anti-alias"              , optional_argument, NULL, 'a' << 8 },
-    { "background"              ,       no_argument, NULL, 'b' << 8 },
-    { "config-file"             , required_argument, NULL, 'c' << 8 },
-    { "interface-path"          , required_argument, NULL, 'd' << 8 },
     { "evil"                    , required_argument, NULL, 'e' << 8 },
     { "no-fast-decay"           ,       no_argument, NULL, 'f' << 8 },
     { "fast-decay"              , optional_argument, NULL, 'f' << 8 },
@@ -182,29 +206,8 @@ static const struct option longopts[] = {
     { "random"                  , optional_argument, NULL, 209 << 8 },
     { "no-sort-list"            ,       no_argument, NULL, 210 << 8 },
     { "sort-list"               , optional_argument, NULL, 210 << 8 },
-    { "default-bank"            , required_argument, NULL, 211 << 8 },
-    { "force-bank"              , required_argument, NULL, 212 << 8 },
-    { "mid"                     , required_argument, NULL, 213 << 8 },
-    { "no-trace-text-meta"      ,       no_argument, NULL, 214 << 8 },
-    { "trace-text-meta"         , optional_argument, NULL, 214 << 8 },
     { "no-polyphony-reduction"  ,       no_argument, NULL, 215 << 8 },
     { "polyphony-reduction"     , optional_argument, NULL, 215 << 8 },
-    { "no-modulation-wheel"     ,       no_argument, NULL, 216 << 8 },
-    { "modulation-wheel"        , optional_argument, NULL, 216 << 8 },
-    { "no-portamento"           ,       no_argument, NULL, 217 << 8 },
-    { "portamento"              , optional_argument, NULL, 217 << 8 },
-    { "no-vibrato"              ,       no_argument, NULL, 218 << 8 },
-    { "vibrato"                 , optional_argument, NULL, 218 << 8 },
-    { "no-channel-pressure"     ,       no_argument, NULL, 219 << 8 },
-    { "channel-pressure"        , optional_argument, NULL, 219 << 8 },
-    { "no-new-lpf"              ,       no_argument, NULL, 220 << 8 },
-    { "new-lpf"                 , optional_argument, NULL, 220 << 8 },
-    { "no-overlap-voice"        ,       no_argument, NULL, 221 << 8 },
-    { "overlap-voice"           , optional_argument, NULL, 221 << 8 },
-    { "reverb"                  , required_argument, NULL, 222 << 8 },
-    { "chorus"                  , required_argument, NULL, 223 << 8 },
-    { "delay"                   , required_argument, NULL, 224 << 8 },
-    { "noise-shaper"            , required_argument, NULL, 225 << 8 },
     { "temperament"             , required_argument, NULL, 226 << 8 },
     { "stereo"                  , optional_argument, NULL, 229 << 8 },
     { "mono"                    , optional_argument, NULL, 229 << 8 },
@@ -220,9 +223,6 @@ static const struct option longopts[] = {
     { "refine-list"             , optional_argument, NULL, 234 << 8 },
     { "no-continue"             ,       no_argument, NULL, 235 << 8 },
     { "continue"                , optional_argument, NULL, 235 << 8 },
-    { "no-modulation-envelope"  ,       no_argument, NULL, 236 << 8 },
-    { "modulation-envelope"     , optional_argument, NULL, 236 << 8 },
-    { "system-mid"              , required_argument, NULL, 237 << 8 },
     { "wrd-read-opts"           , required_argument, NULL, 238 << 8 },
     { NULL                      ,       no_argument, NULL, '\0'     }
 };
@@ -263,22 +263,22 @@ static inline bool parse_opt_c(char *);
 static inline bool parse_opt_D(const char *);
 static inline bool parse_opt_d(const char *);
 static inline bool parse_opt_E(char *);
-static inline bool parse_opt_216(const char *);	/* --[no-]modulation-wheel */
-static inline bool parse_opt_217(const char *);	/* --[no-]portamento */
-static inline bool parse_opt_218(const char *);	/* --[no-]vibrato */
-static inline bool parse_opt_219(const char *);	/* --[no-]channel-pressure */
-static inline bool parse_opt_220(const char *);	/* --[no-]new-lpf */
-static inline bool parse_opt_236(const char *);	/* --[no-]modulation-envelope */
-static inline bool parse_opt_214(const char *);	/* --[no-]trace-text-meta */
-static inline bool parse_opt_221(const char *);	/* --[no-]overlap */
-static inline bool parse_opt_213(char *);		/* --mid */
-static inline bool parse_opt_237(char *);		/* --system-mid */
-static inline bool parse_opt_211(const char *);	/* --default-bank */
-static inline bool parse_opt_212(const char *);	/* --force-bank */
-static inline bool parse_opt_224(const char *);	/* --delay */
-static inline bool parse_opt_222(const char *);	/* --reverb */
-static inline bool parse_opt_223(const char *);	/* --chorus */
-static inline bool parse_opt_225(const char *);	/* --noise-shaper */
+static inline bool parse_opt_E1(const char *);
+static inline bool parse_opt_E2(const char *);
+static inline bool parse_opt_E3(const char *);
+static inline bool parse_opt_E4(const char *);
+static inline bool parse_opt_E5(const char *);
+static inline bool parse_opt_E6(const char *);
+static inline bool parse_opt_E7(const char *);
+static inline bool parse_opt_E8(const char *);
+static inline bool parse_opt_E9(char *);
+static inline bool parse_opt_EA(char *);
+static inline bool parse_opt_EB(const char *);
+static inline bool parse_opt_EC(const char *);
+static inline bool parse_opt_ED(const char *);
+static inline bool parse_opt_EE(const char *);
+static inline bool parse_opt_EF(const char *);
+static inline bool parse_opt_EG(const char *);
 static inline bool parse_opt_e(const char *);
 static inline bool parse_opt_F(const char *);
 static inline bool parse_opt_f(const char *);
@@ -601,6 +601,7 @@ static void help(void)
 "                   t/T : Enable/Disable Trace Text Meta Event at playing",
 "                   o/O : Enable/Disable Overlapped voice",
 "                   m<HH>: Define default Manufacture ID <HH> in two hex",
+"                   M<HH>: Define system Manufacture ID <HH> in two hex",
 "                   b<n>: Use tone bank <n> as the default",
 "                   B<n>: Always use tone bank <n>",
 "                   F<args>: For effect.  See below for effect options.",
@@ -3458,14 +3459,54 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_A1(arg);
 		case 228:
 			return parse_opt_A2(arg);
+		case 'a':
+			return parse_opt_a(arg);
 		case 'B':
 			return parse_opt_B(arg);
+		case 'b':
+			return parse_opt_b(arg);
 		case 'C':
 			return parse_opt_C(arg);
+		case 'c':
+			return parse_opt_c(arg);
 		case 'D':
 			return parse_opt_D(arg);
+		case 'd':
+			return parse_opt_d(arg);
 		case 'E':
 			return parse_opt_E(arg);
+		case 216:
+			return parse_opt_E1(arg);
+		case 217:
+			return parse_opt_E2(arg);
+		case 218:
+			return parse_opt_E3(arg);
+		case 219:
+			return parse_opt_E4(arg);
+		case 220:
+			return parse_opt_E5(arg);
+		case 236:
+			return parse_opt_E6(arg);
+		case 214:
+			return parse_opt_E7(arg);
+		case 221:
+			return parse_opt_E8(arg);
+		case 213:
+			return parse_opt_E9(arg);
+		case 237:
+			return parse_opt_EA(arg);
+		case 211:
+			return parse_opt_EB(arg);
+		case 212:
+			return parse_opt_EC(arg);
+		case 224:
+			return parse_opt_ED(arg);
+		case 222:
+			return parse_opt_EE(arg);
+		case 223:
+			return parse_opt_EF(arg);
+		case 225:
+			return parse_opt_EG(arg);
 		case 'F':
 			return parse_opt_F(arg);
 		case 'H':
@@ -3496,14 +3537,6 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_W(arg);
 		case 'Z':
 			return parse_opt_Z(arg);
-		case 'a':
-			return parse_opt_a(arg);
-		case 'b':
-			return parse_opt_b(arg);
-		case 'c':
-			return parse_opt_c(arg);
-		case 'd':
-			return parse_opt_d(arg);
 		case 'e':
 			return parse_opt_e(arg);
 		case 'f':
@@ -3554,36 +3587,8 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_209(arg);
 		case 210:
 			return parse_opt_210(arg);
-		case 211:
-			return parse_opt_211(arg);
-		case 212:
-			return parse_opt_212(arg);
-		case 213:
-			return parse_opt_213(arg);
-		case 214:
-			return parse_opt_214(arg);
 		case 215:
 			return parse_opt_215(arg);
-		case 216:
-			return parse_opt_216(arg);
-		case 217:
-			return parse_opt_217(arg);
-		case 218:
-			return parse_opt_218(arg);
-		case 219:
-			return parse_opt_219(arg);
-		case 220:
-			return parse_opt_220(arg);
-		case 221:
-			return parse_opt_221(arg);
-		case 222:
-			return parse_opt_222(arg);
-		case 223:
-			return parse_opt_223(arg);
-		case 224:
-			return parse_opt_224(arg);
-		case 225:
-			return parse_opt_225(arg);
 		case 226:
 			return parse_opt_226(arg);
 		case 229:
@@ -3600,10 +3605,6 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_234(arg);
 		case 235:
 			return parse_opt_235(arg);
-		case 236:
-			return parse_opt_236(arg);
-		case 237:
-			return parse_opt_237(arg);
 		default:
 			ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 					"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -3644,7 +3645,7 @@ static inline bool parse_opt_A1(const char *arg)
 
 static inline bool parse_opt_A2(const char *arg)
 {
-	/* --auto-volume-conpensation */
+	/* --[no-]volume-compensation */
 	opt_amp_compensation = y_or_n_p(arg);
 	return 0;
 }
@@ -3731,65 +3732,65 @@ static inline bool parse_opt_E(char *arg)
 	return set_extension_modes(arg);
 }
 
-static inline bool parse_opt_216(const char *arg)
+static inline bool parse_opt_E1(const char *arg)
 {
 	/* --[no-]modulation-wheel */
 	opt_modulation_wheel = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_217(const char *arg)
+static inline bool parse_opt_E2(const char *arg)
 {
 	/* --[no-]portamento */
 	opt_portamento = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_218(const char *arg)
+static inline bool parse_opt_E3(const char *arg)
 {
 	/* --[no-]vibrato */
 	opt_nrpn_vibrato = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_219(const char *arg)
+static inline bool parse_opt_E4(const char *arg)
 {
 	/* --[no-]channel-pressure */
 	opt_channel_pressure = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_220(const char *arg)
+static inline bool parse_opt_E5(const char *arg)
 {
 	/* --[no-]new-lpf */
 	opt_lpf_def = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_236(const char *arg)
+static inline bool parse_opt_E6(const char *arg)
 {
 	/* --[no-]modulation-envelope */
 	opt_modulation_envelope = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_214(const char *arg)
+static inline bool parse_opt_E7(const char *arg)
 {
 	/* --[no-]trace-text-meta */
 	opt_trace_text_meta_event = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_221(const char *arg)
+static inline bool parse_opt_E8(const char *arg)
 {
-	/* --[no-]overlap */
+	/* --[no-]overlap-voice */
 	opt_overlap_voice_allow = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_213(char *arg)
+static inline bool parse_opt_E9(char *arg)
 {
-	/* --mid */
+	/* --default-mid */
 	int val = str2mID(arg);
 	
 	if (! val) {
@@ -3800,7 +3801,7 @@ static inline bool parse_opt_213(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_237(char *arg)
+static inline bool parse_opt_EA(char *arg)
 {
 	/* --system-mid */
 	int val = str2mID(arg);
@@ -3813,7 +3814,7 @@ static inline bool parse_opt_237(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_211(const char *arg)
+static inline bool parse_opt_EB(const char *arg)
 {
 	/* --default-bank */
 	int32 tmpi32;
@@ -3824,7 +3825,7 @@ static inline bool parse_opt_211(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_212(const char *arg)
+static inline bool parse_opt_EC(const char *arg)
 {
 	/* --force-bank */
 	int32 tmpi32;
@@ -3835,132 +3836,123 @@ static inline bool parse_opt_212(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_224(const char *arg)
+static inline bool parse_opt_ED(const char *arg)
 {
 	/* --delay */
-	const char *type = arg;
+	const char *p;
 	
-	switch (type[0]) {
+	switch (*arg) {
 	case '0':
-	case 'n':
+	case 'd':	/* disable */
 		effect_lr_mode = -1;
 		return 0;
-	case 'l':
+	case 'l':	/* left */
 		effect_lr_mode = 0;
 		break;
-	case 'r':
+	case 'r':	/* right */
 		effect_lr_mode = 1;
 		break;
-	case 'b':
+	case 'b':	/* both */
 		effect_lr_mode = 2;
 		break;
 	}
-	if (type = strchr(type, ',')) {
-		int val = atoi(type + 1);
-		
-		if (val < 0) {
+	if (p = strchr(arg, ','))
+		if ((effect_lr_delay_msec = atoi(p + 1)) < 0) {
 			effect_lr_delay_msec = 0;
 			effect_lr_mode = -1;
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid delay parameter.");
 			return 1;
 		}
-		effect_lr_delay_msec = val;
-	}
 	return 0;
 }
 
-static inline bool parse_opt_222(const char *arg)
+static inline bool parse_opt_EE(const char *arg)
 {
 	/* --reverb */
 	int32 tmpi32;
-	const char *lv;
+	const char *p;
 	
-	if (isdigit(arg[0]))
-		opt_reverb_control = atoi(arg);
-	else if (strncasecmp("no", arg, 2)) {
+	switch (*arg) {
+	case '0':
+	case 'd':	/* disable */
 		opt_reverb_control = 0;
-		return 0;
-	} else if (strncasecmp("standard", arg, 8) || strncasecmp("std", arg, 3))
-		opt_reverb_control = 1;
-	else if (strncasecmp("global", arg, 6)) {
+		break;
+	case '1':
+	case 'n':	/* normal */
+		if (p = strchr(arg, ',')) {
+			if (set_value(&tmpi32, atoi(p + 1), 0, 0x7f, "Reverb level"))
+				return 1;
+			opt_reverb_control = -tmpi32;
+		} else
+			opt_reverb_control = 1;
+		break;
+	case '2':
+	case 'g':	/* global */
 		opt_reverb_control = 2;
-		return 0;
-	} else if (strncasecmp("new", arg, 3)
-			|| strncasecmp("freeverb", arg, 8)) {
+		break;
+	case '3':
+	case 'f':	/* freeverb */
 		opt_reverb_control = 3;
-		return 0;
-	} else if (strncasecmp("pseudo", arg, 6))
+		break;
+	case 'p':	/* pseudo */
 		/* I think pseudo reverb can now be retired... Computers are
 		 * enough fast to do a full reverb, don't they?
 		 */
-		modify_release = DEFAULT_MREL;
-	else {
-		/* reaching here indicates arg is inalid. */
+		if (p = strchr(arg, ',')) {
+			if (set_value(&tmpi32, atoi(p + 1), 0, MAX_MREL,
+					"Modify release"))
+				return 1;
+			modify_release = tmpi32;
+		} else
+			modify_release = DEFAULT_MREL;
+		break;
+	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
 		return 1;
 	}
-	if (lv = strchr(arg, ',')) {
-		if (arg[0] == 'p' || arg[0] == 'P') {
-			if (set_value(&tmpi32, atoi(lv), 0, MAX_MREL, "Modify release"))
-				return 1;
-			modify_release = tmpi32;
-		} else {
-			if (set_value(&tmpi32, atoi(lv), 0, 0x7f, "Reverb level"))
-				return 1;
-			opt_reverb_control = -tmpi32;
-		}
-	}
 	return 0;
 }
 
-static inline bool parse_opt_223(const char *arg)
+static inline bool parse_opt_EF(const char *arg)
 {
 	/* --chorus */
 	int32 tmpi32;
-	const char *lv;
+	const char *p;
 	
-	if (isdigit(arg[0])) {
-		char *tmp = malloc(strlen(arg) + 8);	/* 8 for "chorus=", '\0' */
-		
-		if (sprintf(tmp, "chorus=%s", arg) >= 0) {
-			bool ret = parse_effect_option(tmp);
-			
-			free(tmp);
-			return ret;
-		} else {
-			free(tmp);
-			return 1;	/* maybe not enough memory -- no way but die? */
-		}
-	} else if (strncasecmp("no", arg, 2)) {
+	switch (*arg) {
+	case '0':
+	case 'd':	/* disable */
 		opt_chorus_control = 0;
 		opt_surround_chorus = 0;
-		return 0;
-	} else if (strncasecmp("standard", arg, 8)
-			|| strncasecmp("std", arg, 3)) {
-		opt_chorus_control = 1;
-		opt_surround_chorus = 0;
-	} else if (strncasecmp("surround", arg, 6)) {
-		opt_chorus_control = 1;
-		opt_surround_chorus = 1;
-	} else {
-		/* reaching here indicates arg is inalid. */
+		break;
+	case '1':
+	case 'n':	/* normal */
+	case '2':
+	case 's':	/* surround */
+		opt_surround_chorus = (*arg == '2' || *arg == 's') ? 1 : 0;
+		if (p = strchr(arg, ',')) {
+			if (set_value(&tmpi32, atoi(p + 1), 0, 0x7f, "Chorus level"))
+				return 1;
+			opt_chorus_control = -tmpi32;
+		} else
+			opt_chorus_control = 1;
+		break;
+	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid chorus parameter.");
 		return 1;
-	}
-	if (lv = strchr(arg, ',')) {
-		if (set_value(&tmpi32, atoi(lv), 0, 0x7f, "Chorus level"))
-			return 1;
-		opt_chorus_control = -tmpi32;
 	}
 	return 0;
 }
 
-static inline bool parse_opt_225(const char *arg)
+/* Noise Shaping filter from
+ * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
+ */
+static inline bool parse_opt_EG(const char *arg)
 {
-	/* --noise-shaper */
+	/* --noise-shaping */
 	int32 tmpi32;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 4, "Noise shaper type"))
+	if (set_value(&tmpi32, atoi(arg), 0, 4, "Noise shaping type"))
 		return 1;
 	noise_sharp_type = tmpi32;
 	return 0;
@@ -4428,22 +4420,20 @@ static inline bool parse_opt_215(const char *arg)
 
 static inline bool parse_opt_Q(const char *arg)
 {
-	int32 tmpi32;
-	if (strchr(arg, 't')) {
+	if (strchr(arg, 't'))
 		/* backward compatibility */
 		return parse_opt_204(arg);
-	} else
-	    return set_channel_flag(&quietchannels, atoi(arg),
-				    "Quiet channel");
+	return set_channel_flag(&quietchannels, atoi(arg), "Quiet channel");
 }
 
 static inline bool parse_opt_204(const char *arg)
 {
 	/* --temper-mute */
-	int tmpi;
-	if (set_value(&tmpi, atoi(arg), 0, 7, "Temperament program number"))
+	int32 tmpi32;
+	
+	if (set_value(&tmpi32, atoi(arg), 0, 7, "Temperament program number"))
 		return 1;
-	temper_type_mute |= 1 << tmpi;
+	temper_type_mute |= 1 << tmpi32;
 	return 0;
 }
 
@@ -4507,6 +4497,7 @@ static inline bool parse_opt_s(const char *arg)
 
 static inline bool parse_opt_T(const char *arg)
 {
+	/* tempo adjust */
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 10, 400, "Tempo adjust"))
