@@ -3635,15 +3635,15 @@ static inline int parse_opt_h(const char *arg)
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
 "     (a)     --[no-]polyphony-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
-"  -Q n[,...] --mute=n",
+"  -Q n[,...] --mute=n[,...]",
 "               Ignore channel n (0: ignore all, -n: resume channel n)",
-"     (t)     --temper-mute=n",
+"     (t)     --temper-mute=n[,...]",
 "               Quiet temperament type n (0..3: preset, 4..7: user-defined)",
 "  -q sec/n   --audio-buffer=sec/n",
 "               Specify audio buffer in seconds",
 "                 sec: Maxmum buffer, n: Filled to start (default is 5.0/100%%)",
 "                 (size of 100%% equals device buffer size)",
-"  -R n         Pseudo reveb effect (set every instrument's release to n ms)",
+"  -R msec      Pseudo reveb effect (set every instrument's release to msec)",
 "                 if n=0, n is set to 800",
 "  -S n       --cache-size=n",
 "               Cache size (0 means no cache)",
@@ -3768,7 +3768,7 @@ static inline int parse_opt_h(const char *arg)
 "  --force-program=n/m" NLS
 "  --delay=(d|l|r|b)[,msec]" NLS
 "  --chorus=(d|n|s)[,level]" NLS
-"  --reverb=(d|n|g|f)[,level]" NLS
+"  --reverb=(d|n|g|f|G)[,level]" NLS
 "  --voice-lpf=(d|c|m)" NLS
 "  --noise-shaping=n" NLS, fp);
 #ifndef FIXED_RESAMPLATION
@@ -3846,7 +3846,7 @@ static inline int parse_opt_h(const char *arg)
 "  --output-linear" NLS
 "  --output-ulaw" NLS
 "  --output-alaw" NLS
-"  --[-no]output-swab" NLS, fp);
+"  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
 	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)

@@ -1,3 +1,10 @@
+2004-01-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
+	  Update man page of timidity.1
+	  TODO: Translate some new items into English
+	* timidity/timidity.c (parse_opt_h): Fix typo
+
 2004-01-25  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c: Fixed channel layer.

@@ -1,29 +1,23 @@
-.TH TiMidity++ 1 "Jan 06 1999" "1.0.0"
-.SH NAME
-TiMidity++ \- MIDI to WAVE converter and player
-.P
-.SH SYNOPSIS
+.TH timidity 1 "2004年01月25日" "2.13.0"
+.SH 名前
+TiMidity++ \- MIDI_to_WAVE変換およびプレーヤー
+.SH 書式
 .B timidity
-[\-options] filename [filenames ...]
-.P
-.SH DESCRIPTION
-\fITiMidity++\fP は、標準MIDIファイル (*.MID)、
-RCPファイル (*.RCP, *.R36, *.G18, *.G36) あるいは
-Moduleファイル (*.mod) を、RIFF WAVE 形式等のオーディオファイルへ
-コンバートするコンバータです。
-各種 MIDI ファイル からデジタルオーディオデータを生成するために、
-Gravis Ulstarsound\-互換 の patch ファイル、あるいは AWE32/64 の
-sfx、sf2 ファイル などを使用します。
-TiMidity++ によって生成されたデータは、更に加工するためにファイルに格納したり、
-オーディオデバイスを使ってリアルタイムに演奏したりすることができます。
+[options] filename [...]
+.SH 説明
+\fBTiMidity++\fP は，標準 MIDI ファイル(*.mid)，RCP ファイル(*.rcp,
+*.r36, *.g18, *.g36)あるいは Module ファイル(*.mod)を，RIFF WAVE 形式等
+のオーディオファイルへ変換するコンバータです。各種 MIDI ファイルからデ
+ィジタルオーディオデータを生成するために，Gravis Ulstarsound 互換の
+patch ファイル，あるいは AWE32/64 の SFX，SF2 ファイルなどを使用します。
+\fBTiMidity++\fP によって生成されたデータは，更に加工するためにファイル
+に格納したり，オーディオデバイスを使ってリアルタイムに演奏したりするこ
+とができます。
 .br
-リアルタイム演奏時には、KARファイル や WRDファイル などを読み込んで、
-歌詞を表示する事も出来ます。
-
-
-.P
-.SH FILENAME
-ファイルネームには、以下の表記が使用可能です:
+リアルタイム演奏時には，KAR ファイルや WRD ファイルなどを読み込んで，歌
+詞を表示することもできます。
+.SH ファイル名
+\fIfilename\fP には，以下の表記が使用可能です。
 .TP
 .B \-
 標準入力から読み込んだ MIDI ファイルを演奏します。
@@ -31,93 +25,94 @@ TiMidity++ によって生成されたデータは、更に加工するためにファイルに格納したり、
 .B path/filename
 ディスク上のファイルを演奏します。
 .TP
-.BI dir: "directory"
+.B dir:directory
 .br
 .ns
 .TP
 .B directory/
-\fIdirectory\fP 内全てのファイルを演奏します。
-たとえば、
+\fIdirectory\fP 内すべてのファイルを演奏します。例えば，
+.sp
+% timidity some/where/
+.sp
+として起動すると，\fBsome/where/\fP ディレクトリ内すべてのファイルが演
+奏されます。
+.TP
+.B アーカイブファイル
+アーカイブファイルから MIDI ファイルを展開しながら演奏します。アーカイ
+ブファイル中の個々のファイルを指定するには，アーカイブファイル名の後に
+続けて `#' を記述し，その後に続けてアーカイブ中のファイル名を指定します。
+`#' の後は UNIX shell の正規表現のパターンになっています。ただし，UNIX
+shell の正規表現とは少し異なり，大文字/小文字は区別されません。
 .br
-
-\fB% timidity some/where/\fP
-
-として起動すると，\fIsome/where/\fP ディレクトリ内全てのファイルが演奏されます。
-
-.TP
-.B Archive File
-アーカイブファイルから MIDI ファイルを展開しながら演奏します。
-アーカイブファイル中の個々のファイルを指定するには、アーカイブファイル名の
-後に続けて \fI#\fP を記述し、その後に続けてアーカイブ中のファイル名を指定します。
-\fI#\fP の後は UNIX shell の\fI正規表現\fPのパターンに
-なっています。ただし、UNIX shell の\fI正規表現\fPとは少し異なり、大文字／小文字
-は区別されません。
-.br
-ここで、\fB\\xHH\fP という表現は、16進数 \fBHH\fP で表したASCII文字列にマッチします。
-
-.RS
-例：
-.TP
-.BI timidity " 'file.zip#file.mid'"
-file.zip 中の file.mid ファイルを演奏します。
-.TP
-.BI timidity " 'file.lzh#*.mid'"
-file.lzh 中の *.mid にマッチするファイルを演奏します。
-.TP
-.BI timidity " 'file.tgz#*'"
-これは \fBtimidity 'file.tgz'\fP と等価です。
-.PP
-これらは自前で展開していますので、Windows
-でもこれらのファイルが読めると思います(未確認)。
-.PP
-\fITiMidity\fPが内部で展開できるアーカイブ形式は以下の通り:
+ここで，\fB\\xHH\fP という表現は，16 進数 `HH' で表した ASCII 文字列に
+マッチします。
+.sp
+例:
 .RS
 .TP
-.B tar ファイル (*.tar)
+% timidity file.zip#file.mid
+\fBfile.zip\fP 中の \fBfile.mid\fP ファイルを演奏します。
 .TP
-.B tar + gzip'ed ファイル (*.tar.gz, *.tgz)
+% timidity file.lzh#*.mid
+\fBfile.lzh\fP 中の \fB*.mid\fP にマッチするファイルを演奏します。
 .TP
-.B zip ファイル (*.zip)
+% timidity file.tgz#*
+これは \fBfile.tgz\fP と等価です。
+.LP
+これらは自前で展開していますので，Windows でもこれらのファイルを読むこ
+とができます。
+.sp
+\fBTiMidity++\fP が内部で展開できるアーカイブ形式は以下の通りです。
 .TP
-.B lzh ファイル (*.lzh *.lha)
-(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz5, lz4 対応)
+.B tar ファイル(*.tar)
+.TP
+.B tar+gzip ファイル(*.tar.gz, *.tgz)
+.TP
+.B zip ファイル(*.zip)
+.TP
+.B lzh ファイル(*.lzh *.lha)
+(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4, lz5 に対応)
+.LP
+なお，これ以外でも，拡張子に対してその展開コマンドがコンパイル時に定義
+されている場合，\fBTiMidity++\fP は指定された展開コマンドにファイルをパ
+イプで流しこみ，展開します。
 .RE
-.PP
-なお、これ以外でも、拡張子に対してその展開コマンドがコンパイル時に
-定義されている場合、
-\fITiMidity\fP は指定された展開コマンドにファイルをパイプで流しこみ、展開します。
-.RE
-
 .TP
 .B news://news\-server[:port]/Message\-ID
 .br
 .ns
 .TP
 .B news://news\-server[:port]/newsgroup[/first\-last]
-news-server に保存されている MIDI ファイルを演奏します。
-newsgroup を指定すると、そのグループに投稿されている MIDI ファイルを
-演奏します。
+\fInews-server\fP に保存されている MIDI ファイルを演奏します。
+\fInewsgroup\fP を指定すると，そのグループに投稿されている MIDI ファイ
+ルを演奏します。
 .br
-news://* で指定したファイルは \fBMIME\fP の Multi Part を認識し、そこに
-投稿されている MIDI ファイルを展開して演奏することができます。また
-通常のファイルであっても、*.mime という拡張子で保存するか、
-あるいはファイル名に mime: というプレフィックスを指定して入力すると
-MIME を認識します。
-現在以下のフォーマットが認識できます:
-
+\fBnews://*\fP で指定したファイルは MIME の Multi Part を認識し，そこに
+投稿されている MIDI ファイルを展開して演奏することができます。また通常
+のファイルであっても，*.mime という拡張子で保存するか，あるいはファイル
+名に \fBmime:\fP というプレフィックスを指定して入力すると MIME を認識し
+ます。
+.sp
+現在，以下のフォーマットが認識できます。
 .RS
 .TP
 .B uu\-encoded file
-\fIbegin\fP という文字から始まっている行が必要
+\fIbegin\fP
+.br
+という文字から始まっている行が必要
 .TP
 .B base64 encoded
-\fIContent\-Transfer\-Encoding: base64\fP が必要
+\fIContent\-Transfer\-Encoding: base64\fP
+.br
+が必要
 .TP
 .B quoted\-string
-\fIContent\-Transfer\-Encoding: quoted\-string\fP が必要
+\fIContent\-Transfer\-Encoding: quoted\-string\fP
+.br
+が必要
 .TP
 .B Mac BinHex format
-\fIHQX\fP のみ対応
+HQX のみ対応
 .RE
 .TP
 .B http://address
@@ -126,417 +121,638 @@ MIME を認識します。
 .TP
 .B ftp://address
 URL で指定した MIDI ファイルを演奏します。
-.br
-\fBtimidity http://www.goice.co.jp/member/mo/dist/midi/impromptu.mid\fP
-.br
-のように、ネットワークを介して MIDI ファイルを演奏できます。
-同様に、*.cfg ファイル内で URL を指定すればリモートのパッチファイルを
-利用することもできます。
-
-.P
-.SH INPUT FILE
-\fITiMidity\fP が自分で認識し、演奏することができる MIDI ファイルの形式は以下の通りです:
-.TP
-.B Standard MIDI File ( Format 0, 1, 2 )
-.TP
-.B .RCP .R36 .G18 .G36 ( カモンミュージック社製レコンポーザ形式 ）
-Windows 版では、\fIrcpcv.dll\fP を用いてコンバートを行います。
-.TP
-.B .KAR ( Karaoke フォーマット )
-Lyric Meta Event と同じように、歌詞が表示されます．
-.TP
-.B .MOD MOD.* (module file)
-.TP
-.B .WRD ( WRD形式 ）
-
-.P
-.SH OPTIONS
-\fITiMidity++\fP では次のコマンドラインオプションが使用可能です:
-
-.TP
-.BI \-A "amplification"
-音量を \fIamplification\fP% にします。デフォルトでは \fB70\fP です。
-大きな値を指定するほど大きな音になります。\fB0\fP(無音) から \fB800\fP までの値が有効です。
-
-.TP
-.B \-a
-アンチエイリアシングを有効にします。
-\fB\-s\fPオプションで低いサンプリングレートを指定したときに、折り返し雑音と呼ばれる
-不自然な成分が発生することがあります。\fB\-a\fP オプションで起動することで、この
-不自然な成分を取り除くことができます。
-
-.TP
-.BI \-B "fragments"
-音源にデータを書き込む時の分割数を指定します。\fB0\fP から \fB1000\fP までの値が有効です。
-フラグメントの数を大きくすると、プロセスが多数動いている時の音切れが減りますが、
-早送り、巻き戻し、ボリューム制御などに対する反応は遲くなります。
-また、状態表示も同期が取れなくなります。
-\fIfragments\fP を 0 にすると、できるだけ大きなフラグメントの値を取ります。
-このオプションは Linux、FreeBSD、Windows のみで有効です。
-
-.TP
-.BI \-b "mode"
-イヤホンで聞いた時の音の臨場感を出すようにします。
-\fImode\fPには、以下のモードが有効です:
+.sp
+例:
 .RS
 .TP
-.B \-bl
-主に左から音が聞こえてきます。
-.TP
-.B \-br
-主に右から音が聞こえてきます。
-.TP
-.B \-bb
-ときどき、左右の音場が変化します．
-.TP
-.B \-bc
-この機能は無効になります．
+% timidity http://www.goice.co.jp/member/mo/dist/midi/impromptu.mid
+ネットワークを介して MIDI ファイルを演奏します。
+.LP
+同様に，*.cfg ファイル内で URL を指定すればリモートのパッチファイルを利
+用することもできます。
 .RE
-
+.SH 入力ファイル
+\fBTiMidity++\fP が自分で認識し，演奏することができる MIDI ファイルの形
+式は以下の通りです。
 .TP
-.BI \-C " ratio"
-制御レートを指定します。TiMidity では、
-エンベロープやトレモロなどの音量計算を 1 サンプル毎行うのではなく、
-複数のサンプルをまとめて計算することで高速化をはかっています。
-すなわち、\fIratio\fP サンプル毎に、エンベロープやトレモロの音量が再計算されています。
-\fIratio\fP の値を小さくすればするほど音質が良くなりますが、その分 CPU パワー
-を必要とします。\fIratio\fP には \fB1\fP〜\fB255\fP までの値を指定することができます。
+.B .mid, .rmi (Format 0, 1, 2)
+標準 MIDI ファイル(SMF)です。
+.TP
+.B .rcp, .r36, .g18, .g36 (レコンポーザ形式)
+Windows 版では，rcpcv.dll を用いてコンバートを行います。
+.TP
+.B .mfi (MFi \- i モード用メロディ形式)
+最近流行りの携帯電話の着メロも再生できます。
+.TP
+.B .kar (Karaoke フォーマット)
+Lyric Meta Event と同じように，歌詞が表示されます。
+.TP
+.B .mod, mod.* (Module ファイル)
+.TP
+.B .wrd (WRD 形式)
+.SH オプション
+\fBTiMidity++\fP では次のコマンドラインオプションが使用可能です。
+.TP
+.BI "\-A " [n][,m](a)
+.br
+.ns
+.TP
+.BI "\-\-amplification " n
+.br
+.ns
+.TP
+.BI "\-\-drumpower " m
+.br
+.ns
+.TP
+.B \-\-[no\-]volume\-compensation
+全体の音量を \fIn\fP% にします。デフォルトでは \fB70\fP です。大きな値
+を指定するほど大きな音になります。また，通常音色の音量とドラム音色の音
+量の比率(ドラムパワー)を \fIm\fP% にします。デフォルトでは \fB100\fP で
+す。それぞれ，\fB0\fP (無音)から \fB800\fP までの値が有効です。
+.br
+さらに，\fB\-a\fP オプションに `a' の文字を付加するか，
+\fB\-\-volume\-compensation\fP オプションを指定することにより，音量自動
+補正機能を有効にします。この機能は，MIDI データの MAINVOLUME を最大音量
+(0x7f)に正規化するもので，できるだけダイナミックレンジを稼ぐ，曲間での
+音量格差を小さくする，などの目的で使用されます。
+.sp
+例:
+.RS
+.TP
+.B \-A90
+音量 90%，ドラム比 100%，補正無
+.TP
+.B \-A,120
+音量 70%，ドラム比 120%，補正無
+.TP
+.B \-A90,120
+音量 90%，ドラム比 120%，補正無
+.TP
+.B \-Aa
+音量 70%，ドラム比 100%，補正有
+.TP
+.B \-A90a
+音量 90%，ドラム比 100%，補正有
+.TP
+.B \-A,120a
+音量 70%，ドラム比 120%，補正有
+.TP
+.B \-A90,120a
+音量 90%，ドラム比 120%，補正有
+.RE
+.TP
+.B \-a, \-\-[no\-]anti\-alias
+アンチエイリアシングを有効にします。\fB\-s\fP オプションで低いサンプリ
+ングレートを指定したときに，折り返し雑音と呼ばれる不自然な成分が発生す
+ることがあります。\fB\-a\fP オプションで起動することで，この不自然な成
+分を取り除くことができます。
+.TP
+.BI "\-B, \-\-buffer\-fragments " n,m
+音源にデータを書き込む時の分割数(バッファフラグメント) \fIn\fP およびバ
+ッファサイズ \fI2^m\fP を指定します。\fIn\fP は，\fB0\fP から
+\fB1000\fP までの値が有効です。フラグメントの数を大きくすると，プロセス
+が多数動いている時の音切れが減りますが，早送り，巻き戻し，ボリューム制
+御などに対する反応は遲くなります。また，状態表示も同期が取れなくなりま
+す。\fIn\fP を \fB0\fP にすると，できるだけ大きなフラグメントの値を取り
+ます。このオプションは Linux，FreeBSD，Windows のみで有効です。
+.TP
+.BI "\-C, \-\-control\-ratio " n
+制御レートを指定します。\fBTiMidity++\fP では，エンベロープやトレモロな
+どの音量計算を 1 サンプルごとに行うのではなく，複数のサンプルをまとめて
+計算することで高速化を図っています。すなわち，\fIn\fP サンプルごとに，
+エンベロープやトレモロの音量が再計算されています。\fIn\fP の値を小さく
+すればするほど音質が良くなりますが，その分 CPU パワーを必要とします。
+\fIn\fP には \fB1\fP から \fB255\fP までの値を指定することができます。
 デフォルトでは 1 msec に相当するサンプル数となっています。
-
 .TP
-.BI \-c " filename"
-TiMidity の設定ファイル \fIfilename\fPを読み込みます。
-TiMidity のデフォルトの設定ファイルを読み込んだ後、
-\fIfilename\fP が読み込まれます。
-
+.BI "\-c, \-\-config\-file " file
+\fBTiMidity++\fP の設定ファイル \fIfile\fP を読み込みます。
+\fBTiMidity++\fP のデフォルトの設定ファイルを読み込んだ後，\fIfile\fP
+が読み込まれます。
 .TP
-.BI \-D " channel"
-\fIchannel\fP チャネル目をドラムチャネルにします。
-\fB\-D\-n\fPのように指定すると、 n チャネル目をドラムではなくメロディチャネルに
-することできます。
-\fIchannl\fP に \fB0\fP を与えると、全てのチャンネルがメロディチャネルになります。
-
+.BI "\-D, \-\-drum\-channel " n
+\fIn\fP チャンネル目をドラムチャンネルにします。\fB\-D\fP \fI\-n\fP の
+ように指定すると， \fIn\fP チャンネル目をドラムではなく，メロディチャン
+ネルにすることできます。\fIn\fP に \fB0\fP を与えると，すべてのチャンネ
+ルがメロディチャンネルになります。
 .TP
-.BI \-d " dir"
-ダイナミックリンクインターフェースモジュールがインストールされている
-ディレクトリを \fIdir\fP で指定します。
-
+.BI "\-d, \-\-interface\-path " dir
+ダイナミックリンクインタフェースモジュールがインストールされているディ
+レクトリを \fIdir\fP で指定します。
 .TP
-.B \-e
-TiMidity のプライオリティをあげます。Windows のみで有効です。
-このオプションを有効にすると、TiMidity 以外のプログラムがほとんど動作
-出来なくなります。
-
-.TP
-.BI \-E " mode"
-TiMidity の拡張モードを指定します(複数指定可)。
-以下の \fImode\fP が指定できます。:
+.BI "\-E, --ext " mode
+\fBTiMidity++\fP シーケンサの拡張モードを指定します(複数指定可)。以下の
+\fImode\fP が指定できます。
 .RS
 .TP
-.B w
-モジュレーションコントロールを有効にします。
+.B w/W, \-\-[no\-]mod-wheel
+モジュレーションホイール制御を有効/無効にします。
 .TP
-.B W
-モジュレーションコントロールを無効にします。
+.B p/P, \-\-[no\-]portamento
+ポルタメント制御を有効/無効にします。
 .TP
-.B p
-ポルタメントコントロールを有効にします。
+.B v/V, \-\-[no\-]vibrato
+NRPN ビブラート制御を有効/無効にします。
 .TP
-.B P
-ポルタメントコントロールを無効にします。
+.B s/S, \-\-[no\-]ch\-pressure
+チャンネルプレッシャー制御を有効/無効にします。
 .TP
-.B v
-NRPN ビブラートを有効にします。
+.B e/E, \-\-[no\-]mod\-envelope
+モジュレーションエンベロープを有効/無効にします。
 .TP
-.B V
-NRPN ビブラートを無効にします。
+.B t/T, \-\-[no\-]trace\-text\-meta
+すべての/特定のテキストメタイベントをトレースします。
 .TP
-.B r
-リバーブエフェクトコントロールを有効にします。
+.B o/O, \-\-[no\-]overlap\-voice
+同一音の重なったボイスを許します/許しません(前の音は消音されます)。
 .TP
-.B R
-リバーブエフェクトコントロールを無効にします。
+.B z/Z, \-\-[no\-]temper\-control
+MIDI Tuning Standard の音律制御を有効/無効にします。
 .TP
-.B c
-コーラスエフェクトコントロールを有効にします。
-.TP
-.BI c " n"
-全てのチャネルのコーラスエフェクトを \fIn\fP で演奏します。
-.TP
-.B C
-コーラスフェクトコントロールを無効にします。
-.TP
-.B s
-チャンネルプレッシャーを有効にします。
-.TP
-.B S
-チャンネルプレッシャーを無効にします。
-.TP
-.B t
-全てのテキストメタイベントをトレースします。
-.TP
-.B T
-特定のテキストメタイベントをトレースします。
-.TP
-.B o
-同一音の重複を許します。
-.TP
-.B O
-同一音の重複は許しません。前の音は消音されます。
-.TP
-.BI m " HH"
-マニュファクチュア ID を 2 桁の16数 \fIHH\fP で指定します。
+.BI "m, \-\-default\-mid " HH
+デフォルトマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
 .br
-このとき、\fIHH\fP を \fBgm\fP , \fBGM\fP ,\fBGS\fP , \fBGS\fP , \fBxg\fP ,
-\fBXG\fP にすることで、それぞれ \fB41\fP, \fB43\fP, \fB7e\fP を指定した
-事になります。
+このとき，\fIHH\fP を \fBgm\fP，\fBgs\fP，\fBxg\fP にすることで，それぞ
+れ \fB7e\fP，\fB41\fP，\fB43\fP を指定したことになります。
 .br
-入力ファイルから音源を自動的に認識できないような場合には、
-このパラメータで強制的に認識させる事が出来ます。
+入力ファイルから音源を自動的に認識できないような場合には，このパラメー
+タでデフォルトの ID を指定することができます。
 .TP
-.BI B " n"
-全てのチャネルのパッチのバンクを常に \fIn\fP にします。\fIn\fP を省略すると
-デフォルトの動作になります。
+.BI "M, \-\-system\-mid " HH
+システムマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
+.br
+このオプションで指定されたマニュファクチュア ID は固定され，入力ファイ
+ルからのマニュファクチュア ID は無視されます。
 .TP
-.BI b " n"
-パッチのデフォルトのバンクを指定します。\fI\-EBn\fP と異なり、MIDI の
-\fBBank select\fP によりバンクが変更されます。
+.BI "b, \-\-default\-bank " n
+パッチのデフォルトのバンクを \fIn\fP にします。この設定は，MIDI の
+Bank select メッセージにより変更されます。
+.TP
+.BI "B, \-\-force\-bank " n
+\fB\-Eb\fP と異なり，すべてのチャンネルのパッチのバンクを常に \fIn\fP
+にします。\fIn\fP を省略するとデフォルトの動作になります。
+.TP
+.BI "i, \-\-default\-program " n[/m]
+デフォルトのプログラム番号を \fIn\fP にします。デフォルトでは \fIn\fP
+は \fB0\fP(通常はピアノ)となっています。
+.br
+また，\fIn\fP の後に \fI/m\fP を付けると，チャンネル \fIm\fP のデフォル
+トのプログラム番号を指定することができます。\fI/m\fP を省略した場合には，
+全チャンネルに対する指定となります。
+.TP
+.BI "I, \-\-force\-program " n[/m]
+プログラム番号を常に \fIn\fP にします。この設定は，MIDI の Program
+change メッセージを受け取っても変更されません。
+.br
+また，\fIn\fP の後に \fI/m\fP を付けると，チャンネル \fIm\fP のプログラ
+ム番号を指定することができます。\fI/m\fP を省略した場合には，全チャンネ
+ルに対する指定となります。
+.TP
+.B "F " args
+エフェクトオプションです。以下の \fIargs\fP が指定できます。
+.RS
+.TP
+.BI "delay=, \-\-delay " (d|l|r|b)[,msec]
+イヤホンで聞いた時の音の臨場感を出すようにします。
+.RS
+.TP
+.B d, 0
+ディレイを無効(Disable)にします(デフォルト)。
+.TP
+.B l, 1
+左(Left)ディレイを有効にします。主に左から音が聞こえてきます。
+.TP
+.B r, 2
+右(Right)ディレイを有効にします。主に右から音が聞こえてきます。
+.TP
+.B b, 3
+左右(Both)ローテートを有効にします。ときどき，左右の音場が変化します。
+.LP
+\fImsec\fP は左右のディレイタイムを指定するオプションです。
 .RE
-
 .TP
-.B \-F
-このオプションを指定すると、Note ON のままの状態で
-Midi control change 10: Panning が有効になります。
-デフォルトではすぐには変化しないで、音量の再計算が必要になったときに
-変化します。改良版ではトグルオプションになっています。
-
+.BI "chorus=, \-\-chorus " (d|n|s)[,level]
+.RS
 .TP
-.B \-f
-このオプションを有効にすると、エンベロープの変化時間が半分になり高速に動作します。
-ただし、音の立ち上がりとリリース時間が短くなってしまいます。
-
+.B d, 0
+コーラスを無効(Disable)にします。
 .TP
-.BI \-g " sec"
-Sound-Spectrogram を表示する Window を開きます。
-このオプションは \fIX Window System\fP がサポートされている環境のみで動作します。
-Sound-Spectrogram は声紋のようなもので、スペクトラムの時間変化を表現したものです。
-
+.B n, 1
+標準的(Normal)な MIDI コーラス制御を有効にします(デフォルト)。
 .TP
-.B \-h
-この説明を表示します。
-
+.B s, 2
+サラウンド(Surround)コーラスを有効にします。
+.LP
+\fIlevel\fP はコーラスレベル \fB0\fP から \fB127\fP を指定するオプショ
+ンです。
+.RE
 .TP
-.BI \-I " voice" [/c]
-デフォルトのプログラム番号を \fIvoice\fP にします。
-デフォルトでは \fIvoice\fP = 0 (通常はピアノ) となっています。
-.br
-また、\fIvoice\fP の後に \fI/c\fP を付けると、チャネル \fIc\fP の
-デフォルトのプログラム番号を指定することが出来ます。\fI/c\fP を
-省略した場合には、全チャネルに対する指定となります。
-
+.BI "reverb=, \-\-reverb " (d|n|g|f|G)[,level]
+.RS
 .TP
-.BI \-i " mode"
-ユーザインターフェースを指定します。
-環境によって利用可能なインターフェースが異なります。
-以下の \fImode\fP が存在します。:
+.B d, 0
+MIDI リバーブ制御を無効(Disable)にします。
+.TP
+.B n, 1
+標準的(Normal)な MIDI リバーブ制御を有効にします。
+.TP
+.B g, 2
+グローバル(Global)リバーブを有効にします。
+.TP
+.B f, 3
+Freeverb MIDI リバーブ制御を有効にします(デフォルト)。
+.TP
+.B G, 4
+グローバル Freeverb MIDI リバーブ制御を有効にします。
+.LP
+\fIlevel\fP はリバーブレベル \fB0\fP から \fB127\fP を指定するオプショ
+ンです。
+.RE
+.TP
+.BI "vlpf=, \-\-voice\-lpf " (d|c|m)
+.RS
+.TP
+.B d, 0
+ボイス単位 LPF を無効(Disable)にします。
+.TP
+.B c, 1
+Chamberlin レゾナント LPF (12dB/oct)を有効にします(デフォルト)。
+.TP
+.B m, 2
+Moog レゾナントローパス VCF (24dB/oct)を有効にします。
+.RE
+.TP
+.BI "ns=, \-\-noise\-shaping " n
+\fIn\fP 次ノイズシェーピングフィルタを有効にします。ディケイでの歪みが
+改善されますが，ノイズが高域にシフトし聴感上のノイズも増えます。8 ビッ
+ト線形符号化のとき，\fIn\fP には \fB0\fP から \fB4\fP までの値を指定す
+ることができます。\fB0\fP のときフィルタは機能せず，\fB4\fP のとき最大
+の効き方となります。デフォルトでは \fB4\fP です。16 ビット線形符号化の
+とき，\fIn\fP には \fB0\fP から \fB2\fP までの値を指定することができま
+す。デフォルトでは \fB2\fP です。
+.TP
+.BI "resamp=, \-\-resample " (d|l|c|L|n|g)
+.RS
+.TP
+.B d, 0
+補完処理を無効(Disable)にします。
+.TP
+.B l, 1
+線形(Linear)補完アルゴリズムを有効にします。
+.TP
+.B c, 2
+C スプライン補完アルゴリズムを有効にします。
+.TP
+.B L, 3
+ラグランジュ(Lagrange)補完アルゴリズムを有効にします。
+.TP
+.B n, 4
+ニュートン(Newton)補完アルゴリズムを有効にします。
+.TP
+.B g, 5
+ガウス(Gauss)風補完アルゴリズムを有効にします(デフォルト)。
+.LP
+\fB\-EFresamp\fP は \fB\-N\fP オプションの挙動に影響します。
+.RE
+.RE
+.RE
+.TP
+.B \-e, \-\-evil
+\fBTiMidity++\fP のスレッドプライオリティを上げます。Windows のみで有効
+です。このオプションを有効にすると，\fBTiMidity++\fP 以外のプログラムが
+ほとんど動作できなくなる evil モードに入ります。
+.TP
+.B \-F, \-\-[no\-]fast\-panning
+ファーストパンを指定します。このオプションを指定すると，Note ON のまま
+の状態で Midi control change 10: Panning が有効になります。デフォルトで
+はすぐには変化しないで，音量の再計算が必要になったときに変化します。改
+良版ではトグルオプションになっています。
+.TP
+.B \-f, \-\-[no\-]fast\-decay
+ファーストディケイを指定します。このオプションを指定にすると，エンベロ
+ープの変化時間が半分になり高速に動作します。ただし，音の立ち上がりとリ
+リース時間が短くなってしまいます。
+.TP
+.BI "\-g, \-\-spectrogram " sec
+サウンドスペクトログラムを表示する Window を開きます。このオプションは
+X Window System がサポートされている環境のみで動作します。サウンドスペ
+クトログラムは声紋のようなもので，スペクトラムの時間変化を表現したもの
+です。
+.TP
+.BI "\-H, \-\-force\-keysig " n
+調号の数を指定します。\fIn\fP が正の場合は♯(シャープ)の数，\fIn\fP が
+負の場合は♭(フラット)の数のキーに転調ながら，MIDI ファイルを演奏します。
+\fIn\fP には \fB\-7\fP から \fB7\fP までの値を指定することができます。
+例えば，\fIn\fP に \fB\-1\fP を与えると，いかなる調性の MIDI ファイルで
+あっても，♭(フラット)が 1 個のヘ長調あるいはニ短調に転調しながら演奏す
+るので，演奏しやすい調性で楽器を練習するときの伴奏などに使うと便利です。
+.TP
+.B \-h, \-\-help
+\fBTiMidity++\fP のオプションの簡単な説明を表示します。
+.TP
+.BI "\-i, \-\-interface " mode
+ユーザインターフェースを指定します。環境によって利用可能なインタフェー
+スが異なります。以下の \fImode\fP が存在します。
 .RS
 .TP
 .B \-id
-dumb interface
+dumb インタフェース
 .TP
 .B \-in
-ncurses interface
+ncurses インタフェース
 .TP
 .B \-is
-slang interface
+S-Lang インタフェース
 .TP
 .B \-ia
-X Athena Widget interface
+X Athena Widget インタフェース
 .TP
 .B \-ik
-Tcl/Tk interface
+Tcl/Tk インタフェース
 .TP
 .B \-im
-motif interface
+Motif インタフェース
 .TP
 .B \-iT
-vt100 interface
+vt100 インタフェース
 .TP
 .B \-ie
-Emacs interface (\fIEmacs\fP 上から \fBM\-x timidity\fP により起動されます)
+Emacs インタフェース
+.br
+Emacs 上から ``M\-x timidity'' により起動されます。
 .TP
 .B \-ii
-skin interface
+skin インタフェース
 .br
-環境変数 TIMIDITY_SKIN に、使用する skin のパス(圧縮状態でもよい)を
-指定しておいてください。
-.PP
-上記オプションに続けて、以下の文字列を追加することができます(複数指定化)。:
+環境変数 \fBTIMIDITY_SKIN\fP に，使用する skin のパス(圧縮状態でもよい)
+を指定しておいてください。
 .TP
-.B v
-冗長表示のレベルを上げます。
+.B \-ig
+GTK+ インタフェース
 .TP
-.B q
-冗長表示のレベルを下げます。
+.B \-ir
+MIDI サーバインタフェース
 .TP
-.B t
-トレース表示の on/off (トグル)。
+.B \-iA
+ALSA シーケンサインタフェース
+.TP
+.B \-iW
+Windodws シンセサイザインタフェース
+.TP
+.B インタフェースオプション
+上記オプションに続けて，以下の文字列を追加することができます(複数指定化)。
+.RS
+.TP
+.B v, \-\-verbose=n
+冗長表示のレベルを累積的に上げます。
+.TP
+.B q, \-\-quiet=n
+冗長表示のレベルを累積的に下げます。
+.TP
+.B t, \-\-[no\-]trace
+トレース表示を on/off します(トグル)。
+.TP
+.B l, \-\-[no\-]loop
+ループ再生します(インタフェースによっては無視されます)。
+.TP
+.B r, \-\-[no\-]random
+再生前にファイルリスト順をランダムにします。
+.TP
+.B s, \-\-[no\-]sort
+再生前にファイルリスト順をソートします。
+.TP
+.B D, \-\-[no\-]background
+\fBTiMidity++\fP をバックグラウンドでデーモン化します(alsaseq のみ)。
 .RE
-
+.RE
 .TP
-.B \-j
-このオプションを有効にすると、演奏しながらパッチファイルを読み込みます。
-
+.B \-j, \-\-[no\-]realtime\-load
+このオプションを有効にすると，演奏しながらパッチファイルを読み込みます。
 .TP
-.BI \-L " dir"
-サーチパスに \fIdir\fP を追加します。
-patch ファイル、設定ファイル、MIDI ファイルなどは、
-このサーチパスに従って探索されます。
-最後に加えられたディレクトリは最初に探索されます。
-但し、このサーチパスに関係なく、
+.BI "\-K, \-\-adjust\-key " n
+\fIn\fP 半音単位でキーを調節します。\fIn\fP には \fB\-24\fP から
+\fB24\fP までの値を指定することができます。
+.TP
+.BI "\-k, \-\-voice\-queue " msec
+ボイスを減少させるオーディオキュータイムを指定します。
+.TP
+.BI "\-L, \-\-patch\-path " path
+サーチパスに \fIpath\fP を追加します。patch ファイル，設定ファイル，
+MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
+たディレクトリは最初に探索されます。ただし，このサーチパスに関係なく，
 カレントディレクトリがいつも最初に探索されるので注意すること。
-
 .TP
-.BI \-n " degree"
-Noise Shaping Filter を使用します。Noise Shaping Filter により
-8 bit linear 出力時の decay での歪みが改善されます。が、
-ノイズが高域にシフトし聴感上のノイズも増えます。
-.br
-\fIdegree\fP には \fB0\fP から \fB4\fP までの値が指定できます。
-\fB0\fP のときフィルタは機能せず、\fB4\fPのとき最大の効き方となります。
-
+.BI "\-M, \-\-pcm\-file " name
+演奏する PCM ファイル名(*.wav または *.aiff)を指定します。\fIname\fP に
+\fBauto\fP を指定すると，*.mid.wav または *.mid.aiff を演奏します。
+\fIname\fP に \fBnone\fP を指定すると，この機能を無効にします(デフォル
+ト)。
 .TP
-.BI \-O " mode"
-出力モードやフォーマットを指定します。
-以下の \fImode\fP が有効です。:
+.BI "\-m, \-\-decay\-time " msec
+サステインしたノートがディケイされるまでの最大時間を指定します。
+.RS
+.TP
+.B \-m0
+サステイン減衰を無効にして，サステインボリュームを一定にします(デフォル
+ト)。
+.TP
+.B \-m1
+サステインが存在しないものとします。音量減衰は，標準のステージ 3 と同じ
+です。
+.TP
+.B \-m3000
+最大音量の note がサステイン状態になってから 3 秒 で減衰します(ステージ
+3 の rate がそれ以上伸びないものとします)。十分小さくなったnote は，も
+ちろんすぐに消えます。
+.RE
+.TP
+.BI "\-N, \-\-interpolation " n
+補完パラメータを指定します。\fB\-N\fP オプションの挙動は
+\fB\-EFresamp\fP オプション指定に依存します。
+.RS
+.TP
+.B cspline, lagrange
+4 点補完を指定します。デフォルトでは有効です。
+.TP
+.B newton
+\fIn\fP 次のニュートン補完を指定します。\fIn\fP には \fB1\fP から
+\fB57\fP までの奇数を指定することができます。
+.TP
+.B gauss
+\fIn+1\fP 点ガウス風補完を指定します。\fIn\fP には \fB1\fP から
+\fB34\fP までの整数を指定することができます。デフォルトでは \fB25\fP で
+す。
+.LP
+オーディオキューが 99% 以下のときは，線形補完が使われます。
+.RE
+.TP
+.BI "\-O, \-\-output\-mode " mode
+出力モードやフォーマットを指定します。以下の \fImode\fP が有効です。
 .RS
 .TP
 .B \-Od
 オーディオデバイスに出力します(デフォルト)。
 .TP
-.B \-Ow
-Windows WAV ファイルを出力します。
+.B \-Os
+ALSA オーディオデバイスに出力します。
 .TP
 .B \-Or
-ヘッダのないオーディオのデータ部分のみを出力します。
-.TP
-.B \-Ou
-Sun Audio (au) ファイルを出力します。
-.TP
-.B \-Oa
-AIFF ファイルを出力します。
-.PP
-上記オプションに続けて、以下の文字を追加することで出力フォーマットを
-指定できます(複数可)。
-.TP
-.B 8
-8\-bit サンプル精度
-.TP
-.B 1
-16\-bit サンプル精度
-.TP
-.B U
-U\-Law 符合化方式
-.TP
-.B A
-A\-Law 符合化方式
-.TP
-.B l
-linear PCM 符合化方式
-.TP
-.B M
-モノラル
-.TP
-.B S
-ステレオ
-.TP
-.B s
-符合付き整数
-.TP
-.B u
-符合無し整数
-.TP
-.B x
-バイト反転
-.PP
-一部のモードでは、指定しても効果がないオプションがあります。
-たとえば、バイト反転した RIFF WAVE ファイルを作ることは出来ませんし、
-U\-Law 出力は Linux PCM デバイスに対しては使用出来ません。
-.RE
-
-
-.TP
-.BI \-o " filename"
-出力ファイル名を指定します。
-出力先がファイルでない場合はこのオプションは無視されます。
-\fIfilename\fP を "\-" にすると標準出力に出力されます。
-
-.TP
-.BI \-P " filename"
-全ての楽器を \fIfilename\fP(パッチ) を用いて演奏します。
-
-.TP
-.BI \-p " voices"
-最大同時発音数を \fIvoices\fP にします。
-
-.TP
-.BI \-Q " channel"
-\fIchannel\fP チャネル目を演奏しないようにします。
-\fIchannel\fP に負の値を与えると、\-\fIchannl\fP を演奏するようにします。
-\fIchannel\fP に \fB0\fP を与えると、全てのチャネルが演奏されます。
-
-.TP
-.BI \-R " n"
-エンベロープリリースを修正して音響効果を得ます（疑似リバーブ）。
-\fIn\fP には以下の値が指定可能です。: 
+ヘッダのないオーディオのデータ部分のみを出力します。下記のすべてのフォ
+ーマットオプションが使えます。一般的なフォーマットは以下の通りです。
 .RS
 .TP
-.B 0
-Long slight release
+.B \-OrU
+μ-Law
 .TP
-.B 1
-Long loud release
+.B \-Or1sl
+16 ビット符号あり線形符号化
 .TP
-.B 2
-Short release
-.TP
-.B 3
-No release
+.B \-Or8ul
+8 ビット符号なし線形符号化
 .RE
-
 .TP
-.BI \-r
-このオプションを有効にすると、リバーブ効果が得られます。
-
+.B \-Ou
+Sun Audio (au)ファイルを出力します。
 .TP
-.BI \-S " size"
-リサンプリングキャッシュの大きさをバイト数で指定します。
-頻繁に用いられるサンプルは予めリサンプリングしておくことで
-高速化しています。ただし、ビブラートやピッチベンドなどによってピッチが
-変化するサンプルはキャッシュされません。\fB0\fP を指定すると全くキャッシュ
-しません。デフォルトでは \fIsize\fP=\fB2097152\fP (2MB) となっています。
-
+.B \-Oa
+Macintosh AIFF ファイルを出力します。
 .TP
-.BI -s " frequency"
-再生サンプルレート (\fBHz\fP または \fBkHz\fP)を指定します。
-
+.B \-Ow
+Windows RIFF WAVE ファイルを出力します。
 .TP
-.BI -t " code"
-日本語テキストの出力文字コードを指定します。
-以下の \fIcode\fP が指定可能です(大文字小文字は区別されません)。
+.B \-Ol
+MIDI イベントのリストを出力します。
+.TP
+.B \-OM
+MOD ファイルから MIDI ファイルに変換して出力します。
+.TP
+.B フォーマットオプション
+上記オプションに続けて，以下の文字を追加することで出力フォーマットを指
+定できます(複数可)。
+.RS
+.TP
+.B S, \-\-output\-stereo
+ステレオ
+.TP
+.B M, \-\-output\-mono
+モノラル
+.TP
+.B s, \-\-output\-signed
+符合あり出力
+.TP
+.B u, \-\-output\-unsigned
+符合なし出力
+.TP
+.B 1, \-\-output\-16bit
+16 ビットサンプル精度
+.TP
+.B 8, \-\-output\-8bit
+8 ビットサンプル精度
+.TP
+.B l, \-\-output\-linear
+線形符合化
+.TP
+.B U, \-\-output\-ulaw
+μ\-Law 符合化
+.TP
+.B A, \-\-output\-alaw
+A\-Law 符合化
+.TP
+.B x, \-\-[no\-]output\-swab
+バイト反転出力
+.LP
+一部のモードでは，指定しても効果がないオプションがあります。例えば，バ
+イト反転した RIFF WAVE ファイルを作ることはできませんし，μ\-Law 出力は
+Linux PCM デバイスに対しては使用できません。
+.RE
+.RE
+.TP
+.BI "\-o, \-\-output\-file " file
+出力ファイル名を指定します。出力先がファイルでない場合はこのオプション
+は無視されます。\fIfile\fP を `\-' にすると標準出力に出力されます。
+.TP
+.BI "\-P, \-\-patch\-file " file
+すべての楽器を \fIfile\fP(パッチ) を用いて演奏します。
+.TP
+.BI "\-p " [n](a)
+.br
+.ns
+.TP
+.BI "\-\-polyphony " n
+.br
+.ns
+.TP
+.B \-\-[no\-]polyphony\-reduction
+最大同時発音数を \fIn\fP にします。
+.br
+さらに，\fB\-p\fP オプションに `a' の文字を付加するか，
+\fB\-\-polyphony\-reduction\fP オプションを指定することにより，自動で発
+音数の減少させることを可能にします。デフォルトでは有効です。
+.TP
+.BI "\-Q " n[,...](t)
+.br
+.ns
+.TP
+.BI "\-\-mute " n[,...]
+.br
+.ns
+.TP
+.BI "\-\-temper\-mute " n[,...]
+\fIn\fP チャンネル目を演奏しないようにします。`,' で区切って，複数のチ
+ャンネルを指定することができます。\fIn\fP に \fB0\fP を指定すると，すべ
+てのチャンネルを演奏しないようにします。続けて，\fI\-n\fP を指定するこ
+とにより，\fIn\fP チャンネル目だけを演奏することができます。
+.br
+一方，\fB\-Q\fP オプションに `t' の文字を付加するか，
+\fB\-\-temper\-mute\fP オプションを指定することにより，音律種別
+\fIn\fP をミュートします。\fIn\fP には プリセット音律種別として
+\fB0\fP から \fB3\fP までの値を，ユーザ定義音律種別として \fB4\fP から
+\fB7\fP までの値を指定することができます。
+.TP
+.BI "\-q, \-\-audio\-buffer " seq/n
+オーディオ最大バッファを \fIseq\fP 秒，オーディオ開始バッファを
+\fIn\fP% にします。デフォルトでは \fB5.0/100\fP です。100% のサイズはデ
+バイスバッファサイズと等価です。
+.TP
+.BI "\-R " msec
+エンベロープリリースを \fImsec\fP に修正して音響効果を得ます(疑似リバー
+ブ)。\fImsec\fP が \fB0\fP のとき，\fImsec\fP は \fB800\fP に設定されま
+す。
+.TP
+.BI "\-S, \-\-cache\-size " n
+リサンプリングキャッシュの大きさをバイト数で指定します。頻繁に用いられ
+るサンプルは，あらかじめリサンプリングしておくことで高速化しています。
+ただし，ビブラートやピッチベンドなどによってピッチが変化するサンプルは
+キャッシュされません。\fB0\fP を指定すると，まったくキャッシュしません。
+デフォルトでは \fIn\fP は \fB2097152\fP (2MB)となっています。
+.TP
+.BI "-s, \-\-sampling\-freq " freq
+再生サンプルレート(Hz または kHz)を指定します。
+.TP
+.BI "\-T, \-\-adjust\-tempo " n
+テンポを \fIn\fP% に調節します。\fIn\fP を \fB120\fP にすると，MOD ファ
+イルを NTSC Amiga のタイミングで演奏します。
+.TP
+.BI "-t, \-\-output\-charset " code
+テキストの出力文字コードを指定します。以下の \fIcode\fP が指定可能です
+(大文字小文字は区別されません)。
 .RS
 .TP
 .B auto
-\fILANG\fP 環境変数によって、コードが決まります。
+LANG 環境変数によってコードが決まります。
 .TP
 .B ascii
-非可読 ASCII を ピリオド(0x2e) に変換して出力します。
+非可読 ASCII をピリオド(0x2e)に変換して出力します。
 .TP
 .B nocnv
 出力文字コードを変換しません。
 .TP
+.B 1251
+windows-1251 から koi8-r に変換して出力します。
+.TP
 .B euc
-EUC コード(japan) で出力します。
+EUC コード(japan)で出力します。
 .TP
 .B jis
 JIS コードで出力します。
@@ -544,141 +760,152 @@ JIS コードで出力します。
 .B sjis
 SJIS コードで出力します。
 .RE
-
 .TP
-.B \-U
-このオプションを有効にすると、演奏ごとに毎回、
-パッチに割り当てられていたメモリを解放します。
-
+.B \-U, \-\-[no\-]unload\-instruments
+このオプションを有効にすると，演奏ごとに毎回，パッチに割り当てられてい
+たメモリを解放します。
 .TP
-.BI \-w " mode"
-Windows 用の拡張モードのオプションです。
-以下の \fImode\fP が有効です。
+.BI "-V, \-\-volume\-curve " power
+ベロシティ/ボリューム/エクスプレッションカーブを amp=vol^\fIpower\fP で
+\fIpower\fP の値が \fB0\fP で自動，\fB1\fP で線形，約 \fB1.661\fP で理
+想，約 \fB2\fP で GS 設定となります。
+.TP
+.B -v, \-\-version
+\fBTiMidity++\fP のバージョン情報を表示します。
+.TP
+.BI "\-W, \-\-wrd " mode
+入力ファイルの拡張子を .WRD または .wrd に変更したファイルが存在すれば，
+それを WRD ファイル として読み込み，そのコマンドと歌詞を表示します。
+.sp
+表示方法は以下の通りです。
 .RS
 .TP
-.BI \-w "r"
-\fIrcpcv.dll\fP を使用します。
+.B x
+X Window System を使用して，グラフィカルに WRD を表示します。
 .TP
-.BI \-w "R"
-\fIrcpcv.dll\fP を使用しません(デフォルト)。
-.RE
-
+.B w
+Windows コンソール上に WRD を表示します。
 .TP
-.BI \-W "mode"
-入力ファイルの拡張子を .WRD または .wrd に変更したファイルが存在すれば、
-それを WRDファイル として読み込み、そのコマンドと歌詞を表示します。
-.br
-表示方法は以下の通り:
-.RS
+.B t
+エスケープシーケンスを使用して，WRD に含まれる文字情報を表示します。
 .TP
-.BI x
-X Window System を使用して、グラフィカルに WRD を表示します。
-.TP
-.BI t
-Escape sequence を使用して、WRD に含まれる文字情報を表示します。
-.TP
-.BI d
+.B d
 WRD のイベント情報をそのまま出力します。
-(dumb WRD tracer)。
 .TP
-.BI \-
+.B \-
 WRD のトレースを行いません。
-.RE
-なお、WRD は trace モードで実行しないとタイミングが合いません。
-
 .TP
-.BI \-WR[opts]
+.B R[opts]
 WRD 読み込み時の設定を行います。
 .RS
 .TP
 .B a1=b1,a2=b2,...
-WRD 読み込み時のオプションを指定します。an にオプション名、bn にその値が
-入ります。
+WRD 読み込み時のオプションを指定します。\fIan\fP にオプション名，
+\fIbn\fP にその値が入ります。
 .TP
 .B d=n
-@WAIT, @WMODE まわりの MIMPI のタイミングに関するバグをエミュレートします。
-以下のオプションでエミュレートレベルを変更できます。 
+@WAIT，@WMODE まわりの MIMPI のタイミングに関するバグをエミュレートしま
+す。以下のオプションでエミュレートレベルを変更できます。
 .RS
 .TP
 .B -WRd=0
-MIMPI のバグをエミュレートしないで、規格通りに動作 します。
+MIMPI のバグをエミュレートしないで，規格通りに動作します。
 .TP
 .B -WRd=1
-(default) 恐らく間違いないと思われるバグのみを エミュレートします。
+おそらく間違いないと思われるバグのみをエミュレートします(デフォルト)。
 .TP
 .B -WRd=2
-怪しいバグまでエミュレートします。 
-.RE
-エミュレートレベルをあげると、今までタイミングが合っていたものがずれる
+怪しいバグまでエミュレートします。
+.LP
+エミュレートレベルをあげると，今までタイミングが合っていたものがずれる
 可能性があります。
-.TP
-.BI F=filename
-WRD ファイル名を指定します。WRD ファイルが見つからない場合のみ、 指定した filename が WRD ファイルとして用いられます。
-.TP
-.BI f=filename
-WRD ファイル名を指定します。常に指定した WRD ファイル filename を用います。 
 .RE
-
 .TP
-.BI \-x " str"
-指定した文字列で timidity の設定を行います。str の書式は timidity.cfg と同じです。例えば
-.br
+.B F=file
+WRD ファイル名を指定します。WRD ファイルが見つからない場合のみ，指定し
+た \fIfile\fP が WRD ファイルとして用いられます。
+.TP
+.B f=file
+WRD ファイル名を指定します。常に指定した WRD ファイル \fIfile\fP を用い
+ます。
+.RE
+.LP
+なお，WRD はトレースモードで実行しないとタイミングが合いません。
+.RE
+.TP
+.BI "\-w, \-\-rcpcv\-dll " mode
+Windows 用の拡張モードのオプションです。以下の \fImode\fP が有効です。
+.RS
+.TP
+.BI "\-w " r
+rcpcv.dll を使用します。
+.TP
+.BI "\-w " R
+rcpcv.dll を使用しません(デフォルト)。
+.RE
+.TP
+.BI "\-x \-\-config\-string " str
+指定した文字列で \fBTiMidity++\fP の設定を行います。\fIstr\fP の書式は
+timidity.cfg と同じです。例えば
+.sp
 \fB\-x'bank 0\\n0 violin.pat'\fP
-.br
+.sp
 とすると 0 番で指定される音色ををバイオリンにすることができます。
-\fI-x\fPに続く文字列中の\fB\\\fP(ASCII 0x5c)は特別文字として扱われ、
-それ以降の文字（列）に対しC言語のリテラルと同様の展開が行われます。
-例えば、\fB\\n\fPは改行を意味します。
-
-
-.P
-.SH SEE ALSO
-lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1), timidity.cfg(5)
-
-
-.P
-.SH COPYRIGHT
-Copyright (C) 1999 Masanao Izumo <mo@goice.co.jp>
+\fB\-x\fP に続く文字列中の `\\' (ASCII 0x5c)は特別文字として扱われ，そ
+れ以降の文字(列)に対し，C 言語のリテラルと同様の展開が行われます。例え
+ば，`\\n' は改行を意味します。
+.TP
+.BI "\-Z, \-\-freq\-table " file
+周波数テーブルを読み込みます。\fIfile\fP に ``pure'' を指定すると，簡易
+純正律で演奏します。
+.RS
+.TP
+.BI "\-Zpure, \-\-pure\-intonation " [n(m)]
+MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
+奏します。MIDI ファイルに Key Signature メタイベントが含まれていない場
+合は，初期の調性として \fIn(m)\fP を指定することで，正しい純正律演奏が
+可能となります。\fIn\fP は調号の数で，♯(シャープ)の場合は正の数，♭(フ
+ラット)の場合は負の数を指定します。\fIn\fP には \fB\-7\fP から \fB7\fP
+までの値を指定することができます。さらに，短調の場合は `m' の文字を付加
+します。
+.RE
+.SH 関連項目
+lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1),
+timidity.cfg(5)
+.SH 著作権
+Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+.br
 Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 .P
-Original version was developed under the name of Tuukka Toivonen
-<tt@cgs.fi> until the version of TiMidity-0.2i. His development was
-discontinued because of his busy work.
+The original version was developed by Tuukka Toivonen <tt@cgs.fi>
+until the release of TiMidity-0.2i.  His development was discontinued
+because of his being busy with work.
 .P
 This program is free software; you can redistribute it and/or modify
-it under the terms of the \fIGNU General Public License\fP as published by
-the Free Software Foundation; either version 2 of the License, or (at
-your option) any later version.
+it under the terms of the \fIGNU General Public License\fP as
+published by the Free Software Foundation; either version 2 of the
+License, or (at your option) any later version.
 .P
 This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the \fIGNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \fIGNU
 General Public License\fP for more details.
 .P
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-.SH AVAILABILITY
-
-TiMidity++ は 改良版 TiMidity のページ
-.br
-URL http://www.goice.co.jp/member/mo/timidity/
-.br
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA
+.SH 入手元
+\fBTiMidity++\fP は 改良版 TiMidity のページ
+.sp
+URL http://www.timidity.jp/
+.sp
 で手に入ります。
-
-.SH BUGS
-8\-bit と低レートでの出力が思ったより良くない。
-.P
+.SH バグ
 小さな CPU\-time\-eating 獣よりも CPU time を喰う。
-.P
-[訳注：和訳のバグも多数潜んでいるでしょう…]
-
-.P
-.SH AUTHORS
-\fBVersion 0.2i and earlier:\fP
-.br
+.SH 著者
+.TP
+.B Version 0.2i and earlier:
 Tuukka Toivonen <toivonen@clinet.fi>
 .br
 Vincent Pagel <pagel@loria.fr>
@@ -690,10 +917,8 @@ Davide Moretti <dmoretti@iper.net>
 Chi Ming HUNG <cmhung@insti.physics.sunysb.edu>
 .br
 Riccardo Facchetti <riccardo@cdc8g5.cdc.polimi.it>
-.br
-
-\fBTiMidity++:\fP
-.br
+.TP
+.B TiMidity++:
 出雲正尚 (IZUMO Masanao) <mo@goice.co.jp>
 .br
 原田智和 (HARADA Tomokazu) <harada@prince.pe.u-tokyo.ac.jp>
@@ -725,27 +950,21 @@ Riccardo Facchetti <riccardo@cdc8g5.cdc.polimi.it>
 荒井良重 (ARAI Yoshishige) <ryo2@on.rim.or.jp>
 .br
 Glenn Trigg <ggt@netspace.net.au>
-.br
-
-（敬称略・順不同）。
-.P
-これ以外にも、TiMidity メーリングリストの皆様をはじめ多くの方から情報、
-バグ報告などを頂いています。
-
-
-.br
+.LP
+(敬称略・順不同)
+.sp
+これ以外にも，\fBTiMidity++\fP メーリングリストの皆様をはじめ多くの方か
+ら情報，バグ報告などを頂いています。
+.sp
 WRDで使用される端末ターミナルエミュレーションのコードは X Consotium
-等の kterm のコードの一部を取り込み、またそれを参考に実装を行いました。
+等の kterm のコードの一部を取り込み，またそれを参考に実装を行いました。
+.sp
+和訳は松本庄司(MATSUMOTO Shoji <shom@i.h.kyoto-u.ac.jp>)。この和訳は正
+確かどうかは保証できません。あなたがこの和訳の使用でいかなる損害を受け
+ても責任は持ちません。
+.sp
+\fBTiMidity++\fP のオプション，cfg ファイルの解説は出雲正尚(IZUMO
+Masanao <mo@goice.co.jp>)が，
 .br
-
-.br
-[和訳は松本庄司(MATSUMOTO Shoji <shom@i.h.kyoto-u.ac.jp>)。
-この和訳は正確かどうかは保証できません。
-あなたがこの和訳の使用でいかなる損害を受けても責任は持ちません。]
-
-.br
-[ TiMidity++ のオプション、cfgファイルの解説は出雲正尚
-(IZUMO Masanao <mo@goice.co.jp>)が、
-.br
-そのnroff化、およびマニュアルのリライトは長野大介
-(NAGANO Daisuke <nagano@i.kyushu-u.ac.jp>)が行いました。]
+その nroff 化，およびマニュアルのリライトは長野大介(NAGANO Daisuke
+<nagano@i.kyushu-u.ac.jp>)が行いました。
