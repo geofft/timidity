@@ -1136,7 +1136,7 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 		/* Instrument is not found.
 		 * Retry to load the instrument from bank 0
 		 */
-		if ((ip = bank[0]->tone[prog].instrument) == NULL)
+		if ((ip = bank[0]->tone[prog].instrument) == NULL || ip == MAGIC_LOAD_INSTRUMENT)
 			ip = bank[0]->tone[prog].instrument =
 					load_instrument(dr, 0, prog);
 		if (ip) {
