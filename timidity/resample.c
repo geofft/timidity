@@ -504,9 +504,9 @@ int set_resampler_parm(int val)
 	else
 	    gauss_n = val;
     } else if (cur_resample == resample_newton) {
-	if (val < 1 || val > 56)
+	if (val < 1 || val > 57)
 	    return -1;
-	else if (val % 2)
+	else if (val % 2 == 0)
 	    return -1;
 	else {
 	    newt_n = val;

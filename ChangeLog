@@ -1,3 +1,8 @@
+2003-11-10  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/resample.c (set_resampler_parm): -N for Newton
+	  interpolation should be 1 to 57 odd, not 1 to 56 even
+
 2003-11-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/effect.c, timidity/playmidi.c, timidity/reverb.c,
