@@ -6101,8 +6101,6 @@ void init_reverb_status_gs(void)
 void recompute_reverb_status_gs(void)
 {
 	struct reverb_status_t *p = &reverb_status;
-	p->level_ratio = (double)p->level / 127.0f;
-	p->time_ratio = (double)p->time / 128.0f + 0.5f;
 
 	if(p->pre_lpf) {
 		p->lpf.a = (double)(7 - p->pre_lpf)/ 7.0 * 0.9 + 0.05;

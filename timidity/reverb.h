@@ -248,8 +248,8 @@ typedef struct {
 	int32 spt0, spt1, spt2, spt3, rpt0, rpt1, rpt2, rpt3;
 	int32 ta, tb, HPFL, HPFR, LPFL, LPFR, EPFL, EPFR;
 	delay buf0_L, buf0_R, buf1_L, buf1_R, buf2_L, buf2_R, buf3_L, buf3_R;
-	double fbklev, nmixlev, cmixlev, monolev, hpflev, lpflev, lpfinp, epflev, epfinp, width;
-	int32 fbklevi, nmixlevi, cmixlevi, monolevi, hpflevi, lpflevi, lpfinpi, epflevi, epfinpi, widthi;
+	double fbklev, nmixlev, cmixlev, monolev, hpflev, lpflev, lpfinp, epflev, epfinp, width, wet;
+	int32 fbklevi, nmixlevi, cmixlevi, monolevi, hpflevi, lpflevi, lpfinpi, epflevi, epfinpi, widthi, weti;
 } InfoStandardReverb;
 
 /*! Freeverb */
@@ -306,9 +306,6 @@ struct reverb_status_t
 {
 	/* GS parameters */
 	int8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
-
-	/* for pre-calculation */
-	double level_ratio, time_ratio;
 
 	InfoStandardReverb info_standard_reverb;
 	InfoPlateReverb info_plate_reverb;

@@ -651,55 +651,13 @@ float get_pink_noise_light(pink_noise *p)
 /*                          */
 /*  Standard Reverb Effect  */
 /*                          */
-/* delay buffers @65kHz */
-#define REV_BUF0       344 * 2
-#define REV_BUF1       684 * 2
-#define REV_BUF2      2868 * 2
-#define REV_BUF3      1368 * 2
-
 #define REV_VAL0         5.3
 #define REV_VAL1        10.5
 #define REV_VAL2        44.12
 #define REV_VAL3        21.0
 
-/*#define REV_FBK_LEV      0.12
-
-#define REV_NMIX_LEV     0.7
-#define REV_CMIX_LEV     0.9
-#define REV_MONO_LEV     0.7
-
-#define REV_HPF_LEV      0.5
-#define REV_LPF_LEV      0.45
-#define REV_LPF_INP      0.55
-#define REV_EPF_LEV      0.4
-#define REV_EPF_INP      0.48
-
-#define REV_WIDTH        0.125*/
-
-static int  spt0, rpt0, def_rpt0;
-static int  spt1, rpt1, def_rpt1;
-static int  spt2, rpt2, def_rpt2;
-static int  spt3, rpt3, def_rpt3;
-static int32  buf0_L[REV_BUF0], buf0_R[REV_BUF0];
-static int32  buf1_L[REV_BUF1], buf1_R[REV_BUF1];
-static int32  buf2_L[REV_BUF2], buf2_R[REV_BUF2];
-static int32  buf3_L[REV_BUF3], buf3_R[REV_BUF3];
-
 static int32  reverb_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 static int32  reverb_effect_bufsize = sizeof(reverb_effect_buffer);
-
-static int32  ta, tb;
-static int32  HPFL, HPFR;
-static int32  LPFL, LPFR;
-static int32  EPFL, EPFR;
-
-#define rev_memset(xx)     memset(xx, 0, sizeof(xx));
-
-#define rev_ptinc() \
-spt0++; if(spt0 == rpt0) spt0 = 0;\
-spt1++; if(spt1 == rpt1) spt1 = 0;\
-spt2++; if(spt2 == rpt2) spt2 = 0;\
-spt3++; if(spt3 == rpt3) spt3 = 0;
 
 #if OPT_MODE != 0
 #if _MSC_VER
@@ -755,27 +713,102 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 }
 #endif /* OPT_MODE != 0 */
 
+static double gs_revchar_to_roomsize(int character)
+{
+	double rs;
+	switch(character) {
+	case 0: rs = 1.0;	break;	/* Room 1 */
+	case 1: rs = 0.94;	break;	/* Room 2 */
+	case 2: rs = 0.97;	break;	/* Room 3 */
+	case 3: rs = 0.90;	break;	/* Hall 1 */
+	case 4: rs = 0.85;	break;	/* Hall 2 */
+	default: rs = 1.0;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return rs;
+}
+
+static double gs_revchar_to_level(int character)
+{
+	double level;
+	switch(character) {
+	case 0: level = 0.744025605;	break;	/* Room 1 */
+	case 1: level = 1.224309745;	break;	/* Room 2 */
+	case 2: level = 0.858592403;	break;	/* Room 3 */
+	case 3: level = 1.0471802;	break;	/* Hall 1 */
+	case 4: level = 1.0;	break;	/* Hall 2 */
+	case 5: level = 0.865335496;	break;	/* Plate */
+	default: level = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return level;
+}
+
+static double gs_revchar_to_rt(int character)
+{
+	double rt;
+	switch(character) {
+	case 0: rt = 0.516850262;	break;	/* Room 1 */
+	case 1: rt = 1.004226004;	break;	/* Room 2 */
+	case 2: rt = 0.691046825;	break;	/* Room 3 */
+	case 3: rt = 0.893006004;	break;	/* Hall 1 */
+	case 4: rt = 1.0;	break;	/* Hall 2 */
+	case 5: rt = 0.538476488;	break;	/* Plate */
+	default: rt = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return rt;
+}
+
+static double gs_revchar_to_width(int character)
+{
+	double width;
+	switch(character) {
+	case 0: width = 0.5;	break;	/* Room 1 */
+	case 1: width = 0.5;	break;	/* Room 2 */
+	case 2: width = 0.5;	break;	/* Room 3 */
+	case 3: width = 0.5;	break;	/* Hall 1 */
+	case 4: width = 0.5;	break;	/* Hall 2 */
+	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return width;
+}
+
+static double gs_revchar_to_apfbk(int character)
+{
+	double apf;
+	switch(character) {
+	case 0: apf = 0.7;	break;	/* Room 1 */
+	case 1: apf = 0.7;	break;	/* Room 2 */
+	case 2: apf = 0.7;	break;	/* Room 3 */
+	case 3: apf = 0.6;	break;	/* Hall 1 */
+	case 4: apf = 0.55;	break;	/* Hall 2 */
+	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return apf;
+}
+
 static void init_standard_reverb(InfoStandardReverb *info)
 {
+	double time;
 	info->ta = info->tb = 0;
 	info->HPFL = info->HPFR = info->LPFL = info->LPFR = info->EPFL = info->EPFR = 0;
 	info->spt0 = info->spt1 = info->spt2 = info->spt3 = 0;
-	set_delay(&(info->buf0_L), REV_BUF0);
-	set_delay(&(info->buf0_R), REV_BUF0);
-	set_delay(&(info->buf1_L), REV_BUF1);
-	set_delay(&(info->buf1_R), REV_BUF1);
-	set_delay(&(info->buf2_L), REV_BUF2);
-	set_delay(&(info->buf2_R), REV_BUF2);
-	set_delay(&(info->buf3_L), REV_BUF3);
-	set_delay(&(info->buf3_R), REV_BUF3);
-	info->rpt0 = REV_VAL0 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
-	info->rpt1 = REV_VAL1 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
-	info->rpt2 = REV_VAL2 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
-	info->rpt3 = REV_VAL3 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
+	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) 
+		/ reverb_time_table[64] * 0.8;
+	info->rpt0 = REV_VAL0 * play_mode->rate / 1000.0f * time;
+	info->rpt1 = REV_VAL1 * play_mode->rate / 1000.0f * time;
+	info->rpt2 = REV_VAL2 * play_mode->rate / 1000.0f * time;
+	info->rpt3 = REV_VAL3 * play_mode->rate / 1000.0f * time;
 	while (!isprime(info->rpt0)) {info->rpt0++;}
 	while (!isprime(info->rpt1)) {info->rpt1++;}
 	while (!isprime(info->rpt2)) {info->rpt2++;}
 	while (!isprime(info->rpt3)) {info->rpt3++;}
+	set_delay(&(info->buf0_L), info->rpt0 + 1);
+	set_delay(&(info->buf0_R), info->rpt0 + 1);
+	set_delay(&(info->buf1_L), info->rpt1 + 1);
+	set_delay(&(info->buf1_R), info->rpt1 + 1);
+	set_delay(&(info->buf2_L), info->rpt2 + 1);
+	set_delay(&(info->buf2_R), info->rpt2 + 1);
+	set_delay(&(info->buf3_L), info->rpt3 + 1);
+	set_delay(&(info->buf3_R), info->rpt3 + 1);
 	info->fbklev = 0.12f;
 	info->nmixlev = 0.7f;
 	info->cmixlev = 0.9f;
@@ -786,6 +819,7 @@ static void init_standard_reverb(InfoStandardReverb *info)
 	info->epflev = 0.4f;
 	info->epfinp = 0.48f;
 	info->width = 0.125f;
+	info->wet = 3.0f * (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
 	info->fbklevi = TIM_FSCALE(info->fbklev, 24);
 	info->nmixlevi = TIM_FSCALE(info->nmixlev, 24);
 	info->cmixlevi = TIM_FSCALE(info->cmixlev, 24);
@@ -796,6 +830,7 @@ static void init_standard_reverb(InfoStandardReverb *info)
 	info->epflevi = TIM_FSCALE(info->epflev, 24);
 	info->epfinpi = TIM_FSCALE(info->epfinp, 24);
 	info->widthi = TIM_FSCALE(info->width, 24);
+	info->weti = TIM_FSCALE(info->wet, 24);
 }
 
 static void free_standard_reverb(InfoStandardReverb *info)
@@ -810,6 +845,7 @@ static void free_standard_reverb(InfoStandardReverb *info)
 	free_delay(&(info->buf3_R));
 }
 
+/*! Standard Reverberator; this implementation is specialized for system effect. */
 #if OPT_MODE != 0 /* fixed-point implementation */
 static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *info)
 {
@@ -824,7 +860,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
 	int32 fbklevi = info->fbklevi, cmixlevi = info->cmixlevi,
 		hpflevi = info->hpflevi, lpflevi = info->lpflevi, lpfinpi = info->lpfinpi,
 		epflevi = info->epflevi, epfinpi = info->epfinpi, widthi = info->widthi,
-		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3, weti = info->weti;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		init_standard_reverb(info);
@@ -852,7 +888,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
         buf1_L[spt1] = t;
 
         EPFL = imuldiv24(EPFL, epflevi) + imuldiv24(ta, epfinpi);
-        buf[i] += ta + EPFL;
+        buf[i] += imuldiv24(ta + EPFL, weti);
 
         /* R */
         fixp = reverb_effect_buffer[++i];
@@ -870,7 +906,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
         buf1_R[spt1] = t;
 
         EPFR = imuldiv24(EPFR, epflevi) + imuldiv24(ta, epfinpi);
-        buf[i] += ta + EPFR;
+        buf[i] += imuldiv24(ta + EPFR, weti);
 
 		if (++spt0 == rpt0) {spt0 = 0;}
 		if (++spt1 == rpt1) {spt1 = 0;}
@@ -896,7 +932,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
 	FLOAT_T fbklev = info->fbklev, cmixlev = info->cmixlev,
 		hpflev = info->hpflev, lpflev = info->lpflev, lpfinp = info->lpfinp,
 		epflev = info->epflev, epfinp = info->epfinp, width = info->width,
-		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3, wet = info->wet;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		init_standard_reverb(info);
@@ -924,7 +960,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
         buf1_L[spt1] = t;
 
         EPFL = EPFL * epflev + ta * epfinp;
-        buf[i] += ta + EPFL;
+        buf[i] += (ta + EPFL) * wet;
 
         /* R */
         fixp = reverb_effect_buffer[++i];
@@ -942,7 +978,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
         buf1_R[spt1] = t;
 
         EPFR = EPFR * epflev + ta * epfinp;
-        buf[i] += ta + EPFR;
+        buf[i] += (ta + EPFR) * wet;
 
 		if (++spt0 == rpt0) {spt0 = 0;}
 		if (++spt1 == rpt1) {spt1 = 0;}
@@ -956,6 +992,7 @@ static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *i
 }
 #endif /* OPT_MODE != 0 */
 
+/*! Standard Monoral Reverberator; this implementation is specialized for system effect. */
 static void do_ch_standard_reverb_mono(int32 *buf, int32 count, InfoStandardReverb *info)
 {
 	int32 i, fixp, s, t;
@@ -969,7 +1006,7 @@ static void do_ch_standard_reverb_mono(int32 *buf, int32 count, InfoStandardReve
 	FLOAT_T fbklev = info->fbklev, nmixlev = info->nmixlev, monolev = info->monolev,
 		hpflev = info->hpflev, lpflev = info->lpflev, lpfinp = info->lpfinp,
 		epflev = info->epflev, epfinp = info->epfinp, width = info->width,
-		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3, wet = info->wet;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		init_standard_reverb(info);
@@ -1010,7 +1047,7 @@ static void do_ch_standard_reverb_mono(int32 *buf, int32 count, InfoStandardReve
         buf1_R[spt1] = t;
 
         EPFR = EPFR * epflev + ta * epfinp;
-        buf[i] = ta + EPFR + fixp;
+        buf[i] = (ta + EPFR) * wet + fixp;
 
 		if (++spt0 == rpt0) {spt0 = 0;}
 		if (++spt1 == rpt1) {spt1 = 0;}
@@ -1088,78 +1125,6 @@ static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 16
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
 #define fixedgain 0.025f
 #define combfbk 3.5f
-
-static double gs_revchar_to_roomsize(int character)
-{
-	double rs;
-	switch(character) {
-	case 0: rs = 1.0;	break;	/* Room 1 */
-	case 1: rs = 0.94;	break;	/* Room 2 */
-	case 2: rs = 0.97;	break;	/* Room 3 */
-	case 3: rs = 0.90;	break;	/* Hall 1 */
-	case 4: rs = 0.85;	break;	/* Hall 2 */
-	default: rs = 1.0;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return rs;
-}
-
-static double gs_revchar_to_level(int character)
-{
-	double level;
-	switch(character) {
-	case 0: level = 0.744025605;	break;	/* Room 1 */
-	case 1: level = 1.224309745;	break;	/* Room 2 */
-	case 2: level = 0.858592403;	break;	/* Room 3 */
-	case 3: level = 1.0471802;	break;	/* Hall 1 */
-	case 4: level = 1.0;	break;	/* Hall 2 */
-	case 5: level = 0.865335496;	break;	/* Plate */
-	default: level = 1.0;	break;	/* Delay, Panning Delay */
-	}
-	return level;
-}
-
-static double gs_revchar_to_rt(int character)
-{
-	double rt;
-	switch(character) {
-	case 0: rt = 0.516850262;	break;	/* Room 1 */
-	case 1: rt = 1.004226004;	break;	/* Room 2 */
-	case 2: rt = 0.691046825;	break;	/* Room 3 */
-	case 3: rt = 0.893006004;	break;	/* Hall 1 */
-	case 4: rt = 1.0;	break;	/* Hall 2 */
-	case 5: rt = 0.538476488;	break;	/* Plate */
-	default: rt = 1.0;	break;	/* Delay, Panning Delay */
-	}
-	return rt;
-}
-
-static double gs_revchar_to_width(int character)
-{
-	double width;
-	switch(character) {
-	case 0: width = 0.5;	break;	/* Room 1 */
-	case 1: width = 0.5;	break;	/* Room 2 */
-	case 2: width = 0.5;	break;	/* Room 3 */
-	case 3: width = 0.5;	break;	/* Hall 1 */
-	case 4: width = 0.5;	break;	/* Hall 2 */
-	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return width;
-}
-
-static double gs_revchar_to_apfbk(int character)
-{
-	double apf;
-	switch(character) {
-	case 0: apf = 0.7;	break;	/* Room 1 */
-	case 1: apf = 0.7;	break;	/* Room 2 */
-	case 2: apf = 0.7;	break;	/* Room 3 */
-	case 3: apf = 0.6;	break;	/* Hall 1 */
-	case 4: apf = 0.55;	break;	/* Hall 2 */
-	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return apf;
-}
 
 static void realloc_freeverb_buf(InfoFreeverb *rev)
 {
