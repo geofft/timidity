@@ -1,3 +1,10 @@
+2003-09-16  Saito <timidity@flashmail.com>
+
+	* utils/getopt.h:
+	  Fix around including unistd.h.
+	* configs/msc-project.zip:
+	  Fix utils.dsp for getopt.c.
+
 2003-09-14  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/m2m.c (m2m_process_events): Bug Fix
