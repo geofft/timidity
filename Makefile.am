@@ -37,8 +37,8 @@ EXTRA_DIST = \
 	README.jp \
 	timidity.ide \
 	timidity.mak \
-	TiMidity-uj.ad \
-	TiMidity.ad
+	TiMidity-uj.ad.in \
+	TiMidity.ad.in
 
 TOOLSDIR = timidity-tools
 UMPDIR = ump

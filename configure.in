@@ -1750,5 +1750,7 @@ AC_CONFIG_FILES([
   timidity/Makefile
   utils/Makefile
   script/Makefile
+  TiMidity.ad
+  TiMidity-uj.ad
 ])
 AC_OUTPUT
