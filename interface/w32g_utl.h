@@ -178,6 +178,7 @@ typedef struct SETTING_TIMIDITY_ {
 		int SynIDPort[MAX_PORT];
 		int syn_ThreadPriority;
 		int SynPortNum;
+		int SynShTime;
 #endif
 } SETTING_TIMIDITY;
 

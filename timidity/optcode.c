@@ -32,7 +32,7 @@
 
 #if OPT_MODE
 /* Generic version of imuldiv. */
-#if !(defined(__GNUC__)||defined(__ppc__)||defined(_MSC_VER))
+#if !(defined(__GNUC__)&&defined(__i386__))&&!defined(_MSC_VER)
 int32 imuldiv8(int32 a, int32 b)
 {
     return (int32)(((int64)a * (int64)b) >>8);

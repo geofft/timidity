@@ -192,6 +192,8 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniGetKeyIntArray(INI_SEC_TIMIDITY,"SynIDPort",st->SynIDPort,MAX_PORT);
     IniGetKeyInt(INI_SEC_TIMIDITY,"syn_ThreadPriority",&(st->syn_ThreadPriority));
     IniGetKeyInt(INI_SEC_TIMIDITY,"SynPortNum",&(st->SynPortNum));
+    IniGetKeyInt(INI_SEC_TIMIDITY,"SynShTime",&(st->SynShTime));
+		if ( st->SynShTime < 0 ) st->SynShTime = 0;
 #endif
 }
 
@@ -326,6 +328,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniPutKeyIntArray(INI_SEC_TIMIDITY,"SynIDPort",st->SynIDPort,MAX_PORT);
     IniPutKeyInt(INI_SEC_TIMIDITY,"syn_ThreadPriority",&(st->syn_ThreadPriority));
     IniPutKeyInt(INI_SEC_TIMIDITY,"SynPortNum",&(st->SynPortNum));
+    IniPutKeyInt(INI_SEC_TIMIDITY,"SynShTime",&(st->SynShTime));
 #endif
 	IniFlush();
 		 w32g_has_ini_file = 1;

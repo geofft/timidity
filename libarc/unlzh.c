@@ -1145,6 +1145,7 @@ static int make_table(UNLZHHandler decoder,
 	}
 	start[k] = l;
     }
+    return 0;
 }
 
 static int fill_inbuf(UNLZHHandler decoder)

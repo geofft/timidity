@@ -24,6 +24,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __W32__
+#include "interface.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -5362,6 +5365,18 @@ int play_event(MidiEvent *ev)
     if(cet > current_sample)
     {
 	int rc;
+
+#ifdef IA_W32G_SYN
+	{
+		extern int volatile w32g_syn_sh_time;
+		if ( (cet - current_sample) * 1000 / play_mode->rate > w32g_syn_sh_time ) {
+			kill_all_voices();
+//			reset_voices();
+//			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample);
+			current_sample = cet;
+		}
+	}
+#endif
 
 	rc = compute_data(cet - current_sample);
 	ctl_mode_event(CTLE_REFRESH, 0, 0, 0);

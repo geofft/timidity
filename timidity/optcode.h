@@ -54,16 +54,7 @@
 
 /*****************************************************************************/
 #if OPT_MODE == 1
-#if __ppc__
-extern inline int32 imuldiv8(int32 a, int32 b)
-{
-    return (int32)(((int64)a * (int64)b) >>8);
-}
-extern inline int32 imuldiv16(int32 a, int32 b)
-{
-    return (int32)(((int64)a * (int64)b) >>16);
-}
-#elif __GNUC__
+#if defined(__GNUC__) && defined(__i386__)
 static inline int32 imuldiv8(int32 a, int32 b)
 {
     int32 result;

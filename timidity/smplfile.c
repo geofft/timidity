@@ -1187,7 +1187,7 @@ static void apply_GeneralInstrumentInfo(int samples, Sample *sample, const Gener
 
 #ifndef HUGE_VAL
 # define HUGE_VAL HUGE
-#endif HUGE_VAL
+#endif /* HUGE_VAL */
 
 /****************************************************************
  * The following two routines make up for deficiencies in many

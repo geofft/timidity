@@ -80,6 +80,7 @@ typedef struct w32g_syn_t_ {
 	DWORD syn_dwThreadId;
 //	int syn_ThreadPriority;
 	HANDLE hMutex;
+	int volatile quit_state;
 } w32g_syn_t;
 static w32g_syn_t w32g_syn;
 
@@ -165,6 +166,8 @@ static void WINAPI syn_thread ( void );
 #define IDM_SYN_THREAD_PRIORITY_NORMAL	123
 #define IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL 124
 #define IDM_SYN_THREAD_PRIORITY_HIGHEST 125
+#define IDM_VERSION 126
+#define IDM_TIMIDITY 127
 
 #define W32G_SYN_MESSAGE_MAX 100
 #define W32G_SYN_NONE	0
@@ -199,6 +202,8 @@ extern int system_mode;
 HANDLE msg_loopbuf_hMutex = NULL; // 排他処理用
 int syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
+int volatile w32g_syn_sh_time = 500;	// play_event() の compute_data() で計算を許す最大時間。
+
 static int w32g_syn_create_win ( void );
 static int w32g_syn_main ( void );
 static LRESULT CALLBACK SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
@@ -212,6 +217,8 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] );
 int w32g_syn_do_before_pref_apply ( void );
 int w32g_syn_do_after_pref_apply ( void );
 
+static void VersionWnd(HWND hParentWnd);
+static void TiMidityWnd(HWND hParentWnd);
 
 /*
   構造
@@ -242,6 +249,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	hInst = hInstance;
 	w32g_syn.gui_hThread = GetCurrentThread ();
 	w32g_syn.gui_dwThreadId = GetCurrentThreadId ();
+	w32g_syn.quit_state = 0;
 	w32g_syn_main ();
 	
 	ReleaseMutex ( w32g_syn.hMutex );
@@ -300,14 +308,26 @@ static int w32g_syn_main ( void )
 
 	while( GetMessage(&msg,NULL,0,0) ){
 		if ( msg.message == MYWM_QUIT ) {
+			if ( w32g_syn.quit_state < 1 ) w32g_syn.quit_state = 1;
+			if ( hConsoleWnd != NULL ) DestroyWindow ( hConsoleWnd );
 			DestroyWindow ( w32g_syn.nid_hWnd );
 		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
+	while ( w32g_syn.quit_state < 2 ) {
+		Sleep ( 300 );
+	}
+
 	return 0;
 }
+
+static VOID CALLBACK forced_exit ( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime )
+{
+	exit ( 0 );
+}
+
 
 static LRESULT CALLBACK
 SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
@@ -456,6 +476,9 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "設定");
 					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "コンソール");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "バージョン情報");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "TiMidity について");
+					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "終了");
 				} else {
 					if ( w32g_syn_status == run ) {
@@ -518,6 +541,9 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "Preference");
 					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "Console");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "Version Info");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "About TiMidity");
+					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "Quit");
 				}
 				GetCursorPos ( &point );
@@ -550,6 +576,9 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDM_QUIT:
+#if 1/* 強制終了 */
+			SetTimer ( NULL, 0, 20000, forced_exit );
+#endif
 			w32g_message_set (W32G_SYN_QUIT);
 			break;
 		case IDM_START:
@@ -583,7 +612,13 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			w32g_message_set (W32G_SYN_CHANGE_DEFAULT_SYSTEM);
 			break;
 		case IDM_PREFERENCE:
-			PrefWndCreate ( hwnd );
+			PrefWndCreate ( w32g_syn.nid_hWnd );
+			break;
+		case IDM_VERSION:
+			VersionWnd ( w32g_syn.nid_hWnd );
+			break;
+		case IDM_TIMIDITY:
+			TiMidityWnd ( w32g_syn.nid_hWnd );
 			break;
 		case IDM_SYN_THREAD_PRIORITY_LOWEST:
 			syn_ThreadPriority = THREAD_PRIORITY_LOWEST;
@@ -618,7 +653,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 #ifdef HAVE_SYN_CONSOLE
 		case IDM_CONSOLE_WND:
 			if ( hConsoleWnd == NULL ) {
-				InitConsoleWnd ( hwnd );
+				InitConsoleWnd ( w32g_syn.nid_hWnd );
 			}
 			if ( IsWindowVisible ( hConsoleWnd ) )
 				ShowWindow ( hConsoleWnd, SW_HIDE );
@@ -720,6 +755,7 @@ int w32g_message_set ( int cmd )
 		}
 	}
 	ReleaseMutex ( msg_loopbuf_hMutex );
+	Sleep ( 100 );
 	return res;
 }
 
@@ -748,84 +784,88 @@ int w32g_message_get ( w32g_syn_message_t *msg )
 extern int seq_quit;
 extern int playdone;
 extern void seq_play_event(MidiEvent *);
-extern void seq_set_time(MidiEvent *);
 void w32g_syn_doit(void)
 {
 	w32g_syn_message_t msg;
 	MidiEvent ev;
+	DWORD sleep_time;
 	playdone=0;
 	while(seq_quit==0) {
 		int have_msg = 0;
+		sleep_time = 0;
 		have_msg = w32g_message_get ( &msg );
 		if ( have_msg ) {
 			switch ( msg.cmd ) {
 			case W32G_SYN_QUIT:
 				seq_quit=~0;
 				w32g_syn_status = quit;
+				sleep_time = 100;
 				break;
 			case W32G_SYN_START:
 				seq_quit=~0;
 				w32g_syn_status = run;
+				sleep_time = 100;
 				break;
 			case W32G_SYN_STOP:
 				seq_quit=~0;
 				w32g_syn_status = stop;
+				sleep_time = 100;
 				break;
 			case W32G_SYN_GM_SYSTEM_RESET:
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
-						seq_set_time(&ev);
 					seq_play_event(&ev);
+					sleep_time = 100;
 				break;
 			case W32G_SYN_GS_SYSTEM_RESET:
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-					seq_set_time(&ev);
 				seq_play_event(&ev);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_XG_SYSTEM_RESET:
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
-					seq_set_time(&ev);
 				seq_play_event(&ev);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_SYSTEM_RESET:
 				ev.type=ME_RESET;
 				ev.a=system_mode;
-				seq_set_time(&ev);
 				seq_play_event(&ev);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_GM_SYSTEM:
 				system_mode=GM_SYSTEM_MODE;
 				ev.type=ME_RESET;
 				ev.a=GM_SYSTEM_MODE;
-				seq_set_time(&ev);
 				seq_play_event(&ev);
 				change_system_mode(system_mode);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_GS_SYSTEM:
 				system_mode=GS_SYSTEM_MODE;
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-				seq_set_time(&ev);
 				seq_play_event(&ev);
 				change_system_mode(system_mode);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_XG_SYSTEM:
 				system_mode=XG_SYSTEM_MODE;
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
-				seq_set_time(&ev);
 				seq_play_event(&ev);
 				change_system_mode(system_mode);
+				sleep_time = 100;
 				break;
 			case W32G_SYN_CHANGE_DEFAULT_SYSTEM:
 				system_mode=DEFAULT_SYSTEM_MODE;
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
-				seq_set_time(&ev);
 				seq_play_event(&ev);
 				change_system_mode(system_mode);
+				sleep_time = 100;
 				break;
 			default:
 				break;
@@ -833,7 +873,7 @@ void w32g_syn_doit(void)
 		}
 
 		winplaymidi();
-		Sleep ( 0 );
+		Sleep ( sleep_time );
 	}
 }
 
@@ -892,7 +932,11 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 		if ( breakflag )
 			break;
 	}
-	PostThreadMessage ( w32g_syn.gui_dwThreadId, MYWM_QUIT, 0, 0 );
+	while ( w32g_syn.quit_state < 1 ) {
+		PostThreadMessage ( w32g_syn.gui_dwThreadId, MYWM_QUIT, 0, 0 );
+		Sleep ( 300 );
+	}
+	if ( w32g_syn.quit_state < 2 ) w32g_syn.quit_state = 2;
 }
 
 int w32g_syn_do_before_pref_apply ( void )
@@ -913,15 +957,17 @@ int w32g_syn_do_before_pref_apply ( void )
 		}
 		ReleaseMutex ( msg_loopbuf_hMutex );
 		w32g_message_set ( W32G_SYN_STOP );
-		Sleep ( 200 );
+		Sleep ( 100 );
 	}
 }
 
 int w32g_syn_do_after_pref_apply ( void )
 {
 	ReleaseMutex ( msg_loopbuf_hMutex );
-	if ( w32g_syn_status_prev == run )
+	if ( w32g_syn_status_prev == run ) {
 		w32g_message_set ( W32G_SYN_START );
+		Sleep ( 100 );
+	}
 	return 0;
 }
 
@@ -1018,6 +1064,54 @@ void ClearEditCtlWnd(HWND hwnd)
 	}
 	Edit_SetText(hwnd,pszVoid);
 }
+
+static void VersionWnd(HWND hParentWnd)
+{
+	char VersionText[2024];
+  sprintf(VersionText,
+"TiMidity++ version %s" NLS NLS
+"TiMidity-0.2i by Tuukka Toivonen <tt@cgs.fi>." NLS
+"TiMidity Win32 version by Davide Moretti <dave@rimini.com>." NLS
+"TiMidity Windows 95 port by Nicolas Witczak." NLS
+"Twsynth by Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>." NLS
+"Twsynth GUI by Daisuke Aoki <dai@y7.net>." NLS
+" Japanese menu, dialog, etc by Saito <timidity@flashmail.com>." NLS
+"TiMidity++ by Masanao Izumo <mo@goice.co.jp>." NLS
+,timidity_version);
+	MessageBox(hParentWnd, VersionText, "Version", MB_OK);
+}
+
+static void TiMidityWnd(HWND hParentWnd)
+{
+	char TiMidityText[2024];
+  sprintf(TiMidityText,
+" TiMidity++ version %s -- MIDI to WAVE converter and player" NLS
+" Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>" NLS
+" Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>" NLS
+NLS
+" Win32 version by Davide Moretti <dmoretti@iper.net>" NLS
+" GUI by Daisuke Aoki <dai@y7.net>." NLS
+" Modified by Masanao Izumo <mo@goice.co.jp>." NLS
+NLS
+" This program is free software; you can redistribute it and/or modify" NLS
+" it under the terms of the GNU General Public License as published by" NLS
+" the Free Software Foundation; either version 2 of the License, or" NLS
+" (at your option) any later version." NLS
+NLS
+" This program is distributed in the hope that it will be useful," NLS
+" but WITHOUT ANY WARRANTY; without even the implied warranty of"NLS
+" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" NLS
+" GNU General Public License for more details." NLS
+NLS
+" You should have received a copy of the GNU General Public License" NLS
+" along with this program; if not, write to the Free Software" NLS
+" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA" NLS
+,
+timidity_version
+	);
+	MessageBox(hParentWnd, TiMidityText, "TiMidity", MB_OK);
+}
+
 
 // ***************************************************************************
 //

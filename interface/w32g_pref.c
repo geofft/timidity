@@ -494,7 +494,7 @@ void PrefSettingApplyReally(void)
 		}
 
 		w32g_restart();
-		PrefWndDoing = 0;
+//		PrefWndDoing = 0;
 	}
 }
 #endif
@@ -523,7 +523,7 @@ static void PrefSettingApply(void)
 	if ( before_pref_apply_ok )
 		w32g_syn_do_after_pref_apply ();
 	PrefWndSetOK = 0;
-	PrefWndDoing = 0;
+//	PrefWndDoing = 0;
 #endif
 }
 
@@ -1992,6 +1992,8 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 			}
+			st_temp->SynShTime = GetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,NULL,FALSE);
+			if ( st_temp->SynShTime < 0 ) st_temp->SynShTime = 0;
 			}
 			return TRUE;
 		case PSN_RESET:
@@ -2029,6 +2031,7 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 					CB_SETCURSEL, (WPARAM) index, (LPARAM) 0 );
 			}
+			SetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,st_temp->SynShTime,FALSE);
 			}
 			break;
 		default:

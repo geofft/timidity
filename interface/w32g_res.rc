@@ -628,6 +628,9 @@ BEGIN
     LTEXT           "Port max",IDC_STATIC,6,12,36,10
     COMBOBOX        IDC_COMBO_PORT_NUM,45,12,39,81,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Compute max time msec(default 500ms)",IDC_STATIC,3,111,
+                    114,9
+    EDITTEXT        IDC_EDIT_SYN_SH_TIME,123,111,54,11,ES_AUTOHSCROLL
 END
 
 
@@ -1315,6 +1318,8 @@ BEGIN
     LTEXT           "ポート数",IDC_STATIC,6,12,26,8
     COMBOBOX        IDC_COMBO_PORT_NUM,36,12,42,87,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "計算最大ミリ秒(推奨 500ms)",IDC_STATIC,3,123,87,8
+    EDITTEXT        IDC_EDIT_SYN_SH_TIME,93,120,75,14,ES_AUTOHSCROLL
 END
 
 

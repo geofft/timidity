@@ -168,6 +168,8 @@ static void wrd_graphic_apply ( RECT *lprc, int index, int lockflag );
 static void wrd_graphic_update ( RECT *lprc, int lockflag );
 static void wrd_text_update ( int x_from, int y_from, int x_to, int y_to, int lockflag );
 
+static int volatile wrd_graphic_pal_init_flag = 0;
+
 static HANDLE volatile hMutexWrd = NULL;
 static BOOL wrd_wnd_lock_ex ( DWORD timeout )
 {
@@ -342,14 +344,12 @@ static void wrd_graphic_terminate ( void )
 }
 
 // プレーン index のグラフィックの初期化
-static int wrd_graphic_pal_init_flag = 0;
 static void wrd_graphic_init ( HDC hdc )
 {
 	int index;
 
 	wrd_wnd_lock();
 	wrd_graphic_terminate ();
-	wrd_graphic_pal_init_flag = 0;
 	for ( index = 0; index < W32G_WRDWND_GRAPHIC_PLANE_MAX; index++ ) {
 		w32g_wrd_wnd.graphic_dib[index] = dib_create ( w32g_wrd_wnd.width, w32g_wrd_wnd.height );
 		w32g_wrd_wnd.modified_graphic[index] = TRUE;
@@ -1505,6 +1505,7 @@ void WrdWndReset(void)
 		memset ( w32g_wrd_wnd.backcolorbuf[i], w32g_wrd_wnd.curbackcolor, w32g_wrd_wnd.row );
 		memset ( w32g_wrd_wnd.attrbuf[i], w32g_wrd_wnd.curattr, w32g_wrd_wnd.row);
 	}
+	wrd_graphic_pal_init_flag = 0;
 	wrd_wnd_unlock();
 	wrd_text_update ( 0, 0, w32g_wrd_wnd.row - 1, w32g_wrd_wnd.col - 1, TRUE );
 	wrd_graphic_ginit ();
