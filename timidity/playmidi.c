@@ -3728,6 +3728,21 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			set_rx(ch, RX_BANK_SELECT_LSB, val);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Bank Select LSB (CH:%d VAL:%d)", ch, val); 
 			break;
+		case 0x60:	/* Reverb Type (GM2) */
+			if (val > 8) {val = 8;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type (%d)", val);
+			set_reverb_macro_gm2(val);
+			recompute_reverb_status_gs();
+			init_reverb();
+			break;
+		case 0x61:	/* Chorus Type (GM2) */
+			if (val > 5) {val = 5;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type (%d)", val);
+			init_ch_chorus();
+			set_chorus_macro_gs(val);
+			recompute_chorus_status_gs();
+			init_chorus_lfo();
+			break;
 		default:
 			break;
 		}

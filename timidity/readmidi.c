@@ -590,7 +590,7 @@ static int block_to_part(int block, int port)
 }
 
 /* Map XG types onto GS types.  XG should eventually have its own tables */
-void set_xg_reverb_type(int msb, int lsb)
+static int set_xg_reverb_type(int msb, int lsb)
 {
 	int type = 4;
 
@@ -639,13 +639,12 @@ void set_xg_reverb_type(int msb, int lsb)
 	if (lsb == 0x02 && msb == 0x02)
 	    type = 2;				/* Room 3 */
 
-	set_reverb_macro_gs(type);
-	recompute_reverb_status_gs();	
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Reverb Type (%d)", type);
+	return type;
 }
 
 /* Map XG types onto GS types.  XG should eventually have its own tables */
-void set_xg_chorus_type(int msb, int lsb)
+static int set_xg_chorus_type(int msb, int lsb)
 {
 	int type = 2;
 
@@ -718,9 +717,8 @@ void set_xg_chorus_type(int msb, int lsb)
 	    }
 	}
 
-	set_chorus_macro_gs(type);
-	recompute_chorus_status_gs();
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Chorus Type (%d)", type);
+	return type;
 }
 
 /* XG SysEx parsing function by Eric A. Welsh
@@ -756,7 +754,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	uint8 addhigh, addmid, addlow;		/* Addresses */
 	uint8 *body;				/* SysEx body */
 	uint8 p;				/* Channel part number [0..15] */
-	int ent;				/* Entry # of sub-event */
+	int ent, v;				/* Entry # of sub-event */
 	uint8 *body_end;			/* End of SysEx body */
 
 	addhigh = val[5];
@@ -775,7 +773,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		case 0x01:	/* Reverb Type LSB */
 		    xg_reverb_type_lsb = *body;
-		    set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+			v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
+			num_events++;
 		    break;
 
 		case 0x20:	/* Chorus Type MSB */
@@ -784,19 +784,19 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		case 0x21:	/* Chorus Type LSB */
 		    xg_chorus_type_lsb = *body;
-		    set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+			v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
+			num_events++;
 		    break;
 
 		case 0x0C:	/* Reverb Return */
-		    reverb_status.level = *body;
-		    recompute_reverb_status_gs();
-		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",*body);
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x00);
+			num_events++;
 		    break;
 
 		case 0x2C:	/* Chorus Return */
-		    chorus_param.chorus_level = *body;
-		    recompute_chorus_status_gs();
-		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",*body);
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x01);
+			num_events++;
 		    break;
 
 		default:
@@ -1633,7 +1633,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
        val[2] == 0x4C) /* XG Model ID */ 
     {
 		uint8 p, dp, note;				/* Channel part number [0..15] */
-		int ent;				/* Entry # of sub-event */
+		int ent, v;				/* Entry # of sub-event */
 
 		p = val[4];
 		ent = val[5];
@@ -1646,31 +1646,39 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			switch(ent) {
 				case 0x00:	/* Reverb Type MSB */
 				  xg_reverb_type_msb = val[6];
-				  set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
+				  num_events++;
 				  break;
 
 				case 0x01:	/* Reverb Type LSB */
 				  xg_reverb_type_lsb = val[6];
-				  set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
+				  num_events++;
 				  break;
 
 				case 0x20:	/* Chorus Type MSB */
 				  xg_chorus_type_msb = val[6];
-				  set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
+				  num_events++;
 				  break;
 
 				case 0x21:	/* Chorus Type LSB */
 				  xg_chorus_type_lsb = val[6];
-				  set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
+				  num_events++;
 				  break;
 
 				case 0x0C:	/* Reverb Return */
-				  SETMIDIEVENT(evm[0], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x00);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x00);
 				  num_events++;
 				  break;
 
 				case 0x2C:	/* Chorus Return */
-				  SETMIDIEVENT(evm[0], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x01);
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x01);
 				  num_events++;
 				  break;
 
@@ -3456,6 +3464,49 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x01:	/* Sample Dump header */
 		case 0x02:	/* Sample Dump packet */
 		case 0x03:	/* Dump Request */
+		case 0x04:	/* Device Control */
+			if (val[3] == 0x05)	{	/* Global Parameter Control */
+				if (val[7] == 0x01 && val[8] == 0x01) {	/* Reverb */
+					for (i = 9; i < len && val[i] != 0xf7; i+= 2) {
+						switch(val[i]) {
+						case 0x00:	/* Reverb Type */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, 0, val[i + 1], 0x60);
+							num_events++;
+							break;
+						case 0x01:	/* Reverb Time */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, val[i + 1], 0x09);
+							num_events++;
+							break;
+						}
+					}
+				} else if (val[7] == 0x01 && val[8] == 0x02) {	/* Chorus */
+					for (i = 9; i < len && val[i] != 0xf7; i+= 2) {
+						switch(val[i]) {
+						case 0x00:	/* Chorus Type */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, 0, val[i + 1], 0x61);
+							num_events++;
+							break;
+						case 0x01:	/* Modulation Rate */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, val[i + 1], 0x12);
+							num_events++;
+							break;
+						case 0x02:	/* Modulation Depth */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, val[i + 1], 0x13);
+							num_events++;
+							break;
+						case 0x03:	/* Feedback */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, val[i + 1], 0x10);
+							num_events++;
+							break;
+						case 0x04:	/* Send To Reverb */
+							SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, 0, val[i + 1], 0x14);
+							num_events++;
+							break;
+						}
+					}
+				}
+			}
+			break;
 		case 0x05:	/* Sample Dump extensions */
 		case 0x06:	/* Inquiry Message */
 		case 0x07:	/* File Dump */
@@ -3521,6 +3572,39 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			}
 			break;
 		case 0x09:	/* General MIDI Message */
+			switch(val[3]) {
+			case 0x01:	/* Channel Pressure */
+				for (i = 5; i < len && val[i] != 0xf7; i+= 2) {
+					switch(val[i]) {
+					case 0x00:	/* Pitch Control */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x00);
+						num_events++;
+						break;
+					case 0x01:	/* Filter Cutoff Control */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x01);
+						num_events++;
+						break;
+					case 0x02:	/* Amplitude Control */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x02);
+						num_events++;
+						break;
+					case 0x03:	/* LFO Pitch Depth */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x04);
+						num_events++;
+						break;
+					case 0x04:	/* LFO Filter Depth */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x05);
+						num_events++;
+						break;
+					case 0x05:	/* LFO Amplitude Depth */
+						SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, val[4], val[i + 1], 0x06);
+						num_events++;
+						break;
+					}
+				}
+				break;
+			}
+			break;
 		case 0x7b:	/* End of File */
 		case 0x7c:	/* Handshaking Message: Wait */
 		case 0x7d:	/* Handshaking Message: Cancel */
@@ -6111,6 +6195,38 @@ void recompute_reverb_status_gs(void)
 	}
 }
 
+/*! Reverb Type (GM2) */
+void set_reverb_macro_gm2(int macro)
+{
+	struct reverb_status_t *p = &reverb_status;
+	int type = macro;
+	if (macro == 8) {macro = 5;}
+	macro *= 6;
+	p->character = reverb_macro_presets[macro];
+	p->pre_lpf = reverb_macro_presets[macro + 1];
+	p->level = reverb_macro_presets[macro + 2];
+	p->time = reverb_macro_presets[macro + 3];
+	p->delay_feedback = reverb_macro_presets[macro + 4];
+	p->pre_delay_time = reverb_macro_presets[macro + 5];
+
+	switch(type) {	/* override GS macro's parameter */
+	case 0:	/* Small Room */
+		p->time = 44;
+		break;
+	case 1:	/* Medium Room */
+	case 8:	/* Plate */
+		p->time = 50;
+		break;
+	case 2:	/* Large Room */
+		p->time = 56;
+		break;
+	case 3:	/* Medium Hall */
+	case 4:	/* Large Hall */
+		p->time = 64;
+		break;
+	}
+}
+
 /*! Reverb Macro (GS) */
 void set_reverb_macro_gs(int macro)
 {
@@ -6162,7 +6278,7 @@ void recompute_chorus_status_gs()
 	}
 }
 
-/*! Chorus Macro (GS) */
+/*! Chorus Macro (GS), Chorus Type (GM2) */
 void set_chorus_macro_gs(int macro)
 {
 	struct chorus_param_t *p = &chorus_param;

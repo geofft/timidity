@@ -1,3 +1,8 @@
+2004-02-17  Saito <saito2@digitalme.com>
+
+	* timidity/readmidi.[ch], timidity/playmidi.c:
+	  Support for GM2 Reverb Type, etc.
+
 2004-02-17  skeishi <s_keishi@mutt.freemail.ne.jp>
 
 	* interface/winsyn_c.c:
