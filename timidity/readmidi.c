@@ -3054,12 +3054,9 @@ void change_system_mode(int mode)
 	}
 	break;
       case GM2_SYSTEM_MODE:
-	if(play_system_mode == DEFAULT_SYSTEM_MODE)
-	{
-	    play_system_mode = GM2_SYSTEM_MODE;
-	    vol_table = def_vol_table;
-	    pan_table = gm2_pan_table;
-	}
+	play_system_mode = GM2_SYSTEM_MODE;
+	vol_table = def_vol_table;
+	pan_table = gm2_pan_table;
 	break;
       case GS_SYSTEM_MODE:
 	play_system_mode = GS_SYSTEM_MODE;
@@ -3162,7 +3159,9 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	    current_set[j] = newbank;
 	}
 	bank_lsb[j] = bank_msb[j] = 0;
-	if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
+	if(play_system_mode == GM2_SYSTEM_MODE)
+	    bank_msb[j] = (j % 16 == 9) ? 0x78 : 0x79;
+	else if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
 	    bank_msb[j] = 127; /* Use MSB=127 for XG */
 	current_program[j] = default_program[j];
     }
@@ -3222,10 +3221,10 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 			current_set[j] = 0;
 		}
 		bank_lsb[j] = bank_msb[j] = 0;
-		if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
-		{
+		if(play_system_mode == GM2_SYSTEM_MODE)
+		    bank_msb[j] = (j % 16 == 9) ? 0x78 : 0x79;
+		else if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
 		    bank_msb[j] = 127; /* Use MSB=127 for XG */
-		}
 		current_program[j] = default_program[j];
 	    }
 	    break;
