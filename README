@@ -45,7 +45,7 @@ Features
   + RIFF WAVE (*.wav)
   + SUN AU (*.au)
   + Apple Interchange File Format (*.aiff)
-  + Ogg Vorbis (*.ogg)
+  + Ogg Vorbis, FLAC, Speex (*.ogg)
   + MPEG-1 Audio layer 3 (*.mp3) (note: Windows only)
 * Uses following formats as digital instrument data
   + Gravis Ultrasound compatible patch files

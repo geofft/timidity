@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,12 +15,12 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-    nncurs_c.c: written by Masanao Izumo <mo@goice.co.jp>
+    ncurs_c.c: written by Masanao Izumo <iz@onicos.co.jp>
                       and Aoki Daisuke <dai@y7.net>.
     This version is merged with title list mode from Aoki Daisuke.
-    */
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -440,8 +440,8 @@ static void N_ctl_scrinit(void)
     N_ctl_werase(dftwin);
     wmove(dftwin, VERSION_LINE,0);
     waddstr(dftwin, "TiMidity++ v"); waddstr(dftwin, timidity_version);
-    wmove(dftwin, VERSION_LINE,COLS-54);
-    waddstr(dftwin, "(C) 1995,1999-2002 Tuukka Toivonen, Masanao Izumo");
+    wmove(dftwin, VERSION_LINE,COLS-57);
+    waddstr(dftwin, "(C) 1995,1999-2004 Tuukka Toivonen, Masanao Izumo");
     wmove(dftwin, FILE_LINE,0);
     waddstr(dftwin, "File:");
 #ifdef MIDI_TITLE

@@ -629,7 +629,70 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 .RE
 .TP
 .BI "\-O, \-\-output\-mode " mode
-出力モードやフォーマットを指定します。以下の \fImode\fP が有効です。
+.br
+.ns
+.TP
+.B \-\-flac\-verify
+.br
+.ns
+.TP
+.BI "\-\-flac\-padding " n
+.br
+.ns
+.TP
+.BI "\-\-flac\-compression\-level " n
+.br
+.ns
+.TP
+.B \-\-oggflac
+.br
+.ns
+.TP
+.BI "\-\-speex\-quality " n
+.br
+.ns
+.TP
+.B \-\-speex\-vbr
+.br
+.ns
+.TP
+.BI "\-\-speex\-abr " n
+.br
+.ns
+.TP
+.B \-\-speex\-vad
+.br
+.ns
+.TP
+.B \-\-speex\-dtx
+.br
+.ns
+.TP
+.BI "\-\-speex\-complexity " n
+.br
+.ns
+.TP
+.BI "\-\-speex\-nframes " n
+出力モードやフォーマットを指定します。
+.br
+Ogg FLAC 出力モードでは，別途 \fB\-\-flac\-verify\fP，
+\fB\-\-flac\-padding\fP，\fB\-\-flac\-compression\-level\fP，
+\fB\-\-oggflac\fP オプションにより，それぞれ元波形とのべリファイ(圧縮速
+度が少し遅くなる)，ファイルヘッダのパディング長(デフォルトでは
+\fB4096\fP)，\fB0\fP から \fB8\fP までの圧縮レベル(デフォルトでは
+\fB5\fP)，Ogg ストリームで出力を指定できます。
+.br
+Ogg Speex 出力モードでは，別途 \fB\-\-speex\-quality\fP，
+\fB\-\-speex\-vbr\fP，\fB\-\-speex\-abr\fP，\fB\-\-speex\-vad\fP，
+\fB\-\-speex\-dtx\fP，\fB\-\-speex\-complexity\fP オプションにより，そ
+れぞれ\fB0\fP から \fB10\fP までの圧縮品質(デフォルトでは \fB8\fP)，
+VBR で出力，レート \fIn\fP の ABR で出力，VAD(voice activity detection)
+で出力，DTX(discontinuous transmission) で出力，\fB0\fP から \fB10\fP
+までの解析の複雑さ(デフォルトでは \fB3\fP)，\fB0\fP から \fB10\fP まで
+のOgg パケット内のフレーム数(Speex の処理単位)(デフォルトでは \fB1\fP)
+を指定できます。
+.br
+以下の \fImode\fP が有効です。
 .RS
 .TP
 .B \-Od
@@ -689,7 +752,16 @@ aRts
 Alib
 .TP
 .B \-Ov
-ogg vorbis
+Ogg Vorbis
+.TP
+.B \-OF
+Ogg FLAC
+.TP
+.B \-OS
+Ogg Speex
+.TP
+.B \-OO
+libdao
 .TP
 .B フォーマットオプション
 上記オプションに続けて，以下の文字を追加することで出力フォーマットを指

@@ -1,4 +1,10 @@
-2004-04-25  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-04-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1,
+	  doc/C/timidity.cfg.5, doc/ja_JP.eucJP/timidity.cfg.5: Update
+	* interface/ncurs_c.c: Fix a little
+
+2004-04-25  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: Bug fix and autoreconf
 
@@ -8,8 +14,7 @@
 
 2004-04-23  Saito <saito@intaa.net>
 
-	* timidity/reverb.c, timidity/optcode.h:
-	  Fix noises.
+	* timidity/reverb.c, timidity/optcode.h: Fix noises.
 
 2004-04-23  Iwata <b6330015@ipc.kit.jp>
 
