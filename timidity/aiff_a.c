@@ -54,8 +54,8 @@ static int output_data(char *buf, int32 bytes);
 static int acntl(int request, void *arg);
 static int write_u32(uint32 value);
 static int write_u16(uint16 value);
-static int chunk_start(char *id, uint32 chunk_len);
-static int write_str(char *s);
+static int chunk_start(const char *id, uint32 chunk_len);
+static int write_str(const char *s);
 static void ConvertToIeeeExtended(double num, char *bytes);
 
 /* export the playback mode */
@@ -82,6 +82,7 @@ PlayMode dpm = {
 #define UPDATE_HEADER_STEP (128*1024) /* 128KB */
 static uint32 bytes_output, next_bytes;
 static int already_warning_lseek;
+static int comm_chunk_offset, comm_chunk_size;
 
 /*************************************************************************/
 
@@ -113,7 +114,7 @@ static int write_u16(uint16 value)
     return n;
 }
 
-static int write_str(char *s)
+static int write_str(const char *s)
 {
     int n;
     if((n = write(dpm.fd, s, strlen(s))) == -1)
@@ -142,7 +143,7 @@ static int write_ieee_80bitfloat(double num)
     return n;
 }
 
-static int chunk_start(char *id, uint32 chunk_len)
+static int chunk_start(const char *id, uint32 chunk_len)
 {
     int i, j;
 
@@ -172,13 +173,13 @@ static int update_header(void)
     }
 
     /* file size - 8 */
-    if(write_u32((uint32)(4		/* "AIFF" */
-			  + 26		/* COMM chunk */
-			  + 16 + bytes_output/* SSND chunk */
+    if(write_u32((uint32)(comm_chunk_offset - 8	/* FORM,FVER chunk */
+			  + 8 + comm_chunk_size	/* COMM chunk */
+			  + 16 + bytes_output	/* SSND chunk */
 			  )) == -1) return -1;
     /* COMM chunk */
     /* number of frames */
-    lseek(dpm.fd, 12+10, SEEK_SET);
+    lseek(dpm.fd, comm_chunk_offset + 10, SEEK_SET);
     f = bytes_output;
     if(!(dpm.encoding & PE_MONO))
 	f /= 2;
@@ -189,7 +190,7 @@ static int update_header(void)
     if(write_u32(f) == -1) return -1;
 
     /* SSND chunk */
-    lseek(dpm.fd, 12+26+4, SEEK_SET);
+    lseek(dpm.fd, comm_chunk_offset + 8 + comm_chunk_size + 4, SEEK_SET);
     if(write_u32((uint32)(8 + bytes_output)) == -1) return -1;
 
     lseek(dpm.fd, save_point, SEEK_SET);
@@ -199,9 +200,14 @@ static int update_header(void)
     return 0;
 }
 
+#define AIFC_VERSION_1	(uint32)0xA2805140
+
 static int aiff_output_open(const char *fname)
 {
-  int t;
+  int t, compressed;
+  const char *compressionName;
+  char compressionNamePad;
+  uint8 compressionNameLength;
 
   if(strcmp(fname, "-") == 0) {
     dpm.fd = 1; /* data to stdout */
@@ -215,17 +221,34 @@ static int aiff_output_open(const char *fname)
     }
   }
 
-  /* magic */
+  /* FORM chunk */
   if(write_str("FORM") == -1) return -1;
 
   /* file size - 8 (dmy) */
   if(write_u32((uint32)0xffffffff) == -1) return -1;
 
-  /* chunk start tag */
-  if(write_str("AIFF") == -1) return -1;
+  /* from type */
+  compressed = dpm.encoding & (PE_ULAW|PE_ALAW);
+  if(write_str(compressed ? "AIFC" : "AIFF") == -1) return -1;
+
+  /* FVER chunk */
+  if(compressed) {
+    if(chunk_start("FVER", 4) == -1) return -1;
+    if(write_u32(AIFC_VERSION_1) == -1) return -1;
+    compressionName = (dpm.encoding & PE_ULAW) ? "\xB5Law 2:1" : "ALaw 2:1";
+  }
 
   /* COMM chunk */
-  if(chunk_start("COMM", 18) == -1) return -1;
+  if(!compressed) {
+    comm_chunk_offset = 12;
+    comm_chunk_size = 18;
+  } else {
+    compressionNameLength = 1 + strlen(compressionName);
+    compressionNamePad = compressionNameLength & 1;
+    comm_chunk_offset = 12 + 12;
+    comm_chunk_size = 18 + 4 + compressionNameLength + compressionNamePad;
+  }
+  if(chunk_start("COMM", comm_chunk_size) == -1) return -1;
 
   /* number of channels */
   if(dpm.encoding & PE_MONO) {
@@ -248,6 +271,17 @@ static int aiff_output_open(const char *fname)
 
   /* sample rate */
   if(write_ieee_80bitfloat((double)dpm.rate) == -1) return -1;
+  
+  /* compression type */
+  if(compressed) {
+    if(write_str((dpm.encoding & PE_ULAW) ? "ulaw" : "alaw") == -1) return -1;
+    if(write(dpm.fd, &compressionNameLength, 1) == -1) return -1;
+    if(write_str(compressionName) == -1) return -1;
+    if(compressionNamePad) {
+      compressionNamePad = 0;
+      if(write(dpm.fd, &compressionNamePad, 1) == -1) return -1;
+    }
+  }
 
   /* SSND chunk */
   if(chunk_start("SSND", (int32)0xffffffff) == -1) return -1;
@@ -302,23 +336,21 @@ static int auto_aiff_output_open(const char *input_filename)
 static int open_output(void)
 {
     int include_enc, exclude_enc;
-    include_enc = exclude_enc = 0;
 
+    include_enc = PE_SIGNED;
+    exclude_enc = PE_ULAW | PE_ALAW;
     if(dpm.encoding & (PE_16BIT | PE_24BIT))
     {
 #ifdef LITTLE_ENDIAN
 	include_enc = PE_BYTESWAP;
 #else
-	exclude_enc = PE_BYTESWAP;
+	exclude_enc |= PE_BYTESWAP;
 #endif /* LITTLE_ENDIAN */
-	include_enc |= PE_SIGNED;
     }
-    else if(!(dpm.encoding & (PE_ULAW|PE_ALAW)))
-    {
-	include_enc = PE_SIGNED;
-    }
+    else if(dpm.encoding & (PE_ULAW|PE_ALAW))
+	include_enc = exclude_enc = 0;
 
-    dpm.encoding = validate_encoding(dpm.encoding, 0, PE_ULAW | PE_ALAW);
+    dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
 
     if(dpm.name == NULL) {
       dpm.flag |= PF_AUTO_SPLIT_FILE;
