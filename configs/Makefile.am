@@ -22,4 +22,5 @@ EXTRA_DIST = \
   msc-config.h.in \
   msc-interface.h \
   msc-sjis.txt \
-  msc-twsyn-interface.h
+  msc-twsyn-interface.h \
+  msc-project.zip
