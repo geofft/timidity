@@ -4603,9 +4603,7 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	    current_set[j] = newbank;
 	}
 	bank_lsb[j] = bank_msb[j] = 0;
-	if(play_system_mode == GM2_SYSTEM_MODE)
-	    bank_msb[j] = (j % 16 == 9) ? 0x78 : 0x79;
-	else if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
+	if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
 	    bank_msb[j] = 127; /* Use MSB=127 for XG */
 	current_program[j] = default_program[j];
     }
@@ -4665,9 +4663,7 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 			current_set[j] = 0;
 		}
 		bank_lsb[j] = bank_msb[j] = 0;
-		if(play_system_mode == GM2_SYSTEM_MODE)
-		    bank_msb[j] = (j % 16 == 9) ? 0x78 : 0x79;
-		else if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
+		if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
 		    bank_msb[j] = 127; /* Use MSB=127 for XG */
 		current_program[j] = default_program[j];
 	    }
@@ -4703,6 +4699,12 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 			      "(GS ch=%d SC-88Pro MAP)", ch);
 		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_88PRO_TONE_MAP
 				 : SC_88PRO_DRUM_MAP);
+		    break;
+		  case 4:
+		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+			      "(GS ch=%d SC-8820/SC-8850 MAP)", ch);
+		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_8850_TONE_MAP
+				 : SC_8850_DRUM_MAP);
 		    break;
 		  default:
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
@@ -4752,6 +4754,12 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 			      ch, bank_msb[ch]);
 		    break;
 		}
+		newbank = bank_lsb[ch];
+		break;
+
+	      case GM2_SYSTEM_MODE:
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(GM2 ch=%d)", ch);
+		mapID[ch] = (!ISDRUMCHANNEL(ch) ? GM2_TONE_MAP : GM2_DRUM_MAP);
 		newbank = bank_lsb[ch];
 		break;
 
@@ -6723,4 +6731,3 @@ void remove_channel_layer(int ch)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
 }
-

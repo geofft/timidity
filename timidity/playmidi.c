@@ -658,9 +658,7 @@ static void reset_midi(int playing)
 		}
 		channel[i].bank_lsb = channel[i].bank_msb =
 				channel[i].tone_map0_number = 0;
-		if (play_system_mode == GM2_SYSTEM_MODE)
-			channel[i].bank_msb = (i % 16 == 9) ? 0x78 : 0x79;
-		else if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
+		if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
 			channel[i].bank_msb = 127;	/* Use MSB=127 for XG */
 		update_rpn_map(i, RPN_ADDR_FFFF, 0);
 		channel[i].special_sample = 0;
@@ -3453,6 +3451,9 @@ void midi_program_change(int ch, int prog)
 		case 3:
 			channel[ch].mapID = (dr) ? SC_88PRO_DRUM_MAP : SC_88PRO_TONE_MAP;
 			break;
+		case 4:
+			channel[ch].mapID = (dr) ? SC_8850_DRUM_MAP : SC_8850_TONE_MAP;
+			break;
 		default:
 			break;
 		}
@@ -3483,6 +3484,10 @@ void midi_program_change(int ch, int prog)
 		default:
 			break;
 		}
+		newbank = channel[ch].bank_lsb;
+		break;
+	case GM2_SYSTEM_MODE:	/* GM2 */
+		channel[ch].mapID = (dr) ? GM2_DRUM_MAP : GM2_TONE_MAP;
 		newbank = channel[ch].bank_lsb;
 		break;
 	default:

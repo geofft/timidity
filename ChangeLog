@@ -1,3 +1,12 @@
+2004-01-21  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/instrum.h, timidity/playmidi.c,
+	  timidity/readmidi.c, timidity/timidity.c:
+	  Removed GM2 default MSB support.
+	  Added new map 'gm2[drum]' (GM2) and 'sc8850[drum]' (GS LSB=4).
+	  Note that although GS LSB=4 indicates both SC-8820 and SC-8850
+	  and they're mapped identically, waveforms in the actual hardwares differ.
+
 2004-01-21  mput <root@mput.dip.jp>
 
 	* doc/ja_JP.ujis/timidity.cfg.5: sorry, I was confusing. revert.
@@ -24,7 +33,7 @@
 
 2004-01-20  Kentaro Sato <kentaro@ranvis.com>
 
-	* interface/dumb_c.c, timidity/playmidi.c, sndfont.c:
+	* interface/dumb_c.c, timidity/playmidi.c, timidity/sndfont.c:
 	  Added playnote calculation for cfgforsf (finished).
 
 2004-01-20  Saito <saito2@digitalme.com>
@@ -57,7 +66,7 @@
 
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 
-	* timidity/common.[ch], sndfont.c, timidity.c:
+	* timidity/common.[ch], timidity/sndfont.c, timidity/timidity.c:
 	  Changed #extension ...send, playnote option's argument format.
 
 2004-01-15  Saito <saito2@digitalme.com>
