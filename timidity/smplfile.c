@@ -1104,6 +1104,9 @@ static void initialize_sample(Instrument *inst, int frames, int sample_bits, int
 		sample->envelope_delay = sample->modenv_delay =
 			sample->tremolo_delay = sample->vibrato_delay = 0;
 		sample->inst_type = INST_PCM;
+		sample->sample_type = SF_SAMPLETYPE_MONO;
+		sample->sf_sample_link = -1;
+		sample->sf_sample_index = 0;
 	}
 	if (samples <= 6 && (panning = gen_pan_list[samples - 1]) != NULL)
 	{

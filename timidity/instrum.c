@@ -584,6 +584,9 @@ static Instrument *load_gus_instrument(char *name,
 	  sp->tremolo_delay = sp->vibrato_delay = 0;
 	  sp->scale_tuning = 100;
 	  sp->inst_type = INST_GUS;
+	  sp->sample_type = SF_SAMPLETYPE_MONO;
+	  sp->sf_sample_link = -1;
+	  sp->sf_sample_index = 0;
 
 	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
 	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));

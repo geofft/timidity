@@ -1077,7 +1077,8 @@ void init_voice_filter(int i)
   memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
-	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
+	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f - 3.01f;
+	  if (voice[i].fc.orig_reso_dB < 0.0f) {voice[i].fc.orig_reso_dB = 0.0f;}
 	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {
 		  voice[i].fc.gain = 1.0;
 		  voice[i].fc.type = 2;
@@ -1891,22 +1892,17 @@ static int find_free_voice(void)
     return lowest;
 }
 
-#define MAX_SAMPLES 256
-static int32 fst_table[MAX_SAMPLES];
-static int32 ft_table[MAX_SAMPLES];
-static int32 diff_table[MAX_SAMPLES];
-
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
 	int ch = e->channel, keynote = e->a & 0x7F;
-	int32 f, fs, ft, fst, fc, cdiff, diff, mindiff,	sample_link;
+	int32 f, fs, ft, fst, fc, fr, cdiff, diff, sample_link;
 	int8 tt = channel[ch].temper_type;
 	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *spc, *spr;
 	int16 st;
 	double ratio;
-	int i, j, k, kr, nv, nvc, vel;
+	int i, j, k, nv, nvc, vel;
 	
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
@@ -1972,8 +1968,6 @@ static int select_play_sample(Sample *splist,
 				/ (double)sp->root_freq;
 			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 		}
-		ft_table[i] = ft;
-		fst_table[i] = fst;
 		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel
 				&& !(sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT)) {
@@ -1987,38 +1981,45 @@ static int select_play_sample(Sample *splist,
 	}
 
 	if (nv == 0) {	/* we must select at least one sample. */
-		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			diff = abs(sp->root_freq - fst_table[i]);
-			diff_table[i] = diff;
-		}
-		mindiff = 0x7fffffff;
-		k = kr = 0;
+		cdiff = 0x7fffffff;
+		fr = fc = 0;
 		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			diff = diff_table[i];
-			if (mindiff > diff) {
+			if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
+				ratio = (double)st / 100.0f;
+				ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
+				fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
+			} else {ft = f, fst = fs;}
+			if(channel[ch].drums[keynote] != NULL
+				&& channel[ch].drums[keynote]->play_note != -1) {
+				ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
+					/ (double)sp->root_freq;
+				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
+			}
+			diff = abs(sp->root_freq - fst);
+			if (cdiff > diff) {
 				if (sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT) {
-					kr = i;		/* reserve */
+					fr = ft;		/* reserve */
 					spr = sp;	/* reserve */
 				} else {
-					mindiff = diff;
-					k = i;
+					cdiff = diff;
+					fc = ft;
 					spc = sp;
 				}
 			}
 		}
 		if (spc != NULL) {	/* a makeshift sample is found. */
 			j = vlist[nv] = find_voice(e);
-			voice[j].orig_frequency = ft_table[k];
+			voice[j].orig_frequency = fc;
 			MYCHECK(voice[j].orig_frequency);
 			voice[j].sample = spc;
 			voice[j].status = VOICE_ON;
 			nv++;
 		} else {	/* it's a lonely right sample, but better than nothing. */
 			j = vlist[nv] = find_voice(e);
-			voice[j].orig_frequency = ft_table[k];
+			voice[j].orig_frequency = fr;
 			MYCHECK(voice[j].orig_frequency);
-			voice[j].sample = spc;
+			voice[j].sample = spr;
 			voice[j].status = VOICE_ON;
 			nv++;
 		}
@@ -2037,8 +2038,18 @@ static int select_play_sample(Sample *splist,
 					sp->sample_type == SF_SAMPLETYPE_RIGHT &&
 					sp->sf_sample_index == sample_link) {
 					/* right sample is found. */
+					if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
+						ratio = (double)st / 100.0f;
+						ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
+					} else {ft = f;}
+					if(channel[ch].drums[keynote] != NULL
+						&& channel[ch].drums[keynote]->play_note != -1) {
+						ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
+							/ (double)sp->root_freq;
+						ft = ft * ratio + 0.5;
+					}
 					k = vlist[nv] = find_voice(e);
-					voice[k].orig_frequency = ft_table[j];
+					voice[k].orig_frequency = ft;
 					MYCHECK(voice[k].orig_frequency);
 					voice[k].sample = sp;
 					voice[k].status = VOICE_ON;
