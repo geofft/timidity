@@ -115,6 +115,7 @@ static const struct option longopts[] = {
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
     { "no-4-point-interpolation",       no_argument, NULL, '4' << 8 },
     { "4-point-interpolation"   , optional_argument, NULL, '4' << 8 },
+#endif
     { "volume"                  , required_argument, NULL, 'A' << 8 },
     { "drum-power"              , required_argument, NULL, 227 << 8 },
     { "no-volume-conpansation"  ,       no_argument, NULL, 228 << 8 },
@@ -170,7 +171,7 @@ static const struct option longopts[] = {
     { "output-unsigned"         ,       no_argument, NULL, 202 << 8 },
     { "no-output-byte-swap"     , optional_argument, NULL, 203 << 8 },
     { "output-byte-swap"        ,       no_argument, NULL, 203 << 8 },
-    /* 204 missing: I first doubled an option. You can add 204 here */
+    { "temper-mute"             , required_argument, NULL, 204 << 8 },
     { "verbose"                 , optional_argument, NULL, 205 << 8 },
     { "quiet"                   , optional_argument, NULL, 206 << 8 },
     { "no-trace"                ,       no_argument, NULL, 207 << 8 },
@@ -321,6 +322,7 @@ static inline bool parse_opt_P(const char *);
 static inline bool parse_opt_p(const char *);
 static inline bool parse_opt_215(const char *);	/* --[no-]polyphony-reduction */
 static inline bool parse_opt_Q(const char *);
+static inline bool parse_opt_204(const char *);	/* --temper-mute */
 static inline bool parse_opt_q(const char *);
 static inline bool parse_opt_S(const char *);
 static inline bool parse_opt_s(const char *);
@@ -3538,7 +3540,8 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_202(arg);
 		case 203:
 			return parse_opt_203(arg);
-		/*   204: is missing: not reserved */
+		case 204:
+			return parse_opt_204(arg);
 		case 205:
 			return parse_opt_205(arg);
 		case 206:
@@ -4426,36 +4429,22 @@ static inline bool parse_opt_215(const char *arg)
 static inline bool parse_opt_Q(const char *arg)
 {
 	int32 tmpi32;
-	
-	if (isdigit(arg[0]) || arg[0] == '-') {
-		if (strchr(arg, 't')) {
-			if (set_value(&tmpi32, atoi(arg), 0, 7, "Quiet temperament"))
-				return 1;
-			temper_type_mute |= 1 << tmpi32;
-			return 0;
-		} else
-			return set_channel_flag(&quietchannels, atoi(arg),
-					"Quiet channel");
-	} else {
-		static const struct Name2Type {
-			const char *name;
-			unsigned char type;
-		} name2type[] = {
-			{ "equal", 0 },
-			{ "Pythagoras", 1 },
-			{ "mean", 2 },
-			{ "pure", 2 }
-		};
-		int i;
-		
-		for (i = 0; name2type[i].name; i++)
-			if (strcasecmp(name2type[i].name, arg)) {
-				temper_type_mute |= 1 << name2type[i].type;
-				return 0;
-			}
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Unknown temperament `%s'", arg);
+	if (strchr(arg, 't')) {
+		/* backward compatibility */
+		return parse_opt_204(arg);
+	} else
+	    return set_channel_flag(&quietchannels, atoi(arg),
+				    "Quiet channel");
+}
+
+static inline bool parse_opt_204(const char *arg)
+{
+	/* --temper-mute */
+	int tmpi;
+	if (set_value(&tmpi, atoi(arg), 0, 7, "Temperament program number"))
 		return 1;
-	}
+	temper_type_mute |= 1 << tmpi;
+	return 0;
 }
 
 static inline bool parse_opt_q(const char *arg)
