@@ -1,3 +1,9 @@
+2003-12-01  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/tables.[ch],
+	  timidity/mix.c, timidity/sndfont.c:
+	  Implement Chamberlin's resonant lowpass filter; it's faster but narrow band.
+
 2003-11-30  Saito <saito2@digitalme.com>
 
 	* timidity/readmidi.c, timidity/tables.[ch]:

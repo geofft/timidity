@@ -270,6 +270,8 @@ static void update_channel_freq(int ch);
 static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
 
+static void init_voice_filter(int);
+
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
 static char *event_name(int type)
@@ -948,6 +950,19 @@ void recompute_channel_filter(MidiEvent *e)
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Resonance (CH:%d VAL:%f)",ch,reso);*/
 }
 
+void init_voice_filter(int i)
+{
+  memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));
+  if(opt_lpf_def && voice[i].sample->cutoff_freq) {
+	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
+	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
+	  if(opt_lpf_def == 1) {voice[i].fc.type = 1;}
+	  else if(opt_lpf_def == 2) {voice[i].fc.type = 2;}
+  } else {
+	  voice[i].fc.type = 0;
+  }
+}
+
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
@@ -956,7 +971,7 @@ void recompute_voice_filter(int v)
 	FilterCoefficients *fc = &(voice[v].fc);
 	Sample *sp = (Sample *) &voice[v].sample;
 
-	if(fc->freq == -1) {return;}
+	if(fc->type == 0) {return;}
 
 	coef = channel[ch].cutoff_freq_coef;
 
@@ -993,10 +1008,7 @@ void recompute_voice_filter(int v)
 
 	freq = (double)fc->orig_freq * coef;
 
-	if (fc->filter_calculated == 0 && freq > play_mode->rate / 2) {
-		fc->freq = -1;
-		return;
-	}
+	if (freq > play_mode->rate / 2) {freq = play_mode->rate / 2;}
 	else if(freq < 5) {freq = 5;}
 	else if(freq > 20000) {freq = 20000;}
 	fc->freq = freq;
@@ -1004,7 +1016,11 @@ void recompute_voice_filter(int v)
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
-	fc->reso_dB -= 3.01f;
+
+	if(fc->type == 1) {	/* Chamberlin filter */
+		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
+		if(fc->reso_dB > 24.0) {fc->reso_dB = 24.0;}
+	}
 }
 
 FLOAT_T calc_drum_tva_level(int ch,int note,int level)
@@ -2062,13 +2078,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
   voice[i].delay_counter = 0;
 
-  memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));
-  if(opt_lpf_def && voice[i].sample->cutoff_freq) {
-	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
-	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
-  } else {
-	  voice[i].fc.freq = -1;
-  }
+	init_voice_filter(i);
 
 	if (opt_nrpn_vibrato && channel[ch].vibrato_ratio) {
 		voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio + channel[ch].vibrato_ratio;

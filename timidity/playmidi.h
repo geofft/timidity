@@ -292,11 +292,10 @@ typedef struct {
 
 typedef struct {
 	int16 freq, last_freq, orig_freq;
-	double reso_dB, last_reso_dB, orig_reso_dB, reso_lin, filter_gain; 
-	int32 a1, a2, b02, b1, hist1, hist2;
-	int32 a1_incr, a2_incr, b02_incr, b1_incr;
-	int8 filter_calculated;
-	int32 filter_coeff_incr_count;
+	double reso_dB, last_reso_dB, orig_reso_dB; 
+	int8 type;	/* filter type. 0: Off, 1: 12dB/oct, 2: 24dB/oct */ 
+	int32 f, q;	/* coefficients in fixed-point */
+	int32 low, high, band;
 } FilterCoefficients;
 
 #define ENABLE_PAN_DELAY

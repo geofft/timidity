@@ -77,6 +77,7 @@ extern FLOAT_T convex_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
 extern FLOAT_T reverb_time_table[];
 extern FLOAT_T pan_delay_table[];
+extern FLOAT_T chamberlin_filter_db_to_q_table[];
 
 extern void init_freq_table(void);
 extern void init_freq_table_tuning(void);

@@ -1535,7 +1535,6 @@ extern int32 modify_release;
 /* volume envelope parameters */
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 {
-	double attack, hold, delay, to_fc;
     vp->attack  = to_rate(65535, tbl->val[SF_attackEnv2]);
     vp->hold    = to_rate(1, tbl->val[SF_holdEnv2]);
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
@@ -1548,28 +1547,16 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 		to_msec(tbl->val[SF_delayEnv2]) * 0.001;
 
 	/* convert modulation envelope */
-	attack = to_msec(tbl->val[SF_attackEnv1]);
-	hold = to_msec(tbl->val[SF_holdEnv1]);
-	delay = play_mode->rate * 
-		to_msec(tbl->val[SF_delayEnv1]) * 0.001;
-	to_fc = tbl->val[SF_env1ToFilterFc];
-	if(attack != 0 && to_fc / attack > 300) {
-		hold += attack;
-		attack = 0;
-	}
-	if(delay != 0 && to_fc > 1200) {
-		hold += delay;
-		delay = 0;
-	}
-    vp->modattack  = calc_rate(65535, attack);
-    vp->modhold    = calc_rate(1, hold);
+    vp->modattack  = to_rate(65535, tbl->val[SF_attackEnv1]);
+    vp->modhold    = to_rate(1, tbl->val[SF_holdEnv1]);
     vp->modsustain = calc_sustain(tbl->val[SF_sustainEnv1]);
     vp->moddecay   = to_rate(65533 - vp->modsustain, tbl->val[SF_decayEnv1]);
     if(modify_release) /* Pseudo Reverb */
 	vp->modrelease = calc_rate(65535, modify_release);
     else
 	vp->modrelease = to_rate(65535, tbl->val[SF_releaseEnv1]);
-	vp->v.modenv_delay = delay;
+	vp->v.modenv_delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayEnv1]) * 0.001;
 
     vp->v.modes |= MODES_ENVELOPE;
 }

@@ -52,7 +52,6 @@
 
 #if OPT_MODE != 0
 #define VOICE_LPF
-#define VOICE_LPF_TRANSITION
 #endif
 
 #ifdef VOICE_LPF
@@ -185,110 +184,57 @@ void mix_voice(int32 *buf, int v, int32 c)
 }
 
 #ifdef VOICE_LPF
-#define FILTER_TRANSITION_SAMPLES (control_ratio)
 static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
-	int32 a1, a2, b02, b1, hist1, hist2, centernode, i;
-	int32 filter_coeff_incr_count = fc->filter_coeff_incr_count;
-	int32 a1_incr, a2_incr, b02_incr, b1_incr;
+	int32 i, f, q, scale, low, high, band;
 	
-	if(fc->freq == -1) {
+	if(fc->type == 0) {	/* copy without change.	*/
+		/* (FIXME: It's absolutely essential that converting int16 sp[] to int32 lp[],
+			but it might not be only way.) */
 		for(i=0;i<count;i++) {
 			lp[i] = sp[i];
 		}
 		return;
-	} else if(filter_coeff_incr_count > 0) {
+	} else if(fc->type == 1) {	/* copy with applying voice-by-voice lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
-		hist1 = fc->hist1, hist2 = fc->hist2, a1 = fc->a1,
-			a2 = fc->a2, b02 = fc->b02, b1 = fc->b1,
-			a1_incr = fc->a1_incr, a2_incr = fc->a2_incr,
-			b02_incr = fc->b02_incr, b1_incr = fc->b1_incr;
-		if(filter_coeff_incr_count > count) {
-			filter_coeff_incr_count = count;
+		f = fc->f, q = fc->q, low = fc->low, high = fc->high, band = fc->band;
+		for(i = 0; i < count; i++) {
+			low = low + imuldiv24(band, f);
+			high = sp[i] - low - imuldiv24(band, q);
+			band = imuldiv24(high, f) + band;
+			lp[i] = low;
 		}
-		for(i=0;i<filter_coeff_incr_count;i++) {
-			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
-			lp[i] = imuldiv24(b02, centernode + hist2)
-				+ imuldiv24(b1, hist1);
-			hist2 = hist1, hist1 = centernode;
-
-			a1 += a1_incr;
-			a2 += a2_incr;
-			b02 += b02_incr;
-			b1 += b1_incr;
-		}
-		for(i=filter_coeff_incr_count;i<count;i++) {
-			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
-			lp[i] = imuldiv24(b02, centernode + hist2)
-				+ imuldiv24(b1, hist1);
-			hist2 = hist1, hist1 = centernode;
-		}
-		fc->hist1 = hist1, fc->hist2 = hist2;
-		fc->a1 = a1, fc->a2 = a2, fc->b02 = b02, fc->b1 = b1,
-		fc->filter_coeff_incr_count -= filter_coeff_incr_count;
-		return;
-	} else {
-		recalc_voice_resonance(v);
-		recalc_voice_fc(v);
-		hist1 = fc->hist1, hist2 = fc->hist2, a1 = fc->a1,
-			a2 = fc->a2, b02 = fc->b02, b1 = fc->b1;
-		for(i=0;i<count;i++) {
-			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
-			lp[i] = imuldiv24(b02, centernode + hist2)
-				+ imuldiv24(b1, hist1);
-			hist2 = hist1, hist1 = centernode;
-		}
-		fc->hist1 = hist1, fc->hist2 = hist2;
+		fc->low = low, fc->high = high, fc->band = band;
 		return;
 	}
 }
 
 static inline void recalc_voice_resonance(int v)
 {
-	double reso_dB;
+	double q;
 	FilterCoefficients *fc = &(voice[v].fc);
 	
-	reso_dB = fc->reso_dB;
-	if (reso_dB != fc->last_reso_dB || fc->reso_lin == 0) {
-		fc->last_reso_dB = reso_dB;
-		fc->reso_lin = pow(10.0, reso_dB / 20);
-		fc->filter_gain = 1 / sqrt(fc->reso_lin);
+	if (fc->reso_dB != fc->last_reso_dB || fc->q == 0) {
+		fc->last_reso_dB = fc->reso_dB;
+		q = 1.0 / chamberlin_filter_db_to_q_table[(int)(fc->reso_dB * 4)];
+		fc->q = TIM_FSCALE(q, 24);
+		if(fc->q <= 0) {fc->q = 1;}	/* must never be 0. */
 		fc->last_freq = -1;
 	}
 }
 
 static inline void recalc_voice_fc(int v)
 {
-	double freq, omega, cos_coef, sin_coef, alpha_coef;
-	double a1, a2, b02, b1;
+	int16 freq;
+	double f;
 	FilterCoefficients *fc = &(voice[v].fc);
 
-	freq = fc->freq;
-	if (freq != fc->last_freq) {
-		omega = 2 * M_PI * freq / play_mode->rate;
-		cos_coef = cos(omega), sin_coef = sin(omega);
-		alpha_coef = sin_coef / (2 * fc->reso_lin);
-		a1 = -2 * cos_coef / (1 + alpha_coef);
-		a2 = (1 - alpha_coef) / (1 + alpha_coef);
-		b1 = (1 - cos_coef) / (1 + alpha_coef) * fc->filter_gain;
-		b02 = b1 * 0.5f;
-		if(fc->filter_calculated) {
-			fc->a1_incr = (TIM_FSCALE(a1, 24) - fc->a1) / FILTER_TRANSITION_SAMPLES;
-			fc->a2_incr = (TIM_FSCALE(a2, 24) - fc->a2) / FILTER_TRANSITION_SAMPLES;
-			fc->b1_incr = (TIM_FSCALE(b1, 24) - fc->b1) / FILTER_TRANSITION_SAMPLES;
-			fc->b02_incr = (TIM_FSCALE(b02, 24) - fc->b02) / FILTER_TRANSITION_SAMPLES;
-			fc->filter_coeff_incr_count = FILTER_TRANSITION_SAMPLES;
-		} else {
-			fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24),
-			fc->b02 = TIM_FSCALE(b02, 24), fc->b1 = TIM_FSCALE(b1, 24);
-#ifdef VOICE_LPF_TRANSITION
-			fc->filter_calculated = 1;
-#endif
-			fc->filter_coeff_incr_count = 0;
-		}
-		fc->last_freq = freq;
+	if (fc->freq != fc->last_freq) {
+		f = 2.0 * sin(M_PI * (double)fc->freq / (double)play_mode->rate);
+		fc->f = TIM_FSCALE(f, 24);
+		fc->last_freq = fc->freq;
 	}
 }
 #endif
