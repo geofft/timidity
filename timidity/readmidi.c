@@ -1559,11 +1559,11 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x00:	/* System */
 			switch(addr & 0xFFF0) {
 				case 0x0100:	/* Channel Msg Rx Port (A) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 0), 0x46);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, 0), block_to_part(addr & 0xF, val[7]), 0x46);
 					num_events++;
 					break;
 				case 0x0110:	/* Channel Msg Rx Port (B) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 1), 0x46);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, 1), block_to_part(addr & 0xF, val[7]), 0x46);
 					num_events++;
 					break;
 				default:
@@ -3148,7 +3148,8 @@ void readmidi_read_init(void)
     int i;
 
 	/* initialize effect status */
-	for(i = 0; i < MAX_CHANNELS; i++) {init_channel_layer(i);}
+	for (i = 0; i < MAX_CHANNELS; i++)
+		init_channel_layer(i);
 	init_reverb_status();
 	init_delay_status();
 	init_chorus_status();
@@ -4567,66 +4568,40 @@ void init_channel_layer(int ch)
 {
 	if (ch >= MAX_CHANNELS)
 		return;
-	if (channel[ch].channel_layer != NULL) {
-		free(channel[ch].channel_layer);
-		channel[ch].channel_layer = NULL;
-	}
-	add_channel_layer(ch, ch);
+	CLEAR_CHANNELMASK(channel[ch].channel_layer);
 }
 
-/*! add a new layer and remove an overlapping layer. */
+/*! add a new layer. */
 void add_channel_layer(int ch, int fromch)
 {
-	int i, j;
-	int8 layer[MAX_CHANNELS];
-	
 	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
 		return;
-	/* delete an overlapping channel layer */
-	if (channel[fromch].channel_layer != NULL) {
-		memcpy(layer, channel[fromch].channel_layer, sizeof(layer));
-		for (i = j = 0; i < MAX_CHANNELS && layer[i] != -1; i++)
-			if (layer[i] != fromch)
-				channel[fromch].channel_layer[j++] = layer[i];
-		if (j < MAX_CHANNELS)
-			channel[fromch].channel_layer[j] = -1;
-	}
 	/* add a channel layer */
-	for (i = 0; i < MAX_CHANNELS; i++) {
-		if (channel[ch].channel_layer == NULL
-				|| channel[ch].channel_layer[i] == -1) {
-			if (channel[ch].channel_layer == NULL)
-				channel[ch].channel_layer = (int8 *)
-						safe_malloc((MAX_CHANNELS + 1) * sizeof(int8));
-			channel[ch].channel_layer[i] = fromch;
-			channel[ch].channel_layer[i + 1] = -1;
-			if (i > 0)
-				ctl->cmsg(CMSG_INFO, VERB_NOISY,
-						"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
-			break;
-		}
-		if (channel[ch].channel_layer[i] == fromch)
-			break;
-	}
+	SET_CHANNELMASK(channel[ch].channel_layer, fromch);
+	ctl->cmsg(CMSG_INFO, VERB_NOISY,
+		"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
+}
+
+/*! subtract an unused layer. */
+void sub_channel_layer(int ch, int fromch)
+{
+	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
+		return;
+	/* subtract a channel layer */
+	UNSET_CHANNELMASK(channel[ch].channel_layer, fromch);
+	ctl->cmsg(CMSG_INFO, VERB_NOISY,
+		"Channel Layer (CH:%d -> CH:%d)", fromch, fromch);
 }
 
 /*! remove all layers for this channel. */
 void remove_channel_layer(int ch)
 {
-	int fromch, i, j;
-	int8 layer[MAX_CHANNELS];
+	int i;
 	
 	if (ch >= MAX_CHANNELS)
 		return;
-	for (fromch = 0; fromch < MAX_CHANNELS; fromch++)
-		/* remove channel layers */
-		if (channel[fromch].channel_layer != NULL) {
-			memcpy(layer, channel[fromch].channel_layer, sizeof(layer));
-			for (i = j = 0; i < MAX_CHANNELS && layer[i] != -1; i++)
-				if (layer[i] != ch)
-					channel[fromch].channel_layer[j++] = layer[i];
-			if (j < MAX_CHANNELS)
-				channel[fromch].channel_layer[j] = -1;
-		}
+	/* remove channel layers */
+	for (i = 0; i < MAX_CHANNELS; i++)
+		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 }
 

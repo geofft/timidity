@@ -1,3 +1,12 @@
+2003-10-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/readmidi.[ch]:
+	  Hack up around channel layer
+	* timidity/timidity.c:
+	  Rewrite help a little
+	  Rename --effects -> --ext
+	  Rename -EFresample -> -EFresamp
+
 2003-10-03  mput <root@Mput.dip.jp>
 
 	* timidity/Makefile.in: redo automake to fit with Iwai's commit

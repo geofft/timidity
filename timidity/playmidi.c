@@ -3309,12 +3309,14 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			if(val == 0x10) {
 				remove_channel_layer(ch);
 				init_channel_layer(ch);
-			} else {
+			} else
 				add_channel_layer(val, ch);
-			}
 			break;
 		case 0x46:	/* Channel Msg Rx Port */
-			add_channel_layer(ch, val);
+			if ((val & 0x10 ^ ch & 0x10) & 0x10)
+				add_channel_layer(val, ch);
+			else
+				sub_channel_layer(val + (val < 0x10) ? 0x10 : -0x10, ch);
 			break;
 			
 			/* MOD PITCH CONTROL */
@@ -3337,12 +3339,11 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			recompute_chorus_status();
 			break;
 		case 0x65:	/* Rcv CHANNEL */
-			if(val == 0x7F) {
-			remove_channel_layer(ch);
-			init_channel_layer(ch);
-		    } else {
-			add_channel_layer(val, ch);
-		    }
+			if (val == 0x7f) {
+				remove_channel_layer(ch);
+				init_channel_layer(ch);
+			} else
+				add_channel_layer(val, ch);
 			break;
 		default:
 			break;
@@ -3352,7 +3353,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 
 static void play_midi_prescan(MidiEvent *ev)
 {
-    int i;
+    int i, j, ch, orig_ch, layered;
     
     if(opt_amp_compensation) {mainvolume_max = 0;}
     else {mainvolume_max = 0x7f;}
@@ -3363,19 +3364,15 @@ static void play_midi_prescan(MidiEvent *ev)
     reset_midi(0);
     resamp_cache_reset();
 
-    while(ev->type != ME_EOT)
-    {
-	int ch, j, orig_ch, layered;
-
+	while (ev->type != ME_EOT) {
 #ifndef SUPPRESS_CHANNEL_LAYER
-	orig_ch = ev->channel;
-	layered = !IS_SYSEX_EVENT_TYPE(ev->type);
-	for(j = 0; (!layered && j < 1) ||
-		(layered && channel[orig_ch].channel_layer[j] != -1); j++)
-	{
-	if(layered) {
-		ev->channel = channel[orig_ch].channel_layer[j];
-	}
+		orig_ch = ev->channel;
+		layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
+		for (j = 0; j < MAX_CHANNELS; j++) {
+			if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j)
+					&& layered) && j != orig_ch)
+				continue;
+			ev->channel = j;
 #endif
 	ch = ev->channel;
 
@@ -3840,22 +3837,19 @@ static void update_rpn_map(int ch, int addr, int update_now)
 static void seek_forward(int32 until_time)
 {
     int32 i;
+    int j, ch, orig_ch, layered;
 
     playmidi_seek_flag = 1;
     wrd_midi_event(WRD_START_SKIP, WRD_NOARG);
-    while(MIDI_EVENT_TIME(current_event) < until_time)
-    {
-	int ch, j = 0, orig_ch, layered;
-
+	while (MIDI_EVENT_TIME(current_event) < until_time) {
 #ifndef SUPPRESS_CHANNEL_LAYER
-	orig_ch = current_event->channel;
-	layered = !IS_SYSEX_EVENT_TYPE(current_event->type);
-	for(j = 0; (!layered && j < 1) ||
-		(layered && channel[orig_ch].channel_layer[j] != -1); j++)
-	{
-	if(layered) {
-		current_event->channel = channel[orig_ch].channel_layer[j];
-	}
+		orig_ch = current_event->channel;
+		layered = ! IS_SYSEX_EVENT_TYPE(current_event->type);
+		for (j = 0; j < MAX_CHANNELS; j++) {
+			if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j)
+					&& layered) && j != orig_ch)
+				continue;
+			current_event->channel = j;
 #endif
 	ch = current_event->channel;
 	
@@ -5580,8 +5574,8 @@ static void update_legato_controls(int ch)
 
 int play_event(MidiEvent *ev)
 {
-    int ch, k, orig_ch, layered;
     int32 i, j, cet;
+    int k, ch, orig_ch, layered;
 
     if(play_mode->flag & PF_MIDI_EVENT)
 	return play_mode->acntl(PM_REQ_MIDI, ev);
@@ -5622,13 +5616,12 @@ int play_event(MidiEvent *ev)
 
 #ifndef SUPPRESS_CHANNEL_LAYER
 	orig_ch = ev->channel;
-	layered = !IS_SYSEX_EVENT_TYPE(ev->type);
-	for(k = 0; (!layered && k < 1) ||
-		(layered && channel[orig_ch].channel_layer[k] != -1); k++)
-	{
-	if(layered) {
-		ev->channel = channel[orig_ch].channel_layer[k];
-	}
+	layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
+	for (k = 0; k < MAX_CHANNELS; k++) {
+		if (! (IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, k)
+				&& layered) && k != orig_ch)
+			continue;
+		ev->channel = k;
 #endif
 	ch = ev->channel;
 

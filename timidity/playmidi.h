@@ -279,7 +279,7 @@ typedef struct {
   int16 paf_tvf_cutoff_ctl, paf_lfo1_pitch_depth,
 	  paf_lfo2_pitch_depth, paf_lfo2_tvf_depth;	/* in cents */
 
-  int8 *channel_layer;
+  ChannelBitMask channel_layer;
 
   int8 sysex_gs_msb_addr, sysex_gs_msb_val,
 		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;

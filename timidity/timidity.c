@@ -129,7 +129,7 @@ static const struct option longopts[] = {
 	{ "config-file",            required_argument, NULL, 'c' << 8 },
 	{ "drum-channel",           required_argument, NULL, 'D' << 8 },
 	{ "interface-path",         required_argument, NULL, 'd' << 8 },
-	{ "effects",                required_argument, NULL, 'E' << 8 },
+	{ "ext",                    required_argument, NULL, 'E' << 8 },
 	{ "no-mod-wheel",           no_argument,       NULL, 202 << 8 },
 	{ "mod-wheel",              optional_argument, NULL, 202 << 8 },
 	{ "no-portamento",          no_argument,       NULL, 203 << 8 },
@@ -158,6 +158,9 @@ static const struct option longopts[] = {
 	{ "chorus",                 required_argument, NULL, 218 << 8 },
 	{ "reverb",                 required_argument, NULL, 219 << 8 },
 	{ "noise-shaping",          required_argument, NULL, 220 << 8 },
+#ifndef FIXED_RESAMPLATION
+	{ "resample",               required_argument, NULL, 221 << 8 },
+#endif
 	{ "evil",                   required_argument, NULL, 'e' << 8 },
 	{ "no-fast-panning",        no_argument,       NULL, 'F' << 8 },
 	{ "fast-panning",           optional_argument, NULL, 'F' << 8 },
@@ -167,21 +170,21 @@ static const struct option longopts[] = {
 	{ "force-keysig",           required_argument, NULL, 'H' << 8 },
 	{ "help",                   optional_argument, NULL, 'h' << 8 },
 	{ "interface",              required_argument, NULL, 'i' << 8 },
-	{ "verbose",                optional_argument, NULL, 221 << 8 },
-	{ "quiet",                  optional_argument, NULL, 222 << 8 },
-	{ "no-trace",               no_argument,       NULL, 223 << 8 },
-	{ "trace",                  optional_argument, NULL, 223 << 8 },
-	{ "no-loop",                no_argument,       NULL, 224 << 8 },
-	{ "loop",                   optional_argument, NULL, 224 << 8 },
-	{ "no-random",              no_argument,       NULL, 225 << 8 },
-	{ "random",                 optional_argument, NULL, 225 << 8 },
-	{ "no-sort",                no_argument,       NULL, 226 << 8 },
-	{ "sort",                   optional_argument, NULL, 226 << 8 },
+	{ "verbose",                optional_argument, NULL, 222 << 8 },
+	{ "quiet",                  optional_argument, NULL, 223 << 8 },
+	{ "no-trace",               no_argument,       NULL, 224 << 8 },
+	{ "trace",                  optional_argument, NULL, 224 << 8 },
+	{ "no-loop",                no_argument,       NULL, 225 << 8 },
+	{ "loop",                   optional_argument, NULL, 225 << 8 },
+	{ "no-random",              no_argument,       NULL, 226 << 8 },
+	{ "random",                 optional_argument, NULL, 226 << 8 },
+	{ "no-sort",                no_argument,       NULL, 227 << 8 },
+	{ "sort",                   optional_argument, NULL, 227 << 8 },
 #ifdef IA_ALSASEQ
-	{ "no-background",          no_argument,       NULL, 227 << 8 },
-	{ "background",             optional_argument, NULL, 227 << 8 },
-	{ "realtime-priority",      required_argument, NULL, 228 << 8 },
-	{ "sequencer-ports",        required_argument, NULL, 229 << 8 },
+	{ "no-background",          no_argument,       NULL, 228 << 8 },
+	{ "background",             optional_argument, NULL, 228 << 8 },
+	{ "realtime-priority",      required_argument, NULL, 229 << 8 },
+	{ "sequencer-ports",        required_argument, NULL, 230 << 8 },
 #endif
 	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
@@ -192,24 +195,24 @@ static const struct option longopts[] = {
 	{ "decay-time",             required_argument, NULL, 'm' << 8 },
 	{ "interpolation",          required_argument, NULL, 'N' << 8 },
 	{ "output-mode",            required_argument, NULL, 'O' << 8 },
-	{ "output-stereo",          no_argument,       NULL, 230 << 8 },
-	{ "output-mono",            no_argument,       NULL, 230 << 8 },
-	{ "output-signed",          no_argument,       NULL, 231 << 8 },
-	{ "output-unsigned",        no_argument,       NULL, 231 << 8 },
-	{ "output-16bit",           no_argument,       NULL, 232 << 8 },
-	{ "output-8bit",            no_argument,       NULL, 232 << 8 },
-	{ "output-linear",          no_argument,       NULL, 233 << 8 },
-	{ "output-ulaw",            no_argument,       NULL, 233 << 8 },
-	{ "output-alaw",            no_argument,       NULL, 233 << 8 },
-	{ "no-output-swab",         no_argument,       NULL, 234 << 8 },
-	{ "output-swab",            optional_argument, NULL, 234 << 8 },
+	{ "output-stereo",          no_argument,       NULL, 231 << 8 },
+	{ "output-mono",            no_argument,       NULL, 231 << 8 },
+	{ "output-signed",          no_argument,       NULL, 232 << 8 },
+	{ "output-unsigned",        no_argument,       NULL, 232 << 8 },
+	{ "output-16bit",           no_argument,       NULL, 233 << 8 },
+	{ "output-8bit",            no_argument,       NULL, 233 << 8 },
+	{ "output-linear",          no_argument,       NULL, 234 << 8 },
+	{ "output-ulaw",            no_argument,       NULL, 234 << 8 },
+	{ "output-alaw",            no_argument,       NULL, 234 << 8 },
+	{ "no-output-swab",         no_argument,       NULL, 235 << 8 },
+	{ "output-swab",            optional_argument, NULL, 235 << 8 },
 	{ "output-file",            required_argument, NULL, 'o' << 8 },
 	{ "patch-file",             required_argument, NULL, 'P' << 8 },
 	{ "polyphony",              required_argument, NULL, 'p' << 8 },
-	{ "no-polyphony-reduction", no_argument,       NULL, 235 << 8 },
-	{ "polyphony-reduction",    optional_argument, NULL, 235 << 8 },
+	{ "no-polyphony-reduction", no_argument,       NULL, 236 << 8 },
+	{ "polyphony-reduction",    optional_argument, NULL, 236 << 8 },
 	{ "mute",                   required_argument, NULL, 'Q' << 8 },
-	{ "temper-mute",            required_argument, NULL, 236 << 8 },
+	{ "temper-mute",            required_argument, NULL, 237 << 8 },
 	{ "audio-buffer",           required_argument, NULL, 'q' << 8 },
 	{ "cache-size",             required_argument, NULL, 'S' << 8 },
 	{ "sampling-freq",          required_argument, NULL, 's' << 8 },
@@ -224,10 +227,7 @@ static const struct option longopts[] = {
 #endif
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",        optional_argument, NULL, 237 << 8 },
-#ifndef FIXED_RESAMPLATION
-	{ "resample",               required_argument, NULL, 238 << 8 },
-#endif
+	{ "pure-intonation",        optional_argument, NULL, 238 << 8 },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -287,6 +287,7 @@ static inline int parse_opt_EG(const char *);
 static inline int parse_opt_EH(const char *);
 static inline int parse_opt_EI(const char *);
 static inline int parse_opt_EJ(const char *);
+static inline int parse_opt_EK(const char *);
 static inline int parse_opt_e(const char *);
 static inline int parse_opt_F(const char *);
 static inline int parse_opt_f(const char *);
@@ -317,7 +318,6 @@ static inline int parse_opt_k(const char *);
 static inline int parse_opt_L(char *);
 static inline int parse_opt_M(const char *);
 static inline int parse_opt_m(const char *);
-static inline int parse_opt_resample(const char *);
 static inline int parse_opt_N(const char *);
 static inline int parse_opt_O(const char *);
 static inline int parse_opt_O1(const char *);
@@ -2286,6 +2286,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_EI(arg);
 	case 220:
 		return parse_opt_EJ(arg);
+#ifndef FIXED_RESAMPLATION
+	case 221:
+		return parse_opt_EK(arg);
+#endif
 	case 'e':
 		return parse_opt_e(arg);
 	case 'F':
@@ -2300,24 +2304,24 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_h(arg);
 	case 'i':
 		return parse_opt_i(arg);
-	case 221:
-		return parse_opt_i1(arg);
 	case 222:
-		return parse_opt_i2(arg);
+		return parse_opt_i1(arg);
 	case 223:
-		return parse_opt_i3(arg);
+		return parse_opt_i2(arg);
 	case 224:
-		return parse_opt_i4(arg);
+		return parse_opt_i3(arg);
 	case 225:
-		return parse_opt_i5(arg);
+		return parse_opt_i4(arg);
 	case 226:
+		return parse_opt_i5(arg);
+	case 227:
 		return parse_opt_i6(arg);
 #ifdef IA_ALSASEQ
-	case 227:
-		return parse_opt_i7(arg);
 	case 228:
-		return parse_opt_i8(arg);
+		return parse_opt_i7(arg);
 	case 229:
+		return parse_opt_i8(arg);
+	case 230:
 		return parse_opt_i9(arg);
 #endif
 	case 'j':
@@ -2336,22 +2340,22 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_N(arg);
 	case 'O':
 		return parse_opt_O(arg);
-	case 230:
+	case 231:
 		if (! strcmp(the_option->name, "output-mono"))
 			/* --output-mono == --output-stereo=no */
 			arg = "no";
 		return parse_opt_O1(arg);
-	case 231:
+	case 232:
 		if (! strcmp(the_option->name, "output-unsigned"))
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
 		return parse_opt_O2(arg);
-	case 232:
+	case 233:
 		if (! strcmp(the_option->name, "output-8bit"))
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
 		return parse_opt_O3(arg);
-	case 233:
+	case 234:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
 		else if (! strcmp(the_option->name, "output-ulaw"))
@@ -2359,7 +2363,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		else if (! strcmp(the_option->name, "output-alaw"))
 			arg = "alaw";
 		return parse_opt_O4(arg);
-	case 234:
+	case 235:
 		return parse_opt_O5(arg);
 	case 'o':
 		return parse_opt_o(arg);
@@ -2367,11 +2371,11 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_P(arg);
 	case 'p':
 		return parse_opt_p(arg);
-	case 235:
+	case 236:
 		return parse_opt_p1(arg);
 	case 'Q':
 		return parse_opt_Q(arg);
-	case 236:
+	case 237:
 		return parse_opt_Q1(arg);
 	case 'q':
 		return parse_opt_q(arg);
@@ -2397,10 +2401,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_x(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 237:
-		return parse_opt_Z1(arg);
 	case 238:
-		return parse_opt_resample(arg);
+		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -2493,7 +2495,7 @@ static inline int parse_opt_d(const char *arg)
 
 static inline int parse_opt_E(char *arg)
 {
-	/* undocumented option --effects */
+	/* undocumented option --ext */
 	int err = 0;
 	
 	while (*arg) {
@@ -2599,9 +2601,11 @@ static inline int parse_opt_E(char *arg)
 			} else if (strncmp(arg + 1, "ns=", 3) == 0) {
 				if (parse_opt_EJ(arg + 4))
 					err++;
-			} else if (strncmp(arg + 1, "resample=", 9) == 0) {
-				if (parse_opt_resample(arg + 10))
+#ifndef FIXED_RESAMPLATION
+			} else if (strncmp(arg + 1, "resamp=", 7) == 0) {
+				if (parse_opt_EK(arg + 8))
 					err++;
+#endif
 			}
 			if (err) {
 				ctl->cmsg(CMSG_ERROR,
@@ -2883,6 +2887,41 @@ static inline int parse_opt_EJ(const char *arg)
 	return 0;
 }
 
+static inline int parse_opt_EK(const char *arg)
+{
+	/* --resample */
+	switch (*arg) {
+	case '0':
+	case 'd':	/* disable */
+		set_current_resampler(5);
+		break;
+	case '1':
+	case 'l':	/* linear */
+		set_current_resampler(4);
+		break;
+	case '2':
+	case 'c':	/* cspline */
+		set_current_resampler(0);
+		break;
+	case '3':
+	case 'L':	/* lagrange */
+		set_current_resampler(1);
+		break;
+	case '4':
+	case 'n':	/* newton */
+		set_current_resampler(3);
+		break;
+	case '5':
+	case 'g':	/* guass */
+		set_current_resampler(2);
+		break;
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid resample type %s", arg);
+		return 1;
+	}
+	return 0;
+}
+
 static inline int parse_opt_e(const char *arg)
 {
 	/* evil */
@@ -2976,7 +3015,7 @@ static inline int parse_opt_h(const char *arg)
 "  -d path    --interface-path=path",
 "               Set dynamic interface module directory",
 #endif /* IA_DYNAMIC */
-"  -E mode    --effects=mode",
+"  -E mode    --ext=mode",
 "               TiMidity sequencer extensional modes:",
 "                 mode = w/W : Enable/Disable Modulation wheel",
 "                        p/P : Enable/Disable Portamento",
@@ -3086,18 +3125,15 @@ static inline int parse_opt_h(const char *arg)
 "  -m msec    --decay-time=msec",
 "               Minimum time for a full volume sustained note to decay,",
 "                 0 disables",
-#ifndef FIXED_RESAMPLATION
-"  --resample=type",
-"               Resample algorithm: none, linear, cspline, lagrange,",
-"                                   newton, gauss",
-"               Affects the behavior of -N option below",
-#endif
 "  -N n       --interpolation=n",
-"               cspline, lagrange: Toggle 4-point interpolation (default on)",
-"               newton: n'th order Newton polynomial interpolation, n=1-57 odd",
-"                       Linear interpolation is used if audio queue < 99%%",
-"               gauss:  n+1 point Gauss-like interpolation, n=1-34 (default 25)",
-"                       Linear interpolation is used if audio queue < 99%%",
+"               Set the interpolation parameter (depends on -EFresamp option)",
+"                 Linear interpolation is used if audio queue < 99%%",
+"                 cspline, lagrange:",
+"                   Toggle 4-point interpolation (default on)",
+"                 newton:",
+"                   n'th order Newton polynomial interpolation, n=1-57 odd",
+"                 gauss:",
+"                   n+1 point Gauss-like interpolation, n=1-34 (default 25)",
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
 "  -o file    --output-file=file",
@@ -3181,7 +3217,7 @@ static inline int parse_opt_h(const char *arg)
 		fputs(NLS, fp);
 	}
 	fputs(NLS, fp);
-	fputs("Effect options (-EF, --effects=F option):" NLS
+	fputs("Effect options (-EF, --ext=F option):" NLS
 "  -EFdelay=d   Disable delay effect (default)" NLS
 "  -EFdelay=l   Enable Left delay" NLS
 "    [,msec]      `msec' is optional to specify left-right delay time" NLS
@@ -3205,6 +3241,16 @@ static inline int parse_opt_h(const char *arg)
 "  -EFns=n      Enable the n th degree noise shaping filter" NLS
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
+#ifndef FIXED_RESAMPLATION
+	fputs(
+"  -EFresamp=d  Disable resamplation" NLS
+"  -EFresamp=l  Enable Linear resample algorithm" NLS
+"  -EFresamp=c  Enable C-spline resample algorithm" NLS
+"  -EFresamp=L  Enable Lagrange resample algorithm" NLS
+"  -EFresamp=n  Enable Newton resample algorithm" NLS
+"  -EFresamp=g  Enable Gauss-like resample algorithm (default)" NLS
+"                 -EFresamp affects the behavior of -N option" NLS, fp);
+#endif
 	fputs(NLS, fp);
 	fputs("Alternative TiMidity sequencer extensional mode long options:" NLS
 "  --[no-]mod-wheel" NLS
@@ -3226,6 +3272,9 @@ static inline int parse_opt_h(const char *arg)
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f)[,level]" NLS
 "  --noise-shaping=n" NLS, fp);
+#ifndef FIXED_RESAMPLATION
+	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);
+#endif
 	fputs(NLS, fp);
 	fputs("Available interfaces (-i, --interface option):" NLS, fp);
 	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
@@ -3566,29 +3615,6 @@ static inline int parse_opt_m(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_resample(const char *arg)
-{
-	static char *types[] = {
-		"c",  /* cspline */
-		"la", /* lagrange */
-		"g",  /* gauss */
-		"ne", /* newton */
-		"li", /* linear */
-		"no", /* none */
-	};
-	int i;
-
-	for (i = 0; i < (int)(sizeof(types)/sizeof(types[0])); i++) {
-		if (strncmp(arg, types[i], strlen(types[i])) == 0) {
-			set_current_resampler(i);
-			return 0;
-		}
-	}
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "invalid resample type %s", arg);
-	return 1;
-}
-
 static inline int parse_opt_N(const char *arg)
 {
 	int val;
@@ -3597,19 +3623,17 @@ static inline int parse_opt_N(const char *arg)
 	case RESAMPLE_CSPLINE:
 	case RESAMPLE_LAGRANGE:
 		no_4point_interpolation = y_or_n_p(arg);
-		return 0;
+		break;
 	case RESAMPLE_NEWTON:
 	case RESAMPLE_GAUSS:
-		val = atoi(arg);
-		if (! val) {
+		if (! (val = atoi(arg)))
 			/* set to linear interpolation for compatibility */
 			set_current_resampler(RESAMPLE_LINEAR);
-		} else if (set_resampler_parm(val)) {
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "invalid -N value");
+		else if (set_resampler_parm(val)) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid -N value");
 			return 1;
 		}
-		return 0;
+		break;
 	}
 	return 0;
 }
