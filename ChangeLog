@@ -1,3 +1,8 @@
+2004-03-12  Saito <saito@intaa.net>
+
+	* timidity/reverb.c:
+	  Fix around effects.
+
 2004-03-10  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c:

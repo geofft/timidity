@@ -1687,8 +1687,8 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 	double t;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(lfo1, 1.0f, LFO_SINE, 0);
-		init_lfo(lfo1d, 1.0f, LFO_SINE, 0);
+		init_lfo(lfo1, 1.30f, LFO_SINE, 0);
+		init_lfo(lfo1d, 1.30f, LFO_SINE, 0);
 		t = reverb_time_table[reverb_status_gs.time] / reverb_time_table[64] - 1.0;
 		t = 1.0 + t / 2;
 		set_delay(pd, reverb_status_gs.pre_delay_time * play_mode->rate / 1000);
@@ -2158,8 +2158,8 @@ static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(&(info->lfoL), (double)chorus_status_gs.rate * 0.122f, LFO_SINE, 0);
-		init_lfo(&(info->lfoR), (double)chorus_status_gs.rate * 0.122f, LFO_SINE, 90);
+		init_lfo(&(info->lfoL), (double)chorus_status_gs.rate * 0.122f, LFO_TRIANGULAR, 0);
+		init_lfo(&(info->lfoR), (double)chorus_status_gs.rate * 0.122f, LFO_TRIANGULAR, 90);
 		info->pdelay = chorus_delay_time_table[chorus_status_gs.delay] * (double)play_mode->rate / 1000.0f;
 		info->depth = (double)(chorus_status_gs.depth + 1) / 3.2f * (double)play_mode->rate / 1000.0f;
 		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
@@ -2876,7 +2876,7 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		set_delay(buf0, (int32)(9600.0f * play_mode->rate / 44100.0f));
-		init_lfo(lfo, lfo->freq, LFO_SINE, 0);
+		init_lfo(lfo, lfo->freq, LFO_TRIANGULAR, 0);
 		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
 		info->weti = TIM_FSCALE(info->level * info->wet * HEXA_CHORUS_WET_LEVEL, 24);
 		v0 = info->depth * ((double)info->depth_dev * HEXA_CHORUS_DEPTH_DEV);
@@ -3128,13 +3128,13 @@ static void do_eq3(int32 *buf, int32 count, EffectList *ef)
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
-	if(eq->low_gain != 0) {
+	if (eq->low_gain != 0) {
 		do_shelving_filter_stereo(buf, count, &(eq->lsf));
 	}
-	if(eq->high_gain != 0) {
+	if (eq->high_gain != 0) {
 		do_shelving_filter_stereo(buf, count, &(eq->hsf));
 	}
-	if(eq->mid_gain != 0) {
+	if (eq->mid_gain != 0) {
 		do_peaking_filter_stereo(buf, count, &(eq->peak));
 	}
 }
@@ -3171,16 +3171,16 @@ static void do_stereo_eq(int32 *buf, int32 count, EffectList *ef)
 			buf[i] = imuldiv24(buf[i], leveli);
 		}
 	}
-	if(eq->low_gain != 0) {
+	if (eq->low_gain != 0) {
 		do_shelving_filter_stereo(buf, count, &(eq->lsf));
 	}
-	if(eq->high_gain != 0) {
+	if (eq->high_gain != 0) {
 		do_shelving_filter_stereo(buf, count, &(eq->hsf));
 	}
-	if(eq->m1_gain != 0) {
+	if (eq->m1_gain != 0) {
 		do_peaking_filter_stereo(buf, count, &(eq->m1));
 	}
-	if(eq->m2_gain != 0) {
+	if (eq->m2_gain != 0) {
 		do_peaking_filter_stereo(buf, count, &(eq->m2));
 	}
 }
@@ -3188,43 +3188,24 @@ static void do_stereo_eq(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_eq2(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEQ2 *info = (InfoEQ2 *)ef->info;
-	int val;
 
-	val = st->param_lsb[0];
-	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
-	info->low_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[1] - 64;
-	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[2];
-	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
-	info->high_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[3] - 64;
-	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[0], 4, 40)];
+	info->low_gain = clip_int(st->param_lsb[1] - 64, -12, 12);
+	info->high_freq = eq_freq_table_xg[clip_int(st->param_lsb[2], 28, 58)];
+	info->high_gain = clip_int(st->param_lsb[3] - 64, -12, 12);
 }
 
 static void conv_xg_eq3(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEQ3 *info = (InfoEQ3 *)ef->info;
-	int val;
 
-	val = st->param_lsb[0] - 64;
-	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[1];
-	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
-	info->mid_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[2] - 64;
-	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[3];
-	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
-	info->mid_width = (double)val / 10.0f;
-	val = st->param_lsb[4] - 64;
-	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[5];
-	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
-	info->low_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[6];
-	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
-	info->high_freq = eq_freq_table_xg[val];
+	info->low_gain = clip_int(st->param_lsb[0] - 64, -12, 12);
+	info->mid_freq = eq_freq_table_xg[clip_int(st->param_lsb[1], 14, 54)];
+	info->mid_gain = clip_int(st->param_lsb[2] - 64, -12, 12);
+	info->mid_width = (double)clip_int(st->param_lsb[3], 10, 120) / 10.0f;
+	info->high_gain = clip_int(st->param_lsb[4] - 64, -12, 12);
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[5], 4, 40)];
+	info->high_freq = eq_freq_table_xg[clip_int(st->param_lsb[6], 28, 58)];
 }
 
 static float eq_q_table_gs[] =
@@ -3252,26 +3233,14 @@ static void conv_gs_stereo_eq(struct insertion_effect_gs_t *st, EffectList *ef)
 static void conv_xg_chorus_eq3(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEQ3 *info = (InfoEQ3 *)ef->info;
-	int val;
 
-	val = st->param_lsb[5];
-	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
-	info->low_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[6] - 64;
-	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[7];
-	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
-	info->high_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[8] - 64;
-	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[10];
-	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
-	info->mid_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[11] - 64;
-	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[12];
-	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
-	info->mid_width = (double)val / 10.0f;
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[5], 4, 40)];
+	info->low_gain = clip_int(st->param_lsb[6] - 64, -12, 12);
+	info->high_freq = eq_freq_table_xg[clip_int(st->param_lsb[7], 28, 58)];
+	info->high_gain = clip_int(st->param_lsb[8] - 64, -12, 12);
+	info->mid_freq = eq_freq_table_xg[clip_int(st->param_lsb[10], 14, 54)];
+	info->mid_gain = clip_int(st->param_lsb[11] - 64, -12, 12);
+	info->mid_width = (double)clip_int(st->param_lsb[12], 10, 120) / 10.0f;
 }
 
 static void conv_xg_chorus(struct effect_xg_t *st, EffectList *ef)
@@ -3279,28 +3248,25 @@ static void conv_xg_chorus(struct effect_xg_t *st, EffectList *ef)
 	InfoChorus *info = (InfoChorus *)ef->info;
 
 	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
-	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f / 2.0f;
 	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
 	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[3]];
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
-	info->phase_diff = 0.0f;
+	info->phase_diff = 90.0f;
 }
 
 static void conv_xg_flanger(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoChorus *info = (InfoChorus *)ef->info;
-	int val;
 
 	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
-	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f / 2.0f;
 	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
 	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[2]];
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
-	val = st->param_lsb[13];
-	val = (val > 124) ? 124 : (val < 4) ? 4 : val;
-	info->phase_diff = (double)(val - 64) * 3.0f;
+	info->phase_diff = (double)(clip_int(st->param_lsb[13], 4, 124) - 64) * 3.0f;
 }
 
 static void conv_xg_symphonic(struct effect_xg_t *st, EffectList *ef)
@@ -3308,12 +3274,12 @@ static void conv_xg_symphonic(struct effect_xg_t *st, EffectList *ef)
 	InfoChorus *info = (InfoChorus *)ef->info;
 
 	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
-	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f / 2.0f;
 	info->feedback = 0.0f;
 	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[3]];
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
-	info->phase_diff = 0.0f;
+	info->phase_diff = 90.0f;
 }
 
 static void do_chorus(int32 *buf, int32 count, EffectList *ef)
@@ -3329,8 +3295,8 @@ static void do_chorus(int32 *buf, int32 count, EffectList *ef)
 		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if (count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(&(info->lfoL), info->rate, LFO_SINE, 0);
-		init_lfo(&(info->lfoR), info->rate, LFO_SINE, info->phase_diff);
+		init_lfo(&(info->lfoL), info->rate, LFO_TRIANGULAR, 0);
+		init_lfo(&(info->lfoR), info->rate, LFO_TRIANGULAR, info->phase_diff);
 		info->pdelay = info->pdelay_ms * (double)play_mode->rate / 1000.0f;
 		info->depth = info->depth_ms * (double)play_mode->rate / 1000.0f;
 		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
@@ -3395,21 +3361,12 @@ static void do_chorus(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_od_eq3(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEQ3 *info = (InfoEQ3 *)ef->info;
-	int val;
 
-	val = st->param_lsb[1];
-	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
-	info->low_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[2] - 64;
-	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[6];
-	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
-	info->mid_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[7] - 64;
-	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[8];
-	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
-	info->mid_width = (double)val / 10.0f;
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[1], 4, 40)];
+	info->low_gain = clip_int(st->param_lsb[2] - 64, -12, 12);
+	info->mid_freq = eq_freq_table_xg[clip_int(st->param_lsb[6], 14, 54)];
+	info->mid_gain = clip_int(st->param_lsb[7] - 64, -12, 12);
+	info->mid_width = (double)clip_int(st->param_lsb[8], 10, 120) / 10.0f;
 	info->high_freq = 0;
 	info->high_gain = 0;
 }
@@ -3417,13 +3374,10 @@ static void conv_xg_od_eq3(struct effect_xg_t *st, EffectList *ef)
 static void conv_xg_overdrive(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoStereoOD *info = (InfoStereoOD *)ef->info;
-	int val;
 
 	info->type = 0;
 	info->drive = (double)st->param_lsb[0] / 127.0f;
-	val = st->param_lsb[3];
-	val = (val > 60) ? 60 : (val < 34) ? 34 : val;
-	info->cutoff = eq_freq_table_xg[val];
+	info->cutoff = eq_freq_table_xg[clip_int(st->param_lsb[3], 34, 60)];
 	info->level = (double)st->param_lsb[4] / 127.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
@@ -3432,13 +3386,10 @@ static void conv_xg_overdrive(struct effect_xg_t *st, EffectList *ef)
 static void conv_xg_distortion(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoStereoOD *info = (InfoStereoOD *)ef->info;
-	int val;
 
 	info->type = 1;
 	info->drive = (double)st->param_lsb[0] / 127.0f;
-	val = st->param_lsb[3];
-	val = (val > 60) ? 60 : (val < 34) ? 34 : val;
-	info->cutoff = eq_freq_table_xg[val];
+	info->cutoff = eq_freq_table_xg[clip_int(st->param_lsb[3], 34, 60)];
 	info->level = (double)st->param_lsb[4] / 127.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
@@ -3608,42 +3559,24 @@ static void do_delay_lcr(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_delay_eq2(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEQ2 *info = (InfoEQ2 *)ef->info;
-	int val;
 
-	val = st->param_lsb[12];
-	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
-	info->low_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[13] - 64;
-	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
-	val = st->param_lsb[14];
-	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
-	info->high_freq = eq_freq_table_xg[val];
-	val = st->param_lsb[15] - 64;
-	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[12], 4, 40)];
+	info->low_gain = clip_int(st->param_lsb[13] - 64, -12, 12);
+	info->high_freq = eq_freq_table_xg[clip_int(st->param_lsb[14], 28, 58)];
+	info->high_gain = clip_int(st->param_lsb[15] - 64, -12, 12);
 }
 
 static void conv_xg_delay_lcr(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoDelayLCR *info = (InfoDelayLCR *)ef->info;
-	int val;
 
-	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->ldelay = (double)val / 10.0f;
-	val = st->param_msb[1] * 128 + st->param_lsb[1];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->rdelay = (double)val / 10.0f;
-	val = st->param_msb[2] * 128 + st->param_lsb[2];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->cdelay = (double)val / 10.0f;
-	val = st->param_msb[3] * 128 + st->param_lsb[3];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->fdelay = (double)val / 10.0f;
+	info->ldelay = (double)clip_int(st->param_msb[0] * 128 + st->param_lsb[0], 1, 14860) / 10.0f;
+	info->rdelay = (double)clip_int(st->param_msb[1] * 128 + st->param_lsb[1], 1, 14860) / 10.0f;
+	info->cdelay = (double)clip_int(st->param_msb[2] * 128 + st->param_lsb[2], 1, 14860) / 10.0f;
+	info->fdelay = (double)clip_int(st->param_msb[3] * 128 + st->param_lsb[3], 1, 14860) / 10.0f;
 	info->feedback = (double)(st->param_lsb[4] - 64) * (0.763f * 2.0f / 100.0f);
 	info->clevel = (double)st->param_lsb[5] / 127.0f;
-	val = st->param_lsb[6];
-	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
-	info->high_damp = (double)val / 10.0f;
+	info->high_damp = (double)clip_int(st->param_lsb[6], 1, 10) / 10.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
 }
@@ -3651,24 +3584,13 @@ static void conv_xg_delay_lcr(struct effect_xg_t *st, EffectList *ef)
 static void conv_xg_delay_lr(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoDelayLR *info = (InfoDelayLR *)ef->info;
-	int val;
 
-	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->ldelay = (double)val / 10.0f;
-	val = st->param_msb[1] * 128 + st->param_lsb[1];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->rdelay = (double)val / 10.0f;
-	val = st->param_msb[2] * 128 + st->param_lsb[2];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->fdelay1 = (double)val / 10.0f;
-	val = st->param_msb[3] * 128 + st->param_lsb[3];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
-	info->fdelay2 = (double)val / 10.0f;
+	info->ldelay = (double)clip_int(st->param_msb[0] * 128 + st->param_lsb[0], 1, 14860) / 10.0f;
+	info->rdelay = (double)clip_int(st->param_msb[1] * 128 + st->param_lsb[1], 1, 14860) / 10.0f;
+	info->fdelay1 = (double)clip_int(st->param_msb[2] * 128 + st->param_lsb[2], 1, 14860) / 10.0f;
+	info->fdelay2 = (double)clip_int(st->param_msb[3] * 128 + st->param_lsb[3], 1, 14860) / 10.0f;
 	info->feedback = (double)(st->param_lsb[4] - 64) * (0.763f * 2.0f / 100.0f);
-	val = st->param_lsb[5];
-	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
-	info->high_damp = (double)val / 10.0f;
+	info->high_damp = (double)clip_int(st->param_lsb[5], 1, 10) / 10.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
 }
@@ -3737,25 +3659,14 @@ static void do_delay_lr(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_echo(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoEcho *info = (InfoEcho *)ef->info;
-	int val;
 
-	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->ldelay1 = (double)val / 10.0f;
+	info->ldelay1 = (double)clip_int(st->param_msb[0] * 128 + st->param_lsb[0], 1, 7430) / 10.0f;
 	info->lfeedback = (double)(st->param_lsb[1] - 64) * (0.763f * 2.0f / 100.0f);
-	val = st->param_msb[2] * 128 + st->param_lsb[2];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->rdelay1 = (double)val / 10.0f;
+	info->rdelay1 = (double)clip_int(st->param_msb[2] * 128 + st->param_lsb[2], 1, 7430) / 10.0f;
 	info->rfeedback = (double)(st->param_lsb[3] - 64) * (0.763f * 2.0f / 100.0f);
-	val = st->param_lsb[4];
-	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
-	info->high_damp = (double)val / 10.0f;
-	val = st->param_msb[5] * 128 + st->param_lsb[5];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->ldelay2 = (double)val / 10.0f;
-	val = st->param_msb[6] * 128 + st->param_lsb[6];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->rdelay2 = (double)val / 10.0f;
+	info->high_damp = (double)clip_int(st->param_lsb[4], 1, 10) / 10.0f;
+	info->ldelay2 = (double)clip_int(st->param_msb[5] * 128 + st->param_lsb[5], 1, 7430) / 10.0f;
+	info->rdelay2 = (double)clip_int(st->param_msb[6] * 128 + st->param_lsb[6], 1, 7430) / 10.0f;
 	info->level = (double)st->param_lsb[7] / 127.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
@@ -3829,19 +3740,12 @@ static void do_echo(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_cross_delay(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoCrossDelay *info = (InfoCrossDelay *)ef->info;
-	int val;
 
-	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->lrdelay = (double)val / 10.0f;
-	val = st->param_msb[1] * 128 + st->param_lsb[1];
-	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
-	info->rldelay = (double)val / 10.0f;
+	info->lrdelay = (double)clip_int(st->param_msb[0] * 128 + st->param_lsb[0], 1, 7430) / 10.0f;
+	info->rldelay = (double)clip_int(st->param_msb[1] * 128 + st->param_lsb[1], 1, 7430) / 10.0f;
 	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
 	info->input_select = st->param_lsb[3];
-	val = st->param_lsb[4];
-	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
-	info->high_damp = (double)val / 10.0f;
+	info->high_damp = (double)clip_int(st->param_lsb[4], 1, 10) / 10.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
 }
@@ -3999,23 +3903,14 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 static void conv_xg_lofi(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoLoFi *info = (InfoLoFi *)ef->info;
-	int val;
 
 	info->srf.freq = lofi_sampling_freq_table_xg[st->param_lsb[0]] / 2.0f;
 	info->word_length = st->param_lsb[1];
-	val = st->param_lsb[2];
-	val = (val > 18) ? 18 : (val < 0) ? 0 : val;
-	info->output_gain = val;
-	val = st->param_lsb[3];
-	val = (val > 80) ? 80 : (val < 10) ? 10 : val;
-	info->lpf.freq = eq_freq_table_xg[val];
+	info->output_gain = clip_int(st->param_lsb[2], 0, 18);
+	info->lpf.freq = eq_freq_table_xg[clip_int(st->param_lsb[3], 10, 80)];
 	info->filter_type = st->param_lsb[4];
-	val = st->param_lsb[5];
-	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
-	info->lpf.q = (double)val / 10.0f;
-	val = st->param_lsb[6];
-	val = (val > 6) ? 6 : (val < 0) ? 0 : val;
-	info->bit_assign = val;
+	info->lpf.q = (double)clip_int(st->param_lsb[5], 10, 120) / 10.0f;
+	info->bit_assign = clip_int(st->param_lsb[6], 0, 6);
 	info->emphasis = st->param_lsb[7];
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
