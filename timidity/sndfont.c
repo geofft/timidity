@@ -70,7 +70,7 @@
 #define SF_SUPPRESS_TREMOLO
 #define SF_SUPPRESS_VIBRATO
 #else
-/*#define SF_CLOSE_EACH_FILE*/
+#define SF_CLOSE_EACH_FILE
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
@@ -636,7 +636,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		    }
 		}
 
-		sample->data = (sample_t *)safe_malloc(sp->len + 2 * 3);
+		sample->data = (sample_t *)safe_large_malloc(sp->len + 2 * 3);
 		sample->data_alloced = 1;
 
 		tf_seek(rec->tf, sp->start, SEEK_SET);
