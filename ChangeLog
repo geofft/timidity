@@ -1,3 +1,7 @@
+2003-08-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c (parse_opt_s): -s option works correctly again
+
 2003-08-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.c:

@@ -3874,7 +3874,7 @@ static inline int parse_opt_s(const char *arg)
 	/* sampling rate */
 	int32 tmpi32;
 
-	if (atoi(arg) < 100)
+	if ((tmpi32 = atoi(arg)) < 100)
 		tmpi32 = atof(arg) * 1000 + 0.5;
 	return set_value(&opt_output_rate, tmpi32,
 			MIN_OUTPUT_RATE, MAX_OUTPUT_RATE, "Resampling frequency");
