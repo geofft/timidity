@@ -328,8 +328,9 @@ OSErr mac_SetPlayOption()
 					myGetDialogItemText(dialog, iVoices, s);
 					StringToNum(s,&i);
 					if( i<=0 ) i=1;
-					if( MAX_VOICES<i ) i=MAX_VOICES;
-					voices=i;
+					max_voices=MAX_SAFE_MALLOC_SIZE / sizeof(Voice);
+					if ( i<max_voices ) max_voices=i;
+					voices=max_voices;
 						
 					myGetDialogItemText(dialog, iControlRaio, s);
 					StringToNum(s,&i);

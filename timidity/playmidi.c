@@ -107,7 +107,8 @@ int volatile stream_max_compute=500; /* compute time limit (in msec) when stream
 static int prescanning_flag;
 static int32 midi_restart_time = 0;
 Channel channel[MAX_CHANNELS];
-Voice voice[MAX_VOICES];
+int max_voices = DEFAULT_VOICES;
+Voice *voice = NULL;
 int8 current_keysig = 0;
 int8 current_temper_keysig = 0;
 int8 opt_init_keysig = 0;
@@ -403,7 +404,7 @@ static int last_vidq(int ch, int note)
 static void reset_voices(void)
 {
     int i;
-    for(i = 0; i < MAX_VOICES; i++)
+    for(i = 0; i < max_voices; i++)
     {
 	voice[i].status = VOICE_FREE;
 	voice[i].temper_instant = 0;
@@ -4417,7 +4418,7 @@ static void voice_increment(int n)
     int i;
     for(i = 0; i < n; i++)
     {
-	if(voices == MAX_VOICES)
+	if(voices == max_voices)
 	    break;
 	voice[voices].status = VOICE_FREE;
 	voice[voices].temper_instant = 0;

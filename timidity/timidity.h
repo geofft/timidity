@@ -124,7 +124,6 @@ typedef double FLOAT_T;
 #endif /* DEFAULT_RATE */
 
 #define DEFAULT_VOICES	256
-#define MAX_VOICES	256
 
 
 /* The size of the internal buffer is 2^AUDIO_BUFFER_BITS samples.

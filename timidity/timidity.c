@@ -3937,7 +3937,9 @@ static inline int parse_opt_P(const char *arg)
 
 static inline int parse_opt_p(const char *arg)
 {
-	if (set_value(&voices, atoi(arg), 1, MAX_VOICES, "Polyphony"))
+	max_voices = atoi(arg);
+	if (set_value(&voices, max_voices, 1,
+		      MAX_SAFE_MALLOC_SIZE / sizeof(Voice), "Polyphony"))
 		return 1;
 	return 0;
 }
@@ -4631,6 +4633,9 @@ MAIN_INTERFACE int timidity_post_load_configuration(void)
 
 MAIN_INTERFACE void timidity_init_player(void)
 {
+    /* Allocate voice[] */
+    voice = (Voice *) safe_realloc(voice, max_voices * sizeof(Voice));
+
     /* Set play mode parameters */
     if(opt_output_rate != 0)
 	play_mode->rate = opt_output_rate;

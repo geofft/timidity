@@ -388,7 +388,7 @@ typedef struct {
 #define ISDRUMCHANNEL(c)  IS_SET_CHANNELMASK(drumchannels, c)
 
 extern Channel channel[];
-extern Voice voice[];
+extern Voice *voice;
 
 extern int32 control_ratio, amp_with_poly, amplification;
 
@@ -398,6 +398,7 @@ extern ChannelBitMask default_drumchannels;
 extern ChannelBitMask drumchannels;
 
 extern int adjust_panning_immediately;
+extern int max_voices;
 extern int voices, upper_voices;
 extern int note_key_offset;
 extern FLOAT_T midi_time_ratio;
