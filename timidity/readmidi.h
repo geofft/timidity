@@ -156,6 +156,8 @@ extern void recompute_eq_status_gs(void);
 extern void set_insertion_effect_def_gs(void);
 extern void realloc_insertion_effect_gs(void);
 extern void recompute_insertion_effect_gs(void);
+extern void recompute_multi_eq_xg(void);
+extern void set_multi_eq_type_xg(int);
 
 extern void recompute_userdrum(int bank, int prog);
 extern void free_userdrum();

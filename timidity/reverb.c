@@ -362,7 +362,8 @@ void calc_filter_shelving_low(filter_shelving *p)
 	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
 	sn = sin(omega);
 	cs = cos(omega);
-	beta = sqrt(A + A);
+	if(p->q != 0) {beta = sqrt(A) / p->q;}
+	else {beta = sqrt(A + A);}
 
 	a0 = 1.0 / ((A + 1) + (A - 1) * cs + beta * sn);
 	a1 = 2.0 * ((A - 1) + (A + 1) * cs);
@@ -392,7 +393,8 @@ void calc_filter_shelving_high(filter_shelving *p)
 	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
 	sn = sin(omega);
 	cs = cos(omega);
-	beta = sqrt(A + A);
+	if(p->q != 0) {beta = sqrt(A) / p->q;}
+	else {beta = sqrt(A + A);}
 
 	a0 = 1.0 / ((A + 1) - (A - 1) * cs + beta * sn);
 	a1 = (-2 * ((A - 1) - (A + 1) * cs));
@@ -448,6 +450,72 @@ static void do_shelving_filter_stereo(int32* buf, int32 count, filter_shelving *
 #endif /* OPT_MODE != 0 */
 }
 
+/*! peaking filter */
+void calc_filter_peaking(filter_peaking *p)
+{
+	double a0, ba1, a2, b0, b2, omega, sn, cs, A, alpha;
+
+	A = pow(10, p->gain / 40);
+	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
+	sn = sin(omega);
+	cs = cos(omega);
+	if(p->q != 0) {alpha = sn / (2.0 * p->q);}
+	else {
+		p->b0 = TIM_FSCALE(1.0, 24);
+		p->ba1 = p->b0 = p->a2 = p->b2 = 0;
+		return;
+	}
+
+	a0 = 1.0 / (1.0 + alpha / A);
+	ba1 = -2.0 * cs;
+	a2 = 1.0 - alpha / A;
+	b0 = 1.0 + alpha * A;
+	b2 = 1.0 - alpha * A;
+
+	ba1 *= a0;
+	a2 *= a0;
+	b0 *= a0;
+	b2 *= a0;
+
+	p->ba1 = TIM_FSCALE(ba1, 24);
+	p->a2 = TIM_FSCALE(a2, 24);
+	p->b0 = TIM_FSCALE(b0, 24);
+	p->b2 = TIM_FSCALE(b2, 24);
+}
+
+void init_filter_peaking(filter_peaking *p)
+{
+	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
+		p->x2r = 0, p->y1r = 0, p->y2r = 0;
+}
+
+static void do_peaking_filter_stereo(int32* buf, int32 count, filter_peaking *p)
+{
+#if OPT_MODE != 0
+	int32 i;
+	int32 x1l = p->x1l, x2l = p->x2l, y1l = p->y1l, y2l = p->y2l,
+		x1r = p->x1r, x2r = p->x2r, y1r = p->y1r, y2r = p->y2r, yout;
+	int32 ba1 = p->ba1, a2 = p->a2, b0 = p->b0, b2 = p->b2;
+
+	for(i = 0; i < count; i++) {
+		yout = imuldiv24(buf[i], b0) + imuldiv24(x1l - y1l, ba1) + imuldiv24(x2l, b2) - imuldiv24(y2l, a2);
+		x2l = x1l;
+		x1l = buf[i];
+		y2l = y1l;
+		y1l = yout;
+		buf[i] = yout;
+
+		yout = imuldiv24(buf[++i], b0) + imuldiv24(x1r - y1r, ba1) + imuldiv24(x2r, b2) - imuldiv24(y2r, a2);
+		x2r = x1r;
+		x1r = buf[i];
+		y2r = y1r;
+		y1r = yout;
+		buf[i] = yout;
+	}
+	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
+		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
+#endif /* OPT_MODE != 0 */
+}
 
 /*                          */
 /*  Standard Reverb Effect  */
@@ -1942,19 +2010,19 @@ void do_ch_chorus(int32 *buf, int32 count)
 /*                             */
 static int32 eq_buffer[AUDIO_BUFFER_SIZE * 2];
 
-void init_eq()
+void init_eq_gs()
 {
 	memset(eq_buffer, 0, sizeof(eq_buffer));
-	init_filter_shelving(&(eq_status.lsf));
-	init_filter_shelving(&(eq_status.hsf));
+	init_filter_shelving(&(eq_status_gs.lsf));
+	init_filter_shelving(&(eq_status_gs.hsf));
 }
 
-void do_ch_eq(int32* buf, int32 count)
+void do_ch_eq_gs(int32* buf, int32 count)
 {
 	register int32 i;
 
-	do_shelving_filter_stereo(eq_buffer, count, &(eq_status.lsf));
-	do_shelving_filter_stereo(eq_buffer, count, &(eq_status.hsf));
+	do_shelving_filter_stereo(eq_buffer, count, &(eq_status_gs.lsf));
+	do_shelving_filter_stereo(eq_buffer, count, &(eq_status_gs.hsf));
 
 	for(i = 0; i < count; i++) {
 		buf[i] += eq_buffer[i];
@@ -1962,9 +2030,36 @@ void do_ch_eq(int32* buf, int32 count)
 	}
 }
 
+void do_multi_eq_xg(int32* buf, int32 count)
+{
+	if(multi_eq_xg.valid1) {
+		if(multi_eq_xg.shape1) {	/* peaking */
+			do_peaking_filter_stereo(buf, count, &(multi_eq_xg.eq1p));
+		} else {	/* shelving */
+			do_shelving_filter_stereo(buf, count, &(multi_eq_xg.eq1s));
+		}
+	}
+	if(multi_eq_xg.valid2) {
+		do_peaking_filter_stereo(buf, count, &(multi_eq_xg.eq2p));
+	}
+	if(multi_eq_xg.valid3) {
+		do_peaking_filter_stereo(buf, count, &(multi_eq_xg.eq3p));
+	}
+	if(multi_eq_xg.valid4) {
+		do_peaking_filter_stereo(buf, count, &(multi_eq_xg.eq4p));
+	}
+	if(multi_eq_xg.valid5) {
+		if(multi_eq_xg.shape5) {	/* peaking */
+			do_peaking_filter_stereo(buf, count, &(multi_eq_xg.eq5p));
+		} else {	/* shelving */
+			do_shelving_filter_stereo(buf, count, &(multi_eq_xg.eq5s));
+		}
+	}
+}
+
 #if OPT_MODE != 0
 #if _MSC_VER
-void set_ch_eq(int32 *buf, int32 count)
+void set_ch_eq_gs(int32 *buf, int32 count)
 {
 	int32 *dbuf = eq_buffer;
 	_asm {
@@ -1985,7 +2080,7 @@ L2:
 	}
 }
 #else
-void set_ch_eq(register int32 *buf, int32 n)
+void set_ch_eq_gs(register int32 *buf, int32 n)
 {
     register int32 i;
 
@@ -1996,7 +2091,7 @@ void set_ch_eq(register int32 *buf, int32 n)
 }
 #endif	/* _MSC_VER */
 #else
-void set_ch_eq(register int32 *sbuffer, int32 n)
+void set_ch_eq_gs(register int32 *sbuffer, int32 n)
 {
     register int32  i;
     
@@ -2013,7 +2108,7 @@ void set_ch_eq(register int32 *sbuffer, int32 n)
 /*                                  */
 void do_insertion_effect_gs(int32 *buf, int32 count)
 {
-	do_effect_list(buf, count, gs_ieffect.ef);
+	do_effect_list(buf, count, ie_gs.ef);
 }
 
 void do_insertion_effect_xg(int32 *buf, int32 count)
@@ -2084,10 +2179,12 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoEQ2 *eq = (InfoEQ2 *)ef->info;
 	if(count == MAGIC_INIT_EFFECT_INFO) {
+		eq->lsf.q = 0;
 		eq->lsf.freq = eq->low_freq;
 		eq->lsf.gain = eq->low_gain;
 		calc_filter_shelving_low(&(eq->lsf));
 		init_filter_shelving(&(eq->lsf));
+		eq->hsf.q = 0;
 		eq->hsf.freq = eq->high_freq;
 		eq->hsf.gain = eq->high_gain;
 		calc_filter_shelving_high(&(eq->hsf));
@@ -2543,11 +2640,5 @@ void free_effect_buffers(void)
 {
 	free_freeverb_buf(&(reverb_status.info_freeverb));
 	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
-	free_effect_list(gs_ieffect.ef);
+	free_effect_list(ie_gs.ef);
 }
-
-struct delay_status_t delay_status;
-struct reverb_status_t reverb_status;
-struct chorus_status_t chorus_status;
-struct chorus_param_t chorus_param;
-struct eq_status_t eq_status;

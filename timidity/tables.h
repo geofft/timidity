@@ -79,6 +79,8 @@ extern FLOAT_T cb_to_amp_table[];
 extern FLOAT_T reverb_time_table[];
 extern FLOAT_T pan_delay_table[];
 extern FLOAT_T chamberlin_filter_db_to_q_table[];
+extern uint8 multi_eq_block_table_xg[];
+extern FLOAT_T eq_freq_table_xg[];
 
 extern void init_freq_table(void);
 extern void init_freq_table_tuning(void);

@@ -101,6 +101,7 @@ void init_chorus_status_gs(void);
 void init_reverb_status_gs(void);
 void init_eq_status_gs(void);
 void init_insertion_effect_gs(void);
+void init_multi_eq_xg(void);
 
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
@@ -743,7 +744,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
     /* val[7] is the starting value for the event type */
 
     /* Effect 1 */
-    else if(len >= 10 &&
+    if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
        val[5] == 0x02)   /* Effect 1 */
@@ -759,9 +760,10 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	addlow = val[7];
 	body = val + 8;
 	p = val[6];
-	body_end = val + len-3;
+	body_end = val + len - 3;
 
 	for (ent = val[7]; body <= body_end; body++, ent++) {
+		if(p == 0x01) {	/* Effect 1 */
 	    switch(ent) {
 		case 0x00:	/* Reverb Type MSB */
 		    xg_reverb_type_msb = *body;
@@ -798,11 +800,108 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    continue;
 		    break;
 	    }
+		} else if(p == 0x40) {	/* Multi EQ */
+	    switch(ent) {
+		case 0x00:	/* EQ type */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x50);
+			num_events++;
+		    break;
+
+		case 0x01:	/* EQ gain1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x51);
+			num_events++;
+			break;
+
+		case 0x02:	/* EQ frequency1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x52);
+			num_events++;
+			break;
+
+		case 0x03:	/* EQ Q1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x53);
+			num_events++;
+			break;
+
+		case 0x04:	/* EQ shape1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x54);
+			num_events++;
+			break;
+
+		case 0x05:	/* EQ gain2 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x55);
+			num_events++;
+			break;
+
+		case 0x06:	/* EQ frequency2 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x56);
+			num_events++;
+			break;
+
+		case 0x07:	/* EQ Q2 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x57);
+			num_events++;
+			break;
+
+		case 0x09:	/* EQ gain3 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x59);
+			num_events++;
+			break;
+
+		case 0x0A:	/* EQ frequency3 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5A);
+			num_events++;
+			break;
+
+		case 0x0B:	/* EQ Q3 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5B);
+			num_events++;
+			break;
+
+		case 0x0D:	/* EQ gain4 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5D);
+			num_events++;
+			break;
+
+		case 0x0E:	/* EQ frequency4 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5E);
+			num_events++;
+			break;
+
+		case 0x0F:	/* EQ Q4 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x5F);
+			num_events++;
+			break;
+
+		case 0x11:	/* EQ gain5 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x61);
+			num_events++;
+			break;
+
+		case 0x12:	/* EQ frequency5 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x62);
+			num_events++;
+			break;
+
+		case 0x13:	/* EQ Q5 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x63);
+			num_events++;
+			break;
+
+		case 0x14:	/* EQ shape5 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x64);
+			num_events++;
+			break;
+
+		default:
+		    continue;
+		    break;
+	    }
+		}
 	}
     }
 
     /* Effect 2 (Insertion Effects) */
-    if(len >= 10 &&
+    else if(len >= 10 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C && /* XG Model ID */
        val[5] == 0x03)   /* Effect 2 (Insertion Effects) */
@@ -919,9 +1018,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x23:	/* bend pitch control */
-		    SETMIDIEVENT(evm[num_events], 0,ME_RPN_MSB,p,0,0);
-		    SETMIDIEVENT(evm[num_events+1], 0,ME_RPN_LSB,p,0,0);
-		    SETMIDIEVENT(evm[num_events+2], 0,ME_DATA_ENTRY_MSB,p,(*body - 0x40) & 0x7F,0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_RPN_MSB, p, 0, 0);
+		    SETMIDIEVENT(evm[num_events + 1], 0, ME_RPN_LSB, p, 0, 0);
+		    SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, (*body - 0x40) & 0x7F, 0);
 		    num_events += 3;
 		    break;
 
@@ -937,7 +1036,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x4a:
 		case 0x4b:
 		case 0x4c:
-		    SETMIDIEVENT(evm[0], 0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
+		    SETMIDIEVENT(evm[num_events], 0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
 		    num_events++;
 		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Scale Tuning %s (CH:%d %d cent)",
 			      note_name[ent - 0x41], p, *body - 64);
@@ -965,7 +1064,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		/* set reverb/chorus type on both MSB and LSB events */
 		/* this will give the "intended" result even if the events are
 		   sent in the wrong order */
-		if(val[3] == 0x01) {	/* Effect 1 */
+		if(val[3] == 0x02) {
+			if(val[4] == 0x01) {	/* Effect 1 */
 			switch(ent) {
 				case 0x00:	/* Reverb Type MSB */
 				  xg_reverb_type_msb = val[6];
@@ -988,17 +1088,113 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x0C:	/* Reverb Return */
-				  SETMIDIEVENT(evm[0], 0,ME_SYSEX_XG_LSB,p,val[6],0x00);
+				  SETMIDIEVENT(evm[0], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x00);
 				  num_events++;
 				  break;
 
 				case 0x2C:	/* Chorus Return */
-				  SETMIDIEVENT(evm[0], 0,ME_SYSEX_XG_LSB,p,val[6],0x01);
+				  SETMIDIEVENT(evm[0], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x01);
 				  num_events++;
 				  break;
 
 				default:
 				  break;
+			}
+			} else if(val[4] == 0x40) {	/* Multi EQ */
+			switch(ent) {
+				case 0x00:	/* EQ type */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x50);
+				  num_events++;
+				  break;
+
+				case 0x01:	/* EQ gain1 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x51);
+				  num_events++;
+				  break;
+
+				case 0x02:	/* EQ frequency1 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x52);
+				  num_events++;
+				  break;
+
+				case 0x03:	/* EQ Q1 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x53);
+				  num_events++;
+				  break;
+
+				case 0x04:	/* EQ shape1 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x54);
+				  num_events++;
+				  break;
+
+				case 0x05:	/* EQ gain2 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x55);
+				  num_events++;
+				  break;
+
+				case 0x06:	/* EQ frequency2 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x56);
+				  num_events++;
+				  break;
+
+				case 0x07:	/* EQ Q2 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x57);
+				  num_events++;
+				  break;
+
+				case 0x09:	/* EQ gain3 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x59);
+				  num_events++;
+				  break;
+
+				case 0x0A:	/* EQ frequency3 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5A);
+				  num_events++;
+				  break;
+
+				case 0x0B:	/* EQ Q3 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5B);
+				  num_events++;
+				  break;
+
+				case 0x0D:	/* EQ gain4 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5D);
+				  num_events++;
+				  break;
+
+				case 0x0E:	/* EQ frequency4 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5E);
+				  num_events++;
+				  break;
+
+				case 0x0F:	/* EQ Q4 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x5F);
+				  num_events++;
+				  break;
+
+				case 0x11:	/* EQ gain5 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x61);
+				  num_events++;
+				  break;
+
+				case 0x12:	/* EQ frequency5 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x62);
+				  num_events++;
+				  break;
+
+				case 0x13:	/* EQ Q5 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x63);
+				  num_events++;
+				  break;
+
+				case 0x14:	/* EQ shape5 */
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x64);
+				  num_events++;
+				  break;
+
+				default:
+				  break;
+			}
 			}
 		} else if(val[3] == 0x08) {	/* Multi Part Data parameter change */
 			switch(ent) {
@@ -1757,7 +1953,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	 * ...
 	 * E 0xf7
 	 */
-	if (len > 4 && val[0] >= 0x7e)
+	else if (len > 4 && val[0] >= 0x7e)
 		switch (val[2]) {
 		case 0x01:	/* Sample Dump header */
 		case 0x02:	/* Sample Dump packet */
@@ -3358,6 +3554,7 @@ void readmidi_read_init(void)
 	init_delay_status_gs();
 	init_chorus_status_gs();
 	init_eq_status_gs();
+	init_multi_eq_xg();
 	init_insertion_effect_gs();
 	init_userdrum();
 	init_userinst();
@@ -4477,7 +4674,7 @@ void set_chorus_macro_gs(int macro)
 /*! initialize EQ (GS) */
 void init_eq_status_gs(void)
 {
-	struct eq_status_t *p = &eq_status;
+	struct eq_status_gs_t *p = &eq_status_gs;
 	p->low_freq = 0;
 	p->low_gain = 0x40;
 	p->high_freq = 0;
@@ -4489,13 +4686,14 @@ void init_eq_status_gs(void)
 void recompute_eq_status_gs(void)
 {
 	double freq, dbGain;
-	struct eq_status_t *p = &eq_status;
+	struct eq_status_gs_t *p = &eq_status_gs;
 
 	/* Lowpass Shelving Filter */
 	if(p->low_freq == 0) {freq = 200;}
 	else {freq = 400;}
 	dbGain = p->low_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
+		p->lsf.q = 0;
 		p->lsf.freq = freq;
 		p->lsf.gain = dbGain;
 		calc_filter_shelving_low(&(p->lsf));
@@ -4506,10 +4704,101 @@ void recompute_eq_status_gs(void)
 	else {freq = 6000;}
 	dbGain = p->high_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
+		p->hsf.q = 0;
 		p->hsf.freq = freq;
 		p->hsf.gain = dbGain;
 		calc_filter_shelving_high(&(p->hsf));
 	}
+}
+
+/*! initialize Multi EQ (XG) */
+void init_multi_eq_xg(void)
+{
+	multi_eq_xg.valid = 0;
+	set_multi_eq_type_xg(0);
+	recompute_multi_eq_xg();
+}
+
+/*! set Multi EQ type (XG) */
+void set_multi_eq_type_xg(int type)
+{
+	struct multi_eq_xg_t *p = &multi_eq_xg;
+	type *= 20;
+	p->gain1 = multi_eq_block_table_xg[type];
+	p->freq1 = multi_eq_block_table_xg[type + 1];
+	p->q1 = multi_eq_block_table_xg[type + 2];
+	p->shape1 = multi_eq_block_table_xg[type + 3];
+	p->gain2 = multi_eq_block_table_xg[type + 4];
+	p->freq2 = multi_eq_block_table_xg[type + 5];
+	p->q2 = multi_eq_block_table_xg[type + 6];
+	p->gain3 = multi_eq_block_table_xg[type + 8];
+	p->freq3 = multi_eq_block_table_xg[type + 9];
+	p->q3 = multi_eq_block_table_xg[type + 10];
+	p->gain4 = multi_eq_block_table_xg[type + 12];
+	p->freq4 = multi_eq_block_table_xg[type + 13];
+	p->q4 = multi_eq_block_table_xg[type + 14];
+	p->gain5 = multi_eq_block_table_xg[type + 16];
+	p->freq5 = multi_eq_block_table_xg[type + 17];
+	p->q5 = multi_eq_block_table_xg[type + 18];
+	p->shape5 = multi_eq_block_table_xg[type + 19];
+}
+
+
+/*! recompute Multi EQ (XG) */
+void recompute_multi_eq_xg(void)
+{
+	struct multi_eq_xg_t *p = &multi_eq_xg;
+
+	if(p->freq1 != 0 && p->freq1 < 60 && p->gain1 != 0x40) {
+		p->valid1 = 1;
+		if(p->shape1) {	/* peaking */
+			p->eq1p.q = (double)p->q1 / 10.0;
+			p->eq1p.freq = eq_freq_table_xg[p->freq1];
+			p->eq1p.gain = p->gain1 - 0x40;
+			calc_filter_peaking(&(p->eq1p));
+		} else {	/* shelving */
+			p->eq1s.q = (double)p->q1 / 10.0;
+			p->eq1s.freq = eq_freq_table_xg[p->freq1];
+			p->eq1s.gain = p->gain1 - 0x40;
+			calc_filter_shelving_low(&(p->eq1s));
+		}
+	} else {p->valid1 = 0;}
+	if(p->freq2 != 0 && p->freq2 < 60 && p->gain2 != 0x40) {
+		p->valid2 = 1;
+		p->eq2p.q = (double)p->q2 / 10.0;
+		p->eq2p.freq = eq_freq_table_xg[p->freq2];
+		p->eq2p.gain = p->gain2 - 0x40;
+		calc_filter_peaking(&(p->eq2p));
+	} else {p->valid2 = 0;}
+	if(p->freq3 != 0 && p->freq3 < 60 && p->gain3 != 0x40) {
+		p->valid3 = 1;
+		p->eq3p.q = (double)p->q3 / 10.0;
+		p->eq4p.freq = eq_freq_table_xg[p->freq3];
+		p->eq4p.gain = p->gain3 - 0x40;
+		calc_filter_peaking(&(p->eq3p));
+	} else {p->valid3 = 0;}
+	if(p->freq4 != 0 && p->freq4 < 60 && p->gain4 != 0x40) {
+		p->valid4 = 1;
+		p->eq4p.q = (double)p->q4 / 10.0;
+		p->eq4p.freq = eq_freq_table_xg[p->freq4];
+		p->eq4p.gain = p->gain4 - 0x40;
+		calc_filter_peaking(&(p->eq4p));
+	} else {p->valid4 = 0;}
+	if(p->freq5 != 0 && p->freq5 < 60 && p->gain5 != 0x40) {
+		p->valid5 = 1;
+		if(p->shape5) {	/* peaking */
+			p->eq5p.q = (double)p->q5 / 10.0;
+			p->eq5p.freq = eq_freq_table_xg[p->freq5];
+			p->eq5p.gain = p->gain5 - 0x40;
+			calc_filter_peaking(&(p->eq5p));
+		} else {	/* shelving */
+			p->eq5s.q = (double)p->q5 / 10.0;
+			p->eq5s.freq = eq_freq_table_xg[p->freq5];
+			p->eq5s.gain = p->gain5 - 0x40;
+			calc_filter_shelving_high(&(p->eq5s));
+		}
+	} else {p->valid5 = 0;}
+	p->valid = p->valid1 || p->valid2 || p->valid3 || p->valid4 || p->valid5;
 }
 
 /*! convert GS user drumset assign groups to internal "alternate assign". */
@@ -4678,7 +4967,7 @@ void free_userinst()
 void init_insertion_effect_gs(void)
 {
 	int i;
-	struct GSInsertionEffect *st = &gs_ieffect;
+	struct insertion_effect_gs *st = &ie_gs;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
@@ -4701,7 +4990,7 @@ void init_insertion_effect_gs(void)
 /*! set GS default insertion effect parameters according to effect type. */
 void set_insertion_effect_def_gs(void)
 {
-	struct GSInsertionEffect *st = &gs_ieffect;
+	struct insertion_effect_gs *st = &ie_gs;
 	int8 *param = st->parameter;
 
 	switch(st->type) {
@@ -4755,7 +5044,7 @@ void set_insertion_effect_def_gs(void)
 }
 
 /*! convert GS insertion effect parameters for internal 2-Band EQ. */
-static void *conv_gsie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_eq2(struct insertion_effect_gs *ieffect, EffectList *ef)
 {
 	InfoEQ2 *eq; 
 
@@ -4775,7 +5064,7 @@ static void *conv_gsie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef)
 }
 
 /*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
-static void *conv_gsie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_overdrive1(struct insertion_effect_gs *ieffect, EffectList *ef)
 {
 	InfoOverdrive1 *od;
 	
@@ -4794,7 +5083,7 @@ static void *conv_gsie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectLi
 }
 
 /*! convert GS insertion effect parameters for OD1 / OD2. */
-static void *conv_gsie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_dual_od(struct insertion_effect_gs *ieffect, EffectList *ef)
 {
 	InfoOD1OD2 *od;
 
@@ -4819,7 +5108,7 @@ static void *conv_gsie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList 
 }
 
 /*! convert GS insertion effect parameters for Hexa-Chorus. */
-static void *conv_gsie_to_hexa_chorus(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_hexa_chorus(struct insertion_effect_gs *ieffect, EffectList *ef)
 {
 	InfoHexaChorus *info;
 	
@@ -4851,7 +5140,7 @@ static void *conv_gsie_to_hexa_chorus(struct GSInsertionEffect *ieffect, EffectL
 /*! re-allocate GS insertion effect parameters. */
 void realloc_insertion_effect_gs(void)
 {
-	struct GSInsertionEffect *st = &gs_ieffect;
+	struct insertion_effect_gs *st = &ie_gs;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
@@ -4879,7 +5168,7 @@ void realloc_insertion_effect_gs(void)
 /*! recompute GS insertion effect parameters. */
 void recompute_insertion_effect_gs(void)
 {
-	struct GSInsertionEffect *st = &gs_ieffect;
+	struct insertion_effect_gs *st = &ie_gs;
 	EffectList *efc = st->ef;
 
 	if(st->ef == NULL) {return;}

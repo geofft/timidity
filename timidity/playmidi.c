@@ -859,8 +859,8 @@ static void recompute_amp(int v)
 	 */
 	if (! (play_mode->encoding & PE_MONO)
 			&& (opt_reverb_control || opt_chorus_control || opt_delay_control
-			|| opt_eq_control && (eq_status.low_gain != 0x40
-			|| eq_status.high_gain != 0x40) || opt_insertion_effect))
+			|| opt_eq_control && (eq_status_gs.low_gain != 0x40
+			|| eq_status_gs.high_gain != 0x40) || opt_insertion_effect))
 		tempamp *= 1.35f * 0.55f;
 	else
 		tempamp *= 1.35f;
@@ -3080,25 +3080,25 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x01:	/* EQ LOW FREQ */
 			if(!opt_eq_control) {break;}
-			eq_status.low_freq = val;
+			eq_status_gs.low_freq = val;
 			recompute_eq_status_gs();
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ LOW FREQ (%d)",val);
 			break;
 		case 0x02:	/* EQ LOW GAIN */
 			if(!opt_eq_control) {break;}
-			eq_status.low_gain = val;
+			eq_status_gs.low_gain = val;
 			recompute_eq_status_gs();
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ LOW GAIN (%d dB)",val - 0x40);
 			break;
 		case 0x03:	/* EQ HIGH FREQ */
 			if(!opt_eq_control) {break;}
-			eq_status.high_freq = val;
+			eq_status_gs.high_freq = val;
 			recompute_eq_status_gs();
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ HIGH FREQ (%d)",val);
 			break;
 		case 0x04:	/* EQ HIGH GAIN */
 			if(!opt_eq_control) {break;}
-			eq_status.high_gain = val;
+			eq_status_gs.high_gain = val;
 			recompute_eq_status_gs();
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ HIGH GAIN (%d dB)",val - 0x40);
 			break;
@@ -3301,11 +3301,11 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x27:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			temp = gs_ieffect.type;
-			gs_ieffect.type_msb = val;
-			gs_ieffect.type = ((int32)gs_ieffect.type_msb << 8) | (int32)gs_ieffect.type_lsb;
+			temp = ie_gs.type;
+			ie_gs.type_msb = val;
+			ie_gs.type = ((int32)ie_gs.type_msb << 8) | (int32)ie_gs.type_lsb;
 			set_insertion_effect_def_gs();
-			if(temp == gs_ieffect.type) {
+			if(temp == ie_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
@@ -3313,127 +3313,127 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x28:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			temp = gs_ieffect.type;
-			gs_ieffect.type_lsb = val;
-			gs_ieffect.type = ((int32)gs_ieffect.type_msb << 8) | (int32)gs_ieffect.type_lsb;
+			temp = ie_gs.type;
+			ie_gs.type_lsb = val;
+			ie_gs.type = ((int32)ie_gs.type_msb << 8) | (int32)ie_gs.type_lsb;
 			set_insertion_effect_def_gs();
-			if(temp == gs_ieffect.type) {
+			if(temp == ie_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
-				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",gs_ieffect.type_msb,gs_ieffect.type_lsb);
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",ie_gs.type_msb,ie_gs.type_lsb);
 			}
 			break;
 		case 0x29:
-			gs_ieffect.parameter[0] = val;
+			ie_gs.parameter[0] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2A:
-			gs_ieffect.parameter[1] = val;
+			ie_gs.parameter[1] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2B:
-			gs_ieffect.parameter[2] = val;
+			ie_gs.parameter[2] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2C:
-			gs_ieffect.parameter[3] = val;
+			ie_gs.parameter[3] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2D:
-			gs_ieffect.parameter[4] = val;
+			ie_gs.parameter[4] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2E:
-			gs_ieffect.parameter[5] = val;
+			ie_gs.parameter[5] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x2F:
-			gs_ieffect.parameter[6] = val;
+			ie_gs.parameter[6] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x30:
-			gs_ieffect.parameter[7] = val;
+			ie_gs.parameter[7] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x31:
-			gs_ieffect.parameter[8] = val;
+			ie_gs.parameter[8] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x32:
-			gs_ieffect.parameter[9] = val;
+			ie_gs.parameter[9] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x33:
-			gs_ieffect.parameter[10] = val;
+			ie_gs.parameter[10] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x34:
-			gs_ieffect.parameter[11] = val;
+			ie_gs.parameter[11] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x35:
-			gs_ieffect.parameter[12] = val;
+			ie_gs.parameter[12] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x36:
-			gs_ieffect.parameter[13] = val;
+			ie_gs.parameter[13] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x37:
-			gs_ieffect.parameter[14] = val;
+			ie_gs.parameter[14] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x38:
-			gs_ieffect.parameter[15] = val;
+			ie_gs.parameter[15] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x39:
-			gs_ieffect.parameter[16] = val;
+			ie_gs.parameter[16] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3A:
-			gs_ieffect.parameter[17] = val;
+			ie_gs.parameter[17] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3B:
-			gs_ieffect.parameter[18] = val;
+			ie_gs.parameter[18] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3C:
-			gs_ieffect.parameter[19] = val;
+			ie_gs.parameter[19] = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3D:
-			gs_ieffect.send_reverb = val;
+			ie_gs.send_reverb = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3E:
-			gs_ieffect.send_chorus = val;
+			ie_gs.send_chorus = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x3F:
-			gs_ieffect.send_delay = val;
+			ie_gs.send_delay = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x40:
-			gs_ieffect.control_source1 = val;
+			ie_gs.control_source1 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x41:
-			gs_ieffect.control_depth1 = val;
+			ie_gs.control_depth1 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x42:
-			gs_ieffect.control_source2 = val;
+			ie_gs.control_source2 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x43:
-			gs_ieffect.control_depth2 = val;
+			ie_gs.control_depth2 = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x44:
-			gs_ieffect.send_eq_switch = val;
+			ie_gs.send_eq_switch = val;
 			recompute_insertion_effect_gs();
 			break;
 		case 0x45:	/* Rx. Channel */
@@ -3461,15 +3461,110 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		switch(b)
 		{
 		case 0x00:	/* Reverb Return */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)",val);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
 			reverb_status.level = val;
 			recompute_reverb_status_gs();
 			init_reverb(play_mode->rate);
 			break;
 		case 0x01:	/* Chorus Return */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)",val);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
 			chorus_param.chorus_level = val;
 			recompute_chorus_status_gs();
+			break;
+		case 0x50:	/* EQ type */
+			if(val == 0) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (0: Flat)");}
+			else if(val == 1) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (1: Jazz)");}
+			else if(val == 2) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (2: Pops)");}
+			else if(val == 3) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (3: Rock)");}
+			else if(val == 4) {ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ type (4: Concert)");}
+			multi_eq_xg.type = val;
+			set_multi_eq_type_xg(val);
+			recompute_multi_eq_xg();
+			break;
+		case 0x51:	/* EQ gain1 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain1 (%d dB)", val - 0x40);
+			multi_eq_xg.gain1 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x52:	/* EQ frequency1 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d)", (int32)eq_freq_table_xg[val]);
+			multi_eq_xg.freq1 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x53:	/* EQ Q1 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q1 (%f)", (double)val / 10.0);
+			multi_eq_xg.q1 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x54:	/* EQ shape1 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape1 (%d)", val);
+			multi_eq_xg.shape1 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x55:	/* EQ gain2 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain2 (%d dB)", val - 0x40);
+			multi_eq_xg.gain2 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x56:	/* EQ frequency2 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d)", (int32)eq_freq_table_xg[val]);
+			multi_eq_xg.freq2 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x57:	/* EQ Q2 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q2 (%f)", (double)val / 10.0);
+			multi_eq_xg.q2 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x59:	/* EQ gain3 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain3 (%d dB)", val - 0x40);
+			multi_eq_xg.gain3 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x5A:	/* EQ frequency3 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d)", (int32)eq_freq_table_xg[val]);
+			multi_eq_xg.freq3 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x5B:	/* EQ Q3 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q3 (%f)", (double)val / 10.0);
+			multi_eq_xg.q3 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x5D:	/* EQ gain4 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain4 (%d dB)", val - 0x40);
+			multi_eq_xg.gain4 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x5E:	/* EQ frequency4 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d)", (int32)eq_freq_table_xg[val]);
+			multi_eq_xg.freq4 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x5F:	/* EQ Q4 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q4 (%f)", (double)val / 10.0);
+			multi_eq_xg.q4 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x61:	/* EQ gain5 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain5 (%d dB)", val - 0x40);
+			multi_eq_xg.gain5 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x62:	/* EQ frequency5 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d)", (int32)eq_freq_table_xg[val]);
+			multi_eq_xg.freq5 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x63:	/* EQ Q5 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ Q5 (%f)", (double)val / 10.0);
+			multi_eq_xg.q5 = val;
+			recompute_multi_eq_xg();
+			break;
+		case 0x64:	/* EQ shape5 */
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ shape5 (%d)", val);
+			multi_eq_xg.shape5 = val;
+			recompute_multi_eq_xg();
 			break;
 		case 0x65:	/* Rcv CHANNEL */
 			if (val == 0x7f)
@@ -4988,7 +5083,7 @@ static int apply_controls(void)
 }
 
 #ifdef USE_DSP_EFFECT
-/* do_compute_data_midi() for new chorus */
+/* do_compute_data_midi() with DSP Effect */
 static void do_compute_data_midi(int32 count)
 {
 	int i, j, uv, stereo, n, ch, note;
@@ -5012,7 +5107,8 @@ static void do_compute_data_midi(int32 count)
 	channel_delay = (stereo && opt_delay_control > 0);
 
 	/* is EQ valid? */
-	channel_eq = opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40);
+	channel_eq = opt_eq_control && (eq_status_gs.low_gain != 0x40 || eq_status_gs.high_gain != 0x40 ||
+		multi_eq_xg.valid);
 
 	channel_effect = (stereo && (channel_reverb || channel_chorus
 			|| channel_delay || channel_eq || opt_insertion_effect));
@@ -5082,16 +5178,46 @@ static void do_compute_data_midi(int32 count)
 	while(uv > 0 && voice[uv - 1].status == VOICE_FREE)	{uv--;}
 	upper_voices = uv;
 
-	if(channel_effect) {
+	if(play_system_mode == XG_SYSTEM_MODE && channel_effect) {	/* XG */
+		for(i = 0; i < MAX_CHANNELS; i++) {	/* system effects */
+			int32 *p;	
+			p = vpblist[i];
+			if(p != buffer_pointer) {
+				if(channel_chorus && channel[i].chorus_level > 0) {
+					set_ch_chorus(p, cnt, channel[i].chorus_level);
+				}
+				if(channel_delay && channel[i].delay_level > 0) {
+					set_ch_delay(p, cnt, channel[i].delay_level);
+				}
+				if(channel_reverb && channel[i].reverb_level > 0
+					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT) {
+					set_ch_reverb(p, cnt, channel[i].reverb_level);
+				}
+				set_dry_signal(p, cnt);
+			}
+		}
+		
+		if(channel_reverb) {
+			set_ch_reverb(buffer_pointer, cnt, DEFAULT_REVERB_SEND_LEVEL);
+		}
+		set_dry_signal(buffer_pointer, cnt);
+
+		/* mixing signal and applying system effects */ 
+		mix_dry_signal(buffer_pointer, cnt);
+		if(channel_chorus) {do_ch_chorus(buffer_pointer, cnt);}
+		if(channel_delay) {do_ch_delay(buffer_pointer, cnt);}
+		if(channel_reverb) {do_ch_reverb(buffer_pointer, cnt);}
+		if(channel_eq) {do_multi_eq_xg(buffer_pointer, cnt);}
+	} else if(channel_effect) {	/* GM & GS */
 		if(opt_insertion_effect) { 	/* insertion effect */
 			/* applying insertion effect */
 			do_insertion_effect_gs(insertion_effect_buffer, cnt);
 			/* sending insertion effect voice to channel effect */
-			set_ch_chorus(insertion_effect_buffer, cnt, gs_ieffect.send_chorus);
-			set_ch_delay(insertion_effect_buffer, cnt, gs_ieffect.send_delay);
-			set_ch_reverb(insertion_effect_buffer, cnt,	gs_ieffect.send_reverb);
-			if(gs_ieffect.send_eq_switch && channel_eq) {
-				set_ch_eq(insertion_effect_buffer, cnt);
+			set_ch_chorus(insertion_effect_buffer, cnt, ie_gs.send_chorus);
+			set_ch_delay(insertion_effect_buffer, cnt, ie_gs.send_delay);
+			set_ch_reverb(insertion_effect_buffer, cnt,	ie_gs.send_reverb);
+			if(ie_gs.send_eq_switch && channel_eq) {
+				set_ch_eq_gs(insertion_effect_buffer, cnt);
 			} else {
 				set_dry_signal(insertion_effect_buffer, cnt);
 			}
@@ -5112,7 +5238,7 @@ static void do_compute_data_midi(int32 count)
 					set_ch_reverb(p, cnt, channel[i].reverb_level);
 				}
 				if(channel_eq && channel[i].eq_on) {
-					set_ch_eq(p, cnt);
+					set_ch_eq_gs(p, cnt);
 				} else {
 					set_dry_signal(p, cnt);
 				}
@@ -5126,7 +5252,7 @@ static void do_compute_data_midi(int32 count)
 
 		/* mixing signal and applying system effects */ 
 		mix_dry_signal(buffer_pointer, cnt);
-		if(channel_eq) {do_ch_eq(buffer_pointer, cnt);}
+		if(channel_eq) {do_ch_eq_gs(buffer_pointer, cnt);}
 		if(channel_chorus) {do_ch_chorus(buffer_pointer, cnt);}
 		if(channel_delay) {do_ch_delay(buffer_pointer, cnt);}
 		if(channel_reverb) {do_ch_reverb(buffer_pointer, cnt);}
@@ -5136,7 +5262,7 @@ static void do_compute_data_midi(int32 count)
 }
 
 #else
-/* do_compute_data_midi() for traditionally chorus */
+/* do_compute_data_midi() without DSP Effect */
 static void do_compute_data_midi(int32 count)
 {
 	int i, j, uv, stereo, n, ch, note;

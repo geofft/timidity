@@ -108,13 +108,22 @@ extern void init_filter_lowpass1(filter_lowpass1 *);
 
 /*! shelving filter */
 typedef struct {
-	double freq, gain;
+	double freq, gain, q;
 	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
 	int32 a1, a2, b0, b1, b2;
 } filter_shelving;
 
 extern void calc_filter_shelving_high(filter_shelving *);
 extern void calc_filter_shelving_low(filter_shelving *);
+
+/*! peaking filter */
+typedef struct {
+	double freq, gain, q;
+	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
+	int32 ba1, a2, b0, b2;
+} filter_peaking;
+
+extern void calc_filter_peaking(filter_peaking *);
 
 /*! allpass filter */
 typedef struct _allpass {
@@ -252,9 +261,47 @@ extern void set_ch_delay(register int32 *, int32, int32);
 extern void init_ch_delay(void);
 
 /* EQ */
-extern void init_eq();
-extern void set_ch_eq(register int32 *, int32);
-extern void do_ch_eq(int32 *, int32);
+extern void init_eq_gs(void);
+extern void set_ch_eq_gs(register int32 *, int32);
+extern void do_ch_eq_gs(int32 *, int32);
+extern void do_multi_eq_xg(int32 *, int32);
+
+/* GS parameters of reverb effect */
+struct reverb_status_t
+{
+	/* GS parameters */
+	uint8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
+
+	/* for pre-calculation */
+	double level_ratio, time_ratio;
+
+	InfoPlateReverb info_plate_reverb;
+	InfoFreeverb info_freeverb;
+	filter_lowpass1 lpf;
+} reverb_status;
+
+/* GS parameters of chorus effect */
+struct chorus_param_t
+{
+	/* GS parameters */
+	uint8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
+		chorus_delay, chorus_rate, chorus_depth, chorus_send_level_to_reverb,
+		chorus_send_level_to_delay;
+
+	/* for pre-calculation */
+	double level_ratio, feedback_ratio, send_reverb_ratio, send_delay_ratio;
+	int32 cycle_in_sample, depth_in_sample, delay_in_sample;
+
+	filter_lowpass1 lpf;
+} chorus_param;
+
+/* dummy. see also readmidi.c */
+struct chorus_status_t
+{
+    int status;
+    uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
+		delay[3], rate[3], depth[3], send_level[3];
+} chorus_status;
 
 /* GS parameters of delay effect */
 struct delay_status_t
@@ -271,66 +318,36 @@ struct delay_status_t
 		feedback_ratio, send_reverb_ratio;
 
 	filter_lowpass1 lpf;
-};
-
-/* GS parameters of reverb effect */
-struct reverb_status_t
-{
-	/* GS parameters */
-	uint8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
-
-	/* for pre-calculation */
-	double level_ratio, time_ratio;
-
-	InfoPlateReverb info_plate_reverb;
-	InfoFreeverb info_freeverb;
-	filter_lowpass1 lpf;
-};
-
-/* GS parameters of chorus effect */
-struct chorus_param_t
-{
-	/* GS parameters */
-	uint8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
-		chorus_delay, chorus_rate, chorus_depth, chorus_send_level_to_reverb,
-		chorus_send_level_to_delay;
-
-	/* for pre-calculation */
-	double level_ratio, feedback_ratio, send_reverb_ratio, send_delay_ratio;
-	int32 cycle_in_sample, depth_in_sample, delay_in_sample;
-
-	filter_lowpass1 lpf;
-};
+} delay_status;
 
 /* GS parameters of channel EQ */
-struct eq_status_t
+struct eq_status_gs_t
 {
 	/* GS parameters */
     uint8 low_freq, high_freq, low_gain, high_gain;
 
 	filter_shelving hsf, lsf;
-};
+} eq_status_gs;
 
-struct GSInsertionEffect {
+/* XG parameters of Multi EQ */
+struct multi_eq_xg_t
+{
+	/* XG parameters */
+	uint8 type, gain1, gain2, gain3, gain4, gain5,
+		freq1, freq2, freq3, freq4, freq5,
+		q1, q2, q3, q4, q5, shape1, shape5;
+
+	int8 valid, valid1, valid2, valid3, valid4, valid5;
+	filter_shelving eq1s, eq5s;
+	filter_peaking eq1p, eq2p, eq3p, eq4p, eq5p;
+} multi_eq_xg;
+
+struct insertion_effect_gs {
 	int32 type;
 	int8 type_lsb, type_msb, parameter[20], send_reverb,
 		send_chorus, send_delay, control_source1, control_depth1,
 		control_source2, control_depth2, send_eq_switch;
 	struct _EffectList *ef;
-} gs_ieffect;
-
-/* dummy. see also readmidi.c */
-struct chorus_status_t
-{
-    int status;
-    uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
-		delay[3], rate[3], depth[3], send_level[3];
-};
-
-extern struct delay_status_t delay_status;
-extern struct chorus_status_t chorus_status;
-extern struct chorus_param_t chorus_param;
-extern struct reverb_status_t reverb_status;
-extern struct eq_status_t eq_status;
+} ie_gs;
 
 #endif /* ___REVERB_H_ */

@@ -84,7 +84,7 @@ void init_effect(void)
 	init_reverb(play_mode->rate);
 	init_ch_delay();
 	init_ch_chorus();
-	init_eq();
+	init_eq_gs();
 }
 
 /*

@@ -1,3 +1,9 @@
+2003-12-23  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.[ch], timidity/playmidi.c,
+	  timidity/tables.[ch], timidity/effect.c:
+	  Implement XG Multi EQ.
+
 2003-12-23  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c, timidity/readmidi.[ch], timidity/reverb.[ch]
