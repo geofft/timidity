@@ -883,7 +883,7 @@ void recompute_voice_filter(int v)
 	double coef = 1.0, reso = 0;
 	int32 freq;
 	FilterCoefficients *fc = &(voice[v].fc);
-	Sample *sp = &voice[v].sample;
+	Sample *sp = (Sample *) &voice[v].sample;
 
 	if(fc->freq == -1) {return;}
 

@@ -494,7 +494,7 @@ static int32 to_offset(int32 offset)
 	return offset << 14;
 }
 
-#define SF_ENVRATE_MAX (double)((int32)0x40000000)
+#define SF_ENVRATE_MAX (double)(0x40000000)
 #define SF_ENVRATE_MIN (double)(1L)
 
 /* calculate ramp rate in fractional unit;
@@ -508,7 +508,7 @@ static int32 to_rate(int32 diff, int timecent)
 	{return (int32)SF_ENVRATE_MAX + 1;}
     if(diff <= 0) {diff = 1;}
     diff <<= 14;
-    rate = ((double)diff / play_mode->rate) * control_ratio / pow(2.0, (double)timecent / 1200.0);
+    rate = (double)diff * control_ratio / play_mode->rate / pow(2.0, (double)timecent / 1200.0);
     if(fast_decay) {rate *= 2;}
 	if(rate > SF_ENVRATE_MAX) {rate = SF_ENVRATE_MAX;}
 	else if(rate < SF_ENVRATE_MIN) {rate = SF_ENVRATE_MIN;}
@@ -1229,11 +1229,12 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     /* volume envelope & total volume */
     vp->v.volume = calc_volume(tbl) * current_sfrec->amptune;
 
+#ifndef SF_SUPPRESS_ENVELOPE
+	convert_volume_envelope(vp, tbl);
+#endif /* SF_SUPPRESS_ENVELOPE */
+
     if(tbl->val[SF_sampleFlags] == 1 || tbl->val[SF_sampleFlags] == 3)
     {
-#ifndef SF_SUPPRESS_ENVELOPE
-		convert_volume_envelope(vp, tbl);
-#endif /* SF_SUPPRESS_ENVELOPE */
 		/* looping */
 		vp->v.modes |= MODES_LOOPING | MODES_SUSTAIN;
 		if(tbl->val[SF_sampleFlags] == 3)
@@ -1543,7 +1544,7 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 	return;
 
     level = abs(tbl->val[SF_lfo1ToVolume]);
-    vp->v.tremolo_depth = 512 * cb_to_amp_table[960 - level];
+    vp->v.tremolo_depth = 512 * (1.0 - cb_to_amp_table[level]);
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo1])

@@ -7,10 +7,12 @@
 
 	* timidity/sndfont.c:
 	  Fix around initialization.
+	  Fix about tremolo.
 	* timidity/mix.c, timidity/playmidi.[ch]:
 	  Fix about modulation envelope.
 	  Fix about velocity to filter cutoff frequency.
-	  
+	  Fix around envelope generator.
+
 2003-05-01  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c, timidity/instrum.c,
