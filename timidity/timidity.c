@@ -3307,7 +3307,7 @@ __attribute__((noreturn))
 static inline int parse_opt_h(const char *arg)
 {
 	static char *help_list[] = {
-"TiMidity++ version %s (C) 1999-2003 Masanao Izumo <mo@goice.co.jp>",
+"TiMidity++ version %s (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>",
 "The original version (C) 1995 Tuukka Toivonen <tt@cgs.fi>",
 "TiMidity is free software and comes with ABSOLUTELY NO WARRANTY.",
 "",
@@ -4302,7 +4302,7 @@ static inline int parse_opt_v(const char *arg)
 	const char *version_list[] = {
 		"TiMidity++ version ", timidity_version, NLS,
 		NLS,
-		"Copyright (C) 1999-2003 Masanao Izumo <mo@goice.co.jp>", NLS,
+		"Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>", NLS,
 		"Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>", NLS,
 		NLS,
 #ifdef __W32__
@@ -4557,7 +4557,7 @@ static void interesting_message(void)
 {
 	printf(
 "TiMidity++ version %s -- MIDI to WAVE converter and player" NLS
-"Copyright (C) 1999-2003 Masanao Izumo <mo@goice.co.jp>" NLS
+"Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>" NLS
 "Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>" NLS
 			NLS
 #ifdef __W32__
@@ -4577,7 +4577,7 @@ static void interesting_message(void)
 			NLS
 "You should have received a copy of the GNU General Public License" NLS
 "along with this program; if not, write to the Free Software" NLS
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA" NLS
+"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA" NLS
 			NLS, timidity_version);
 }
 
