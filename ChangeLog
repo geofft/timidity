@@ -1,3 +1,19 @@
+2004-05-18  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+	*configure.in:
+		Add gcc option -mms-bitfield in windows.
+		GOGO ditection for windows fix..
+		Can use gccXXX in CYGWIN and MSYS
+		Enable dynamic linked portaudio DLLs with CYGWIN and MSYS.
+		Enable dynamic linked FLAC DLL with CYGWIN and MSYS.
+	*interface/Makefile.am:
+		Enable wrdt_wcon.c in MSYS.
+		Make clean to remove *escaped.c *.res.
+	*interface/w32g_syn.c:
+		Use PACKAGE_VERSION if TIMID_VERSION is not defined.
+	*timidity/portaudio_a.c
+		A hack for pa_asio.dll with timwin32g and kxdriver(SB Live!).
+
 2004-05-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/Makefile.{am,in}: Add new files for FLAC/OggFLAC
