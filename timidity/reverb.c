@@ -2013,7 +2013,7 @@ void init_chorus_lfo(void)
 #ifdef USE_DSP_EFFECT
 	int32 i;
 
-	chorus_cyc0 = chorus_param.cycle_in_sample;
+	chorus_cyc0 = chorus_status.cycle_in_sample;
 	if(chorus_cyc0 == 0) {chorus_cyc0 = 1;}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
@@ -2033,7 +2033,7 @@ void init_ch_chorus()
 	memset(chorus_buf0_R, 0, sizeof(chorus_buf0_R));
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
 	/* clear delay-line of LPF */
-	init_filter_lowpass1(&(chorus_param.lpf));
+	init_filter_lowpass1(&(chorus_status.lpf));
 
 	chorus_cnt0 = chorus_wpt0 = chorus_wpt1 = 0;
 	chorus_spt0 = chorus_spt1 = chorus_hist0 = chorus_hist1 = 0;
@@ -2048,12 +2048,12 @@ void do_stereo_chorus(int32* buf, register int32 count)
 	int32 i, level, feedback, send_reverb, send_delay, pdelay,
 		depth, output, icycle, hist0, hist1, f0, f1, v0, v1;
 
-	level = TIM_FSCALE(chorus_param.level_ratio * MASTER_CHORUS_LEVEL, 24);
-	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 24);
-	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio * REV_INP_LEV, 24);
-	send_delay = TIM_FSCALE(chorus_param.send_delay_ratio, 24);
-	depth = chorus_param.depth_in_sample;
-	pdelay = chorus_param.delay_in_sample;
+	level = TIM_FSCALE(chorus_status.level_ratio * MASTER_CHORUS_LEVEL, 24);
+	feedback = TIM_FSCALE(chorus_status.feedback_ratio, 24);
+	send_reverb = TIM_FSCALE(chorus_status.send_reverb_ratio * REV_INP_LEV, 24);
+	send_delay = TIM_FSCALE(chorus_status.send_delay_ratio, 24);
+	depth = chorus_status.depth_in_sample;
+	pdelay = chorus_status.delay_in_sample;
 	icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)chorus_cyc0, 24) - 0.5;
 	hist0 = chorus_hist0, hist1 = chorus_hist1;
 
@@ -2109,6 +2109,35 @@ void do_stereo_chorus(int32* buf, register int32 count)
 	chorus_hist0 = hist0, chorus_hist1 = hist1;
 #endif /* OPT_MODE != 0 */
 }
+
+#if 0
+/*! Stereo Chorus; this implementation is specialized for system effect. */
+static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
+{
+	int32 i;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_lfo(lfoL, /*Hz*/, LFO_SINE);
+		init_lfo(lfoR, /*Hz*/, LFO_COSINE);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		outr = outl = 0;
+		x = (reverb_effect_buffer[i] + reverb_effect_buffer[i + 1]) >> 1;
+		reverb_effect_buffer[i] = reverb_effect_buffer[i + 1] = 0;
+
+		buf[i] += outl;
+		buf[i + 1] += outr;
+
+		++i;
+	}
+	info->t1 = t1, info->t1d = t1d;
+}
+#endif
 
 #if OPT_MODE != 0	/* fixed-point implementation */
 #if _MSC_VER
@@ -2170,8 +2199,8 @@ void do_ch_chorus(int32 *buf, int32 count)
 {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
-			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_param.chorus_pre_lpf)
-		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_param.lpf));
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_status.pre_lpf)
+		do_filter_lowpass1_stereo(chorus_effect_buffer, count, &(chorus_status.lpf));
 #endif /* SYS_EFFECT_PRE_LPF */
 
 	do_stereo_chorus(buf, count);

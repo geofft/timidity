@@ -504,19 +504,14 @@ static uint16 gm_convert_master_vol(uint16 v1, uint16 v2)
 
 static void check_chorus_text_start(void)
 {
-    if(chorus_status.status != CHORUS_ST_OK &&
-       chorus_status.voice_reserve[17] &&
-       chorus_status.macro[2] &&
-       chorus_status.pre_lpf[2] &&
-       chorus_status.level[2] &&
-       chorus_status.feed_back[2] &&
-       chorus_status.delay[2] &&
-       chorus_status.rate[2] &&
-       chorus_status.depth[2] &&
-       chorus_status.send_level[2])
+	struct chorus_text_t *p = &(chorus_status.text);
+    if(p->status != CHORUS_ST_OK && p->voice_reserve[17] &&
+       p->macro[2] && p->pre_lpf[2] && p->level[2] &&
+       p->feed_back[2] && p->delay[2] && p->rate[2] &&
+       p->depth[2] && p->send_level[2])
     {
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Chorus text start");
-	chorus_status.status = CHORUS_ST_OK;
+	p->status = CHORUS_ST_OK;
     }
 }
 
@@ -3730,31 +3725,32 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 
 	if((addr & 0xFFFFF0) == 0x400130) /* Changing Effects */
 	{
+		struct chorus_text_t *chorus_text = &(chorus_status.text);
 	    switch(addr & 0xF)
 	    {
 	      case 0x8: /* macro */
-		memcpy(chorus_status.macro, body, 3);
+		memcpy(chorus_text->macro, body, 3);
 		break;
 	      case 0x9: /* PRE-LPF */
-		memcpy(chorus_status.pre_lpf, body, 3);
+		memcpy(chorus_text->pre_lpf, body, 3);
 		break;
 	      case 0xa: /* level */
-		memcpy(chorus_status.level, body, 3);
+		memcpy(chorus_text->level, body, 3);
 		break;
 	      case 0xb: /* feed back */
-		memcpy(chorus_status.feed_back, body, 3);
+		memcpy(chorus_text->feed_back, body, 3);
 		break;
 	      case 0xc: /* delay */
-		memcpy(chorus_status.delay, body, 3);
+		memcpy(chorus_text->delay, body, 3);
 		break;
 	      case 0xd: /* rate */
-		memcpy(chorus_status.rate, body, 3);
+		memcpy(chorus_text->rate, body, 3);
 		break;
 	      case 0xe: /* depth */
-		memcpy(chorus_status.depth, body, 3);
+		memcpy(chorus_text->depth, body, 3);
 		break;
 	      case 0xf: /* send level */
-		memcpy(chorus_status.send_level, body, 3);
+		memcpy(chorus_text->send_level, body, 3);
 		break;
 		  default: break;
 	    }
@@ -3769,7 +3765,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	if(addr == 0x400110) /* Voice Reserve */
 	{
 	    if(len >= 25)
-		memcpy(chorus_status.voice_reserve, body, 18);
+		memcpy(chorus_status.text.voice_reserve, body, 18);
 	    check_chorus_text_start();
 	    return 0;
 	}
@@ -4169,7 +4165,7 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 		if(type == 5 || /* Lyric */
 		   (type == 1 && (opt_trace_text_meta_event ||
 				  karaoke_format == 2 ||
-				  chorus_status.status == CHORUS_ST_OK)) ||
+				  chorus_status.text.status == CHORUS_ST_OK)) ||
 		   (type == 6 &&  (current_file_info->format == 0 ||
 				   (current_file_info->format == 1 &&
 				    current_read_track == 0))))
@@ -4232,7 +4228,7 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 			    readmidi_add_event(&ev);
 			    continue;
 			}
-			if(chorus_status.status == CHORUS_ST_OK)
+			if(chorus_status.text.status == CHORUS_ST_OK)
 			{
 			    *text = ME_CHORUS_TEXT;
 			    ev.type = ME_CHORUS_TEXT;
@@ -6247,16 +6243,16 @@ void set_reverb_macro_gs(int macro)
 /*! initialize Chorus Effect (GS) */
 void init_chorus_status_gs(void)
 {
-	struct chorus_param_t *p = &chorus_param;
-	p->chorus_macro = 0;
-	p->chorus_pre_lpf = 0;
-	p->chorus_level = 0x40;
-	p->chorus_feedback = 0x08;
-	p->chorus_delay = 0x50;
-	p->chorus_rate = 0x03;
-	p->chorus_depth = 0x13;
-	p->chorus_send_level_to_reverb = 0;
-	p->chorus_send_level_to_delay = 0;
+	struct chorus_status_t *p = &chorus_status;
+	p->macro = 0;
+	p->pre_lpf = 0;
+	p->level = 0x40;
+	p->feedback = 0x08;
+	p->delay = 0x50;
+	p->rate = 0x03;
+	p->depth = 0x13;
+	p->send_reverb = 0;
+	p->send_delay = 0;
 	recompute_chorus_status_gs();
 	init_chorus_lfo();
 }
@@ -6264,20 +6260,20 @@ void init_chorus_status_gs(void)
 /*! recompute Chorus Effect (GS) */
 void recompute_chorus_status_gs()
 {
-	struct chorus_param_t *p = &chorus_param;
-	p->delay_in_sample = chorus_delay_time_table[p->chorus_delay] * (double)play_mode->rate / 1000.0;
-	p->depth_in_sample = (double)(p->chorus_depth + 1) / 3.2f * (double)play_mode->rate / 1000.0;
+	struct chorus_status_t *p = &chorus_status;
+	p->delay_in_sample = chorus_delay_time_table[p->delay] * (double)play_mode->rate / 1000.0;
+	p->depth_in_sample = (double)(p->depth + 1) / 3.2f * (double)play_mode->rate / 1000.0;
 	p->delay_in_sample -= p->depth_in_sample / 2;	/* NOMINAL_DELAY to delay */
 	if (p->delay_in_sample < 1) {p->delay_in_sample = 1;}
-	p->cycle_in_sample = play_mode->rate / ((double)p->chorus_rate * 0.122f);
-	if (p->chorus_rate < 1) {p->cycle_in_sample = 0x7fffffff;}
-	p->feedback_ratio = (double)p->chorus_feedback * 0.763f / 100.0f;
-	p->level_ratio = (double)p->chorus_level / 127.0f;
-	p->send_reverb_ratio = (double)p->chorus_send_level_to_reverb * 0.787f / 100.0f;
-	p->send_delay_ratio = (double)p->chorus_send_level_to_delay * 0.787f / 100.0f;
+	p->cycle_in_sample = play_mode->rate / ((double)p->rate * 0.122f);
+	if (p->rate < 1) {p->cycle_in_sample = 0x7fffffff;}
+	p->feedback_ratio = (double)p->feedback * 0.763f / 100.0f;
+	p->level_ratio = (double)p->level / 127.0f;
+	p->send_reverb_ratio = (double)p->send_reverb * 0.787f / 100.0f;
+	p->send_delay_ratio = (double)p->send_delay * 0.787f / 100.0f;
 
-	if(p->chorus_pre_lpf) {
-		p->lpf.a = (double)(7 - p->chorus_pre_lpf) / 7.0 * 0.9 + 0.05;
+	if(p->pre_lpf) {
+		p->lpf.a = (double)(7 - p->pre_lpf) / 7.0 * 0.9 + 0.05;
 		init_filter_lowpass1(&(p->lpf));
 	}
 }
@@ -6285,16 +6281,16 @@ void recompute_chorus_status_gs()
 /*! Chorus Macro (GS), Chorus Type (GM2) */
 void set_chorus_macro_gs(int macro)
 {
-	struct chorus_param_t *p = &chorus_param;
+	struct chorus_status_t *p = &chorus_status;
 	macro *= 8;
-	p->chorus_pre_lpf = chorus_macro_presets[macro];
-	p->chorus_level = chorus_macro_presets[macro + 1];
-	p->chorus_feedback = chorus_macro_presets[macro + 2];
-	p->chorus_delay = chorus_macro_presets[macro + 3];
-	p->chorus_rate = chorus_macro_presets[macro + 4];
-	p->chorus_depth = chorus_macro_presets[macro + 5];
-	p->chorus_send_level_to_reverb = chorus_macro_presets[macro + 6];
-	p->chorus_send_level_to_delay = chorus_macro_presets[macro + 7];
+	p->pre_lpf = chorus_macro_presets[macro];
+	p->level = chorus_macro_presets[macro + 1];
+	p->feedback = chorus_macro_presets[macro + 2];
+	p->delay = chorus_macro_presets[macro + 3];
+	p->rate = chorus_macro_presets[macro + 4];
+	p->depth = chorus_macro_presets[macro + 5];
+	p->send_reverb = chorus_macro_presets[macro + 6];
+	p->send_delay = chorus_macro_presets[macro + 7];
 }
 
 /*! initialize EQ (GS) */

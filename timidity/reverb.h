@@ -273,6 +273,16 @@ typedef struct {
 	int32 leveli[3], feedbacki, send_reverbi;
 } InfoDelay3;
 
+/*! Stereo Chorus Effect */
+typedef struct {
+	delay delayL, delayR;
+	lfo lfoL, lfoR;
+	int32 wpt0, wpt1, spt0, spt1, hist0, hist1;
+	int32 rpt0, depth, pdelay;
+	double level, feedback, send_reverb, send_delay;
+	int32 leveli, feedbacki, send_reverbi, send_delayi;
+} InfoStereoChorus;
+
 /*                             */
 /*        System Effect        */
 /*                             */
@@ -314,27 +324,27 @@ struct reverb_status_t
 	filter_lowpass1 lpf;
 } reverb_status;
 
+struct chorus_text_t
+{
+    int status;
+    uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
+		delay[3], rate[3], depth[3], send_level[3];
+};
+
 /* GS parameters of chorus effect */
-struct chorus_param_t
+struct chorus_status_t
 {
 	/* GS parameters */
-	int8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
-		chorus_delay, chorus_rate, chorus_depth, chorus_send_level_to_reverb,
-		chorus_send_level_to_delay;
+	int8 macro, pre_lpf, level, feedback, delay, rate, depth, send_reverb, send_delay;
 
 	/* for pre-calculation */
 	double level_ratio, feedback_ratio, send_reverb_ratio, send_delay_ratio;
 	int32 cycle_in_sample, depth_in_sample, delay_in_sample;
 
-	filter_lowpass1 lpf;
-} chorus_param;
+	struct chorus_text_t text;
 
-/* dummy. see also readmidi.c */
-struct chorus_status_t
-{
-    int status;
-    uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
-		delay[3], rate[3], depth[3], send_level[3];
+	InfoStereoChorus info_stereo_chorus;
+	filter_lowpass1 lpf;
 } chorus_status;
 
 /* GS parameters of delay effect */

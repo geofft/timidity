@@ -3859,46 +3859,46 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x0E:	/* Chorus Pre-LPF */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Pre-LPF (%d)",val);
-			chorus_param.chorus_pre_lpf = val;
+			chorus_status.pre_lpf = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x0F:	/* Chorus Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",val);
-			chorus_param.chorus_level = val;
+			chorus_status.level = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x10:	/* Chorus Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Feedback (%d)",val);
-			chorus_param.chorus_feedback = val;
+			chorus_status.feedback = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x11:	/* Chorus Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Delay (%d)",val);
-			chorus_param.chorus_delay = val;
+			chorus_status.delay = val;
 			init_ch_chorus();
 			recompute_chorus_status_gs();
 			init_chorus_lfo();
 			break;
 		case 0x12:	/* Chorus Rate */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Rate (%d)",val);
-			chorus_param.chorus_rate = val;
+			chorus_status.rate = val;
 			recompute_chorus_status_gs();
 			init_chorus_lfo();
 			break;
 		case 0x13:	/* Chorus Depth */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Depth (%d)",val);
-			chorus_param.chorus_depth = val;
+			chorus_status.depth = val;
 			recompute_chorus_status_gs();
 			init_chorus_lfo();
 			break;
 		case 0x14:	/* Chorus Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Reverb (%d)",val);
-			chorus_param.chorus_send_level_to_reverb = val;
+			chorus_status.send_reverb = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x15:	/* Chorus Send Level to Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Delay (%d)",val);
-			chorus_param.chorus_send_level_to_delay = val;
+			chorus_status.send_delay = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x16:	/* Delay Macro */
@@ -4177,7 +4177,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x01:	/* Chorus Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
-			chorus_param.chorus_level = val;
+			chorus_status.level = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x50:	/* EQ type */

@@ -1,3 +1,8 @@
+2004-02-18  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/playmidi.c, timidity/readmidi.c:
+	  Clean up around chorus effect.
+
 2004-02-18  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5: Update
