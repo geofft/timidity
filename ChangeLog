@@ -1,3 +1,7 @@
+2004-03-02  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Fixed to set drumch by program change (GM2).
+
 2004-03-01  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* README(.ja), INSTALL(.ja),
