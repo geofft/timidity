@@ -47,7 +47,7 @@
 typedef int (*SampleImporterDiscriminateProc)(char *sample_file);
 	/* returns 0 if file may be loadable */
 typedef int (*SampleImporterSampleLoaderProc)(char *sample_file, Instrument *inst);
-	/* set inst->samples, inst->sample and returns 0 if loaded */
+	/* sets inst->samples, inst->sample and returns 0 if loaded */
 	/* inst is pre-allocated, and is freed by caller if loading failed */
 	/* -1 to let caller give up testing other importers */
 
@@ -100,7 +100,7 @@ Instrument *extract_sample_file(char *sample_file)
 			importer = importers[i];
 			break;
 		}
-		if (result == -1)	/* importer want me to give up test */
+		if (result == -1)	/* importer told to give up test */
 			break;
 		j = inst->samples;
 		while(j > 0)
@@ -139,6 +139,9 @@ Instrument *extract_sample_file(char *sample_file)
 		/* resample it if possible */
 		if (sample->note_to_use && !(sample->modes & MODES_LOOPING))
 			pre_resample(sample);
+#ifdef LOOKUP_HACK
+		squash_sample_16to8(sample);
+#endif
 	}
 	return inst;
 }
@@ -366,9 +369,6 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 					format.wBitsPerSample, format.dwSamplesPerSec, samples, frames);
 			initialize_sample(inst, frames, format.wBitsPerSample, format.dwSamplesPerSec);
 			/* load waveform data */
-			#ifdef LOOKUP_HACK
-				#error "not implemented"
-			#endif
 			for(i = 0; i < samples; i++)
 			{
 				inst->sample[i].data = sdata[i] = (sample_t *)safe_malloc(sizeof(sample_t) * frames);
@@ -837,9 +837,6 @@ static int read_AIFFSoundData(struct timidity_file *tf, Instrument *inst, AIFFCo
 	inst->sample = sample = (Sample *)safe_malloc(sizeof(Sample) * samples);
 	initialize_sample(inst, common->numSampleFrames, common->sampleSize, (int)common->sampleRate);
 	/* load samples */
-	#ifdef LOOKUP_HACK
-		#error "not implemented"
-	#endif
 	for(i = 0; i < samples; i++)
 	{
 		sample[i].data = sdata[i] = (sample_t *)safe_malloc(sizeof(sample_t) * common->numSampleFrames);
@@ -950,7 +947,7 @@ static int AIFFGetMarkerPosition(int16 id, const AIFFMarkerData *markers, uint32
 #define BITS_S8_TO_16(n)	((uint16)((n) << 8) | ((n) ^ 0x80))
 #define BITS_U8_TO_16(n)	((uint16)(((n) ^ 0x80) << 8) | (n))
 
-#define BLOCK_READ_BEGIN(stype, sbyte, fch)	{ /* sbyte may sizeof(stype) */	\
+#define BLOCK_READ_BEGIN(stype, sbyte, fch)	{ /* sbyte may be sizeof(stype) */	\
 			stype				data[WAVE_BUF_SIZE / sizeof(stype)];	\
 			int					j;	\
 			for(block_frame_count = (sizeof data / sbyte / fch); block_frame_count != 0; block_frame_count >>= 1) {	\

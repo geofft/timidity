@@ -232,6 +232,7 @@ extern void copy_tone_bank_element(ToneBankElement *elm, const ToneBankElement *
 extern void free_tone_bank_element(ToneBankElement *elm);
 extern void free_tone_bank(void);
 extern void free_instrument(Instrument *ip);
+extern void squash_sample_16to8(Sample *sp);
 
 extern char *default_instrument_name;
 extern int progbase;

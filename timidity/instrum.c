@@ -989,19 +989,7 @@ fail:
 		if (sp->note_to_use && ! (sp->modes & MODES_LOOPING))
 			pre_resample(sp);
 #ifdef LOOKUP_HACK
-		/* Squash the 16-bit data into 8 bits. */
-		{
-			uint8 *gulp, *ulp;
-			int16 *swp;
-			int l = sp->data_length >> FRACTION_BITS;
-			
-			gulp = ulp = (uint8 *) safe_malloc(l + 1);
-			swp = (int16 *) sp->data;
-			while (l--)
-				*ulp++ = (*swp++ >> 8) & 0xff;
-			free(sp->data);
-			sp->data = (sample_t *) gulp;
-		}
+		squash_sample_16to8(sp);
 #endif
 		if (strip_tail == 1) {
 			/* Let's not really, just say we did. */
@@ -1014,6 +1002,23 @@ fail:
 			strip_loop, strip_envelope, strip_tail);
 	return ip;
 }
+
+#ifdef LOOKUP_HACK
+/*! Squash the 16-bit data into 8 bits. */
+void squash_sample_16to8(Sample *sp)
+{
+	uint8 *gulp, *ulp;
+	int16 *swp;
+	int l = sp->data_length >> FRACTION_BITS;
+
+	gulp = ulp = (uint8 *)safe_malloc(l + 1);
+	swp = (int16 *)sp->data;
+	while (l--)
+		*ulp++ = (*swp++ >> 8) & 0xff;
+	free(sp->data);
+	sp->data = (sample_t *)gulp;
+}
+#endif
 
 Instrument *load_instrument(int dr, int b, int prog)
 {

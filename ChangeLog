@@ -1,3 +1,8 @@
+2004-03-26  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/instrum.[ch], smplfile.c, sndfont.c:
+	  Supported LOOKUP_HACK for %sample.
+
 2004-03-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1,

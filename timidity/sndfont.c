@@ -665,18 +665,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			pre_resample(sample);
 
 #ifdef LOOKUP_HACK
-		/* squash the 16-bit data into 8 bits. */
-		{
-			uint8 *gulp,*ulp;
-			int16 *swp;
-			int l = sample->data_length >> FRACTION_BITS;
-			gulp = ulp = (uint8 *)safe_malloc(l + 1);
-			swp = (int16 *)sample->data;
-			while (l--)
-				*ulp++ = (*swp++ >> 8) & 0xFF;
-			free(sample->data);
-			sample->data=(sample_t *)gulp;
-		}
+		squash_sample_16to8(sample);
 #endif
 	}
 
