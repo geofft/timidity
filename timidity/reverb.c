@@ -648,7 +648,7 @@ void calc_filter_biquad_high(filter_biquad *p)
 		} else {alpha = sn / (2.0 * p->q);}
 
 		a0 = 1.0f / (1.0f + alpha);
-		b02 = ((1.0f - cs) / 2.0f) * a0;
+		b02 = ((1.0f + cs) / 2.0f) * a0;
 		b1 = (-(1.0f + cs)) * a0;
 		a1 = (-2.0f * cs) * a0;
 		a2 = (1.0f - alpha) * a0;
@@ -2608,12 +2608,12 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 /*! panning (pan = [0, 127]) */
 static inline int32 do_left_panning(int32 sample, int32 pan)
 {
-	return imuldiv8(sample, pan + pan);
+	return imuldiv8(sample, 256 - pan - pan);
 }
 
 static inline int32 do_right_panning(int32 sample, int32 pan)
 {
-	return imuldiv8(sample, 256 - pan - pan);
+	return imuldiv8(sample, pan + pan);
 }
 
 #define OD_BITS 28
@@ -3793,21 +3793,21 @@ static void conv_gs_lofi2(struct insertion_effect_gs_t *st, EffectList *ef)
 {
 	InfoLoFi2 *info = (InfoLoFi2 *)ef->info;
 
-	info->lofi_type = st->parameter[0];
-	info->fil_type = st->parameter[1];
+	info->lofi_type = clip_int(st->parameter[0], 1, 6);
+	info->fil_type = clip_int(st->parameter[1], 0, 2);
 	info->fil.freq = cutoff_freq_table_gs[st->parameter[2]];
 	info->rdetune = st->parameter[3];
 	info->rnz_lev = (double)st->parameter[4] / 127.0f;
-	info->wp_sel = st->parameter[5];
+	info->wp_sel = clip_int(st->parameter[5], 0, 1);
 	info->wp_lpf.freq = lpf_table_gs[st->parameter[6]];
 	info->wp_level = (double)st->parameter[7] / 127.0f;
-	info->disc_type = st->parameter[8];
+	info->disc_type = clip_int(st->parameter[8], 0, 3);
 	info->disc_lpf.freq = lpf_table_gs[st->parameter[9]];
 	info->discnz_lev = (double)st->parameter[10] / 127.0f;
-	info->hum_type = st->parameter[11];
+	info->hum_type = clip_int(st->parameter[11], 0, 1);
 	info->hum_lpf.freq = lpf_table_gs[st->parameter[12]];
 	info->hum_level = (double)st->parameter[13] / 127.0f;
-	info->ms = st->parameter[14];
+	info->ms = clip_int(st->parameter[14], 0, 1);
 	info->dry = calc_dry_gs(st->parameter[15]);
 	info->wet = calc_wet_gs(st->parameter[15]);
 	info->pan = st->parameter[18];
@@ -3836,7 +3836,6 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
-
 	for (i = 0; i < count; i++)
 	{
 		x = buf[i];

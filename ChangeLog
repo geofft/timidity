@@ -1,3 +1,7 @@
+2004-04-29  Saito <saito@intaa.net>
+
+	* timidity/reverb.c, timidity/optcode.h: Fix around Insertion Effect.
+
 2004-04-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c: Fix around temperament control
