@@ -130,18 +130,22 @@ open_file_cb(GtkWidget *widget, gpointer data)
 	filesel = gtk_file_selection_new("Open File");
 	gtk_file_selection_hide_fileop_buttons(GTK_FILE_SELECTION(filesel));
 
+#ifdef HAVE_GTK_2
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->ok_button),
 			   "clicked",
-#ifdef HAVE_GTK_2
 			   G_CALLBACK (filer_cb), (gpointer)1);
 #else
+	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->ok_button),
+			   "clicked",
 			   GTK_SIGNAL_FUNC (filer_cb), (gpointer)1);
 #endif
+#ifdef HAVE_GTK_2
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->cancel_button),
 			   "clicked",
-#ifdef HAVE_GTK_2
 			   G_CALLBACK (filer_cb), (gpointer)0);
 #else
+	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->cancel_button),
+			   "clicked",
 			   GTK_SIGNAL_FUNC (filer_cb), (gpointer)0);
 #endif
     }

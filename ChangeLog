@@ -1,3 +1,7 @@
+2004-05-31  Iwata <b6330015@ipc.kit.jp>
+
+	* interface/gtk_i.c (open_file_cb): Fix compiling problem
+
 2004-05-30  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: ditto
