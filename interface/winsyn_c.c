@@ -80,7 +80,7 @@ static int peek_character = -1;
 #endif
 
 extern int volatile stream_max_compute;	// play_event() ‚Ì compute_data() ‚ÅŒvZ‚ğ‹–‚·Å‘åŠÔ
-int seq_quit;
+int seq_quit=~0;
 
 
 static int ctl_open(int using_stdin, int using_stdout);
@@ -134,6 +134,11 @@ static int ctl_open(int using_stdin, int using_stdout)
 static void ctl_close(void)
 {
   fflush(outfp);
+  if(seq_quit==0){
+  	rtsyn_synth_stop();
+  	rtsyn_close();
+  	seq_quit=~0;
+  }
   ctl.opened=0;
 }
 
