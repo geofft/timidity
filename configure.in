@@ -228,7 +228,7 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xwcc386_w "*)
+      "xwcc386_w.sh "*)
          WATCOM=yes
          CFLAGS="$CFLAGS -5s -zk0 -bm -zp=16 -w=4 -D_MSC_VER -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
          WATCOM_LDFLAGS=
@@ -261,7 +261,7 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xwcc386_w "*)
+      "xwcc386_w.sh "*)
          WATCOM=yes
          CFLAGS="$CFLAGS -5s -zk0 -bm -zp=16 -w=4 -D_MSC_VER -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
          WATCOM_LDFLAGS=

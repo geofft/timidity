@@ -1,3 +1,29 @@
+2004-05-30  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+	* configure.in 
+	  interface.h.in 
+	  interface/Makefile.am 
+	  interface/vt100_c.c
+	  libarc/Makefile.am 
+	  libunimod/Makefile.am 
+	  libunimod/unimod_priv.h
+	  timidity/Makefile.am 
+	  timidity/common.c 
+	  timidity/gogo_a.c
+	  timidity/sysdep.h 
+	  timidity/timidity.c
+	  timidity/version.c
+	  utils/Makefile.am 
+	  utils/support.h 
+	  utils/tmdy_getopt.h
+	  interface/ncurs_c.c
+	Can compile OpenWatcom in Msys or Cygwin environment.
+	added file
+	  doc/README.win32
+	  doc/ja_jp.eucJP/README-win32
+	  scripts/wcc386_w.sh
+	Compile instructions for Mingw, Borland C, Watcom C and  Visual C
+
 2004-05-24  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* libunimod/load_mod.c (ConvertNote): Bug fix

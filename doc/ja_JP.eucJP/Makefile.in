@@ -269,7 +269,8 @@ EXTRA_DIST = \
 	README.xaw \
 	README.alsaseq \
 	README.m2m \
-	README.mts
+	README.mts \
+	README.w32
 
 subdir = doc/ja_JP.eucJP
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

@@ -28,4 +28,5 @@ EXTRA_DIST = \
 	README.xaw \
 	README.alsaseq \
 	README.m2m \
-	README.mts
+	README.mts \
+	README.w32

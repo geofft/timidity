@@ -262,7 +262,8 @@ w_so_libs = @w_so_libs@
 EXTRA_DIST = \
 	dllutl.rb \
 	lspatch.pl \
-	readme.txt
+	readme.txt \
+	wcc386_w.sh 
 
 subdir = script
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
