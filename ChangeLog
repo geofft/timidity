@@ -1,3 +1,11 @@
+2003-10-08  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Fixed crash with --realtime-load
+	  when an instrument of the alternative bank is not defined.
+	* timidity/readmidi.c: Returning an error from WRDTracer.start()
+	  now disables ME_SHERRY in addition to ME_WRD.
+	  Fixed ME_GSLCD to be handled correctly in trace mode.
+
 2003-10-08  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (set_tim_opt_long): Bug fix
