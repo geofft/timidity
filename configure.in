@@ -225,7 +225,7 @@ case "$target" in
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
-    CYGNUS=yestest
+    CYGNUS=yes
     lib_user32_test=-luser32
     ;;
   *-*-mingw*)
@@ -543,29 +543,7 @@ if test "x$CYGNUS" = xyes; then
 fi
 
 # Checks on Mingw
-if test "x$CYGWIN" = xyes; then
-  case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
-  *yes*)
-    AC_CHECK_FUNC(opendir,,
-  [ EXTRADEFS="$EXTRADEFS -D__W32READDIR__"
-    W32READDIR=yes ])
-    ;;
-  *)EXTRADEFS="$EXTRADEFS -D__W32READDIR__"
-    W32READDIR=yes
-    ;;
-  esac
-  if test "x$enable_network" = "xyes"; then
-    AC_CHECK_FUNC(socket,,
-      WAPI_CHECK_LIB(wsock32,WSAStartup,
-  [#include <winsock.h>],
-  [WSAStartup(0,0);],
-  [ EXTRALIBS="$EXTRALIBS -lwsock32"
-    EXTRADEFS="$EXTRADEFS -DWINSOCK" ]))
-  fi
-fi
-
-# Checks on Mingw on Msys
-if test "x$MINGW" = xyes; then
+if test "x$CYGWIN" = xyes || test "x$MINGW" = xyes ; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     AC_CHECK_FUNC(opendir,,
