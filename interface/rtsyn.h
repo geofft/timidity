@@ -132,26 +132,10 @@ int rtsyn_buf_check(void);
 #ifdef __W32__
 #define USE_WINTIMER_I 1
 
-#if defined(MACOS9)
-typedef int fluid_mutex_t;
-#define fluid_mutex_init(_m)      { (_m) = 0; }
-#define fluid_mutex_destroy(_m) 
-#define fluid_mutex_lock(_m) 
-#define fluid_mutex_unlock(_m) 
-
-#elif defined(WIN32)
-typedef HANDLE fluid_mutex_t;
-#define fluid_mutex_init(_m)      { (_m) = CreateMutex(NULL, 0, NULL); }
-#define fluid_mutex_destroy(_m)   if (_m) { CloseHandle(_m); }
-#define fluid_mutex_lock(_m)      WaitForSingleObject(_m, INFINITE)
-#define fluid_mutex_unlock(_m)    ReleaseMutex(_m)
-
-#else
-typedef pthread_mutex_t fluid_mutex_t;
-#define fluid_mutex_init(_m)      pthread_mutex_init(&(_m), NULL)
-#define fluid_mutex_destroy(_m)   pthread_mutex_destroy(&(_m))
-#define fluid_mutex_lock(_m)      pthread_mutex_lock(&(_m))
-#define fluid_mutex_unlock(_m)    pthread_mutex_unlock(&(_m))
-#endif
+typedef HANDLE rtsyn_mutex_t;
+#define rtsyn_mutex_init(_m)      { (_m) = CreateMutex(NULL, 0, NULL); }
+#define rtsyn_mutex_destroy(_m)   if (_m) { CloseHandle(_m); }
+#define rtsyn_mutex_lock(_m)      WaitForSingleObject(_m, INFINITE)
+#define rtsyn_mutex_unlock(_m)    ReleaseMutex(_m)
 
 #endif
