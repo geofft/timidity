@@ -43,7 +43,7 @@ certain MIDI file in the archive, append \fB#<MIDI\-filename>\fP to
 the archive name.  The expression after `#' can use regular
 expressions (case insensitive).
 .br
-You can use escape sequence \fB\xHH\fP, where `HH' is a ASCII number
+You can use escape sequence \fB\\xHH\fP, where `HH' is a ASCII number
 in hexadecimal integer.
 .sp
 For example:
@@ -424,9 +424,23 @@ Forces keysig.  Specify the number of sharps(+) or flats(-).
 Show the help message.
 .TP
 .BI "\-i, \-\-interface " mode
+.br
+.ns
+.TP
+.BI "\-\-realtime\-priority " n
+.br
+.ns
+.TP
+.BI "\-\-sequencer\-ports " n
 Selects the user interfaces from the compiled\-in alternatives.
 \fIinterface\fP must be begun with one of the supported interface
 identifiers.  Run TiMidity with the \fB\-h\fP option to see a list.
+.br
+For ALSA sequencer interface, optionally to use
+\fB\-\-realtime\-priority\fP, set the realtime priority by \fIn\fP,
+and to use \fB\-\-sequencer\-ports\fP, set the number of opened
+sequencer ports.  Default value is \fB4\fP.
+.br
 The following identifiers may be available:
 .RS
 .TP
@@ -511,13 +525,6 @@ Sort file list arguments before playing
 .TP
 .B D, \-\-[no\-]background
 Daemonize \fBTiMidity++\fP in background (for alsaseq only)
-.TP
-.BI \-\-realtime\-priority n
-Set the realtime priority by \fIn\fP (for alsaseq only)
-.TP
-.BI \-\-sequencer\-ports n
-Set the number of opened sequencer ports, default is \fB4\fP (for
-alsaseq only)
 .RE
 .RE
 .TP
@@ -727,7 +734,7 @@ Causes channel \fIn\fP to be quiet.  If channel \fIn\fP is negative,
 channel \fI\-n\fP is turned back on.  If \fIn\fP is 0, all channels
 are turned off.
 .br
-On the other hand, to put `t' character after \FB\-Q\fP option or to
+On the other hand, to put `t' character after \fB\-Q\fP option or to
 use \fB\-\-temper\-mute\fP describes temperament mute.  This mutes
 channels of the specific temperament.  \fIn\fP can range \fB0\fP to
 \fB7\fP.

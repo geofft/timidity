@@ -3806,12 +3806,6 @@ static inline int parse_opt_h(const char *arg)
 #ifdef IA_ALSASEQ
 	fputs("  `D'          daemonize TiMidity++ in background "
 			"(for alsaseq only)" NLS, fp);
-	fputs("  --realtime-priority=n" NLS, fp);
-	fputs("               set the realtime priority by n "
-			"(for alsaseq only)" NLS, fp);
-	fputs("  --sequencer-ports=n" NLS, fp);
-	fputs("               set the number of opened seq ports "
-			"(for alsaseq only)" NLS, fp);
 #endif
 	fputs(NLS, fp);
 	fputs("Alternative interface long options:" NLS

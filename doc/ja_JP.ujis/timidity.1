@@ -452,8 +452,23 @@ X Window System がサポートされている環境のみで動作します。サウンドスペ
 \fBTiMidity++\fP のオプションの簡単な説明を表示します。
 .TP
 .BI "\-i, \-\-interface " mode
+.br
+.ns
+.TP
+.BI "\-\-realtime\-priority " n
+.br
+.ns
+.TP
+.BI "\-\-sequencer\-ports " n
 ユーザインターフェースを指定します。環境によって利用可能なインタフェー
-スが異なります。以下の \fImode\fP が存在します。
+スが異なります。
+.br
+ALSA シーケンサインタフェースでは，別途 \fB\-\-realtime\-priority\fP
+オプションにより，リアルタイム・プライオリティを指定できます。また，
+\fB\-\-sequencer\-ports\fP オプションにより，シーケンサのポート数を指定
+できます。デフォルトでは \fB4\fP です。
+.br
+以下の \fImode\fP が存在します。
 .RS
 .TP
 .B \-id
@@ -533,13 +548,6 @@ UMP インターフェース
 .TP
 .B D, \-\-[no\-]background
 \fBTiMidity++\fP をバックグラウンドでデーモン化します(alsaseq のみ)。
-.TP
-.BI \-\-realtime\-priority n
-リアルタイム・プライオリティを指定します(alsaseq のみ)。
-.TP
-.BI \-\-sequencer\-ports n
-シーケンサのポート数を指定します(alsaseq のみ)。デフォルトでは \fB4\fP
-です。
 .RE
 .RE
 .TP
