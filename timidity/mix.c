@@ -1515,19 +1515,23 @@ int recompute_envelope(int v)
 	 */
 	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
 			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+		ch = vp->channel;
 		/* Default behavior */
-		if (min_sustain_time <= 0)
+		if (min_sustain_time <= 0 && channel[ch].loop_timeout <= 0)
 			/* Freeze envelope until note turns off */
 			vp->envelope_increment = 0;
 		else {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return next_stage(v);
-			ch = vp->channel;
-			if (channel[ch].sostenuto) {
+			if (channel[ch].loop_timeout * 1000 > min_sustain_time) {
 				sustain_time = min_sustain_time;
 			} else {
-				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
+				/* timeout (See also "#extension timeout" line in *.cfg file */
+				sustain_time = channel[ch].loop_timeout * 1000;
+			}
+			if (channel[ch].sostenuto == 0) {
+				sustain_time *= (double)channel[ch].sustain / 127.0f;
 			}
 			/* Calculate the release phase speed. */
 			envelope_width = sustain_time * play_mode->rate
@@ -1916,19 +1920,23 @@ int recompute_modulation_envelope(int v)
 
 	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
 			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+		ch = vp->channel;
 		/* Default behavior */
-		if (min_sustain_time <= 0)
+		if (min_sustain_time <= 0 && channel[ch].loop_timeout <= 0)
 			/* Freeze envelope until note turns off */
 			vp->modenv_increment = 0;
 		else {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return modenv_next_stage(v);
-			ch = vp->channel;
-			if (channel[ch].sostenuto) {
+			if (channel[ch].loop_timeout * 1000 > min_sustain_time) {
 				sustain_time = min_sustain_time;
 			} else {
-				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
+				/* timeout (See also "#extension timeout" line in *.cfg file */
+				sustain_time = channel[ch].loop_timeout * 1000;
+			}
+			if (channel[ch].sostenuto == 0) {
+				sustain_time *= (double)channel[ch].sustain / 127.0f;
 			}
 			/* Calculate the release phase speed. */
 			modenv_width = sustain_time * play_mode->rate

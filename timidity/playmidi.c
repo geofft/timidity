@@ -537,6 +537,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].pitch_offset_fine = 0;
   channel[c].legato = 0;
   channel[c].redamper = 0;
+  channel[c].loop_timeout = 0;
   if(play_system_mode == XG_SYSTEM_MODE) {
 	  if(ISDRUMCHANNEL(c)) {channel[c].assign_mode = 1;}
 	  else {channel[c].assign_mode = 2;}
@@ -1255,6 +1256,7 @@ void recompute_bank_parameter(int ch, int note)
 		if(bank == NULL) {bank = tonebank[0];}
 		channel[ch].legato = bank->tone[nprog].legato;
 		channel[ch].redamper = bank->tone[nprog].redamper;
+		channel[ch].loop_timeout = bank->tone[nprog].loop_timeout;
 	}
 }
 
@@ -2744,37 +2746,6 @@ static void note_on(MidiEvent *e)
     channel[ch].legato_flag = 1;
 }
 
-/*! set time-out to voices for finite sustain */
-static void set_voice_timeout(Voice *vp, int ch, int note)
-{
-    int prog;
-    ToneBank *bank;
-
-    if(channel[ch].special_sample > 0)
-	return;
-
-    if(ISDRUMCHANNEL(ch))
-    {
-	prog = note;
-	bank = drumset[(int)channel[ch].bank];
-	if(bank == NULL)
-	    bank = drumset[0];
-    }
-    else
-    {
-	if((prog = channel[ch].program) == SPECIAL_PROGRAM)
-	    return;
-	bank = tonebank[(int)channel[ch].bank];
-	if(bank == NULL)
-	    bank = tonebank[0];
-    }
-
-    if(bank->tone[prog].loop_timeout > 0)
-	vp->timeout = (int32)(bank->tone[prog].loop_timeout
-			      * play_mode->rate * midi_time_ratio
-			      + current_sample);
-}
-
 /*! sostenuto is now implemented as an instant sustain */
 static void update_sostenuto_controls(int ch)
 {
@@ -2787,7 +2758,6 @@ static void update_sostenuto_controls(int ch)
 	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	  {
 		  voice[i].status = VOICE_SUSTAINED;
-		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
 		  voice[i].envelope_stage = EG_GUS_RELEASE1;
 		  recompute_envelope(i);
@@ -2807,7 +2777,6 @@ static void update_redamper_controls(int ch)
 	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	  {
 		  voice[i].status = VOICE_SUSTAINED;
-		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
 		  voice[i].envelope_stage = EG_GUS_RELEASE1;
 		  recompute_envelope(i);
@@ -2857,7 +2826,6 @@ static void note_off(MidiEvent *e)
 	  if(sustain)
 	  {
 	      voice[i].status=VOICE_SUSTAINED;
-	      set_voice_timeout(voice + i, ch, note);
 	      ctl_note_event(i);
 	  }
 	  else
@@ -2880,7 +2848,6 @@ static void all_notes_off(int c)
 	if (channel[c].sustain)
 	  {
 	    voice[i].status=VOICE_SUSTAINED;
-	    set_voice_timeout(voice + i, c, voice[i].note);
 	    ctl_note_event(i);
 	  }
 	else
@@ -6019,14 +5986,9 @@ static void do_compute_data_midi(int32 count)
 				ctl_note_event(i);
 			}
 
-			if(voice[i].timeout > 0 && voice[i].timeout < current_sample) {
-				/* timeout (See also "#extension timeout" line in *.cfg file */
-				if(voice[i].timeout > 1) {
-					finish_note(i);
-				} else {
-					free_voice(i);
-					ctl_note_event(i);
-				}
+			if(voice[i].timeout == 1 && voice[i].timeout < current_sample) {
+				free_voice(i);
+				ctl_note_event(i);
 			}
 		}
 	}
@@ -6227,15 +6189,9 @@ static void do_compute_data_midi(int32 count)
 				free_voice(i);
 				ctl_note_event(i);
 			}
-			if (voice[i].timeout > 0 && voice[i].timeout < current_sample) {
-				if (voice[i].timeout > 1)
-					finish_note(i);
-						/* timeout (See also "#extension timeout"
-						line in *.cfg file */
-				else {
-					free_voice(i);
-					ctl_note_event(i);
-				}
+			if (voice[i].timeout == 1 && voice[i].timeout < current_sample) {
+				free_voice(i);
+				ctl_note_event(i);
 			}
 		}
 

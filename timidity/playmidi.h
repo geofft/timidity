@@ -282,7 +282,7 @@ struct DrumParts
 typedef struct {
   int8	bank_msb, bank_lsb, bank, program, volume,
 	expression, sustain, panning, mono, portamento,
-	key_shift;
+	key_shift, loop_timeout;
 
   /* chorus, reverb... Coming soon to a 300-MHz, eight-way superscalar
      processor near you */
