@@ -1,3 +1,7 @@
+2004-03-04  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Small fixes.
+
 2004-03-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c (parse_opt_Z1): Fix typo

@@ -2803,8 +2803,8 @@ static void update_sostenuto_controls(int ch)
 
   for(i = 0; i < uv; i++)
   {
-	 if(voice[i].channel == ch &&
-		 (voice[i].status & VOICE_ON || voice[i].status & VOICE_OFF))
+	if ((voice[i].status & (VOICE_ON | VOICE_OFF))
+			&& voice[i].channel == ch)
 	 {
 		  voice[i].status = VOICE_SUSTAINED;
 		  ctl_note_event(i);
@@ -2823,8 +2823,8 @@ static void update_redamper_controls(int ch)
 
   for(i = 0; i < uv; i++)
   {
-	 if(voice[i].channel == ch &&
-		 (voice[i].status & VOICE_ON || voice[i].status & VOICE_OFF))
+	if ((voice[i].status & (VOICE_ON | VOICE_OFF))
+			&& voice[i].channel == ch)
 	  {
 		  voice[i].status = VOICE_SUSTAINED;
 		  ctl_note_event(i);
@@ -5961,8 +5961,8 @@ int check_apply_control(void)
 	ctl_speana_flag = !ctl_speana_flag;
 	if(view_soundspec_flag || ctl_speana_flag)
 	    soundspec_update_wave(NULL, -1);
-	return RC_NONE;
 #endif /* SUPPORT_SOUNDSPEC */
+	return RC_NONE;
       case RC_CHANGE_RATE:
 	if(playmidi_change_rate(val, 0))
 	    return RC_NONE;
@@ -6803,43 +6803,42 @@ static void do_compute_data_midi(int32 count)
 
 static void do_compute_data_wav(int32 count)
 {
-    int i, stereo, n, file_byte, samples;
+	int i, stereo, samples, req_size, act_samples, v;
 
-    stereo = !(play_mode->encoding & PE_MONO);
-    samples = (stereo ? (count * 2) : count );
-    n = samples*4; /* in bytes */
-    file_byte = samples*2; /*regard as 16bit*/
+	stereo = !(play_mode->encoding & PE_MONO);
+	samples = (stereo ? (count * 2) : count);
+	req_size = samples * 2; /* assume 16bit */
 
-    memset(buffer_pointer, 0, n);
+	act_samples = tf_read(wav_buffer, 1, req_size, current_file_info->pcm_tf) / 2;
+	for(i = 0; i < act_samples; i++) {
+		v = (uint16)LE_SHORT(wav_buffer[i]);
+		buffer_pointer[i] = (int32)((v << 16) | (v ^ 0x8000)) / 4; /* 4 : level down */
+	}
+	for(; i < samples; i++)
+		buffer_pointer[i] = 0;
 
-    tf_read(wav_buffer, 1, file_byte, current_file_info->pcm_tf);
-    for( i=0; i<samples; i++ ){
-    	buffer_pointer[i] = (LE_SHORT(wav_buffer[i])) << 16;
-    	buffer_pointer[i] /=4; /*level down*/
-    }
-
-    current_sample += count;
+	current_sample += count;
 }
 
 static void do_compute_data_aiff(int32 count)
 {
-    int i, stereo, n, file_byte, samples;
+	int i, stereo, samples, req_size, act_samples, v;
 
-    stereo = !(play_mode->encoding & PE_MONO);
-    samples = (stereo ? (count * 2) : count );
-    n = samples*4; /* in bytes */
-    file_byte = samples*2; /*regard as 16bit*/
+	stereo = !(play_mode->encoding & PE_MONO);
+	samples = (stereo ? (count * 2) : count);
+	req_size = samples * 2; /* assume 16bit */
 
-    memset(buffer_pointer, 0, n);
+	act_samples = tf_read(wav_buffer, 1, req_size, current_file_info->pcm_tf) / 2;
+	for(i = 0; i < act_samples; i++) {
+		v = (uint16)BE_SHORT(wav_buffer[i]);
+		buffer_pointer[i] = (int32)((v << 16) | (v ^ 0x8000)) / 4; /* 4 : level down */
+	}
+	for(; i < samples; i++)
+		buffer_pointer[i] = 0;
 
-    tf_read(wav_buffer, 1, file_byte, current_file_info->pcm_tf);
-    for( i=0; i<samples; i++ ){
-    	buffer_pointer[i] = (BE_SHORT(wav_buffer[i])) << 16;
-    	buffer_pointer[i] /=4; /*level down*/
-    }
-
-    current_sample += count;
+	current_sample += count;
 }
+
 
 static void do_compute_data(int32 count)
 {
