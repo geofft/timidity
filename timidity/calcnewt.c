@@ -8,7 +8,7 @@ int main(int argc, const char *argv[])
     int i, j, n = 57;
     int sign;
 
-#ifdef VC_PROJECT
+#ifdef _MSC_VER
 	FILE *fp;
 
 	if (argc != 2)
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[])
     	for (j = 0, sign = pow(-1, i); j <= i; j++, sign *= -1)
     	    newt_coeffs[i][j] *= sign;
 
-#ifdef VC_PROJECT
+#ifdef _MSC_VER
     for (i = 0; i <= n; i++)
 	for (j = 0; j <= n; j++)
 	    fprintf(fp, "(float)%2.32g,\n", newt_coeffs[i][j]);
