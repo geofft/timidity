@@ -346,6 +346,22 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 				sp->root_freq = adjust_tune_freq(sp->root_freq, tone->tune[i]);
 			}
 		}
+	if (tone->sclnotenum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->sclnotenum == 1)
+				sp->scale_freq = tone->sclnote[0];
+			else if (i < tone->sclnotenum)
+				sp->scale_freq = tone->sclnote[i];
+		}
+	if (tone->scltunenum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->scltunenum == 1)
+				sp->scale_factor = tone->scltune[0];
+			else if (i < tone->scltunenum)
+				sp->scale_factor = tone->scltune[i];
+		}
 	if (tone->fcnum)
 		for (i = 0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
@@ -549,7 +565,9 @@ static Instrument *load_gus_instrument(char *name,
       tone = NULL;
   }
 
-	if (tone && tone->tunenum == 0 && tone->fcnum == 0 && tone->resonum == 0
+	if (tone && tone->tunenum == 0
+			&& tone->sclnotenum == 0 && tone->scltunenum == 0
+			&& tone->fcnum == 0 && tone->resonum == 0
 			&& tone->envratenum == 0 && tone->envofsnum == 0
 			&& tone->modenvratenum == 0 && tone->modenvofsnum == 0
 			&& tone->tremnum == 0 && tone->vibnum == 0
@@ -683,7 +701,6 @@ static Instrument *load_gus_instrument(char *name,
 	  sp->key_to_fc_bpo = 60;
 	  sp->envelope_delay = sp->modenv_delay =
 	  sp->tremolo_delay = sp->vibrato_delay = 0;
-	  sp->scale_tuning = 100;
 	  sp->inst_type = INST_GUS;
 	  sp->sample_type = SF_SAMPLETYPE_MONO;
 	  sp->sf_sample_link = -1;
@@ -763,7 +780,10 @@ static Instrument *load_gus_instrument(char *name,
       READ_CHAR(sp->modes);
       ctl->cmsg(CMSG_INFO, VERB_DEBUG, " * mode: 0x%02x", sp->modes);
 
-      skip(tf, 40); /* skip the useless scale frequency, scale factor
+      READ_SHORT(sp->scale_freq);
+      READ_SHORT(sp->scale_factor);
+
+      skip(tf, 36); /* skip the useless scale frequency, scale factor
 		       (what's it mean?), and reserved space */
 
       /* Mark this as a fixed-pitch instrument if such a deed is desired. */

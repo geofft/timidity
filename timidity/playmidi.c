@@ -1281,6 +1281,12 @@ void dup_tone_bank_element(int dr, int bk, int prog)
 	if (elm->tunenum)
 		elm->tune = (float *) memdup(
 				elm->tune, elm->tunenum * sizeof(float));
+	if (elm->sclnotenum)
+		elm->sclnote = (int16 *) memdup(
+				elm->sclnote, elm->sclnotenum * sizeof(int16));
+	if (elm->scltunenum)
+		elm->scltune = (int16 *) memdup(
+				elm->scltune, elm->scltunenum * sizeof(int16));
 	if (elm->fcnum)
 		elm->fc = (int16 *) memdup(
 				elm->fc, elm->fcnum * sizeof(int16));
@@ -1352,6 +1358,14 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	if (elm->tune) {
 		free(elm->tune);
 		elm->tune = NULL;
+	}
+	if (elm->sclnote) {
+		free(elm->sclnote);
+		elm->sclnote = NULL;
+	}
+	if (elm->scltune) {
+		free(elm->scltune);
+		elm->scltune = NULL;
 	}
 	if (elm->fc) {
 		free(elm->fc);
@@ -2067,7 +2081,7 @@ static int select_play_sample(Sample *splist,
 	int8 tt = channel[ch].temper_type;
 	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *spc, *spr;
-	int16 st;
+	int16 sf, sn;
 	double ratio;
 	int i, j, k, nv, nvc;
 	
@@ -2127,12 +2141,11 @@ static int select_play_sample(Sample *splist,
 	}
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
-		/* SF2 - Scale Tuning */
-		if ((st = sp->scale_tuning) != 100) {
-			ratio = pow((double) f / sp->root_freq, st / 100.0);
-			ft = sp->root_freq * ratio + 0.5;
-			ratio = pow((double) fs / sp->root_freq, st / 100.0);
-			fst = sp->root_freq * ratio + 0.5;
+		/* GUS,SF2 - Scale Tuning */
+		if ((sf = sp->scale_factor) != 1024) {
+			sn = sp->scale_freq;
+			ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+			ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
 		} else
 			ft = f, fst = fs;
 		if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
@@ -2155,12 +2168,11 @@ static int select_play_sample(Sample *splist,
 		fr = fc = 0;
 		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			/* SF2 - Scale Tuning */
-			if ((st = sp->scale_tuning) != 100) {
-				ratio = pow((double) f / sp->root_freq, st / 100.0);
-				ft = sp->root_freq * ratio + 0.5;
-				ratio = pow((double) fs / sp->root_freq, st / 100.0);
-				fst = sp->root_freq * ratio + 0.5;
+			/* GUS,SF2 - Scale Tuning */
+			if ((sf = sp->scale_factor) != 1024) {
+				sn = sp->scale_freq;
+				ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+				ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
 			} else
 				ft = f, fst = fs;
 			if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
@@ -2208,10 +2220,11 @@ static int select_play_sample(Sample *splist,
 						&& sp->sample_type == SF_SAMPLETYPE_RIGHT
 						&& sp->sf_sample_index == sample_link) {
 					/* right sample is found. */
-					/* SF2 - Scale Tuning */
-					if ((st = sp->scale_tuning) != 100) {
-						ratio = pow((double) f / sp->root_freq, st / 100.0);
-						ft = sp->root_freq * ratio + 0.5;
+					/* GUS,SF2 - Scale Tuning */
+					if ((sf = sp->scale_factor) != 1024) {
+						sn = sp->scale_freq;
+						ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+						ft = f * ratio + 0.5;
 					} else
 						ft = f;
 					if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
@@ -2252,14 +2265,15 @@ static double get_play_note_ratio(int ch, int note)
 int32 get_note_freq(Sample *sp, int note)
 {
 	int32 f;
-	int16 st;
+	int16 sf, sn;
 	double ratio;
 	
 	f = freq_table[note];
-	/* SF2 - Scale Tuning */
-	if ((st = sp->scale_tuning) != 100) {
-		ratio = pow((double) f / sp->root_freq, st / 100.0);
-		f = sp->root_freq * ratio + 0.5;
+	/* GUS,SF2 - Scale Tuning */
+	if ((sf = sp->scale_factor) != 1024) {
+		sn = sp->scale_freq;
+		ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+		f = f * ratio + 0.5;
 	}
 	return f;
 }
@@ -6988,7 +7002,7 @@ int play_event(MidiEvent *ev)
 	layered = ! IS_SYSEX_EVENT_TYPE(ev);
 	for (k = 0; k < MAX_CHANNELS; k += 16) {
 		port_ch = (orig_ch + k) % MAX_CHANNELS;
-		offset = port_ch & ~0xf5;
+		offset = port_ch & ~0xf;
 		for (l = offset; l < offset + 16; l++) {
 			if (! layered && (k || l != offset))
 				continue;

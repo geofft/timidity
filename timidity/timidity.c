@@ -582,6 +582,10 @@ static void copybank(ToneBank *to, ToneBank *from)
 	toelm->instrument = NULL;
 	toelm->tune = NULL;
 	toelm->tunenum = 0;
+	toelm->sclnote = NULL;
+	toelm->sclnotenum = 0;
+	toelm->scltune = NULL;
+	toelm->scltunenum = 0;
 	toelm->fc = NULL;
 	toelm->fcnum = 0;
 	toelm->reso = NULL;
@@ -849,21 +853,24 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
 	    p++;
 	}
     }
-    else if(!strcmp(opts, "tune")) {
-      tone->tune = config_parse_tune(cp, &tone->tunenum);
-	} else if(!strcmp(opts, "fc")) {
-      tone->fc = config_parse_int16(cp, &tone->fcnum);
-	} else if(!strcmp(opts, "q")) {
-      tone->reso = config_parse_int16(cp, &tone->resonum);
-	} else if(!strcmp(opts, "trempitch")) {
-      tone->trempitch = config_parse_int16(cp, &tone->trempitchnum);
-	} else if(!strcmp(opts, "tremfc")) {
-      tone->tremfc = config_parse_int16(cp, &tone->tremfcnum);
-	} else if(!strcmp(opts, "modpitch")) {
-      tone->modpitch = config_parse_int16(cp, &tone->modpitchnum);
-	} else if(!strcmp(opts, "modfc")) {
-      tone->modfc = config_parse_int16(cp, &tone->modfcnum);
-	}
+	else if (! strcmp(opts, "tune"))
+		tone->tune = config_parse_tune(cp, &tone->tunenum);
+	else if (! strcmp(opts, "sclnote"))
+		tone->sclnote = config_parse_int16(cp, &tone->sclnotenum);
+	else if (! strcmp(opts, "scltune"))
+		tone->scltune = config_parse_int16(cp, &tone->scltunenum);
+	else if (! strcmp(opts, "fc"))
+		tone->fc = config_parse_int16(cp, &tone->fcnum);
+	else if (! strcmp(opts, "q"))
+		tone->reso = config_parse_int16(cp, &tone->resonum);
+	else if (! strcmp(opts, "trempitch"))
+		tone->trempitch = config_parse_int16(cp, &tone->trempitchnum);
+	else if (! strcmp(opts, "tremfc"))
+		tone->tremfc = config_parse_int16(cp, &tone->tremfcnum);
+	else if (! strcmp(opts, "modpitch"))
+		tone->modpitch = config_parse_int16(cp, &tone->modpitchnum);
+	else if (! strcmp(opts, "modfc"))
+		tone->modfc = config_parse_int16(cp, &tone->modfcnum);
 	else if (! strcmp(opts, "rate"))
 		tone->envrate = config_parse_envelope(cp, &tone->envratenum);
 	else if (! strcmp(opts, "offset"))
@@ -872,120 +879,111 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
 		tone->modenvrate = config_parse_envelope(cp, &tone->modenvratenum);
 	else if (! strcmp(opts, "modoffset"))
 		tone->modenvofs = config_parse_envelope(cp, &tone->modenvofsnum);
-	else if (! strcmp(opts, "tremolo"))
-	{
-		if ((tone->trem = config_parse_modulation(name, line, cp, &tone->tremnum, 0)) == NULL)
+	else if (! strcmp(opts, "tremolo")) {
+		if ((tone->trem = config_parse_modulation(name,
+				line, cp, &tone->tremnum, 0)) == NULL)
 			return 1;
-	}
-	else if (! strcmp(opts, "vibrato"))
-	{
-		if ((tone->vib = config_parse_modulation(name, line, cp, &tone->vibnum, 1)) == NULL)
+	} else if (! strcmp(opts, "vibrato")) {
+		if ((tone->vib = config_parse_modulation(name,
+				line, cp, &tone->vibnum, 1)) == NULL)
 			return 1;
+	} else {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"%s: line %d: bad patch option %s",
+				name, line, opts);
+		return 1;
 	}
-    else
-    {
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "%s: line %d: bad patch option %s",
-		  name, line, opts);
-	return 1;
-    }
-    return 0;
+	return 0;
 }
-
 
 static void reinit_tone_bank_element(ToneBankElement *tone)
 {
-    if (tone->name)
-    {
-	free(tone->name);
-	tone->name = NULL;
-    }
-    if (tone->tunenum)
-    {
-	tone->tunenum = 0;
-	free(tone->tune);
-	tone->tune = NULL;
-    }
-    if (tone->fcnum)
-    {
-	tone->fcnum = 0;
-	free(tone->fc);
-	tone->fc = NULL;
-    }
-    if (tone->resonum)
-    {
-	tone->resonum = 0;
-	free(tone->reso);
-	tone->reso = NULL;
-    }
-    if (tone->trempitchnum)
-    {
-	tone->trempitchnum = 0;
-	free(tone->trempitch);
-	tone->trempitch = NULL;
-    }
-    if (tone->tremfcnum)
-    {
-	tone->tremfcnum = 0;
-	free(tone->tremfc);
-	tone->tremfc = NULL;
-    }
-    if (tone->modpitchnum)
-    {
-	tone->modpitchnum = 0;
-	free(tone->modpitch);
-	tone->modpitch = NULL;
-    }
-    if (tone->modfcnum)
-    {
-	tone->modfcnum = 0;
-	free(tone->modfc);
-	tone->modfc = NULL;
-    }
-    if (tone->envratenum)
-    {
-	free_ptr_list(tone->envrate, tone->envratenum);
-	tone->envratenum = 0;
-	tone->envrate = NULL;
-    }
-    if (tone->envofsnum)
-    {
-	free_ptr_list(tone->envofs, tone->envofsnum);
-	tone->envofsnum = 0;
-	tone->envofs = NULL;
-    }
-    if (tone->modenvratenum)
-    {
-	free_ptr_list(tone->modenvrate, tone->modenvratenum);
-	tone->modenvratenum = 0;
-	tone->modenvrate = NULL;
-    }
-    if (tone->modenvofsnum)
-    {
-	free_ptr_list(tone->modenvofs, tone->modenvofsnum);
-	tone->modenvofsnum = 0;
-	tone->modenvofs = NULL;
-    }
-    if (tone->tremnum)
-    {
-	free_ptr_list(tone->trem, tone->tremnum);
-	tone->tremnum = 0;
-	tone->trem = NULL;
-    }
-    if (tone->vibnum)
-    {
-	free_ptr_list(tone->vib, tone->vibnum);
-	tone->vibnum = 0;
-	tone->vib = NULL;
-    }
-    tone->note = tone->pan =
-	tone->strip_loop = tone->strip_envelope =
-	tone->strip_tail = -1;
-    tone->amp = -1;
-    tone->rnddelay = 0;
-    tone->legato = tone->redamper = tone->key_to_fc = tone->vel_to_fc = 0;
+	if (tone->name) {
+		free(tone->name);
+		tone->name = NULL;
+	}
+	if (tone->tunenum) {
+		tone->tunenum = 0;
+		free(tone->tune);
+		tone->tune = NULL;
+	}
+	if (tone->sclnotenum) {
+		tone->sclnotenum = 0;
+		free(tone->sclnote);
+		tone->sclnote = NULL;
+	}
+	if (tone->scltunenum) {
+		tone->scltunenum = 0;
+		free(tone->scltune);
+		tone->scltune = NULL;
+	}
+	if (tone->fcnum) {
+		tone->fcnum = 0;
+		free(tone->fc);
+		tone->fc = NULL;
+	}
+	if (tone->resonum) {
+		tone->resonum = 0;
+		free(tone->reso);
+		tone->reso = NULL;
+	}
+	if (tone->trempitchnum) {
+		tone->trempitchnum = 0;
+		free(tone->trempitch);
+		tone->trempitch = NULL;
+	}
+	if (tone->tremfcnum) {
+		tone->tremfcnum = 0;
+		free(tone->tremfc);
+		tone->tremfc = NULL;
+	}
+	if (tone->modpitchnum) {
+		tone->modpitchnum = 0;
+		free(tone->modpitch);
+		tone->modpitch = NULL;
+	}
+	if (tone->modfcnum) {
+		tone->modfcnum = 0;
+		free(tone->modfc);
+		tone->modfc = NULL;
+	}
+	if (tone->envratenum) {
+		free_ptr_list(tone->envrate, tone->envratenum);
+		tone->envratenum = 0;
+		tone->envrate = NULL;
+	}
+	if (tone->envofsnum) {
+		free_ptr_list(tone->envofs, tone->envofsnum);
+		tone->envofsnum = 0;
+		tone->envofs = NULL;
+	}
+	if (tone->modenvratenum) {
+		free_ptr_list(tone->modenvrate, tone->modenvratenum);
+		tone->modenvratenum = 0;
+		tone->modenvrate = NULL;
+	}
+	if (tone->modenvofsnum) {
+		free_ptr_list(tone->modenvofs, tone->modenvofsnum);
+		tone->modenvofsnum = 0;
+		tone->modenvofs = NULL;
+	}
+	if (tone->tremnum) {
+		free_ptr_list(tone->trem, tone->tremnum);
+		tone->tremnum = 0;
+		tone->trem = NULL;
+	}
+	if (tone->vibnum) {
+		free_ptr_list(tone->vib, tone->vibnum);
+		tone->vibnum = 0;
+		tone->vib = NULL;
+	}
+	tone->note = tone->pan = -1;
+	tone->strip_loop = tone->strip_envelope = tone->strip_tail = -1;
+	tone->amp = -1;
+	tone->rnddelay = 0;
+	tone->legato = tone->redamper = tone->key_to_fc = tone->vel_to_fc = 0;
 	tone->reverb_send = tone->chorus_send = tone->delay_send = -1;
-    tone->tva_level = -1;
+	tone->tva_level = -1;
 	tone->play_note = -1;
 }
 
@@ -2367,135 +2365,144 @@ static int read_user_config_file(void)
 
 MAIN_INTERFACE void tmdy_free_config(void)
 {
-  ToneBank *bank;
-  ToneBankElement *elm;
-
-  int i, j;
-
-  for (i = 0; i < 128; i++) {
-    bank = tonebank[i];
-    if (!bank)
-      continue;
-    for (j = 0; j < 128; j++) {
-      elm = &bank->tone[j];
-      if (elm->name)
-	free(elm->name);
-	elm->name = NULL;
-      if (elm->comment)
-	free(elm->comment);
-	elm->comment = NULL;
-	if (elm->tune)
-		free(elm->tune);
-	elm->tune = NULL;
-	if (elm->fc)
-		free(elm->fc);
-	elm->fc = NULL;
-	if (elm->reso)
-		free(elm->reso);
-	if (elm->trempitch)
-		free(elm->trempitch);
-	if (elm->tremfc)
-		free(elm->tremfc);
-	if (elm->modpitch)
-		free(elm->modpitch);
-	if (elm->modfc)
-		free(elm->modfc);
-	elm->reso = NULL;
-	if (elm->envrate)
-		free_ptr_list(elm->envrate, elm->envratenum);
-	elm->envrate = NULL;
-	elm->envratenum = 0;
-	if (elm->envofs)
-		free_ptr_list(elm->envofs, elm->envofsnum);
-	elm->envofs = NULL;
-	elm->envofsnum = 0;
-	if (elm->modenvrate)
-		free_ptr_list(elm->modenvrate, elm->modenvratenum);
-	elm->modenvrate = NULL;
-	elm->modenvratenum = 0;
-	if (elm->modenvofs)
-		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-	elm->modenvofs = NULL;
-	elm->modenvofsnum = 0;
-	if (elm->trem)
-		free_ptr_list(elm->trem, elm->tremnum);
-	elm->trem = NULL;
-	elm->tremnum = 0;
-	if (elm->vib)
-		free_ptr_list(elm->vib, elm->vibnum);
-	elm->vib = NULL;
-	elm->vibnum = 0;
-	elm->instype = 0;
-    }
-    if (i > 0) {
-      free(bank);
-      tonebank[i] = NULL;
-    }
-  }
-
-  for (i = 0; i < 128; i++) {
-    bank = drumset[i];
-    if (!bank)
-      continue;
-    for (j = 0; j < 128; j++) {
-      elm = &bank->tone[j];
-      if (elm->name)
-	free(elm->name);
-	elm->name = NULL;
-      if (elm->comment)
-	free(elm->comment);
-	elm->comment = NULL;
-	if (elm->tune)
-		free(elm->tune);
-	elm->tune = NULL;
-	if (elm->fc)
-		free(elm->fc);
-	elm->fc = NULL;
-	if (elm->reso)
-		free(elm->reso);
-	if (elm->trempitch)
-		free(elm->trempitch);
-	if (elm->tremfc)
-		free(elm->tremfc);
-	if (elm->modpitch)
-		free(elm->modpitch);
-	if (elm->modfc)
-		free(elm->modfc);
-	elm->reso = NULL;
-	if (elm->envrate)
-		free_ptr_list(elm->envrate, elm->envratenum);
-	elm->envrate = NULL;
-	elm->envratenum = 0;
-	if (elm->envofs)
-		free_ptr_list(elm->envofs, elm->envofsnum);
-	elm->envofs = NULL;
-	elm->envofsnum = 0;
-	if (elm->modenvrate)
-		free_ptr_list(elm->modenvrate, elm->modenvratenum);
-	elm->modenvrate = NULL;
-	elm->modenvratenum = 0;
-	if (elm->modenvofs)
-		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-	elm->modenvofs = NULL;
-	elm->modenvofsnum = 0;
-	if (elm->trem)
-		free_ptr_list(elm->trem, elm->tremnum);
-	elm->trem = NULL;
-	elm->tremnum = 0;
-	if (elm->vib)
-		free_ptr_list(elm->vib, elm->vibnum);
-	elm->vib = NULL;
-	elm->vibnum = 0;
-	elm->instype = 0;
-    }
-    if (i > 0) {
-      free(bank);
-      drumset[i] = NULL;
-    }
-  }
-
-  free_instrument_map();
-  clean_up_pathlist();
+	int i, j;
+	ToneBank *bank;
+	ToneBankElement *elm;
+	
+	for (i = 0; i < 128; i++) {
+		bank = tonebank[i];
+		if (! bank)
+			continue;
+		for (j = 0; j < 128; j++) {
+			elm = &bank->tone[j];
+			if (elm->name)
+				free(elm->name);
+			elm->name = NULL;
+			if (elm->comment)
+				free(elm->comment);
+			elm->comment = NULL;
+			if (elm->tune)
+				free(elm->tune);
+			elm->tune = NULL;
+			if (elm->sclnote)
+				free(elm->sclnote);
+			elm->sclnote = NULL;
+			if (elm->scltune)
+				free(elm->scltune);
+			elm->scltune = NULL;
+			if (elm->fc)
+				free(elm->fc);
+			elm->fc = NULL;
+			if (elm->reso)
+				free(elm->reso);
+			if (elm->trempitch)
+				free(elm->trempitch);
+			if (elm->tremfc)
+				free(elm->tremfc);
+			if (elm->modpitch)
+				free(elm->modpitch);
+			if (elm->modfc)
+				free(elm->modfc);
+			elm->reso = NULL;
+			if (elm->envrate)
+				free_ptr_list(elm->envrate, elm->envratenum);
+			elm->envrate = NULL;
+			elm->envratenum = 0;
+			if (elm->envofs)
+				free_ptr_list(elm->envofs, elm->envofsnum);
+			elm->envofs = NULL;
+			elm->envofsnum = 0;
+			if (elm->modenvrate)
+				free_ptr_list(elm->modenvrate, elm->modenvratenum);
+			elm->modenvrate = NULL;
+			elm->modenvratenum = 0;
+			if (elm->modenvofs)
+				free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+			elm->modenvofs = NULL;
+			elm->modenvofsnum = 0;
+			if (elm->trem)
+				free_ptr_list(elm->trem, elm->tremnum);
+			elm->trem = NULL;
+			elm->tremnum = 0;
+			if (elm->vib)
+				free_ptr_list(elm->vib, elm->vibnum);
+			elm->vib = NULL;
+			elm->vibnum = 0;
+			elm->instype = 0;
+		}
+		if (i > 0) {
+			free(bank);
+			tonebank[i] = NULL;
+		}
+	}
+	for (i = 0; i < 128; i++) {
+		bank = drumset[i];
+		if (! bank)
+			continue;
+		for (j = 0; j < 128; j++) {
+			elm = &bank->tone[j];
+			if (elm->name)
+				free(elm->name);
+			elm->name = NULL;
+			if (elm->comment)
+				free(elm->comment);
+			elm->comment = NULL;
+			if (elm->tune)
+				free(elm->tune);
+			elm->tune = NULL;
+			if (elm->sclnote)
+				free(elm->sclnote);
+			elm->sclnote = NULL;
+			if (elm->scltune)
+				free(elm->scltune);
+			elm->scltune = NULL;
+			if (elm->fc)
+				free(elm->fc);
+			elm->fc = NULL;
+			if (elm->reso)
+				free(elm->reso);
+			if (elm->trempitch)
+				free(elm->trempitch);
+			if (elm->tremfc)
+				free(elm->tremfc);
+			if (elm->modpitch)
+				free(elm->modpitch);
+			if (elm->modfc)
+				free(elm->modfc);
+			elm->reso = NULL;
+			if (elm->envrate)
+				free_ptr_list(elm->envrate, elm->envratenum);
+			elm->envrate = NULL;
+			elm->envratenum = 0;
+			if (elm->envofs)
+				free_ptr_list(elm->envofs, elm->envofsnum);
+			elm->envofs = NULL;
+			elm->envofsnum = 0;
+			if (elm->modenvrate)
+				free_ptr_list(elm->modenvrate, elm->modenvratenum);
+			elm->modenvrate = NULL;
+			elm->modenvratenum = 0;
+			if (elm->modenvofs)
+				free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+			elm->modenvofs = NULL;
+			elm->modenvofsnum = 0;
+			if (elm->trem)
+				free_ptr_list(elm->trem, elm->tremnum);
+			elm->trem = NULL;
+			elm->tremnum = 0;
+			if (elm->vib)
+				free_ptr_list(elm->vib, elm->vibnum);
+			elm->vib = NULL;
+			elm->vibnum = 0;
+			elm->instype = 0;
+		}
+		if (i > 0) {
+			free(bank);
+			drumset[i] = NULL;
+		}
+	}
+	free_instrument_map();
+	clean_up_pathlist();
 }
 
 int set_extension_modes(char *flag)

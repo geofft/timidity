@@ -1437,8 +1437,10 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
 	int val, temp;
 
-    /* scale tuning */
-	vp->v.scale_tuning = (int)tbl->val[SF_scaleTuning];
+	/* scale freq */
+	vp->v.scale_freq = tbl->val[SF_keyTuning];
+	/* scale factor */
+	vp->v.scale_factor = 1024 * (double) tbl->val[SF_scaleTuning] / 100 + 0.5;
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
@@ -1464,8 +1466,9 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     /* orverride root key */
     if(tbl->set[SF_rootKey]) {
 		vp->root = (int)tbl->val[SF_rootKey];
-	} else if(vp->bank == 128 && vp->v.scale_tuning != 0) {
-		vp->tune += (vp->keynote - sp->originalPitch) * vp->v.scale_tuning;
+	} else if(vp->bank == 128 && vp->v.scale_factor != 0) {
+		vp->tune += (vp->keynote - sp->originalPitch)
+				* 100 * (double) vp->v.scale_factor / 1024;
 	}
 
 	vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
@@ -1538,6 +1541,9 @@ static void set_rootfreq(SampleList *vp)
 				  bend_coarse[-root] * bend_fine[tune]);
     else
 	vp->v.root_freq = (int32)((FLOAT_T)freq_table[root] * bend_fine[tune]);
+
+	/* recompute scale freq? */
+	vp->v.scale_freq = 69 - log(440.0 / vp->v.root_freq) / log(2) * 12 + 0.5;
 }
 
 /*----------------------------------------------------------------*/

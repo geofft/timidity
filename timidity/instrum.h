@@ -56,7 +56,8 @@ typedef struct _Sample {
   int8 envelope_velf_bpo, modenv_velf_bpo,
 	  key_to_fc_bpo, vel_to_fc_threshold;	/* in notes */
   int32 vibrato_delay, tremolo_delay, envelope_delay, modenv_delay;	/* in samples */
-  int16 scale_tuning;	/* in cents/key */
+  int16 scale_freq;	/* in notes */
+  int16 scale_factor;	/* in 1024divs/key */
   int8 inst_type;
   int32 sf_sample_index, sf_sample_link;	/* for stereo SoundFont */
   uint16 sample_type;	/* 1 = Mono, 2 = Right, 4 = Left, 8 = Linked, $8000 = ROM */
@@ -107,6 +108,10 @@ typedef struct {
   int16 rnddelay;
   int tunenum;
   float *tune;
+  int sclnotenum;
+  int16 *sclnote;
+  int scltunenum;
+  int16 *scltune;
   int fcnum;
   int16 *fc;
   int resonum;
