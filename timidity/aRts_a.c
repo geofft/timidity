@@ -121,7 +121,6 @@ static int open_output(void)
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
 	    "TiMidity aRts bug: open_output() after close_output() not supported");
 	return -1;
-    default:
     }
     stream = arts_play_stream(dpm.rate,
 			      LE_LONG(sample_width),
