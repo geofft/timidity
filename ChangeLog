@@ -1,5 +1,12 @@
 2004-02-20  Saito <saito2@digitalme.com>
 
+	* interface/w32g_pref.c:
+	  Fix "force cfg reload".
+	* timidity/instrum.c:
+	  Fix typo.
+
+2004-02-20  Saito <saito2@digitalme.com>
+
 	* interface/w32g_icon.ico, interface/w32g_res.[rc,h],
 	  interface/w32g_i.c, interface/w32g_subwin.c, interface/w32g_subwin2.c,
 	  interface/w32g_subwin3.c, interface/w32g_syn.c:

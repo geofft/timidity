@@ -464,7 +464,7 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			}
 			free_instrument_map();
 			clean_up_pathlist();
-//	    free_instruments(0);  // error
+		    free_instruments(0);
 			tmdy_free_config();
 			timidity_start_initialize();
 			read_config_file ( sp_temp->ConfigFile, 0 );
