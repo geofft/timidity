@@ -1083,9 +1083,13 @@ void init_voice_filter(int i)
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
-	  voice[i].fc.gain = pow(10.0f, -voice[i].fc.orig_reso_dB / 2.0f / 20.0f);
-	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {voice[i].fc.type = 2;}
-	  else if(opt_lpf_def == 1) {voice[i].fc.type = 1;}
+	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {
+		  voice[i].fc.gain = 1.0;
+		  voice[i].fc.type = 2;
+	  } else if(opt_lpf_def == 1) {
+		  voice[i].fc.gain = pow(10.0f, -voice[i].fc.orig_reso_dB / 2.0f / 20.0f);
+		  voice[i].fc.type = 1;
+	  }
   } else {
 	  voice[i].fc.type = 0;
   }
@@ -1165,6 +1169,9 @@ void recompute_voice_filter(int v)
 		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
 		if(fc->reso_dB > CHAMBERLIN_RESONANCE_MAX) {fc->reso_dB = CHAMBERLIN_RESONANCE_MAX;}
 	} else if(fc->type == 2) {	/* Moog VCF */
+		if(fc->reso_dB > fc->orig_reso_dB) {
+			fc->gain = pow(10.0f, (fc->reso_dB - fc->orig_reso_dB) / 20.0f);
+		}
 	}
 }
 
@@ -1901,10 +1908,10 @@ static int select_play_sample(Sample *splist,
 	int32 f, fs, ft, fst, fc, cdiff, diff, mindiff,	sample_link;
 	int8 tt = channel[ch].temper_type;
 	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
-	Sample *sp, *spc;
+	Sample *sp, *spc, *spr;
 	int16 st;
 	double ratio;
-	int i, j, k, nv, nvc, vel;
+	int i, j, k, kr, nv, nvc, vel;
 	
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
@@ -1990,22 +1997,36 @@ static int select_play_sample(Sample *splist,
 			diff_table[i] = diff;
 		}
 		mindiff = 0x7fffffff;
-		k = 0;
-		spc = NULL;
+		k = kr = 0;
+		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
 			diff = diff_table[i];
 			if (mindiff > diff) {
-				mindiff = diff;
-				k = i;
-				spc = sp;
+				if (sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT) {
+					kr = i;		/* reserve */
+					spr = sp;	/* reserve */
+				} else {
+					mindiff = diff;
+					k = i;
+					spc = sp;
+				}
 			}
 		}
-		j = vlist[nv] = find_voice(e);
-		voice[j].orig_frequency = ft_table[k];
-		MYCHECK(voice[j].orig_frequency);
-		voice[j].sample = spc;
-		voice[j].status = VOICE_ON;
-		nv++;
+		if (spc != NULL) {	/* a makeshift sample is found. */
+			j = vlist[nv] = find_voice(e);
+			voice[j].orig_frequency = ft_table[k];
+			MYCHECK(voice[j].orig_frequency);
+			voice[j].sample = spc;
+			voice[j].status = VOICE_ON;
+			nv++;
+		} else {	/* it's a lonely right sample, but better than nothing. */
+			j = vlist[nv] = find_voice(e);
+			voice[j].orig_frequency = ft_table[k];
+			MYCHECK(voice[j].orig_frequency);
+			voice[j].sample = spc;
+			voice[j].status = VOICE_ON;
+			nv++;
+		}
 	}
 
 	nvc = nv;
@@ -2381,7 +2402,24 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   if(cnt == 0)
       channel[ch].last_note_fine = voice[i].note * 256;
 
+  /* initialize modulation envelope */
+  if (voice[i].sample->modes & MODES_ENVELOPE)
+    {
+	  voice[i].modenv_stage = 0;
+      voice[i].modenv_volume = 0;
+      recompute_modulation_envelope(i);
+	  apply_modulation_envelope(i);
+    }
+  else
+    {
+	  voice[i].modenv_increment=0;
+	  apply_modulation_envelope(i);
+    }
+  recompute_freq(i);
+  recompute_voice_filter(i);
+
   recompute_amp(i);
+  /* initialize volume envelope */
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
       /* Ramp up from 0 */
@@ -2390,20 +2428,12 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].control_counter=0;
       recompute_envelope(i);
 	  apply_envelope_to_amp(i);
-	  voice[i].modenv_stage = 0;
-      voice[i].modenv_volume = 0;
-      recompute_modulation_envelope(i);
-	  apply_modulation_envelope(i);
     }
   else
     {
       voice[i].envelope_increment=0;
-	  voice[i].modenv_increment=0;
       apply_envelope_to_amp(i);
-	  apply_modulation_envelope(i);
     }
-  recompute_freq(i);
-  recompute_voice_filter(i);
 
   voice[i].timeout = -1;
   if(!prescanning_flag)

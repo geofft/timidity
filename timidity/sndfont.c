@@ -74,7 +74,6 @@
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
-/*#define SF_EMULATE_SBLIVE*/
 #endif /* CFG_FOR_SF */
 
 /* return value */
@@ -116,6 +115,8 @@ typedef struct _SampleList {
 	int32 modsustain;
 	int32 moddecay;
 	int32 modrelease;
+
+	int bank, keynote;	/* for drum instruments */
 } SampleList;
 
 typedef struct _InstList {
@@ -1150,6 +1151,9 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
     sp = (SampleList *)SFMalloc(current_sfrec, sizeof(SampleList));
     memset(sp, 0, sizeof(SampleList));
 
+	sp->bank = bank;
+	sp->keynote = keynote;
+
 	if(tbl->set[SF_keynum]) {
 		sp->v.note_to_use = (int)tbl->val[SF_keynum];
 	}
@@ -1435,11 +1439,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	int val, temp;
 
     /* scale tuning */
-#ifdef SF_EMULATE_SBLIVE 
-	vp->v.scale_tuning = 100;
-#else
 	vp->v.scale_tuning = (int)tbl->val[SF_scaleTuning];
-#endif
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
@@ -1465,6 +1465,8 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     /* orverride root key */
     if(tbl->set[SF_rootKey]) {
 		vp->root = (int)tbl->val[SF_rootKey];
+	} else if(vp->bank == 128 && vp->v.scale_tuning != 0) {
+		vp->tune += (vp->keynote - sp->originalPitch) * vp->v.scale_tuning;
 	}
 
 	vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
@@ -1486,7 +1488,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		/* correct tune with the sustain level of modulation envelope */
 		temp = ((int)vp->v.modenv_to_pitch * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
 		vp->tune += temp;
-		vp->v.modenv_to_pitch += temp;
+		vp->v.modenv_to_pitch -= temp;
 	}
 	if(tbl->set[SF_env1ToFilterFc])
 		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];

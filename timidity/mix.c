@@ -226,6 +226,8 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 	}
 }
 
+#define MOOG_RESONANCE_MAX 0.897638f
+
 static inline void recalc_voice_resonance(int v)
 {
 	double q;
@@ -238,7 +240,9 @@ static inline void recalc_voice_resonance(int v)
 			fc->q = TIM_FSCALE(q, 24);
 			if(fc->q <= 0) {fc->q = 1;}	/* must never be 0. */
 		} else if(fc->type == 2) {
-			fc->reso_lin = log(fc->reso_dB) * 0.065833333f + 0.673103862f;
+			fc->reso_lin = fc->reso_dB * MOOG_RESONANCE_MAX / 20.0f;
+			if (fc->reso_lin > MOOG_RESONANCE_MAX) {fc->reso_lin = MOOG_RESONANCE_MAX;}
+			else if(fc->reso_lin < 0) {fc->reso_lin = 0;}
 		}
 		fc->last_freq = -1;
 	}

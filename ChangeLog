@@ -1,8 +1,10 @@
 2004-01-06  Saito <saito2@digitalme.com>
 
-	* timidity/playmidi.c, timidity/sndfont.c, timidity/instrum.h:
+	* timidity/playmidi.c, timidity/sndfont.c,
+	  timidity/instrum.h, timidity/mix.c:
 	  Support for SoundFont's Sample Link.
 	  FIx around modulation wheel.
+	  Fix around MoogVCF.
 
 2004-01-05  Saito <saito2@digitalme.com>
 
