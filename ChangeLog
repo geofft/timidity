@@ -7,6 +7,8 @@
 
 	* interface/w32g_pref.c, interface/w32g_res.{h,rc}:
 	  Change to fit with initial keysig option behavior (W32GUI version)
+	* doc/ja_JP.ujis/Makefile.{am,in}, doc/ja_JP.ujis/README.alsaseq:
+	  Add README.alsaseq in Japanese
 
 2004-03-04  Kentaro Sato <kentaro@ranvis.com>
 
