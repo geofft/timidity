@@ -184,6 +184,8 @@ static const struct option longopts[] = {
 #ifdef IA_ALSASEQ
 	{ "no-background",          no_argument,       NULL, 227 << 8 },
 	{ "background",             optional_argument, NULL, 227 << 8 },
+	{ "realtime-priority",      required_argument, NULL, 228 << 8 },
+	{ "sequencer-ports",        required_argument, NULL, 229 << 8 },
 #endif
 	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
@@ -199,24 +201,24 @@ static const struct option longopts[] = {
 	{ "interpolation",          required_argument, NULL, 'N' << 8 },
 #endif
 	{ "output-mode",            required_argument, NULL, 'O' << 8 },
-	{ "output-stereo",          no_argument,       NULL, 228 << 8 },
-	{ "output-mono",            no_argument,       NULL, 228 << 8 },
-	{ "output-signed",          no_argument,       NULL, 229 << 8 },
-	{ "output-unsigned",        no_argument,       NULL, 229 << 8 },
-	{ "output-16bit",           no_argument,       NULL, 230 << 8 },
-	{ "output-8bit",            no_argument,       NULL, 230 << 8 },
-	{ "output-linear",          no_argument,       NULL, 231 << 8 },
-	{ "output-ulaw",            no_argument,       NULL, 231 << 8 },
-	{ "output-alaw",            no_argument,       NULL, 231 << 8 },
-	{ "no-output-swab",         no_argument,       NULL, 232 << 8 },
-	{ "output-swab",            optional_argument, NULL, 232 << 8 },
+	{ "output-stereo",          no_argument,       NULL, 230 << 8 },
+	{ "output-mono",            no_argument,       NULL, 230 << 8 },
+	{ "output-signed",          no_argument,       NULL, 231 << 8 },
+	{ "output-unsigned",        no_argument,       NULL, 231 << 8 },
+	{ "output-16bit",           no_argument,       NULL, 232 << 8 },
+	{ "output-8bit",            no_argument,       NULL, 232 << 8 },
+	{ "output-linear",          no_argument,       NULL, 233 << 8 },
+	{ "output-ulaw",            no_argument,       NULL, 233 << 8 },
+	{ "output-alaw",            no_argument,       NULL, 233 << 8 },
+	{ "no-output-swab",         no_argument,       NULL, 234 << 8 },
+	{ "output-swab",            optional_argument, NULL, 234 << 8 },
 	{ "output-file",            required_argument, NULL, 'o' << 8 },
 	{ "patch-file",             required_argument, NULL, 'P' << 8 },
 	{ "polyphony",              required_argument, NULL, 'p' << 8 },
-	{ "no-polyphony-reduction", no_argument,       NULL, 233 << 8 },
-	{ "polyphony-reduction",    optional_argument, NULL, 233 << 8 },
+	{ "no-polyphony-reduction", no_argument,       NULL, 235 << 8 },
+	{ "polyphony-reduction",    optional_argument, NULL, 235 << 8 },
 	{ "mute",                   required_argument, NULL, 'Q' << 8 },
-	{ "temper-mute",            required_argument, NULL, 234 << 8 },
+	{ "temper-mute",            required_argument, NULL, 236 << 8 },
 	{ "audio-buffer",           required_argument, NULL, 'q' << 8 },
 	{ "cache-size",             required_argument, NULL, 'S' << 8 },
 	{ "sampling-freq",          required_argument, NULL, 's' << 8 },
@@ -231,11 +233,7 @@ static const struct option longopts[] = {
 #endif
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",        optional_argument, NULL, 235 << 8 },
-#ifdef IA_ALSASEQ
-	{ "realtime-priority",      required_argument, NULL, 236 << 8 },
-	{ "sequencer-ports",        required_argument, NULL, 237 << 8 },
-#endif
+	{ "pure-intonation",        optional_argument, NULL, 237 << 8 },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -316,8 +314,8 @@ static inline int parse_opt_i5(const char *);
 static inline int parse_opt_i6(const char *);
 #ifdef IA_ALSASEQ
 static inline int parse_opt_i7(const char *);
-static inline int parse_opt_rt_prio(const char *);
-static inline int parse_opt_seq_ports(const char *);
+static inline int parse_opt_i8(const char *);
+static inline int parse_opt_i9(const char *);
 #endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
@@ -2345,10 +2343,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #ifdef IA_ALSASEQ
 	case 227:
 		return parse_opt_i7(arg);
-	case 236:
-		return parse_opt_rt_prio(arg);
-	case 237:
-		return parse_opt_seq_ports(arg);
+	case 228:
+		return parse_opt_i8(arg);
+	case 229:
+		return parse_opt_i9(arg);
 #endif
 	case 'j':
 		return parse_opt_j(arg);
@@ -2369,22 +2367,22 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case 'O':
 		return parse_opt_O(arg);
-	case 228:
+	case 230:
 		if (! strcmp(the_option->name, "output-mono"))
 			/* --output-mono == --output-stereo=no */
 			arg = "no";
 		return parse_opt_O1(arg);
-	case 229:
+	case 231:
 		if (! strcmp(the_option->name, "output-unsigned"))
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
 		return parse_opt_O2(arg);
-	case 230:
+	case 232:
 		if (! strcmp(the_option->name, "output-8bit"))
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
 		return parse_opt_O3(arg);
-	case 231:
+	case 233:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
 		else if (! strcmp(the_option->name, "output-ulaw"))
@@ -2392,7 +2390,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		else if (! strcmp(the_option->name, "output-alaw"))
 			arg = "alaw";
 		return parse_opt_O4(arg);
-	case 232:
+	case 234:
 		return parse_opt_O5(arg);
 	case 'o':
 		return parse_opt_o(arg);
@@ -2400,11 +2398,11 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_P(arg);
 	case 'p':
 		return parse_opt_p(arg);
-	case 233:
+	case 235:
 		return parse_opt_p1(arg);
 	case 'Q':
 		return parse_opt_Q(arg);
-	case 234:
+	case 236:
 		return parse_opt_Q1(arg);
 	case 'q':
 		return parse_opt_q(arg);
@@ -2430,7 +2428,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_x(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 235:
+	case 237:
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
@@ -3093,6 +3091,12 @@ static inline int parse_opt_h(const char *arg)
 "               Display this help message",
 "  -i mode    --interface=mode",
 "               Select user interface (see below for list)",
+#ifdef IA_ALSASEQ
+"             --realtime-priority=n (for alsaseq only)",
+"               Set the realtime priority (0-100)",
+"             --sequencer-ports=n (for alsaseq only)",
+"               Set the number of opened sequencer ports (default is 4)",
+#endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",
 "  -K n       --adjust-key=n",
@@ -3180,12 +3184,6 @@ static inline int parse_opt_h(const char *arg)
 "  pure<n>(m) --pure-intonation=n(m)",
 "               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)",
 "                 'm' stands for minor mode",
-#ifdef IA_ALSASEQ
-"  --realtime-priority=n  (for alsaseq only)",
-"               Set the realtime priority (0-100)",
-"  --sequencer-ports=n    (for alsaseq only)",
-"               Set the number of opened sequencer ports (default = 4)",
-#endif
 		NULL
 	};
 	static char *help_args[3];
@@ -3287,7 +3285,8 @@ static inline int parse_opt_h(const char *arg)
 "  `r'          randomize file list arguments before playing" NLS
 "  `s'          sorting file list arguments before playing" NLS, fp);
 #ifdef IA_ALSASEQ
-	fputs("  `D'          daemonize TiMidity++ in background (for alsaseq only)" NLS, fp);
+	fputs("  `D'          daemonize TiMidity++ in background "
+			"(for alsaseq only)" NLS, fp);
 #endif
 	fputs(NLS, fp);
 	fputs("Alternative interface long options:" NLS
@@ -3534,18 +3533,20 @@ static inline int parse_opt_i7(const char *arg)
 	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
 
-static inline int parse_opt_rt_prio(const char *arg)
+static inline int parse_opt_i8(const char *arg)
 {
 	/* --realtime-priority */
-	if (set_value(&opt_realtime_priority, atoi(arg), 0, 100, "Realtime priority"))
+	if (set_value(&opt_realtime_priority, atoi(arg), 0, 100,
+			"Realtime priority"))
 		return 1;
 	return 0;
 }
 
-static inline int parse_opt_seq_ports(const char *arg)
+static inline int parse_opt_i9(const char *arg)
 {
 	/* --sequencer-ports */
-	if (set_value(&opt_sequencer_ports, atoi(arg), 1, 16, "Number of sequencer ports"))
+	if (set_value(&opt_sequencer_ports, atoi(arg), 1, 16,
+			"Number of sequencer ports"))
 		return 1;
 	return 0;
 }

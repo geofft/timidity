@@ -1,3 +1,8 @@
+2003-09-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Rewrite help a little
+
 2003-09-13  Kentaro Sato <kentaro@a02.itscom.net>
 
 	* timidity/readmidi.c (recompute_insertion_effect): Bug fix.
