@@ -329,7 +329,7 @@ struct timidity_file *try_to_open(char *name, int decompress)
     return tf;
 }
 
-static int is_url_prefix(char *name)
+int is_url_prefix(const char *name)
 {
     int i;
 
@@ -347,16 +347,26 @@ static int is_url_prefix(char *name)
     for(i = 0; url_proto_names[i]; i++)
 	if(strncmp(name, url_proto_names[i], strlen(url_proto_names[i])) == 0)
 	    return 1;
+    return 0;
+}
 
+static int is_abs_path(const char *name)
+{
+#ifndef __MACOS__
+	if (IS_PATH_SEP(name[0]))
+		return 1;
+#else
+	if (!IS_PATH_SEP(name[0]) && strchr(name, PATH_SEP) != NULL)
+		return 1;
+#endif /* __MACOS__ */
 #ifdef __W32__
     /* [A-Za-z]: (for Windows) */
-    if((('A' <= name[0] && name[0] <= 'Z') ||
-	('a' <= name[0] && name[0] <= 'z')) &&
-       name[1] == ':')
-	return 1;
+    if (isalpha(name[0]) && name[1] == ':')
+		return 1;
 #endif /* __W32__ */
-
-    return 0;
+	if (is_url_prefix(name))
+		return 1;	/* assuming relative notation is excluded */
+	return 0;
 }
 
 struct timidity_file *open_with_mem(char *mem, int32 memlen, int noise_mode)
@@ -414,7 +424,7 @@ struct timidity_file *open_file(char *name, int decompress, int noise_mode)
 	return 0;
     }
 
-  if (!IS_PATH_SEP(name[0]) && !is_url_prefix(name))
+  if (!is_abs_path(name))
     while (plp)  /* Try along the path then */
       {
 	*current_filename=0;
