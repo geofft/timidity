@@ -46,6 +46,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+extern int opt_surround_chorus;
+
 #define SYS_EFFECT_PRE_LPF
 
 static double REV_INP_LEV = 1.0;
@@ -2096,9 +2098,11 @@ static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 
 void init_ch_chorus(void)
 {
-	/* clear delay-line of LPF */
-	init_filter_lowpass1(&(chorus_status.lpf));
-	do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status.info_stereo_chorus));
+	if (!opt_surround_chorus) {
+		/* clear delay-line of LPF */
+		init_filter_lowpass1(&(chorus_status.lpf));
+		do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status.info_stereo_chorus));
+	}
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
 }
 
@@ -2160,6 +2164,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 
 void do_ch_chorus(int32 *buf, int32 count)
 {
+	if (!opt_surround_chorus) {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_status.pre_lpf)
@@ -2167,6 +2172,7 @@ void do_ch_chorus(int32 *buf, int32 count)
 #endif /* SYS_EFFECT_PRE_LPF */
 
 	do_ch_stereo_chorus(buf, count, &(chorus_status.info_stereo_chorus));
+	}
 }
 
 /*                             */

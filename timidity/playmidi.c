@@ -2228,7 +2228,7 @@ static void init_voice_pan_delay(int v)
 		vp->pan_delay_buf = NULL;
 	}
 	vp->pan_delay_rpt = 0;
-	if (opt_pan_delay && channel[ch].insertion_effect == 0) {
+	if (opt_pan_delay && channel[ch].insertion_effect == 0 && !opt_surround_chorus) {
 		if (vp->panning == 64) {vp->delay += pan_delay_table[64] * play_mode->rate / 1000;}
 		else {
 			if(pan_delay_table[vp->panning] > pan_delay_table[127 - vp->panning]) {
@@ -2543,6 +2543,7 @@ static void new_chorus_voice(int v1, int level)
 	voice[v2].delay += (int)(play_mode->rate * delay);
     }
 
+	init_voice_pan_delay(v1);
 	init_voice_pan_delay(v2);
 
     recompute_amp(v1);
@@ -2670,6 +2671,7 @@ static void new_chorus_voice_alternate(int v1, int level)
         }
     }
 
+	init_voice_pan_delay(v1);
 	init_voice_pan_delay(v2);
 
     recompute_amp(v1);

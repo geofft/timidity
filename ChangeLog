@@ -1,3 +1,8 @@
+2004-02-22  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.c, timidity/playmidi.c:
+	  Fix bug of opt_pan_delay with opt_surround_chorus.
+
 2004-02-22 Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/mac_a.c: Support 8/24-bit output and PF_BUFF_FRAGM_OPT.
