@@ -432,7 +432,7 @@ static XtResource xaw_resources[] ={
    offset(trace_height), XtRImmediate, (XtPointer)TRACE_HEIGHT},
   {"menuWidth", "MenuWidth", XtRShort, sizeof(Dimension),
    offset(menu_width), XtRImmediate, (XtPointer)200},
-#if 0 /* FIXME: this will paint the file-selection list with all blacks.. */
+#if 1 /* FIXME: this will paint the file-selection list with all blacks.. */
   {"foreground", XtCForeground, XtRPixel, sizeof(Pixel),
    offset(common_fgcolor), XtRString, "black"},
 #endif

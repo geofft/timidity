@@ -1,3 +1,8 @@
+2003-05-05  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
+
+	* TiMidity(-uj).ad.in, interface/xaw_i.c:
+	  Update app-defaults file for XAW interface
+
 2004-05-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/ncurs_c.c, interface/server_c.c, interface/slang_c.c,
