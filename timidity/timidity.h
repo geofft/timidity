@@ -120,7 +120,7 @@ typedef double FLOAT_T;
 /* Default sampling rate, default polyphony, and maximum polyphony.
    All but the last can be overridden from the command line. */
 #ifndef DEFAULT_RATE
-#define DEFAULT_RATE	32000
+#define DEFAULT_RATE	44100
 #endif /* DEFAULT_RATE */
 
 #define DEFAULT_VOICES	256
@@ -385,6 +385,13 @@ typedef double FLOAT_T;
  * There is a command line option to enable/disable this mode.
  */
 #define CHORUS_CONTROL_ALLOW
+
+
+/* Define if you want to use surround chorus in defaults.
+ * This mode needs high CPU power.
+ * There is a command line option to enable/disable this mode.
+ */
+/* #define SURROUND_CHORUS_ALLOW */
 
 
 /* Define if you want to use channel pressure.

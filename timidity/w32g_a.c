@@ -174,7 +174,7 @@ static const char *mmerror_code_string(MMRESULT res);
 #define dpm w32_play_mode
 
 PlayMode dpm = {
-    33075,
+    DEFAULT_RATE,
     PE_16BIT|PE_SIGNED,
     PF_PCM_STREAM|PF_CAN_TRACE|PF_BUFF_FRAGM_OPT,
     -1,

@@ -69,7 +69,7 @@
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
-#define SF_EMULATE_SBLIVE
+/*#define SF_EMULATE_SBLIVE*/
 
 /* return value */
 #define AWE_RET_OK		0	/* successfully loaded */

@@ -591,9 +591,9 @@ NULL
 "  -EFchorus=0 : Disable MIDI chorus effect control" NLS
 "  -EFchorus=1[,level] : Enable MIDI chorus effect control" NLS
 "                        `level' is optional to specify chorus level [0..127]" NLS
+"                        (default)" NLS
 "  -EFchorus=2[,level] : Surround sound, chorus detuned to a lesser degree." NLS
 "                        `level' is optional to specify chorus level [0..127]" NLS
-"                        (default)" NLS
 "  -EFreverb=0 : Disable MIDI reverb effect control" NLS
 "  -EFreverb=1[,level] : Enable MIDI reverb effect control" NLS
 "                        `level' is optional to specify reverb level [0..127]" NLS
@@ -603,8 +603,8 @@ NULL
 "                This effect is only available in stereo" NLS
 "                (default)" NLS
 "  -EFns=n : Enable the n th degree noiseshaping filter." NLS
-"            n:[0..4] (for 8-bit linear encoding)" NLS
-"            n:[0..2] (for 16-bit linear encoding)" NLS
+"            n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
+"            n:[0..2] (for 16-bit linear encoding, default is 2)" NLS
 NLS
 , fp);
 

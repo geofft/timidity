@@ -64,9 +64,7 @@ int	    mac_buf_using_num;
 #define dpm darwin_play_mode
 
 PlayMode dpm = {
-  //  DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE,
-    44100, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE,
-
+  DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE,
   -1,
   {0}, /* default: get all the buffer fragments you can */
   "Mac OS X pcm device", 'd',

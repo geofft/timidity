@@ -1,3 +1,15 @@
+2003-07-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/darwin_a.c, timidity/effect.c, timidity/playmidi.c,
+	  timidity/sndfont.c, timidity/timidity.[ch], timidity/w32_a.c,
+	  timidity/w32g_a.c:
+	  Change default settings for command line interface
+	  - Change default output rate to 44100Hz
+	  - Disable surround chorus in default
+	  - Enable noise shaping filter in default
+	  Enable SoundFont scale tuning
+	  Beautify timidity/effect.c a little
+
 2003-07-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c: Fix around SoundFont scale tuning

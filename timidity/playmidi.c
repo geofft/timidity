@@ -165,7 +165,12 @@ int opt_chorus_control = 1;
 #else
 int opt_chorus_control = 0;
 #endif /* CHORUS_CONTROL_ALLOW */
+
+#ifdef SURROUND_CHORUS_ALLOW
 int opt_surround_chorus = 1;
+#else
+int opt_surround_chorus = 0;
+#endif /* SURROUND_CHORUS_ALLOW */
 
 #ifdef GM_CHANNEL_PRESSURE_ALLOW
 int opt_channel_pressure = 1;
