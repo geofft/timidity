@@ -332,7 +332,7 @@ rtsyn_get_port_list();
 	}
 #endif /* IA_W32G_SYN */
 #endif /* USE_GTK_GUI */
-
+	rtsyn_close();
 
 #ifdef IA_W32G_SYN
 	return 0;

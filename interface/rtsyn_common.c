@@ -69,6 +69,7 @@
 
 #include "rtsyn.h"
 
+
 //int seq_quit;
 
 int rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
@@ -83,6 +84,11 @@ static int set_time_first=2;
 static int active_sensing_flag=0;
 static double active_sensing_time=0;
 
+//timer interrupt
+#ifdef USE_WINTIMER_I
+fluid_mutex_t timerMUTEX;
+MMRESULT timerID;
+#endif
 
 #define EX_RESET_NO 7
 static char sysex_resets[EX_RESET_NO][11]={
@@ -108,81 +114,160 @@ static char sysex_resets[EX_RESET_NO][11]={
 	};
 */
 
+static void seq_set_time(MidiEvent *ev);
+
+
 
 void rtsyn_gm_reset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	ev.type=ME_RESET;
 	ev.a=GM_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
+
 }
+
+
 void rtsyn_gs_reset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	ev.type=ME_RESET;
 	ev.a=GS_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
+
+
 void rtsyn_xg_reset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	ev.type=ME_RESET;
 	ev.a=XG_SYSTEM_MODE;
 	ev.time=0;
 	rtsyn_play_event(&ev);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
+
+
 void rtsyn_normal_reset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	ev.type=ME_RESET;
 	ev.a=rtsyn_system_mode;
 	rtsyn_play_event(&ev);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
 void rtsyn_gm_modeset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	rtsyn_system_mode=GM_SYSTEM_MODE;
 	ev.type=ME_RESET;
 	ev.a=GM_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
+
+
 void rtsyn_gs_modeset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	rtsyn_system_mode=GS_SYSTEM_MODE;
 	ev.type=ME_RESET;
 	ev.a=GS_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
+
+
 void rtsyn_xg_modeset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	rtsyn_system_mode=XG_SYSTEM_MODE;
 	ev.type=ME_RESET;
 	ev.a=XG_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
+
+
 void rtsyn_normal_modeset(){
 	MidiEvent ev;
 
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	rtsyn_server_reset();
 	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
 	ev.type=ME_RESET;
 	ev.a=GS_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
 
+
+
+#ifdef USE_WINTIMER_I
+VOID CALLBACK timercalc(UINT uTimerID, UINT uMsg, DWORD dwUser, DWORD dummy1, DWORD dummy2){
+		MidiEvent ev;
+	
+		fluid_mutex_lock(timerMUTEX);
+		ev.type = ME_NONE;
+		seq_set_time(&ev);
+		play_event(&ev);
+		aq_fill_nonblocking();
+		fluid_mutex_unlock(timerMUTEX);
+	return;
+}
+#endif
 void rtsyn_init(void){
 	int i,j;
 		/* set constants */
@@ -211,12 +296,41 @@ void rtsyn_init(void){
 		i += (i < 7) ? 5 : -7, j++;
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
+	
+#ifdef USE_WINTIMER_I
+	fluid_mutex_init(timerMUTEX);
+	timeBeginPeriod(1);
+	{
+		DWORD data;
+		UINT delay;
+		delay=(1000/TICKTIME_HZ);
+		 
+		
+		timerID = timeSetEvent( delay, 0, timercalc, data,
+			TIME_PERIODIC | TIME_CALLBACK_FUNCTION );
+        if( !timerID ){
+                printf("Fail to setup Timer Interrupt (winsyn) \n");
+        }
+	}
+#endif
+}
+
+void rtsyn_close(void){
+#ifdef USE_WINTIMER_I
+	timeKillEvent( timerID );
+	timeEndPeriod(1);
+	fluid_mutex_destroy(timerMUTEX);
+#endif 
 }
 
 void rtsyn_play_event(MidiEvent *ev)
 {
   int gch;
   int32 cet;
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
+
 	gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
 	if(gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel) ){
 //    if ( !seq_quit ) {
@@ -224,17 +338,30 @@ void rtsyn_play_event(MidiEvent *ev)
 			play_event(ev);
 //		}
 	}
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
+
 }
 
 void rtsyn_reset(void){
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 		rtsyn_stop_playing();
 		free_instruments(0);        //also in rtsyn_server_reset
 		free_global_mblock();
 		rtsyn_server_reset();
 //		printf("system reseted\n");
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
 
 void rtsyn_server_reset(void){
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
 	play_mode->open_output();	// but w32_a.c does not have it.
 	readmidi_read_init();
@@ -243,10 +370,16 @@ void rtsyn_server_reset(void){
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
 	auto_reduce_polyphony = 0;
 	event_time_offset = 0;
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
 
 void rtsyn_stop_playing(void)
 {
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	if(upper_voices) {
 		MidiEvent ev;
 		ev.type = ME_EOT;
@@ -255,6 +388,9 @@ void rtsyn_stop_playing(void)
 		rtsyn_play_event(&ev);
 		aq_flush(1);
 	}
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }
 extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
@@ -295,11 +431,13 @@ static void seq_set_time(MidiEvent *ev)
 
 void rtsyn_play_calculate(){
 	MidiEvent ev;
-	
+
+#ifndef USE_WINTIMER_I	
 	ev.type = ME_NONE;
 	seq_set_time(&ev);
 	play_event(&ev);
 	aq_fill_nonblocking();
+#endif
 	
 	if(active_sensing_flag==~0 && (get_current_calender_time() > active_sensing_time+0.5)){
 //normaly acitive sensing expiering time is 330ms(>300ms) but this loop is heavy
@@ -312,7 +450,10 @@ void rtsyn_play_calculate(){
 	
 int rtsyn_play_one_data (int port, int32 dwParam1){
 	MidiEvent ev;
-	
+
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	ev.type = ME_NONE;
 	ev.channel = dwParam1 & 0x0000000f;
 	ev.channel = ev.channel+port*16;
@@ -397,6 +538,9 @@ int rtsyn_play_one_data (int port, int32 dwParam1){
 	if (ev.type != ME_NONE) {
 		rtsyn_play_event(&ev);
 	}
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 	return 0;
 }
 
@@ -405,7 +549,10 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen ){
 	int i,j,chk,ne;
 	MidiEvent ev;
 	MidiEvent evm[260];
-	
+
+#ifdef USE_WINTIMER_I
+	fluid_mutex_lock(timerMUTEX);
+#endif 
 	if(sysexbuffer[exlen-1] == '\xf7'){            // I don't konw why this need
 		for(i=0;i<EX_RESET_NO;i++){
 			chk=0;
@@ -440,4 +587,7 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen ){
 			}
 		}
 	}
+#ifdef USE_WINTIMER_I
+	fluid_mutex_unlock(timerMUTEX);
+#endif 
 }

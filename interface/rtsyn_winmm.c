@@ -210,8 +210,10 @@ int rtsyn_play_some_data(void){
 	int ne,i,j,chk,played;
 	
 	played=0;
+#ifndef USE_WINTIMER_I
 	do{
 		Sleep(1);
+#endif
 		if( !(evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ) played=~0;
 		while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
 
@@ -246,7 +248,9 @@ int rtsyn_play_some_data(void){
 				break;
 			}
 		}	
+#ifndef USE_WINTIMER_I
 	}while(rtsyn_reachtime>get_current_calender_time());
+#endif 
 	return played;
 }
 
