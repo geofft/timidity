@@ -6123,9 +6123,9 @@ void init_delay_status_gs(void)
 	p->level_center = 0x7F;
 	p->level_left = 0;
 	p->level_right = 0;
-	p->time_center = 340.0;
-	p->time_ratio_left = 1.0 / 24.0;
-	p->time_ratio_right = 1.0 / 24.0;
+	p->time_c = 0x61;
+	p->time_l = 0x01;
+	p->time_r = 0x01;
 	p->feedback = 0x50;
 	p->pre_lpf = 0;
 	recompute_delay_status_gs();
@@ -6135,6 +6135,9 @@ void init_delay_status_gs(void)
 void recompute_delay_status_gs(void)
 {
 	struct delay_status_t *p = &delay_status;
+	p->time_center = delay_time_center_table[p->time_c > 0x73 ? 0x73 : p->time_c];
+	p->time_ratio_left = (double)p->time_l / 24;
+	p->time_ratio_right = (double)p->time_r / 24;
 	p->sample_c = p->time_center * play_mode->rate / 1000.0f;
 	p->sample_l = p->sample_c * p->time_ratio_left;
 	p->sample_r = p->sample_c * p->time_ratio_right;
@@ -6254,23 +6257,12 @@ void init_chorus_status_gs(void)
 	p->send_reverb = 0;
 	p->send_delay = 0;
 	recompute_chorus_status_gs();
-	init_chorus_lfo();
 }
 
 /*! recompute Chorus Effect (GS) */
 void recompute_chorus_status_gs()
 {
 	struct chorus_status_t *p = &chorus_status;
-	p->delay_in_sample = chorus_delay_time_table[p->delay] * (double)play_mode->rate / 1000.0;
-	p->depth_in_sample = (double)(p->depth + 1) / 3.2f * (double)play_mode->rate / 1000.0;
-	p->delay_in_sample -= p->depth_in_sample / 2;	/* NOMINAL_DELAY to delay */
-	if (p->delay_in_sample < 1) {p->delay_in_sample = 1;}
-	p->cycle_in_sample = play_mode->rate / ((double)p->rate * 0.122f);
-	if (p->rate < 1) {p->cycle_in_sample = 0x7fffffff;}
-	p->feedback_ratio = (double)p->feedback * 0.763f / 100.0f;
-	p->level_ratio = (double)p->level / 127.0f;
-	p->send_reverb_ratio = (double)p->send_reverb * 0.787f / 100.0f;
-	p->send_delay_ratio = (double)p->send_delay * 0.787f / 100.0f;
 
 	if(p->pre_lpf) {
 		p->lpf.a = (double)(7 - p->pre_lpf) / 7.0 * 0.9 + 0.05;

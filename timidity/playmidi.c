@@ -3749,10 +3749,9 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x61:	/* Chorus Type (GM2) */
 			if (val > 5) {val = 5;}
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type (%d)", val);
-			init_ch_chorus();
 			set_chorus_macro_gs(val);
 			recompute_chorus_status_gs();
-			init_chorus_lfo();
+			init_ch_chorus();
 			break;
 		default:
 			break;
@@ -3844,6 +3843,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if(reverb_status.delay_feedback != val) {
 				reverb_status.delay_feedback = val;
 				recompute_reverb_status_gs();
+				init_reverb();
 			}
 			break;
 		case 0x0C:	/* Reverb Predelay Time */
@@ -3851,123 +3851,169 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if(reverb_status.pre_delay_time != val) {
 				reverb_status.pre_delay_time = val;
 				recompute_reverb_status_gs();
+				init_reverb();
 			}
 			break;
 		case 0x0D:	/* Chorus Macro */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Macro (%d)",val);
-			init_ch_chorus();
 			set_chorus_macro_gs(val);
 			recompute_chorus_status_gs();
-			init_chorus_lfo();
+			init_ch_chorus();
 			break;
 		case 0x0E:	/* Chorus Pre-LPF */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Pre-LPF (%d)",val);
-			chorus_status.pre_lpf = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.pre_lpf != val) {
+				chorus_status.pre_lpf = val;
+				recompute_chorus_status_gs();
+			}
 			break;
 		case 0x0F:	/* Chorus Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",val);
-			chorus_status.level = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.level != val) {
+				chorus_status.level = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x10:	/* Chorus Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Feedback (%d)",val);
-			chorus_status.feedback = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.feedback != val) {
+				chorus_status.feedback = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x11:	/* Chorus Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Delay (%d)",val);
-			chorus_status.delay = val;
-			init_ch_chorus();
-			recompute_chorus_status_gs();
-			init_chorus_lfo();
+			if (chorus_status.delay != val) {
+				chorus_status.delay = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x12:	/* Chorus Rate */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Rate (%d)",val);
-			chorus_status.rate = val;
-			recompute_chorus_status_gs();
-			init_chorus_lfo();
+			if (chorus_status.rate != val) {
+				chorus_status.rate = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x13:	/* Chorus Depth */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Depth (%d)",val);
-			chorus_status.depth = val;
-			recompute_chorus_status_gs();
-			init_chorus_lfo();
+			if (chorus_status.depth != val) {
+				chorus_status.depth = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x14:	/* Chorus Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Reverb (%d)",val);
-			chorus_status.send_reverb = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.send_reverb != val) {
+				chorus_status.send_reverb = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x15:	/* Chorus Send Level to Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level to Delay (%d)",val);
-			chorus_status.send_delay = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.send_delay != val) {
+				chorus_status.send_delay = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x16:	/* Delay Macro */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Macro (%d)",val);
-			init_ch_delay();
 			set_delay_macro_gs(val);
 			recompute_delay_status_gs();
+			init_ch_delay();
 			break;
 		case 0x17:	/* Delay Pre-LPF */
 			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Pre-LPF (%d)",val);
-			delay_status.pre_lpf = val & 0x7;
-			recompute_delay_status_gs();
+			val &= 0x7;
+			if (delay_status.pre_lpf != val) {
+				delay_status.pre_lpf = val;
+				recompute_delay_status_gs();
+			}
 			break;
 		case 0x18:	/* Delay Time Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Center (%d)",val);
-			init_ch_delay();
-			delay_status.time_center = delay_time_center_table[val > 0x73 ? 0x73 : val];
-			recompute_delay_status_gs();
+			if (delay_status.time_c != val) {
+				delay_status.time_c = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x19:	/* Delay Time Ratio Left */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Left (%d)",val);
-			if(val == 0) {val = 1;}
-			delay_status.time_ratio_left = (double)val / 24;
-			init_ch_delay();
-			recompute_delay_status_gs();
+			if (val == 0) {val = 1;}
+			if (delay_status.time_l != val) {
+				delay_status.time_l = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1A:	/* Delay Time Ratio Right */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Right (%d)",val);
-			if(val == 0) {val = 1;}
-			delay_status.time_ratio_right = (double)val / 24;
-			init_ch_delay();
-			recompute_delay_status_gs();
+			if (val == 0) {val = 1;}
+			if (delay_status.time_r != val) {
+				delay_status.time_r = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1B:	/* Delay Level Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Center (%d)",val);
-			delay_status.level_center = val;
-			recompute_delay_status_gs();
+			if (delay_status.level_center != val) {
+				delay_status.level_center = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1C:	/* Delay Level Left */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Left (%d)",val);
-			delay_status.level_left = val;
-			recompute_delay_status_gs();
+			if (delay_status.level_left != val) {
+				delay_status.level_left = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1D:	/* Delay Level Right */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level Right (%d)",val);
-			delay_status.level_right = val;
-			recompute_delay_status_gs();
+			if (delay_status.level_right != val) {
+				delay_status.level_right = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1E:	/* Delay Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Level (%d)",val);
-			delay_status.level = val;
-			recompute_delay_status_gs();
+			if (delay_status.level != val) {
+				delay_status.level = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x1F:	/* Delay Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Feedback (%d)",val);
-			delay_status.feedback = val;
-			recompute_delay_status_gs();
+			if (delay_status.feedback != val) {
+				delay_status.feedback = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x20:	/* Delay Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send Level to Reverb (%d)",val);
-			delay_status.send_reverb = val;
-			recompute_delay_status_gs();
+			if (delay_status.send_reverb = val) {
+				delay_status.send_reverb = val;
+				recompute_delay_status_gs();
+				init_ch_delay();
+			}
 			break;
 		case 0x21:	/* Velocity Sense Depth */
 			channel[ch].velocity_sense_depth = val;
@@ -4176,14 +4222,19 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		{
 		case 0x00:	/* Reverb Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
-			reverb_status.level = val;
-			recompute_reverb_status_gs();
-			init_reverb();
+			if (reverb_status.level != val) {
+				reverb_status.level = val;
+				recompute_reverb_status_gs();
+				init_reverb();
+			}
 			break;
 		case 0x01:	/* Chorus Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
-			chorus_status.level = val;
-			recompute_chorus_status_gs();
+			if (chorus_status.level != val) {
+				chorus_status.level = val;
+				recompute_chorus_status_gs();
+				init_ch_chorus();
+			}
 			break;
 		case 0x50:	/* EQ type */
 			if(opt_eq_control) {

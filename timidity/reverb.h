@@ -288,15 +288,14 @@ typedef struct {
 /*                             */
 /* Reverb Effect */
 extern void do_ch_reverb(int32 *, int32);
-extern void set_ch_reverb(int32 *, int32, int32);
 extern void do_mono_reverb(int32 *, int32);
+extern void set_ch_reverb(int32 *, int32, int32);
 extern void init_reverb(void);
 extern void reverb_rc_event(int, int32);
 
 /* Chorus Effect */
 extern void do_ch_chorus(int32 *, int32);
 extern void set_ch_chorus(int32 *, int32, int32);
-extern void init_chorus_lfo(void);
 extern void init_ch_chorus(void);
 
 /* Delay (Celeste) Effect */
@@ -337,10 +336,6 @@ struct chorus_status_t
 	/* GS parameters */
 	int8 macro, pre_lpf, level, feedback, delay, rate, depth, send_reverb, send_delay;
 
-	/* for pre-calculation */
-	double level_ratio, feedback_ratio, send_reverb_ratio, send_delay_ratio;
-	int32 cycle_in_sample, depth_in_sample, delay_in_sample;
-
 	struct chorus_text_t text;
 
 	InfoStereoChorus info_stereo_chorus;
@@ -352,7 +347,7 @@ struct delay_status_t
 {
 	/* GS parameters */
 	int8 type, level, level_center, level_left, level_right,
-		feedback, pre_lpf, send_reverb;
+		feedback, pre_lpf, send_reverb, time_c, time_l, time_r;
     double time_center;			/* in ms */
     double time_ratio_left, time_ratio_right;		/* in pct */
 
