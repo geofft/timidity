@@ -1039,6 +1039,8 @@ static void recompute_amp(int v)
     	}
 }
 
+#define RESONANCE_COEFF 0.2393
+
 void recompute_channel_filter(MidiEvent *e)
 {
 	int ch = e->channel, note, prog, bk;
@@ -1065,7 +1067,7 @@ void recompute_channel_filter(MidiEvent *e)
 		/* NRPN Filter Cutoff */
 		coef *= pow(1.26, (double)(channel[ch].param_cutoff_freq) / 8.0f);
 		/* NRPN Resonance */
-		reso = (double)channel[ch].param_resonance * 0.5f;
+		reso = (double)channel[ch].param_resonance * RESONANCE_COEFF;
 	}
 
 	channel[ch].cutoff_freq_coef = coef;
@@ -1103,7 +1105,7 @@ void recompute_voice_filter(int v)
 		/* NRPN Drum Instrument Filter Cutoff */
 		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
 		/* NRPN Drum Instrument Filter Resonance */
-		reso += (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+		reso += (double)channel[ch].drums[note]->drum_resonance * RESONANCE_COEFF;
 	}
 
 	/* MIDI controllers filter cutoff control and LFO filter depth */

@@ -2,6 +2,7 @@
 
 	* timidity/playmidi.c:
 	  Fix around modulation wheel.
+	  Fix NRPN Resonance and Harmonic Content.
 	* timidity/sndfont.c:
 	  Fix around SoundFont.
 
