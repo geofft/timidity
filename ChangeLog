@@ -6,6 +6,8 @@
 
 	* interface/w32g_tracer.bmp, interface/w32g_subwin3.c, timidity/playmidi.c:
 	  Change tracer window.
+	* configs/msc[67]-project.zip:
+	  Fix projects for cfgforsf.
 
 2004-02-07  Saito <saito2@digitalme.com>
 
