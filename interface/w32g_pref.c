@@ -1883,6 +1883,7 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					CB_INSERTSTRING, (WPARAM) -1, (LPARAM) MidiINDrivers[i] );
 			}
 		}
+		DLG_FLAG_TO_CHECKBUTTON(hwnd, IDC_CHECK_SYN_AUTOSTART, st_temp->syn_AutoStart);
 		if (PlayerLanguage == LANGUAGE_JAPANESE) {
 			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "’á‚¢" );
@@ -2010,7 +2011,7 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT3, CB_GETCURSEL, 0, 0 );
 		if ( res != CB_ERR ) st_temp->SynIDPort[3] = res;
 		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-
+		DLG_CHECKBUTTON_TO_FLAG(hwnd, IDC_CHECK_SYN_AUTOSTART, st_temp->syn_AutoStart);
 		// Set process priority
 		res = SendDlgItemMessage ( hwnd, IDC_COMBO_PROCESS_PRIORITY, CB_GETCURSEL, 0, 0 );
 		if ( res != CB_ERR ) {

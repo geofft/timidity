@@ -480,6 +480,7 @@ static int is_device_output_ID(int id)
 
 #ifdef IA_W32G_SYN
 extern int w32g_syn_id_port[];
+extern int syn_AutoStart;
 extern DWORD processPriority;
 extern DWORD syn_ThreadPriority;
 extern int w32g_syn_port_num;
@@ -605,6 +606,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	for ( i = 0; i < MAX_PORT; i ++ ) {
 		w32g_syn_id_port[i] = st->SynIDPort[i];
 	}
+	syn_AutoStart = st->syn_AutoStart;
 	processPriority = st->processPriority;
 	syn_ThreadPriority = st->syn_ThreadPriority;
 	w32g_syn_port_num = st->SynPortNum;
@@ -749,6 +751,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	for ( i = 0; i < MAX_PORT; i ++ ) {
 		st->SynIDPort[i] = w32g_syn_id_port[i];
 	}
+	st->syn_AutoStart = syn_AutoStart;
 	st->processPriority = processPriority;
 	st->syn_ThreadPriority = syn_ThreadPriority;
 	st->SynPortNum = w32g_syn_port_num;

@@ -206,6 +206,7 @@ int msg_loopbuf_start = -1;
 int msg_loopbuf_end = -1;
 extern int rtsyn_system_mode;
 HANDLE msg_loopbuf_hMutex = NULL; // 排他処理用
+int syn_AutoStart;	// シンセ自動起動
 DWORD processPriority;	// プロセスのプライオリティ
 DWORD syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
@@ -1003,7 +1004,7 @@ void w32g_syn_doit(void)
 void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 {
 	int i;
-	w32g_syn_status = stop;
+	w32g_syn_status = syn_AutoStart ? run : stop;
 	for (;;) {
 		int breakflag = 0;
 		switch ( w32g_syn_status ) {
