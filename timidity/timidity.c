@@ -3770,7 +3770,7 @@ static inline bool parse_opt_223(const char *arg)
 	if (isdigit(arg[0])) {
 		char *tmp = malloc(strlen(arg) + 8);	/* 8 for "chorus=", '\0' */
 		
-		if (sprintf(&tmp, "chorus=%s", arg) >=0) {
+		if (sprintf(tmp, "chorus=%s", arg) >=0) {
 			bool ret = parse_effect_option(tmp);
 			
 			free(tmp);
