@@ -497,7 +497,7 @@ void winplaymidi(void){
 /*
  * interface_<id>_loader();
  */
-ControlMode *interface_W_loader(void)
+ControlMode *interface_P_loader(void)
 {
     return &ctl;
 }
