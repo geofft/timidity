@@ -72,7 +72,7 @@ struct seq_context {
 	snd_seq_t *handle;	/* The snd_seq handle to /dev/snd/seq */
 	int client;		/* The client associated with this context */
 	int num_ports;		/* number of ports */
-	int *port[MAX_PORTS];	/* created sequencer ports */
+	int port[MAX_PORTS];	/* created sequencer ports */
 	int fd;			/* The file descriptor */
 	int used;		/* number of current connection */
 	int active;		/* */
