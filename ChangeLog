@@ -2,6 +2,8 @@
 
 	* timidity/portaudio_a.c:
 	  Fix for Win32.
+	* configs/msc[67]-project.zip:
+	  Add portaudio files and modify projects.
 
 2004-02-14  Saito <saito2@digitalme.com>
 
