@@ -480,22 +480,20 @@ static FLOAT_T calc_volume(LayerTable *tbl)
     if(!tbl->set[SF_initAtten] || tbl->val[SF_initAtten] == 0)
 	return (FLOAT_T)1.0;
 
-#if 1
 	v = tbl->val[SF_initAtten];
     if(v < 0) {v = 0;}
     else if(v > 960) {v = 960;}
 	return cb_to_amp_table[v];
-#else
-    v = tbl->val[SF_initAtten];
+
+/*    v = tbl->val[SF_initAtten];
     if(v < 0)
 	return (FLOAT_T)1.0;
     if(v > 956)
 	return (FLOAT_T)0.0;
 
-    v = v * 127 / 956;		/* 0..127 */
+    v = v * 127 / 956;
 
-    return sb_vol_table[127 - v];
-#endif
+    return vol_table[127 - v];*/
 }
 
 /*
