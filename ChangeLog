@@ -1,3 +1,8 @@
+2003-10-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c, timidity/effect.c, timidity/timidity.c:
+	  The user can now set the reverb level of any of the reverb modes.
+
 2003-10-27  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/effect.c: Fixed noise shaping filter bug.

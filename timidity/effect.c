@@ -249,25 +249,37 @@ void do_effect(int32* buf, int32 count)
 	/* reverb in mono */
 	if (opt_reverb_control && (play_mode->encoding & PE_MONO))
 		do_mono_reverb(buf, count);
-#ifndef USE_DSP_EFFECT	/* do_compute_data_midi() already applied them */
+
 	/* for static reverb / chorus level */
-	if (opt_reverb_control < 0 || opt_chorus_control < 0) {
-		int32				nsamples = count;
+	if (opt_effect_quality == -111 ||
+	    opt_effect_quality == 333 ||
+	    opt_chorus_control < 0) {
+		int32 nsamples = count;
+		int reverb_level = DEFAULT_REVERB_SEND_LEVEL;
 		
 		if (!(play_mode->encoding & PE_MONO))
 			nsamples *= 2;
 		set_dry_signal(buf, nsamples);
+
+		if (opt_reverb_control < 0)
+		    reverb_level = -opt_reverb_control;
+
+#if 0 /* chorus sounds horrible if applied globally on top of channel chorus */
 		if (opt_chorus_control < 0)
 			set_ch_chorus(buf, nsamples, -opt_chorus_control);
-		if (opt_reverb_control < 0)
-			set_ch_reverb(buf, nsamples, -opt_reverb_control);
+#endif
+		if (opt_effect_quality == -111 || opt_effect_quality == 333)
+			set_ch_reverb(buf, nsamples, reverb_level);
 		mix_dry_signal(buf, nsamples);
+
+#if 0 /* chorus sounds horrible if applied globally on top of channel chorus */
 		if (opt_chorus_control < 0)
 			do_ch_chorus(buf, nsamples);
-		if (opt_reverb_control < 0)
+#endif
+		if (opt_effect_quality == -111 || opt_effect_quality == 333)
 			do_ch_reverb(buf, nsamples);
 	}
-#endif /* USE_DSP_EFFECT */
+
 	/* L/R Delay */
 	effect_left_right_delay(buf, count);
 	/* Noise shaping filter must apply at last */

@@ -4858,8 +4858,11 @@ static void do_compute_data_midi(int32 count)
 	memset(insertion_effect_buffer, 0, n);
 
 	/* are effects valid? / don't supported in mono */
-	channel_reverb = ((opt_reverb_control == 1 || opt_reverb_control == 3)
-			&& stereo);
+	channel_reverb = ((opt_effect_quality != -111 &&
+			   opt_effect_quality != 333) &&
+			  (opt_reverb_control == 1 ||
+			   opt_reverb_control == 3 ||
+			   opt_reverb_control < 0) && stereo);
 	channel_chorus = (opt_chorus_control != 0 && stereo);
 	channel_delay = (opt_delay_control > 0 && stereo);
 
@@ -5000,9 +5003,12 @@ static void do_compute_data_midi(int32 count)
 	
 	stereo = ! (play_mode->encoding & PE_MONO);
 	n = count * ((stereo) ? 8 : 4); /* in bytes */
-	channel_reverb = ((opt_reverb_control == 1 || opt_reverb_control == 3)
-			&& stereo);
-		/* don't supported in mono */
+	/* don't supported in mono */
+	channel_reverb = ((opt_effect_quality != -111 &&
+			   opt_effect_quality != 333) &&
+			  (opt_reverb_control == 1 ||
+			   opt_reverb_control == 3 ||
+			   opt_reverb_control < 0) && stereo);
 	memset(buffer_pointer, 0, n);
 
 	channel_effect = ((opt_reverb_control || opt_chorus_control

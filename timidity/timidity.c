@@ -2939,6 +2939,35 @@ static inline int parse_opt_reverb(const char *arg)
 {
 	/* --reverb */
 	const char *p;
+
+	/* reverb == 1          old reverb, opt_effect_quality = 0
+	 * reverb == 3          new reverb, opt_effect_quality = 2
+	 *
+	 * reverb == 2          "global" old reverb, opt_effect_quality = -111
+	 * reverb == 4          "global" new reverb, opt_effect_quality =  333
+	 *
+	 * reverb == x,n	set reverb level to n
+	 *
+	 * I think "global" was meant to apply a single global reverb,
+	 * without applying any reverb to the channels.  The do_effects()
+	 * function in effects.c looks like a good way to do this.
+	 * opt_effect_quality == -111 will now indicate global "old" reverb,
+	 * while opt_effect_quality == 333 will indicate global "new" reverb.
+	 * -111 was chosen to be less than 0, so that the code in
+	 * do_ch_reverb() would not need to be rewritten.  333 was chosen to
+	 * be >= 2 for the same reason.  -111 is the negative of mode 1
+	 * repeated three times, and 333 is mode 3 repeated three times.
+	 * Future reverb modes could follow the same system of choosing
+	 * special reserved opt_effect_quality numbers for global reverb.
+	 *
+	 * This is NOT the "correct" way to implement global reverb, we should
+	 * really make a new variable just for that.  But if opt_reverb_control
+	 * is already used in a similar fashion, rather than creating a new
+	 * variable for setting the channel reverb levels, then I guess
+	 * maybe this isn't so bad....  It would be nice to create new
+	 * variables for both global reverb and channel reverb level settings
+	 * in the future, but this will do for now.
+	 */
 	
 	switch (*arg) {
 	case '0':
@@ -2948,20 +2977,46 @@ static inline int parse_opt_reverb(const char *arg)
 	case '1':
 	case 'n':	/* normal */
 		if (p = strchr(arg, ',')) {
-			if (set_value(&opt_reverb_control, atoi(++p), 0, 0x7f,
+			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
 			opt_reverb_control = -opt_reverb_control;
 		} else
 			opt_reverb_control = 1;
+		opt_effect_quality = 0;
 		break;
 	case '2':
 	case 'g':	/* global */
-		opt_reverb_control = 2;
+		if (p = strchr(arg, ',')) {
+			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
+					"Reverb level"))
+				return 1;
+			opt_reverb_control = -opt_reverb_control;
+		} else
+			opt_reverb_control = 2;
+		opt_effect_quality = -111;
 		break;
 	case '3':
 	case 'f':	/* freeverb */
-		opt_reverb_control = 3;
+		if (p = strchr(arg, ',')) {
+			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
+					"Reverb level"))
+				return 1;
+			opt_reverb_control = -opt_reverb_control;
+		} else
+			opt_reverb_control = 3;
+		opt_effect_quality = 2;
+		break;
+	case '4':
+	case 'G':	/* global freeverb */
+		if (p = strchr(arg, ',')) {
+			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
+					"Reverb level"))
+				return 1;
+			opt_reverb_control = -opt_reverb_control;
+		} else
+			opt_reverb_control = 4;
+		opt_effect_quality = 333;
 		break;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
@@ -3327,11 +3382,13 @@ static inline int parse_opt_h(const char *arg)
 "    [,level]     `level' is optional to specify chorus level [0..127]" NLS
 "  -EFreverb=d  Disable MIDI reverb effect control" NLS
 "  -EFreverb=n  Enable Normal MIDI reverb effect control" NLS
-"    [,level]     `level' is optional to specify reverb level [0..127]" NLS
-"                 This effect is only available in stereo" NLS
+"    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFreverb=g  Global reverb effect" NLS
+"    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFreverb=f  Enable Freeverb MIDI reverb effect control" NLS
-"                 This effect is only available in stereo (default)" NLS
+"    [,level]     `level' is optional to specify reverb level [1..127]" NLS
+"  -EFreverb=G  Global Freeverb effect" NLS
+"    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFns=n      Enable the n th degree noise shaping filter" NLS
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
