@@ -2,6 +2,8 @@
 
 	* timidity/reverb.[ch], timidity/readmidi.c:
 	  Fix comments.
+	* configs/msc-project.zip:
+	  Fix twsyng.dsp and interface.h.
 
 2003-07-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
