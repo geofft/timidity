@@ -605,7 +605,7 @@ dnl portaudio(p) PortAudio
 dnl vorbis(v):  Ogg Vorbis
 dnl gogo(g):    MP3 GOGO
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack'
 
 AC_ARG_WITH(nas-library,
   [  --with-nas-library=library NAS absolute library path(Don't use -laudio)])
@@ -1020,6 +1020,17 @@ if test "x$au_enable_portaudio" = xyes; then
   SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
   EXTRALIBS="$EXTRALIBS -lportaudio"
   EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+else
+  AC_MSG_RESULT(no)
+fi
+
+dnl JACK
+AC_MSG_CHECKING(enable_audio=jack)
+if test "x$au_enable_jack" = xyes; then
+  AC_MSG_RESULT(yes)
+  SYSEXTRAS="$SYSEXTRAS jack_a.c"
+  EXTRALIBS="$EXTRALIBS $(pkg-config --libs jack)"
+  EXTRADEFS="$EXTRADEFS -DAU_JACK $(pkg-config --cflags jack)"
 else
   AC_MSG_RESULT(no)
 fi

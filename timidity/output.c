@@ -95,6 +95,10 @@ extern PlayMode esd_play_mode;
 extern PlayMode portaudio_play_mode;
 #endif /* AU_PORTAUDIO */
 
+#ifdef AU_JACK
+extern PlayMode jack_play_mode;
+#endif /* AU_NAS */
+
 #ifdef AU_NAS
 extern PlayMode nas_play_mode;
 #endif /* AU_NAS */
@@ -137,6 +141,10 @@ PlayMode *play_mode_list[] = {
 
 #if defined(AU_PORTAUDIO)
   &portaudio_play_mode,
+#endif /* AU_PORTAUDIO */
+
+#if defined(AU_JACK)
+  &jack_play_mode,
 #endif /* AU_PORTAUDIO */
 
 #if defined(AU_NAS)
