@@ -2121,9 +2121,11 @@ int main(int argc, char **argv)
 						inst = try_load_soundfont(sf, -1, 128, x_preset, x_keynote);
 						if(inst != NULL) {
 							freq = freq_fourier(inst->sample, &chord);
-							note = ceil(-36.87631656f + 17.31234049f * log(freq)); /* freq.c */
-							if (note >= LOWEST_PITCH && note <= HIGHEST_PITCH) {
-								x_playnote[x_keynote] = note;
+							if (freq > 0) {
+								note = ceil(-36.87631656f + 17.31234049f * log(freq)); /* freq.c */
+								if (note >= LOWEST_PITCH && note <= HIGHEST_PITCH) {
+									x_playnote[x_keynote] = note;
+								}
 							}
 							free_instrument(inst);
 						}

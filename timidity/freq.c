@@ -513,8 +513,13 @@ float freq_fourier(Sample *sp, int *chord)
     }
 
     /* whoa!, there aren't any strong peaks at all !!! bomb early */
+    #ifndef CFG_FOR_SF
     if (!n)
 	return 260;
+	#else
+	if (!n)
+	return -1;
+	#endif
 
     /* check for remaining points */
     for (i = maxbin, n = 0; i >= minbin; i--)
