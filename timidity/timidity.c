@@ -3926,13 +3926,13 @@ static inline void list_dyna_interface(FILE *fp, char *path, char *mark)
 	URL url;
 	char fname[BUFSIZ], name[16], *info;
 	ControlMode *cmp, **cmpp;
-	int id;
 	
 	if ((url = url_dir_open(path)) == NULL)
 		return;
 	while (url_gets(url, fname, sizeof(fname)) != NULL)
 		if (strncmp(fname, "if_", 3) == 0) {
 			int i;
+			int id = '\0';
 			for (i = 0; i < 15 && fname[i + 3] != '.'; i++)
 				name[i] = fname[i + 3];
 			name[i] = '\0';
@@ -3941,7 +3941,7 @@ static inline void list_dyna_interface(FILE *fp, char *path, char *mark)
 					id = cmp->id_character;
 					break;
 				}
-			if (mark[id])
+			if (!id || mark[id])
 				continue;
 			mark[id] = 1;
 			if ((info = dynamic_interface_info(name)) == NULL)
