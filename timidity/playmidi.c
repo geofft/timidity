@@ -267,7 +267,7 @@ static int mainvolume_max; /* maximum value of mainvolume */
 static double compensation_ratio = 1.0; /* compensation ratio */
 
 static int find_samples(MidiEvent *, int *);
-static int select_play_sample(Sample *, int, int, int *, MidiEvent *);
+static int select_play_sample(Sample *, int, int *, int *, MidiEvent *);
 static double get_play_note_ratio(int, int);
 static int find_voice(MidiEvent *);
 static void update_portamento_controls(int ch);
@@ -1859,7 +1859,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 		}
 		note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
 		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
-		return select_play_sample(s->sample, s->samples, note, vlist, e);
+		return select_play_sample(s->sample, s->samples, &note, vlist, e);
 	}
 	bank = channel[ch].bank;
 	if (ISDRUMCHANNEL(ch)) {
@@ -1886,7 +1886,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 				+ channel[ch].key_shift + note_key_offset + key_adjust;
 		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
 	}
-	nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
+	nv = select_play_sample(ip->sample, ip->samples, &note, vlist, e);
 	/* Replace the sample if the sample is cached. */
 	if (! prescanning_flag) {
 		if (ip->sample->note_to_use)
@@ -1906,7 +1906,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 }
 
 static int select_play_sample(Sample *splist,
-		int nsp, int note, int *vlist, MidiEvent *e)
+		int nsp, int *note, int *vlist, MidiEvent *e)
 {
 	int ch = e->channel, kn = e->a & 0x7f, vel = e->b;
 	int32 f, fs, ft, fst, fc, fr, cdiff, diff, sample_link;
@@ -1918,68 +1918,68 @@ static int select_play_sample(Sample *splist,
 	int i, j, k, nv, nvc;
 	
 	if (ISDRUMCHANNEL(ch))
-		f = fs = freq_table[note];
+		f = fs = freq_table[*note];
 	else {
 		if (opt_pure_intonation) {
 			if (current_keysig < 8)
-				f = freq_table_pureint[current_freq_table][note];
+				f = freq_table_pureint[current_freq_table][*note];
 			else
-				f = freq_table_pureint[current_freq_table + 12][note];
+				f = freq_table_pureint[current_freq_table + 12][*note];
 		} else if (opt_temper_control)
 			switch (tt) {
 			case 0:
-				f = freq_table_tuning[tp][note];
+				f = freq_table_tuning[tp][*note];
 				break;
 			case 1:
 				if (current_temper_keysig < 8)
-					f = freq_table_pytha[current_freq_table][note];
+					f = freq_table_pytha[current_freq_table][*note];
 				else
-					f = freq_table_pytha[current_freq_table + 12][note];
+					f = freq_table_pytha[current_freq_table + 12][*note];
 				break;
 			case 2:
 				if (current_temper_keysig < 8)
 					f = freq_table_meantone[current_freq_table
-							+ ((temper_adj) ? 36 : 0)][note];
+							+ ((temper_adj) ? 36 : 0)][*note];
 				else
 					f = freq_table_meantone[current_freq_table
-							+ ((temper_adj) ? 24 : 12)][note];
+							+ ((temper_adj) ? 24 : 12)][*note];
 				break;
 			case 3:
 				if (current_temper_keysig < 8)
 					f = freq_table_pureint[current_freq_table
-							+ ((temper_adj) ? 36 : 0)][note];
+							+ ((temper_adj) ? 36 : 0)][*note];
 				else
 					f = freq_table_pureint[current_freq_table
-							+ ((temper_adj) ? 24 : 12)][note];
+							+ ((temper_adj) ? 24 : 12)][*note];
 				break;
 			default:	/* user-defined temperament */
 				if ((tt -= 0x40) >= 0 && tt < 4) {
 					if (current_temper_keysig < 8)
 						f = freq_table_user[tt][current_freq_table
-								+ ((temper_adj) ? 36 : 0)][note];
+								+ ((temper_adj) ? 36 : 0)][*note];
 					else
 						f = freq_table_user[tt][current_freq_table
-								+ ((temper_adj) ? 24 : 12)][note];
+								+ ((temper_adj) ? 24 : 12)][*note];
 				} else
-					f = freq_table[note];
+					f = freq_table[*note];
 				break;
 			}
 		else
-			f = freq_table[note];
+			f = freq_table[*note];
 		if (! opt_pure_intonation && opt_temper_control
-				&& tt == 0 && f != freq_table[note]) {
-			note = log(f / 440000.0) / log(2) * 12 + 69.5;
-			note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
-			fs = freq_table[note];
+				&& tt == 0 && f != freq_table[*note]) {
+			*note = log(f / 440000.0) / log(2) * 12 + 69.5;
+			*note = (*note < 0) ? 0 : ((*note > 127) ? 127 : *note);
+			fs = freq_table[*note];
 		} else
-			fs = freq_table[note];
+			fs = freq_table[*note];
 	}
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
 		/* GUS/SF2 - Scale Tuning */
 		if ((sf = sp->scale_factor) != 1024) {
 			sn = sp->scale_freq;
-			ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+			ratio = pow(2.0, (*note - sn) * (sf - 1024) / 12288.0);
 			ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
 		} else
 			ft = f, fst = fs;
@@ -2006,7 +2006,7 @@ static int select_play_sample(Sample *splist,
 			/* GUS/SF2 - Scale Tuning */
 			if ((sf = sp->scale_factor) != 1024) {
 				sn = sp->scale_freq;
-				ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+				ratio = pow(2.0, (*note - sn) * (sf - 1024) / 12288.0);
 				ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
 			} else
 				ft = f, fst = fs;
@@ -2050,7 +2050,7 @@ static int select_play_sample(Sample *splist,
 					/* GUS/SF2 - Scale Tuning */
 					if ((sf = sp->scale_factor) != 1024) {
 						sn = sp->scale_freq;
-						ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+						ratio = pow(2.0, (*note - sn) * (sf - 1024) / 12288.0);
 						ft = f * ratio + 0.5;
 					} else
 						ft = f;

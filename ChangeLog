@@ -1,3 +1,8 @@
+2004-03-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c (select_play_sample):
+	  Fix handling of resample cache in case of using MTS
+
 2004-03-05  Saito <saito@intaa.net>
 
 	* timidity/sndfont.c:
