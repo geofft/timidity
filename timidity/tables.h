@@ -85,5 +85,6 @@ extern void init_sb_vol_table(void);
 extern void init_convex_vol_table(void);
 extern void init_def_vol_table(void);
 extern void init_gs_vol_table(void);
+extern void init_perceived_vol_table(void);
 
 #endif /* ___TABLES_H_ */

@@ -1,3 +1,8 @@
+2003-06-08  URABE  <shyouhei@YahooBB218133008108.bbtec.net>
+
+	* Makefile.am (dist-hook): Not to change msc-config.h every time
+	* timidity/recache.c, timidity/resample.c, timidity/timidity.c:
+	  Fix linkage of newt_coeff[][].
 
 2003-06-06  Saito <timidity@flashmail.com>
 
@@ -7,8 +12,9 @@
 2003-06-06  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/tables.[ch], timidity/timidity.c, timidity/playmidi.c:
-	  recompute_amp() handles velocity/volume/expression levels correctly now.
-	  see comments on perceived_vol_table[] in tables.c
+	  recompute_amp() handles velocity/volume/expression levels
+	  correctly now.  see comments on perceived_vol_table[] in
+	  tables.c
 
 2003-06-06  mput <root@mput.dip.jp>
 

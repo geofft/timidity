@@ -23,6 +23,13 @@
 #ifndef ___RESAMPLE_H_
 #define ___RESAMPLE_H_
 
+#ifdef HAVE_CONFIH_H
+#include "config.h"
+#endif
+
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+extern double newt_coeffs[58][58];
+#endif
 extern sample_t *resample_voice(int v, int32 *countptr);
 extern void pre_resample(Sample *sp);
 

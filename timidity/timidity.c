@@ -72,6 +72,7 @@ extern char *optarg;
 #ifdef SUPPORT_SOUNDSPEC
 #include "soundspec.h"
 #endif /* SUPPORT_SOUNDSPEC */
+#include "resample.h"
 #include "recache.h"
 #include "arc.h"
 #include "strtab.h"

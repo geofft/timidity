@@ -42,6 +42,7 @@
 #include "tables.h"
 #include "mblock.h"
 #include "recache.h"
+#include "resample.h"
 
 #define HASH_TABLE_SIZE 251
 #define MIXLEN 256
@@ -59,10 +60,6 @@ static MBlockList hash_entry_pool;
 
 #define CACHE_RESAMPLING_OK	0
 #define CACHE_RESAMPLING_NOTOK	1
-
-#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
-double newt_coeffs[58][58];		/* for start/end of samples */
-#endif
 
 #if defined(CSPLINE_INTERPOLATION)
 # define INTERPVARS_CACHE      int32 ofsi, ofsf, v0, v1, v2, v3, temp;
