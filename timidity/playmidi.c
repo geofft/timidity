@@ -770,14 +770,29 @@ static int32 calc_velocity(int32 ch,int32 vel)
 
 static void recompute_amp(int v)
 {
-    FLOAT_T tempamp;
+	FLOAT_T tempamp;
 
-	tempamp = ((FLOAT_T)master_volume *
-		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
+	/* master_volume and sample->volume are percentages, used to scale
+	 *  amplitude directly, NOT perceived volume
+	 *
+	 * all other MIDI volumes are linear in perceived volume, 0-127
+	 * use a lookup table for the non-linear scalings
+	 */
+	if(play_system_mode == GS_SYSTEM_MODE) {	/* use measured curve */ 
+	tempamp = master_volume *
 		   voice[v].sample->volume *
+		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
 		   sc_vol_table[channel[voice[v].channel].volume] *
-		   sc_vol_table[channel[voice[v].channel].expression]); /* 21 bits */
+		   sc_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+	} else {	/* use generic exponential curve */
+	tempamp = master_volume *
+		  voice[v].sample->volume *
+		  perceived_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
+		  perceived_vol_table[channel[voice[v].channel].volume] *
+		  perceived_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+	}
 
+	/* every digital effect increases amplitude, so that it must be reduced in advance. */
 	if((opt_reverb_control || opt_chorus_control
 			|| opt_delay_control || (opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40)) || opt_insertion_effect)
 			&& !(play_mode->encoding & PE_MONO)) {
@@ -786,7 +801,7 @@ static void recompute_amp(int v)
 		tempamp *= 1.35f;
 	}
 
-	/* level of drum instrument */
+	/* NRPN - drum instrument tva level */
 	if(ISDRUMCHANNEL(voice[v].channel)) {
 		if(channel[voice[v].channel].drums[voice[v].note] != NULL) {
 			tempamp *= channel[voice[v].channel].drums[voice[v].note]->drum_level;
@@ -795,7 +810,7 @@ static void recompute_amp(int v)
 	}
 
 	if(!(play_mode->encoding & PE_MONO))
-    {
+    	{
 		if(voice[v].panning == 64)
 		{
 			voice[v].panned = PANNED_CENTER;
@@ -831,12 +846,12 @@ static void recompute_amp(int v)
 			voice[v].left_amp = TIM_FSCALENEG(tempamp * sc_pan_table[127 - voice[v].panning], 27);
 			voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[voice[v].panning], 27);
 		}
-    }
-    else
-    {
+    	}
+    	else
+    	{
 		voice[v].panned = PANNED_CENTER;
 		voice[v].left_amp = TIM_FSCALENEG(tempamp, 21);
-    }
+    	}
 }
 
 void recompute_channel_filter(MidiEvent *e)

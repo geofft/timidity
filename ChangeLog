@@ -1,3 +1,15 @@
+
+2003-06-06  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/tables.c:
+	  Fix about sc_vol_table[] and sc_vel_table[].
+
+2003-06-06  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/tables.[ch], timidity/timidity.c, timidity/playmidi.c:
+	  recompute_amp() handles velocity/volume/expression levels correctly now.
+	  see comments on perceived_vol_table[] in tables.c
+
 2003-06-06  mput <root@mput.dip.jp>
 
 	* timidity/esd_a.c : Restore. Latest changes into this file turned

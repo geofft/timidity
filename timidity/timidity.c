@@ -3421,6 +3421,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_convex_vol_table();
 	init_def_vol_table();
 	init_gs_vol_table();
+	init_perceived_vol_table();
 #ifdef SUPPORT_SOCKET
 	url_news_connection_cache(URL_NEWS_CONN_CACHE);
 #endif /* SUPPORT_SOCKET */

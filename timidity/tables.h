@@ -60,6 +60,7 @@ extern FLOAT_T delay_time_center_table[];
 extern FLOAT_T pre_delay_time_table[];
 extern FLOAT_T rate1_table[];
 extern FLOAT_T attack_vol_table[];
+extern FLOAT_T perceived_vol_table[];
 extern FLOAT_T sc_eg_attack_table[];
 extern FLOAT_T sc_eg_decay_table[];
 extern FLOAT_T sc_eg_release_table[];
