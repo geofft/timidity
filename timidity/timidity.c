@@ -4527,6 +4527,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_bend_fine();
 	init_bend_coarse();
 	init_tables();
+	init_gm2_pan_table();
 	init_attack_vol_table();
 	init_sb_vol_table();
 	init_convex_vol_table();

@@ -58,6 +58,7 @@ enum play_system_modes
 {
     DEFAULT_SYSTEM_MODE,
     GM_SYSTEM_MODE,
+    GM2_SYSTEM_MODE,
     GS_SYSTEM_MODE,
     XG_SYSTEM_MODE
 };

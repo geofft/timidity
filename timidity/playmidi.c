@@ -878,7 +878,7 @@ static void recompute_amp(int v)
 		if(voice[v].panning == 64)
 		{
 			voice[v].panned = PANNED_CENTER;
-			voice[v].left_amp = voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[64], 27);
+			voice[v].left_amp = voice[v].right_amp = TIM_FSCALENEG(tempamp * pan_table[64], 27);
 		}
 		else if (voice[v].panning < 2)
 		{
@@ -907,8 +907,8 @@ static void recompute_amp(int v)
 			}
 #endif
 			voice[v].panned = PANNED_MYSTERY;
-			voice[v].left_amp = TIM_FSCALENEG(tempamp * sc_pan_table[127 - voice[v].panning], 27);
-			voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[voice[v].panning], 27);
+			voice[v].left_amp = TIM_FSCALENEG(tempamp * pan_table[128 - voice[v].panning], 27);
+			voice[v].right_amp = TIM_FSCALENEG(tempamp * pan_table[voice[v].panning], 27);
 		}
     	}
     	else

@@ -45,16 +45,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-enum play_system_modes
-{
-    DEFAULT_SYSTEM_MODE,
-    GM_SYSTEM_MODE,
-    GS_SYSTEM_MODE,
-    XG_SYSTEM_MODE
-};
-
 int opt_effect_quality = 0;
-extern int play_system_mode;
 static double REV_INP_LEV = 1.0;
 #define MASTER_CHORUS_LEVEL 1.7
 #define MASTER_DELAY_LEVEL 3.25

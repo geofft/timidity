@@ -2105,11 +2105,14 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 			break;
 		case 0x09:	/* General MIDI Message */
 			/* GM System Enable/Disable */
-			if(val[3]) {
-				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Enable");
+			if(val[3] == 1) {
+				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System On");
 				SETMIDIEVENT(*ev, 0, ME_RESET, 0, GM_SYSTEM_MODE, 0);
+			} else if(val[3] == 3) {
+				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM2 System On");
+				SETMIDIEVENT(*ev, 0, ME_RESET, 0, GM2_SYSTEM_MODE, 0);
 			} else {
-				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Disable");
+				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Off");
 				SETMIDIEVENT(*ev, 0, ME_RESET, 0, DEFAULT_SYSTEM_MODE, 0);
 			}
 			return 1;
@@ -2790,6 +2793,7 @@ void change_system_mode(int mode)
     }
     else
 	mid = current_file_info->mid;
+    pan_table = sc_pan_table;
     switch(mode)
     {
       case GM_SYSTEM_MODE:
@@ -2797,6 +2801,14 @@ void change_system_mode(int mode)
 	{
 	    play_system_mode = GM_SYSTEM_MODE;
 	    vol_table = def_vol_table;
+	}
+	break;
+      case GM2_SYSTEM_MODE:
+	if(play_system_mode == DEFAULT_SYSTEM_MODE)
+	{
+	    play_system_mode = GM2_SYSTEM_MODE;
+	    vol_table = def_vol_table;
+	    pan_table = gm2_pan_table;
 	}
 	break;
       case GS_SYSTEM_MODE:

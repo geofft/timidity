@@ -1,3 +1,9 @@
+2003-12-23  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c, timidity/readmidi.[ch], timidity/reverb.[ch]
+	  timidity/tables.[ch], timidity/timidity.c:
+	  Support for GM2 On SysEx. and pan table.
+
 2003-12-21  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/readmidi.c, timidity/playmidi.c:
