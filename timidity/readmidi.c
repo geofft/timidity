@@ -959,6 +959,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	if(val[5] == 0x08) {  /* Multi Part */
 	for (ent = val[7]; body <= body_end; body++, ent++) {
 	    switch(ent) {
+		case 0x00:	/* Element Reserve */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
 
 		case 0x01:	/* bank select MSB */
 		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, SYSEX_TAG);
@@ -1183,7 +1186,90 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			num_events++;
 			break;
 
-		/* 0x30 - 0x40: Rcv X */
+		case 0x30:	/* Rcv Pitch Bend */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x48);
+			num_events++;
+			break;
+
+		case 0x31:	/* Rcv Channel Pressure */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x49);
+			num_events++;
+			break;
+
+		case 0x32:	/* Rcv Program Change */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4A);
+			num_events++;
+			break;
+
+		case 0x33:	/* Rcv Control Change */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4B);
+			num_events++;
+			break;
+
+		case 0x34:	/* Rcv Poly Pressure */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4C);
+			num_events++;
+			break;
+
+		case 0x35:	/* Rcv Note Message */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4D);
+			num_events++;
+			break;
+
+		case 0x36:	/* Rcv RPN */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4E);
+			num_events++;
+			break;
+
+		case 0x37:	/* Rcv NRPN */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x4F);
+			num_events++;
+			break;
+
+		case 0x38:	/* Rcv Modulation */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x50);
+			num_events++;
+			break;
+
+		case 0x39:	/* Rcv Volume */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x51);
+			num_events++;
+			break;
+
+		case 0x3A:	/* Rcv Pan */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x52);
+			num_events++;
+			break;
+
+		case 0x3B:	/* Rcv Expression */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x53);
+			num_events++;
+			break;
+
+		case 0x3C:	/* Rcv Hold1 */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x54);
+			num_events++;
+			break;
+
+		case 0x3D:	/* Rcv Portamento */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x55);
+			num_events++;
+			break;
+
+		case 0x3E:	/* Rcv Sostenuto */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x56);
+			num_events++;
+			break;
+
+		case 0x3F:	/* Rcv Soft */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x57);
+			num_events++;
+			break;
+
+		case 0x40:	/* Rcv Bank Select */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x58);
+			num_events++;
+			break;
 
 		case 0x41:	/* scale tuning */
 		case 0x42:
@@ -1489,10 +1575,12 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events += 3;
 					break;
 				case 0x0E:	/* EG Decay1 */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay1 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, 0x68);
+					num_events++;
 					break;
 				case 0x0F:	/* EG Decay2 */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay2 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, *body);
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, *body, 0x69);
+					num_events++;
 					break;
 				case 0x20:	/* EQ BASS */
 					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
@@ -1536,7 +1624,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
     }
 
     /* Second method: specify them one SYSEX event at a time... */
-    else if(len == 8 &&
+    else if(len >= 8 &&
        val[0] == 0x43 && /* Yamaha ID */
        val[2] == 0x4C) /* XG Model ID */ 
     {
@@ -1683,6 +1771,10 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			}
 		} else if(val[3] == 0x08) {	/* Multi Part Data parameter change */
 			switch(ent) {
+				case 0x00:	/* Element Reserve */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
 				case 0x01:	/* bank select MSB */
 				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p, val[6], SYSEX_TAG);
 				  num_events++;
@@ -1906,7 +1998,90 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events++;
 					break;
 
-				/* 0x30 - 0x40: Rcv X */
+				case 0x30:	/* Rcv Pitch Bend */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x48);
+					num_events++;
+					break;
+
+				case 0x31:	/* Rcv Channel Pressure */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x49);
+					num_events++;
+					break;
+
+				case 0x32:	/* Rcv Program Change */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4A);
+					num_events++;
+					break;
+
+				case 0x33:	/* Rcv Control Change */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4B);
+					num_events++;
+					break;
+
+				case 0x34:	/* Rcv Poly Pressure */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4C);
+					num_events++;
+					break;
+
+				case 0x35:	/* Rcv Note Message */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4D);
+					num_events++;
+					break;
+
+				case 0x36:	/* Rcv RPN */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4E);
+					num_events++;
+					break;
+
+				case 0x37:	/* Rcv NRPN */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x4F);
+					num_events++;
+					break;
+
+				case 0x38:	/* Rcv Modulation */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x50);
+					num_events++;
+					break;
+
+				case 0x39:	/* Rcv Volume */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x51);
+					num_events++;
+					break;
+
+				case 0x3A:	/* Rcv Pan */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x52);
+					num_events++;
+					break;
+
+				case 0x3B:	/* Rcv Expression */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x53);
+					num_events++;
+					break;
+
+				case 0x3C:	/* Rcv Hold1 */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x54);
+					num_events++;
+					break;
+
+				case 0x3D:	/* Rcv Portamento */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x55);
+					num_events++;
+					break;
+
+				case 0x3E:	/* Rcv Sostenuto */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x56);
+					num_events++;
+					break;
+
+				case 0x3F:	/* Rcv Soft */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x57);
+					num_events++;
+					break;
+
+				case 0x40:	/* Rcv Bank Select */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x58);
+					num_events++;
+					break;
 
 				case 0x41:	/* scale tuning */
 				case 0x42:
@@ -2211,10 +2386,12 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events += 3;
 					break;
 				case 0x0E:	/* EG Decay1 */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay1 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, val[6], 0x68);
+					num_events++;
 					break;
 				case 0x0F:	/* EG Decay2 */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "EG Decay2 is not supported. (CH:%d NOTE:%d VAL:%d)", dp, note, val[6]);
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, dp, val[6], 0x69);
+					num_events++;
 					break;
 				case 0x20:	/* EQ BASS */
 					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, dp, 0x30, SYSEX_TAG);
@@ -2328,6 +2505,70 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					}
 					num_events++;
 					break;
+				case 0x03:	/* Rx. Pitch Bend */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x48);
+					num_events++;
+					break;
+				case 0x04:	/* Rx. Channel Pressure */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x49);
+					num_events++;
+					break;
+				case 0x05:	/* Rx. Program Change */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4A);
+					num_events++;
+					break;
+				case 0x06:	/* Rx. Control Change */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4B);
+					num_events++;
+					break;
+				case 0x07:	/* Rx. Poly Pressure */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4C);
+					num_events++;
+					break;
+				case 0x08:	/* Rx. Note Message */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4D);
+					num_events++;
+					break;
+				case 0x09:	/* Rx. RPN */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4E);
+					num_events++;
+					break;
+				case 0x0A:	/* Rx. NRPN */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x4F);
+					num_events++;
+					break;
+				case 0x0B:	/* Rx. Modulation */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x50);
+					num_events++;
+					break;
+				case 0x0C:	/* Rx. Volume */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x51);
+					num_events++;
+					break;
+				case 0x0D:	/* Rx. Panpot */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x52);
+					num_events++;
+					break;
+				case 0x0E:	/* Rx. Expression */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x53);
+					num_events++;
+					break;
+				case 0x0F:	/* Rx. Hold1 */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x54);
+					num_events++;
+					break;
+				case 0x10:	/* Rx. Portamento */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x55);
+					num_events++;
+					break;
+				case 0x11:	/* Rx. Sostenuto */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x56);
+					num_events++;
+					break;
+				case 0x12:	/* Rx. Soft */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x57);
+					num_events++;
+					break;
 				case 0x13:	/* MONO/POLY Mode */
 					if(val[7] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[7], SYSEX_TAG);}
 					else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[7], SYSEX_TAG);}
@@ -2388,6 +2629,14 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 				case 0x22:	/* Reverb Send Level */
 					SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[7], SYSEX_TAG);
+					num_events++;
+					break;
+				case 0x23:	/* Rx. Bank Select */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x58);
+					num_events++;
+					break;
+				case 0x24:	/* Rx. Bank Select LSB */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x59);
 					num_events++;
 					break;
 				case 0x2C:	/* Delay Send Level */

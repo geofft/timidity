@@ -1,3 +1,8 @@
+2003-12-29  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Fix SysEx.
+
 2003-12-28  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c, timidity/reverb.[ch]:

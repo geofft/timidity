@@ -190,27 +190,33 @@ enum rpn_data_address_t /* NRPN/RPN */
     RPN_MAX_DATA_ADDR
 };
 
+#define RX_PITCH_BEND (1<<0)
+#define RX_CH_PRESSURE (1<<1)
+#define RX_PROGRAM_CHANGE (1<<2)
+#define RX_CONTROL_CHANGE (1<<3)
+#define RX_POLY_PRESSURE (1<<4)
+#define RX_NOTE_MESSAGE (1<<5)
+#define RX_RPN (1<<6)
+#define RX_NRPN (1<<7)
+#define RX_MODULATION (1<<8)
+#define RX_VOLUME (1<<9)
+#define RX_PANPOT (1<<10)
+#define RX_EXPRESSION (1<<11)
+#define RX_HOLD1 (1<<12)
+#define RX_PORTAMENTO (1<<13)
+#define RX_SOSTENUTO (1<<14)
+#define RX_SOFT (1<<15)
+#define RX_NOTE_ON (1<<16)
+#define RX_NOTE_OFF (1<<17)
+#define RX_BANK_SELECT (1<<18)
+#define RX_BANK_SELECT_LSB (1<<19)
+
 enum {
-	RX_PITCH_BEND,
-	RX_CH_PRESSURE,
-	RX_PROGRAM_CHANGE,
-	RX_CONTROL_CHANGE,
-	RX_POLY_PRESSURE,
-	RX_NOTE_MESSAGE,
-	RX_RPN,
-	RX_NRPN,
-	RX_MODULATION,
-	RX_VOLUME,
-	RX_PANPOT,
-	RX_EXPRESSION,
-	RX_HOLD1,
-	RX_PORTAMENTO,
-	RX_SOSTENUTO,
-	RX_SOFT,
-	RX_NOTE_ON,
-	RX_NOTE_OFF,
-	RX_BANK_SELECT,
-	RX_BANK_SELECT_LSB,
+	EG_ATTACK = 0,
+	EG_DECAY = 2,
+	EG_DECAY1 = 2,
+	EG_DECAY2 = 3,
+	EG_RELEASE = 3,
 };
 
 #ifndef PART_EQ_XG
@@ -302,7 +308,7 @@ typedef struct {
   /* For channel envelope */
   int32 envelope_rate[6]; /* for Envelope Generator in mix.c
 			   * 0: value for attack rate
-			   * 1: value for decay rate
+			   * 2: value for decay rate
 			   * 3: value for release rate
 			   */
 

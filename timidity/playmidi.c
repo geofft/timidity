@@ -288,10 +288,10 @@ static int16 get_midi_controller_pitch_depth(midi_controller *);
 static int16 get_midi_controller_amp_depth(midi_controller *);
 /* Rx. ~ (Rcv ~) */
 static void init_rx(int);
-static void set_rx(int, int32, int8);
+static void set_rx(int, int32, int);
 static int32 get_rx(int, int32);
 static void init_rx_drum(struct DrumParts *);
-static void set_rx_drum(struct DrumParts *, int32, int8);
+static void set_rx_drum(struct DrumParts *, int32, int);
 static int32 get_rx_drum(struct DrumParts *, int32);
 
 #define IS_SYSEX_EVENT_TYPE(event) ((event)->type == ME_NONE || (event)->type >= ME_RANDOM_PAN || (event)->b == SYSEX_TAG)
@@ -2397,21 +2397,21 @@ static void finish_note(int i)
     }
 }
 
-static void set_envelope_time(int ch,int val,int stage)
+static void set_envelope_time(int ch, int val, int stage)
 {
 	val = val & 0x7F;
 	switch(stage) {
-	case 0:	/* Attack */
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Time (CH:%d VALUE:%d)",ch,val);
+	case EG_ATTACK:	/* Attack */
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Time (CH:%d VALUE:%d)", ch, val);
 		break;
-	case 2: /* Decay */
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Decay Time (CH:%d VALUE:%d)",ch,val);
+	case EG_DECAY: /* Decay */
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Decay Time (CH:%d VALUE:%d)", ch, val);
 		break;
-	case 3:	/* Release */
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Release Time (CH:%d VALUE:%d)",ch,val);
+	case EG_RELEASE:	/* Release */
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Release Time (CH:%d VALUE:%d)", ch, val);
 		break;
 	default:
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"? Time (CH:%d VALUE:%d)",ch,val);
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"? Time (CH:%d VALUE:%d)", ch, val);
 	}
 	channel[ch].envelope_rate[stage] = val;
 }
@@ -3555,6 +3555,78 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				"Drum Instrument Rx. Note On (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
 			break;
+		case 0x48:	/* Rx. Pitch Bend */
+			set_rx(ch, RX_PITCH_BEND, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Pitch Bend (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x49:	/* Rx. Channel Pressure */
+			set_rx(ch, RX_CH_PRESSURE, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Channel Pressure (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4A:	/* Rx. Program Change */
+			set_rx(ch, RX_PROGRAM_CHANGE, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Program Change (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4B:	/* Rx. Control Change */
+			set_rx(ch, RX_CONTROL_CHANGE, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Control Change (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4C:	/* Rx. Poly Pressure */
+			set_rx(ch, RX_POLY_PRESSURE, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Poly Pressure (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4D:	/* Rx. Note Message */
+			set_rx(ch, RX_NOTE_MESSAGE, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Note Message (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4E:	/* Rx. RPN */
+			set_rx(ch, RX_RPN, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. RPN (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x4F:	/* Rx. NRPN */
+			set_rx(ch, RX_NRPN, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. NRPN (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x50:	/* Rx. Modulation */
+			set_rx(ch, RX_MODULATION, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Modulation (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x51:	/* Rx. Volume */
+			set_rx(ch, RX_VOLUME, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Volume (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x52:	/* Rx. Panpot */
+			set_rx(ch, RX_PANPOT, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Panpot (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x53:	/* Rx. Expression */
+			set_rx(ch, RX_EXPRESSION, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Expression (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x54:	/* Rx. Hold1 */
+			set_rx(ch, RX_HOLD1, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Hold1 (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x55:	/* Rx. Portamento */
+			set_rx(ch, RX_PORTAMENTO, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Portamento (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x56:	/* Rx. Sostenuto */
+			set_rx(ch, RX_SOSTENUTO, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Sostenuto (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x57:	/* Rx. Soft */
+			set_rx(ch, RX_SOFT, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Soft (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x58:	/* Rx. Bank Select */
+			set_rx(ch, RX_BANK_SELECT, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Bank Select (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x59:	/* Rx. Bank Select LSB */
+			set_rx(ch, RX_BANK_SELECT_LSB, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Rx. Bank Select LSB (CH:%d VAL:%d)", ch, val); 
+			break;
 		default:
 			break;
 		}
@@ -4155,6 +4227,22 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			channel[ch].dry_level = val;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level (CH:%d VAL:%d)", ch, val);
 			break;
+		case 0x68:	/* EG Decay1 */
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument EG Decay1 (CH:%d NOTE:%d VAL:%d)",
+				ch, note, val);
+			channel[ch].drums[note]->drum_envelope_rate[EG_DECAY1] = val;
+			break;
+		case 0x69:	/* EG Decay2 */
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument EG Decay2 (CH:%d NOTE:%d VAL:%d)",
+				ch, note, val);
+			channel[ch].drums[note]->drum_envelope_rate[EG_DECAY2] = val;
+			break;
 		default:
 			break;
 		}
@@ -4506,25 +4594,13 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		}
 		break;
 	case NRPN_ADDR_0163:	/* Attack Time */
-		if (opt_tva_attack) {
-			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-					"Attack Time (CH:%d VAL:%d)", ch, val);
-			set_envelope_time(ch, val, 0);
-		}
+		if (opt_tva_attack) {set_envelope_time(ch, val, EG_ATTACK);}
 		break;
 	case NRPN_ADDR_0164:	/* EG Decay Time */
-		if (opt_tva_decay) {
-			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-					"EG Decay Time (CH:%d VAL:%d)", ch, val);
-			set_envelope_time(ch, val, 2);
-		}
+		if (opt_tva_decay) {set_envelope_time(ch, val, EG_DECAY);}
 		break;
 	case NRPN_ADDR_0166:	/* EG Release Time */
-		if (opt_tva_release) {
-			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-					"EG Release Time (CH:%d VAL:%d)", ch, val);
-			set_envelope_time(ch, val, 3);
-		}
+		if (opt_tva_release) {set_envelope_time(ch, val, EG_RELEASE);}
 		break;
 	case NRPN_ADDR_1400:	/* Drum Filter Cutoff (XG) */
 		drumflag = 1;
@@ -4532,7 +4608,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
-				"Drum Instrument Filter Cutoff (CH:%d NOTE:%d VALUE:%d)",
+				"Drum Instrument Filter Cutoff (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
 		channel[ch].drums[note]->drum_cutoff_freq = val - 64;
 		break;
@@ -4542,7 +4618,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
-				"Drum Instrument Filter Resonance (CH:%d NOTE:%d VALUE:%d)",
+				"Drum Instrument Filter Resonance (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
 		channel[ch].drums[note]->drum_resonance = val - 64;
 		break;
@@ -4555,9 +4631,9 @@ static void update_rpn_map(int ch, int addr, int update_now)
 				play_midi_setup_drums(ch, note);
 			val	-= 64;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-					"XG Drum Attack Time (CH:%d NOTE:%d VALUE:%d)",
+					"Drum Instrument Attack Time (CH:%d NOTE:%d VAL:%d)",
 					ch, note, val);
-			channel[ch].drums[note]->drum_envelope_rate[0] = val;
+			channel[ch].drums[note]->drum_envelope_rate[EG_ATTACK] = val;
 		}
 		break;
 	case NRPN_ADDR_1700:	/* Drum EG Decay Time (XG) */
@@ -4569,9 +4645,10 @@ static void update_rpn_map(int ch, int addr, int update_now)
 				play_midi_setup_drums(ch, note);
 			val	-= 64;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-					"XG Drum Decay Time (CH:%d NOTE:%d VALUE:%d)",
+					"Drum Instrument Decay Time (CH:%d NOTE:%d VAL:%d)",
 					ch, note, val);
-			channel[ch].drums[note]->drum_envelope_rate[2] = val;
+			channel[ch].drums[note]->drum_envelope_rate[EG_DECAY1] =
+				channel[ch].drums[note]->drum_envelope_rate[EG_DECAY2] = val;
 		}
 		break;
 	case NRPN_ADDR_1800:	/* Coarse Pitch of Drum (GS) */
@@ -4581,7 +4658,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			play_midi_setup_drums(ch, note);
 		channel[ch].drums[note]->coarse = val - 64;
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
-			"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VALUE:%d)",
+			"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VAL:%d)",
 			ch, note, channel[ch].drums[note]->coarse);
 		channel[ch].pitchfactor = 0;
 		break;
@@ -4592,7 +4669,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			play_midi_setup_drums(ch, note);
 		channel[ch].drums[note]->fine = val - 64;
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
-				"Drum Instrument Pitch Fine (CH:%d NOTE:%d VALUE:%d)",
+				"Drum Instrument Pitch Fine (CH:%d NOTE:%d VAL:%d)",
 				ch, note, channel[ch].drums[note]->fine);
 		channel[ch].pitchfactor = 0;
 		break;
@@ -4602,7 +4679,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
-				"Drum Instrument TVA Level (CH:%d NOTE:%d VALUE:%d)",
+				"Drum Instrument TVA Level (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
 		channel[ch].drums[note]->drum_level =
 				calc_drum_tva_level(ch, note, val);
@@ -4961,12 +5038,12 @@ static void seek_forward(int32 until_time)
 
 	  case ME_ATTACK_TIME:
 	  	if(!opt_tva_attack) { break; }
-		set_envelope_time(ch,current_event->a,0);
+		set_envelope_time(ch, current_event->a, EG_ATTACK);
 		break;
 
 	  case ME_RELEASE_TIME:
 	  	if(!opt_tva_release) { break; }
-		set_envelope_time(ch,current_event->a,3);
+		set_envelope_time(ch, current_event->a, EG_RELEASE);
 		break;
 
 	  case ME_PHASER_EFFECT:
@@ -6785,12 +6862,12 @@ int play_event(MidiEvent *ev)
 
 	  case ME_ATTACK_TIME:
   	if(!opt_tva_attack) { break; }
-	set_envelope_time(ch,ev->a,0);
+	set_envelope_time(ch, ev->a, EG_ATTACK);
 	break;
 
 	  case ME_RELEASE_TIME:
   	if(!opt_tva_release) { break; }
-	set_envelope_time(ch,ev->a,3);
+	set_envelope_time(ch, ev->a, EG_RELEASE);
 	break;
 
       case ME_PHASER_EFFECT:
@@ -7918,8 +7995,9 @@ static void init_rx(int ch)
 	channel[ch].rx = 0xFFFFFFFF;	/* all on */
 }
 
-static void set_rx(int ch, int32 rx, int8 flag)
+static void set_rx(int ch, int32 rx, int flag)
 {
+	if(ch > MAX_CHANNELS) {return;}
 	if(flag) {channel[ch].rx |= rx;}
 	else {channel[ch].rx &= ~rx;}
 }
@@ -7934,7 +8012,7 @@ static void init_rx_drum(struct DrumParts *p)
 	p->rx = 0xFFFFFFFF;	/* all on */
 }
 
-static void set_rx_drum(struct DrumParts *p, int32 rx, int8 flag)
+static void set_rx_drum(struct DrumParts *p, int32 rx, int flag)
 {
 	if(flag) {p->rx |= rx;}
 	else {p->rx &= ~rx;}
