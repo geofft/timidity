@@ -1050,23 +1050,16 @@ fi
 dnl AO
 AC_MSG_CHECKING(enable_audio=ao)
 if test "x$au_enable_ao" = xyes; then
-  AC_MSG_RESULT([yes, configuring alsa])
-  KEEPCFLAGS=$CFLAGS
-  KEEPLIBS=$LIBS
-  KEEPLDFLAGS=$LDFLAGS
+  AC_MSG_RESULT([yes, configuring ao])
   XIPH_PATH_AO()
   if test "x$no_ao" = "x" ; then
-    dnl AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(yes)
     EXTRADEFS="$EXTRADEFS -DAU_AO"
     SYSEXTRAS="$SYSEXTRAS ao_a.c"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$AO_CFLAGS)
     LIBS="$KEEPLIBS $AO_LIBS"
-    AC_CHECK_FUNCS(snd_seq_port_info_set_timestamping)
   else
     AC_MSG_WARN(Couldn't configure libao.)
-    CFLAGS=$KEEPCFLAGS
-    LIBS=$KEEPLIBS
-    LDFLAGS=$KEEPLDFLAGS
   fi
 else
   AC_MSG_RESULT(no)

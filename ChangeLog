@@ -1,3 +1,7 @@
+2004-04-18  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* configure.in: fix for libAO detection
+
 2004-04-18  Iwata <b6330015@ipc.kit.jp>
 
 	* timidity/flac_a.c : Add
