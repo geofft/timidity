@@ -1,3 +1,8 @@
+2003-11-13  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* tables.h, playmidi.h, tables.c, playmidi.c, timidity.c:
+	  new option -V power, --volume-curve=power
+
 2003-11-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/tables.c:

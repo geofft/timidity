@@ -191,17 +191,18 @@ enum {
 	TIM_OPT_CONFIG_STR,
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
+	TIM_OPT_VOLUME_CURVE,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
 
 static const char *optcommands =
 		"4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:"
-		"O:o:P:p:Q:q:R:S:s:T:t:UvW:"
+		"O:o:P:p:Q:q:R:S:s:T:t:UV:vW:"
 #ifdef __W32__
 		"w:"
 #endif
-		"x:Z:";		/* Only GJlnruVXYyz are remain... */
+		"x:Z:";		/* Only GJlnruXYyz are remain... */
 static const struct option longopts[] = {
 	{ "volume",                 required_argument, NULL, TIM_OPT_VOLUME },
 	{ "drum-power",             required_argument, NULL, TIM_OPT_DRUM_POWER },
@@ -313,6 +314,7 @@ static const struct option longopts[] = {
 	{ "config-string",          required_argument, NULL, TIM_OPT_CONFIG_STR },
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
+	{ "volume-curve",           required_argument, NULL, TIM_OPT_VOLUME_CURVE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -423,6 +425,7 @@ static inline int parse_opt_s(const char *);
 static inline int parse_opt_T(const char *);
 static inline int parse_opt_t(const char *);
 static inline int parse_opt_U(const char *);
+static inline int parse_opt_volume_curve(char *);
 __attribute__((noreturn))
 static inline int parse_opt_v(const char *);
 static inline int parse_opt_W(char *);
@@ -2286,6 +2289,8 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	case 'U':
 		free_instruments_afterwards = 1;
 		break;
+	case 'V':
+		return parse_opt_volume_curve(optarg);
 	case 'v':
 		return parse_opt_v(optarg);
 	case 'W':
@@ -2483,6 +2488,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_t(arg);
 	case TIM_OPT_UNLOAD_INST:
 		return parse_opt_U(arg);
+	case TIM_OPT_VOLUME_CURVE:
+		return parse_opt_volume_curve(arg);
 	case TIM_OPT_VERSION:
 		return parse_opt_v(arg);
 	case TIM_OPT_WRD:
@@ -3315,6 +3322,9 @@ static inline int parse_opt_h(const char *arg)
 #endif /* JAPANESE */
 "  -U         --[no-]unload-instruments",
 "               Unload instruments from memory between MIDI files",
+"  -V power   --volume-curve=power",
+"               Define the velocity/volume/expression curve",
+"                 amp = vol^power (auto: 0, linear: 1, ideal: ~1.661, GS: ~2)",
 "  -v         --version",
 "               Display TiMidity version information",
 "  -W mode    --wrd=mode",
@@ -3414,9 +3424,12 @@ static inline int parse_opt_h(const char *arg)
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f)[,level]" NLS
 "  --noise-shaping=n" NLS, fp);
+
 #ifndef FIXED_RESAMPLATION
 	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);
 #endif
+fputs("  --volume-curve=power" NLS, fp);
+
 	fputs(NLS, fp);
 	fputs("Available interfaces (-i, --interface option):" NLS, fp);
 	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
@@ -4093,6 +4106,27 @@ static inline int parse_opt_v(const char *arg)
 		fputs(version_list[i], fp);
 	close_pager(fp);
 	exit(EXIT_SUCCESS);
+}
+
+static inline int parse_opt_volume_curve(char *arg)
+{
+	if (atof(arg) < 0)
+	{
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Volume curve power must be >= 0", *arg);
+		return 1;
+	}
+
+	if (atof(arg) == 0)
+	{
+		opt_user_volume_curve = 0;
+	}
+	else
+	{
+		opt_user_volume_curve = 1;
+		init_user_vol_table(atof(arg));
+	}
+
+	return 0;
 }
 
 static inline int parse_opt_W(char *arg)

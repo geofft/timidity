@@ -208,6 +208,7 @@ int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
 int opt_modulation_envelope = 0;
 int opt_pan_delay = 1;	/* phase difference between left ear and right ear. */
+int opt_user_volume_curve = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -812,7 +813,13 @@ static void recompute_amp(int v)
 	 * all other MIDI volumes are linear in perceived volume, 0-127
 	 * use a lookup table for the non-linear scalings
 	 */
-	if(play_system_mode == GS_SYSTEM_MODE) {	/* use measured curve */ 
+	if (opt_user_volume_curve) {
+	tempamp = master_volume *
+		   voice[v].sample->volume *
+		   user_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
+		   user_vol_table[channel[voice[v].channel].volume] *
+		   user_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+	} else if(play_system_mode == GS_SYSTEM_MODE) {	/* use measured curve */ 
 	tempamp = master_volume *
 		   voice[v].sample->volume *
 		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *

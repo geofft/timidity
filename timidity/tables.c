@@ -1142,6 +1142,16 @@ void init_perceived_vol_table(void)
 				127.0 * pow((double)i / 127.0, 1.66096404744);
 }
 
+FLOAT_T user_vol_table[128];
+
+void init_user_vol_table(FLOAT_T power)
+{
+	int i;
+	
+	for (i = 0; i < 128; i++)
+		user_vol_table[i] = 127.0 * pow((double)i / 127.0, power);
+}
+
 /* measured value from SC-88STPro.
    approximate expression: y = (-0.3768x6 + 0.9528x5 - 0.8253x4 + 0.2665x3 + 0.9892x2 - 0.0059x + 0.001) * 127 */
 FLOAT_T sc_vol_table[128] = 

@@ -448,6 +448,7 @@ extern int32 opt_drum_power;
 extern int opt_amp_compensation;
 extern int opt_realtime_priority;	/* interface/alsaseq_c.c */
 extern int opt_sequencer_ports;		/* interface/alsaseq_c.c */
+extern int opt_user_volume_curve;
 
 extern int play_midi_file(char *fn);
 extern void dumb_pass_playing_list(int number_of_files, char *list_of_files[]);
