@@ -1125,8 +1125,7 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	
 	if (bank[bk] == NULL)
 		bk = 0;
-	if ((ip = bank[bk]->tone[prog].instrument) ==
-			((opt_realtime_playing) ? NULL : MAGIC_LOAD_INSTRUMENT)) {
+	if ((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT) {
 		if (ip = bank[bk]->tone[prog].instrument =
 				load_instrument(dr, bk, prog))
 			load_success = 1;
@@ -6179,7 +6178,7 @@ static int play_midi(MidiEvent *eventlist, int32 samples)
 	if(cnt > 0)
 	    ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		      "%d memory blocks are free", cnt);
-	return rc;
+	return RC_NONE;
     }
 
     sample_count = samples;

@@ -1,3 +1,8 @@
+2003-09-24  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Fixed crash with --realtime-load (opt_realtime_playing).
+
 2003-09-21  Saito <timidity@flashmail.com>
 
 	* timidity/w32_a.c:
@@ -5,7 +10,7 @@
 	* interface/rtsyn_winmm.c:
 	  Fix around sleep().
 
-2003-09-21  Kentaro Sato <kentaro@a02.itscom.net>
+2003-09-21  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c (add_channel_layer, remove_channel_layer):
 	  Bug Fix
@@ -45,7 +50,7 @@
 	* timidity/timidity.c:
 	  Rewrite help a little
 
-2003-09-13  Kentaro Sato <kentaro@a02.itscom.net>
+2003-09-13  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c (recompute_insertion_effect): Bug fix.
 
