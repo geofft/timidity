@@ -214,9 +214,20 @@ enum rpn_data_address_t /* NRPN/RPN */
 enum {
 	EG_ATTACK = 0,
 	EG_DECAY = 2,
-	EG_DECAY1 = 2,
-	EG_DECAY2 = 3,
+	EG_DECAY1 = 1,
+	EG_DECAY2 = 2,
 	EG_RELEASE = 3,
+	EG_NULL = 5,
+	EG_GUS_ATTACK = 0,
+	EG_GUS_DECAY = 1,
+	EG_GUS_SUSTAIN = 2,
+	EG_GUS_RELEASE1 = 3,
+	EG_GUS_RELEASE2 = 4,
+	EG_GUS_RELEASE3 = 5,
+	EG_SF_ATTACK = 0,
+	EG_SF_HOLD = 1,
+	EG_SF_DECAY = 2,
+	EG_SF_RELEASE = 3,
 };
 
 #ifndef PART_EQ_XG

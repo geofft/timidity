@@ -1,3 +1,8 @@
+2004-01-26  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.h, timidity/mix.c:
+	  Fix envelope generator.
+
 2004-01-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:

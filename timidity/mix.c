@@ -1461,6 +1461,29 @@ static inline int update_envelope(int v)
 	return 0;
 }
 
+static int get_eg_stage(int v, int stage)
+{
+	int eg_stage;
+	Voice *vp = &voice[v];
+
+	eg_stage = stage;
+	if (vp->sample->inst_type == INST_SF2) {
+		if (stage >= EG_SF_RELEASE) {
+			eg_stage = EG_RELEASE;
+		}
+	} else {
+		if (stage == EG_GUS_DECAY) {
+			eg_stage = EG_DECAY;
+		} else if (stage == EG_GUS_SUSTAIN) {
+			eg_stage = EG_NULL;
+		} else if (stage >= EG_GUS_RELEASE1) {
+			eg_stage = EG_RELEASE;
+		}
+	}
+	return eg_stage;
+}
+
+
 /* Returns 1 if envelope runs out */
 int recompute_envelope(int v)
 {
@@ -1470,10 +1493,10 @@ int recompute_envelope(int v)
 	Voice *vp = &voice[v];
 	
 	stage = vp->envelope_stage;
-	if (stage > 5) {
+	if (stage > EG_GUS_RELEASE3) {
 		voice_ran_out(v);
 		return 1;
-	} else if (stage > 2 && vp->envelope_volume <= 0) {
+	} else if (stage > EG_GUS_SUSTAIN && vp->envelope_volume <= 0) {
 		/* Remove silent voice in the release stage */
 		voice_ran_out(v);
 		return 1;
@@ -1491,7 +1514,7 @@ int recompute_envelope(int v)
 	 *  after the sample plays past it's loop start
 	 *
 	 */
-	if (stage == 3 && vp->sample->modes & MODES_ENVELOPE
+	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
 			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
 		/* Default behavior */
 		if (min_sustain_time <= 0)
@@ -1513,10 +1536,15 @@ int recompute_envelope(int v)
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (sustain_time * play_mode->rate);
 			
-			vp->envelope_increment = -vp->sample->envelope_rate[2];
-			/* use the slower of the two rates */
-			if (vp->envelope_increment < rate)
+			if (vp->sample->inst_type == INST_SF2) {
+				/* Soundfonts don't have sustain-rate */
 				vp->envelope_increment = rate;
+			} else {
+				vp->envelope_increment = -vp->sample->envelope_rate[EG_GUS_SUSTAIN];
+				/* use the slower of the two rates */
+				if (vp->envelope_increment < rate)
+					vp->envelope_increment = rate;
+			}
 			if (! vp->envelope_increment)
 				/* Avoid freezing */
 				vp->envelope_increment = -1;
@@ -1546,7 +1574,7 @@ static inline void voice_ran_out(int v)
 
 static inline int next_stage(int v)
 {
-	int stage, ch;
+	int stage, ch, eg_stage;
 	int32 offset, val;
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
@@ -1555,30 +1583,32 @@ static inline int next_stage(int v)
 	offset = vp->sample->envelope_offset[stage];
 	rate = vp->sample->envelope_rate[stage];
 	if (vp->envelope_volume == offset
-			|| stage > 2 && vp->envelope_volume < offset)
+			|| stage > EG_GUS_SUSTAIN && vp->envelope_volume < offset)
 		return recompute_envelope(v);
 	ch = vp->channel;
+	/* there is some difference between GUS patch and Soundfont at envelope. */
+	eg_stage = get_eg_stage(v, stage);
 
 	/* envelope generator (see also playmidi.[ch]) */
 	if (ISDRUMCHANNEL(ch))
 		val = (channel[ch].drums[vp->note] != NULL)
-				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
+				? channel[ch].drums[vp->note]->drum_envelope_rate[eg_stage]
 				: -1;
 	else {
 		if (vp->sample->envelope_keyf[stage])	/* envelope key-follow */
 			rate *= pow(2.0, (double) (voice[v].note - 60)
 					* (double)vp->sample->envelope_keyf[stage] / 1200.0f);
-		val = channel[ch].envelope_rate[stage];
+		val = channel[ch].envelope_rate[eg_stage];
 	}
 	if (vp->sample->envelope_velf[stage])	/* envelope velocity-follow */
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->envelope_velf_bpo)
 				* (double)vp->sample->envelope_velf[stage] / 1200.0f);
 
 	/* just before release-phase, some modifications are necessary */
-	if (stage > 2) {
+	if (stage > EG_GUS_SUSTAIN) {
 		/* adjusting release-rate for consistent release-time */
 		rate *= (double) vp->envelope_volume
-				/ vp->sample->envelope_offset[0];
+				/ vp->sample->envelope_offset[EG_GUS_ATTACK];
 		/* calculating current envelope scale and a inverted value for optimization */
 		vp->envelope_scale = vp->last_envelope_volume;
 		vp->inv_envelope_scale
@@ -1588,13 +1618,13 @@ static inline int next_stage(int v)
 	/* regularizing envelope */
 	if (offset < vp->envelope_volume) {	/* decaying phase */
 		if (val != -1) {
-			if(stage > 2) {
+			if(eg_stage > EG_DECAY) {
 				rate *= sc_eg_release_table[val & 0x7f];
 			} else {
 				rate *= sc_eg_decay_table[val & 0x7f];
 			}
 		}
-		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
+		if(stage < EG_SF_DECAY && rate > OFFSET_MAX) {	/* instantaneous decay */
 			vp->envelope_volume = offset;
 			return recompute_envelope(v);
 		} else if(rate > vp->envelope_volume - offset) {	/* fastest decay */
@@ -1608,7 +1638,7 @@ static inline int next_stage(int v)
 	} else {	/* attacking phase */
 		if (val != -1)
 			rate *= sc_eg_attack_table[val & 0x7f];
-		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
+		if(stage < EG_SF_DECAY && rate > OFFSET_MAX) {	/* instantaneous attack */
 			vp->envelope_volume = offset;
 			return recompute_envelope(v);
 		} else if(rate > offset - vp->envelope_volume) {	/* fastest attack */
@@ -1816,7 +1846,7 @@ int apply_modulation_envelope(int v)
 
 static inline int modenv_next_stage(int v)
 {
-	int stage, ch;
+	int stage, ch, eg_stage;
 	int32 offset, val;
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
@@ -1825,40 +1855,42 @@ static inline int modenv_next_stage(int v)
 	offset = vp->sample->modenv_offset[stage];
 	rate = vp->sample->modenv_rate[stage];
 	if (vp->modenv_volume == offset
-			|| (stage > 2 && vp->modenv_volume < offset))
+			|| (stage > EG_GUS_SUSTAIN && vp->modenv_volume < offset))
 		return recompute_modulation_envelope(v);
-	else if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
+	else if(stage < EG_SF_DECAY && rate > OFFSET_MAX) {	/* instantaneous attack */
 			vp->modenv_volume = offset;
 			return recompute_modulation_envelope(v);
 	}
 	ch = vp->channel;
+	/* there is some difference between GUS patch and Soundfont at envelope. */
+	eg_stage = get_eg_stage(v, stage);
 
 	/* envelope generator (see also playmidi.[ch]) */
 	if (ISDRUMCHANNEL(ch))
 		val = (channel[ch].drums[vp->note] != NULL)
-				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
+				? channel[ch].drums[vp->note]->drum_envelope_rate[eg_stage]
 				: -1;
 	else {
 		if (vp->sample->modenv_keyf[stage])	/* envelope key-follow */
 			rate *= pow(2.0, (double) (voice[v].note - 60)
 					* (double)vp->sample->modenv_keyf[stage] / 1200.0f);
-		val = channel[ch].envelope_rate[stage];
+		val = channel[ch].envelope_rate[eg_stage];
 	}
 	if (vp->sample->modenv_velf[stage])
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->modenv_velf_bpo)
 				* (double)vp->sample->modenv_velf[stage] / 1200.0f);
 
 	/* just before release-phase, some modifications are necessary */
-	if (stage > 2) {
+	if (stage > EG_GUS_SUSTAIN) {
 		/* adjusting release-rate for consistent release-time */
 		rate *= (double) vp->modenv_volume
-				/ vp->sample->modenv_offset[0];
+				/ vp->sample->modenv_offset[EG_GUS_ATTACK];
 	}
 
 	/* regularizing envelope */
 	if (offset < vp->modenv_volume) {	/* decaying phase */
 		if (val != -1) {
-			if(stage > 2) {
+			if(stage > EG_DECAY) {
 				rate *= sc_eg_release_table[val & 0x7f];
 			} else {
 				rate *= sc_eg_decay_table[val & 0x7f];
@@ -1895,12 +1927,12 @@ int recompute_modulation_envelope(int v)
 	if(!opt_modulation_envelope) {return 0;}
 
 	stage = vp->modenv_stage;
-	if (stage > 5) {return 1;}
-	else if (stage > 2 && vp->modenv_volume <= 0) {
+	if (stage > EG_GUS_RELEASE3) {return 1;}
+	else if (stage > EG_GUS_SUSTAIN && vp->modenv_volume <= 0) {
 		return 1;
 	}
 
-	if (stage == 3 && vp->sample->modes & MODES_ENVELOPE
+	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
 			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
 		/* Default behavior */
 		if (min_sustain_time <= 0)
@@ -1921,10 +1953,16 @@ int recompute_modulation_envelope(int v)
 			/* Calculate the release phase speed. */
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (sustain_time * play_mode->rate);
-			vp->modenv_increment = -vp->sample->modenv_rate[2];
-			/* use the slower of the two rates */
-			if (vp->modenv_increment < rate)
+
+			if (vp->sample->inst_type == INST_SF2) {
+				/* Soundfonts don't have sustain-rate */
 				vp->modenv_increment = rate;
+			} else {
+				vp->modenv_increment = -vp->sample->modenv_rate[EG_GUS_SUSTAIN];
+				/* use the slower of the two rates */
+				if (vp->modenv_increment < rate)
+					vp->modenv_increment = rate;
+			}
 			if (! vp->modenv_increment)
 				/* Avoid freezing */
 				vp->modenv_increment = -1;
