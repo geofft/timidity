@@ -192,14 +192,16 @@ EXTRA_DIST = \
 	misc.tcl \
 	timidity.el \
 	tclIndex \
-	interface_T.txt \
+	interface_A.txt \
 	interface_a.txt \
 	interface_e.txt \
 	interface_g.txt \
 	interface_i.txt \
+	interface_k.txt \
 	interface_m.txt \
 	interface_n.txt \
-	interface_s.txt 
+	interface_s.txt \
+	interface_T.txt
 
 .ptcl.tcl:
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
