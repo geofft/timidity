@@ -1,16 +1,22 @@
-2003-04-11  mput <root@mput.dip.jp>
+2003-04-12  mput  <root@mput.dip.jp>
 
-	* configure.in: removed bit width checks
+	* timidity/optcode.h
+	(d2i):       rewrite using asm.
+	(imuldiv8):  rewtote using asm.
+	(imuldiv16): rewrote using asm.
+	(imuldiv24): rewrite using asm.
 
 2003-04-11  Saito <timidity@flashmail.com>
 
 	* timidity/reverb.c, timidity/effect.c, timidity/mix.c:
 	  Fix conversion to fixed-point number.
+	* timidity/readmidi.[ch], timidity/instrum.c, timidity/timidity.c:
+	  Fix about User Drumset and User Instrument.
 
 2003-04-11  Norikatsu Shigemura <nork@ninth-nine.com>
 
 	* timidity/timidity.c, timidity/mfi.c, timidity/sysdep.h,
-	configure, configure.in
+	  configure{,.in}:
 	  Fix about FreeBSD port.
 
 2003-04-11  Saito <timidity@flashmail.com>

@@ -94,7 +94,6 @@ static struct midi_file_info *midi_file_info = NULL;
 static char **string_event_table = NULL;
 static int    string_event_table_size = 0;
 int    default_channel_program[256];
-uint8 userdrum_assign_group[128];
 static MidiEvent timesig[256];
 
 void init_delay_status();
@@ -111,9 +110,6 @@ void set_reverb_macro(int macro);
 
 void init_eq_status();
 void recompute_eq_status();
-
-void init_userdrum();
-void scan_userdrum_assign_group(int bank,int group);
 
 void init_insertion_effect_status();
 void set_insertion_effect_default_parameter();
@@ -143,6 +139,57 @@ static int32 sample_increment, sample_correction; /*samples per MIDI delta-t*/
 
 #define alloc_midi_event() \
     (MidiEventList *)new_segment(&mempool, sizeof(MidiEventList))
+
+typedef struct _UserDrumset {
+	int8 bank;
+	int8 prog;
+	int8 play_note;
+	int8 level;
+	int8 assign_group;
+	int8 pan;
+	int8 reverb_send_level;
+	int8 chorus_send_level;
+	int8 rx_note_off;
+	int8 rx_note_on;
+	int8 delay_send_level;
+	int8 source_map;
+	int8 source_prog;
+	int8 source_note;
+	struct _UserDrumset *next;
+} UserDrumset;
+
+UserDrumset *userdrum_first = (UserDrumset *)NULL;
+UserDrumset *userdrum_last = (UserDrumset *)NULL; 
+
+void init_userdrum();
+UserDrumset *get_userdrum(int bank, int prog);
+void recompute_userdrum(int bank, int prog);
+void recompute_userdrum_altassign(int bank,int group);
+
+typedef struct _UserInstrument {
+	int8 bank;
+	int8 prog;
+	int8 source_map;
+	int8 source_bank;
+	int8 source_prog;
+	int8 vibrato_rate;
+	int8 vibrato_depth;
+	int8 cutoff_freq;
+	int8 resonance;
+	int8 env_attack;
+	int8 env_decay;
+	int8 env_release;
+	int8 vibrato_delay;
+	struct _UserInstrument *next;
+} UserInstrument;
+
+UserInstrument *userinst_first = (UserInstrument *)NULL;
+UserInstrument *userinst_last = (UserInstrument *)NULL; 
+
+void init_userinst();
+UserInstrument *get_userinst(int bank, int prog);
+void recompute_userinst(int bank, int prog);
+void recompute_userinst_altassign(int bank,int group);
 
 int32 readmidi_set_track(int trackno, int rewindp)
 {
@@ -821,7 +868,6 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
        val[2] == 0x42 && /* GS Model ID */
        val[3] == 0x12) /* Data Set Command */
     {
-		static uint8 userdrum_prog,userdrum_map,userinst_map,userinst_bank;
 		uint8 p,dp,udn,gslen;
 		int i,addr,addr_h,addr_m,addr_l,checksum;
 		p = val[5] & 0x0F;
@@ -1341,27 +1387,14 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x20:	/* User Instrument */
 			switch(addr & 0xF00) {
 				case 0x000:	/* Source Map */
-					userinst_map = val[7];
+					get_userinst(64+udn, val[6])->source_map = val[7];
 					break;
 				case 0x100:	/* Source Bank */
-					userinst_bank = val[7];
+					get_userinst(64+udn, val[6])->source_bank = val[7];
 					break;
 #if !defined(TIMIDITY_TOOLS)
 				case 0x200:	/* Source Prog */
-					if(tonebank[64+udn]->tone[val[6]].name) {free_tone_bank_element(1,64+udn,val[6]);}
-					if(tonebank[userinst_bank]) {
-						if(tonebank[userinst_bank]->tone[val[7]].name) {
-							memcpy(&tonebank[64+udn]->tone[val[6]],&tonebank[userinst_bank]->tone[val[7]],sizeof(ToneBankElement));
-							dup_tone_bank_element(1,64+udn,val[6]);
-							ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)",userinst_bank,val[7],udn+64,val[6]);
-						} else if(tonebank[0]->tone[val[7]].name) {
-							memcpy(&tonebank[64+udn]->tone[val[6]],&tonebank[0]->tone[val[7]],sizeof(ToneBankElement));
-							dup_tone_bank_element(1,64+udn,val[6]);
-							ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)",0,val[7],udn+64,val[6]);
-						}
-					}
-					userinst_bank = 0;
-					userinst_map = 0;
+					get_userinst(64+udn, val[6])->source_prog = val[7];
 					break;
 #endif
 				default:
@@ -1373,77 +1406,69 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x21:	/* User Drumset */
 			switch(addr & 0xF00) {
 				case 0x100:	/* Play Note */
+					get_userdrum(64+udn, val[6])->play_note = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x18,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0x1);
 					num_events += 3;
 					break;
 				case 0x200:	/* Level */
+					get_userdrum(64+udn, val[6])->level = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1A,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
 					num_events += 3;
 					break;
 				case 0x300:	/* Assign Group */
-					userdrum_assign_group[val[6]] = val[7];
-					if(val[7] != 0) {
-						scan_userdrum_assign_group(64+udn,val[7]);
-						ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset - Assign Group(%d %d GROUP:%d)",udn+64,val[6],val[7]);
-					}
+					get_userdrum(64+udn, val[6])->assign_group = val[7];
+					if(val[7] != 0) {recompute_userdrum_altassign(udn+64, val[7]);}
 					break;
 				case 0x400:	/* Panpot */
+					get_userdrum(64+udn, val[6])->pan = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1C,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
 					num_events += 3;
 					break;
 				case 0x500:	/* Reverb Send Level */
+					get_userdrum(64+udn, val[6])->reverb_send_level = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1D,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
 					num_events += 3;
 					break;
 				case 0x600:	/* Chorus Send Level */
+					get_userdrum(64+udn, val[6])->chorus_send_level = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1E,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
 					num_events += 3;
 					break;
 				case 0x700:	/* Rx. Note Off */
+					get_userdrum(64+udn, val[6])->rx_note_off = val[7];
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Rx. Note Off (CH:%d NOTE:%d VAL:%d)",dp,val[6],val[7]);
 					if(channel[dp].drums[val[6]] == NULL) {play_midi_setup_drums(dp, val[6]);}
 					channel[dp].drums[val[6]]->rx_note_off = val[7];
 					break;
 				case 0x800:	/* Rx. Note On */
+					get_userdrum(64+udn, val[6])->rx_note_on = val[7];
 					break;
 				case 0x900:	/* Delay Send Level */
+					get_userdrum(64+udn, val[6])->delay_send_level = val[7];
 					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1F,0);
 					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
 					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
 					num_events += 3;
 					break;
 				case 0xA00:	/* Source Map */
-					userdrum_map = val[7];
+					get_userdrum(64+udn, val[6])->source_map = val[7];
 					break;
 				case 0xB00:	/* Source Prog */
-					userdrum_prog = val[7];
+					get_userdrum(64+udn, val[6])->source_prog = val[7];
 					break;
 #if !defined(TIMIDITY_TOOLS)
 				case 0xC00:	/* Source Note */
-					if(drumset[64+udn]->tone[val[6]].name) {free_tone_bank_element(1,64+udn,val[6]);}
-					if(drumset[userdrum_prog]) {
-						if(drumset[userdrum_prog]->tone[val[7]].name) {
-							memcpy(&drumset[64+udn]->tone[val[6]],&drumset[userdrum_prog]->tone[val[7]],sizeof(ToneBankElement));
-							dup_tone_bank_element(1,64+udn,val[6]);
-							ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)",userdrum_prog,val[7],udn+64,val[6]);
-						} else if(drumset[0]->tone[val[7]].name) {
-							memcpy(&drumset[64+udn]->tone[val[6]],&drumset[0]->tone[val[7]],sizeof(ToneBankElement));
-							dup_tone_bank_element(1,64+udn,val[6]);
-							ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)",0,val[7],udn+64,val[6]);
-						}
-					}
-					userdrum_prog = 0;
-					userdrum_map = 0;
+					get_userdrum(64+udn, val[6])->source_note = val[7];
 					break;
 #endif
 				default:
@@ -3019,6 +3044,7 @@ void readmidi_read_init(void)
 	init_eq_status();
 	init_insertion_effect_status();
 	init_userdrum();
+	init_userinst();
 	rhythm_part[0] = 9;
 	rhythm_part[1] = 9;
 
@@ -4165,17 +4191,16 @@ void recompute_eq_status()
 	calc_highshelf_coefs(eq_status.high_coef,freq,dbGain,play_mode->rate);
 }
 
-void scan_userdrum_assign_group(int bank,int group)
+void recompute_userdrum_altassign(int bank, int group)
 {
-	int number,i;
-	char *params[131];
-	char param[10];
+	int number = 0, i;
+	char *params[131], param[10];
 	ToneBank *bk;
+	UserDrumset *p;
 
-	number = 0;
-
-	for(i=0;i<128;i++) {
-		if(userdrum_assign_group[i] == group) {
+	
+	for(p = userdrum_first; p != NULL; p = p->next) {
+		if(p->assign_group == group) {
 			sprintf(param,"%d",i);
 			params[number] = safe_strdup(param);
 			number++;
@@ -4183,7 +4208,7 @@ void scan_userdrum_assign_group(int bank,int group)
 	}
 	params[number] = NULL;
 
-	alloc_instrument_bank(1,bank);
+	alloc_instrument_bank(1, bank);
 	bk = drumset[bank];
 	bk->alt = add_altassign_string(bk->alt, params, number);
 }
@@ -4191,24 +4216,131 @@ void scan_userdrum_assign_group(int bank,int group)
 void init_userdrum()
 {
 	int i;
-	AlternateAssign *alt64,*alt65;
+	AlternateAssign *alt;
 
-	/* initialize alternate assign */
-	for(i=0;i<128;i++) {
-		userdrum_assign_group[i] = 0;
+	free_userdrum();
+
+	for(i=0;i<2;i++) {	/* allocate alternative assign */
+		alt = (AlternateAssign *)safe_malloc(sizeof(AlternateAssign));
+		memset(alt, 0, sizeof(AlternateAssign));
+		alloc_instrument_bank(1, 64 + i);
+		drumset[64 + i]->alt = alt;
+	}
+}
+
+void recompute_userdrum(int bank, int prog)
+{
+	UserDrumset *p;
+
+	p = get_userdrum(bank, prog);
+
+	if(drumset[bank]->tone[prog].name) {free_tone_bank_element(1, bank, prog);}
+	if(drumset[p->source_prog]) {
+		if(drumset[p->source_prog]->tone[p->source_note].name) {
+			memcpy(&drumset[bank]->tone[prog], &drumset[p->source_prog]->tone[p->source_note], sizeof(ToneBankElement));
+			dup_tone_bank_element(1, bank, prog);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", p->source_prog, p->source_note, bank, prog);
+		} else if(drumset[0]->tone[p->source_note].name) {
+			memcpy(&drumset[bank]->tone[prog], &drumset[0]->tone[p->source_note], sizeof(ToneBankElement));
+			dup_tone_bank_element(1, bank, prog);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", 0, p->source_note, bank, prog);
+		}
+	}
+}
+
+UserDrumset *get_userdrum(int bank, int prog)
+{
+	UserDrumset *p;
+
+	for(p = userdrum_first; p != NULL; p = p->next) {
+		if(p->bank == bank && p->prog == prog) {return p;}
 	}
 
-	alt64 = (AlternateAssign *)safe_malloc(sizeof(AlternateAssign));
-    memset(alt64, 0, sizeof(AlternateAssign));
-	alt65 = (AlternateAssign *)safe_malloc(sizeof(AlternateAssign));
-    memset(alt65, 0, sizeof(AlternateAssign));
-	alloc_instrument_bank(1,64);
-	alloc_instrument_bank(1,65);
-	drumset[64]->alt = alt64;
-	drumset[65]->alt = alt65;
+	p = (UserDrumset *)safe_malloc(sizeof(UserDrumset));
+	memset(p, 0, sizeof(UserDrumset));
+	p->next = NULL;
+	if(userdrum_first == NULL) {
+		userdrum_first = p;
+		userdrum_last = p;
+	} else {
+		userdrum_last->next = p;
+		userdrum_last = p;
+	}
+	p->bank = bank;
+	p->prog = prog;
 
-/*	alloc_instrument_bank(0,64);
-	alloc_instrument_bank(0,65);*/
+	return p;
+}
+
+void free_userdrum()
+{
+	UserDrumset *p, *next;
+
+	for(p = userdrum_first; p != NULL; p = next){
+		next = p->next;
+		free(p);
+    }
+	userdrum_first = userdrum_last = NULL;
+}
+
+void init_userinst()
+{
+	free_userinst();
+}
+
+void recompute_userinst(int bank, int prog)
+{
+	UserInstrument *p;
+
+	p = get_userinst(bank, prog);
+
+	if(tonebank[bank]->tone[prog].name) {free_tone_bank_element(0, bank, prog);}
+	if(tonebank[p->source_bank]) {
+		if(tonebank[p->source_bank]->tone[p->source_prog].name) {
+			memcpy(&tonebank[bank]->tone[prog], &tonebank[p->source_bank]->tone[p->source_prog], sizeof(ToneBankElement));
+			dup_tone_bank_element(0, bank, prog);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)", p->source_bank, p->source_prog, bank, prog);
+		} else if(tonebank[0]->tone[p->source_prog].name) {
+			memcpy(&tonebank[bank]->tone[prog], &tonebank[0]->tone[p->source_prog], sizeof(ToneBankElement));
+			dup_tone_bank_element(0, bank, prog);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)", 0, p->source_prog, bank, prog);
+		}
+	}
+}
+
+UserInstrument *get_userinst(int bank, int prog)
+{
+	UserInstrument *p;
+
+	for(p = userinst_first; p != NULL; p = p->next) {
+		if(p->bank == bank && p->prog == prog) {return p;}
+	}
+
+	p = (UserInstrument *)safe_malloc(sizeof(UserInstrument));
+	memset(p, 0, sizeof(UserInstrument));
+	p->next = NULL;
+	if(userinst_first == NULL) {
+		userinst_first = p;
+		userinst_last = p;
+	} else {
+		userinst_last->next = p;
+		userinst_last = p;
+	}
+	p->bank = bank;
+	p->prog = prog;
+
+	return p;
+}
+
+void free_userinst()
+{
+	UserInstrument *p, *next;
+
+	for(p = userinst_first; p != NULL; p = next){
+		next = p->next;
+		free(p);
+    }
+	userinst_first = userinst_last = NULL;
 }
 
 void init_insertion_effect_status()

@@ -885,6 +885,14 @@ Instrument *load_instrument(int dr, int b, int prog)
     char infomsg[256];
     int font_bank, font_preset, font_keynote;
 
+	if(b == 64 || b == 65) {
+		if(dr) {	/* User Drumset */
+			recompute_userdrum(b, prog);
+		} else {	/* User Instrument */
+			recompute_userinst(b, prog);
+		}
+	}
+
     if(bank->tone[prog].instype == 1
 	|| bank->tone[prog].instype == 2)
     {

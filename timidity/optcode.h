@@ -157,6 +157,68 @@ inline int32 d2i(double val)
    return ((int32*)&val)[iman_] >> 16;
 }
 
+#elif defined(__GNUC__) && defined(__ppc__)
+static inline int32 imuldiv8(int32 a, int32 b)
+{
+    register int32 ret,rah,ral,rlh,rll;
+    __asm__ ("mulhw %0,%7,%8\n\t"
+	     "mullw %1,%7,%8\n\t"
+	     "rlwinm %2,%0,24,0,7\n\t"
+	     "rlwinm %3,%1,24,8,31\n\t"
+	     "or %4,%2,%3"
+	     :"=r"(rah),"=r"(ral),
+	      "=r"(rlh),"=r"(rll),
+	      "=r"(ret),
+	      "=r"(a),"=r"(b)
+	     :"5"(a),"6"(b));
+    return ret;
+}
+
+static inline int32 imuldiv16(int32 a, int32 b)
+{
+    register int32 ret,rah,ral,rlh,rll;
+    __asm__ ("mulhw %0,%7,%8\n\t"
+	     "mullw %1,%7,%8\n\t"
+	     "rlwinm %2,%0,16,0,15\n\t"
+	     "rlwinm %3,%1,16,16,31\n\t"
+	     "or %4,%2,%3"
+	     :"=r"(rah),"=r"(ral),
+	      "=r"(rlh),"=r"(rll),
+	      "=r"(ret),
+	      "=r"(a),"=r"(b)
+	     :"5"(a),"6"(b));
+    return ret;
+}
+
+static inline int32 imuldiv24(int32 a, int32 b)
+{
+    register int32 ret,rah,ral,rlh,rll;
+    __asm__ ("mulhw %0,%7,%8\n\t"
+	     "mullw %1,%7,%8\n\t"
+	     "rlwinm %2,%0,8,0,23\n\t"
+	     "rlwinm %3,%1,8,24,31\n\t"
+	     "or %4,%2,%3"
+	     :"=r"(rah),"=r"(ral),
+	      "=r"(rlh),"=r"(rll),
+	      "=r"(ret),
+	      "=r"(a),"=r"(b)
+	     :"5"(a),"6"(b));
+    return ret;
+}
+static inline int32 d2i(double frb)
+{
+    register int32 ret;
+    register double frt;
+    volatile double temp;
+    __asm__ ("fctiwz %1,%2\n\t"
+	     "stfd %1,%4\n\t"
+	     "lwz %0,4+%4"
+	     :"=r"(ret)
+	     :"f"(frt),"f"(frb),"r"(ret),"m"(temp)
+	     :"memory");
+    return ret;
+}
+
 #else
 /* generic */
 int32 imuldiv8(int32 a, int32 b);
@@ -184,7 +246,7 @@ void v_memzero(void* dest, size_t len);
 void v_set_dry_signal(void* dest, const int32* buf, int32 n);
 
 /* inline functions */
-extern inline bool is_altivec_available(void)
+static inline bool is_altivec_available(void)
 {
   int sel[2] = { CTL_HW, HW_VECTORUNIT };
   int has_altivec = false;
@@ -197,7 +259,7 @@ extern inline bool is_altivec_available(void)
   }
 }
 
-extern inline void libc_memset(void* destp, int c, size_t len)
+static inline void libc_memset(void* destp, int c, size_t len)
 {
     memset(destp,c,len);
 }

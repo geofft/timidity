@@ -3842,6 +3842,8 @@ int main(int argc, char **argv)
     free_instruments(0);
     free_global_mblock();
     free_all_midi_file_info();
+	free_userdrum();
+	free_userinst();
     tmdy_free_config();
     return main_ret;
 }

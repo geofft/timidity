@@ -152,8 +152,13 @@ extern void set_chorus_macro(int macro);
 extern void recompute_reverb_status();
 extern void set_reverb_macro(int macro);
 extern void recompute_eq_status();
-extern void scan_userdrum_assign_group(int bank,int group);
 extern void set_insertion_effect_default_parameter();
 extern void recompute_insertion_effect();
+
+extern void recompute_userdrum(int bank, int prog);
+extern void free_userdrum();
+
+extern void recompute_userinst(int bank, int prog);
+extern void free_userinst();
 
 #endif /* ___READMIDI_H_ */
