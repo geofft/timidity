@@ -2842,25 +2842,33 @@ static void note_off(MidiEvent *e)
   ch = e->channel;
   note = MIDI_EVENT_NOTE(e);
 
-  if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL &&
-     get_rx_drum(channel[ch].drums[note], RX_NOTE_OFF))
+  if(ISDRUMCHANNEL(ch))
   {
-      ToneBank *bank;
+      int nbank, nprog;
 
-      bank = drumset[channel[ch].bank];
-      if(bank == NULL) bank = drumset[0];
+      nbank = channel[ch].bank;
+      nprog = note;
+      instrument_map(channel[ch].mapID, &nbank, &nprog);
       
-      /* uh oh, this drum doesn't have an instrument loaded yet */
-      if (bank->tone[note].instrument == NULL)
-          return;
+      if (channel[ch].drums[nprog] != NULL &&
+          get_rx_drum(channel[ch].drums[nprog], RX_NOTE_OFF))
+      {
+          ToneBank *bank;
+          bank = drumset[nbank];
+          if(bank == NULL) bank = drumset[0];
+          
+          /* uh oh, this drum doesn't have an instrument loaded yet */
+          if (bank->tone[nprog].instrument == NULL)
+              return;
 
-      /* this drum is not loaded for some reason (error occured?) */
-      if (IS_MAGIC_INSTRUMENT(bank->tone[note].instrument))
-          return;
+          /* this drum is not loaded for some reason (error occured?) */
+          if (IS_MAGIC_INSTRUMENT(bank->tone[nprog].instrument))
+              return;
 
-      /* only disallow Note Off if the drum sample is not looped */
-      if (!(bank->tone[note].instrument->sample->modes & MODES_LOOPING))
-	  return;	/* Note Off is not allowed. */
+          /* only disallow Note Off if the drum sample is not looped */
+          if (!(bank->tone[nprog].instrument->sample->modes & MODES_LOOPING))
+              return;	/* Note Off is not allowed. */
+      }
   }
 
   if ((vid = last_vidq(ch, note)) == -1)

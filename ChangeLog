@@ -1,3 +1,7 @@
+2004-03-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (note_off): Fix for remapped drum.
+
 2004-03-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/ja_JP.ujis: Move to ja_JP.eucJP
