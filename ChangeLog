@@ -1,9 +1,9 @@
-2004-02-20  Saito <saito2@digitalme.com>
+2004-02-21  Saito <saito2@digitalme.com>
 
 	* interface/w32g_pref.c:
 	  Fix "force cfg reload".
-	* timidity/instrum.c:
-	  Fix typo.
+	* timidity/sndfont.c:
+	  Fix.
 
 2004-02-20  Saito <saito2@digitalme.com>
 

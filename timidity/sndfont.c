@@ -578,10 +578,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		      ip->pat.bank, ip->pat.preset + progbase,
 		      rec->inst_namebuf[ip->pr_idx]);
 	inst = (Instrument *)safe_malloc(sizeof(Instrument));
-/*
-	inst->instname = (char *)safe_malloc(strlen(rec->inst_namebuf[ip->pr_idx]));
-	strcpy(inst->instname,rec->inst_namebuf[ip->pr_idx]);
-*/
 	inst->instname = rec->inst_namebuf[ip->pr_idx];
 	inst->type = INST_SF2;
 	inst->samples = ip->samples;
@@ -602,6 +598,8 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			  sp->v.low_freq, sp->v.high_freq, sp->v.root_freq,
 			  sp->v.panning);
 		memcpy(sample, &sp->v, sizeof(Sample));
+		sample->data = NULL;
+		sample->data_alloced = 0;
 
 		if(i > 0 && (!sample->note_to_use ||
 			     (sample->modes & MODES_LOOPING)))
@@ -640,17 +638,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 
 		sample->data = (sample_t *)safe_malloc(sp->len + 2 * 3);
 		sample->data_alloced = 1;
-
-		ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
-			  "Data: %d %d V=%g, envofs: %d %d %d %d %d %d",
-			  sp->start, sp->start + sp->len,
-			  sample->volume,
-			  sample->envelope_offset[0] >> 22,
-			  sample->envelope_offset[1] >> 22,
-			  sample->envelope_offset[2] >> 22,
-			  sample->envelope_offset[3] >> 22,
-			  sample->envelope_offset[4] >> 22,
-			  sample->envelope_offset[5] >> 22);
 
 		tf_seek(rec->tf, sp->start, SEEK_SET);
 		tf_read(sample->data, sp->len, 1, rec->tf);
