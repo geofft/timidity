@@ -205,9 +205,6 @@ done
 
 
 ３．Msys環境下でOpenWatcomでコンパイル
-======= CAUTION !! ===========
-Open Watcom でコンパイルしたバイナリはライセンス上配布できない。
-============================== 
 （１）OpenWatcomとMSYSのセットアップ
 	１）OpenWatcomのセットアップ(http://www.openwatcom.org)
 		１−１）OpenWatcomをダウンロードしてくる。
@@ -316,8 +313,8 @@ Open Watcom でコンパイルしたバイナリはライセンス上配布できない。
 		をダウンロードしてインストールする。
 ======= CAUTION !! ===========
 Microsoft Visual C++ Toolkit 2003でコンパイルしたバイナリはライセンス上配布できない。
-配布するバイナリは、"Visual C++" か "Visual Studio"で作る必要がある。
-その際は　libcmt.lib ではなく　msvcrt.libをリンクすること
+配布するバイナリは、"Visual C++" か "Visual Studio"で作成する必要がある。
+その際は、-MT オプションではなく -MD オプションを使い、libcmt.lib ではなく　msvcrt.libをリンクすること
 ============================== 
 		
 	２）MSYSのセットアップ(http://sourceforge.net/projects/mingw/　http://mingw.sourceforge.net/MinGWiki/))

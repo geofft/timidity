@@ -236,9 +236,6 @@ done
 
 3.OpenWatcom C++ in Msys environment
 
-======= CAUTION !! ===========
-You cannnat distribute generated TiMidity++ binary!!. Because of LICENCE issue.
-==============================
 (1)OpenWatcom and MSYS
     1)Set OpenWatcom(http://www.openwatcom.org)
        1-1)Download OpenWatcom, install and configure them
@@ -354,7 +351,8 @@ You cannnat distribute generated TiMidity++ binary!!. Because of LICENCE issue.
             Microsoft Platform SDK
         install and configure them.
 ======= CAUTION !! ===========
-If you plan to distribute TiMidity++ binary, use "Visual C++" or "Visual Studio" not "Microsoft Visual C++ Toolkit 2003". because of LICENCE issue. And link msvcrt.lib instead of libcmt.lib
+If you plan to distribute TiMidity++ binary, use "Visual C++" or "Visual Studio" not "Microsoft Visual C++ Toolkit 2003". because of LICENCE issue. 
+Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
 ==============================
 
    2)Setup Mngw and MSYS (See MingwWiki(http://mingw.sourceforge.net/MinGWiki/))

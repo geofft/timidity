@@ -1,3 +1,7 @@
+2004-05-31 Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+	* configure.in:
+	  dynamic linked runtime library must be used with Open Watcom.
+
 2004-05-31  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/common.c (open_file): ignore directories when searching
