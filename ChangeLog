@@ -1,8 +1,8 @@
 2003-09-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.c:
-	  Adjust minor of both meantone tuning and pure intonation
-	  by syntonic comma instead of Pythagoras tuning
+	  Adjust minor of not Pythagoras tuning but both
+	  mean-tone tuning and pure intonation by syntonic comma
 
 2003-09-03  Takashi Iwai <tiwai@suse.de>
 
