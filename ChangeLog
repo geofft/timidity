@@ -1,3 +1,12 @@
+2003-06-01  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/effect.c (do_effect): Do not do reverb or chorus if
+	  do_compute_data_midi() has already applied them with
+	  USE_DSP_EFFECT.
+
+	* timidity/playmidi.c (new_chorus_voice_alternate): opt_surround
+	  update to work with the new effects
+	(adjust_panning): Hack to handle -EFchorus=2 in a "reasonable" way
 
 2003-05-30  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
@@ -22,7 +31,7 @@
 
 	* timidity/timidity.h (DEFAULT_VOICES): to 256 (was 64)
 	* timidity/playmidi.c (do_compute_data_midi):
-	  Fix -EFchorus optoin interpretation
+	  Fix -EFchorus option interpretation
 
 2003-05-29  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
@@ -61,7 +70,7 @@
 2003-05-25  mput <root@mput.dip.jp>
 
 	* configure.in
-	  Fix --enable-spline optoin to fit with EAW's commit.
+	  Fix --enable-spline option to fit with EAW's commit.
 	
 2003-05-25  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
@@ -241,13 +250,13 @@
 
 	* timidity/playmidi.[ch], timidity/timidity.c:
 	  Support for channel mute by temperament type.
-	  Fix behaviour of quiet channel option -Q0.
+	  Fix behavior of quiet channel option -Q0.
 	  Fix around temperament control SysEx.
 
 2003-04-29  Saito <timidity@flashmail.com>
 
 	* timidity/instrum.c:
-	  Fix behaviour of user drumset / instrument.
+	  Fix behavior of user drumset / instrument.
 	* timidity/tables.c, timidity/mix.c:
 	  Modify envelope generator.
 	* timidity/playmidi.c:
@@ -277,7 +286,7 @@
 2003-04-22  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c:
-	  Fix about modulation envelope to picth.
+	  Fix about modulation envelope to pitch.
 	* timidity/reverb.c:
 	  Fix around reverb initialize.
 	* timidity/recache.c, timidity/resample.c:
@@ -288,7 +297,7 @@
 	* timidity/instrum.[ch], timidity/playmidi.c,
 	  timidity/smplfile.c, timidity/sndfont.c, timidity/mix.c:
 	  Add some internal parameters.
-	  Change LPF behaviour.
+	  Change LPF behavior.
 
 2003-04-19  Saito <timidity@flashmail.com>
 
@@ -321,7 +330,7 @@
 	* timidity/playmidi.[ch]:
 	  Fix about NRPN vibrato.
 	* timidity/readmidi.c:
-	  Fix about map behaviour.
+	  Fix about map behavior.
 
 2003-04-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -373,8 +382,8 @@
 
 	* timidity/optcode.h
 	(d2i):       rewrite using asm.
-	(imuldiv8):  rewtote using asm.
-	(imuldiv16): rewrote using asm.
+	(imuldiv8):  rewrite using asm.
+	(imuldiv16): rewrite using asm.
 	(imuldiv24): rewrite using asm.
 
 2003-04-11  Saito <timidity@flashmail.com>
@@ -464,8 +473,8 @@
 
 2003-04-04  mput <root@mput.dip.jp>
 
-	* timidity/playmidi.c (recompute_freq): Fixed fprintf() arg
-	* timidity/playmidi.c (start_note): Fixed cast to fit prototypes
+	* timidity/playmidi.c (recompute_freq): Fix fprintf() arg
+	* timidity/playmidi.c (start_note): Fix cast to fit prototypes
 
 2003-04-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -528,7 +537,7 @@
 2003-03-27  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
 	* timidity/playmidi.c:
-	  Fix behaviour of user drumset.
+	  Fix behavior of user drumset.
 
 2003-03-27  Saito <timidity@flashmail.com>
 
@@ -656,7 +665,7 @@
 
 2003-02-16  Stas Sergeev <stssppnn@yahoo.com>
 
-	* interfaec/server_c.c, timidity/timidity.c:
+	* interface/server_c.c, timidity/timidity.c:
 	  Add timidity server support for dosemu's midid
 
 2003-02-15  Daisuke Aoki <dai@sweetparty.ne.jp>
@@ -668,7 +677,7 @@
 
 	* interface/w32g_ini.c, interface/w32g_pref.c,
 	  interface/w32g_res.c, interface/w32g_utl.c, timidity/mix.c,
-	  timidity/playimidi.c, timidity/readmidi.c,
+	  timidity/playmidi.c, timidity/readmidi.c,
 	  timidity/tables.c, timidity/tables.h:
 	  Obsolete "Attack Env. (0..3)" option (W32GUI version)
 	  Improve envelope precision for SoundFont
@@ -693,7 +702,7 @@
 2003-01-23  s_keishi <s_keishi@mutt.freemail.ne.jp>
 
 	* interface/w32g_syn.c, interface/w32g_utl.c, interface/winsyn_c.c,
-	  timitidy/playmidi.c:
+	  timidity/playmidi.c:
 	  Add time management on Windows synthesizer
 
 2003-01-18  Daisuke Aoki <dai@sweetparty.ne.jp>
@@ -730,7 +739,7 @@
 
 2003-01-16  Saito <timidity@flashmail.com>
 
-	* imidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
+	* timidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
 	  timidity/readmidi.c:
 	  Support for real time SysEx. generally
 	  Hack up each voiced LPF faster (maybe)
@@ -800,7 +809,7 @@
 
 	* interface/w32g_ini.c, interface/w32g_pref.c,
 	  interface/w32g_res.h, interface/w32g_res.rc, interface/w32g_utl.c,
-	  interface/w32g_utl.h, libunimod/load_xm.c, libunimod/mlutil.c,
+	  interface/w32g_utl.h, libunimod/load_xm.c, libunimod/multil.c,
 	  timidity/gogo_a.c, timidity/playmidi.c, timidity/playmidi.h,
 	  timidity/vorbis_a.c, timidity/w32g_vorbis_dll.c:
 	  Support for auto volume adjustment
@@ -827,7 +836,7 @@
 
 2002-10-30  Saito <timidity@flashmail.com>
 
-	* imidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
+	* timidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
 	  timidity/tables.h:
 	  Hack up envelope generator
 
@@ -1035,7 +1044,7 @@
 2002-08-17  Saito <timidity@flashmail.com>
 
 	* 
-	  Bug fixed exit(1) -> returen 1 in LZH extract
+	  Bug fixed exit(1) -> return 1 in LZH extract
 
 2002-08-10  s_keishi <s_keishi@mutt.freemail.ne.jp>
 
@@ -1276,7 +1285,7 @@
 2002-04-12  Saito <timidity@flashmail.com>
 
 	* 
-	  Modify to calcurate LPF/resonance default value from paramater
+	  Modify to calculate LPF/resonance default value from parameter
 
 2002-04-08  Saito <timidity@flashmail.com>
 
@@ -1288,7 +1297,7 @@
 	* 
 	  Modify cfg option for SoundFont
 	  You may use "note=" "pan=" "strip=tail"
-	  Modify "amp=" algorhytm
+	  Modify "amp=" algorithm
 
 2002-03-04  Saito <timidity@flashmail.com>
 
@@ -1400,7 +1409,7 @@
 
 	* config.guess: Updated.
 	* config.sub: Updated.
-	* configuer.in (Cygwin): DLL gogo is default if --enable-audio=gogo
+	* configure.in (Cygwin): DLL gogo is default if --enable-audio=gogo
 	  is specified.
 
 2002-01-08  Masanao Izumo <mo@goice.co.jp>
@@ -1456,7 +1465,7 @@
 	  interface/{w32g_i.c,w32g_res.h,w32g_vorbisenc_dll.c,w32g_pref.c,
 	  w32g_vorbis_dll.c,w32g_ogg_dll.c,w32g_utl.c,w32g_ut2.c,w32g_subwin.h,
 	  w32g_subwin.c,w32g_pref.h,w32g_c.c,w32g.h}:
-	  - Marge windows code.
+	  - Merge windows code.
 	  - Update windows resource.
 
 2001-12-25  Masanao Izumo <mo@goice.co.jp>
@@ -1475,14 +1484,14 @@
 2001-12-20  Masanao Izumo <mo@goice.co.jp>
 
 	* timidity/playmidi.c: Bug fix.
-	* interface/ncurs_c.c: Chaged from 3 to 4 digits in audio queue
+	* interface/ncurs_c.c: Changed from 3 to 4 digits in audio queue
 	  monitor.
-	* timidity/common.c: Fixed security probrem
+	* timidity/common.c: Fixed security problem
 
 2001-11-28  Miloslav Trmac <mitr@volny.cz>
 
 	* interface/{dumb_c.c,slang_c.c,xaw_c.c,xskin_c.c}:
-	  Fixed some probrems.
+	  Fixed some problems.
 
 2001-11-19  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
@@ -1525,7 +1534,7 @@
 	  - Added CC#94 pseudo delay (like chorus method)
 	  - Adjusted reverb level
 	  - Added resonance filter
-	  - Modified enverope attack
+	  - Modified envelope attack
 	  - Adjusted velocity
 	  - Supported user drumset (SC-88)
 	  - Added some GS SysEx'es.
@@ -1607,7 +1616,7 @@
 2001-05-26  Marcus Herbert <rhoenie@spam-filter.de>
 
 	* timidity/mod.h, libunimod/load_okt.c: Change CR/LF -> LF
-	* libunimod/load_med.c, timidity/wrd_read.c: Fix cast probrems.
+	* libunimod/load_med.c, timidity/wrd_read.c: Fix cast problems.
 
 2001-05-05  Paolo Bonzini <bonzini@gnu.org>
 
@@ -1778,7 +1787,7 @@
     * timidity/wave_a.c: Enable to write each separated wav file if `-o'
 	command line option is omitted.
 	The output filename is automatically generated from the input MIDI
-	filename.  The file extention is changed to ".wav".
+	filename.  The file extension is changed to ".wav".
     * timidity/au_a.c: Likewise.
     * timidity/aiff_a.c: Likewise.
     * timidity/raw_a.c: Likewise.
@@ -1797,7 +1806,7 @@
     * configure: Check <vorbis/modes.h> and -lvorbis
     * vorbis_a.c: Supported Ogg Vorbis output: -Ov
 	This feature is enabled if TiMidity is configured with
-	--enabel-audio=default,vorbis option.
+	--enable-audio=default,vorbis option.
 
 2000-07-18  Takashi Iwai <tiwai@suse.de>
 
@@ -1849,13 +1858,13 @@
 
 2000-05-17  Masanao Izumo <mo@goice.co.jp>
 
-    * Fixed automake 1.4 bug, and updated Makfile.in files using this fixed
+    * Fixed automake 1.4 bug, and updated Makefile.in files using this fixed
       version of automake.  The automake patch is available from:
 	http://www.goice.co.jp/member/mo/timidity/dist/automake-1.4-bugfix1.pat
 
 2000-05-17  Eric A. Welsh <ewelsh@gpc.wustl.edu>
 
-    * resample.c: Fixed drum portament bug.
+    * resample.c: Fixed drum portamento bug.
     * timidity/{instrum.c,sndfont.c}: Enable pre_resampling().
 
 2000-05-12  Katsuhiro Ueno <katsu@blue.sky.or.jp>
@@ -1864,7 +1873,7 @@
 
 2000-05-09  Masanao Izumo <mo@goice.co.jp>
 
-    * timidity/resample.c: Fixed drum portament bug.
+    * timidity/resample.c: Fixed drum portamento bug.
 
 2000-05-08  Masanao Izumo <mo@goice.co.jp>
 
@@ -1872,7 +1881,7 @@
 
 2000-05-08  Masanao Izumo <mo@goice.co.jp>
 
-    * interface/{Makefile.am,Makefile.in}: Changed target dependancy for
+    * interface/{Makefile.am,Makefile.in}: Changed target dependency for
 	tclIndex not to change tclIndex unless the tcl-sources are changed.
 
 2000-04-20  Eric A. Welsh <ewelsh@gpc.wustl.edu>
@@ -1913,7 +1922,7 @@
 2000-03-30  Masanao Izumo <mo@goice.co.jp>
             (Bug reported by Takeyuki Uehara <tu01@uow.edu.au>)
 
-    * interface/ncurses.c: Fixed probrem that all channel statuses are reseted
+    * interface/ncurses.c: Fixed problem that all channel statuses are reseted
       if the key `t' is pressed.
 
 2000-03-28  Masanao Izumo <mo@goice.co.jp>
@@ -1973,7 +1982,7 @@
 		- Enable to resize Doc Window and List Window.  And also
 		  enable to select the font.
 		- Fixed bugs for displaying
-	* libarc/arc_lzh: Fixed some probrems
+	* libarc/arc_lzh: Fixed some problems
 
 2000-03-08  Masanao Izumo <mo@goice.co.jp>
 
@@ -2050,7 +2059,7 @@
       timidity/mod2midi.h:
 	Shut gcc warning up.
     * libunimod/{unimod.h,unimod_priv.h}: WIN32 => __W32__
-    * timidity/playmici.c: Fixed key up/down for MOD file playing.
+    * timidity/playmidi.c: Fixed key up/down for MOD file playing.
 
 2000-02-18  Masanao Izumo <mo@goice.co.jp>
 
@@ -2058,12 +2067,12 @@
       Now, TiMidity does not hit the end out of data, and ignores a final
       interpolation.
     * timidity/playmidi.c: Avoid overlapped voice when MOD file is playing.
-    * interface/ncurs_c.c,timidity/playmidi.c: Fixed a indicator probrem.
+    * interface/ncurs_c.c,timidity/playmidi.c: Fixed a indicator problem.
 
 2000-02-16  Paolo Bonzini <bonzini@gnu.org>
 
     * configure.in,libunimod/*,timidity/{Makefile.am,mod.c,mod.h,mod2midi.c,
-	mod2midi.h,readmici.c,readmidi.c}: Support full module player.
+	mod2midi.h,readmidi.c,readmidi.c}: Support full module player.
 
 2000-02-16  Paolo Bonzini <bonzini@gnu.org>
 
@@ -2096,7 +2105,7 @@
 
 2000-01-10  Peter Stuer <Peter.Stuer@pandora.be>
 
-    * timidity/w32_a.c: Fixed dead-lock probrem on NT (for console version).
+    * timidity/w32_a.c: Fixed dead-lock problem on NT (for console version).
 
 2000-01-09  Eric A. Welsh <ewelsh@gpc.wustl.edu>
 
@@ -2104,7 +2113,7 @@
 
 2000-01-06  Eric A. Welsh <ewelsh@gpc.wustl.edu>
 
-    * timidity/playmici.c: Fixed a bug of random pan.
+    * timidity/playmidi.c: Fixed a bug of random pan.
 
 2000-01-13  Masanao Izumo <mo@goice.co.jp>
 
@@ -2112,7 +2121,7 @@
 
 2000-01-09  Masanao Izumo <mo@goice.co.jp>
 
-    * config.sub config.guss install-sh: Update new version from autoconf 2.13
+    * config.sub config.guess install-sh: Update new version from autoconf 2.13
     * configure.in: Fixed variable substitution rules.
 
 1999-12-24  Masanao Izumo <mo@goice.co.jp>
@@ -2138,7 +2147,7 @@
 
 1999-11-24  Masanao Izumo <mo@goice.co.jp>
 
-    * configure.in: Fix typoes
+    * configure.in: Fix typos
 
 1999-11-19  Eric A. Welsh <ewelsh@gpc.wustl.edu>
 
@@ -2155,7 +2164,7 @@
 
 1999-11-19  Masanao Izumo <mo@goice.co.jp>
             Takaya Nogami <t-nogami@happy.email.ne.jp>
-    * Imported Macinotsh sources from the 1999.10.31 of T.Nogami released.
+    * Imported Macintosh sources from the 1999.10.31 of T.Nogami released.
 
 1999-11-19  Masanao Izumo <mo@goice.co.jp>
     * timidity/resample.c (rs_plain): Bug fixed about PRECALC_LOOPS counter.
@@ -2167,8 +2176,8 @@
 1999-11-18  Masanao Izumo <mo@goice.co.jp>
 
     * timidity/timidity.c (-M name): New command line switch.
-	-M auto: Use *.mid.wav or *.mid.aiff instread of MIDI to WAVE
-		 convertion.  The PCM file format must be 16bit sample and
+	-M auto: Use *.mid.wav or *.mid.aiff instead of MIDI to WAVE
+		 conversion.  The PCM file format must be 16bit sample and
 		 the sampling rate equals as timidity's rate.
         -M none: Disable this feature (default)
         -M <filename>: Use the specified file.
@@ -2193,7 +2202,7 @@
 	--enable-spline=linear		Linear interpolation (default)
 	--enable-spline=cubic		Cubic interpolation
 	--enable-spline=lagrange	Lagrange interpolation
-	--enable-spline=no		No interplation
+	--enable-spline=no		No interpolation
 
 1999-11-12  Masanao Izumo <mo@goice.co.jp>
 
@@ -2222,7 +2231,7 @@
 
 1999-10-25  Eric A. Welsh <ewelsh@gpc.wustl.edu>
 
-    * timidity/playmidi.c: Support adjust panning for chorus'd notes.
+    * timidity/playmidi.c: Support adjust panning for chorused notes.
       This fix would remove "popping" noises.
 
 1999-10-24  Michael Vanier <mvanier@bbb.caltech.edu>
@@ -2349,7 +2358,7 @@
 
 1999-09-12  Shusuke Nisiyama <shu@athena.qe.eng.hokudai.ac.jp>
 
-    * timidity/timidity.c (fpsetmask): On FreeBSD, remove FP_X_DZ frag
+    * timidity/timidity.c (fpsetmask): On FreeBSD, remove FP_X_DZ flag
       from fp mask.
 
 1999-09-10  Norikatsu Shigemura <nork@lb.u-tokai.ac.jp>
@@ -2583,7 +2592,7 @@
 
     * timidity/{output.h,playmidi.c,w32g_a.c} (PM_REQ_PLAY_END): New macro.
 	PM_REQ_PLAY_END is called just after playing.
-    * timidity/playmici.c (midi_program_change): Don't load instrument
+    * timidity/playmidi.c (midi_program_change): Don't load instrument
       if !(play_mode->flag & PF_PCM_STREAM)
     * timidity/list_a.c (ME_PROGRAM): Call midi_program_change() to
       change the program.
@@ -2592,7 +2601,7 @@
 	start_list_a(): Initialize internal variable.
 	end_list_a(): Report internal variable.
     * interface/{w32g_c.c,w32g_i.c,w32g_pref.c} (List Midi Event `l'):
-      Supported.  This output mode is useful to check what kind of patche
+      Supported.  This output mode is useful to check what kind of patch
       is used.
 
 1999-08-20  Eric A. Welsh <ewelsh@gpc.wustl.edu>
@@ -2627,7 +2636,7 @@
 1999-08-18  Masanao Izumo <mo@goice.co.jp>
 
     * interface/ncurs_c.c (GSLCD): Draw GSLCD SysEx.
-      Note that LCD is cleard if there is no message between 10 second.
+      Note that LCD is cleared if there is no message between 10 second.
     * interface/ncurs_c.c: Enable to display channels more than 16ch.
       The terminal must be able to display more than 24 rows to display
       more than 16ch.
@@ -2641,7 +2650,7 @@
     * interface/{ncurs_c.c,w32g_utl.c},
       timidity/{common.c,wrdt.c,timidity.c},
       libarc/{arc.c,url.c}:
-      Fix comparation of path separator.
+      Fix comparison of path separator.
 	- Use `IS_PATH_SEP(c)' instead of `c == PATH_SEP'.
 	- Use `pathsep_strchr(str)' instead of `strchr(str, PATH_SEP)'
 	- Use `pathsep_strrchr(str)' instead of `strrchr(str, PATH_SEP)'
@@ -2714,7 +2723,7 @@
       timidity/{output.h,playmidi.h,playmidi.c,readmidi.c,wrdt.c,
 	mac_a.c,mac_com.h,mac_dlog.c,mac_main.c,mac_main.h,mac_oms_a.c
 	mac_qt_a.c}
-      Imported Macinotsh sources from the 1999.8.7 of T.Nogami released
+      Imported Macintosh sources from the 1999.8.7 of T.Nogami released
       Added GS lcd event by T.Nogami.
 
 1999-08-08  Masanao Izumo <mo@goice.co.jp>
@@ -2772,7 +2781,7 @@
     * timidity/playmidi.c (compute_data):  Move the call of apply_controls()
       position to before output.
     * timidity/playmidi.c (play_midi_file): Initialize `current_file_info'
-      at beginnig of play_midi_file();
+      at beginning of play_midi_file();
     * timidity/readmidi.h (IS_ERROR_FILE): New macro to mark the error file.
     * timidity/playmidi.c (play_midi_file): Mark IS_ERROR_FILE to
       current_file_info if the file isn't recognized as MIDI file.
@@ -2780,7 +2789,7 @@
     * interface/{w32g.h,w32g_c.c,w32g_canvas.c,w32g_i.c,w32g_ini.c,
       w32g_panel.c,w32g_playlist.c,w32g_res.h,w32g_res.rc,w32g_utl.c,
       w32g_utl.h}:
-       - Re-maked Windows GUI interface.
+       - Re-made Windows GUI interface.
        - Added new feature of changing the output.  Now, Windows GUI TiMidity
 	 can convert MIDI to WAVE file.
        - Enabled to delete playlist file.
@@ -2828,7 +2837,7 @@
 
 1999-07-24  Masanao Izumo <mo@goice.co.jp>
 
-    * timidity/timidity.c (set_tim_opt): Orderd switch-case.
+    * timidity/timidity.c (set_tim_opt): Ordered switch-case.
     * timidity/timidity.c (set_ctl): Changed for Windows GUS.
     * timidity/instrum.c (Instrument caching): Don't cache default instrument.
     * interface/w32g_utl.c (PLAYLIST): Bug fixed and simplify.
@@ -2852,9 +2861,9 @@
 
 1999-07-17  Masanao Izumo <mo@goice.co.jp>
     * interface/w32g_c.c, timidity/{timidity.c,aq.c} (-q): New option.
-      `-q' specifiy size of software audio buffering.  The option format
+      `-q' specify size of software audio buffering.  The option format
       is "-q m/n".
-	m:Maxmum buffer in second or percent of size of device driver buffer
+	m:Maximum buffer in second or percent of size of device driver buffer
 	n:Filled to start in second or percent of size of device driver buffer
       The default is "5.0/100%".
     * timidity/timidity.c (help): Arranged the help message of option in order.
@@ -3012,7 +3021,7 @@
 
     * common.makefile interface/Makefile.am doc/Makefile.am:
       Use variable `SUFFIXES', not target `.SUFFIXES' (for automake 1.4)
-    * timidity/resample.c (pre_resample): Fixed interger overflow bug.
+    * timidity/resample.c (pre_resample): Fixed integer overflow bug.
     * timidity/recache.c (resamp_cache_refer_off): Likewise.
 
 1999-04-17  Masanao Izumo <mo@goice.co.jp>
@@ -3089,8 +3098,8 @@
     * timidity/linux_a.c (AFMT_S16_NE): Define AFMT_S16_NE if it is not
       defined.
     * timidity/playmidi.c (recompute_freq): Modulation wheel rate was depended
-      on vibrato rate in v2 beta-4 and beta-5.  But this dependance causes bad
-      detuned note if vibrato rate is slow.  So the dependance is disabled.
+      on vibrato rate in v2 beta-4 and beta-5.  But this dependence causes bad
+      detuned note if vibrato rate is slow.  So the dependence is disabled.
 
 1999-04-10  Masanao Izumo <mo@goice.co.jp>
 
@@ -3107,7 +3116,7 @@
 1999-04-07  Masanao Izumo <mo@goice.co.jp>
 
     * configure.in: The test for <ncurses/curses.h> is failure on Plamo Linux
-    1.3/ncurses 1.9.9e in spite of existance of /usr/include/ncurses/curses.h:
+    1.3/ncurses 1.9.9e in spite of existence of /usr/include/ncurses/curses.h:
     /usr/include/ncurses/curses.h:34: unctrl.h: No such file or directory
     But surely there is unctl.h at /usr/include/ncurses/unctrl.h.
     So I added -I/usr/include/ncurses option to CPPFLAG.
@@ -3164,7 +3173,7 @@ Files: timidity/nas_a.c
 >From: Yoshishige ARAI <ryo2@on.rim.or.jp>
 >Files: interface/xaw_i.c doc/C/README.xaw doc/ja_JP.ujis/README.xaw
 >    Fixed XAW bug.
->    Chnaged some discriptions for XAW document.
+>    Changed some descriptions for XAW document.
 
 Date: Sat, 3 Apr 1999 19:33:28 +1000 (EST)
 From: ggt@netspace.net.au (Glenn Trigg)
@@ -3176,7 +3185,7 @@ Files: interface/gtk_i.c
     a list of midi filenames.
     A menu item which lets you clear the list of loaded midi files.
     I also changed a bunch of printf's in this file to g_warning's which
-    removed the dependancy on stdio.h.
+    removed the dependency on stdio.h.
 
 Date: Sat Apr 3 1999
 From: Masanao Izumo <mo@goice.co.jp>
@@ -3196,7 +3205,7 @@ From: Masanao Izumo <mo@goice.co.jp>
 Files: timidity/aq.c timidity/playmidi.c
     Fixed bug of aq_flush().
 >Files: timidity/playmidi.c
->    Fixed bug of drumpart recognization.
+>    Fixed bug of drumpart recognition.
 >Files: interface/ncurs_c.c
 >    Fixed bug about buffer over-running of comment_indicator_buffer.
 
@@ -3210,11 +3219,11 @@ Files: libarc/arc_lzh.c libarc/url_dir.c timidity/common.c utils/timer.c
     Patched for Macintosh.
 	- Fixed to compile arc_lzh.c and url_dir.c
 	- Enabled to read archive files.
-	- Implemented get_current_calender_time().
+	- Implemented get_current_calendar_time().
 
 Date: Fri Mar 26 1999
 From: Masanao Izumo <mo@goice.co.jp>
-    Imported Macinotsh sources from the 1999.3.13 of T.Nogami released
+    Imported Macintosh sources from the 1999.3.13 of T.Nogami released
 
 Date: Fri Mar 26 1999
 From: Masanao Izumo <mo@goice.co.jp>
@@ -3231,11 +3240,11 @@ Files: interface/ncurs_c.c
     is disable and the current song is the 1st song in the playlist.
 Files: timidity/common.c
       Created a expand_names_lists() function in common.c which is used to
-    support the use of playlist files.  It checks for the extentions of
+    support the use of playlist files.  It checks for the extensions of
     .m3u, .pls, and .asx (extensions supported by WinAMP) to indicate a
     playlist file.  It then reads the files and inserts the file names
     inside the files in to the timidity playlist.  I also let it use any
-    file "foo" if it is preceeded by an '@' on the command line arguments.
+    file "foo" if it is preceded by an '@' on the command line arguments.
     `timidity @foo` would use the file "foo" as a playlist file.  This is
     syntax left over from some old MS-DOS system commands that I am used
     to using.
@@ -3257,13 +3266,13 @@ Files: configure.in
 Date: Fri Mar 23 1999
 From: Masanao Izumo <mo@goice.co.jp>
 Files: interface/xaw_i.c interface/xaw_redef.c
-    Implemeted re-definition for -lXaw(3d)'s vendorShellWidgetClass
+    Implemented re-definition for -lXaw(3d)'s vendorShellWidgetClass
     if Motif interface was linked.
 
 Date: Fri Mar 19 1999
 From: Masanao Izumo <mo@goice.co.jp>
 Files: timidity/playmidi.c
-    Changed calcration parameter of audio reduction for small audio buffer.
+    Changed calculation parameter of audio reduction for small audio buffer.
 Files: interface/ncurs_c.c
     Changed the place of audio queue displaying.
 
@@ -3333,7 +3342,7 @@ Date: Tue, 09 Mar 1999 15:36:44 +0900
 From: "KINOSHITA, K." <kino@krhm.jvc-victor.co.jp>
 Files: timidity/playmidi.h timidity/readmidi.c
     Added follows MIDI Events (Not play yet. Reading only)
-	BREATH, FOOT, BALANCE, SOSTENUTO, SOFT PEDAL,
+	BREATH, FOOT, BALANCE, SOSTENUETO, SOFT PEDAL,
 	TREMOLO EFFECT, CELESTE EFFECT, PHASER EFFECT
 
 Date: Tue, 09 Mar 1999 12:25:11 +0900
@@ -3356,7 +3365,7 @@ Files: interface/x_sherry.c
 Date: Sat Mar 6 1999
 From: Masanao Izumo <mo@goice.co.jp>
 Files: timidity/{timidity.c,output.c,aq.c,effect.c}
-    Added effect.c to implement generic effecters.
+    Added effect.c to implement generic effectors.
     Move the noise shaping filter to effect.c from output.c.
     Obsoleted -n option.  Use -EFns=? instead of -n?.
 Files: timidity/wave_a.c
@@ -3425,7 +3434,7 @@ The implementation notes.
         Use to convert specified encoding to validate encoding.
 
   * effect.c:
-    Move some effect routins into effect.c.
+    Move some effect routines into effect.c.
       Reverb effect (partial)
       Noise shaping filter	(move from output.c)
       L/R delay effect		(move from playmidi.c)

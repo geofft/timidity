@@ -2294,8 +2294,8 @@ static void new_chorus_voice_alternate(int v1, int level)
 
     /* lower the volumes so that the two notes add to roughly the orig. vol */
     vol = voice[v1].velocity;
-    voice[v1].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING2);
-    voice[v2].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING2);
+    voice[v1].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING1);
+    voice[v2].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING1);
 
     /* Make doubled link v1 and v2 */
     voice[v1].chorus_link = v2;
@@ -2314,11 +2314,12 @@ static void new_chorus_voice_alternate(int v1, int level)
 
     MYCHECK(voice[v2].orig_frequency);
 
+    delay = 0.0025;
+
     /* Try to keep the delayed voice from cancelling out the other voice */
     /* Don't bother with trying to figure out drum pitches... */
     /* Don't bother with mod files for the same reason... */
     /* Drums and mods could be fixed, but pitch detection is too expensive */
-    delay = DEFAULT_CHORUS_DELAY2;
     if (!ISDRUMCHANNEL(voice[v1].channel) &&
     	current_file_info->file_type != IS_MOD_FILE &&
     	current_file_info->file_type != IS_S3M_FILE)
@@ -2326,7 +2327,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     	double freq, frac;
     
     	freq = pitch_freq_table[voice[v1].note];
-    	delay = DEFAULT_CHORUS_DELAY2 * freq;
+    	delay *= freq;
     	frac = delay - floor(delay);
 
 	/* force the delay away from 0.5 period */
@@ -2343,7 +2344,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     	    	delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
     	}
     	else
-    	    delay = DEFAULT_CHORUS_DELAY2;
+	    delay = 0.0025;
     }
 
     /* set panning & delay for pseudo-surround effect */
@@ -2416,19 +2417,21 @@ static void note_on(MidiEvent *e)
 	voice[v].right_mix_inc = voice[v].right_mix_offset = 0;
 #endif
 #ifdef USE_DSP_EFFECT
+	if(opt_surround_chorus)
+	    new_chorus_voice_alternate(v, 0);
 #else
 	if((channel[ch].chorus_level || opt_surround_chorus))
 	{
-		if(opt_surround_chorus)
+	    if(opt_surround_chorus)
 		new_chorus_voice_alternate(v, channel[ch].chorus_level);
-		else
+	    else
 		new_chorus_voice(v, channel[ch].chorus_level);
 	}
 	if(channel[ch].delay_level)
 	{
-		new_delay_voice(v, channel[ch].delay_level);
+	    new_delay_voice(v, channel[ch].delay_level);
 	}
-#endif /* USE_DSP_EFFECT */
+#endif
     }
 
     channel[ch].legato_flag = 1;
@@ -2616,12 +2619,13 @@ static void adjust_panning(int c)
             /* adjust pan to include drum/sample pan offsets */
 			pan = get_panning(c,i,i);
 
+	    /* Hack to handle -EFchorus=2 in a "reasonable" way */
 #ifdef USE_DSP_EFFECT
-			voice[i].panning = pan;
+	    if(opt_surround_chorus && voice[i].chorus_link != i)
 #else
-		/* Hack to handle -EFchorus=2 in a "reasonable" way */
 	    if((channel[c].chorus_level || opt_surround_chorus) &&
 	       voice[i].chorus_link != i)
+#endif
 	    {
 		int v1, v2;
 
@@ -2664,7 +2668,6 @@ static void adjust_panning(int c)
 	    }
 	    else
 		voice[i].panning = pan;
-#endif
 
 	    recompute_amp(i);
 	    apply_envelope_to_amp(i);

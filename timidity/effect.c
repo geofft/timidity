@@ -55,33 +55,36 @@ static void ns_shaping16(int32* buf, int32 count);
 
 void do_effect(int32* buf, int32 count)
 {
-	/* reverb in mono */
+    /* reverb in mono */
     if(opt_reverb_control && (play_mode->encoding & PE_MONO)) {
-		do_mono_reverb(buf, count);
-	}
-
-	/* for static reverb / chorus level */
-	if(opt_reverb_control < 0 || opt_chorus_control < 0) {
-		set_dry_signal(buf,2 * count);
-		if(opt_chorus_control < 0) {
-			set_ch_chorus(buf, 2 * count, -opt_chorus_control);
-		}
-		if(opt_reverb_control < 0) {
-			set_ch_reverb(buf, 2 * count, -opt_reverb_control);
-		}
-
-		mix_dry_signal(buf,2 * count);
-		if(opt_chorus_control < 0) {do_ch_chorus(buf, 2 * count);}
-		if(opt_reverb_control < 0) {do_ch_reverb(buf, 2 * count);}
+	do_mono_reverb(buf, count);
     }
 
-	/* L/R Delay */
+#ifndef USE_DSP_EFFECTS     /* do_compute_data_midi() already applied them */
+    /* for static reverb / chorus level */
+    if(opt_reverb_control < 0 || opt_chorus_control < 0) {
+	set_dry_signal(buf,2 * count);
+
+	if(opt_chorus_control < 0) {
+	    set_ch_chorus(buf, 2 * count, -opt_chorus_control);
+	}
+	if(opt_reverb_control < 0) {
+	    set_ch_reverb(buf, 2 * count, -opt_reverb_control);
+	}
+
+	mix_dry_signal(buf,2 * count);
+	if(opt_chorus_control < 0) {do_ch_chorus(buf, 2 * count);}
+	if(opt_reverb_control < 0) {do_ch_reverb(buf, 2 * count);}
+    }
+#endif /* USE_DSP_EFFECTS */
+
+    /* L/R Delay */
     effect_left_right_delay(buf, count);
 
     /* Noise shaping filter must apply at last */
     if(!(play_mode->encoding & (PE_16BIT|PE_ULAW|PE_ALAW)))
 	ns_shaping8(buf, count);
-	else if(play_mode->encoding & PE_16BIT)
+    else if(play_mode->encoding & PE_16BIT)
 	ns_shaping16(buf,count);
 }
 
