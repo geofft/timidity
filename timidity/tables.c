@@ -1170,6 +1170,16 @@ void init_perceived_vol_table(void)
 				127.0 * pow((double)i / 127.0, 1.66096404744);
 }
 
+FLOAT_T gm2_vol_table[128];
+
+void init_gm2_vol_table(void)
+{
+	int i;
+	
+	for(i = 0; i < 128; i++)
+		gm2_vol_table[i] = (i * i) / 127.0;
+}
+
 FLOAT_T user_vol_table[128];
 
 void init_user_vol_table(FLOAT_T power)

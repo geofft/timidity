@@ -65,6 +65,7 @@ extern FLOAT_T chorus_delay_time_table[];
 extern FLOAT_T rate1_table[];
 extern FLOAT_T attack_vol_table[];
 extern FLOAT_T perceived_vol_table[];
+extern FLOAT_T gm2_vol_table[];
 extern FLOAT_T user_vol_table[];
 extern FLOAT_T sc_eg_attack_table[];
 extern FLOAT_T sc_eg_decay_table[];
@@ -98,6 +99,7 @@ extern void init_convex_vol_table(void);
 extern void init_def_vol_table(void);
 extern void init_gs_vol_table(void);
 extern void init_perceived_vol_table(void);
+extern void init_gm2_vol_table(void);
 extern void init_user_vol_table(FLOAT_T power);
 
 #endif /* ___TABLES_H_ */
