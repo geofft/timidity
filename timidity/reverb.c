@@ -542,7 +542,7 @@ void do_basic_delay(int32* buf, int32 count)
 
 	level = TIM_FSCALE(delay_status.level_ratio_c, 24);
 	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 24);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -603,7 +603,7 @@ void do_cross_delay(int32* buf, int32 count)
 	level_c = TIM_FSCALE(delay_status.level_ratio_c, 24);
 	level_l = TIM_FSCALE(delay_status.level_ratio_l, 24);
 	level_r = TIM_FSCALE(delay_status.level_ratio_r, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 24);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -678,7 +678,7 @@ void do_3tap_delay(int32* buf, int32 count)
 	level_c = TIM_FSCALE(delay_status.level_ratio_c, 24);
 	level_l = TIM_FSCALE(delay_status.level_ratio_l, 24);
 	level_r = TIM_FSCALE(delay_status.level_ratio_r, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 24);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -805,7 +805,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 
 	level = TIM_FSCALE(chorus_param.level_ratio, 24);
 	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 24);
-	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio, 24);
+	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio * REV_INP_LEV, 24);
 	send_delay = TIM_FSCALE(chorus_param.send_delay_ratio, 24);
 	depth = chorus_param.depth_in_sample;
 	delay = chorus_param.delay_in_sample;
@@ -1457,34 +1457,8 @@ static void init_comb(comb *comb)
 #define initialwidth 1
 #define initialallpassfbk 0.5f
 #define stereospread 23
-
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
-
-#define combtuningL1 1116
-#define combtuningR1 1116 + stereospread
-#define combtuningL2 1188
-#define combtuningR2 1188 + stereospread
-#define combtuningL3 1277
-#define combtuningR3 1277 + stereospread
-#define combtuningL4 1356
-#define combtuningR4 1356 + stereospread
-#define combtuningL5 1422
-#define combtuningR5 1422 + stereospread
-#define combtuningL6 1491
-#define combtuningR6 1491 + stereospread
-#define combtuningL7 1557
-#define combtuningR7 1557 + stereospread
-#define combtuningL8 1617
-#define combtuningR8 1617 + stereospread
-#define allpasstuningL1 556
-#define allpasstuningR1 556 + stereospread
-#define allpasstuningL2 441
-#define allpasstuningR2 441 + stereospread
-#define allpasstuningL3 341
-#define allpasstuningR3 341 + stereospread
-#define allpasstuningL4 225
-#define allpasstuningR4 225 + stereospread
 #define fixedgain 0.015f
 
 typedef struct _revmodel_t {
@@ -1607,41 +1581,41 @@ static void init_revmodel(revmodel_t *rev)
 
 static void alloc_revmodel(void)
 {
-	static int alloc_flag = 0;
+	static int revmodel_alloc_flag = 0;
 	revmodel_t *rev;
-	if(alloc_flag) {return;}
+	if(revmodel_alloc_flag) {return;}
 	if(revmodel == NULL) {
 		revmodel = (revmodel_t *)safe_malloc(sizeof(revmodel_t));
+		if(revmodel == NULL) {return;}
 		memset(revmodel, 0, sizeof(revmodel_t));
 	}
-	if(revmodel == NULL) {return;}
 	rev = revmodel;
 
-	setbuf_comb(&rev->combL[0], combtuningL1);
-	setbuf_comb(&rev->combR[0], combtuningR1);
-	setbuf_comb(&rev->combL[1], combtuningL2);
-	setbuf_comb(&rev->combR[1], combtuningR2);
-	setbuf_comb(&rev->combL[2], combtuningL3);
-	setbuf_comb(&rev->combR[2], combtuningR3);
-	setbuf_comb(&rev->combL[3], combtuningL4);
-	setbuf_comb(&rev->combR[3], combtuningR4);
-	setbuf_comb(&rev->combL[4], combtuningL5);
-	setbuf_comb(&rev->combR[4], combtuningR5);
-	setbuf_comb(&rev->combL[5], combtuningL6);
-	setbuf_comb(&rev->combR[5], combtuningR6);
-	setbuf_comb(&rev->combL[6], combtuningL7);
-	setbuf_comb(&rev->combR[6], combtuningR7);
-	setbuf_comb(&rev->combL[7], combtuningL8);
-	setbuf_comb(&rev->combR[7], combtuningR8);
+	setbuf_comb(&rev->combL[0], combtunings[0]);
+	setbuf_comb(&rev->combR[0], combtunings[0] + stereospread);
+	setbuf_comb(&rev->combL[1], combtunings[1]);
+	setbuf_comb(&rev->combR[1], combtunings[1] + stereospread);
+	setbuf_comb(&rev->combL[2], combtunings[2]);
+	setbuf_comb(&rev->combR[2], combtunings[2] + stereospread);
+	setbuf_comb(&rev->combL[3], combtunings[3]);
+	setbuf_comb(&rev->combR[3], combtunings[3] + stereospread);
+	setbuf_comb(&rev->combL[4], combtunings[4]);
+	setbuf_comb(&rev->combR[4], combtunings[4] + stereospread);
+	setbuf_comb(&rev->combL[5], combtunings[5]);
+	setbuf_comb(&rev->combR[5], combtunings[5] + stereospread);
+	setbuf_comb(&rev->combL[6], combtunings[6]);
+	setbuf_comb(&rev->combR[6], combtunings[6] + stereospread);
+	setbuf_comb(&rev->combL[7], combtunings[7]);
+	setbuf_comb(&rev->combR[7], combtunings[7] + stereospread);
 
-	setbuf_allpass(&rev->allpassL[0], allpasstuningL1);
-	setbuf_allpass(&rev->allpassR[0], allpasstuningR1);
-	setbuf_allpass(&rev->allpassL[1], allpasstuningL2);
-	setbuf_allpass(&rev->allpassR[1], allpasstuningR2);
-	setbuf_allpass(&rev->allpassL[2], allpasstuningL3);
-	setbuf_allpass(&rev->allpassR[2], allpasstuningR3);
-	setbuf_allpass(&rev->allpassL[3], allpasstuningL4);
-	setbuf_allpass(&rev->allpassR[3], allpasstuningR4);
+	setbuf_allpass(&rev->allpassL[0], allpasstunings[0]);
+	setbuf_allpass(&rev->allpassR[0], allpasstunings[0] + stereospread);
+	setbuf_allpass(&rev->allpassL[1], allpasstunings[1]);
+	setbuf_allpass(&rev->allpassR[1], allpasstunings[1] + stereospread);
+	setbuf_allpass(&rev->allpassL[2], allpasstunings[2]);
+	setbuf_allpass(&rev->allpassR[2], allpasstunings[2] + stereospread);
+	setbuf_allpass(&rev->allpassL[3], allpasstunings[3]);
+	setbuf_allpass(&rev->allpassR[3], allpasstunings[3] + stereospread);
 
 	rev->allpassL[0].feedback = initialallpassfbk;
 	rev->allpassR[0].feedback = initialallpassfbk;
@@ -1657,10 +1631,7 @@ static void alloc_revmodel(void)
 	rev->width = initialwidth;
 	rev->roomsize = initialroom * scaleroom + offsetroom;
 
-	update_revmodel(rev);
-	init_revmodel(rev);
-
-	alloc_flag = 1;
+	revmodel_alloc_flag = 1;
 }
 
 static void free_revmodel(void)
@@ -1674,7 +1645,6 @@ static void free_revmodel(void)
 			if(revmodel->combR[i].buf != NULL)
 				free(revmodel->combR[i].buf);
 		}
-
 		for(i = 0; i < numallpasses; i++)
 		{
 			if(revmodel->allpassL[i].buf != NULL)
@@ -1801,9 +1771,11 @@ void init_reverb(int32 output_rate)
 	sample_rate = output_rate;
 	if(opt_effect_quality >= 2) {
 		alloc_revmodel();
+		update_revmodel(revmodel);
+		init_revmodel(revmodel);
 		memset(effect_buffer, 0, effect_bufsize);
 		memset(direct_buffer, 0, direct_bufsize);
-		REV_INP_LEV = fixedgain;
+		REV_INP_LEV = fixedgain * (1.0 + (double)(opt_effect_quality - 2) * 0.1);
 	} else {
 		ta = 0; tb = 0;
 		HPFL = 0; HPFR = 0;
@@ -1829,17 +1801,7 @@ void init_reverb(int32 output_rate)
 		def_rpt3 = rpt3 = REV_VAL3 * output_rate / 1000;
 
 		REV_INP_LEV = 1.0;
-	}
-}
 
-void recompute_reverb_value(int32 output_rate)
-{
-	init_reverb(output_rate);
-	if(opt_effect_quality >= 2) {
-		update_revmodel(revmodel);
-		init_revmodel(revmodel);
-		REV_INP_LEV = fixedgain * (1.0 + (double)(opt_effect_quality - 2) * 0.1);
-	} else {
 		rpt0 = def_rpt0 * reverb_status.time_ratio;
 		rpt1 = def_rpt1 * reverb_status.time_ratio;
 		rpt2 = def_rpt2 * reverb_status.time_ratio;

@@ -37,6 +37,7 @@
 #include <math.h>
 #include "timidity.h"
 #include "common.h"
+#include "mt19937ar.h"
 #include "tables.h"
 
 int32 freq_table[128];
@@ -330,6 +331,23 @@ FLOAT_T lookup_sine(int x)
 }
 #endif /* LOOKUP_SINE */
 
+static FLOAT_T triangular_table[257];
+
+void init_triangular_table(void)
+{
+	int i;
+	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
+    init_by_array(init, length);
+
+	for (i = 0; i < 257; i++) {
+		triangular_table[i] = (double)(i - (genrand_int32() % 2)) / 256.0;
+		if(triangular_table[i] < 0) {triangular_table[i] = 0;}
+		else if(triangular_table[i] > 1.0) {triangular_table[i] = 1.0;}
+	}
+	triangular_table[0] = 0.0;
+	triangular_table[256] = 1.0;
+}
+
 FLOAT_T lookup_triangular(int x)
 {
   int xx = x & 0xFF;
@@ -337,13 +355,13 @@ FLOAT_T lookup_triangular(int x)
     {
     default:
     case 0:
-      return (FLOAT_T)xx / 256;
+      return triangular_table[xx];
     case 1:
-      return (FLOAT_T)(256 - xx) / 256;
+      return triangular_table[0x100 - xx];
     case 2:
-      return -(FLOAT_T)xx / 256;
+      return -triangular_table[xx];
     case 3:
-      return -(FLOAT_T)(256 - xx) / 256;
+      return -triangular_table[0x100 - xx];
     }
 }
 
@@ -394,7 +412,7 @@ int8 *iplookup;
 void init_tables(void)
 {
   int i;
-  FLOAT_T *velocity_vol_table;
+
 #ifdef LOOKUP_HACK
   int j,v;
   mixup = (int32 *)safe_malloc(1<<(7+8+2)); /* Give your cache a workout! */
@@ -418,6 +436,7 @@ void init_tables(void)
 #endif
 
 #endif
+	init_triangular_table();
 }
 
 #ifdef LOOKUP_HACK

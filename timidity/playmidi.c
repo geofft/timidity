@@ -658,7 +658,7 @@ void recompute_freq(int v)
 				* (double)voice[v].sample->tremolo_to_pitch * (1 << 13) / 100.0f;
 		}
 		if(voice[v].sample->modenv_to_pitch) {
-			tuning += voice[v].last_modenv_volume
+			tuning += (1.0 - sb_vol_table[1023 - (int)(voice[v].last_modenv_volume * 1023)])
 				* (double)voice[v].sample->modenv_to_pitch * (1 << 13) / 100.0f;
 		}
 	}
@@ -2935,7 +2935,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Macro (%d)",val);
 			set_reverb_macro(val);
 			recompute_reverb_status();
-			recompute_reverb_value(play_mode->rate);
+			init_reverb(play_mode->rate);
 			break;
 		case 0x06:	/* Reverb Character */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Character (%d)",val);
@@ -2956,7 +2956,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Time (%d)",val);
 			reverb_status.time = val;
 			recompute_reverb_status();
-			recompute_reverb_value(play_mode->rate);
+			init_reverb(play_mode->rate);
 			break;
 		case 0x0A:	/* Reverb Delay Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Delay Feedback (%d)",val);

@@ -892,6 +892,7 @@ Instrument *load_instrument(int dr, int b, int prog)
     char infomsg[256];
     int font_bank, font_preset, font_keynote;
 
+#ifndef CFG_FOR_SF
 	if(b == 64 || b == 65) {
 		if(dr) {	/* User Drumset */
 			recompute_userdrum(b, prog);
@@ -899,6 +900,7 @@ Instrument *load_instrument(int dr, int b, int prog)
 			recompute_userinst(b, prog);
 		}
 	}
+#endif
 
     if(bank->tone[prog].instype == 1
 	|| bank->tone[prog].instype == 2)

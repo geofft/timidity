@@ -46,6 +46,7 @@ typedef struct _Sample {
     vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
+  int8 tremolo_type, vibrato_type;
   int32 cutoff_freq;	/* in Hz, [1, 20000] */
   int16 resonance;	/* in centibels, [0, 960] */
   /* in cents, [-12000, 12000] */

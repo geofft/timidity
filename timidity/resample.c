@@ -44,29 +44,28 @@
 #include "recache.h"
 
 #if defined(CSPLINE_INTERPOLATION)
-# define INTERPVARS      splen_t ofsd; int32 v0, v1, v2, v3, temp;
+# define INTERPVARS      int32 ofsi, ofsf, v0, v1, v2, v3, temp;
 # define RESAMPLATION \
-        v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-        v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
+		ofsi = ofs >> FRACTION_BITS;	\
+        v1 = src[ofsi]; \
+        v2 = src[ofsi + 1]; \
 	if(reduce_quality_flag || \
 	   (ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
                 *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
-		ofsd=ofs; \
-                v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
-                v3 = (int32)src[(ofs>>FRACTION_BITS)+2]; \
-                ofs &= FRACTION_MASK; \
-	        temp=v2; \
- 		v2 = (6*v2+((((5*v3 - 11*v2 + 7*v1 - v0)>>2)* \
- 		     (ofs+(1L<<FRACTION_BITS))>>FRACTION_BITS)* \
- 		     (ofs-(1L<<FRACTION_BITS))>>FRACTION_BITS)) \
- 		     *ofs; \
- 		v1 = (((6*v1+((((5*v0 - 11*v1 + 7*temp - v3)>>2)* \
- 		     ofs>>FRACTION_BITS)*(ofs-(2L<<FRACTION_BITS)) \
- 		     >>FRACTION_BITS))*((1L<<FRACTION_BITS)-ofs))+v2) \
- 		     /(6L<<FRACTION_BITS); \
- 		*dest++ = (v1 > 32767)? 32767: ((v1 < -32768)? -32768: v1); \
-		ofs = ofsd; \
+        v0 = src[ofsi - 1]; \
+        v3 = src[ofsi + 2]; \
+        ofsf = ofs & FRACTION_MASK; \
+	    temp = v2; \
+ 		v2 = (6 * v2 + ((((5 * v3 - 11 * v2 + 7 * v1 - v0) >> 2) * \
+ 		     (ofsf + (1L << FRACTION_BITS)) >> FRACTION_BITS) * \
+ 		     (ofsf - (1L << FRACTION_BITS)) >> FRACTION_BITS)) \
+ 		     * ofsf; \
+ 		v1 = (((6 * v1+((((5 * v0 - 11 * v1 + 7 * temp - v3) >> 2) * \
+ 		     ofsf >> FRACTION_BITS) * (ofsf - (2L << FRACTION_BITS)) \
+ 		     >> FRACTION_BITS)) * ((1L << FRACTION_BITS) - ofsf)) + v2) \
+ 		     / (6L << FRACTION_BITS); \
+ 		*dest++ = (v1 > 32767) ? 32767: ((v1 < -32768)? -32768: v1); \
 	}
 #elif defined(LAGRANGE_INTERPOLATION)
 # define INTERPVARS      splen_t ofsd; int32 v0, v1, v2, v3;
@@ -504,6 +503,7 @@ static int32 update_vibrato(Voice *vp, int sign)
 		 ((double)(vp->sample->root_freq) *
 		  (double)(play_mode->rate)),
 		 FRACTION_BITS);
+
   if(pb < 0)
   {
       pb = -pb;

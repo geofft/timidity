@@ -1356,6 +1356,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	val = abscent_to_Hz(val);
 
+#ifndef CFG_FOR_SF
 	if(!opt_modulation_envelope) {
 		if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
 		{
@@ -1363,6 +1364,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 			if(val > 20000) {val = 20000;}
 		}
 	}
+#endif
 
 	vp->cutoff_freq = val;
     }
@@ -1428,10 +1430,12 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(vp->root >= vp->high + 60)
       vp->root -= 60;
 
+#ifndef CFG_FOR_SF
     /* correct tune with the sustain level of modulation envelope */
 	if(!opt_modulation_envelope && tbl->set[SF_env1ToPitch] && tbl->set[SF_sustainEnv1]) {
 	    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
 	}
+#endif
 
 	if(tbl->set[SF_lfo1ToPitch])
 		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
@@ -1606,7 +1610,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
  *********************************************************************/
 
 static FILE *x_out;
-static char *x_sf_file_name = NULL;
+static char x_sf_file_name[1024];
 static int x_pre_bank = -1;
 static int x_pre_preset = -1;
 static int x_sort = 1;
@@ -1726,8 +1730,6 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 	x_pre_preset = x_preset;
 	return 0;
 }
-
-
 int32 control_ratio = 0;
 PlayMode *play_mode = NULL;
 int32 freq_table[1];
@@ -1812,6 +1814,8 @@ static struct URL_module *url_module_list[] =
 #endif /* main */
     NULL
 };
+
+
 int main(int argc, char **argv)
 {
     SFInsts *sf;
@@ -1850,13 +1854,16 @@ int main(int argc, char **argv)
 #endif /* SUPPORT_SOCKET */
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
-	x_sf_file_name = argv[1];
+	strncpy(x_sf_file_name, argv[1], 1024);
     sf = new_soundfont(x_sf_file_name);
     sf->next = NULL;
     sf->def_order = 2;
     sfrecs = sf;
 	x_cfg_info_init();
 	init_sf(sf);
+	if(strstr(x_sf_file_name, " ") != NULL) {
+		sprintf(x_sf_file_name, "\"%s\"", argv[1]);
+	}
 	if(x_sort){
 	for(x_bank=0;x_bank<=127;x_bank++){
 		int flag = 0;

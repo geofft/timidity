@@ -4065,7 +4065,7 @@ void init_reverb_status()
 	reverb_status.delay_feedback = 0;
 	reverb_status.pre_delay_time = 0;
 	recompute_reverb_status();
-	recompute_reverb_value(play_mode->rate);
+	init_reverb(play_mode->rate);
 }
 
 void recompute_reverb_status()

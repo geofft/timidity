@@ -1,4 +1,27 @@
 
+2003-04-24  Saito <timidity@flashmail.com>
+
+	* timidity/reverb.c, timidity/playmidi.c, timidity/readmidi.c:
+	  Fix around new reverb.
+	* timidity/tables.c:
+	  Randomize triangular waveform for SoundFont's LFO.
+	* timidity/instrum.h:
+	  Add some parameter to Sample struct.
+
+2003-04-23  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c, timidity/playmidi.c, timidity/instrum.c:
+	  Fix about cfgforsf.
+
+2003-04-22  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c:
+	  Fix about modulation envelope to picth.
+	* timidity/reverb.c:
+	  Fix around reverb initialize.
+	* timidity/recache.c, timidity/resample.c:
+	  Fix around CSPLINE_INTERPOLATION.
+
 2003-04-21  Saito <timidity@flashmail.com>
 
 	* timidity/instrum.[ch], timidity/playmidi.c,

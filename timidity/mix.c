@@ -194,22 +194,29 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 			a2 = fc->a2, b02 = fc->b02, b1 = fc->b1,
 			a1_incr = fc->a1_incr, a2_incr = fc->a2_incr,
 			b02_incr = fc->b02_incr, b1_incr = fc->b1_incr;
-		for(i=0;i<count;i++) {
+		if(filter_coeff_incr_count > count) {
+			filter_coeff_incr_count = count;
+		}
+		for(i=0;i<filter_coeff_incr_count;i++) {
 			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
 			lp[i] = imuldiv24(b02, centernode + hist2)
 				+ imuldiv24(b1, hist1);
 			hist2 = hist1, hist1 = centernode;
 
-			if(filter_coeff_incr_count-- > 0) {
-				a1 += a1_incr;
-				a2 += a2_incr;
-				b02 += b02_incr;
-				b1 += b1_incr;
-			}
+			a1 += a1_incr;
+			a2 += a2_incr;
+			b02 += b02_incr;
+			b1 += b1_incr;
+		}
+		for(i=filter_coeff_incr_count;i<count;i++) {
+			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
+			lp[i] = imuldiv24(b02, centernode + hist2)
+				+ imuldiv24(b1, hist1);
+			hist2 = hist1, hist1 = centernode;
 		}
 		fc->hist1 = hist1, fc->hist2 = hist2;
 		fc->a1 = a1, fc->a2 = a2, fc->b02 = b02, fc->b1 = b1,
-		fc->filter_coeff_incr_count = filter_coeff_incr_count;
+		fc->filter_coeff_incr_count -= filter_coeff_incr_count;
 		return;
 	} else {
 		recalc_voice_resonance(v);
