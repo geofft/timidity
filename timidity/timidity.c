@@ -4790,7 +4790,12 @@ int main(int argc, char **argv)
 #endif
 #ifdef AU_ESD
     if(play_mode == NULL) {
-	    if(!access("/usr/lib/libesd.so.0", R_OK)) {
+#if defined(__x86_64__) || (__powerpc64__)
+	    const char *libesd_path = "/usr/lib64/libesd.so.0";
+#else
+	    const char *libesd_path = "/usr/lib/libesd.so.0";
+#endif
+	    if(!access(libesd_path, R_OK)) {
 		    setenv("ESD_NO_SPAWN", "1", 0);
 		    set_play_mode("e");
 	    }
