@@ -140,6 +140,7 @@ EXTRA_timidity_SOURCES = \
 	portaudio_a.c \
 	sun_a.c \
 	vorbis_a.c \
+	flac_a.c \
 	w32_a.c \
 	w32_gogo.c \
 	w32_gogo.h \

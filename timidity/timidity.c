@@ -193,6 +193,14 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
+#ifdef AU_FLAC
+	TIM_OPT_FLAC_VERIFY,
+	TIM_OPT_FLAC_PADDING,
+	TIM_OPT_FLAC_COMPRESSION_LEVEL,
+#ifdef AU_OGGFLAC
+	TIM_OPT_FLAC_OGGFLAC,
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -317,6 +325,14 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
+#ifdef AU_FLAC
+	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
+	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
+	{ "flac-compression-level", required_argument, NULL, TIM_OPT_FLAC_COMPRESSION_LEVEL },
+#ifdef AU_OGGFLAC
+	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -439,6 +455,14 @@ static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
 static inline int parse_opt_default_module(const char *);
+#ifdef AU_FLAC
+static inline int parse_opt_flac_verify(const char *);
+static inline int parse_opt_flac_padding(const char *);
+static inline int parse_opt_flac_compression_level(const char *);
+#ifdef AU_OGGFLAC
+static inline int parse_opt_flac_oggflac(const char *);
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
@@ -2776,6 +2800,18 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
+#ifdef AU_FLAC
+	case TIM_OPT_FLAC_VERIFY:
+		return parse_opt_flac_verify(arg);
+	case TIM_OPT_FLAC_PADDING:
+		return parse_opt_flac_padding(arg);
+	case TIM_OPT_FLAC_COMPRESSION_LEVEL:
+		return parse_opt_flac_compression_level(arg);
+#ifdef AU_OGGFLAC
+	case TIM_OPT_FLAC_OGGFLAC:
+		return parse_opt_flac_oggflac(arg);
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3795,7 +3831,19 @@ static inline int parse_opt_h(const char *arg)
 	fputs(NLS, fp);
 #ifdef AU_AO
 	show_ao_device_info(fp);
+	fputs(NLS, fp);
 #endif /* AU_AO */
+	fputs(NLS, fp);
+#ifdef AU_FLAC
+	fputs("FLAC output format long options:" NLS
+"  --flac-verify                 Verify a correct encoding" NLS
+"  --flac-padding=n              Write a PADDING block of length n" NLS
+"  --flac-compression-level=n    Set compression level n:[0..8]" NLS
+#ifdef AU_OGGFLAC
+"  --oggflac                     Output OggFLAC stream(experimental)" NLS
+#endif /* AU_OGGFLAC */
+, fp);
+#endif /* AU_FLAC */
 	close_pager(fp);
 	exit(EXIT_SUCCESS);
 }
@@ -4558,6 +4606,37 @@ static inline int parse_opt_default_module(const char *arg)
 	return 0;
 }
 
+#ifdef AU_FLAC
+extern void flac_set_option_verify(int verify);
+extern void flac_set_option_padding(int padding);
+extern void flac_compression_level_preset(int compression_level);
+
+static inline int parse_opt_flac_verify(const char *arg)
+{
+	flac_set_option_verify(1);
+	return 0;
+}
+static inline int parse_opt_flac_padding(const char *arg)
+{
+	flac_set_option_padding(atoi(arg));
+	return 0;
+}
+static inline int parse_opt_flac_compression_level(const char *arg)
+{
+	flac_set_compression_level(atoi(arg));
+	return 0;
+}
+#ifdef AU_OGGFLAC
+extern void flac_set_option_oggflac();
+
+static inline int parse_opt_flac_oggflac(const char *arg)
+{
+	flac_set_option_oggflac(1);
+	return 0;
+}
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
+
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *arg)
 {
@@ -4923,7 +5002,6 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     /* UNIX */
     if(!read_config_file(CONFIG_FILE, 0)) {
 		got_a_configuration = 1;
-		return 0;
 	}
 #endif
 
@@ -4936,6 +5014,8 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     if(read_user_config_file())
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 		  "Warning: Can't read ~/.timidity.cfg correctly");
+    else
+	got_a_configuration = 1;
     return 0;
 }
 

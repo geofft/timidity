@@ -422,6 +422,7 @@ EXTRA_timidity_SOURCES = \
 	portaudio_a.c \
 	sun_a.c \
 	vorbis_a.c \
+	flac_a.c \
 	w32_a.c \
 	w32_gogo.c \
 	w32_gogo.h \
@@ -436,9 +437,9 @@ calcnewt_SOURCES = calcnewt.c
 
 CLEANFILES = newton_table.c
 
-@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
-
 @ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+
+@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.o) \
@@ -524,13 +525,13 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/dl_dyld.Po ./$(DEPDIR)/dl_hpux.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/dl_w32.Po ./$(DEPDIR)/effect.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/esd_a.Po ./$(DEPDIR)/filter.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/freq.Po ./$(DEPDIR)/gogo_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/hpux_a.Po ./$(DEPDIR)/hpux_d_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/instrum.Po ./$(DEPDIR)/jack_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/list_a.Po ./$(DEPDIR)/loadtab.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/m2m.Po ./$(DEPDIR)/mac_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mac_dlog.Po ./$(DEPDIR)/mac_main.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mac_qt_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/flac_a.Po ./$(DEPDIR)/freq.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/gogo_a.Po ./$(DEPDIR)/hpux_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/hpux_d_a.Po ./$(DEPDIR)/instrum.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/jack_a.Po ./$(DEPDIR)/list_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/loadtab.Po ./$(DEPDIR)/m2m.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mac_a.Po ./$(DEPDIR)/mac_dlog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mac_main.Po ./$(DEPDIR)/mac_qt_a.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mac_soundspec.Po ./$(DEPDIR)/mfi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mfnode.Po ./$(DEPDIR)/miditrace.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mix.Po ./$(DEPDIR)/mod.Po \
@@ -632,6 +633,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/effect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/esd_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flac_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/freq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gogo_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hpux_a.Po@am__quote@

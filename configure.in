@@ -608,11 +608,12 @@ dnl arts(R):	aRts
 dnl esd(e):     EsounD
 dnl portaudio(p) PortAudio
 dnl vorbis(v):  Ogg Vorbis
+dnl flac(F):    FLAC / OggFLAC
 dnl gogo(g):    MP3 GOGO
 dnl jack(j):    JACK
 dnl ao(O):      Libao
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack ao'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis flac gogo portaudio jack ao'
 
 AC_ARG_WITH(nas-library,
   [  --with-nas-library=library NAS absolute library path(Don't use -laudio)])
@@ -640,6 +641,7 @@ AC_ARG_ENABLE(audio,
                               jack:      JACK
                               ao:        Libao
                               vorbis:    Ogg Vorbis
+                              flac:      FLAC / OggFLAC
                               gogo:      MP3 GOGO (Only Windows is supported)],
   [ enable_audio=$enableval
     have_audio_opt=yes ],
@@ -660,7 +662,7 @@ DEFAULT_PLAYMODE=
 AC_ARG_WITH(default-output,
   [  --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
-                                esd|wav|au|aiff|list|vorbis|
+                                esd|wav|au|aiff|list|vorbis|flac|
                                 gogo|portaudio|jack|ao)],
   [ if test "$enable_audio" != no; then
     DEFAULT_PLAYMODE=$withval
@@ -1099,6 +1101,16 @@ else
   AC_MSG_RESULT(no)
 fi
 
+AC_MSG_CHECKING(enable_audio=flac)
+if test "x$au_enable_flac" = xyes; then
+  AC_MSG_RESULT(yes)
+  SYSEXTRAS="$SYSEXTRAS flac_a.c"
+  EXTRALIBS="$EXTRALIBS -lOggFLAC -lFLAC -logg"
+  EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_OGGFLAC"
+else
+  AC_MSG_RESULT(no)
+fi
+
 dnl Win32 Gogo-no-coder
 AC_MSG_CHECKING(enable_audio=gogo)
 if test "x$au_enable_gogo" = xyes; then
@@ -1152,6 +1164,7 @@ case ".$DEFAULT_PLAYMODE" in
   .aiff)     TIMIDITY_OUTPUT_ID=a ;;
   .list)     TIMIDITY_OUTPUT_ID=l ;;
   .vorbis)   TIMIDITY_OUTPUT_ID=v ;;
+  .flac)     TIMIDITY_OUTPUT_ID=F ;;
   .gogo)     TIMIDITY_OUTPUT_ID=g ;;
   .jack)     TIMIDITY_OUTPUT_ID=j ;;
   *)         TIMIDITY_OUTPUT_ID= ;;

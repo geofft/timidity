@@ -1,3 +1,9 @@
+2004-04-18  Iwata <b6330015@ipc.kit.jp>
+
+	* timidity/flac_a.c : Add
+	* configure.in, timidity/output.c, timidity/timidity.c,
+	  timidity/Makefile.am, : Add libFLAC supert
+
 2004-04-14  Kentaro Sato <kentaro@ranvis.com>
 
 	* libarc/arc.c, timidity/timidity.c:

@@ -882,6 +882,7 @@ Optional Features:
                               jack:      JACK
                               ao:        Libao
                               vorbis:    Ogg Vorbis
+                              flac:      FLAC / OggFLAC
                               gogo:      MP3 GOGO (Only Windows is supported)
   --disable-alsatest      Do not try to compile and run a test Alsa program
   --disable-artstest       Do not try to compile and run a test ARTS program
@@ -943,7 +944,7 @@ Optional Packages:
   --with-nas-includes=DIR NAS include files are in dir
   --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
-                                esd|wav|au|aiff|list|vorbis|
+                                esd|wav|au|aiff|list|vorbis|flac|
                                 gogo|portaudio|jack|ao)
   --with-alsa-prefix=PFX  Prefix where Alsa library is installed(optional)
   --with-alsa-inc-prefix=PFX  Prefix where include libraries are (optional)
@@ -11603,7 +11604,7 @@ fi;
 # audio section
 #
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack ao'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis flac gogo portaudio jack ao'
 
 
 # Check whether --with-nas-library or --without-nas-library was given.
@@ -14175,6 +14176,19 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
+echo "$as_me:$LINENO: checking enable_audio=flac" >&5
+echo $ECHO_N "checking enable_audio=flac... $ECHO_C" >&6
+if test "x$au_enable_flac" = xyes; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  SYSEXTRAS="$SYSEXTRAS flac_a.c"
+  EXTRALIBS="$EXTRALIBS -lOggFLAC -lFLAC -logg"
+  EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_OGGFLAC"
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
 echo "$as_me:$LINENO: checking enable_audio=gogo" >&5
 echo $ECHO_N "checking enable_audio=gogo... $ECHO_C" >&6
 if test "x$au_enable_gogo" = xyes; then
@@ -14229,6 +14243,7 @@ case ".$DEFAULT_PLAYMODE" in
   .aiff)     TIMIDITY_OUTPUT_ID=a ;;
   .list)     TIMIDITY_OUTPUT_ID=l ;;
   .vorbis)   TIMIDITY_OUTPUT_ID=v ;;
+  .flac)     TIMIDITY_OUTPUT_ID=F ;;
   .gogo)     TIMIDITY_OUTPUT_ID=g ;;
   .jack)     TIMIDITY_OUTPUT_ID=j ;;
   *)         TIMIDITY_OUTPUT_ID= ;;
