@@ -378,8 +378,8 @@ void InitStartWnd(int nCmdShow)
 	wndclass.lpszClassName = StartWndClassName;
 
 	if (!RegisterClass(&wndclass)) {return;}
-	hStartWnd = CreateWindowEx(WS_EX_TOOLWINDOW, StartWndClassName, 0,
-		WS_CLIPCHILDREN, CW_USEDEFAULT, 0, STARTWND_XSIZE,STARTWND_YSIZE, 0, 0, hInst, 0);
+	hStartWnd = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_DLGMODALFRAME, StartWndClassName, 0,
+		WS_CLIPCHILDREN | WS_BORDER | WS_DLGFRAME, -32, -32, 0, 0, 0, 0, hInst, 0);
 	ShowWindow(hStartWnd, SW_SHOW);
 	UpdateWindow(hStartWnd);
 	InitMainWnd(hStartWnd);

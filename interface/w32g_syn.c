@@ -354,7 +354,7 @@ static int w32g_syn_create_win ( void )
 	if ( w32g_syn.nid_hWnd == NULL ) {
 		return -1;
 	}
-	ShowWindow ( w32g_syn.nid_hWnd, SW_SHOW );
+	ShowWindow ( w32g_syn.nid_hWnd, SW_HIDE );
 	UpdateWindow ( w32g_syn.nid_hWnd );		// 必要ないと思うんだけど。
 	return 0;
 }
