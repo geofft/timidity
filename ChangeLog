@@ -1,3 +1,16 @@
+2003-06-15  mput<root@mput.dip.jp>
+
+	* configure.in, timidity/Makefile.am: Fix a bit to merge
+	s_keishi's patch
+
+2003-06-14  s_keishi <s_keishi@mutt.freemail.ne.jp>
+
+	* configure.in: Fix to fit with the addition
+	* timidity/timidity.c, timidity/output.c: Fix to fit with the
+	  addition
+	* timidity/Makefile.am (EXTRA_timidity_SOURCES): Fix to fit with
+	  the addition
+	* timidity/portaudio_a.c: Add.
 
 2003-06-14  s_keishi <s_keishi@mutt.freemail.ne.jp>
 

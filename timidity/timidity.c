@@ -3903,6 +3903,10 @@ int main(int argc, char **argv)
 	    mode_set=1;
     }
 #endif
+#ifdef AU_PORTAUDIO
+    if(!mode_set)
+	    set_play_mode("p");
+#endif
 #ifdef AU_ESD
     if(!mode_set) {
 	    if(!access("/usr/lib/libesd.so.0", R_OK)) {

@@ -138,6 +138,8 @@ ENABLE_VT100_FALSE = @ENABLE_VT100_FALSE@
 ENABLE_VT100_TRUE = @ENABLE_VT100_TRUE@
 ENABLE_W32GUI_FALSE = @ENABLE_W32GUI_FALSE@
 ENABLE_W32GUI_TRUE = @ENABLE_W32GUI_TRUE@
+ENABLE_W32G_SYN_FALSE = @ENABLE_W32G_SYN_FALSE@
+ENABLE_W32G_SYN_TRUE = @ENABLE_W32G_SYN_TRUE@
 ENABLE_WINSYN_FALSE = @ENABLE_WINSYN_FALSE@
 ENABLE_WINSYN_TRUE = @ENABLE_WINSYN_TRUE@
 ENABLE_WRD_FALSE = @ENABLE_WRD_FALSE@
@@ -406,6 +408,7 @@ EXTRA_timidity_SOURCES = \
 	mfnode.c \
 	mfnode.h \
 	nas_a.c \
+	portaudio_a.c \
 	sun_a.c \
 	vorbis_a.c \
 	w32_a.c \
@@ -419,6 +422,8 @@ EXTRA_timidity_SOURCES = \
 	w32g_vorbis_dll.c \
 	w32g_ogg_dll.c
 
+
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 @ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
@@ -461,17 +466,29 @@ am_timidity_OBJECTS = aiff_a.$(OBJEXT) aq.$(OBJEXT) au_a.$(OBJEXT) \
 	timidity.$(OBJEXT) version.$(OBJEXT) wave_a.$(OBJEXT) \
 	wrd_read.$(OBJEXT) wrdt.$(OBJEXT)
 timidity_OBJECTS = $(am_timidity_OBJECTS)
-@ENABLE_W32GUI_TRUE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_TRUE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_TRUE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_TRUE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_TRUE@	$(top_builddir)/utils/libutils.a \
-@ENABLE_W32GUI_TRUE@	$(top_builddir)/interface/w32g_res.res
-@ENABLE_W32GUI_FALSE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_FALSE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_FALSE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_FALSE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_FALSE@	$(top_builddir)/utils/libutils.a
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/utils/libutils.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/w32g_res.res
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/utils/libutils.a
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/utils/libutils.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/w32g_res.res
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/utils/libutils.a \
+@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/w32g_res.res
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -501,17 +518,18 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mt19937ar.Po ./$(DEPDIR)/nas_a.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/optcode.Po ./$(DEPDIR)/oss_a.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/output.Po ./$(DEPDIR)/playmidi.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/quantity.Po ./$(DEPDIR)/raw_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/rcp.Po ./$(DEPDIR)/readmidi.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/recache.Po ./$(DEPDIR)/resample.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/reverb.Po ./$(DEPDIR)/sbkconv.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sffile.Po ./$(DEPDIR)/sfitem.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/smfconv.Po ./$(DEPDIR)/smplfile.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sndfont.Po ./$(DEPDIR)/sun_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tables.Po ./$(DEPDIR)/timidity.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/version.Po ./$(DEPDIR)/vorbis_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32_a.Po ./$(DEPDIR)/w32_gogo.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32g_a.Po ./$(DEPDIR)/w32g_ogg_dll.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/portaudio_a.Po ./$(DEPDIR)/quantity.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/raw_a.Po ./$(DEPDIR)/rcp.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/readmidi.Po ./$(DEPDIR)/recache.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/resample.Po ./$(DEPDIR)/reverb.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sbkconv.Po ./$(DEPDIR)/sffile.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sfitem.Po ./$(DEPDIR)/smfconv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/smplfile.Po ./$(DEPDIR)/sndfont.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sun_a.Po ./$(DEPDIR)/tables.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/timidity.Po ./$(DEPDIR)/version.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/vorbis_a.Po ./$(DEPDIR)/w32_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32_gogo.Po ./$(DEPDIR)/w32g_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32g_ogg_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbis_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbisenc_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/wave_a.Po ./$(DEPDIR)/wrd_read.Po \
@@ -612,6 +630,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oss_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/output.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/playmidi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/portaudio_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quantity.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/raw_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rcp.Po@am__quote@

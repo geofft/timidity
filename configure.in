@@ -597,10 +597,11 @@ dnl alib(A):    HPUX network audio (Alib)
 dnl nas(n):     Network Audio System
 dnl arts(R):	aRts
 dnl esd(e):     EsounD
+dnl portaudio(p) PortAudio
 dnl vorbis(v):  Ogg Vorbis
 dnl gogo(g):    MP3 GOGO
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio'
 
 AC_ARG_WITH(nas-library,
   [  --with-nas-library=library NAS absolute library path(Don't use -laudio)])
@@ -610,22 +611,23 @@ AC_ARG_WITH(nas-includes,
 
 AC_ARG_ENABLE(audio,
   [  --enable-audio[=mode_list] Enable audio (Specify comma separated mode list):
-                              default: Automatically select audio device.
-                              oss:     OSS /dev/dsp
-                              sun:     SunOS /dev/audio
-                              hpux:    HPUX /dev/audio
-                              irix:    IRIX audio library
-                              mme:     OSF/1 MME
-                              sb_dsp:  BSD/OS 2.0 /dev/sb_dsp
-                              w32:     Windows MMS
-                              darwin:  Darwin CoreAudio
-                              alsa:    ALSA pcm device
-                              alib:    HPUX network audio (Alib)
-                              nas:     NAS - Network Audio System
-                              arts:    aRts
-                              esd:     EsounD - Enlightened Sound Daemon
-                              vorbis:  Ogg Vorbis
-                              gogo:    MP3 GOGO (Only Windows is supported)],
+                              default:   Automatically select audio device.
+                              oss:       OSS /dev/dsp
+                              sun:       SunOS /dev/audio
+                              hpux:      HPUX /dev/audio
+                              irix:      IRIX audio library
+                              mme:       OSF/1 MME
+                              sb_dsp:    BSD/OS 2.0 /dev/sb_dsp
+                              w32:       Windows MMS
+                              darwin:    Darwin CoreAudio
+                              alsa:      ALSA pcm device
+                              alib:      HPUX network audio (Alib)
+                              nas:       NAS - Network Audio System
+                              arts:      aRts
+                              esd:       EsounD - Enlightened Sound Daemon
+                              portaudio: PortAudio
+                              vorbis:    Ogg Vorbis
+                              gogo:      MP3 GOGO (Only Windows is supported)],
   [ enable_audio=$enableval
     have_audio_opt=yes ],
   [ enable_audio=yes
@@ -646,7 +648,7 @@ AC_ARG_WITH(default-output,
   [  --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
                                 esd|wav|au|aiff|list|vorbis|
-                                gogo)],
+                                gogo|portaudio)],
   [ if test "$enable_audio" != no; then
     DEFAULT_PLAYMODE=$withval
     eval "au_enable_$DEFAULT_PLAYMODE=yes"
@@ -845,6 +847,9 @@ if test "x$au_enable_w32" = xyes; then
     *-*-cygwin*)
      AC_MSG_RESULT(yes)
      ;;
+    *-*-mingw32)
+     AC_MSG_RESULT(yes)
+     ;;
     *)
      AC_MSG_WARN(may not work on $target)
      ;;
@@ -1004,6 +1009,17 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl portaudio E
+AC_MSG_CHECKING(enable_audio=portaudio)
+if test "x$au_enable_portaudio" = xyes; then
+  AC_MSG_RESULT(yes)
+  SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
+  EXTRALIBS="$EXTRALIBS -lportaudio"
+  EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+else
+  AC_MSG_RESULT(no)
+fi
+
 dnl ogg's vorbis
 AC_MSG_CHECKING(enable_audio=vorbis)
 if test "x$au_enable_vorbis" = xyes; then
@@ -1080,6 +1096,7 @@ case ".$DEFAULT_PLAYMODE" in
   .nas)      TIMIDITY_OUTPUT_ID=n ;;
   .arts)     TIMIDITY_OUTPUT_ID=R ;;
   .esd)      TIMIDITY_OUTPUT_ID=e ;;
+  .portaudio)      TIMIDITY_OUTPUT_ID=p ;;  
   .wav)      TIMIDITY_OUTPUT_ID=w ;;
   .au)       TIMIDITY_OUTPUT_ID=u ;;
   .aiff)     TIMIDITY_OUTPUT_ID=a ;;

@@ -133,6 +133,7 @@ EXTRA_timidity_SOURCES = \
 	mfnode.c \
 	mfnode.h \
 	nas_a.c \
+	portaudio_a.c \
 	sun_a.c \
 	vorbis_a.c \
 	w32_a.c \
@@ -148,10 +149,12 @@ EXTRA_timidity_SOURCES = \
 
 if ENABLE_W32GUI
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
-endif
+else
 
 if ENABLE_W32G_SYN
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+endif
+
 endif
 
 timidity_LDADD = \
