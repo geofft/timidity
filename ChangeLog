@@ -1,3 +1,8 @@
+2004-01-13  Christian Casteyde <casteyde.christian@free.fr>
+
+	* timidity/aRts_a.c (open_output): Fix for aRts backend hogging
+	  100% CPU
+
 2004-01-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c:

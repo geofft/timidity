@@ -130,7 +130,7 @@ static int open_output(void)
 		  dpm.name, strerror(errno));
 	return -1;
     }
-    arts_stream_set(stream, ARTS_P_BLOCKING, 0);
+    arts_stream_set(stream, ARTS_P_BLOCKING, 1);
 
     server_buffer = arts_stream_get(stream, ARTS_P_SERVER_LATENCY) * dpm.rate * (sample_width/8) * channels / 1000;
     output_count = 0;
