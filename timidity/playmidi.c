@@ -622,6 +622,7 @@ void recompute_freq(int v)
 	int note = voice[v].note;
 	int32 tuning = 0;
 	int8 st = channel[ch].scale_tuning[note % 12];
+	int8 tt = channel[ch].temper_type;
 	int32 f;
 	int pb = channel[ch].pitchbend;
 	int32 tmp;
@@ -683,7 +684,7 @@ void recompute_freq(int v)
 		}
 	}
 	if (! opt_pure_intonation && voice[v].temper_instant) {
-		switch (channel[ch].temper_type) {
+		switch (tt) {
 		case 0:
 			f = freq_table[note];
 			break;
@@ -701,6 +702,15 @@ void recompute_freq(int v)
 				f = freq_table_pureint[current_freq_table][note];
 			else
 				f = freq_table_pureint[current_freq_table + 12][note];
+			break;
+		default:	/* user-defined temperaments */
+			if ((tt -= 0x40) >= 0 && tt < 4) {
+				if (current_temper_keysig < 8)
+					f = freq_table_user[tt][current_freq_table][note];
+				else
+					f = freq_table_user[tt][current_freq_table + 12][note];
+			} else
+				f = freq_table[note];
 			break;
 		}
 		voice[v].orig_frequency = f;
@@ -1716,6 +1726,7 @@ static int select_play_sample(Sample *splist, int nsp,
 			      int note, int *vlist, MidiEvent *e)
 {
     int32 f, fs, cdiff, diff;
+    int8 tt = channel[e->channel].temper_type;
     Sample *sp, *closest;
     int i, j, nv, vel;
 
@@ -1725,7 +1736,7 @@ static int select_play_sample(Sample *splist, int nsp,
 		else
 			f = freq_table_pureint[current_freq_table + 12][note];
 	} else
-		switch (channel[e->channel].temper_type) {
+		switch (tt) {
 		case 0:
 			f = freq_table[note];
 			break;
@@ -1743,6 +1754,15 @@ static int select_play_sample(Sample *splist, int nsp,
 				f = freq_table_pureint[current_freq_table][note];
 			else
 				f = freq_table_pureint[current_freq_table + 12][note];
+			break;
+		default:	/* user-defined temperaments */
+			if ((tt -= 0x40) >= 0 && tt < 4) {
+				if (current_temper_keysig < 8)
+					f = freq_table_user[tt][current_freq_table][note];
+				else
+					f = freq_table_user[tt][current_freq_table + 12][note];
+			} else
+				f = freq_table[note];
 			break;
 		}
 	fs = freq_table[note];

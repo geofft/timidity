@@ -1,3 +1,8 @@
+2003-07-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/tables.[ch], timidity/timidity.c:
+	  Support for user-defined temperaments (to be continued)
+
 2003-07-03  Takashi Iwai <tiwai@suse.de>
 
 	* configure.in: Support for tcltk 8.3/8.4
@@ -10,20 +15,20 @@
 	  events to non-linear events, so that mods will sound correct
 	  again
 
-2003-06-30  skeishi(s_keishi@mutt.freemail.ne.jp>
+2003-06-30  skeishi <s_keishi@mutt.freemail.ne.jp>
 
-	* interface/rtsyn.h,interface/rtsyn_common,
-          /interface/rtsyn_wimm interface/rtsyn_portmidi: Changed 
+	* interface/rtsyn.h, interface/rtsyn_common.c,
+	  interface/rtsyn_wimm.c interface/rtsyn_portmidi.c:
+	  Fix Realteime Synthesizer Engine.
 
-	 BugFix  Realteime Synthesizer Engine.
+2003-06-29  skeishi <s_keishi@mutt.freemail.ne.jp>
 
-
-2003-06-29  skeishi(s_keishi@mutt.freemail.ne.jp>
-
-	* interface/portmidisyn_c,interface/rtsyn.h,interface/rtsyn_common,
-	  interface/interface/rtsyn_wimm interface/rtsyn_portmidi: Added.
-	* interface/winsyn_c.c, interface/w32g_syn.c,
-	  timidity/timdity.c timidity/controls.c configure.in interface.h.in : Changed.
+	* interface/portmidisyn_c.c, interface/rtsyn.h,
+	  interface/rtsyn_common.c, interface/rtsyn_wimm.c,
+	  interface/rtsyn_portmidi.c: Added.
+	* configure.in, interface.h.in,
+	  interface/w32g_syn.c, interface/winsyn_c.c,
+	  timidity/controls.c, timidity/timdity.c:
 	  Add PortMIDI synthesizer mode.
 
 2003-06-28  Saito <timidity@flashmail.com>
@@ -41,7 +46,7 @@
 
 2003-06-24  mput <root@mput.dip.jp>
 
-	* bootstrap.sh, autoconf/Makefile.boot : Deleted.
+	* bootstrap.sh, autoconf/Makefile.boot: Deleted.
 	* Makefile.am (M4DIR, ACLOCAL_AMFLAGS): Add.
 	* configs/Makefile.am (EXTRA_DIST): To fit with Saito's changes
 	* timidity/Makefile.am (EXTRA_timidity_SOURCES): To fit with
@@ -51,8 +56,8 @@
 
 	* nouse, timw32g, timw32gd, twsyng, cfgforsf, ...:
 	  Remove VC++ project files.
-	* configs/VC++6.00ProjectFiles.zip:
-	  Add VC++6.00ProjectFiles.zip.
+	* configs/msc-project.zip:
+	  Add msc-project.zip.
 
 2003-06-21  Saito <timidity@flashmail.com>
 
@@ -76,7 +81,7 @@
 	  Fix reverb-time calculation for new reverberation effect.
 	  Remove overlapping initialize_gauss_table().
 
-2003-06-15  mput<root@mput.dip.jp>
+2003-06-15  mput <root@mput.dip.jp>
 
 	* configure.in, timidity/Makefile.am: Fix a bit to merge
 	  s_keishi's patch
@@ -104,7 +109,7 @@
 2003-06-13  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c,
-	timidity/reverb.[ch], timidity/tables.c:
+	  timidity/reverb.[ch], timidity/tables.c:
 	  Fix insertion effect.
 	  Fix illegal-parameter handling of delay effect.
 	  Strengthen delay and chorus effect.
@@ -154,16 +159,12 @@
 
 	* timidity/timidity.c (main): Add check codes for interface
 	  exsitence (thanks Bernhard Rosenkraenzer <bero@redhat.com>)
-
 	* timidity/arts_a.c, timidity/output.c: Merged Bernhard
 	  Rosenkraenzer <bero@redhat.com> 's implementation.
-
 	* configure.in: Fix to fit with David's patch
-
 	* timidity/esd_a.c (open_output, close_output): dlopen() libesd
 	  rather than introducing yet another requirement (thanks David
 	  Walser and Bernhard Rosenkraenzer <bero@redhat.com>)
-
 	* timidity/timidity.h (MAIL_DOMAIN): to localhost (thanks David
 	  Walser and Maurizio De Cecco)
 
@@ -185,15 +186,14 @@
 	* timidity/effect.c (do_effect): Do not do reverb or chorus if
 	  do_compute_data_midi() has already applied them with
 	  USE_DSP_EFFECT.
-
 	* timidity/playmidi.c (new_chorus_voice_alternate): opt_surround
 	  update to work with the new effects
-	(adjust_panning): Hack to handle -EFchorus=2 in a "reasonable" way
+	  (adjust_panning): Hack to handle -EFchorus=2 in a "reasonable" way
 
 2003-05-30  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
 	* timidity/resample.c, recache.c:
-	 Fix LAGRANGE_INTERPOLATION for uint32.
+	  Fix LAGRANGE_INTERPOLATION for uint32.
 
 2003-05-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -381,10 +381,11 @@
 
 	* timidity/instrum.c, timidity/playmidi.c, timidity/playmidi.c,
 	  interface/w32g_ut2.[ch], interface/w32g_subwin.c,
-	  interface/w32g_subwin3.c, interface/w32g_pref.c, interface/w32g_res.[h,rc]:
+	  interface/w32g_subwin3.c, interface/w32g_pref.c,
+	  interface/w32g_res.[h,rc]:
 	  Fix around Win32 GUI.
 	  Support for dynamic cfg changing experimentally.
-	  
+
 2003-05-03  Saito <timidity@flashmail.com>
 
 	* timidity/mix.c, timidity/playmidi.[ch],

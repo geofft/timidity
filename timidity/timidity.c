@@ -3414,6 +3414,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_freq_table_pytha();
 	init_freq_table_meantone();
 	init_freq_table_pureint();
+	init_freq_table_user();
 	init_bend_fine();
 	init_bend_coarse();
 	init_tables();

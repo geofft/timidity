@@ -44,6 +44,7 @@ int32 freq_table[128];
 int32 freq_table_pytha[12][128];
 int32 freq_table_meantone[24][128];
 int32 freq_table_pureint[24][128];
+int32 freq_table_user[4][24][128];
 
 void init_freq_table(void)
 {
@@ -146,6 +147,25 @@ void init_freq_table_pureint(void)
 						f * minor_ratio[k] * 1000 + 0.5;
 			}
 		}
+}
+
+void init_freq_table_user(void)
+{
+	int p, i, j, k, l;
+	double f;
+	
+	for (p = 0; p < 4; p++)
+		for (i = 0; i < 12; i++)
+			for (j = -1; j < 11; j++) {
+				f = 440 * pow(2.0, (i - 9) / 12.0 + j - 5);
+				for (k = 0; k < 12; k++) {
+					l = i + j * 12 + k;
+					if (l < 0 || l >= 128)
+						continue;
+					freq_table_user[p][i][l] = f * 1000 + 0.5;
+					freq_table_user[p][i + 12][l] = f * 1000 + 0.5;
+				}
+			}
 }
 
 /* v=2.^((x/127-1) * 6) */
