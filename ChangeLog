@@ -1,4 +1,11 @@
 
+2003-06-22  Saito <timidity@flashmail.com>
+
+	* nouse, timw32g, timw32gd, twsyng, cfgforsf, ...:
+	  Remove VC++ project files.
+	* configs/VC++6.00ProjectFiles.zip:
+	  Add VC++6.00ProjectFiles.zip.
+
 2003-06-21  Saito <timidity@flashmail.com>
 
 	* nouse, timw32g, timw32gd, twsyng, cfgforsf, ...:
