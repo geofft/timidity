@@ -1,4 +1,8 @@
-2003-10-07  Takashi Iwai <tiwai@suse.de>	
+2003-10-08  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (set_tim_opt_long): Bug fix
+
+2003-10-07  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/timidity.c: Clean up option handling.
 

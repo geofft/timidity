@@ -2490,7 +2490,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
-				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
+				"[BUG] Inconceivable case branch %d", c);
 		abort();
 	}
 }
