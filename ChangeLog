@@ -1,3 +1,8 @@
+2004-02-09  mput <root@mput.dip.jp>
+
+	* Makefile.am (install-data-local): ditto
+	* configure.in: Add --with-ad-dir=DIR
+
 2004-02-09  Saito <saito2@digitalme.com>
 
 	* interface/w32g_pref.c, interface/w32g_subwin3.c,
