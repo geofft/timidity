@@ -3307,12 +3307,18 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			recompute_insertion_effect();
 			break;
 		case 0x45:	/* Rx. Channel */
+			reset_controllers(ch);
+			redraw_controllers(ch);
+			all_notes_off(ch);
 			if (val == 0x80)
 				remove_channel_layer(ch);
 			else
 				add_channel_layer(ch, val);
 			break;
 		case 0x46:	/* Channel Msg Rx Port */
+			reset_controllers(ch);
+			redraw_controllers(ch);
+			all_notes_off(ch);
 			channel[ch].port_select = val;
 			break;
 			
