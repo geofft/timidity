@@ -249,6 +249,7 @@ static void ctl_prog_event(int ch);
 static void ctl_timestamp(void);
 static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
+static void update_legato_controls(int ch);
 
 static char *event_name(int type)
 {
@@ -280,6 +281,8 @@ static char *event_name(int type)
 	EVENT_NAME(ME_DATA_ENTRY_LSB);
 	EVENT_NAME(ME_SOSTENUTO);
 	EVENT_NAME(ME_SOFT_PEDAL);
+	EVENT_NAME(ME_LEGATO_FOOTSWITCH);
+	EVENT_NAME(ME_HOLD2);
 	EVENT_NAME(ME_HARMONIC_CONTENT);
 	EVENT_NAME(ME_RELEASE_TIME);
 	EVENT_NAME(ME_ATTACK_TIME);
@@ -774,9 +777,6 @@ static void recompute_amp(int v)
     }
 }
 
-#define MAX_CUTOFF_COEF 4.0f
-#define MIN_CUTOFF_COEF 0.25f
-
 void recompute_channel_filter(MidiEvent *e)
 {
 	int ch = e->channel, note, prog, bk, vel;
@@ -794,15 +794,21 @@ void recompute_channel_filter(MidiEvent *e)
 	vel = e->b;
 	coef *= pow(2.0, -2.0f * (double)(127 - vel) / 127.0f);
 
-	/* Filter Keyfollow, reserved.  */
-/*	if(note > 60) {
+#if 0
+	/* reserved. it's waiting for patch option. */
+	/* Filter Keyfollow */
+	if(note > 60) {
 		keyf = (double)(note & 0x7F) / 60.0f * 0.5f + 0.5f;
 		coef *= keyf;
-	}*/
+	}
+#endif
 
 	/* Soft Pedal */
 	if(channel[ch].soft_pedal > 63) {
 		coef *= 0.5f;
+		if(note > 60) {
+			coef *= pow(2.0, (double)(note - 60) / 68.0);
+		}
 	}
 
 	/* NRPN Resonance */
@@ -826,21 +832,14 @@ void recompute_voice_filter(int v)
 	coef = channel[ch].cutoff_freq_coef;
 	if(!ISDRUMCHANNEL(ch)) {
 		/* NRPN Filter Cutoff */
-		coef *= pow(2.0, (double)(channel[ch].param_cutoff_freq) / 64.0f);
-		if(coef > MAX_CUTOFF_COEF) {coef = MAX_CUTOFF_COEF;}
-		else if(coef < MIN_CUTOFF_COEF) {coef = MIN_CUTOFF_COEF;}
+		coef *= pow(1.26, (double)(channel[ch].param_cutoff_freq) / 8.0f);
 		reso = 0;
 	} else if(channel[ch].drums[note] != NULL) {
 		/* NRPN Drum Instrument Filter Cutoff */
-		coef *= pow(2.0, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 64.0f);
-		if(coef > MAX_CUTOFF_COEF) {coef = MAX_CUTOFF_COEF;}
-		else if(coef < MIN_CUTOFF_COEF) {coef = MIN_CUTOFF_COEF;}
+		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
-	} else {
-		reso = 0;
 	}
-
 	fc->freq = fc->orig_freq * coef;
 
 	/* in this case, it's not necessary to do lowpass filter */
@@ -956,31 +955,33 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	ToneBankElement *elm = &bank[bk]->tone[prog];
 	int i;
 	
-	if (elm->name)
+	if (elm->name) {
 		free(elm->name);
-	if (elm->comment)
+		elm->name = NULL;
+	}
+	if (elm->comment) {
 		free(elm->comment);
-	if (elm->tune)
+		elm->comment = NULL;
+	}
+	if (elm->tune) {
 		free(elm->tune);
+		elm->tune = NULL;
+	}
 	if (elm->envratenum) {
-		for (i = 0; i < elm->envratenum; i++)
-			free(elm->envrate[i]);
-		free(elm->envrate);
+		free_ptr_list(elm->envrate, elm->envratenum);
+		elm->envrate = NULL;
 	}
 	if (elm->envofsnum) {
-		for (i = 0; i < elm->envofsnum; i++)
-			free(elm->envofs[i]);
-		free(elm->envofs);
+		free_ptr_list(elm->envofs, elm->envofsnum);
+		elm->envofs = NULL;
 	}
 	if (elm->tremnum) {
-		for (i = 0; i < elm->tremnum; i++)
-			free(elm->trem[i]);
-		free(elm->trem);
+		free_ptr_list(elm->trem, elm->tremnum);
+		elm->trem = NULL;
 	}
 	if (elm->vibnum) {
-		for (i = 0; i < elm->vibnum; i++)
-			free(elm->vib[i]);
-		free(elm->vib);
+		free_ptr_list(elm->vib, elm->vibnum);
+		elm->vib = NULL;
 	}
 }
 
@@ -1931,7 +1932,10 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].panning = get_panning(ch, note, i);
 
   voice[i].porta_control_counter = 0;
-  if(channel[ch].portamento && !channel[ch].porta_control_ratio)
+  if(channel[ch].legato && channel[ch].note_on) {
+	  update_legato_controls(ch);
+  }
+  else if(channel[ch].portamento && !channel[ch].porta_control_ratio)
       update_portamento_controls(ch);
   if(channel[ch].porta_control_ratio)
   {
@@ -1960,11 +1964,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
       /* Ramp up from 0 */
-	  if(channel[ch].legato && channel[ch].note_on) {
-	      voice[i].envelope_stage=1;
-	  } else {
-		  voice[i].envelope_stage=0;
-	  }
+	  voice[i].envelope_stage=0;
       voice[i].envelope_volume=0;
       voice[i].control_counter=0;
       recompute_envelope(i);
@@ -3620,6 +3620,13 @@ static void seek_forward(int32 until_time)
 	    channel[ch].sustain = (current_event->a >= 64);
 	    break;
 
+	  case ME_SOSTENUTO:
+	    break;
+
+	  case ME_LEGATO_FOOTSWITCH:
+        channel[ch].legato = (current_event->a >= 64);
+	    break;
+
 	  case ME_RESET_CONTROLLERS:
 	    reset_controllers(ch);
 	    break;
@@ -5231,6 +5238,19 @@ static void update_portamento_time(int ch)
     }
 }
 
+static void update_legato_controls(int ch)
+{
+	double mt, dc;
+	int d;
+
+	mt = 0.06250 * PORTAMENTO_TIME_TUNING * 0.3;
+	dc = play_mode->rate * mt;
+	d = (int)(1.0 / (mt * PORTAMENTO_CONTROL_RATIO));
+	d++;
+	channel[ch].porta_control_ratio = (int)(d * dc + 0.5);
+	channel[ch].porta_dpb = d;
+}
+
 int play_event(MidiEvent *ev)
 {
     int ch;
@@ -5348,6 +5368,13 @@ int play_event(MidiEvent *ev)
 	if(!ev->a)
 	    drop_sustain(ch);
 	ctl_mode_event(CTLE_SUSTAIN, 1, ch, ev->a >= 64);
+	break;
+
+      case ME_SOSTENUTO:
+	break;
+
+      case ME_LEGATO_FOOTSWITCH:
+    channel[ch].legato = (ev->a >= 64);
 	break;
 
       case ME_PORTAMENTO_TIME_MSB:
@@ -5977,6 +6004,7 @@ int play_midi_file(char *fn)
 
 	ctl_mode_event(CTLE_METRONOME, 0, 0, 0);
 	ctl_mode_event(CTLE_KEYSIG, 0, current_keysig, 0);
+	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, current_temper_keysig, 0);
 	if (opt_force_keysig != 8) {
 		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
@@ -5994,7 +6022,6 @@ int play_midi_file(char *fn)
 	current_freq_table = j;
 	ctl_mode_event(CTLE_TEMPO, 0, current_play_tempo, 0);
 	ctl_mode_event(CTLE_TIME_RATIO, 0, 100 / midi_time_ratio + 0.5, 0);
-	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, current_temper_keysig, 0);
 	for (i = 0; i < MAX_CHANNELS; i++)
 		ctl_mode_event(CTLE_TEMPER_TYPE, 0, i, channel[i].temper_type);
   play_reload: /* Come here to reload MIDI file */

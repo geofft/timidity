@@ -504,6 +504,8 @@ int convert_midi_control_change(int chn, int type, int val, MidiEvent *ev_ret)
       case  65: type = ME_PORTAMENTO; break;
       case  66: type = ME_SOSTENUTO; break;
       case  67: type = ME_SOFT_PEDAL; break;
+	  case  68: type = ME_LEGATO_FOOTSWITCH; break;
+	  case  69: type = ME_HOLD2; break;
       case  71: type = ME_HARMONIC_CONTENT; break;
       case  72: type = ME_RELEASE_TIME; break;
       case  73: type = ME_ATTACK_TIME; break;
@@ -1758,8 +1760,8 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 		case 0x08:	/* MIDI Tuning Standard */
 			switch (val[3]) {
 			case 0x0a:
-				SETMIDIEVENT(*ev, 0, ME_TEMPER_KEYSIG, 0,
-						val[4] | (val[4] & 0x40) << 1, val[5]);
+				SETMIDIEVENT(
+						*ev, 0, ME_TEMPER_KEYSIG, 0, val[4] - 0x40, val[5]);
 				return 1;
 			}
 			break;

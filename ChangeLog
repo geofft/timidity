@@ -1,4 +1,27 @@
 
+2003-03-27  Kentaro Sato <kentaro@ps.catv.ne.jp>
+	* timidity/playmidi.c:
+	  Fix behaviour of user drumset.
+
+2003-03-27  Saito <timidity@flashmail.com>
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Improve legato.
+	  Improve NRPN cutoff control.
+	* interface/w32g_subwin3.c:
+	  Fix tracer window (W32GUI version)
+
+2003-03-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Fix temperament control with universal SysEx.
+
+2003-03-27  Daisuke Aoki <dai@sweetparty.ne.jp>
+	* interface/w32g_subwin3.c:
+	  Fasten tracer window (W32GUI version)
+
+2003-03-26  Saito <timidity@flashmail.com>
+	* interface/w32g_subwin3.c:
+	  Fasten tracer window (W32GUI version)
+
 2003-03-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* interface/alsaseq_c.c, interface/ncurs_c.c, interface/winsyn_c.c,
 	  timidity/controls.h, timidity/playmidi.[ch], timidity/readmidi.c,

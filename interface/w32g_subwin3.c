@@ -182,6 +182,7 @@ static int init_tracer_bmp ( HDC hdc );
 
 static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrument, int mapID, int lockflag );
 static int tracer_velocity_draw ( RECT *lprc, int vol, int max, int lockflag );
+static int tracer_velocity_draw_ex ( RECT *lprc, int vol, int vol_old, int max, int lockflag );
 static int tracer_volume_draw ( RECT *lprc, int vol, int max, int lockflag );
 static int tracer_expression_draw ( RECT *lprc, int vol, int max, int lockflag );
 static int tracer_pan_draw ( RECT *lprc, int vol, int max, int lockflag );
@@ -271,6 +272,13 @@ void InitTracerWnd(HWND hParentWnd)
 	int height, space;
 	RECT rc, rc2;
 	HICON hIcon;
+	static int init = 1;
+
+	if ( init ) {
+		w32g_tracer_wnd.hNullBrush = GetStockObject ( NULL_BRUSH );
+		w32g_tracer_wnd.hNullPen = GetStockObject ( NULL_PEN );
+		init = 0;
+	}
 
 	if (hTracerWnd != NULL) {
 		TRACER_LOCK();
@@ -278,14 +286,10 @@ void InitTracerWnd(HWND hParentWnd)
 		DeleteObject ( (HGDIOBJ)w32g_tracer_wnd.hFontCommon );
 		DeleteObject ( (HGDIOBJ)w32g_tracer_wnd.hFontHalf );
 		DeleteDC ( w32g_tracer_wnd.hmdc );
-		DeleteObject ( w32g_tracer_wnd.hNullBrush );
-		DeleteObject ( w32g_tracer_wnd.hNullPen );
 		TRACER_UNLOCK();
 	}
 
 	w32g_tracer_wnd.active = FALSE;
-	w32g_tracer_wnd.hNullBrush = GetStockObject ( NULL_BRUSH );
-	w32g_tracer_wnd.hNullPen = GetStockObject ( NULL_PEN );
 	INILoadTracerWnd();
 	hTracerWnd = CreateDialog
 		(hInst,MAKEINTRESOURCE(IDD_DIALOG_TRACER),hParentWnd,TracerWndProc);
@@ -447,6 +451,8 @@ static int init_tracer_bmp ( HDC hdc )
 		DeleteObject ( (HGDIOBJ) tracer_bmp.hbmp );
 	tracer_bmp.hbmp = CreateCompatibleBitmap ( hdc, TRACER_CANVAS_SIZE_X, TRACER_CANVAS_SIZE_Y );
 	tracer_bmp.hmdc = CreateCompatibleDC ( hdc );
+	SelectObject ( tracer_bmp.hmdc, w32g_tracer_wnd.hNullBrush ); /* 必要ないかもしれないが */
+	SelectObject ( tracer_bmp.hmdc, w32g_tracer_wnd.hNullPen ); /* 必要ないかもしれないが */
 	SelectObject ( tracer_bmp.hmdc, tracer_bmp.hbmp );
 
 	hbmp = LoadBitmap ( hInst, MAKEINTRESOURCE(IDB_BITMAP_TRACER) );
@@ -680,7 +686,7 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		break;
 	case CTLE_NOTE:
 		{
-		int vel;
+		int vel, vel_old = w32g_tracer_wnd.velocity[(int)e->v2];
 		switch ( (int)e->v1 ) {
 		case VOICE_ON:
 			w32g_tracer_wnd.velocity[(int)e->v2] += (int)e->v4;
@@ -702,7 +708,7 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		w32g_tracer_wnd.notes[(int)e->v2][(int)e->v3] = vel;
 
 		if ( get_ch_rc ( (int)e->v2, &rc, &w32g_tracer_wnd.rc_velocity ) == 0 )
-			tracer_velocity_draw ( &rc, w32g_tracer_wnd.velocity[(int)e->v2], VEL_MAX, TRUE );
+			tracer_velocity_draw_ex ( &rc, w32g_tracer_wnd.velocity[(int)e->v2], vel_old, VEL_MAX, TRUE );
 		}
 		break;
 	case CTLE_MASTER_VOLUME:
@@ -866,22 +872,64 @@ static int notes_view_draw ( RECT *lprc, int note, int vel, int back_draw, int l
 
 	note = note % 12;
 
+	switch(note) {
+		// white keys
+		case 0: left = 0;
+			rc1.right = rc1.left + 7;
+			break;
+		case 2: rc1.left += left = 6;
+			rc1.right = rc1.left + 7;
+			break;
+		case 4: rc1.left += left = 12;
+			rc1.right = rc1.left + 7;
+			break;
+		case 5: rc1.left += left = 18;
+			rc1.right = rc1.left + 7;
+			break;
+		case 7: rc1.left += left = 24;
+			rc1.right = rc1.left + 7;
+			break;
+		case 9: rc1.left += left = 30;
+			rc1.right = rc1.left + 7;
+			break;
+		case 11: rc1.left += left = 36;
+			rc1.right = rc1.left + 6;
+			break;
+		// black keys
+		case 1: rc1.left += left = 4;
+			rc1.right = rc1.left + 5;
+			break;
+		case 3: rc1.left += left = 10;
+			rc1.right = rc1.left + 5;
+			break;
+		case 6: rc1.left += left = 22;
+			rc1.right = rc1.left + 5;
+			break;
+		case 8: rc1.left += left = 28;
+			rc1.right = rc1.left + 5;
+			break;
+		case 10: rc1.left += left = 34;
+			rc1.right = rc1.left + 5;
+			break;
+		default: break;
+	}
+
 	if ( lockflag ) TRACER_LOCK ();
 	if ( vel >= 0 ) {
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
+			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left + left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_note_on[note].left, tracer_bmp.rc_note_on[note].top, SRCAND );
+			tracer_bmp.hmdc, tracer_bmp.rc_note_on[note].left + left, tracer_bmp.rc_note_on[note].top, SRCAND );
 	} else if ( vel  == TRACER_VOICE_SUSTAINED ) {
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
+			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left + left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_note_sustain[note].left, tracer_bmp.rc_note_sustain[note].top, SRCAND );
+			tracer_bmp.hmdc, tracer_bmp.rc_note_sustain[note].left + left, tracer_bmp.rc_note_sustain[note].top, SRCAND );
 	} else {
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
+			tracer_bmp.hmdc, tracer_bmp.rc_notes_mask[note].left + left, tracer_bmp.rc_notes_mask[note].top, SRCPAINT );
 		BitBlt ( hdc, rc1.left, rc1.top, rc1.right - rc1.left, rc1.bottom - rc1.top,
-			tracer_bmp.hmdc, tracer_bmp.rc_note[note].left, tracer_bmp.rc_note[note].top, SRCAND );
+			tracer_bmp.hmdc, tracer_bmp.rc_note[note].left + left, tracer_bmp.rc_note[note].top, SRCAND );
 
 	}
 	if ( lockflag ) TRACER_UNLOCK ();
@@ -985,25 +1033,36 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
 
 static int tracer_velocity_draw ( RECT *lprc, int vol, int max, int lockflag )
 {
+	return tracer_velocity_draw_ex ( lprc, vol, -1, max, lockflag );
+}
+
+static int tracer_velocity_draw_ex ( RECT *lprc, int vol, int vol_old, int max, int lockflag )
+{
 	HDC hdc;
 	const int view_max = 30, div = 17;
+	RECT rc;
 	if ( !w32g_tracer_wnd.active )
 		return 0;
 	hdc = w32g_tracer_wnd.hmdc;
 
 	vol /= div;
+	if ( vol_old < 0 ) vol_old = max;
+	vol_old /= div;
 	if(vol >= view_max) {vol = view_max;}
+	if(vol_old >= view_max) {vol_old = view_max;}
 	
 	if ( lockflag ) TRACER_LOCK ();
 	// 必要なだけベロシティバーの背景を描画
-	BitBlt ( hdc, lprc->left +  vol, lprc->top, lprc->right - lprc->left -  vol, lprc->bottom - lprc->top,
+//	BitBlt ( hdc, lprc->left +  vol, lprc->top, lprc->right - lprc->left -  vol, lprc->bottom - lprc->top,
+	BitBlt ( hdc, lprc->left +  vol, lprc->top, vol_old, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_velocity[0].left, tracer_bmp.rc_velocity[0].top, SRCCOPY );
 
 	// 必要なだけベロシティバーを描画
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_velocity[0].left, tracer_bmp.rc_velocity[0].top + 19 + 1, SRCCOPY );
 
-	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
+	SetRect ( &rc, lprc->left, lprc->top, lprc->left + (( vol_old > vol ) ? vol_old : vol), lprc->bottom);
+	InvalidateRect ( w32g_tracer_wnd.hwnd, &rc, FALSE );
 
 	if ( lockflag ) TRACER_UNLOCK ();
 	return 0;
