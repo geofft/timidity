@@ -1,3 +1,19 @@
+2003-08-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Hack up around short/long options
+	  Some option renamed
+	  --[no-]4-point-interpolation -> --interpolation (merged)
+	  --drums                      -> --drum-channel
+	  --[no-]new-lpf               -> --[no-]voice-lpf
+	  --exec                       -> --config-string
+	  Some option deleted
+	  --[no-]auto-start
+	  --[no-]auto-exit
+	  --[no-]drag-start
+	  --[no-]uniq-list
+	  --[no-]refine-list
+	  --[no-]continue
+
 2003-08-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:
@@ -28,8 +44,8 @@
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Some option renamed
-	  --mid          -> default-mid
-	  --noise-shaper -> noise-shaping
+	  --mid          -> --default-mid
+	  --noise-shaper -> --noise-shaping
 	  Hack up around effect option parser
 
 2003-08-04  mput <root@mput.dip.jp>
