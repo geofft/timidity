@@ -942,12 +942,15 @@ void recompute_voice_filter(int v)
 	if(!ISDRUMCHANNEL(ch)) {
 		/* NRPN Filter Cutoff */
 		diff = channel[ch].param_cutoff_freq * 62.0f;
+		reso = 0;
 	} else if(channel[ch].drums[note] != NULL) {
 		/* NRPN Drum Instrument Filter Cutoff */
 		diff = channel[ch].drums[note]->drum_cutoff_freq * 62.0f;
 
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+	} else {
+		diff = reso = 0;
 	}
 
 	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef + diff;
@@ -1099,30 +1102,60 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	bk = 0;
 
     load_success = 0;
-    if((ip = bank[bk]->tone[prog].instrument) == ( (opt_realtime_playing == 2) ? NULL : MAGIC_LOAD_INSTRUMENT ))
+    if(opt_realtime_playing != 2)
     {
-	ip = bank[bk]->tone[prog].instrument =
-	    load_instrument(dr, bk, prog);
-	if(ip != NULL)
-	    load_success = 1;
-    }
-    if(ip == NULL && bk != 0)
-    {
-        /* Instrument is not found.
-           Retry to load the instrument from bank 0 */
-    
-        if((ip = bank[0]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT)
-            ip = bank[0]->tone[prog].instrument =
-    	        load_instrument(dr, 0, prog);
-        if(ip != NULL)
-        {
+	if((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT)
+	{
+	    ip = bank[bk]->tone[prog].instrument =
+		load_instrument(dr, bk, prog);
+	    if(ip != NULL)
+		load_success = 1;
+	}
+	if(ip == NULL && bk != 0)
+	{
+	    /* Instrument is not found.
+	       Retry to load the instrument from bank 0 */
+
+	    if((ip = bank[0]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT)
+		ip = bank[0]->tone[prog].instrument =
+		    load_instrument(dr, 0, prog);
+	    if(ip != NULL)
+	    {
 			/* duplicate tone bank parameter */
 			elm = &bank[bk]->tone[prog];
 			memcpy(elm,&bank[0]->tone[prog],sizeof(ToneBankElement));
 			elm->instrument = ip;
 			dup_tone_bank_element(dr,bk,prog);
 			load_success = 1;
-        }
+	    }
+	}
+    }
+    else
+    {
+	if((ip = bank[bk]->tone[prog].instrument) == NULL)
+	{
+	    ip = bank[bk]->tone[prog].instrument =
+		load_instrument(dr, bk, prog);
+	    if(ip != NULL)
+		load_success = 1;
+	}
+	if(ip == NULL && bk != 0)
+	{
+	    /* Instrument is not found.
+	       Retry to load the instrument from bank 0 */
+	    if((ip = bank[0]->tone[prog].instrument) == NULL)
+		ip = bank[0]->tone[prog].instrument =
+		    load_instrument(dr, 0, prog);
+	    if(ip != NULL)
+	    {
+			/* duplicate tone bank parameter */
+			elm = &bank[bk]->tone[prog];
+			memcpy(elm,&bank[0]->tone[prog],sizeof(ToneBankElement));
+			elm->instrument = ip;
+			dup_tone_bank_element(dr,bk,prog);
+			load_success = 1;
+	    }
+	}
     }
 
     if(load_success)
@@ -1874,7 +1907,7 @@ static int get_panning(int ch, int note,int v)
 			pan += voice[v].sample->panning;
 		}
 	} else {	/* stereo sample */
-		if(channel[ch].panning != NO_PANNING) {pan = ((int)channel[ch].panning - 64) * 2;}
+		if(channel[ch].panning != NO_PANNING) {pan = (int)channel[ch].panning - 64;}
 		else {pan = 0;}
 		if(ISDRUMCHANNEL(ch) &&
 		 channel[ch].drums[note] != NULL &&
