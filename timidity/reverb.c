@@ -42,6 +42,7 @@
 #include "common.h"
 #include "output.h"
 #include "reverb.h"
+#include "mt19937ar.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -571,6 +572,34 @@ static void do_peaking_filter_stereo(int32* buf, int32 count, filter_peaking *p)
 	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
 		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
 #endif /* OPT_MODE != 0 */
+}
+
+void init_pink_noise(pink_noise *p)
+{
+	p->b0 = p->b1 = p->b2 = p->b3 = p->b4 = p->b5 = p->b6 = 0;
+}
+
+float get_pink_noise(pink_noise *p)
+{
+	float b0 = p->b0, b1 = p->b1, b2 = p->b2, b3 = p->b3,
+	   b4 = p->b4, b5 = p->b5, b6 = p->b6, pink, white;
+
+	white = genrand_real1() * 2.0 - 1.0;
+	b0 = 0.99886 * b0 + white * 0.0555179;
+	b1 = 0.99332 * b1 + white * 0.0750759;
+	b2 = 0.96900 * b2 + white * 0.1538520;
+	b3 = 0.86650 * b3 + white * 0.3104856;
+	b4 = 0.55000 * b4 + white * 0.5329522;
+	b5 = -0.7616 * b5 - white * 0.0168980;
+	pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+	b6 = white * 0.115926;
+	pink *= 0.22;
+	pink = (pink > 1.0) ? 1.0 : (pink < -1.0) ? -1.0 : pink;
+
+	p->b0 = b0, p->b1 = b1, p->b2 = b2, p->b3 = b3,
+		p->b4 = b4, p->b5 = b5, p->b6 = b6;
+
+	return pink;
 }
 
 /*                          */

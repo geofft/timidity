@@ -48,6 +48,14 @@ typedef struct {
 	int32 *buf, size, index;
 } delay;
 
+/*! Pink Noise Generator */
+typedef struct {
+	float b0, b1, b2, b3, b4, b5, b6;
+} pink_noise;
+
+extern void init_pink_noise(pink_noise *);
+extern float get_pink_noise(pink_noise *);
+
 #ifndef SINE_CYCLE_LENGTH
 #define SINE_CYCLE_LENGTH 1024
 #endif
@@ -360,5 +368,7 @@ struct insertion_effect_gs {
 		control_source2, control_depth2, send_eq_switch;
 	struct _EffectList *ef;
 } ie_gs;
+
+pink_noise global_pink_noise;
 
 #endif /* ___REVERB_H_ */

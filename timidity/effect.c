@@ -35,10 +35,7 @@
 #include <strings.h>
 #endif
 
-#define USE_MT_RAND
-#ifdef USE_MT_RAND
 #include "mt19937ar.h"
-#endif
 #define RAND_MAX 0xffffffff
 
 #include "timidity.h"
@@ -54,6 +51,7 @@
 #define NS_AMP_MIN	((int32)-0x0fffffff)
 
 static void effect_left_right_delay(int32 *, int32);
+static void init_mtrand(void);
 static void init_ns_tap(void);
 static void init_ns_tap16(void);
 static void ns_shaping8(int32 *, int32);
@@ -81,6 +79,8 @@ int noise_sharp_type = 4;
 void init_effect(void)
 {
 	effect_left_right_delay(NULL, 0);
+	init_mtrand();
+	init_pink_noise(&global_pink_noise);
 	init_ns_tap();
 	init_reverb(play_mode->rate);
 	init_ch_delay();
@@ -213,6 +213,13 @@ static void effect_left_right_delay(int32 *buff, int32 count)
 	memcpy(prev + count - backoff, save + count - backoff, 4 * backoff);
 }
 
+static void init_mtrand(void)
+{
+	unsigned long init[4] = { 0x123, 0x234, 0x345, 0x456 };
+	unsigned long length = 4;
+	init_by_array(init, length);
+}
+
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  * (Modified by Masanao Izumo <mo@goice.co.jp>)
@@ -228,14 +235,7 @@ static void init_ns_tap(void)
 static void init_ns_tap16(void)
 {
 	int i;
-#ifdef USE_MT_RAND
-	unsigned long init[4] = { 0x123, 0x234, 0x345, 0x456 };
-	unsigned long length = 4;
-#endif
-	
-#ifdef USE_MT_RAND
-	init_by_array(init, length);
-#endif
+
 	for (i = 0; i < ns9_order; i++)
 		ns9_c[i] = TIM_FSCALE(ns9_coef[i], 24);
 	memset(ns9_ehl, 0, sizeof(ns9_ehl));
@@ -582,14 +582,7 @@ static void ns_shaping16_9_with_soft_clipping(int32 *lp, int32 c, double arg)
 
 static inline unsigned long frand(void)
 {
-#ifdef USE_MT_RAND
 	return genrand_int32();
-#else
-	static unsigned long a = 0xdeadbeef;
-	
-	a = a * 140359821 + 1;
-	return a;
-#endif
 }
 
 static inline int32 my_mod(int32 x, int32 n)

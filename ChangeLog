@@ -2,6 +2,8 @@
 
 	* timidity/playmidi.c:
 	  Fix SysEx.
+	* timidity/reverb.[ch], timidity/effect.c, timidity/mt19937ar.h:
+	  Implement pink noise generator.
 
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 
