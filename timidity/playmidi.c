@@ -8013,10 +8013,13 @@ char *channel_instrum_name(int ch)
     prog = channel[ch].program;
     instrument_map(channel[ch].mapID, &bank, &prog);
 
-	if (tonebank[bank] == NULL) {bank = 0;}
+	if (tonebank[bank] == NULL) {alloc_instrument_bank(0, bank);}
 	if (tonebank[bank]->tone[prog].name) {
 	    comm = tonebank[bank]->tone[prog].comment;
 		if (comm == NULL) {comm = tonebank[bank]->tone[prog].name;}
+	} else {
+	    comm = tonebank[0]->tone[prog].comment;
+		if (comm == NULL) {comm = tonebank[0]->tone[prog].name;}
 	}
 	
     return comm;
