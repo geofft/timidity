@@ -44,6 +44,7 @@
 #include "mod2midi.h"
 #include "filter.h"
 #include "math.h"
+#include "freq.h"
 
 
 /* Define this to show all the notes touched by a bending in the
@@ -680,6 +681,17 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	    sp->data_length <<= FRACTION_BITS;
 	    sp->loop_start <<= FRACTION_BITS;
 	    sp->loop_end <<= FRACTION_BITS;
+	}
+
+	/* pitch detection for mod->midi file conversion and surround chorus */
+	if (play_mode->id_character == 'M' ||
+	    opt_surround_chorus)
+	{
+	    sp->chord = -1;
+	    sp->root_freq_detected = freq_fourier(sp, &(sp->chord));
+	    sp->transpose_detected =
+		assign_pitch_to_freq(sp->root_freq_detected) -
+		assign_pitch_to_freq(sp->root_freq / 1024.0);
 	}
 
 	/* If necessary do some anti-aliasing filtering  */

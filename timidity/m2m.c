@@ -433,8 +433,8 @@ void read_m2m_cfg_file(void)
 	{
 	    if (special_patch[i])
 	    {
-		chord = -1;
-		freq = freq_fourier(special_patch[i]->sample, &chord);
+		chord = special_patch[i]->sample->chord;
+		freq = special_patch[i]->sample->root_freq_detected;
 		pitch = assign_pitch_to_freq(freq);
 		fine_tune[i] = (-36.37631656f +
 				 17.31234049f * log(freq) - pitch) *
@@ -442,7 +442,8 @@ void read_m2m_cfg_file(void)
 
 		sprintf(line,
 			"Sample %3d Freq %10.4f Pitch %3d Transpose %4d",
-			i, freq, pitch, 24 + pitch - 60);
+			i, freq, pitch,
+			special_patch[i]->sample->transpose_detected);
 		if (chord >= 0)
 		{
 		    sprintf(line, "%s Chord %c Subtype %d",
@@ -451,7 +452,7 @@ void read_m2m_cfg_file(void)
 
 		ctl->cmsg(CMSG_INFO, VERB_NORMAL, "%s", line);
 
-		transpose[i] = 24 + pitch - 60;
+		transpose[i] = special_patch[i]->sample->transpose_detected;
 		sample_chords[i] = chord;
 	    }
 	}

@@ -2570,16 +2570,18 @@ static void new_chorus_voice_alternate(int v1, int level)
     int v2, ch, panlevel;
     uint8 vol, pan;
     double delay;
+    double freq, frac;
+    int note_adjusted;
 
     if((v2 = find_free_voice()) == -1)
 	return;
     ch = voice[v1].channel;
     voice[v2] = voice[v1];
 
-	/* NRPN Chorus Send Level of Drum */
-	if(ISDRUMCHANNEL(ch) && channel[ch].drums[voice[v1].note] != NULL) {
-		level *= (FLOAT_T)channel[ch].drums[voice[v1].note]->chorus_level / 127.0;
-	}
+    /* NRPN Chorus Send Level of Drum */
+    if(ISDRUMCHANNEL(ch) && channel[ch].drums[voice[v1].note] != NULL) {
+	level *= (FLOAT_T)channel[ch].drums[voice[v1].note]->chorus_level / 127.0;
+    }
 
     /* for our purposes, hard left will be equal to 1 instead of 0 */
     pan = voice[v1].panning;
@@ -2619,33 +2621,29 @@ static void new_chorus_voice_alternate(int v1, int level)
     delay = 0.003;
 
     /* Try to keep the delayed voice from cancelling out the other voice */
-    /* Don't bother with trying to figure out drum pitches... */
-    /* Don't bother with mod files for the same reason... */
-    /* Drums and mods could be fixed, but pitch detection is too expensive */
-    if (!ISDRUMCHANNEL(voice[v1].channel) && !(IS_CURRENT_MOD_FILE))
-    {
-    	double freq, frac;
-    
-    	freq = pitch_freq_table[voice[v1].note];
-    	delay *= freq;
-    	frac = delay - floor(delay);
+    /* Pitch detection is used to find the real pitches for drums and MODs */
+    note_adjusted = voice[v1].note + voice[v1].sample->transpose_detected;
+    if (note_adjusted > 127) note_adjusted = 127;
+    else if (note_adjusted < 0) note_adjusted = 0;
+    freq = pitch_freq_table[note_adjusted];
+    delay *= freq;
+    frac = delay - floor(delay);
 
-	/* force the delay away from 0.5 period */
-    	if (frac < 0.5 && frac > 0.40)
-    	{
-    	    delay = (floor(delay) + 0.40) / freq;
-    	    if (play_mode->encoding & ~PE_MONO)
-    	    	delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
-    	}
-    	else if (frac >= 0.5 && frac < 0.60)
-    	{
-    	    delay = (floor(delay) + 0.60) / freq;
-    	    if (play_mode->encoding & ~PE_MONO)
-    	    	delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
-    	}
-    	else
-	    delay = 0.003;
+    /* force the delay away from 0.5 period */
+    if (frac < 0.5 && frac > 0.40)
+    {
+    	delay = (floor(delay) + 0.40) / freq;
+    	if (!(play_mode->encoding & PE_MONO))
+    	    delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
     }
+    else if (frac >= 0.5 && frac < 0.60)
+    {
+    	delay = (floor(delay) + 0.60) / freq;
+    	if (!(play_mode->encoding & PE_MONO))
+    	    delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
+    }
+    else
+	delay = 0.003;
 
     /* set panning & delay for pseudo-surround effect */
     if(play_mode->encoding & PE_MONO)    /* delay sounds good */
@@ -2674,8 +2672,91 @@ static void new_chorus_voice_alternate(int v1, int level)
         }
     }
 
-	init_voice_pan_delay(v1);
-	init_voice_pan_delay(v2);
+    /* check for similar drums playing simultaneously with center pans */
+    if (!(play_mode->encoding & PE_MONO) &&
+    	ISDRUMCHANNEL(ch) && voice[v1].panned == PANNED_CENTER)
+    {
+    	int i, j;
+    
+    	/* force Rimshot (37), Snare1 (38), Snare2 (40), and XG #34 to have
+    	 * the same delay, otherwise there will be bad voice cancellation.
+    	 */
+    	if (voice[v1].note == 37 ||
+    	    voice[v1].note == 38 ||
+    	    voice[v1].note == 40 ||
+    	    (voice[v1].note == 34 && play_system_mode == XG_SYSTEM_MODE))
+    	{
+    	    for (i = 0; i < upper_voices; i++)
+    	    {
+    	    	if (voice[i].status & (VOICE_DIE | VOICE_FREE))
+    	    	    continue;
+
+    	    	if (!ISDRUMCHANNEL(voice[i].channel))
+    	    	    continue;
+
+	    	if (i == v1 || i == v2)
+	    	    continue;
+
+	    	if (voice[i].note == 37 ||
+	    	    voice[i].note == 38 ||
+	    	    voice[i].note == 40 ||
+	    	    (voice[i].note == 34 &&
+	    	     play_system_mode == XG_SYSTEM_MODE))
+	    	{
+	    	    j = voice[i].chorus_link;
+
+	    	    if (voice[i].panned == PANNED_LEFT &&
+	    	        voice[j].panned == PANNED_RIGHT)
+	    	    {
+	    	    	voice[v1].delay = voice[i].delay;
+	    	    	voice[v2].delay = voice[j].delay;
+
+	    	    	break;
+	    	    }
+	    	}
+    	    }
+    	}
+
+    	/* force Kick1 (35), Kick2 (36), and XG Kick #33 to have the same
+    	 * delay, otherwise there will be bad voice cancellation.
+    	 */
+    	if (voice[v1].note == 35 ||
+    	    voice[v1].note == 36 ||
+    	    (voice[v1].note == 33 && play_system_mode == XG_SYSTEM_MODE))
+    	{
+    	    for (i = 0; i < upper_voices; i++)
+    	    {
+    	    	if (voice[i].status & (VOICE_DIE | VOICE_FREE))
+    	    	    continue;
+
+    	    	if (!ISDRUMCHANNEL(voice[i].channel))
+    	    	    continue;
+
+	    	if (i == v1 || i == v2)
+	    	    continue;
+
+	    	if (voice[i].note == 35 ||
+	    	    voice[i].note == 36 ||
+	    	    (voice[i].note == 33 &&
+	    	     play_system_mode == XG_SYSTEM_MODE))
+	    	{
+	    	    j = voice[i].chorus_link;
+
+	    	    if (voice[i].panned == PANNED_LEFT &&
+	    	        voice[j].panned == PANNED_RIGHT)
+	    	    {
+	    	    	voice[v1].delay = voice[i].delay;
+	    	    	voice[v2].delay = voice[j].delay;
+
+	    	    	break;
+	    	    }
+	    	}
+    	    }
+    	}
+    }
+
+    init_voice_pan_delay(v1);
+    init_voice_pan_delay(v2);
 
     recompute_amp(v1);
     apply_envelope_to_amp(v1);

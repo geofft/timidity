@@ -46,6 +46,7 @@
 #include "tables.h"
 #include "filter.h"
 #include "quantity.h"
+#include "freq.h"
 
 #define INSTRUMENT_HASH_SIZE 128
 struct InstrumentCache
@@ -988,6 +989,17 @@ fail:
 		 */
 		if (sp->note_to_use && ! (sp->modes & MODES_LOOPING))
 			pre_resample(sp);
+
+		/* do pitch detection on drums if surround chorus is used */
+		if (dr && opt_surround_chorus)
+		{
+		    sp->chord = -1;
+		    sp->root_freq_detected = freq_fourier(sp, &(sp->chord));
+		    sp->transpose_detected =
+			assign_pitch_to_freq(sp->root_freq_detected) -
+			assign_pitch_to_freq(sp->root_freq / 1024.0);
+		}
+
 #ifdef LOOKUP_HACK
 		squash_sample_16to8(sp);
 #endif

@@ -61,6 +61,9 @@ typedef struct _Sample {
   int8 inst_type;
   int32 sf_sample_index, sf_sample_link;	/* for stereo SoundFont */
   uint16 sample_type;	/* 1 = Mono, 2 = Right, 4 = Left, 8 = Linked, $8000 = ROM */
+  FLOAT_T root_freq_detected;	/* root freq from pitch detection */
+  int transpose_detected;	/* note offset from detected root */
+  int chord;			/* type of chord for detected pitch */
 } Sample;
 
 /* Bits in modes: */

@@ -1,3 +1,20 @@
+2004-05-31  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/instrum.h, timidity/instrum.c, timidity/m2m.c,
+	timidity/mod2midi.c, timidity/playmidi.c, timidity/sndfont.c:
+	  root_freq_detected, transpose_detected, and chord variables
+	  added to Sample type in instrum.h.  Pitch detection is applied
+	  to drum and MOD samples if surround chorus is enabled.  This
+	  allows the true pitch of the rendered voices to be determined,
+	  so that surround chorus voice cancellation can be avoided by
+	  choosing a chorus delay that is not close to half the period.
+
+	* playmidi.c (new_chorus_voice_alternate): Various fixes to
+	  surround chorus.  Uses pitch detection for drum and MOD samples.
+	  Multiple similar drum instruments (snare1 and snare2, kick1 and
+	  kick2) playing at once no longer cause voice cancellation and
+	  strange perceived pans.
+
 2004-05-31  Iwata <b6330015@ipc.kit.jp>
 
 	* interface/gtk_i.c (open_file_cb): Fix compiling problem

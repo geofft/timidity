@@ -664,6 +664,17 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		if (sample->note_to_use && !(sample->modes & MODES_LOOPING))
 			pre_resample(sample);
 
+		/* do pitch detection on drums if surround chorus is used */
+		if (ip->pat.bank == 128 && opt_surround_chorus)
+		{
+		    sample->chord = -1;
+		    sample->root_freq_detected =
+		    	freq_fourier(sample, &(sample->chord));
+		    sample->transpose_detected =
+			assign_pitch_to_freq(sample->root_freq_detected) -
+			assign_pitch_to_freq(sample->root_freq / 1024.0);
+		}
+
 #ifdef LOOKUP_HACK
 		squash_sample_16to8(sample);
 #endif
