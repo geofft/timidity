@@ -218,9 +218,6 @@ BORLANDC_LINK_OPTIONS = \
       -L..\\libunimod \
       -L..\\utils
 timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
-      $(top_builddir)/interface/interface.lib \
-      $(top_builddir)/libarc/arc.lib \
-timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/interface/interface.lib \
 	$(top_builddir)/libarc/arc.lib \
 	$(top_builddir)/libunimod/unimod.lib \

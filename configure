@@ -18293,6 +18293,7 @@ _ACEOF
     else
 	  BORLANDC_START='C0W32.OBJ'
       CFLAGS="$CFLAGS -tW"
+      lib_w32gui_opt="-aa $lib_w32gui_opt"
     fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -18360,6 +18361,7 @@ _ACEOF
 	else
 	  BORLANDC_START='C0W32.OBJ'
 	  CFLAGS="$CFLAGS -tW"
+	  lib_w32gui_opt="-aa $lib_w32gui_opt"
 	fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'

@@ -505,9 +505,6 @@ calcnewt_SOURCES = calcnewt.c
 @VCPP_TRUE@	$(W32GUI_RES)
 
 @BORLANDC_TRUE@@VCPP_FALSE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
-@BORLANDC_TRUE@@VCPP_FALSE@      $(top_builddir)/interface/interface.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@      $(top_builddir)/libarc/arc.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \

@@ -1730,6 +1730,7 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
     else
 	  BORLANDC_START='C0W32.OBJ'
       CFLAGS="$CFLAGS -tW"
+      lib_w32gui_opt="-aa $lib_w32gui_opt"
     fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1756,6 +1757,7 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
 	else
 	  BORLANDC_START='C0W32.OBJ'
 	  CFLAGS="$CFLAGS -tW"
+	  lib_w32gui_opt="-aa $lib_w32gui_opt"
 	fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
