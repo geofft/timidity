@@ -1,3 +1,10 @@
+2004-02-02  Saito <saito2@digitalme.com>
+
+	* timidity/mix.c:
+	  Fix sustain.
+	* timidity/sndfont.c:
+	  fasten set_rootfreq().
+
 2004-02-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/sndfont.c:

@@ -1530,19 +1530,18 @@ static void set_rootfreq(SampleList *vp)
 
 #endif
 
-    if(root > 127)
+    if (root > 127) {
 	vp->v.root_freq = (int32)((FLOAT_T)freq_table[127] *
 				  bend_coarse[root - 127] * bend_fine[tune]);
-				  
-    else if(root < 0)
+	vp->v.scale_freq = 127;	/* scale freq */
+	} else if (root < 0) {
 	vp->v.root_freq = (int32)((FLOAT_T)freq_table[0] /
 				  bend_coarse[-root] * bend_fine[tune]);
-    else
+	vp->v.scale_freq = 0;	/* scale freq */
+	} else {
 	vp->v.root_freq = (int32)((FLOAT_T)freq_table[root] * bend_fine[tune]);
-
-	/* scale freq */
-	vp->v.scale_freq =
-		69 - log(440000.0 / vp->v.root_freq) / log(2) * 12 + 0.5;
+	vp->v.scale_freq = root;	/* scale freq */
+	}
 }
 
 /*----------------------------------------------------------------*/

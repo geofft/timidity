@@ -1490,6 +1490,7 @@ int recompute_envelope(int v)
 	int stage, ch;
 	int32 rate;
 	double sustain_time;
+	int32 envelope_width;
 	Voice *vp = &voice[v];
 	
 	stage = vp->envelope_stage;
@@ -1503,9 +1504,7 @@ int recompute_envelope(int v)
 	}
 	/* EAW -- Routine to decay the sustain envelope
 	 *
-	 * Disabled if !min_sustain_time or if there is no loop.
-	 * If calculated decay rate is larger than the regular
-	 *  stage 3 rate, use the stage 3 rate instead.
+	 * Disabled if !min_sustain_time.
 	 * min_sustain_time is given in msec, and is the time
 	 *  it will take to decay a note at maximum volume.
 	 * 2000-3000 msec seem to be decent values to use.
@@ -1520,9 +1519,7 @@ int recompute_envelope(int v)
 		if (min_sustain_time <= 0)
 			/* Freeze envelope until note turns off */
 			vp->envelope_increment = 0;
-		else if (vp->status & VOICE_SUSTAINED
-				&& vp->sample->modes & MODES_LOOPING
-				&& vp->sample_offset - vp->sample->loop_start >= 0) {
+		else {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return next_stage(v);
@@ -1533,28 +1530,12 @@ int recompute_envelope(int v)
 				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
 			}
 			/* Calculate the release phase speed. */
-			rate = -0x3fffffff * (double) control_ratio * 1000
-					/ (sustain_time * play_mode->rate);
-			
-			if (vp->sample->inst_type == INST_SF2) {
-				/* Soundfonts don't have sustain-rate */
-				vp->envelope_increment = rate;
-			} else {
-				vp->envelope_increment = -vp->sample->envelope_rate[EG_GUS_SUSTAIN];
-				/* use the slower of the two rates */
-				if (vp->envelope_increment < rate)
-					vp->envelope_increment = rate;
-			}
-			if (! vp->envelope_increment)
-				/* Avoid freezing */
-				vp->envelope_increment = -1;
-			vp->envelope_target = 0;
-		/* it's not decaying, so freeze it */
-		} else {
-			/* tiny value to make other functions happy, freeze note */
-			vp->envelope_increment = 1;
-			/* this will cause update_envelope(v) to undo the +1 inc. */
-			vp->envelope_target = vp->envelope_volume;
+			envelope_width = sustain_time * play_mode->rate
+				/ (1000.0f * (double)control_ratio);
+
+			vp->envelope_increment = -1;
+			vp->envelope_target = vp->envelope_volume - envelope_width;
+			if (vp->envelope_target < 0) {vp->envelope_target = 0;}
 		}
 		return 0;
 	}
@@ -1922,6 +1903,7 @@ int recompute_modulation_envelope(int v)
 	int stage, ch;
 	int32 rate;
 	double sustain_time;
+	int32 modenv_width;
 	Voice *vp = &voice[v];
 
 	if(!opt_modulation_envelope) {return 0;}
@@ -1938,9 +1920,7 @@ int recompute_modulation_envelope(int v)
 		if (min_sustain_time <= 0)
 			/* Freeze envelope until note turns off */
 			vp->modenv_increment = 0;
-		else if (vp->status & VOICE_SUSTAINED
-				&& vp->sample->modes & MODES_LOOPING
-				&& vp->sample_offset - vp->sample->loop_start >= 0) {
+		else {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return modenv_next_stage(v);
@@ -1951,28 +1931,12 @@ int recompute_modulation_envelope(int v)
 				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
 			}
 			/* Calculate the release phase speed. */
-			rate = -0x3fffffff * (double) control_ratio * 1000
-					/ (sustain_time * play_mode->rate);
-
-			if (vp->sample->inst_type == INST_SF2) {
-				/* Soundfonts don't have sustain-rate */
-				vp->modenv_increment = rate;
-			} else {
-				vp->modenv_increment = -vp->sample->modenv_rate[EG_GUS_SUSTAIN];
-				/* use the slower of the two rates */
-				if (vp->modenv_increment < rate)
-					vp->modenv_increment = rate;
-			}
-			if (! vp->modenv_increment)
-				/* Avoid freezing */
-				vp->modenv_increment = -1;
-			vp->modenv_target = 0;
-		/* it's not decaying, so freeze it */
-		} else {
-			/* tiny value to make other functions happy, freeze note */
-			vp->modenv_increment = 1;
-			/* this will cause update_envelope(v) to undo the +1 inc. */
-			vp->modenv_target = vp->modenv_volume;
+			modenv_width = sustain_time * play_mode->rate
+				/ (1000.0f * (double)control_ratio);
+			
+			vp->modenv_increment = -1;
+			vp->modenv_target = vp->modenv_volume - modenv_width;
+			if (vp->modenv_target < 0) {vp->modenv_target = 0;}
 		}
 		return 0;
 	}
