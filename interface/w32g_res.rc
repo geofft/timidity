@@ -328,15 +328,15 @@ BEGIN
     EDITTEXT        IDC_EDIT_DRUM_POWER,185,92,21,12
     CONTROL         "Amplitude Compensation",IDC_CHECKBOX_AMP_COMPENSATION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,127,107,86,6
-    GROUPBOX        "Musical grammar",IDC_STATIC,1,118,211,66
+    GROUPBOX        "Musical grammar",IDC_STATIC,1,118,198,66
     CONTROL         "Pure intonation(-Zpure)",IDC_CHECKBOX_PURE_INTONATION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,90,8
     CONTROL         "Initial tonality",IDC_CHECKBOX_INIT_KEYSIG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,24,138,51,8
-    COMBOBOX        IDC_COMBO_INIT_KEYSIG,77,137,80,53,CBS_DROPDOWNLIST | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,138,51,8
+    COMBOBOX        IDC_COMBO_INIT_KEYSIG,64,137,80,53,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Minor key",IDC_CHECKBOX_INIT_MI,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,161,138,44,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,148,138,44,8
     LTEXT           "Key shift(-Kn)",IDC_STATIC,6,153,45,8,NOT WS_GROUP
     EDITTEXT        IDC_EDIT_KEY_ADJUST,53,152,21,11
     CONTROL         "Fix key signature(-Hn)",IDC_CHECKBOX_FORCE_KEYSIG,
@@ -1039,11 +1039,11 @@ BEGIN
     CONTROL         "èÉê≥ó•Ç≈ââëtÇ∑ÇÈ(-Zpure)",IDC_CHECKBOX_PURE_INTONATION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,148,90,10
     CONTROL         "èâä˙í≤ê´",IDC_CHECKBOX_INIT_KEYSIG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,24,164,37,8
-    COMBOBOX        IDC_COMBO_INIT_KEYSIG,64,161,80,53,CBS_DROPDOWNLIST | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,164,37,8
+    COMBOBOX        IDC_COMBO_INIT_KEYSIG,51,161,80,53,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "íZí≤",IDC_CHECKBOX_INIT_MI,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,150,164,28,10
+                    WS_TABSTOP,137,164,28,10
     LTEXT           "âπíˆÉVÉtÉg(-Kn)",IDC_STATIC,6,184,47,8,NOT WS_GROUP
     EDITTEXT        IDC_EDIT_KEY_ADJUST,56,181,21,12
     CONTROL         "í≤çÜÇÃêîÇå≈íËÇµÇƒââëtÇ∑ÇÈ(-Hn)",
