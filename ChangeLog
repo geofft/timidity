@@ -1,3 +1,8 @@
+
+2003-02-16  Stas Sergeev <stssppnn@yahoo.com>
+	* 
+	  Add timidity server support for dosemu's midid
+
 2003-02-15  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* 
 	  Bug fixed aborting (Windows synthesizer GUI version)
