@@ -8,10 +8,12 @@
 
 2004-02-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* INSTALL(.ja): Fix a little
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
 	  Update man page of timidity.1
 	* timidity/playmidi.c (select_play_sample):
 	  Fix determination method of frequency for sample selection
+	  Hack up around select_play_sample
 
 2004-02-08  Daisuke Aoki <dai@sweetparty.ne.jp>
 

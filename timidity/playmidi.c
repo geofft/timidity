@@ -269,6 +269,7 @@ static double compensation_ratio = 1.0; /* compensation ratio */
 static int find_samples(MidiEvent *, int *);
 static int select_play_sample(Sample *, int, int, int *, MidiEvent *);
 static double get_play_note_ratio(int, int);
+static int find_voice(MidiEvent *);
 static void update_portamento_controls(int ch);
 static void update_rpn_map(int ch, int addr, int update_now);
 static void ctl_prog_event(int ch);
@@ -1775,58 +1776,6 @@ static int reduce_voice(void)
 
 
 
-/* Only one instance of a note can be playing on a single channel. */
-static int find_voice(MidiEvent *e)
-{
-  int i, j, lowest=-1, note, ch, status_check, mono_check;
-  AlternateAssign *altassign;
-
-  note = MIDI_EVENT_NOTE(e);
-  ch = e->channel;
-
-  if(opt_overlap_voice_allow)
-      status_check = (VOICE_OFF | VOICE_SUSTAINED);
-  else
-      status_check = 0xFF;
-  mono_check = channel[ch].mono;
-  altassign = find_altassign(channel[ch].altassign, note);
-
-  i = upper_voices;
-  for(j = 0; j < i; j++)
-      if(voice[j].status == VOICE_FREE)
-      {
-	  lowest = j; /* lower volume */
-	  break;
-      }
-
-	for (j = 0; j < i; j++)
-		if (voice[j].status != VOICE_FREE && voice[j].channel == ch
-				&& ((voice[j].status & status_check) && voice[j].note == note
-				|| mono_check
-				|| (altassign && find_altassign(altassign, voice[j].note))))
-			kill_note(j);
-		else if (voice[j].status != VOICE_FREE && voice[j].channel == ch
-				&& voice[j].note == note && ((channel[ch].assign_mode == 1
-				&& voice[j].proximate_flag == 0)
-				|| channel[ch].assign_mode == 0))
-			kill_note(j);
-	for (j = 0; j < i; j++)
-		if (voice[j].channel == ch && voice[j].note == note)
-			voice[j].proximate_flag = 0;
-
-  if(lowest != -1)
-  {
-      /* Found a free voice. */
-      if(upper_voices <= lowest)
-	  upper_voices = lowest + 1;
-      return lowest;
-  }
-
-  if(i < voices)
-      return upper_voices++;
-  return reduce_voice();
-}
-
 void free_voice(int v1)
 {
     int v2;
@@ -1955,7 +1904,7 @@ static int select_play_sample(Sample *splist,
 	Sample *sp, *spc, *spr;
 	int16 sf, sn;
 	double ratio;
-	int i, j, k, ns, nv, nvc;
+	int i, j, k, nv, nvc;
 	
 	if (ISDRUMCHANNEL(ch))
 		f = fs = freq_table[note];
@@ -2008,9 +1957,9 @@ static int select_play_sample(Sample *splist,
 			f = freq_table[note];
 		if (! opt_pure_intonation && opt_temper_control
 				&& tt == 0 && f != freq_table[note]) {
-			ns = log(f / 440000.0) / log(2) * 12 + 69.5;
-			ns = (ns < 0) ? 0 : ((ns > 127) ? 127 : ns);
-			fs = freq_table[ns];
+			note = log(f / 440000.0) / log(2) * 12 + 69.5;
+			note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
+			fs = freq_table[note];
 		} else
 			fs = freq_table[note];
 	}
@@ -2039,9 +1988,9 @@ static int select_play_sample(Sample *splist,
 		}
 	}
 	if (nv == 0) {	/* we must select at least one sample. */
-		cdiff = 0x7fffffff;
 		fr = fc = 0;
 		spc = spr = NULL;
+		cdiff = 0x7fffffff;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
 			/* GUS/SF2 - Scale Tuning */
 			if ((sf = sp->scale_factor) != 1024) {
@@ -2054,41 +2003,33 @@ static int select_play_sample(Sample *splist,
 				if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
 					ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 			diff = abs(sp->root_freq - fst);
-			if (cdiff > diff) {
+			if (diff < cdiff) {
 				if (sp->inst_type == INST_SF2
 						&& sp->sample_type == SF_SAMPLETYPE_RIGHT) {
 					fr = ft;	/* reserve */
 					spr = sp;	/* reserve */
 				} else {
-					cdiff = diff;
 					fc = ft;
 					spc = sp;
+					cdiff = diff;
 				}
 			}
 		}
-		if (spc != NULL) {	/* a makeshift sample is found. */
-			j = vlist[nv] = find_voice(e);
-			voice[j].orig_frequency = fc;
-			MYCHECK(voice[j].orig_frequency);
-			voice[j].sample = spc;
-			voice[j].status = VOICE_ON;
-			nv++;
-		} else {
-			/* it's a lonely right sample, but better than nothing. */
-			j = vlist[nv] = find_voice(e);
-			voice[j].orig_frequency = fr;
-			MYCHECK(voice[j].orig_frequency);
-			voice[j].sample = spr;
-			voice[j].status = VOICE_ON;
-			nv++;
-		}
+		/* If spc is not NULL, a makeshift sample is found. */
+		/* Otherwise, it's a lonely right sample, but better than nothing. */
+		j = vlist[nv] = find_voice(e);
+		voice[j].orig_frequency = (spc) ? fc : fr;
+		MYCHECK(voice[j].orig_frequency);
+		voice[j].sample = (spc) ? spc : spr;
+		voice[j].status = VOICE_ON;
+		nv++;
 	}
 	nvc = nv;
 	for (i = 0; i < nvc; i++) {
 		spc = voice[vlist[i]].sample;
+		/* If it's left sample, there must be right sample. */
 		if (spc->inst_type == INST_SF2
 				&& spc->sample_type == SF_SAMPLETYPE_LEFT) {
-			/* If it's left sample, there must be right sample. */
 			sample_link = spc->sf_sample_link;
 			for (j = 0, sp = splist; j < nsp; j++, sp++)
 				if (sp->inst_type == INST_SF2
@@ -2135,6 +2076,45 @@ static double get_play_note_ratio(int ch, int note)
 		return bend_coarse[play_note - def_play_note & 0x7f];
 	else
 		return 1 / bend_coarse[def_play_note - play_note & 0x7f];
+}
+
+/* Only one instance of a note can be playing on a single channel. */
+static int find_voice(MidiEvent *e)
+{
+	int ch = e->channel;
+	int note = MIDI_EVENT_NOTE(e);
+	int status_check, mono_check;
+	AlternateAssign *altassign;
+	int i, lowest = -1;
+	
+	status_check = (opt_overlap_voice_allow)
+			? (VOICE_OFF | VOICE_SUSTAINED) : 0xff;
+	mono_check = channel[ch].mono;
+	altassign = find_altassign(channel[ch].altassign, note);
+	for (i = 0; i < upper_voices; i++)
+		if (voice[i].status == VOICE_FREE) {
+			lowest = i;	/* lower volume */
+			break;
+		}
+	for (i = 0; i < upper_voices; i++)
+		if (voice[i].status != VOICE_FREE && voice[i].channel == ch) {
+			if (voice[i].note == note && voice[i].status & status_check
+					|| mono_check
+					|| altassign && find_altassign(altassign, voice[i].note))
+				kill_note(i);
+			else if (voice[i].note == note && (channel[ch].assign_mode == 0
+					|| channel[ch].assign_mode == 1
+					&& voice[i].proximate_flag == 0))
+				kill_note(i);
+		}
+	for (i = 0; i < upper_voices; i++)
+		if (voice[i].channel == ch && voice[i].note == note)
+			voice[i].proximate_flag = 0;
+	if (lowest != -1)	/* Found a free voice. */
+		return lowest;
+	if (upper_voices < voices)
+		return upper_voices++;
+	return reduce_voice();
 }
 
 int32 get_note_freq(Sample *sp, int note)
