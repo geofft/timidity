@@ -1,3 +1,7 @@
+2004-03-07  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Fixed GM2 drumch on program change.
+
 2004-03-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (midi_program_change): Fix for a drum

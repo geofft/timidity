@@ -3316,8 +3316,8 @@ void midi_program_change(int ch, int prog)
 	case GM2_SYSTEM_MODE:	/* GM2 */
 		if ((channel[ch].bank_msb & 0xFE) == 0x78)	/* 0x78/0x79 */
 		{
-			dr = channel[ch].bank_msb == 0x78;	/* change rhythm/melody */
-			midi_drumpart_change(ch, dr);
+			midi_drumpart_change(ch, channel[ch].bank_msb == 0x78);
+			dr = ISDRUMCHANNEL(ch);
 		}
 		channel[ch].mapID = (dr) ? GM2_DRUM_MAP : GM2_TONE_MAP;
 		newbank = channel[ch].bank_lsb;
