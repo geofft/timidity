@@ -2,7 +2,9 @@
 
 	* timidity/sndfont.c:
 	  Fix behaviour of SoundFont's scale-tuning like SB-Live!.
-
+	* timidity/playmidi.c:
+	  Add opt_pan_delay.
+	  
 2003-11-01  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (parse_opt_h): Fix in help message

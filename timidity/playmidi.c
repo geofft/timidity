@@ -206,6 +206,7 @@ int opt_drum_effect = 0;	/* drumpart effect control */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
 int opt_modulation_envelope = 0;
+int opt_pan_delay = 1;	/* phase difference between left ear and right ear. */
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -2068,20 +2069,22 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
 #ifdef ENABLE_PAN_DELAY
   voice[i].pan_delay_rpt = 0;
-  if(voice[i].panning == 64) {voice[i].delay += pan_delay_table[64] * play_mode->rate / 1000;}
-  else {
-	  if(pan_delay_table[voice[i].panning] > pan_delay_table[127 - voice[i].panning]) {
-		  pan_delay_diff = pan_delay_table[voice[i].panning] - pan_delay_table[127 - voice[i].panning];
-		  voice[i].delay += (pan_delay_table[voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
-	  } else {
-		  pan_delay_diff = pan_delay_table[127 - voice[i].panning] - pan_delay_table[voice[i].panning];
-		  voice[i].delay += (pan_delay_table[127 - voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
+  if(opt_pan_delay) {
+	  if(voice[i].panning == 64) {voice[i].delay += pan_delay_table[64] * play_mode->rate / 1000;}
+	  else {
+		  if(pan_delay_table[voice[i].panning] > pan_delay_table[127 - voice[i].panning]) {
+			  pan_delay_diff = pan_delay_table[voice[i].panning] - pan_delay_table[127 - voice[i].panning];
+			  voice[i].delay += (pan_delay_table[voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
+		  } else {
+			  pan_delay_diff = pan_delay_table[127 - voice[i].panning] - pan_delay_table[voice[i].panning];
+			  voice[i].delay += (pan_delay_table[127 - voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
+		  }
+		  voice[i].pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
 	  }
-	  voice[i].pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
+	  memset(voice[i].pan_delay_buf, 0, sizeof(voice[i].pan_delay_buf));
+	  if(voice[i].pan_delay_rpt < 1) {voice[i].pan_delay_rpt = 0;}
+	  voice[i].pan_delay_wpt = voice[i].pan_delay_rpt - 1;
   }
-  memset(voice[i].pan_delay_buf, 0, sizeof(voice[i].pan_delay_buf));
-  if(voice[i].pan_delay_rpt < 2) {voice[i].pan_delay_rpt = 0;}
-  voice[i].pan_delay_wpt = voice[i].pan_delay_rpt - 1;
 #endif	/* ENABLE_PAN_DELAY */
 
   voice[i].porta_control_counter = 0;
