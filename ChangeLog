@@ -1,7 +1,13 @@
+2004-10-18  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* libunimod/mlutil.c (getAmigaPeriod): Avoid division by zero
+	* timidity/mod2midi.c: Change all VERB_NORMAL and VERB_VERBOSE
+	  messages to VERB_NOISY.
+
 2004-10-17  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
-	* libunimod/mloader.c (SL_LoadSamples):
-	  too many arguments to function `FreeSampleList'
+	* libunimod/mloader.c (SL_LoadSamples): too many arguments to
+	  function `FreeSampleList'
 	* timidity/common.c, timidiyt/timidiyt.c: avoid confliction of
 	  time.h and sys/time.h
 	* timidity/aq.c: fix wrong prototype (int -> void)

@@ -321,6 +321,7 @@ ULONG getAmigaPeriod (UBYTE flags, ULONG period)
   if (flags & UF_LINEAR)
     {
       period = lintab[period % 768] >> (period / 768);
+      if (period < 1) period = 1;
       period = (8363L * 1712L) / period;
     }
 

@@ -195,7 +195,7 @@ period2note (int period, int *finetune)
 
   if (period < 14 || period > 13696)
   {
-    ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "BAD period %d\n", period);
+    ctl->cmsg(CMSG_WARNING, VERB_NOISY, "BAD period %d\n", period);
     return -1;
   }
 
@@ -278,7 +278,7 @@ Voice_SetPeriod (UBYTE v, ULONG period)
 
       if (new_noteon < 0)
         {
-	  ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
+	  ctl->cmsg(CMSG_WARNING, VERB_NOISY,
 			  "Strange period %d",
 			  ModV[v].period);
 	  return;
@@ -332,7 +332,7 @@ Voice_Play (UBYTE v, SAMPLE * s, ULONG start)
   new_noteon = period2note (ModV[v].period, &bend);
   bend = WHEEL_VALUE(bend);
   if (new_noteon < 0) {
-    ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
+    ctl->cmsg(CMSG_WARNING, VERB_NOISY,
 			  "Strange period %d",
 			  ModV[v].period);
     return;
