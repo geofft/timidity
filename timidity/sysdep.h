@@ -216,9 +216,9 @@ typedef struct _ChannelBitMask
     uint32 b[8];		/* 256-bit bitvector */
 } ChannelBitMask;
 #define CLEAR_CHANNELMASK(bits) \
-	memset((bits).b, 0, sizeof(ChannelBitMask));
+	memset((bits).b, 0, sizeof(ChannelBitMask))
 #define FILL_CHANNELMASK(bits) \
-	memset((bits).b, 0xFF, sizeof(ChannelBitMask));
+	memset((bits).b, 0xFF, sizeof(ChannelBitMask))
 #define IS_SET_CHANNELMASK(bits, c) \
 	((bits).b[((c) >> 5) & 0x7] &   (1u << ((c) & 0x1F)))
 #define SET_CHANNELMASK(bits, c) \
@@ -232,7 +232,7 @@ typedef struct _ChannelBitMask
 #define REVERSE_CHANNELMASK(bits) \
 	((bits).b[((c) >> 5) & 0x7] = ~(bits).b[((c) >> 5) & 0x7])
 #define COMPARE_CHANNELMASK(bitsA, bitsB) \
-	(memcmp((bitsA).b, (bitsB).b, sizeof (bitsA).b) == 0)
+	(memcmp((bitsA).b, (bitsB).b, sizeof ((bitsA).b)) == 0)
 #endif
 
 #ifdef LOOKUP_HACK
