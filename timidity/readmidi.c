@@ -102,6 +102,7 @@ void init_reverb_status_gs(void);
 void init_eq_status_gs(void);
 void init_insertion_effect_gs(void);
 void init_multi_eq_xg(void);
+static void init_all_effect_xg(void);
 
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
@@ -4569,6 +4570,7 @@ void change_system_mode(int mode)
 	vol_table = gs_vol_table;
 	break;
       case XG_SYSTEM_MODE:
+    if (play_system_mode != XG_SYSTEM_MODE) {init_all_effect_xg();}
 	play_system_mode = XG_SYSTEM_MODE;
 	vol_table = xg_vol_table;
 	break;
@@ -4578,6 +4580,7 @@ void change_system_mode(int mode)
 		play_system_mode = GS_SYSTEM_MODE;
 		break;
 	} else if (is_xg_module()) {
+		if (play_system_mode != XG_SYSTEM_MODE) {init_all_effect_xg();}
 		play_system_mode = XG_SYSTEM_MODE;
 		break;
 	}
@@ -4588,6 +4591,7 @@ void change_system_mode(int mode)
 	    vol_table = gs_vol_table;
 	    break;
 	  case 0x43:
+		if (play_system_mode != XG_SYSTEM_MODE) {init_all_effect_xg();}
 	    play_system_mode = XG_SYSTEM_MODE;
 	    vol_table = xg_vol_table;
 	    break;
@@ -6604,9 +6608,14 @@ void realloc_effect_xg(struct effect_xg_t *st)
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
+	st->use_msb = 0;
 
 	switch(type_msb) {
-	/* case delay: use_msb = 1;*/
+	case 0x05:
+		st->use_msb = 1;
+		st->ef = push_effect(st->ef, EFFECT_DELAY_LCR);
+		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
+		break;
 	case 0x41:
 	case 0x42:
 		st->ef = push_effect(st->ef, EFFECT_CHORUS);
@@ -6654,10 +6663,9 @@ static void init_effect_xg(struct effect_xg_t *st)
 }
 
 /*! initialize XG effect parameters */
-void init_all_effect_xg(void)
+static void init_all_effect_xg(void)
 {
 	int i;
-	if (play_system_mode != XG_SYSTEM_MODE) {return;}
  	init_effect_xg(&reverb_status_xg);
 	reverb_status_xg.type_msb = 0x01;
 	reverb_status_xg.connection = XG_CONN_SYSTEM_REVERB;

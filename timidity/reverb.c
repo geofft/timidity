@@ -3286,6 +3286,113 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
     lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
+static void do_delay_lcr(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x;
+	InfoDelayLCR *info = (InfoDelayLCR *)ef->info;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	filter_lowpass1 *lpf = &(info->lpf);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], index1 = info->index[1], index2 = info->index[2],
+		x1l = lpf->x1l, x1r = lpf->x1r;
+	int32 cleveli = info->cleveli, feedbacki = info->feedbacki, 
+		dryi = info->dryi, weti = info->weti, ai = lpf->ai, iai = lpf->iai;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		info->size[0] = info->ldelay * play_mode->rate / 1000.0f;
+		info->size[1] = info->cdelay * play_mode->rate / 1000.0f;
+		info->size[2] = info->rdelay * play_mode->rate / 1000.0f;
+		x = info->fdelay * play_mode->rate / 1000.0f;
+		for (i = 0; i < 3; i++) {
+			if (info->size[i] > x) {info->size[i] = x;}
+		}
+		x += 1;	/* allowance */
+		set_delay(&(info->delayL), x);
+		set_delay(&(info->delayR), x);
+		for (i = 0; i < 3; i++) {	/* set start-point */
+			info->index[i] = x - info->size[i];
+		}
+		info->feedbacki = TIM_FSCALE(info->feedback, 24);
+		info->cleveli = TIM_FSCALE(info->clevel, 24);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		lpf->a = (1.0f - info->high_damp) * 44100.0f / play_mode->rate;
+		init_filter_lowpass1(lpf);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = imuldiv24(bufL[buf_index], feedbacki);
+		do_filter_lowpass1(x, x1l, ai, iai);
+		bufL[buf_index] = buf[i] + x;
+		x = bufL[index0] + imuldiv24(bufL[index1], cleveli);
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(x, weti);
+
+		x = imuldiv24(bufR[buf_index], feedbacki);
+		do_filter_lowpass1(x, x1r, ai, iai);
+		bufR[buf_index] = buf[++i] + x;
+		x = bufR[index2] + imuldiv24(bufR[index1], cleveli);
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(x, weti);
+
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++index1 == buf_size) {index1 = 0;}
+		if (++index2 == buf_size) {index2 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
+	}
+	info->index[0] = index0, info->index[1] = index1, info->index[2] = index2;
+	lpf->x1l = x1l, lpf->x1r = x1r;
+	delayL->index = delayR->index = buf_index;
+}
+
+static void conv_xg_delay_eq2(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ2 *info = (InfoEQ2 *)ef->info;
+	int val;
+
+	val = st->param_lsb[12];
+	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
+	info->low_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[13] - 64;
+	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[14];
+	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
+	info->high_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[15] - 64;
+	info->high_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+}
+
+static void conv_xg_delay_lcr(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoDelayLCR *info = (InfoDelayLCR *)ef->info;
+	int val;
+
+	val = st->param_msb[0] * 128 + st->param_lsb[0];
+	val = (val < 1) ? 1 : val;
+	info->ldelay = (double)val / 10.0f;
+	val = st->param_msb[1] * 128 + st->param_lsb[1];
+	val = (val < 1) ? 1 : val;
+	info->rdelay = (double)val / 10.0f;
+	val = st->param_msb[2] * 128 + st->param_lsb[2];
+	val = (val < 1) ? 1 : val;
+	info->cdelay = (double)val / 10.0f;
+	val = st->param_msb[3] * 128 + st->param_lsb[3];
+	val = (val < 1) ? 1 : val;
+	info->fdelay = (double)val / 10.0f;
+	info->feedback = (double)(st->param_lsb[4] - 64) * (0.763f * 2.0f / 100.0f);
+	info->clevel = (double)st->param_lsb[5] / 127.0f;
+	val = st->param_lsb[6];
+	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
+	info->high_damp = (double)val / 10.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
 	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
@@ -3300,35 +3407,39 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_STEREO_OVERDRIVE, "Stereo Overdrive", do_stereo_od, NULL, conv_xg_overdrive, sizeof(InfoStereoOD),
 	EFFECT_STEREO_DISTORTION, "Stereo Distortion", do_stereo_od, NULL, conv_xg_distortion, sizeof(InfoStereoOD),
 	EFFECT_OD_EQ3, "2-Band EQ (XG OD built-in)", do_eq3, NULL, conv_xg_od_eq3, sizeof(InfoEQ3),
+	EFFECT_DELAY_LCR, "Delay L,C,R", do_delay_lcr, NULL, conv_xg_delay_lcr, sizeof(InfoDelayLCR),
+	EFFECT_DELAY_EQ2, "2-Band EQ (XG Delay built-in)", do_eq2, NULL, conv_xg_delay_eq2, sizeof(InfoEQ2),
 	-1, "EOF", NULL, NULL, NULL, 0, 
 };
 
 struct effect_parameter_xg_t effect_parameter_xg[] = {
 	0, 0, "NO EFFECT", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0x05, 0, "DELAY L,C,R", 0x1A, 0x0D, 0x27, 0x27, 0, 0, 0, 0, 0, 0,
+	0x05, 0x03, 0x08, 0x08, 74, 100, 10, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
 	0x41, 0, "CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0,
+	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
 	0x43, 0, "FLANGER 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	14, 14, 104, 2, 0, 28, 64, 46, 64, 96, 40, 64, 10, 4, 0, 0,
+	14, 14, 104, 2, 0, 28, 64, 46, 64, 96, 40, 64, 10, 4, 0, 0, 9, 
 	0x49, 0, "DISTORTION", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	40, 20, 72, 53, 48, 0, 43, 74, 10, 127, 120, 0, 0, 0, 0, 0,
+	40, 20, 72, 53, 48, 0, 43, 74, 10, 127, 120, 0, 0, 0, 0, 0, 0, 
 	0x4A, 0, "OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	29, 24, 68, 45, 55, 0, 41, 72, 10, 127, 104, 0, 0, 0, 0, 0,
+	29, 24, 68, 45, 55, 0, 41, 72, 10, 127, 104, 0, 0, 0, 0, 0, 0, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 struct effect_parameter_gs_t effect_parameter_gs[] = {
 	0, 0, "None", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0x01, 0x10, "Overdrive", 48, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0x40, 0x40, 0x40, 96,
+	0, 0, 0, 0, 0, 0, 0x40, 0x40, 0x40, 96, 0, 18,
 	0x01, 0x11, "Distrotion", 76, 3, 1, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0x40, 0x38, 0x40, 84,
+	0, 0, 0, 0, 0, 0, 0x40, 0x38, 0x40, 84, 0, 18, 
 	0x11, 0x03, "OD1/OD2", 0, 48, 1, 1, 0, 1, 76, 3, 1, 0,
-	0, 0, 0, 0, 0, 0x40, 96, 0x40, 84, 127,
+	0, 0, 0, 0, 0, 0x40, 96, 0x40, 84, 127, 1, 6, 
 	0x01, 0x40, "Hexa Chorus", 0x18, 0x08, 127, 5, 66, 16, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 64, 0x40, 0x40, 112,
+	0, 0, 0, 0, 0, 0, 64, 0x40, 0x40, 112, 1, 15, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };

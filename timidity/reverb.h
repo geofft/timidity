@@ -185,6 +185,8 @@ enum {
 	EFFECT_STEREO_DISTORTION,
 	EFFECT_OD_EQ3,
 	EFFECT_HEXA_CHORUS,
+	EFFECT_DELAY_LCR,
+	EFFECT_DELAY_EQ2,
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
@@ -233,6 +235,7 @@ struct effect_parameter_gs_t {
 	int8 type_msb, type_lsb;
 	char *name;
 	int8 param[20];
+	int8 control1, control2;
 };
 
 extern struct effect_parameter_gs_t effect_parameter_gs[];
@@ -241,6 +244,7 @@ struct effect_parameter_xg_t {
 	int8 type_msb, type_lsb;
 	char *name;
 	int8 param_msb[10], param_lsb[16];
+	int8 control;
 };
 
 extern struct effect_parameter_xg_t effect_parameter_xg[];
@@ -353,7 +357,7 @@ typedef struct {
 	int32 leveli, feedbacki, send_reverbi, send_delayi;
 } InfoStereoChorus;
 
-/*! Chorus Effect */
+/*! Chorus */
 typedef struct {
 	delay delayL, delayR;
 	lfo lfoL, lfoR;
@@ -371,6 +375,16 @@ typedef struct {
 	filter_moog svfl, svfr;
 	filter_lpf18 lpf18l, lpf18r;
 } InfoStereoOD;
+
+/*! Delay L,C,R */
+typedef struct {
+	delay delayL, delayR;
+	int32 index[3], size[3];	/* L,C,R */
+	double rdelay, ldelay, cdelay, fdelay;	/* in ms */
+	double dry, wet, feedback, clevel, high_damp;
+	int32 dryi, weti, feedbacki, cleveli;
+	filter_lowpass1 lpf;
+} InfoDelayLCR;
 
 /*                             */
 /*        System Effect        */

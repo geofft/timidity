@@ -1867,10 +1867,10 @@ static int find_samples(MidiEvent *e, int *vlist)
 		instrument_map(channel[ch].mapID, &bank, &note);
 		if (! (ip = play_midi_load_instrument(1, bank, note)))
 			return 0;	/* No instrument? Then we can't play. */
-		if (ip->type == INST_GUS && ip->samples != 1)
+		/* if (ip->type == INST_GUS && ip->samples != 1)
 			ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 					"Strange: percussion instrument with %d samples!",
-					ip->samples);
+					ip->samples); */
 		/* "keynum" of SF2, and patch option "note=" */
 		if (ip->sample->note_to_use)
 			note = ip->sample->note_to_use;
@@ -4958,7 +4958,6 @@ static void play_midi_prescan(MidiEvent *ev)
 
 	  case ME_RESET:
 	    change_system_mode(ev->a);
-		init_all_effect_xg();
 	    reset_midi(0);
 	    break;
 
@@ -5700,7 +5699,6 @@ static void seek_forward(int32 until_time)
 
 	  case ME_RESET:
 	    change_system_mode(current_event->a);
-		init_all_effect_xg();
 	    reset_midi(0);
 	    break;
 
