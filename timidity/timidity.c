@@ -3686,7 +3686,7 @@ static inline int parse_opt_O1(const char *arg)
 {
 	/* --output-stereo, --output-mono */
 	if (y_or_n_p(arg))
-		/* I first thought --mono should be the syntax sugae to
+		/* I first thought --mono should be the syntax sugar to
 		 * --stereo=no, but the source said stereo should be !PE_MONO,
 		 * not mono should be !PE_STEREO.  Perhaps I took a wrong
 		 * choice? -- mput
