@@ -64,7 +64,7 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
-static int detect(int probing);
+static int detect(void);
 
 /* export the playback mode */
 
@@ -86,22 +86,7 @@ PlayMode dpm = {
     detect
 };
 
-PlayMode arts_play_mode2 = {
-    DEFAULT_RATE,
-    PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM/*|PF_CAN_TRACE*/,
-    -1,
-    {0}, /* default: get all the buffer fragments you can */
-    "aRts sound daemon", 'A',
-    "artsd",
-    open_output,
-    close_output,
-    output_data,
-    acntl,
-    detect
-};
-
-static int detect(int probing)
+static int detect(void)
 {
     if (arts_init() == 0) {
 	arts_free();
@@ -145,7 +130,6 @@ static int open_output(void)
 		  dpm.name, strerror(errno));
 	return -1;
     }
-    dpm.fd = (int) stream;
     arts_stream_set(stream, ARTS_P_BLOCKING, 0);
 
     server_buffer = arts_stream_get(stream, ARTS_P_SERVER_LATENCY) * dpm.rate * (sample_width/8) * channels / 1000;
@@ -154,7 +138,7 @@ static int open_output(void)
     /* "this aRts function isnot yet implemented"
      *
     if (dpm.extra_param[0]) {
-        i = arts_stream_set((arts_stream_t) dpm.fd,
+        i = arts_stream_set(stream,
             ARTS_P_PACKET_COUNT,
             dpm.extra_param[0]);
 	if (i < 0) {
@@ -199,11 +183,11 @@ static int output_data(char *buf, int32 nbytes)
 
 static void close_output(void)
 {
-    if(dpm.fd == -1)
+    if(stream == 0)
 	return;
-    arts_close_stream((arts_stream_t) dpm.fd);
+    arts_close_stream(stream);
     arts_free();
-    dpm.fd = -1;
+    stream = 0;
 }
 
 static int acntl(int request, void *arg)

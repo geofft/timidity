@@ -84,7 +84,6 @@ extern PlayMode hpux_nplay_mode;
 
 #ifdef AU_ARTS
 extern PlayMode arts_play_mode;
-extern PlayMode arts_play_mode2;
 #endif /* AU_ARTS */
 
 #ifdef AU_ESD
@@ -132,7 +131,6 @@ PlayMode *play_mode_list[] = {
 
 #if defined(AU_ARTS)
   &arts_play_mode,
-  &arts_play_mode2,
 #endif /* AU_ARTS */
 
 #if defined(AU_ESD)
