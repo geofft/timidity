@@ -1,3 +1,8 @@
+2004-01-24  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Fixed event filtering.
+	* timidity/timidity.c: Added tone->rnddelay (re)initialization.
+
 2004-01-22  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5: Fix typo
