@@ -170,8 +170,7 @@ enum {
 	TIM_OPT_OUTPUT_MODE,
 	TIM_OPT_OUTPUT_STEREO,
 	TIM_OPT_OUTPUT_SIGNED,
-	TIM_OPT_OUTPUT_24BIT,
-	TIM_OPT_OUTPUT_16BIT,
+	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
 	TIM_OPT_OUTPUT_FILE,
@@ -286,9 +285,9 @@ static const struct option longopts[] = {
 	{ "output-mono",            no_argument,       NULL, TIM_OPT_OUTPUT_STEREO },
 	{ "output-signed",          no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
 	{ "output-unsigned",        no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
-	{ "output-24bit",           no_argument,       NULL, TIM_OPT_OUTPUT_24BIT },
-	{ "output-16bit",           no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
-	{ "output-8bit",            no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
+	{ "output-16bit",           no_argument,       NULL, TIM_OPT_OUTPUT_BITWIDTH },
+	{ "output-24bit",           no_argument,       NULL, TIM_OPT_OUTPUT_BITWIDTH },
+	{ "output-8bit",            no_argument,       NULL, TIM_OPT_OUTPUT_BITWIDTH },
 	{ "output-linear",          no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "output-ulaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
@@ -412,7 +411,7 @@ static inline int parse_opt_N(const char *);
 static inline int parse_opt_O(const char *);
 static inline int parse_opt_output_stereo(const char *);
 static inline int parse_opt_output_signed(const char *);
-static inline int parse_opt_output_16bit(const char *);
+static inline int parse_opt_output_bitwidth(const char *);
 static inline int parse_opt_output_format(const char *);
 static inline int parse_opt_output_swab(const char *);
 static inline int parse_opt_o(char *);
@@ -2635,13 +2634,14 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
 		return parse_opt_output_signed(arg);
-	case TIM_OPT_OUTPUT_16BIT:
-		if (! strcmp(the_option->name, "output-8bit"))
-			/* --output-8bit == --output-16bit=no */
-			arg = "no";
-		return parse_opt_output_16bit(arg);
-	case TIM_OPT_OUTPUT_24BIT:
-		return parse_opt_output_24bit(arg);
+	case TIM_OPT_OUTPUT_BITWIDTH:
+		if (! strcmp(the_option->name, "output-16bit"))
+			arg = "16bit";
+		else if (! strcmp(the_option->name, "output-24bit"))
+			arg = "24bit";
+		else if (! strcmp(the_option->name, "output-8bit"))
+			arg = "8bit";
+		return parse_opt_output_bitwidth(arg);
 	case TIM_OPT_OUTPUT_FORMAT:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
@@ -3687,6 +3687,7 @@ static inline int parse_opt_h(const char *arg)
 "  `s'          signed output" NLS
 "  `u'          unsigned output" NLS
 "  `1'          16-bit sample width" NLS
+"  `2'          24-bit sample width" NLS
 "  `8'          8-bit sample width" NLS
 "  `l'          linear encoding" NLS
 "  `U'          U-Law encoding" NLS
@@ -3698,8 +3699,8 @@ static inline int parse_opt_h(const char *arg)
 "  --output-mono" NLS
 "  --output-signed" NLS
 "  --output-unsigned" NLS
-"  --output-24bit" NLS
 "  --output-16bit" NLS
+"  --output-24bit" NLS
 "  --output-8bit" NLS
 "  --output-linear" NLS
 "  --output-ulaw" NLS
@@ -4038,20 +4039,20 @@ static inline int parse_opt_O(const char *arg)
 			pmp->encoding &= ~(PE_16BIT | PE_ULAW | PE_ALAW);
 			break;
 		case '8':
-			pmp->encoding &= ~(PE_24BIT | PE_16BIT);
+			pmp->encoding &= ~(PE_16BIT | PE_24BIT);
 			break;
 		case 'l':	/* linear */
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
 			break;
 		case 'U':	/* uLaw */
 			pmp->encoding |= PE_ULAW;
-			pmp->encoding &=
-					~(PE_SIGNED | PE_24BIT | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+			pmp->encoding &= ~(PE_SIGNED
+					| PE_16BIT | PE_24BIT | PE_ALAW | PE_BYTESWAP);
 			break;
 		case 'A':	/* aLaw */
 			pmp->encoding |= PE_ALAW;
-			pmp->encoding &=
-					~(PE_SIGNED | PE_24BIT | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+			pmp->encoding &= ~(PE_SIGNED
+					| PE_16BIT | PE_24BIT | PE_ULAW | PE_BYTESWAP);
 			break;
 		case 'x':
 			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
@@ -4089,25 +4090,25 @@ static inline int parse_opt_output_signed(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_output_16bit(const char *arg)
+static inline int parse_opt_output_bitwidth(const char *arg)
 {
-	/* --output-16bit, --output-8bit */
-	play_mode->encoding != ~PE_24BIT;
-	if (set_flag(&(play_mode->encoding), PE_16BIT, arg))
+	/* --output-16bit, --output-24bit, --output-8bit */
+	switch (*arg) {
+	case '1':	/* 16bit */
+		play_mode->encoding |= PE_16BIT;
+		play_mode->encoding &= ~(PE_24BIT | PE_ULAW | PE_ALAW);
+		return 0;
+	case '2':	/* 24bit */
+		play_mode->encoding |= PE_24BIT;
+		play_mode->encoding &= ~(PE_16BIT | PE_ULAW | PE_ALAW);
+		return 0;
+	case '8':	/* 8bit */
+		play_mode->encoding &= ~(PE_16BIT | PE_24BIT);
+		return 0;
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid output bitwidth %s", arg);
 		return 1;
-	if (y_or_n_p(arg))
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-	return 0;
-}
-
-static inline int parse_opt_output_24bit(const char *arg)
-{
-	play_mode->encoding &= ~PE_16BIT;	/* 24bit overrides 16bit */
-	if (set_flag(&(play_mode->encoding), PE_24BIT, arg))
-		return 1;
-	if (y_or_n_p(arg))
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-	return 0;
+	}
 }
 
 static inline int parse_opt_output_format(const char *arg)

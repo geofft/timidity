@@ -1,13 +1,17 @@
+2004-02-11  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix some codes for 24bit output
+
 2004-02-11  Kouji 'kekyo' Suzuki <k@kekyo.net>
 
 	* interface/w32g_syn.c, configs/msc7-project.zip:
 	  Support for TWSYNSRV.
 
 2004-02-11  Saito <saito2@digitalme.com>
-        * timidity/output.[ch], timidity/wave_a.c,
-          timidity/w32_a.c, timidity/aq.c,
-          timidity/effect.c, timidity/timidity.c, interface/w32g_utl.c:
-          Fix some codes for 24bit output.
+	* timidity/output.[ch], timidity/wave_a.c,
+	  timidity/w32_a.c, timidity/aq.c,
+	  timidity/effect.c, timidity/timidity.c, interface/w32g_utl.c:
+	  Fix some codes for 24bit output.
 	* timidity/reverb.[ch], timidity/playmidi.[ch],
 	  timidity/mix.c, timidity/sndfont.c,
 	  interface/w32g_utl.[ch], interface/w32g_res.rc,
@@ -20,7 +24,7 @@
 	* interface/w32g_pref.c, timidity/w32_gogo.c,
 	  timidity/gogo_a.c:
 	  Change <gogo.h> to <gogo/gogo.h>.
-	* configs/msc-project[67].zip:
+	* configs/msc[67]-project.zip:
 	  Add header files of Ogg Vorbis and gogo.
 
 2004-02-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
