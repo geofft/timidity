@@ -84,9 +84,18 @@ if BORLANDC
 	done
 	if test -f arc.lib ; then touch $@ ; fi
 else
+if WATCOM
+	rm -f libarc.a
+	rm -f arc.lib
+	for foo in $(libarc_a_OBJECTS) $(libarc_a_LIBADD);do \
+	  wlib -q arc.lib +$$foo; \
+	done
+	if test -f arc.lib ; then touch $@ ; fi
+else
 	-rm -f libarc.a
 	$(libarc_a_AR) libarc.a $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
 	$(RANLIB) libarc.a
+endif
 endif
 endif
 

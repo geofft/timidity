@@ -96,9 +96,18 @@ if BORLANDC
 	done
 	if test -f utils.lib ; then touch $@ ; fi
 else
+if WATCOM
+	rm -f libutils.a
+	rm -f utils.lib
+	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \
+	wlib -q utils.lib +$$foo; \
+	done
+	if test -f utils.lib ; then touch $@ ; fi
+else
 	-rm -f libutils.a
 	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
 	$(RANLIB) libutils.a
+endif
 endif
 endif
 

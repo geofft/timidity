@@ -193,9 +193,18 @@ if BORLANDC
 	done
 	if test -f interface.lib ; then touch $@ ; fi
 else
+if WATCOM
+	rm -f libinterface.a
+	rm -f interface.lib
+	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
+	  wlib -q interface.lib +$$foo; \
+	done
+	if test -f interface.lib ; then touch $@ ; fi
+else
 	rm -f libinterface.a
 	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
 	$(RANLIB) libinterface.a
+endif
 endif
 endif
 
@@ -278,6 +287,11 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 	rc w32g_res.rc
 else
+if WATCOM
+w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
+	rc w32g_res.rc
+else
 if BORLANDC
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
@@ -298,6 +312,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
 	windres -o $@ -O coff w32g_res_escaped.rc
 	rm w32g_res_escaped.rc
+endif
 endif
 endif
 

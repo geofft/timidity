@@ -105,7 +105,7 @@ int PDC_set_ctrl_break(bool setting);
 #endif /* MIDI_TITLE */
 
 #ifdef DISPLAY_MID_MODE
-#ifdef JAPANESE
+#if defined(JAPANESE) && !defined(__WATCOMC__)
 #include "mid-j.defs"
 #else
 #include "mid.defs"

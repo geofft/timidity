@@ -68,9 +68,18 @@ if BORLANDC
 	done
 	if test -f unimod.lib ; then touch $@ ; fi
 else
+if WATCOM
+	rm -f libunimod.a
+	rm -f unimod.lib
+	for foo in  $(libunimod_a_OBJECTS);do \
+	  wlib -q unimod.lib +$$foo; \
+	done
+	if test -f unimod.lib ; then touch $@ ; fi
+else
 	-rm -f libunimod.a
 	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
 	$(RANLIB) libunimod.a
+endif
 endif
 endif
 
