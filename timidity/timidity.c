@@ -2851,7 +2851,6 @@ static inline int parse_opt_EH(const char *arg)
 static inline int parse_opt_EI(const char *arg)
 {
 	/* --reverb */
-	int32 tmpi32;
 	const char *p;
 	
 	switch (*arg) {
@@ -3810,7 +3809,7 @@ static inline int parse_opt_R(const char *arg)
 	if (atoi(arg) == -1)	/* reset */
 		modify_release = 0;
 	else {
-		if (set_value(&modify_release, atoi(arg), 0, MAX_MREL,
+		if (set_val_i32(&modify_release, atoi(arg), 0, MAX_MREL,
 				"Modify Release"))
 			return 1;
 		if (modify_release == 0)
@@ -3844,11 +3843,11 @@ static inline int parse_opt_S(const char *arg)
 static inline int parse_opt_s(const char *arg)
 {
 	/* sampling rate */
-	int32 tmpi32;
+	int32 freq;
 
-	if ((tmpi32 = atoi(arg)) < 100)
-		tmpi32 = atof(arg) * 1000 + 0.5;
-	return set_value(&opt_output_rate, tmpi32,
+	if ((freq = atoi(arg)) < 100)
+		freq = atof(arg) * 1000 + 0.5;
+	return set_val_i32(&opt_output_rate, freq,
 			MIN_OUTPUT_RATE, MAX_OUTPUT_RATE, "Resampling frequency");
 }
 
@@ -4052,8 +4051,8 @@ static inline int set_val_i32(int32 *param,
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				"%s must be between %ld and %ld", name, low, high);
 		return 1;
-	} else
-		*param = i;
+	}
+	*param = i;
 	return 0;
 }
 
