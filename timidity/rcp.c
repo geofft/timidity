@@ -73,7 +73,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt);
 static int preprocess_sysex(uint8* ex, int ch, int gt, int vel);
 
 /* Note Tracer */
-static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at, int init_tempo);
+static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at);
 static void ntr_end(struct RCPNoteTracer *ntr);
 static void ntr_incr(struct RCPNoteTracer *ntr, int step);
 static void ntr_note_on(struct RCPNoteTracer *ntr,
@@ -596,11 +596,10 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
      */
 
     sp = 0;
-    ntr_init(&ntr, gfmt, readmidi_set_track(trackno, 1), 64);
+    ntr.tempo = current_tempo = 60000000 / init_tempo;
+    ntr_init(&ntr, gfmt, readmidi_set_track(trackno, 1));
     if(trackno == 0 && init_tempo != 120)
-	current_tempo = rcp_tempo_change(&ntr, 64, 0);
-    else
-	ntr->tempo = current_tempo = 60000000 / init_tempo;
+	ntr.tempo = current_tempo = rcp_tempo_change(&ntr, 64, 0);
 	if (trackno == 0) {
 		rcp_timesig_change(ntr_at(ntr));
 		rcp_keysig_change(ntr_at(ntr), init_keysig);
@@ -1272,13 +1271,12 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
     return ret;
 }
 
-static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at, int tempo)
+static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at)
 {
     memset(ntr, 0, sizeof(*ntr));
     init_mblock(&ntr->pool);
     ntr->gfmt = gfmt;
     ntr->at = at;
-    ntr->tempo = ntr->tempo_to = tempo;
     ntr->tempo_grade = 0;
 }
 
