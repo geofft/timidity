@@ -1162,6 +1162,25 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
+// IDC_COMBO_BANDWIDTH
+#define cb_num_IDC_COMBO_BANDWIDTH 3
+enum {
+	BANDWIDTH_8BIT = 0,
+	BANDWIDTH_16BIT = 1,
+	BANDWIDTH_24BIT = 2,
+};
+static char *cb_info_IDC_COMBO_BANDWIDTH_en[] = {
+	"8-bit",
+	"16-bit",
+	"24-bit",
+};
+static char *cb_info_IDC_COMBO_BANDWIDTH_jp[] = {
+	"8ビット",
+	"16ビット",
+	"24ビット",
+};
+static char **cb_info_IDC_COMBO_BANDWIDTH;
+
 // IDC_COMBO_OUTPUT_MODE
 static char *cb_info_IDC_COMBO_OUTPUT_MODE_jp[]= {
 	"以下のファイルに出力",(char *)0,
@@ -1187,7 +1206,8 @@ static char **cb_info_IDC_COMBO_OUTPUT_MODE;
 static BOOL APIENTRY
 PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
-	static int initflag = 1; 
+	static int initflag = 1;
+	int i;
 	switch (uMess){
    case WM_INITDIALOG:
 		{
@@ -1238,41 +1258,53 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-	 } else if(strchr(opt, 'A')){
+		} else if(strchr(opt, 'A')){
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-	 } else {
+		} else {
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-	 }
-		if(strchr(opt, '1')){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,1,0);
-		} else {
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
-	 }
+		}
+		// BANDWIDTH
+		if (PlayerLanguage == LANGUAGE_JAPANESE)
+		  cb_info_IDC_COMBO_BANDWIDTH = cb_info_IDC_COMBO_BANDWIDTH_jp;
+		else
+		  cb_info_IDC_COMBO_BANDWIDTH = cb_info_IDC_COMBO_BANDWIDTH_en;
+		for (i = 0; i < cb_num_IDC_COMBO_BANDWIDTH; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info_IDC_COMBO_BANDWIDTH[i]);
+		if (strchr(opt, '2')) {	// 24-bit
+			SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_SETCURSEL,
+					(WPARAM) BANDWIDTH_24BIT, (LPARAM) 0);
+		} else if (strchr(opt, '1')) {	// 16-bit
+			SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_SETCURSEL,
+					(WPARAM) BANDWIDTH_16BIT, (LPARAM) 0);
+		} else {	// 8-bit
+			SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_SETCURSEL,
+					(WPARAM) BANDWIDTH_8BIT, (LPARAM) 0);
+		}
 		if(strchr(opt, 's')){
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,0,0);
 		} else {
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
-	 }
+		}
 		if(strchr(opt, 'x')){
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,1,0);
 		} else {
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
-	 }
+		}
 		if(strchr(opt, 'M')){
 			SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,1,0);
 		} else {
 			SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,0,0);
-	 }
+		}
 		SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,st_temp->output_rate,FALSE);
 #if 0		// Buggy
 		EnableWindow(GetDlgItem(hwnd,IDC_RADIOBUTTON_LIST_MIDI_EVENT),FALSE);
@@ -1352,65 +1384,41 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
+				SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_SETCURSEL,
+					(WPARAM) BANDWIDTH_8BIT, (LPARAM) 0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
-		 } else {
+			 } else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
+			 }
 			break;
 		case IDC_CHECKBOX_ALAW:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_GETCHECK,0,0)){
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
+				SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_SETCURSEL,
+					(WPARAM) BANDWIDTH_8BIT, (LPARAM) 0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
-		 } else {
+			 } else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
+			 }
 			break;
 		case IDC_CHECKBOX_LINEAR:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_GETCHECK,0,0)){
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 } else {
+			 } else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
-			break;
-		case IDC_CHECKBOX_8BITS:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_GETCHECK,0,0)){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
-		 } else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
-			break;
-		case IDC_CHECKBOX_16BITS:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_GETCHECK,0,0)){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 } else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
-		 }
+			 }
 			break;
 		case IDC_CHECKBOX_SIGNED:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_GETCHECK,0,0)){
@@ -1419,13 +1427,13 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 } else {
+			 } else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
+			 }
 			break;
 		case IDC_CHECKBOX_UNSIGNED:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_GETCHECK,0,0)){
@@ -1434,13 +1442,13 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 } else {
+			} else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
+			 }
 			break;
 		case IDC_CHECKBOX_BYTESWAP:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_GETCHECK,0,0)){
@@ -1448,21 +1456,21 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 } else {
+			} else {
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
+			}
 			break;
 		case IDC_RADIO_STEREO:
 			if(SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_GETCHECK,0,0)){
 				SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,1,0);
 				SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,0,0);
-		 } else {
+			 } else {
 				SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,0,0);
 				SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,1,0);
-		 }
+			 }
 			break;
 		case IDC_RADIO_MONO:
 			if(SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_GETCHECK,0,0)){
@@ -1550,9 +1558,12 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			st_temp->opt_playmode[i++] = 'A';
 		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_GETCHECK,0,0))
 			st_temp->opt_playmode[i++] = 'l';
-		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_GETCHECK,0,0))
+		num = SendDlgItemMessage(hwnd, IDC_COMBO_BANDWIDTH, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+		if(num == BANDWIDTH_8BIT)
 			st_temp->opt_playmode[i++] = '8';
-		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_GETCHECK,0,0))
+		else if(num == BANDWIDTH_24BIT)
+			st_temp->opt_playmode[i++] = '2';
+		else	// 16-bit
 			st_temp->opt_playmode[i++] = '1';
 		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_GETCHECK,0,0))
 			st_temp->opt_playmode[i++] = 's';

@@ -1,3 +1,7 @@
+2004-02-12  Saito <saito2@digitalme.com>
+	* interface/w32g_pref.c, interface/w32g_res.[h,rc], interface/rtsyn_common.c:
+	  Support for 24-bit output in Win32GUI/TWSYNTH interface.
+
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/output.c: Fixed endian problem of 24-bit output.

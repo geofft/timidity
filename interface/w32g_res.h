@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by w32g_res.rc
 //
 #define IDD_DIALOG_SEARCHBOX            102
@@ -242,6 +242,7 @@
 #define IDC_BUTTON_REVERSE              2003
 #define IDC_COMBO_OUTPUT                2004
 #define IDC_BUTTON_OUTPUT_OPTIONS       2005
+#define IDC_COMBO_BANDWIDTH             2006
 #define IDC_CHECK_DEFAULT               2007
 #define IDC_COMBO_MODE                  2008
 #define IDC_CHECK_USE_TAG               2009

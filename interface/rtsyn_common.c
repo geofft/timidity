@@ -270,7 +270,9 @@ void rtsyn_init(void){
 	time_advance=play_mode->rate/TICKTIME_HZ*2;
 	if (!(play_mode->encoding & PE_MONO))
 		time_advance >>= 1;
-	if (play_mode->encoding & PE_16BIT)
+	if (play_mode->encoding & PE_24BIT)
+		time_advance /= 3;
+	else if (play_mode->encoding & PE_16BIT)
 		time_advance >>= 1;
 
 	if (opt_force_keysig != 8) {

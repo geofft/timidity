@@ -350,23 +350,19 @@ FONT 9, "Times New Roman"
 BEGIN
     GROUPBOX        "Output Encoding",IDC_STATIC,0,0,203,140,WS_GROUP | 
                     WS_TABSTOP
-    GROUPBOX        "Precision",IDC_STATIC,4,7,171,30,WS_GROUP | WS_TABSTOP
-    CONTROL         "8bits",IDC_CHECKBOX_8BITS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,8,15,29,8
-    CONTROL         "16bits",IDC_CHECKBOX_16BITS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,8,25,32,8
+    GROUPBOX        "Precision",IDC_STATIC,4,7,192,30,WS_GROUP | WS_TABSTOP
     CONTROL         "uLaw",IDC_CHECKBOX_ULAW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,41,15,31,8
+                    WS_TABSTOP,65,15,31,8
     CONTROL         "ALaw",IDC_CHECKBOX_ALAW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,41,25,31,8
+                    WS_TABSTOP,65,25,31,8
     CONTROL         "Signed",IDC_CHECKBOX_SIGNED,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,77,15,37,8
+                    WS_TABSTOP,101,15,37,8
     CONTROL         "Unsigned",IDC_CHECKBOX_UNSIGNED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,77,25,37,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,101,25,37,8
     CONTROL         "Byteswap",IDC_CHECKBOX_BYTESWAP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,119,15,43,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,143,15,43,8
     CONTROL         "Linear PCM",IDC_CHECKBOX_LINEAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,119,25,45,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,143,25,45,8
     GROUPBOX        "Channels",IDC_STATIC,4,41,45,33,WS_GROUP | WS_TABSTOP
     CONTROL         "Stereo",IDC_RADIO_STEREO,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,8,51,36,10
@@ -396,6 +392,8 @@ BEGIN
     EDITTEXT        IDC_EDIT_OUTPUT_FILE,47,123,130,15,ES_AUTOHSCROLL | 
                     ES_OEMCONVERT | WS_GROUP
     PUSHBUTTON      "DEL",IDC_BUTTON_OUTPUT_FILE_DEL,178,123,19,14,BS_CENTER
+    COMBOBOX        IDC_COMBO_BANDWIDTH,8,19,48,64,CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_PREF_TIMIDITY4_EN DIALOG DISCARDABLE  0, 0, 211, 206
@@ -1059,24 +1057,20 @@ STYLE DS_SYSMODAL | DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_VISIBLE |
 FONT 9, "ＭＳ Ｐゴシック"
 BEGIN
     GROUPBOX        "出力",IDC_STATIC,1,0,203,180,WS_GROUP | WS_TABSTOP
-    GROUPBOX        "出力モード",IDC_STATIC,4,14,174,33,WS_GROUP | 
+    GROUPBOX        "出力モード",IDC_STATIC,4,14,193,33,WS_GROUP | 
                     WS_TABSTOP
-    CONTROL         "8ビット",IDC_CHECKBOX_8BITS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,8,23,29,8
-    CONTROL         "16ビット",IDC_CHECKBOX_16BITS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,8,35,32,8
     CONTROL         "U-Law",IDC_CHECKBOX_ULAW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,41,23,31,8
+                    WS_TABSTOP,62,23,31,8
     CONTROL         "A-Law",IDC_CHECKBOX_ALAW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,41,35,31,8
+                    WS_TABSTOP,62,35,31,8
     CONTROL         "Signed",IDC_CHECKBOX_SIGNED,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,77,23,37,8
+                    WS_TABSTOP,98,23,37,8
     CONTROL         "Unsigned",IDC_CHECKBOX_UNSIGNED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,77,35,37,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,35,37,8
     CONTROL         "バイトスワップ",IDC_CHECKBOX_BYTESWAP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,119,23,52,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,140,23,52,8
     CONTROL         "リニアPCM",IDC_CHECKBOX_LINEAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,119,35,45,8
+                    WS_TABSTOP,140,35,45,8
     GROUPBOX        "チャンネル",IDC_STATIC,4,55,45,33,WS_GROUP | WS_TABSTOP
     CONTROL         "ステレオ",IDC_RADIO_STEREO,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,8,65,36,10
@@ -1107,6 +1101,8 @@ BEGIN
                     ES_OEMCONVERT | WS_GROUP
     PUSHBUTTON      "削除",IDC_BUTTON_OUTPUT_FILE_DEL,178,156,19,14,
                     BS_CENTER
+    COMBOBOX        IDC_COMBO_BANDWIDTH,8,27,48,64,CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_PREF_TIMIDITY4 DIALOG DISCARDABLE  0, 0, 211, 195
