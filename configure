@@ -14058,12 +14058,13 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-echo "$as_me:$LINENO: checking enable_audio=flac" >&5
+if test "x$CYGWIN" = xyes || test "x$MINGW" = xyes ; then
+  echo "$as_me:$LINENO: checking enable_audio=flac" >&5
 echo $ECHO_N "checking enable_audio=flac... $ECHO_C" >&6
-if test "x$au_enable_flac" = xyes; then
-  echo "$as_me:$LINENO: result: yes, configuring flac" >&5
+  if test "x$au_enable_flac" = xyes; then
+    echo "$as_me:$LINENO: result: yes, configuring flac" >&5
 echo "${ECHO_T}yes, configuring flac" >&6
-  SYSEXTRAS="$SYSEXTRAS flac_a.c"
+    SYSEXTRAS="$SYSEXTRAS flac_a.c w32_libFLAC_dll.c w32_libOggFLAC_dll.c"
 
 # Check whether --with-libFLAC or --without-libFLAC was given.
 if test "${with_libFLAC+set}" = set; then
@@ -14180,15 +14181,15 @@ fi
      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
 
-    EXTRADEFS="$EXTRADEFS -DAU_FLAC"
-    for f in $LIBFLAC_CFLAGS; do
+      EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_FLAC_DLL"
+      for f in $LIBFLAC_CFLAGS; do
     case ".$f" in
 	.-I?*|.-D?*)	CPPFLAGS="$CPPFLAGS $f" ;;
 	*)		CFLAGS="$CPPFLAGS $f" ;;
     esac
 done
 
-    LIBS="$LIBS $LIBFLAC_LIBS"
+      LIBS="$LIBS $LIBFLAC_LIBS"
 
   else
      echo "$as_me:$LINENO: result: no" >&5
@@ -14386,15 +14387,15 @@ fi
      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
 
-    EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC"
-    for f in $LIBOGGFLAC_CFLAGS; do
+      EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC -DAU_OGGFLAC_DLL"
+      for f in $LIBOGGFLAC_CFLAGS; do
     case ".$f" in
 	.-I?*|.-D?*)	CPPFLAGS="$CPPFLAGS $f" ;;
 	*)		CFLAGS="$CPPFLAGS $f" ;;
     esac
 done
 
-    LIBS="$LIBS $LIBOGGFLAC_LIBS"
+      LIBS="$LIBS $LIBOGGFLAC_LIBS"
 
   else
      echo "$as_me:$LINENO: result: no" >&5
@@ -14476,11 +14477,434 @@ rm -f conftest.err conftest.$ac_objext \
 
   rm -f conf.libOggFLACtest
 
-else
-  echo "$as_me:$LINENO: result: no" >&5
+  else
+    echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-fi
+  fi
+else
+  echo "$as_me:$LINENO: checking enable_audio=flac" >&5
+echo $ECHO_N "checking enable_audio=flac... $ECHO_C" >&6
+  if test "x$au_enable_flac" = xyes; then
+    echo "$as_me:$LINENO: result: yes, configuring flac" >&5
+echo "${ECHO_T}yes, configuring flac" >&6
+    SYSEXTRAS="$SYSEXTRAS flac_a.c"
 
+# Check whether --with-libFLAC or --without-libFLAC was given.
+if test "${with_libFLAC+set}" = set; then
+  withval="$with_libFLAC"
+  libFLAC_prefix="$withval"
+else
+  libFLAC_prefix=""
+fi;
+
+# Check whether --with-libFLAC-libraries or --without-libFLAC-libraries was given.
+if test "${with_libFLAC_libraries+set}" = set; then
+  withval="$with_libFLAC_libraries"
+  libFLAC_libraries="$withval"
+else
+  libFLAC_libraries=""
+fi;
+
+# Check whether --with-libFLAC-includes or --without-libFLAC-includes was given.
+if test "${with_libFLAC_includes+set}" = set; then
+  withval="$with_libFLAC_includes"
+  libFLAC_includes="$withval"
+else
+  libFLAC_includes=""
+fi;
+# Check whether --enable-libFLACtest or --disable-libFLACtest was given.
+if test "${enable_libFLACtest+set}" = set; then
+  enableval="$enable_libFLACtest"
+
+else
+  enable_libFLACtest=yes
+fi;
+
+  if test "x$libFLAC_libraries" != "x" ; then
+    LIBFLAC_LIBS="-L$libFLAC_libraries"
+  elif test "x$libFLAC_prefix" != "x" ; then
+    LIBFLAC_LIBS="-L$libFLAC_prefix/lib"
+  elif test "x$prefix" != "xNONE" ; then
+    LIBFLAC_LIBS="-L$prefix/lib"
+  fi
+
+  LIBFLAC_LIBS="$LIBFLAC_LIBS -lFLAC -lm"
+
+  if test "x$libFLAC_includes" != "x" ; then
+    LIBFLAC_CFLAGS="-I$libFLAC_includes"
+  elif test "x$libFLAC_prefix" != "x" ; then
+    LIBFLAC_CFLAGS="-I$libFLAC_prefix/include"
+  elif test "$prefix" != "xNONE"; then
+    LIBFLAC_CFLAGS="-I$prefix/include"
+  fi
+
+  echo "$as_me:$LINENO: checking for libFLAC" >&5
+echo $ECHO_N "checking for libFLAC... $ECHO_C" >&6
+  no_libFLAC=""
+
+
+  if test "x$enable_libFLACtest" = "xyes" ; then
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_CXXFLAGS="$CXXFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $LIBFLAC_CFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBFLAC_CFLAGS"
+    LIBS="$LIBS $LIBFLAC_LIBS"
+      rm -f conf.libFLACtest
+      if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <FLAC/format.h>
+
+int main ()
+{
+  system("touch conf.libFLACtest");
+  return 0;
+}
+
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+no_libFLAC=yes
+fi
+rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+  fi
+
+  if test "x$no_libFLAC" = "x" ; then
+     echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+      EXTRADEFS="$EXTRADEFS -DAU_FLAC"
+      for f in $LIBFLAC_CFLAGS; do
+    case ".$f" in
+	.-I?*|.-D?*)	CPPFLAGS="$CPPFLAGS $f" ;;
+	*)		CFLAGS="$CPPFLAGS $f" ;;
+    esac
+done
+
+      LIBS="$LIBS $LIBFLAC_LIBS"
+
+  else
+     echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+     if test -f conf.libFLACtest ; then
+       :
+     else
+       echo "*** Could not run libFLAC test program, checking why..."
+       CFLAGS="$CFLAGS $LIBFLAC_CFLAGS"
+       LIBS="$LIBS $LIBFLAC_LIBS"
+       cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <FLAC/format.h>
+
+int
+main ()
+{
+ return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+   echo "*** The test program compiled, but did not run. This usually means"
+       echo "*** that the run-time linker is not finding libFLAC or finding the wrong"
+       echo "*** version of libFLAC. If it is not finding libFLAC, you'll need to set your"
+       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+       echo "*** is required on your system"
+       echo "***"
+       echo "*** If you have an old version installed, it is best to remove it, although"
+       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ echo "*** The test program failed to compile or link. See the file config.log for the"
+       echo "*** exact error that occured. This usually means libFLAC was incorrectly installed"
+       echo "*** or that you have moved libFLAC since it was installed. In the latter case, you"
+       echo "*** may want to edit the libFLAC-config script: $LIBFLAC_CONFIG"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+     LIBFLAC_CFLAGS=""
+     LIBFLAC_LIBS=""
+     :
+  fi
+
+
+  rm -f conf.libFLACtest
+
+
+# Check whether --with-libOggFLAC or --without-libOggFLAC was given.
+if test "${with_libOggFLAC+set}" = set; then
+  withval="$with_libOggFLAC"
+  libOggFLAC_prefix="$withval"
+else
+  libOggFLAC_prefix=""
+fi;
+
+# Check whether --with-libOggFLAC-libraries or --without-libOggFLAC-libraries was given.
+if test "${with_libOggFLAC_libraries+set}" = set; then
+  withval="$with_libOggFLAC_libraries"
+  libOggFLAC_libraries="$withval"
+else
+  libOggFLAC_libraries=""
+fi;
+
+# Check whether --with-libOggFLAC-includes or --without-libOggFLAC-includes was given.
+if test "${with_libOggFLAC_includes+set}" = set; then
+  withval="$with_libOggFLAC_includes"
+  libOggFLAC_includes="$withval"
+else
+  libOggFLAC_includes=""
+fi;
+# Check whether --enable-libOggFLACtest or --disable-libOggFLACtest was given.
+if test "${enable_libOggFLACtest+set}" = set; then
+  enableval="$enable_libOggFLACtest"
+
+else
+  enable_libOggFLACtest=yes
+fi;
+
+  if test "x$libOggFLAC_libraries" != "x" ; then
+    LIBOGGFLAC_LIBS="-L$libOggFLAC_libraries"
+  elif test "x$libOggFLAC_prefix" != "x" ; then
+    LIBOGGFLAC_LIBS="-L$libOggFLAC_prefix/lib"
+  elif test "x$prefix" != "xNONE" ; then
+    LIBOGGFLAC_LIBS="-L$prefix/lib"
+  fi
+
+  LIBOGGFLAC_LIBS="$LIBOGGFLAC_LIBS -lOggFLAC -lFLAC -lm"
+
+  if test "x$libOggFLAC_includes" != "x" ; then
+    LIBOGGFLAC_CFLAGS="-I$libOggFLAC_includes"
+  elif test "x$libOggFLAC_prefix" != "x" ; then
+    LIBOGGFLAC_CFLAGS="-I$libOggFLAC_prefix/include"
+  elif test "$prefix" != "xNONE"; then
+    LIBOGGFLAC_CFLAGS="-I$prefix/include"
+  fi
+
+  echo "$as_me:$LINENO: checking for libOggFLAC" >&5
+echo $ECHO_N "checking for libOggFLAC... $ECHO_C" >&6
+  no_libOggFLAC=""
+
+
+  if test "x$enable_libOggFLACtest" = "xyes" ; then
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_CXXFLAGS="$CXXFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $LIBOGGFLAC_CFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBOGGFLAC_CFLAGS"
+    LIBS="$LIBS $LIBOGGFLAC_LIBS"
+      rm -f conf.libOggFLACtest
+      if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <OggFLAC/stream_decoder.h>
+
+int main ()
+{
+  system("touch conf.libOggFLACtest");
+  return 0;
+}
+
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+no_libOggFLAC=yes
+fi
+rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+  fi
+
+  if test "x$no_libOggFLAC" = "x" ; then
+     echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+      EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC"
+      for f in $LIBOGGFLAC_CFLAGS; do
+    case ".$f" in
+	.-I?*|.-D?*)	CPPFLAGS="$CPPFLAGS $f" ;;
+	*)		CFLAGS="$CPPFLAGS $f" ;;
+    esac
+done
+
+      LIBS="$LIBS $LIBOGGFLAC_LIBS"
+
+  else
+     echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+     if test -f conf.libOggFLACtest ; then
+       :
+     else
+       echo "*** Could not run libOggFLAC test program, checking why..."
+       CFLAGS="$CFLAGS $LIBOGGFLAC_CFLAGS"
+       LIBS="$LIBS $LIBOGGFLAC_LIBS"
+       cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <OggFLAC/stream_decoder.h>
+
+int
+main ()
+{
+ return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+   echo "*** The test program compiled, but did not run. This usually means"
+       echo "*** that the run-time linker is not finding libOggFLAC or finding the wrong"
+       echo "*** version of libOggFLAC. If it is not finding libOggFLAC, you'll need to set your"
+       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+       echo "*** is required on your system"
+       echo "***"
+       echo "*** If you have an old version installed, it is best to remove it, although"
+       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ echo "*** The test program failed to compile or link. See the file config.log for the"
+       echo "*** exact error that occured. This usually means libOggFLAC was incorrectly installed"
+       echo "*** or that you have moved libOggFLAC since it was installed. In the latter case, you"
+       echo "*** may want to edit the libOggFLAC-config script: $LIBOGGFLAC_CONFIG"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+     LIBOGGFLAC_CFLAGS=""
+     LIBOGGFLAC_LIBS=""
+     :
+  fi
+
+
+  rm -f conf.libOggFLACtest
+
+  else
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+fi
 echo "$as_me:$LINENO: checking enable_audio=speex" >&5
 echo $ECHO_N "checking enable_audio=speex... $ECHO_C" >&6
 if test "x$au_enable_speex" = xyes; then

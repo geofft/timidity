@@ -1127,24 +1127,43 @@ else
 fi
 
 dnl libFLAC - Free Lossless Audio Codec
-AC_MSG_CHECKING(enable_audio=flac)
-if test "x$au_enable_flac" = xyes; then
-  AC_MSG_RESULT([yes, configuring flac])
-  SYSEXTRAS="$SYSEXTRAS flac_a.c"
-  AM_PATH_LIBFLAC([
-    EXTRADEFS="$EXTRADEFS -DAU_FLAC"
-    EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
-    LIBS="$LIBS $LIBFLAC_LIBS"
-  ])
-  AM_PATH_LIBOGGFLAC([
-    EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC"
-    EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
-    LIBS="$LIBS $LIBOGGFLAC_LIBS"
-  ])
+if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes ; then
+  AC_MSG_CHECKING(enable_audio=flac)
+  if test "x$au_enable_flac" = xyes; then
+    AC_MSG_RESULT([yes, configuring flac])
+    SYSEXTRAS="$SYSEXTRAS flac_a.c w32_libFLAC_dll.c w32_libOggFLAC_dll.c"
+    AM_PATH_LIBFLAC([
+      EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_FLAC_DLL"
+      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
+      LIBS="$LIBS $LIBFLAC_LIBS"
+    ])
+    AM_PATH_LIBOGGFLAC([
+      EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC -DAU_OGGFLAC_DLL"
+      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
+      LIBS="$LIBS $LIBOGGFLAC_LIBS"
+    ])
+  else
+    AC_MSG_RESULT(no)
+  fi
 else
-  AC_MSG_RESULT(no)
+  AC_MSG_CHECKING(enable_audio=flac)
+  if test "x$au_enable_flac" = xyes; then
+    AC_MSG_RESULT([yes, configuring flac])
+    SYSEXTRAS="$SYSEXTRAS flac_a.c"
+    AM_PATH_LIBFLAC([
+      EXTRADEFS="$EXTRADEFS -DAU_FLAC"
+      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
+      LIBS="$LIBS $LIBFLAC_LIBS"
+    ])
+    AM_PATH_LIBOGGFLAC([
+      EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC"
+      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
+      LIBS="$LIBS $LIBOGGFLAC_LIBS"
+    ])
+  else
+    AC_MSG_RESULT(no)
+  fi
 fi
-
 dnl ogg's speex
 AC_MSG_CHECKING(enable_audio=speex)
 if test "x$au_enable_speex" = xyes; then
