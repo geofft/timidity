@@ -1,3 +1,9 @@
+2003-07-07  Takashi Iwai <tiwai@suse.de>
+	
+	* timidity/alsa_a.c:
+	  Open a PCM device with non-blocking mode and later set back
+	  to the blocking mode (for better usability).
+	
 2003-07-06  Saito <timidity@flashmail.com>
 
 	* timidity/reverb.[ch], timidity/readmidi.c:

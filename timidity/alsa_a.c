@@ -269,11 +269,12 @@ static int open_output(void)
   if (! dpm.name || ! *dpm.name)
     dpm.name = safe_strdup(default_pcm_name);
 
-  tmp = snd_pcm_open(&handle, dpm.name, SND_PCM_STREAM_PLAYBACK, 0);
+  tmp = snd_pcm_open(&handle, dpm.name, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK); /* avoid blocking by open */
   if (tmp < 0) {
     ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Can't open pcm device '%s'.", dpm.name);
     return -1;
   }
+  snd_pcm_nonblock(handle, 0); /* set back to blocking mode */
 
   snd_pcm_hw_params_alloca(&pinfo);
   snd_pcm_sw_params_alloca(&swpinfo);
@@ -800,7 +801,7 @@ static int open_output(void)
     return -1;
 
   /* Open the audio device */
-  ret = snd_pcm_open (&handle, card, device, SND_PCM_OPEN_PLAYBACK);
+  ret = snd_pcm_open (&handle, card, device, SND_PCM_OPEN_PLAYBACK | SND_PCM_OPEN_NONBLOCK);
   if (ret < 0)
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: %s",
@@ -808,6 +809,7 @@ static int open_output(void)
       return -1;
     }
 
+  snd_pcm_nonblock_mode(handle, 0); /* set back to blocking mode */
   /* They can't mean these */
   dpm.encoding &= ~(PE_ULAW|PE_ALAW|PE_BYTESWAP);
   warnings = set_playback_info (handle, &dpm.encoding, &dpm.rate,
