@@ -4761,7 +4761,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_gm2_pan_table();
 	init_attack_vol_table();
 	init_sb_vol_table();
-	init_convex_vol_table();
+	init_modenv_vol_table();
 	init_def_vol_table();
 	init_gs_vol_table();
 	init_perceived_vol_table();
