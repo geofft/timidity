@@ -705,6 +705,7 @@ void recompute_freq(int v)
 	FLOAT_T pf, root_freq;
 	int32 a;
 	Voice *vp = &(voice[v]);
+	int16 depth_range;
 
 	if (! voice[v].sample->sample_rate)
 		return;
@@ -720,6 +721,7 @@ void recompute_freq(int v)
 
 		/* MIDI controllers LFO pitch depth */
 		if (opt_channel_pressure) {
+			depth_range = ((channel[ch].rpnmap[RPN_ADDR_0005] << 8) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) / 4;
 			if (vp->sample->vibrato_depth < 0) {
 				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
 				vp->vibrato_depth -= get_midi_controller_pitch_depth(&(channel[ch].mod))
@@ -728,7 +730,7 @@ void recompute_freq(int v)
 					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth < -channel[ch].rpnmap[RPN_ADDR_0005] / 4) {vp->vibrato_depth = -channel[ch].rpnmap[RPN_ADDR_0005] / 4;}
+				if (vp->vibrato_depth < -depth_range) {vp->vibrato_depth = -depth_range;}
 			} else {
 				vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 				vp->vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
@@ -737,7 +739,7 @@ void recompute_freq(int v)
 					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth > channel[ch].rpnmap[RPN_ADDR_0005] / 4) {vp->vibrato_depth = channel[ch].rpnmap[RPN_ADDR_0005] / 4;}
+				if (vp->vibrato_depth > depth_range) {vp->vibrato_depth = depth_range;}
 			}
 		}
 		
@@ -2195,7 +2197,7 @@ static void init_voice_vibrato(int v)
 			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 		}
 		if (vp->vibrato_depth == 0) {vp->vibrato_depth = 1;}
-		depth_range = channel[ch].rpnmap[RPN_ADDR_0005] / 4;
+		depth_range = ((channel[ch].rpnmap[RPN_ADDR_0005] << 8) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) / 4;
 		if (vp->vibrato_depth > depth_range) {vp->vibrato_depth = depth_range;}
 		else if (vp->vibrato_depth < -depth_range) {vp->vibrato_depth = -depth_range;}
 	} else {
@@ -4806,9 +4808,11 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		channel[ch].rpnmap[RPN_ADDR_0001] = 0x40;
 		channel[ch].rpnmap[RPN_ADDR_0002] = 0x40;
 		if(play_system_mode == GM2_SYSTEM_MODE) {
-			channel[ch].rpnmap[RPN_ADDR_0005] = 0x40;	/* +- 50 cents */
+			channel[ch].rpnmap_lsb[RPN_ADDR_0005] = 0x40;
+			channel[ch].rpnmap[RPN_ADDR_0005] = 0;	/* +- 50 cents */
 		} else {
-			channel[ch].rpnmap[RPN_ADDR_0005] = 0x400;	/* +- 400 cents */
+			channel[ch].rpnmap_lsb[RPN_ADDR_0005] = 0;
+			channel[ch].rpnmap[RPN_ADDR_0005] = 0x4;	/* +- 400 cents */
 		}
 		channel[ch].pitchfactor = 0;
 		break;
@@ -5006,8 +5010,10 @@ static void seek_forward(int32 until_time)
 	  case ME_DATA_ENTRY_LSB:
 	    if(channel[ch].rpn_7f7f_flag) /* disable */
 		break;
-	    /* Ignore */
-	    channel[ch].nrpn = -1;
+	    if((i = last_rpn_addr(ch)) >= 0)
+	    {
+		channel[ch].rpnmap_lsb[i] = current_event->a;
+	    }
 	    break;
 
 	  case ME_REVERB_EFFECT:
@@ -6824,8 +6830,10 @@ int play_event(MidiEvent *ev)
       case ME_DATA_ENTRY_LSB:
 	if(channel[ch].rpn_7f7f_flag) /* disable */
 	    break;
-	/* Ignore */
-	channel[ch].nrpn = -1;
+	    if((i = last_rpn_addr(ch)) >= 0)
+	    {
+		channel[ch].rpnmap_lsb[i] = ev->a;
+	    }
 	break;
 
 	case ME_REVERB_EFFECT:

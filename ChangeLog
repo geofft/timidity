@@ -1,3 +1,8 @@
+2003-12-30  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch]:
+	  Fix RPN Modulation Depth Range.
+
 2003-12-29  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c:
