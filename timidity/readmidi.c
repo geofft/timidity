@@ -4593,7 +4593,7 @@ void add_channel_layer(int ch, int fromch)
 
 	/* delete an overlapping channel layer */
 	if(channel[fromch].channel_layer != NULL) {
-		memcpy(layer, channel[fromch].channel_layer, sizeof(channel[fromch].channel_layer));
+		memcpy(layer, channel[fromch].channel_layer, sizeof layer);
 		for(i = 0; i < MAX_CHANNELS; i++)
 		{
 			if(layer[i] == -1) {
@@ -4609,7 +4609,8 @@ void add_channel_layer(int ch, int fromch)
 	for(i = 0; i < MAX_CHANNELS; i++)
 	{
 		if(channel[ch].channel_layer == NULL || channel[ch].channel_layer[i] == -1) {
-			channel[ch].channel_layer = (int8 *)safe_realloc(channel[ch].channel_layer, sizeof(int8) * (i + 2));
+			if (channel[ch].channel_layer == NULL)
+				channel[ch].channel_layer = (int8 *)safe_malloc(sizeof(int8) * (MAX_CHANNELS + 1));
 			channel[ch].channel_layer[i] = fromch;
 			channel[ch].channel_layer[i + 1] = -1;
 			if(i > 0) {
@@ -4635,7 +4636,7 @@ void remove_channel_layer(int ch)
 		j = 0;
 		/* remove channel layers */
 		if(channel[k].channel_layer != NULL) {
-			memcpy(layer, channel[k].channel_layer, sizeof(channel[k].channel_layer));
+			memcpy(layer, channel[k].channel_layer, sizeof layer);
 			for(i = 0; i < MAX_CHANNELS; i++)
 			{
 				if(layer[i] == -1) {

@@ -1,3 +1,8 @@
+2003-09-21  Kentaro Sato <kentaro@a02.itscom.net>
+
+	* timidity/readmidi.c (add_channel_layer, remove_channel_layer):
+	  Bug Fix
+
 2003-09-18  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/output.h, timidity/timidity.c, timidity/*_a.c:
