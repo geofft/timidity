@@ -3787,8 +3787,16 @@ static inline int parse_opt_h(const char *arg)
 "  -EFresamp=c  Enable C-spline resample algorithm" NLS
 "  -EFresamp=L  Enable Lagrange resample algorithm" NLS
 "  -EFresamp=n  Enable Newton resample algorithm" NLS
-"  -EFresamp=g  Enable Gauss-like resample algorithm (default)" NLS
+"  -EFresamp=g  Enable Gauss-like resample algorithm" NLS
 "                 -EFresamp affects the behavior of -N option" NLS, fp);
+#ifdef HAVE_STRINGIZE
+#define tim_str_internal(x) #x
+#define tim_str(x) tim_str_internal(x)
+#else
+#define tim_str(x) "x"
+#endif
+        fputs(
+            "                 default: " tim_str(DEFAULT_RESAMPLATION) NLS, fp);
 #endif
 	fputs(NLS, fp);
 	fputs("Alternative TiMidity sequencer extensional mode long options:" NLS

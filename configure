@@ -18359,42 +18359,42 @@ if test "${enable_spline+set}" = set; then
       xlinear)
 
 cat >>confdefs.h <<\_ACEOF
-#define LINEAR_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_linear
 _ACEOF
 
 	;;
       xcubic)
 
 cat >>confdefs.h <<\_ACEOF
-#define CSPLINE_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_cspline
 _ACEOF
 
 	;;
       xlagrange)
 
 cat >>confdefs.h <<\_ACEOF
-#define LAGRANGE_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_lagrange
 _ACEOF
 
 	;;
       xnewton)
 
 cat >>confdefs.h <<\_ACEOF
-#define NEWTON_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_newton
 _ACEOF
 
 	;;
       xgauss)
 
 cat >>confdefs.h <<\_ACEOF
-#define GAUSS_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_gauss
 _ACEOF
 
 	;;
       xno)
 
 cat >>confdefs.h <<\_ACEOF
-#define NO_INTERPOLATION 1
+#define DEFAULT_RESAMPLATION resample_none
 _ACEOF
 
 	;;

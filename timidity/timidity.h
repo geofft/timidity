@@ -154,7 +154,9 @@ typedef double FLOAT_T;
 /* Default resamplation algorighm.  Define as resample_XXX, where XXX is
    the algorithm name.  The following algorighms are available:
    cspline, gauss, newton, linear, none. */
+#ifndef DEFAULT_RESAMPLATION
 #define DEFAULT_RESAMPLATION resample_gauss
+#endif
 
 /* Don't allow users to choose the resamplation algorithm. */
 /* #define FIXED_RESAMPLATION */

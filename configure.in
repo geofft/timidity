@@ -1708,22 +1708,22 @@ AC_ARG_ENABLE(spline,
                                                           (default is linear)],
   [ case "x$enableval" in
       xlinear)
-	AC_DEFINE(LINEAR_INTERPOLATION,1,Define to 1 if you use linear interpolation.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_linear,Define resampler.)
 	;;
       xcubic)
-	AC_DEFINE(CSPLINE_INTERPOLATION,1,Define to 1 if you use cubic-spline interpolation.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_cspline,Define resampler.)
 	;;
       xlagrange)
-	AC_DEFINE(LAGRANGE_INTERPOLATION,1,Define to 1 if you use Lagrange-polynomial interpolation.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_lagrange,Define resampler.)
 	;;
       xnewton)
-	AC_DEFINE(NEWTON_INTERPOLATION,1,Define to 1 if you use Newton-polynomial interpolation.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_newton,Define resampler.)
 	;;
       xgauss)
-	AC_DEFINE(GAUSS_INTERPOLATION,1,Define to 1 if you use Gauss interpolation.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_gauss,Define resampler.)
 	;;
       xno)
-	AC_DEFINE(NO_INTERPOLATION,1,Define to 1 if you do not use complemention.)
+        AC_DEFINE(DEFAULT_RESAMPLATION,resample_none,Define resampler.)
 	;;
       *)
 	AC_MSG_ERROR(Invalid method of --enable-spline)
