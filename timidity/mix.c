@@ -300,7 +300,11 @@ static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 	int32 left, right, li, ri, i;
 	/* silly warning about uninitialized s */
 	mix_t s = 0;
-	
+#ifdef ENABLE_PAN_DELAY
+	Voice *vp = &voice[v];
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+#endif
+
 	left = voice[v].left_mix;
 	li = -(left / c);
 	if (! li)
@@ -310,6 +314,48 @@ static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 #endif
 	if (! (play_mode->encoding & PE_MONO)) {
 		if (voice[v].panned == PANNED_MYSTERY) {
+#ifdef ENABLE_PAN_DELAY
+			right = voice[v].right_mix;
+			ri = -(right / c);
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; i < c; i++) {
+					left += li;
+					if (left < 0)
+						left = 0;
+					right += ri;
+					if (right < 0)
+						right = 0;
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+				}
+			} else if(vp->panning < 64) {
+				for (i = 0; i < c; i++) {
+					left += li;
+					if (left < 0)
+						left = 0;
+					right += ri;
+					if (right < 0)
+						right = 0;
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+				}
+			} else {
+				for (i = 0; i < c; i++) {
+					left += li;
+					if (left < 0)
+						left = 0;
+					right += ri;
+					if (right < 0)
+						right = 0;
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+				}
+			}
+			vp->pan_delay_wpt = pan_delay_wpt;
+#else
 			right = voice[v].right_mix;
 			ri = -(right / c);
 			for (i = 0; i < c; i++) {
@@ -323,6 +369,7 @@ static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 				MIXATION(left);
 				MIXATION(right);
 			}
+#endif /* ENABLE_PAN_DELAY */
 		} else if (voice[v].panned == PANNED_CENTER)
 			for (i = 0; i < c; i++) {
 				left += li;

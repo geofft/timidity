@@ -2079,7 +2079,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  }
 	  voice[i].delay += pan_delay_diff * play_mode->rate / 1000;
   }
-  memset(voice[i].pan_delay_buf, 0, sizeof(voice[i].pan_delay_buf));
+  memset(voice[i].pan_delay_buf, 0, sizeof(int32) * PAN_DELAY_BUF_MAX);
   if(voice[i].pan_delay_rpt < 2) {voice[i].pan_delay_rpt = 0;}
   voice[i].pan_delay_wpt = 0;
 #endif	/* ENABLE_PAN_DELAY */
