@@ -614,7 +614,9 @@ static void reset_midi(int playing)
 		}
 		channel[i].bank_lsb = channel[i].bank_msb =
 				channel[i].tone_map0_number = 0;
-		if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
+		if (play_system_mode == GM2_SYSTEM_MODE)
+			channel[i].bank_msb = (i % 16 == 9) ? 0x78 : 0x79;
+		else if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
 			channel[i].bank_msb = 127;	/* Use MSB=127 for XG */
 		update_rpn_map(i, RPN_ADDR_FFFF, 0);
 		channel[i].special_sample = 0;
@@ -845,6 +847,12 @@ static void recompute_amp(int v)
 		   user_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
 		   user_vol_table[channel[voice[v].channel].volume] *
 		   user_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+	} else if (play_system_mode == GM2_SYSTEM_MODE) {
+	tempamp = master_volume *
+		  voice[v].sample->volume *
+		  gm2_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *	/* velocity: not in GM2 standard */
+		  gm2_vol_table[channel[voice[v].channel].volume] *
+		  gm2_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
 	} else if(play_system_mode == GS_SYSTEM_MODE) {	/* use measured curve */ 
 	tempamp = master_volume *
 		   voice[v].sample->volume *
