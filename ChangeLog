@@ -1,3 +1,7 @@
+2003-08-02  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c : Fix typo and so on
+
 2003-08-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:

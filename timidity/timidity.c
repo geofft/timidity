@@ -128,7 +128,7 @@ static const struct option longopts[] = {
     { "key"                     , required_argument, NULL, 'K' << 8 },
     { "patch-path"              , required_argument, NULL, 'L' << 8 },
     { "pcm-file"                , required_argument, NULL, 'M' << 8 },
-#if defined(GAUSS_INTERPOLATTION) || defined(NEWTON_INTERPOLARION)
+#if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
     { "interpolation"           , required_argument, NULL, 'N' << 8 },
 #endif
     { "mode"                    , required_argument, NULL, 'O' << 8 },
@@ -4456,6 +4456,10 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, const char* const optarg, int index)
     if(isalnum(c)) {
 	return set_tim_opt_short(c,optarg);
     }
+    else if(c <= 0xff) {
+	/* getopt_long failed parsing */
+	parse_opt_666(optarg);
+    }
     else {
 	const struct option* the_option = &(longopts[index]);
 	const char* arg;
@@ -4488,7 +4492,7 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, const char* const optarg, int index)
 	case 'K': return ! parse_opt_K(arg);
 	case 'L': return ! parse_opt_L(arg);
 	case 'M': return ! parse_opt_M(arg);
-#if defined(GAUSS_INTERPOLATTION) || defined(NEWTON_INTERPOLARION)
+#if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
 	case 'N': return ! parse_opt_N(arg);
 #endif
 	case 'O': return ! parse_opt_O(arg);
@@ -4566,10 +4570,9 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, const char* const optarg, int index)
 	case 236: return ! parse_opt_236(arg);
 	case 237: return ! parse_opt_237(arg);
 
-	case '?': return ! parse_opt_666(arg);
 	default:
 	    ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
-		      "[BUG] Inconceivable case branch %d(%c)", c, c);
+		      "[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
 	    abort();
 	}
     }
