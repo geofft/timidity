@@ -505,10 +505,15 @@ EXTRA_DIST = \
 # ELFILES = @ELFILES@ # autoconf already define this
 @ENABLE_EMACS_TRUE@install_el = install.el
 
-#if BORLANDC 
+#BRCC32 = c:/borland/bcc55/bin/brcc32.exe
+#BRCC32_FLAGS = -ic:/borland/bcc55/include
 #w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 #	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-#	brcc32 w32g_res.rc
+#	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc
+#	$(BRCC32) $(BRCC32_FLAGS) w32g_res_bc.rc
+#	windres -o tmp.res -O coff w32g_res_bc.RES
+#	mv tmp.res w32g_res.res
+#	rm w32g_res_bc.RES
 
 # dynamic_targets = @dynamic_targets@ # autoconf already define this
 @NEEDDLOPEN_TRUE@install_dynamics = install.dynamics
@@ -1370,20 +1375,24 @@ install.el: $(ELFILES)
 @VCPP_TRUE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @VCPP_TRUE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 @VCPP_TRUE@	rc w32g_res.rc
+@BORLANDC_TRUE@@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@BORLANDC_TRUE@@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
+@BORLANDC_TRUE@@VCPP_FALSE@	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc
+@BORLANDC_TRUE@@VCPP_FALSE@	brcc32 -ic:/borland/bcc55/include w32g_res_bc.rc
+@BORLANDC_TRUE@@VCPP_FALSE@	mv w32g_res_bc.RES w32g_res.res
+@BORLANDC_TRUE@@VCPP_FALSE@	rm w32g_res_bc.rc
+@BORLANDC_FALSE@@VCPP_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
+@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
-@VCPP_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
-@VCPP_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
+@BORLANDC_FALSE@@VCPP_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
+@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
 
-@VCPP_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
-@VCPP_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
-
-@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
-@VCPP_FALSE@	escape_sjis.pl
-@VCPP_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
-@BORLANDC_TRUE@@VCPP_FALSE@	windres -o $@ -O res w32g_res_escaped.rc
+@BORLANDC_FALSE@@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@BORLANDC_FALSE@@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
+@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl
+@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
 @BORLANDC_FALSE@@VCPP_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc
-@VCPP_FALSE@	rm w32g_res_escaped.rc
+@BORLANDC_FALSE@@VCPP_FALSE@	rm w32g_res_escaped.rc
 #n_so_libs = @n_so_libs@
 #s_so_libs = @s_so_libs@
 #m_so_libs = @m_so_libs@
@@ -1454,6 +1463,15 @@ clean-compile:
 	-rm -f *.RES
 
 install-exec-local: $(install_tk) $(install_xaw) $(install_el) $(install_dynamics)
+
+clean:
+	rm -f *.$(OBJEXT)
+	rm -f *.$(so)
+	rm -f *.a
+	rm -f *.lib	
+	rm -f *.res
+	rm -f *.RES
+
 ########## End of Makefile
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -1,8 +1,5 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Windows GUI(not Mingw) */
-#undef ANOTHER_MAIN
-
 /* Define to 1 if you are in debug mode */
 #undef DEBUG
 

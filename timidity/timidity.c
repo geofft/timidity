@@ -5439,7 +5439,7 @@ extern int volatile save_playlist_once_before_exit_flag;
 static int CoInitializeOK = 0;
 #endif
 
-#ifndef ANOTHER_MAIN
+#if !defined ANOTHER_MAIN || defined(__W32__)
 #ifdef __W32__ /* Windows */
 #if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
 /* Cygwin or Console */
