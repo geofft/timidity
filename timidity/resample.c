@@ -1061,7 +1061,7 @@ static resample_t *rs_vib_bidir(Voice *vp, int32 count)
   int32 incr = vp->sample_increment;
   resample_rec_t resrc;
 
-#ifdef PRECALC_LOOPS
+#if 0 /*def PRECALC_LOOPS*/
 #if SAMPLE_LENGTH_BITS == 32
   int32
 #else

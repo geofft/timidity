@@ -1,3 +1,8 @@
+2004-11-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/resample.c (rs_vib_bidir): disable PRECALC_LOOPS for
+	  this function
+
 2004-11-03  Henrique de Moraes Holschuh <hmh@debian.org>
 
 	* timidity/aRts_a.c: disable aRts auto-detection to avoid
