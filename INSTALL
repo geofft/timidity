@@ -1,0 +1,619 @@
+==============================================================================
+                                  TiMidity++
+                              Installation guide
+
+					Masanao Izumo <mo@goice.co.jp>
+					Last updated on Apr.4.2000
+==============================================================================
+
+  This document describes how to install TiMidity++(version 2.9.2 or
+later) for your UNIX-like machine.  Methods for Macintosh are not
+described in this document.
+
+  It is enabled to configure and make timidity.exe on the Cygwin
+environment of Windows98/95/NT.  If you are in Windows, install cygnus
+and egcs (or mingw) if you don't have them (which is available from
+http://sourceware.cygnus.com/cygwin/), and run `cygnus', and make
+symbolik link /bin/sh to bash.
+
+Installing process:
+
+  1. configure
+  2. edit common.makefile, Makefile, timidity.h (not necessary)
+  3. make              (required:GNU make)
+  4. installation
+  5. search for various voice data :)
+
+  Each processes are explained in following sections.
+(Note that '%' is the shell prompt.)
+
+1. configure
+------------
+  First, execute the following command:
+
+% /bin/sh configure --help
+
+  Many options of configure will be displayed. Main of these are the
+following:
+
+  --help
+	Displays help messages.
+
+  --prefix=PREFIX
+	Specifies the base of installing directory. By default,
+	PREFIX is "/usr/local/".
+	Any files are installed in:
+	  PREFIX/bin: executable files
+	  PREFIX/share/timidity: configuration files and patches
+	  PREFIX/lib/timidity: libraries and dynamic link interfaces.
+	  PREFIX/man: online manuals
+
+	Example:
+	% sh configure --prefix=/opt/gnu
+	# installs to /opt/gnu/bin, /opt/gnu/man, /opt/gnu/...
+
+  --x-includes=DIR
+	Specifies include directory of X library.
+
+  --x-libraries=DIR
+	Specifies library directory of X library.
+
+  --enable-debug
+	Compiles TiMidity++ with debugging methods/informations.
+
+  --with-x
+	You should specify this option if you have X Window environment.
+	--with-x is `yes' by default.
+
+  --without-x
+	You must specify this option if you don't have X Window environment.
+
+  --with-tcl-includes=dir
+	Specifies include directory of Tcl.
+	(If you fail to detect it automatically, try to specify this.)
+
+  --with-tcl-libs=dir
+	Specifies library directory of Tcl.
+	(If you fail to detect it automatically, try to specify this.)
+
+  --with-tk-includes=dir
+	Specifies include directory of Tk.
+	(If you fail to detect it automatically, try to specify this.)
+
+  --with-tk-libs=dir
+	Specifies library directory of Tk.
+	(If you fail to detect it automatically, try to specify this.)
+
+  --enable-audio[=mode_list]
+	Enables TiMidity++ to play MIDI files.
+	If --enable-audio=no, TiMidity++ is only the MIDI-to-WAVE
+	converter.  You can specify multi-audio device from follows
+	(specify comma separated list):
+	    default:  Automatically select audio device.	(default)
+	    oss:  OSS /dev/dsp
+	    sun:  SunOS /dev/audio
+	    hpux: HPUX /dev/audio
+	    irix: IRIX audio library
+	    mme:  OSF/1 MME
+	    sb_dsp: BSD/OS 2.0 /dev/sb_dsp
+	    w32:  Windows MMS
+	    alsa: ALSA pcm device
+	    alib: HPUX network audio (Alib)
+	    nas:  NAS - Network Audio System
+	    esd:  EsounD
+
+  --enable-nas
+	Enables TiMidity++ to play MIDI files using NAS (Network Audio System).
+
+  --enable-esd
+	Enables TiMidity++ to play MIDI files using EsounD.
+
+  --enable-interface=[Comma separated interface list]
+	Specifies interface list (Comma separated).  Choose interfaces
+	from follows.
+	    ncurses,slang,motif,tcltk,emacs,vt100,xaw,xskin,gtk,w32gui,server
+	Note that
+	    --enable-interface=INTERFACE1,INTERFACE2,...
+	equals as
+	    --enable-INTERFACE1=yes --enable-INTERFACE2=yes ...
+
+  --enable-dynamic[=Comma separated interface list]
+	Specifies dynamic link interface list.
+	Note that
+	    --enable-dynamic=INTERFACE1,INTERFACE2,...
+	equals as
+	    --enable-INTERFACE1=dynamic --enable-INTERFACE2=dynamic ...
+
+  --enable-ncurses
+	Includes Ncurses interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-ncurses=dynamic.
+
+  --enable-slang
+	Includes slang interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-slang=dynamic.
+
+  --enable-motif
+	Includes Motif interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-motif=dynamic.
+	If you don't have Motif for the lack of a fund:), lesstif is
+	the another answer.
+
+  --enable-tcltk
+	Includes Tcl/Tk interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-tcltk=dynamic.
+
+  --enable-emacs
+	Includes Emacs interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-emacs=dynamic.
+	If you want use TiMidity++ on Emacs, install this interface
+	and press M-x timidity.
+	And you should edit timidity.el and install to appropriate
+	directory.
+
+  --enable-vt100
+	Includes VT100 interface.  If you build this interface as dinamic
+	link interface,	please specify --enable-vt100=dynamic.
+	This is the full-screen interface using VT100 terminal control
+	codes.
+
+  --enable-xaw
+	Includes X Athena Widget interface.  If you build this interface
+	as dinamic link	interface, please specify --enable-xaw=dynamic.
+
+  --enable-xskin
+	Includes skin interface.  This is the small X interface using skins
+	of WinAmp/x11amp.  If you build this interface as dinamic link
+	interface, please specify --enable-xaw=dynamic.
+
+  --enable-gtk
+	Includes Gtk+ interface.  If you build this interface as dinamic link
+	interface, please specify --enable-gtk=dynamic.
+
+  --enable-w32gui
+	Build TiMidity++ as Windows GUI.
+
+  --enable-alsaseq
+	Build TiMidity++ as ALSA sequencer client.
+
+  --enable-network
+	This option allows TiMidity++ to play MIDI file getting via 
+	network. You can specify the location of MIDI files by
+	http://foo.bar/baz.mid - like format.
+
+  --enable-spectrogram
+	This option allows TiMidity++ to open the sound-spectrogram
+	window in X.
+
+  --enable-wrd
+	Includes WRD interface(on X). WRD is Japanese local lyric-
+	contents format.
+
+
+  For example:
+
+% sh configure --enable-ncurses --enable-slang  --enable-motif \
+               --enable-tcltk --enable-emacs --enable-vt100 --enable-xaw \
+               --enable-xskin --enable-gtk \
+               --enable-network --enable-spectrogram --enable-wrd
+
+
+  Some of MIDI file eats too much CPU power. If you choose correct
+optimizing method, TiMidity++ can play such MIDI files
+smoothly. Optimizing options can specify in configuration:
+
+ (for example : super-sparc/gcc)
+
+ (csh, tcsh)
+% env CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [configure-options]...
+
+(sh, bash)
+% CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [configure-options]...
+
+
+
+2. edits common.makefile, Makefile, timidity.h
+------------------------------
+  If configure failed or compile not complete successfully, edit
+common.makefile, Makefile, and timidity.h to appropriate value.
+All of definition of variables are orverwrited by common.makefile.
+
+3. make
+-------
+  Once finished above setting, type
+
+% make
+
+  This make method requires GNU make. Some system has it as gmake.
+
+Note: Some system announces warnings 
+
+vendorShellClassRec
+vendorShellWidgetClass
+
+in linking XAW. But it makes no matter.  Don't worry.
+
+
+4. install
+----------
+  On UNIX, you can type `make install' to install all files. Or you
+can select follows:
+
+  make install.bin    - installs executable files
+  make install.tk     - installs Tcl/Tk interface
+  make install.el     - installs Emacs interface
+  make install.man    - installs man files
+  make install        - installs all files
+
+  I recommend to check the install directories and files by executing 
+
+% make -n ...
+
+
+5. Search for various voice data
+
+  TiMidity++ uses GUS/patch (Glavis Ultrasound) as the voice data to
+play.  You must get GUS/patch files, and make the configuration file.
+You must make the configuration file (*.cfg).  By default,
+timidity.cfg is /usr/local/share/timidity/timidity.cfg (or
+C:\WINDOWS\TIMIDITY.CFG on Windows).  And please check the following
+sites for many voice(patch) data:
+
+http://www.goice.co.jp/member/mo/timidity/link.html#gus
+http://www.goice.co.jp/member/mo/timidity/dist/cfg/	(Some samples of *.cfg)
+http://www.i.h.kyoto-u.ac.jp/~shom/timidity/		(10M or 4M patch)
+ftp://ftp.cdrom.com/pub/gus/sound/patches/files/	(GUS site)
+
+If you got funny voice archive, extract it to appropriate directory
+and configure *.cfg files with the name and path of these voice dates.
+
+
+
+==============================================================================
+                       configuration of  timidity.h 
+==============================================================================
+  Edit CONFIG_FILE to your convenience. By default, 
+
+#define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
+
+are recommended. DEFAULT_PATH is the same as TIMID_DIR in Makefile.
+If you want to place it to another path, specify as the following:
+
+#define CONFIG_FILE "/etc/timidity.cfg"
+
+
+  The next configuration is the file extractor (please ignore in Windows).
+By default:
+
+#define DECOMPRESSOR_LIST { \
+			      ".gz", "gunzip -c %s", \
+			      ".bz2", "bunzip2 -c %s", \
+			      ".Z", "zcat %s", \
+			      ".zip", "unzip -p %s", \
+			      ".lha", "lha -pq %s", \
+			      ".lzh", "lha -pq %s", \
+			      ".shn", "shorten -x %s -", \
+			     0 }
+
+TiMidity++ can handle some of archive format directly. But other format
+will use this extractor.
+
+
+  Next, configuration of patch file converter(please ignore in Windows).
+By default:
+
+#define PATCH_CONVERTERS { \
+			     ".wav", "wav2pat %s", \
+			     0 }
+
+
+  Next, configuration of extensions of GUS/patch file. If specified in
+this configuration, the extension can omit in all *.cfg. By default:
+
+#define PATCH_EXT_LIST { \
+			   ".pat", \
+			   ".shn", ".pat.shn", \
+			   ".gz", ".pat.gz", \
+			   ".bz2", ".pat.bz2", \
+			   0 }
+
+
+  Next, configuration of default instrument. By default:
+
+#define DEFAULT_PROGRAM 0
+
+If no Program Change event, this program name are adopted.  Usually 0
+is Piano.
+
+
+  Next, configuration of drum channel. By default:
+
+#define DEFAULT_DRUMCHANNELS {10, -1}
+
+Numbers is the list of drum channels, and -1 is the terminator.  For
+example, if you wish to default drum channel be 10 and 16,
+
+#define DEFAULT_DRUMCHANNELS {10, 16, -1}
+
+This channel can change in command line option.
+
+
+  Next, type of floating point number. Choose one of these:
+
+typedef double FLOAT_T;
+typedef float FLOAT_T;
+
+Many machine which has FPU results faster operations with double than
+that with float. But some machine results contrary.
+
+
+  Next, minimum and max range of playing sample rate. By default:
+
+#define MIN_OUTPUT_RATE 	4000
+#define MAX_OUTPUT_RATE 	65000
+
+
+  Next, default value of master volume. By default:
+
+#define DEFAULT_AMPLIFICATION 	70
+
+This number is the percentage of max volume. This default value will
+be nice in any occasions.  This number can specify in command line
+option (-A).
+
+
+  Next, default sampling rate. By default:
+
+#define DEFAULT_RATE	32000
+
+If you have much CPU power, CD quality GUS/patch and want to listen
+funny sound,
+
+#define DEFAULT_RATE	44100
+
+is good solution.
+
+
+  Next, configuration of max polyphony numbers. By default:
+
+#define DEFAULT_VOICES	32
+#define MAX_VOICES	256
+
+DEFAULT_VOICE is the polyphony number in boot-time. This value is
+configurable by the command line option (-p) from 0 to MAX_VOICES.  If
+your machine has much CPU power,
+
+#define DEFAULT_VOICES	64
+
+enables good harmony.
+
+
+  Next, size of internal buffer. By default:
+
+#define AUDIO_BUFFER_BITS 11
+
+I guess this values no need to change.
+
+
+  Next, value of CONTROLS_PER_SECOND. By default:
+
+#define CONTROLS_PER_SECOND 1000
+
+
+ Next, interpolation in  re-sampling. By default:
+
+#define LINEAR_INTERPOLATION
+
+This definition cause TiMidity++ to linear interpolation in
+re-sampling, and the quality of sound would be nice. But it eats CPU
+powers.  I recommends define it if your machine has much power.
+
+
+  Next, configuration of LOOKUP_HACK. By default, this features are
+undefined like this:
+
+/* #define LOOKUP_HACK
+   #define LOOKUP_INTERPOLATION */
+
+This option saves a little CPU power, but sound quality would decrease
+noticeably.  If your machine suffers from lack of CPU power, enable
+it.
+
+
+  Next, configuration of FAST_DECAY. By default:
+
+/* #define FAST_DECAY */
+
+This option makes envelopes twice as fast and saves CPU power.  But
+since the release time of voices is shorten, the sound would be poor.
+This feature is controllable in command line option.
+
+
+  Next, configuration of FRACTION_BITS. By default:
+
+#define FRACTION_BITS 12
+
+I recommend leave this value.
+
+
+  Next, configuration of adjusting amplitude of GUS/patch. By default:
+
+#define ADJUST_SAMPLE_VOLUMES
+
+This option makes TiMidity to adjust amplitudes of each GUS/patch to
+same volume.
+
+
+  Next, configuration of DANGEROUS_RENICE. By default this feature
+is disabled:
+
+/* #define DANGEROUS_RENICE -15 */
+
+If you want to increase process priority of TiMidity++ by using setuid
+root enable this option. This option is only available in UNIX. Once
+you enabled this option, you should install timidity with the
+following procedure:
+
+# chown root /usr/local/bin/timidity
+# chmod u+s /usr/local/bin/timidity
+
+Note: You should not set setuid to timidity if DANGEROUS_RENICE isn't 
+      enabled.
+
+
+  Next, configuration of MAX_DIE_TIME. By default:
+
+#define MAX_DIE_TIME 20
+
+If this value is too small, click noise would be come. I recommend
+this value leave to this.
+
+
+  Next, configuration of optimizing re-sampling. By default:
+
+#define PRECALC_LOOPS
+
+This option saves some CPU power only in some system.
+
+
+  Next, configuration of use of ldexp(). By default this feature 
+if disabled:
+
+/* #define USE_LDEXP */
+
+If your machine can multiply floating point number with ldexp() faster
+than other method, enable this option.
+
+
+  Next, configuration of size of pre-re-sampling cache. By default:
+
+#define DEFAULT_CACHE_DATA_SIZE (2*1024*1024)
+
+
+  Next, configuration about networks. TiMidity++ can access any files
+via networks with URL. This feature are configurable in Makefile.  If
+you have enabled this feature in Makefile(configure --enable-network),
+configure the following macros:
+
+ MAIL_DOMAIN
+  specifies domain name of your name address.  If your name address is:
+  "mo@goice.co.jp" set the macro:
+  #define MAIL_DOMAIN "@goice.co.jp"
+
+ MAIL_NAME
+  specifies mail name of yours if in Windows. In UNIX, uncomment it.
+  For example, your name address is "mo@goice.co.jp" set the macro:
+  #define MAIL_NAME "mo"
+
+ This mail addresses are used when TiMidity++ access to anonymous FTP
+ sites.
+
+
+  Next, configuration of temporary directory. By default, this option
+is disabled:
+
+/* #define TMPDIR "/var/tmp" */
+
+ In UNIX, if this option is disabled TiMidity++ creates temporary files
+ in the path specified by the environment variable TMPDIR.
+ If environment variable TMPDIR also isn't defined, TiMidity++ creates
+ temporary files in /tmp .
+ In Windows, TMPDIR variable are ignored. So you should specify the
+ temporary path with this macro.
+
+
+  Next, recognizing GS drum part by GS exclusive message.
+
+#define GS_DRUMPART
+
+enables to recognize GS exclusive message to set drum part.
+
+/* #define GS_DRUMPART */
+
+disables this feature.
+
+
+  Next, output text code. If your system is in Japanese environment,
+define
+
+#define JAPANESE
+
+or comment out it like
+
+/* #define JAPANESE */
+
+  Next, specifies output text code (in Japanese environment).  You
+should specify appropriate code name to OUTPUT_TEXT_CODE macro.  The
+following strings are available:
+
+"AUTO"	- Auto conversion by `LANG' environment variable (UNIX only)
+"ASCII"	- Convert unreadable characters to '.'(0x2e)
+"NOCNV"	- No conversion
+"EUC"	- EUC
+"JIS"	- JIS
+"SJIS"	- shift JIS
+
+In Japanized UNIX system, all of above are available.  In Windows,
+"ASCII", "NOCNV", "SJIS" are available.  If your environment cannot
+handle Japanese, specify "ASCII" or "NOCNV" alternatively.
+
+
+  Next, controllers of MIDI actions. By default:
+
+#define MODULATION_WHEEL_ALLOW
+#define PORTAMENTO_ALLOW
+#define NRPN_VIBRATO_ALLOW
+#define REVERB_CONTROL_ALLOW
+#define CHORUS_CONTROL_ALLOW
+/* #define GM_CHANNEL_PRESSURE_ALLOW */
+/* #define XG_BANK_SELECT_LSB_ALLOW */
+/* #define ALWAYS_TRACE_TEXT_META_EVENT */
+#define OVERLAP_VOICE_ALLOW
+
+  These values are configurable in command line options. So you may
+leave these in default value.
+
+ MODULATION_WHEEL_ALLOW
+  Enables modulation wheel by default.
+  (-Ew:on -EW:off)
+
+ PORTAMENTO_ALLOW
+  Enables portamento by default.
+  (-Ep:on -EP:off)
+
+ NRPN_VIBRATO_ALLOW
+  Enables NRPN vibration by default.
+  (-Ev:on -EV:off)
+
+ REVERB_CONTROL_ALLOW
+  Enable reverb control by default. This feature requires too much 
+  CPU power. So this option prevents TiMidity++ from playing in real
+  time if this option is enabled (in command line / this define).
+  (-Er:on -ER:off)
+
+ CHORUS_CONTROL_ALLOW
+  Enables chorus control by default. This feature also requires a 
+  mount of CPU power too.
+  (-Ec:on -EC:off)
+
+ GM_CHANNEL_PRESSURE_ALLOW
+  Enables Channel pressure by default.
+  (-Es:on -ES:off)
+
+ XG_BANK_SELECT_LSB_ALLOW
+  Enables XG bank select by default.
+  (-Ex:on -EX:off)
+
+ ALWAYS_TRACE_TEXT_META_EVENT
+  Enables tracing the Text Meta Event by default.
+  (-Et:on -ET:off)
+
+ OVERLAP_VOICE_ALLOW
+  Enables allowing pronouncing overlapped voice.
+  (-Eo:on -EO:off)
+
+
+-------------------------------------------------------------------------
+This document is translated from original INSTALL.jp (written in Japanese).
+Translator: NAGANO Daisuke <breeze_geo@geocities.co.jp>
+            (And modified by Masanao Izumo <mo@goice.co.jp>)
+If you have any comment for this translation, please tell me.

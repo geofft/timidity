@@ -1,0 +1,619 @@
+==============================================================================
+
+                    TiMidity++ のインストール
+
+					出雲正尚 <mo@goice.co.jp>
+					最終修正日 1999年9月2日
+==============================================================================
+
+このドキュメントは TiMidity++ (バージョンは 2.6.0 以降) の UNIX 上での
+インストール方法を説明しています。Macintosh のインストール方法は、
+本ドキュメントでは説明されていません。
+
+TiMidity++ は、Windows 上の Cygwin 環境でも configure が動作し、
+timidity.exe を作成することが可能です。もし、cygwin がない場合は、
+http://sourceware.cygnus.com/cygwin/ から入手してインストールしてください。
+そして、CYGNUS を起動し、/bin/sh に bash への
+シンボリックリンクを作成しておいてください。
+
+インストールの大まかな手順は
+
+1. configure
+2. common.makefile, Makefile, timidity.h の編集 (しなくてもよい)
+3. make              (GNU の make が必要)
+4. インストール
+5. 音源をそろえる
+
+となります。以下、順をおって説明します。
+なお、ドキュメント中の % はシェルのプロンプトを表しています。
+
+1. configure
+------------
+まずは、
+
+% /bin/sh configure --help
+
+としてください。すると、いろいろな configure のオプションがあらわれてきます。
+このうち、主なものを説明します。
+
+  --help
+	オプションの簡単な説明が表示されます。
+
+  --prefix=PREFIX
+	インストール先のベースとなるディレクトリを指定します。デフォルトでは
+	「/usr/local」が PREFIX となっています。
+	  PREFIX/bin に実行ファイル
+	  PREFIX/lib/timidity に TiMidity が必要とする音源やライブラリなど
+	  PREFIX/man にマニュアル
+	がインストールされます。
+	例：
+	% sh configure --prefix=/opt/gnu
+	# /opt/gnu/bin, /opt/gnu/lib/timidity, /opt/gnu/man 以下にインストールします。
+
+  --x-includes=DIR
+	X のインクルードディレクトリを指定します。configure は自動的に
+	X のインクルードディレクトリを検索しますが、必ずしも成功するとは
+	限りません。例えば、R5, R6 の両方がインストールされている
+	環境では、どちらを使うかを明示的に指定したほうが確実です。
+
+  --x-libraries=DIR
+	X のライブラリディレクトリを指定します。configure は自動的に
+	X のライブラリディレクトリを検索しますが、必ずしも成功するとは
+	限りません。例えば、R5, R6 の両方がインストールされている
+	環境では、どちらを使うかを明示的に指定したほうが確実です。
+
+  --enable-debug
+	デバッグ用にコンパイルします。
+
+  --with-x
+	X Window 環境がある場合は指定してください。
+
+  --without-x
+	X Window 環境がない場合は指定してください。
+
+  --with-tcl-includes=dir
+	Tcl のインクルードファイルのあるディレクトリを指定して下さい。
+	(これは、Tcl/Tk まわりの configure に失敗した時のみ試してみて下さい)
+
+  --with-tcl-libs=dir
+	Tcl のライブラリファイルのあるディレクトリを指定して下さい。
+	(これは、Tcl/Tk まわりの configure に失敗した時のみ試してみて下さい)
+
+  --with-tk-includes=dir
+	Tk のインクルードファイルのあるディレクトリを指定して下さい。
+	(これは、Tcl/Tk まわりの configure に失敗した時のみ試してみて下さい)
+
+  --with-tk-libs=dir
+	Tk のライブラリファイルのあるディレクトリを指定して下さい。
+	(これは、Tcl/Tk まわりの configure に失敗した時のみ試してみて下さい)
+
+  --enable-audio
+	TiMidity で MIDI ファイルを演奏できるようにします。
+	ただ単なる MIDI to WAVE converter として構築する場合は、
+	--enable-audio=no としてください。
+
+  --enable-nas
+	NAS (Network Audio System) 出力を有効にします。
+
+  --enable-esd
+	EsounD 出力を有効にします。
+
+  --enable-dynamic
+	シェアードライブラリ形式で作成したユーザインターフェースを
+	ダイナミックローディングにより使用することを可能にします。
+
+  --enable-ncurses
+	Ncurses インターフェースを組み込みます。--enable-ncurses=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -in オプションで起動します。
+
+  --enable-slang
+	slang インターフェースを組み込みます。--enable-slang=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -is オプションで起動します。
+	-is インターフェースは -in に色をつけた感じになります。
+
+  --enable-motif          Enable motif interface 
+	Motif インターフェースを組み込みます。--enable-motif=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -im オプションで起動します。
+	お金がなくて Mofif ライセンスが手に入らない人は lesstif でも動きます。
+
+  --enable-tcltk
+	Tcl/Tk インターフェースを組み込みます。--enable-tcltk=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -ik オプションで起動します。
+
+  --enable-emacs
+	Emacs インターフェースを組み込みます。--enable-emacs=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	Emacs 上から M-x timidity で起動します。
+	Emacs インターフェースを有効にするには、さらに timidity.el の編集
+	とインストールが必要です。
+	
+  --enable-vt100
+	VT100 端末の制御コードを用いた、フルスクリーンインターフェースです。
+	--enable-ncurses=dynamic とすれば、ダイナミックリンクインターフェース
+	として構築します。
+	timidity の -iT オプションで起動します。
+	-iT は -iN に似た感じのインターフェースです。
+
+  --enable-xaw
+	X Athena Widget インターフェースを組み込みます。--enable-xaw=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -ia オプションで起動します。
+
+  --enable-xskin
+	skin データを利用したインターフェースを組み込みます。
+	--enable-xskin=dynamicとすれば、ダイナミックリンクインターフェース
+	として構築します。
+	timidity の -ii オプションで起動します。
+
+  --enable-gtk
+	gtk+ 版インターフェースを組み込みます。--enable-gtk=dynamic
+	とすれば、ダイナミックリンクインターフェースとして構築します。
+	timidity の -ig オプションで起動します。
+
+  --enable-w32gui
+	Windows GUI 版としてコンパイルします。
+
+  --enable-network
+	このオプションを指定すると、ネットワークを介して MIDI ファイルを
+	演奏できるようになります。MIDI ファイルを http://〜 というふうな
+	URL で指定すると、そのファイルが演奏されます。
+
+  --enable-spectrogram
+	X Window 版において、サウンドスペクトログラム表示を可能にします。
+	timidity の -g0.02 といったオプションでウィンドウが開きます。
+
+  --enable-wrd
+	X Window 版 WRD インターフェースを組み込みます。
+	timidity の -Wx オプションで起動します。
+
+
+例えば、以下のように実行します。
+
+% /bin/sh configure --enable-ncurses --enable-slang  --enable-motif \
+               --enable-tcltk --enable-emacs --enable-vt100 --enable-xaw \
+               --enable-xskin --enable-gtk \
+               --enable-network --enable-spectrogram --enable-wrd
+
+いくつかの MIDI の演奏には、CPU パワーを必要とします。最適化オプション
+をうまく選んでコンパイルすることで、今まで途切れ途切れでしか演奏できな
+かったものが途切れずに演奏できることがあります。configure 時にコンパイラ
+オプションを指定することで、TiMidity をより高速に動作させることができます。
+例えば、super-sparc/gcc では、
+
+(csh, tcsh などの場合)
+% env CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [以下、オプション]...
+
+(sh, bash などの場合)
+% CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [以下、オプション]...
+
+のようにします。
+
+
+2. common.makefile, Makefile, timidity.h の編集
+-----------------------------------------------
+もし、正しくコンパイルできない場合や、様々なパラメタを修正したい場合は、
+common.makefile, Makefile, timidity.h 内のパラメタを修正してください。
+
+3. make
+-------
+以上の設定が終了したら、make とタイプするだけです。make には GNU の make
+が必要です。環境によっては、gmake というコマンド名でインストールされている
+場合があります。
+
+なお、XAW をリンクするところで、
+
+vendorShellClassRec
+vendorShellWidgetClass
+
+に関してワーニングが出る環境がありますが、これは問題ないので
+気にしてくてもいいです。
+
+
+4. install
+----------
+・make install.bin - 実行ファイルのインストール
+・make install.tk  - Tcl/Tk インターフェースのインストール
+・make install.el  - Emacs インターフェースのインストール
+・make install.man - Manual のインストール
+・make install     - 全てのファイルをインストール
+
+実際にインストールを実行する前に、
+
+% make -n ...
+
+などとしてインストールされるデレクトリやファイルを確認してください。
+
+
+5. 音源をそろえる
+このパッケージの TiMidity をインストールしただけでは、音がなりません。
+演奏するには、GUS の音源ファイルを入手し、設定ファイルである timidity.cfg
+を作成しなければなりません。デフォルトでは、
+/usr/local/share/timidity/timidity.cfg になります(ただし、Windows 上では、
+(C:/WINDOWS/TIMIDITY.CFG)。パッチを探すのに、以下のサイトを訪れてみて下さい。
+
+http://www.goice.co.jp/member/mo/timidity/link.html#gus
+http://www.goice.co.jp/member/mo/timidity/dist/cfg/	(Some samples of *.cfg)
+http://www.i.h.kyoto-u.ac.jp/~shom/timidity/		(10M or 4M patch)
+ftp://ftp.cdrom.com/pub/gus/sound/patches/files/	(GUS サイトの移転先)
+
+入手した音源は、適切な場所に展開してください。必要に応じて、*.cfg ファイルの
+dir のパス名を修正してください。
+
+
+==============================================================================
+                         timidity.h の編集
+==============================================================================
+必要に応じて CONFIG_FILE を定義してください。デフォルトでは
+
+#define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
+
+となっています。DEFAULT_PATH は Makefile で定義した TIMID_DIR と同じです。
+もし、どうしても他の場所に置きたいなら
+
+#define CONFIG_FILE "/etc/timidity.cfg"
+
+のように定義します。
+
+
+次にファイル展開コマンドの設定です。この設定は Windows では無視してください。
+デフォルトでは
+
+#define DECOMPRESSOR_LIST { \
+			      ".gz", "gunzip -c %s", \
+			      ".bz2", "bunzip2 -c %s", \
+			      ".Z", "zcat %s", \
+			      ".zip", "unzip -p %s", \
+			      ".lha", "lha -pq %s", \
+			      ".lzh", "lha -pq %s", \
+			      ".shn", "shorten -x %s -", \
+			     0 }
+
+となっています。オリジナルの TiMidity では、上記で指定した拡張子に対応した
+コマンドを利用してファイルを展開して読み込むことができます。TiMidity++ では
+幾つかの形式については TiMidity が自前で展開してファイルを読み込みます。
+しかし、全ての形式はサポートしていないので、サポートされていない形式には、
+上記で指定したコマンドが利用されます。
+
+次に、パッチファイルの変換コマンドに関する設定です。この設定は
+Windows では無視してください。デフォルトでは
+
+#define PATCH_CONVERTERS { \
+			     ".wav", "wav2pat %s", \
+			     0 }
+
+となっています。
+
+
+次に GUS/patch ファイルの拡張子の指定です。ここに指定した拡張子は
+*.cfg 内のファイル名で省略できます。デフォルトでは
+
+#define PATCH_EXT_LIST { \
+			   ".pat", \
+			   ".shn", ".pat.shn", \
+			   ".gz", ".pat.gz", \
+			   ".bz2", ".pat.bz2", \
+			   0 }
+
+となっています。
+
+
+次にデフォルトの instrument の設定です。
+
+#define DEFAULT_PROGRAM 0
+
+となっています。MIDI の Program Change イベントがない場合に
+この値が利用されます。通常 0 番はピアノです。
+
+
+次にドラムチャネルの設定です。デフォルトでは 
+
+#define DEFAULT_DRUMCHANNELS {10, -1}
+
+となっています。これはコマンドラインオプションで変更できるので、このままで
+いいと思います。変更する場合は、ドラムチャネルのリストを複数指定し、-1 で終了
+します。もし、10 と 16 チャネルをデフォルトでドラムチャネルにしたいならば、
+
+#define DEFAULT_DRUMCHANNELS {10, 16, -1}
+
+とします。なお、ドラムチャネルはコマンドラインオプションで変更できます。
+
+
+次に浮動小数点数の型の指定です。
+
+・typedef double FLOAT_T;
+・typedef float FLOAT_T;
+
+のどちらかを選んでください。
+double 精度の FPU を搭載しているマシンでは、
+float より double の方が高速です。sparc や SGI/IP などは double の方が
+高速です。最近の FPU はたいていの場合は double 精度の方が高速です。
+ただし、一部のマシンやパソコンでは float の方が高速になるかもしれません。
+
+
+次に、再生サンプルレートの下限、上限の設定です。デフォルトでは
+
+#define MIN_OUTPUT_RATE 	4000
+#define MAX_OUTPUT_RATE 	65000
+
+となっています。これは特に変更する必要はないでしょう。
+
+
+次に、マスターボリュームのデフォルト値の設定です。デフォルトでは
+
+#define DEFAULT_AMPLIFICATION 	70
+
+となっています。この値はパーセント値で指定します。デフォルトの 70% は
+わりといい値なので、これも特に変更しなくてもいいでしょう。
+コマンドラインオプションで変更することもできます。
+
+
+次に、デフォルトの再生サンプルレートの設定です。デフォルトでは
+
+#define DEFAULT_RATE	32000
+
+となっています。この値はコンパイラオプション -DDEFAULT_RATE=レート のように
+指定してもいいです。パワーのあるマシンで CD quality 並みの GUS/patch を使って
+快適な音を聞きたい場合は
+
+#define DEFAULT_RATE	44100
+
+とするのもいいです。
+
+
+次に、同時発音数に関する設定です。デフォルトでは
+
+#define DEFAULT_VOICES	32
+#define MAX_VOICES	256
+
+となっています。DEFAULT_VOICES は起動時の同時発音数で、この値は -p オプション
+を用いて 1〜MAX_VOICES の数を設定することができます。-in インターフェースでは
+実行時に変化させることもできます。
+パワーのあるマシンなら、デフォルトの同時発音数を増やして
+
+#define DEFAULT_VOICES	64
+
+のようにするのもいいです。経験上、64 重音あれば、大抵の MIDI
+ファイルが快適に聞けます。また、128 重音を越える MIDI ファイルはほとんど
+存在しなく(極希にありますが)、128 重音以上を処理するにはかなり高性能な CPU
+(例えば R10000 とか)でないと無理です。そのため、MAX_VOICES は極端に増やして
+もあまり意味がないので 256 くらいを上限にするのが妥当です。
+
+
+次に、内部バッファの大きさの設定です。デフォルトでは
+
+#define AUDIO_BUFFER_BITS 11
+
+となっています。ここは特に変更することはないでしょう。
+
+
+次に CONTROLS_PER_SECOND の設定です。デフォルトでは
+
+#define CONTROLS_PER_SECOND 1000
+
+となっています。これもこのままでいいでしょう。
+(TiMidity では、エンベロープの音量計算を 1 サンプル毎計算するのではなく
+ ある程度まとめて計算します。この値を大きくすればするほど細かく計算するため、
+ 音の質はよくなりますが、逆に CPU 負荷が高くなります。コマンドライン
+ オプションで変更もできるので、このままにしときましょう)
+
+
+次に、リサンプル時における補完の設定です。デフォルトでは、
+
+#define LINEAR_INTERPOLATION
+
+となっています。これを定義すると、リサンプル時に線形補完を行い、音質が
+向上します。その反面 CPU 負荷が上がります。
+非力なマシンでない限り定義しておきましょう。
+
+
+次に LOOKUP_HACK の設定です。デフォルトでは
+
+/* #define LOOKUP_HACK
+   #define LOOKUP_INTERPOLATION */
+
+と未定義になっています。このマクロを定義すると、多少高速に動作します。
+ただし、16 ビットのサンプルを 8 ビットで計算するので音質が劣化します。
+非力なマシンで演奏処理が追い付かないなら定義してみましょう。
+
+
+次に FAST_DECAY の設定です。デフォルトでは
+
+/* #define FAST_DECAY */
+
+と未定義になっています。これを定義するとエンベロープステージを 2 倍速く
+進めるようになります。結果として、高速化につながるのですが、
+その反面、音の長さが短くなり、迫力に欠てきます。この設定はコマンドライン
+から on/off できるので、これは未定義のままでいいでしょう。
+
+
+次に FRACTION_BITS の設定です。デフォルトでは
+
+#define FRACTION_BITS 12
+
+となっています。これはこのままでいいでしょう。
+補足: TiMidity では、音の音程変換に浮動小数点数を用いずに、32 bit 固定小数点数
+を用いて計算しています。
+
+次に、自動 GUS/patch 音量調節の設定です。デフォルトでは
+
+#define ADJUST_SAMPLE_VOLUMES
+
+と定義されています。これを定義しておくと、GUS/patch の音量を自動的に
+調節して同じ音の大きさにします。もし、小さい音の GUS/patch は小さいままに、
+大きい音の GUS/patch は大きいままにしたいなら未定義にしてください。
+正確にチューニングされている GUS/patch セットのみを用いるなら未定義でも
+いいです。しかし、他の様々な GUS/patch を利用する場合に、音量が不揃いに
+なってしまうので、このマクロは定義しておくほうがいいでしょう。
+
+
+次に DANGEROUS_RENICE の設定です。デフォルトでは
+
+/* #define DANGEROUS_RENICE -15 */
+
+と未定義になっています。
+setuid root の TiMidity でプロセスのプライオリティを上げて実行したい場合はこの
+マクロを定義してください。UNIX のみで有効です。このマクロを定義して TiMidity
+をインストールした後は、
+
+# chown root /usr/local/bin/timidity
+# chmod u+s /usr/local/bin/timidity
+
+のようにします。
+注：
+DANGEROUS_RENICE を定義していない場合は、setuid プログラムにしないでください。
+
+
+次に MAX_DIE_TIME の設定です。デフォルトでは
+
+#define MAX_DIE_TIME 20
+
+となっています。あまり小さな数にすると、プツっていうノイズ音 (クリックノイズ) 
+が顕著になります。この値はこのままでいいでしょう。
+(モノラルパートの音程が A->B と移るとき、A の音を瞬時に消してしまうとクリック
+ ノイズが出てしまいます。このパラメタで、瞬時に消すべき音にクリックノイズが
+ 出ないようにコントロールします。)
+
+
+次にリサンプリング最適化に関する設定です。デフォルトでは
+
+#define PRECALC_LOOPS
+
+となっています。幾つかの環境では、このマクロを未定義にしたほうが高速に
+なります。
+
+
+次に、ldexp() を使うかどうかの設定です。デフォルトでは
+
+/* #define USE_LDEXP */
+
+と未定義になっています。浮動小数点数の掛け算が ldexp() を用いた方が速い
+マシンの場合は定義してください。
+
+
+次にプリリサンプリングキャッシュの大きさの設定です。デフォルトでは
+
+#define DEFAULT_CACHE_DATA_SIZE (2*1024*1024)
+
+と 2M になっています。TiMidity++ では、MIDI イベントを演奏前に scan して、
+一部の音をあらかじめリサンプリングします。そのリサンプリングのバッファの
+大きさを指定してください。大きくするほど高速になりますが、その分、
+メモリを浪費します。2M 以上に増やしても、あまり顕著に高速化しなく、また、
+コマンドラインオプションからも変更できるので、ここはデフォルトのままで
+いいでしょう。
+
+
+次に、ネットワークに関する設定です。TiMidity++ では URL を用いて
+ネットワークを介してファイルにアクセスすることが可能になっています。
+Makefile の設定で有効にしている場合のみ、この機能が有効になります。
+以下のマクロを設定してください。
+
+・MAIL_DOMAIN
+  メールアドレスのドメイン名を指定してください。例えばメールアドレスが
+  mo@goice.co.jp とすると、
+  #define MAIL_DOMAIN "@goice.co.jp"
+  と記述します。
+
+・MAIL_NAME
+  UNIX では未定義にしてください。Windows ではメール名を定義してください。
+  例えばメールアドレスが mo@goice.co.jp とすると、
+  #define MAIL_NAME "mo"
+  と記述します。
+
+このメールアドレスは、anonymous FTP に proxy を介さずにアクセスする場合に
+利用されます。
+
+
+次に、一時ファイルの置場所を指定します。デフォルトでは
+
+/* #define TMPDIR "/var/tmp" */
+
+と未定義になっています。UNIX では、このマクロを未定義にしておくと、
+TMPDIR 環境変数で定義されているディレクトリに一時ファイルを作成します。
+TMPDIR マクロも TMPDIR 環境変数もどちらとも未定義の場合は /tmp に
+一時ファイルが作成されます。
+Windows では、TMPDIR 環境変数は無視されますので、
+TMPDIR マクロを定義してください。
+
+
+次に、GS のドラムパートの認識に関する設定です。
+
+#define GS_DRUMPART
+
+と定義すれば、GS のエクスクルーシッブメッセージからドラムパートを認識します。
+
+/* #define GS_DRUMPART */
+
+と未定義にすればこの機能は無効になります。
+
+
+次に、出力文字コードの設定です。日本語環境では
+
+#define JAPANESE
+
+と定義してください。日本語環境でない場合は、
+
+/* #define JAPANESE */
+
+とコメントアウトしてください。次に出力コードを決めます。OUTPUT_TEXT_CODE
+マクロに出力コードを指定します。以下の文字列が有効です。
+
+"AUTO"	- Auto conversion by `LANG' environment variable (UNIX only)
+"ASCII"	- Convert unreadable characters to '.'(0x2e)
+"NOCNV"	- No conversion
+"EUC"	- EUC
+"JIS"	- JIS
+"SJIS"	- shift JIS
+
+UNIX 上の日本語環境では、上記すべて有効です。
+Windows 日本語環境では、"ASCII"、"NOCNV"、"SJIS" のどれかを指定してください。
+日本語環境でない場合は、"ASCII"、"NOCNV" のどちらかを指定してください。
+
+
+次に、MIDI の制御に関する設定です。デフォルトは
+
+#define MODULATION_WHEEL_ALLOW
+#define PORTAMENTO_ALLOW
+#define NRPN_VIBRATO_ALLOW
+#define REVERB_CONTROL_ALLOW
+#define CHORUS_CONTROL_ALLOW
+/* #define GM_CHANNEL_PRESSURE_ALLOW */
+/* #define XG_BANK_SELECT_LSB_ALLOW */
+/* #define ALWAYS_TRACE_TEXT_META_EVENT */
+#define OVERLAP_VOICE_ALLOW
+
+となっています。これらはコマンドラインオプションで変更することができますので、
+このままでいいと思います。
+
+・MODULATION_WHEEL_ALLOW
+  定義すると、Modulation wheel 機能をデフォルトで有効にします。
+  (-Ew:on -EW:off)
+・PORTAMENTO_ALLOW
+  定義すると、ポルタメント機能をデフォルトで有効にします。
+  (-Ep:on -EP:off)
+・NRPN_VIBRATO_ALLOW
+  定義すると NRPN ビブラート機能をデフォルトで有効にします。
+  (-Ev:on -EV:off)
+・REVERB_CONTROL_ALLOW
+  定義すると、リバーブ機能をデフォルトで有効にします。この機能は非常に CPU
+  パワーを必要とするため、リアルタイム演奏が困難になります。
+  (-Er:on -ER:off)
+・CHORUS_CONTROL_ALLOW
+  定義すると、コーラス機能をデフォルトで有効にします。この機能は非常に CPU
+  パワーを必要とするため、リアルタイム演奏が困難になります。
+  (-Ec:on -EC:off)
+・GM_CHANNEL_PRESSURE_ALLOW
+  定義すると、デフォルトで Channel pressure を有効にします。
+  (-Es:on -ES:off)
+・XG_BANK_SELECT_LSB_ALLOW
+  定義すると、デフォルトで XG のバンクセレクトを有効にします。
+  (-Ex:on -EX:off)
+・ALWAYS_TRACE_TEXT_META_EVENT
+  定義すると、デフォルトで Text Meta イベントの文字列をトレース表示します。
+  (-Et:on -ET:off)
+・OVERLAP_VOICE_ALLOW
+  定義すると、同一音の重なった voice を有効にします。
+  (-Eo:on -EO:off)

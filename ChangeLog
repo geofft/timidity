@@ -1,12 +1,3 @@
-
-2003-06-04  Saito <timidity@flashmail.com>
-
-	* timidity/playmidi.[ch], timidity/readmidi.[ch],
-	  timidity/rcp.c, timidity/timidity.c, timidity/reverb.c,
-	  timidity/resample.c:
-	  Fix in channel layer.
-	  Change default -N to 0.
-
 2003-06-04  mput <root@mput.dip.jp>
 
 	* Makefile.am (dist-hook): Bug fix

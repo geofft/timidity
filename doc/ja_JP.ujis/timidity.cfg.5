@@ -1,0 +1,234 @@
+.TH timidity.cfg 5 "Nov 24 1998" "1.0.0"
+.SH NAME
+timidity.cfg \- configure file of TiMidity++
+
+.SH SYNOPSIS
+.TP
+.B /etc/timidity.cfg
+.TP
+.B /usr/local/share/timidity/timidity.cfg
+
+.P
+.SH DESCRIPTION
+\fItimidity.cfg\fP は、timidity(1) の実行時の様々な設定を行うための設定ファイルです。
+音色データの置き場所、音色自体の設定、その他諸々を設定する事が出来ます。
+.br
+\fITiMidity++\fP は、起動時にコマンドラインオプションを見る前に、
+\fItimidity.cfg\fP を探索します。
+このファイルにアクセスできない場合、また、ライブラリパスが
+コマンドラインで \fB\-L\fP オプションによって変更されている場合は、
+全てのオプションを見た後に、
+新しいライブラリパスに従ってデフォルトファイルを
+(\fB\-c\fP オプションで別の設定ファイルが指定されていないならば)
+再探索します。
+.br
+もし複数のファイルが指定された場合には、
+後に読み込まれた設定によって前の設定が上書きされます。
+
+.P
+設定ファイル中には以下の書式が指定可能です:
+
+.TP
+.BI dir " directory"
+\fIdirectory\fP を探索パスに加えます。加え方は\fB\-L\fP オプションと同様。
+.br
+TiMidity++ では、アーカイブファイルをパッチセットにすることができます。
+
+例:
+.br
+dir /usr/local/share/timidity/inst/foo.zip#
+.br
+bank 0
+.br
+0 bar.pat
+.br
+1 baz.pat
+.br
+2 zoo.pat
+.br
+まず、dir で通常のディレクトリのようにアーカイブファイル (上の例では
+/usr/local/share/timidity/inst/foo.zip)
+を指定します。このとき、アーカイブファイル名
+の最後に \fB#\fP をつけてください。この \fB#\fP があることで、アーカイブファイルで
+あることを \fITiMidity++\fP は認識します。こうしておくと、\fIdir\fP で指定された
+アーカイブファイルの中のパッチファイルも読み込み対象になります。
+上の例では、foo.zip の中にある bar.pat、 baz.pat、zoo.pat が読み込まれます。
+
+.TP
+.BI source " file"
+他の設定ファイルをその場所に挿入し、続行します。
+
+.TP
+.BI bank " number"
+これ以降変更するトーンバンクを選択します。
+この文以後の patch の対応付けは、指定されたトーンバンクに対して行われます。
+
+.TP
+.BI progbase " number"
+これ以降、プログラム番号を \fInumber\fP から \fInumber+128\fP で設定・表示します。
+たとえば、\fBprogbase 1\fP とした場合は、それ以降プログラム番号は 1 から 128 で設定・表示されます。
+
+.TP
+.BI drumset " number"
+変更するドラムセットを選択します。
+この文以後の patch の対応付けは、指定されたドラムセットに対して行われます。
+
+.TP
+.BI number " file [options]"
+現在のトーンバンクやドラムセットで、 MIDI プログラムナンバー \fInumber\fP で
+使用する \fIpatch file\fP を指定します。
+\fIoptions\fP は次のものが使用可能です:
+.RS
+.TP
+\fBamp=\fP\fIamplification\fP
+インスツルメントのボリュームを \fIamplification\fP % にします。
+もし値が指定されていない場合、
+インスツルメントが読み込まれる時に自動的に設定されます。
+.TP
+\fBnote=\fP\fInote\fP
+インスツルメントを演奏する時に決まった MIDI ノート(音階) を使用します。
+\fInote\fP を \fB0\fP にすると、
+最初に Note On イベントが発生した時点でのノートを使用します。
+パーカッションインスツルメントに対しては、
+もし設定ファイルで値が設定されていなければ、
+\fBpatch\fP ファイルに入っている値を使用します。
+.TP
+\fBpan=\fP\fIpanning\fP
+インスツルメントのデフォルトのパンニングを設定します。
+\fIpanning\fP は \fBleft\fP、\fBright\fP、\fBcenter\fP、あるいは
+\fB\-100\fP から \fB100\fP までの整数値を取ることができます。\fB-100\fP が最も左、
+\fB100\fP が最も右になります。
+値が与えられていない場合には、\fBpatch\fP ファイルに入っている値を使用します。
+もちろん、MIDI ファイル中のパンニングコントロールの方が優先されます。
+.TP
+\fBkeep=\fP{\fBloop\fP|\fBenv\fP}
+パーカッションインスツルメントでは、
+デフォルトでループ情報とエンベロープ情報が破棄されます。
+また、メロディーインスツルメントに異常なエンベロープが存在した場合にも、
+エンベロープ情報は自動的に破棄されます。
+\fBkeep\fP を指定することで、エンベロープ情報やループ情報が破棄されるのを防ぎます。
+例えば、Short、Long Whistle パーカッションインスツルメント
+(General MIDI の 71、72 番) に対しては、
+設定ファイルで ``\fBkeep=loop keep=env\fP'' としておく必要があります。
+.TP
+\fBstrip=\fP{\fBloop\fP|\fBenv\fP|\fBtail\fP}
+インスツルメントとして使用する \fIpatch\fP の、ループ情報やエンベロープ情報や
+テール(ループの後にあるデータ)を全て強制的に破棄します。
+サードパーティーのインスツルメントにはループの後にゴミが付いているものがあり、
+インスツルメントを演奏する度にクリッキングノイズが入ってしまうことがあります。
+その場合、\fBstrip=tail\fP オプションを指定すれば音質が改善されます。
+.RE
+.LP
+.P
+
+TiMidity++ では、以下の拡張命令が追加されています:
+
+.TP
+.BI "#extension altassign" " program1 program2 ..."
+ドラムセットについて、オルタネートアサインを設定します。
+.br
+drumset 0
+.br
+altassign 42 44 46
+.br
+と書くと、ドラムセット 0 の 42/44/46 が排他的に鳴ります。
+ドラムセット 0 で定義されたオルタネートアサインは
+デフォルトで使用されます。
+
+.TP
+.BI "#extension comm" " program comment"
+Instrument 番号 \fIprogram\fP にコメント \fIcomment\fP を指定します．
+ここで設定した \fIcomment\fP は \fB\-int\fP や \fI\-iTt\fP オプション
+で起動した時に、インジケータラインに表示されます。
+.TP
+.BI "#extension timeout" " program secound"
+Instrument 番号 \fIprogram\fP で \fIsecound\fP 秒以上 Suspend 状態
+が続いた場合、その音をオフにします。
+.TP
+.BI "#extension copydrumset" " drumset"
+\fIdrumset\fP 番号の状態すべてを現在の \fIdrumset\fP にコピーします。
+.TP
+.BI "#extension copybank" " bank"
+\fIbank\fP 番号の状態すべてを現在の \fIbank\fP にコピーします。
+.TP
+.BI "#extension HTTPproxy" " hostname:port"
+HTTP の proxy を設定します。proxy のホスト名を \fIhostname\fPに、
+ポート番号を \fIport\fP に指定します。
+.TP
+.BI "#extension FTPproxy" " hostname:port"
+FTP の proxy を設定します。proxy のホスト名を \fIhostname\fPに、
+ポート番号を \fIport\fP に指定します。
+.TP
+.BI "#extension mailaddr" " your\-mail\-address"
+ユーザのメールアドレスを \fIyour\-mail\-address\fP に指定します。
+このメールアドレスは、
+FTP 接続を proxy を介さずにダイレクトに繋ぐ場合に用いられます。
+.TP
+.BI "#extension opt [\-]{option}" " [optarg]"
+起動時のオプションを指定します。
+.TP
+.BI "#extension undef" " progno"
+現在のバンクのプログラム番号\fIprogno\fP を未定義にします。
+
+.P
+これらの拡張命令は \fB#\fP から始まっており、古い \fITiMidity++\fP では
+単なるコメントと扱われ無視されます。よって、古い \fITiMidity\fP
+との互換性を保つことができます。
+.br
+なお、TiMidity++ では #extension は空白として扱われるようになっています。
+
+.P
+\fITiMidity++\fP の設定ファイル (*.cfg) 中の source の引数に UNIX のコマンド
+からの出力を利用できます(UNIX のみ)。ファイル名の最後に
+\fI\|\fP(ASCII 0x7c) を記述すると UNIX コマンドとみなされ、
+そのコマンドの出力が source の引数になります。
+.br
+\fBsource\fP \fIcommand|\fP
+のようにすると，\fIcommand\fP の出力が \fBsource\fP の引数になります。
+環境によって \fITiMidity++\fP の設定を選択したい場合などに便利です。なお、
+\fIcommand\fP \fI|\fP のように、途中にスペースが入ると、
+設定ファイル読み込み時に
+区切られてしまい、コマンドと見なされなくなってしまいます。
+この機能はファイル名を指定できる全ての場所に適用できます。
+
+         timidity 'cat fild.mid|'
+.br
+
+は、cat fild.mid の出力結果から読み取ります。
+
+.P
+*.cfg の \fIsoundfont\fP のオプションに \fIremove\fP を指定すると、
+指定されているファイルを未定義にします。
+
+.P
+.SH SEE ALSO
+timidity(1), lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1)
+
+.P
+.SH COPYRIGHT
+Copyright (C) 1999 Masanao Izumo <mo@goice.co.jp>
+Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+.P
+Original version was developed under the name of Tuukka Toivonen
+<tt@cgs.fi> until the version of TiMidity-0.2i. His development was
+discontinued because of his busy work.
+.P
+This program is free software; you can redistribute it and/or modify
+it under the terms of the \fIGNU General Public License\fP as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+.P
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the \fIGNU
+General Public License\fP for more details.
+.P
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+.SH AVAILABILITY
+The latest release is available on the TiMidity++ Page,
+.br
+URL http://www.goice.co.jp/member/mo/timidity/
+.br
