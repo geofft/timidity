@@ -1,3 +1,8 @@
+2004-01-15  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/common.[ch], sndfont.c, timidity.c:
+	  Changed #extension ...send, playnote option's argument format.
+
 2004-01-15  Saito <saito2@digitalme.com>
 
 	* timidity/timidity.c, timidity/playmidi.[ch], timidity/instrum.h,

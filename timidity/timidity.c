@@ -1687,7 +1687,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	}	/* #extension reverbsend */
 	else if(strcmp(w[0], "reverbsend") == 0)
 	{
-	    if(words < 3)
+	    if(words != 3)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
 		CHECKERRLIMIT;
@@ -1701,34 +1701,27 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-		if (words == 3) {
-			i = atoi(w[1]);
-			if(i < 0 || i > 127)
-			{
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "%s: line %d: extension reverbsend "
-				  "must be between 0 and 127", name, line);
-			CHECKERRLIMIT;
-			continue;
-			}
-			bank->tone[i].reverb_send = atoi(w[2]);
-		} else if(words == 4) {
-			if(atoi(w[3]) < 0 || atoi(w[3]) > 127)
-			{
-				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					  "%s: line %d: extension reverbsend "
-					  "must be between 0 and 127", name, line);
-				CHECKERRLIMIT;
-				continue;
-			}
-			for (i = atoi(w[1]); i < atoi(w[2]); i++) {
-				bank->tone[i].reverb_send = atoi(w[3]);
-			}
+		i = atoi(w[2]);
+		if(i < 0 || i > 127)
+		{
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension reverbsend "
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
 		}
+		cp = w[1];
+		do {
+			if (string_to_7bit_range(cp, &j, &k))
+			{
+				while (j <= k)
+					bank->tone[j++].reverb_send = i;
+			}
+			cp = strchr(cp, ',');
+		} while(cp++ != NULL);
 	}	/* #extension chorussend */
 	else if(strcmp(w[0], "chorussend") == 0)
 	{
-	    if(words < 3)
+	    if(words != 3)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
 		CHECKERRLIMIT;
@@ -1742,34 +1735,27 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-		if (words == 3) {
-			i = atoi(w[1]);
-			if(i < 0 || i > 127)
-			{
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "%s: line %d: extension chorussend "
-				  "must be between 0 and 127", name, line);
-			CHECKERRLIMIT;
-			continue;
-			}
-			bank->tone[i].chorus_send = atoi(w[2]);
-		} else if(words == 4) {
-			if(atoi(w[3]) < 0 || atoi(w[3]) > 127)
-			{
-				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					  "%s: line %d: extension chorussend "
-					  "must be between 0 and 127", name, line);
-				CHECKERRLIMIT;
-				continue;
-			}
-			for (i = atoi(w[1]); i < atoi(w[2]); i++) {
-				bank->tone[i].chorus_send = atoi(w[3]);
-			}
+		i = atoi(w[2]);
+		if(i < 0 || i > 127)
+		{
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension chorussend "
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
 		}
+		cp = w[1];
+		do {
+			if (string_to_7bit_range(cp, &j, &k))
+			{
+				while (j <= k)
+					bank->tone[j++].chorus_send = i;
+			}
+			cp = strchr(cp, ',');
+		} while(cp++ != NULL);
 	}	/* #extension delaysend */
 	else if(strcmp(w[0], "delaysend") == 0)
 	{
-	    if(words < 3)
+	    if(words != 3)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
 		CHECKERRLIMIT;
@@ -1783,34 +1769,27 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-		if (words == 3) {
-			i = atoi(w[1]);
-			if(i < 0 || i > 127)
-			{
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "%s: line %d: extension delaysend "
-				  "must be between 0 and 127", name, line);
-			CHECKERRLIMIT;
-			continue;
-			}
-			bank->tone[i].delay_send = atoi(w[2]);
-		} else if(words == 4) {
-			if(atoi(w[3]) < 0 || atoi(w[3]) > 127)
-			{
-				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					  "%s: line %d: extension delaysend "
-					  "must be between 0 and 127", name, line);
-				CHECKERRLIMIT;
-				continue;
-			}
-			for (i = atoi(w[1]); i < atoi(w[2]); i++) {
-				bank->tone[i].delay_send = atoi(w[3]);
-			}
+		i = atoi(w[2]);
+		if(i < 0 || i > 127)
+		{
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension delaysend "
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
 		}
+		cp = w[1];
+		do {
+			if (string_to_7bit_range(cp, &j, &k))
+			{
+				while (j <= k)
+					bank->tone[j++].delay_send = i;
+			}
+			cp = strchr(cp, ',');
+		} while(cp++ != NULL);
 	}	/* #extension playnote */
 	else if(strcmp(w[0], "playnote") == 0)
 	{
-	    if(words < 3)
+	    if(words != 3)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
 		CHECKERRLIMIT;
@@ -1824,30 +1803,23 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-		if (words == 3) {
-			i = atoi(w[1]);
-			if(i < 0 || i > 127)
-			{
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "%s: line %d: extension playnote "
-				  "must be between 0 and 127", name, line);
-			CHECKERRLIMIT;
-			continue;
-			}
-			bank->tone[i].play_note = atoi(w[2]);
-		} else if(words == 4) {
-			if(atoi(w[3]) < 0 || atoi(w[3]) > 127)
-			{
-				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					  "%s: line %d: extension playnote "
-					  "must be between 0 and 127", name, line);
-				CHECKERRLIMIT;
-				continue;
-			}
-			for (i = atoi(w[1]); i < atoi(w[2]); i++) {
-				bank->tone[i].play_note = atoi(w[3]);
-			}
+		i = atoi(w[2]);
+		if(i < 0 || i > 127)
+		{
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: extension playnote"
+			  "must be between 0 and 127", name, line);
+		CHECKERRLIMIT;
 		}
+		cp = w[1];
+		do {
+			if (string_to_7bit_range(cp, &j, &k))
+			{
+				while (j <= k)
+					bank->tone[j++].play_note = i;
+			}
+			cp = strchr(cp, ',');
+		} while(cp++ != NULL);
 	}
 	else if(!strcmp(w[0], "soundfont"))
 	{
