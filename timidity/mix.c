@@ -1124,8 +1124,10 @@ int apply_envelope_to_amp(int v)
 		}
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
 			if (voice[v].envelope_stage > 1) {
-				lamp *= vol_table[voice[v].envelope_volume >> 23];
-				ramp *= vol_table[voice[v].envelope_volume >> 23];
+/*				lamp *= vol_table[voice[v].envelope_volume >> 23];
+				ramp *= vol_table[voice[v].envelope_volume >> 23];*/
+				lamp *= sb_vol_table[voice[v].envelope_volume >> 23];
+				ramp *= sb_vol_table[voice[v].envelope_volume >> 23];
 			} else {
 				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
 				ramp *= attack_vol_table[voice[v].envelope_volume >> 23];
@@ -1150,7 +1152,8 @@ int apply_envelope_to_amp(int v)
 			lamp *= voice[v].tremolo_volume;
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
 			if (voice[v].envelope_stage > 1)
-				lamp *= vol_table[voice[v].envelope_volume >> 23];
+				lamp *= sb_vol_table[voice[v].envelope_volume >> 23];
+/*				lamp *= vol_table[voice[v].envelope_volume >> 23];*/
 			else
 				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
 		}

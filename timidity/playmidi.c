@@ -3063,7 +3063,7 @@ static int last_rpn_addr(int ch)
 
 void process_sysex_nrpn(int ch,int addr,int val)
 {
-	int note, b = channel[ch].rpnmap2[addr];
+	int note, b = current_event->b;
 
 	if(addr == NRPN_ADDR_3000)
 	{
@@ -3629,19 +3629,14 @@ static void seek_forward(int32 until_time)
 	    if((i = last_rpn_addr(ch)) >= 0)
 	    {
 		channel[ch].rpnmap[i] = current_event->a;
-		if(i != NRPN_ADDR_3000) {update_rpn_map(ch, i, 0);}
+		update_rpn_map(ch, i, 0);
 	    }
 	    break;
 	  case ME_DATA_ENTRY_LSB:
 	    if(channel[ch].rpn_7f7f_flag) /* disable */
 		break;
-	    if((i = last_rpn_addr(ch)) >= 0)
-	    {
-		channel[ch].rpnmap2[i] = current_event->a;
-		if(i == NRPN_ADDR_3000) {update_rpn_map(ch, i, 0);}
-	    }
 	    /* Ignore */
-	/*    channel[ch].nrpn = -1;*/
+	    channel[ch].nrpn = -1;
 	    break;
 
 	  case ME_REVERB_EFFECT:
@@ -5292,20 +5287,15 @@ int play_event(MidiEvent *ev)
 	if((i = last_rpn_addr(ch)) >= 0)
 	{
 	    channel[ch].rpnmap[i] = ev->a;
-		if(i != NRPN_ADDR_3000) {update_rpn_map(ch, i, 1);}
+	    update_rpn_map(ch, i, 1);
 	}
 	break;
 
       case ME_DATA_ENTRY_LSB:
 	if(channel[ch].rpn_7f7f_flag) /* disable */
 	    break;
-	if((i = last_rpn_addr(ch)) >= 0)
-	{
-	    channel[ch].rpnmap2[i] = ev->a;
-		if(NRPN_ADDR_3000) {update_rpn_map(ch, i, 1);}
-	}
 	/* Ignore */
-/*	channel[ch].nrpn = -1;*/
+	channel[ch].nrpn = -1;
 	break;
 
       case ME_REVERB_EFFECT:

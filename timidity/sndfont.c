@@ -476,8 +476,16 @@ Instrument *load_soundfont_inst(int order,
 static FLOAT_T calc_volume(LayerTable *tbl)
 {
     int v;
+
     if(!tbl->set[SF_initAtten] || tbl->val[SF_initAtten] == 0)
 	return (FLOAT_T)1.0;
+
+	v = tbl->val[SF_initAtten];
+    if(v < 0) {v = 0;}
+    else if(v > 960) {v = 960;}
+	return cb_to_amp_table[v];
+
+#if 0
     v = tbl->val[SF_initAtten];
     if(v < 0)
 	return (FLOAT_T)1.0;
@@ -487,6 +495,7 @@ static FLOAT_T calc_volume(LayerTable *tbl)
     v = v * 127 / 956;		/* 0..127 */
 
     return vol_table[127 - v];
+#endif
 }
 
 /*
@@ -592,7 +601,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		sample->envelope_rate[1] = calc_rate(/*5*/1, sp->hold);
 
 		sample->envelope_offset[2] = to_offset(sp->sustain);
-		sample->envelope_rate[2] = calc_rate(255/*250 - sp->sustain*/, sp->decay);
+		sample->envelope_rate[2] = calc_rate(/*255*/254 - sp->sustain/*250 - sp->sustain*/, sp->decay);
 
 		sample->envelope_offset[3] = 0/*to_offset(5)*/;
 		sample->envelope_rate[3] = calc_rate(255, sp->release);
@@ -1317,7 +1326,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	/* panning position: 0 to 127 */
 	val = (int)tbl->val[SF_panEffectsSend];
-    if(sample->sampletype == 1) {	/* monoSample = 1 */
+    if(sample->sampletype == 1 || val != 0) {	/* monoSample = 1 */
 		if(val < -500)
 		vp->v.panning = 0;
 		else if(val > 500)
