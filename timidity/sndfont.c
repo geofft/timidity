@@ -1620,6 +1620,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
   demanded sources.
      common.c  controls.c  dumb_c.c  instrum.c  sbkconv.c  sffile.c
      sfitem.c  sndfont.c  tables.c  version.c
+		 mt19937ar.c quantity.c smplfile.c
      utils/  libarc/
   additional sources (for -f option)
      filter.c  freq.c  resample.c
@@ -1888,9 +1889,9 @@ static void cfgforsf_usage(const char *program_name, int status)
 "USAGE: %s [options] soundfont [cfg_output]\n"
 "  Options:\n"
 "    -s: sort by bank/program. (default)\n"
-"    -S: do not sort by bank/program.\n"
+"    -S or -s-: do not sort by bank/program.\n"
 "    -c: output comment. (default)\n"
-"    -C: do not output comment.\n"
+"    -C or -c-: do not output comment.\n"
 #if CFG_FOR_SF_SUPPORT_FFT
 "    -f drumset note: calculate sample frequency.\n"
 "    -F drumset note: do not calculate sample frequency. (default = -F - -)\n"
@@ -1903,6 +1904,32 @@ static void cfgforsf_usage(const char *program_name, int status)
 #define SET_PROG_MAP(map, bank, prog)		((map)[(bank << (7 - 3)) | (prog >> 3)] |= (1 << (prog & 7)))
 #define UNSET_PROG_MAP(map, bank, prog)		((map)[(bank << (7 - 3)) | (prog >> 3)] &= ~(1 << (prog & 7)))
 #define IS_SET_PROG_MAP(map, bank, prog)	((map)[(bank << (7 - 3)) | (prog >> 3)] & (1 << (prog & 7)))
+#endif
+
+#if CFG_FOR_SF_SUPPORT_FFT
+int check_apply_control(void) { return 0; } // not pass
+void dumb_pass_playing_list(int number_of_files, char *list_of_files[]) {}
+void recompute_freq(int v) {} // not pass
+int32 control_ratio = 0;
+int reduce_quality_flag = 0;
+Voice *voice = NULL;
+Channel channel[MAX_CHANNELS];
+// from playmidi.c
+int32 get_note_freq(Sample *sp, int note)
+{
+	int32 f;
+	int16 sf, sn;
+	double ratio;
+	
+	f = freq_table[note];
+	/* GUS/SF2 - Scale Tuning */
+	if ((sf = sp->scale_factor) != 1024) {
+		sn = sp->scale_freq;
+		ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
+		f = f * ratio + 0.5;
+	}
+	return f;
+}
 #endif
 
 int main(int argc, char **argv)
@@ -1921,14 +1948,23 @@ int main(int argc, char **argv)
 	#if CFG_FOR_SF_SUPPORT_FFT
 	memset(fft_range, 0, sizeof fft_range);
 	#endif
-	while(argc > 0 && argv[0][0] == '-' && isalpha(argv[0][1]) && argv[0][2] == '\0') {
-		switch(tolower(argv[0][1])) {
-			case 's': case 'S':
-				x_sort = argv[0][1] == 's';
-				break;
-			case 'c': case 'C':
-				x_comment = argv[0][1] == 'c';
-				break;
+	while(argc > 0 && argv[0][0] == '-' && isalpha(argv[0][1])) {
+		int opt_switch = 1;
+		if(argv[0][2] == '\0')
+			opt_switch = 1;
+		else if(argv[0][2] == '-' && argv[0][3] == '\0')
+			opt_switch = 0;
+		else
+			break;
+		switch(argv[0][1]) {
+			case 's':
+				x_sort = 1; if(!opt_switch) x_sort = 0; break;
+			case 'S':
+				x_sort = 0; break;
+			case 'c':
+				x_comment = 1; if(!opt_switch) x_comment = 0; break;
+			case 'C':
+				x_comment = 0; break;
 			#if CFG_FOR_SF_SUPPORT_FFT
 			case 'f': case 'F':
 				if(argc < 3)
@@ -2001,7 +2037,7 @@ int main(int argc, char **argv)
 #endif /* SUPPORT_SOCKET */
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
-	init_freq_tables();
+	init_freq_table();
 	init_bend_fine();
 	init_bend_coarse();
 	initialize_resampler_coeffs();

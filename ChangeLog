@@ -1,3 +1,7 @@
+2004-02-08  Daisuke Aoki <dai@sweetparty.ne.jp>
+
+	* timidity/sndfont.c: Fix cfgforsf.
+
 2004-02-08  Saito <saito2@digitalme.com>
 
 	* interface/w32g_tracer.bmp, interface/w32g_subwin3.c, timidity/playmidi.c:
