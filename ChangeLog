@@ -1,7 +1,12 @@
+2004-02-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* README(.ja), AUTHORS, INSTALL(.ja),
+	  doc/C/timidity.1, doc/ja_JP.ujis/timidity.1: Update
+
 2004-02-14  mput <root@mput.dip.jp>
 
 	* Makefile.am (EXTRA_DIST): Fix to fit below
-	* timidity.ide, timidity.mak : Remove
+	* timidity.ide, timidity.mak: Remove
 
 2004-02-13  mput <root@mput.dip.jp>
 
@@ -52,7 +57,7 @@
 	* configs/msc6-project.zip, configs/msc6-sjis.txt:
 	  Support for TWSYNG service mode.
 	* interface/w32g_utl.[ch], interface/w32g_ini.c,
-	  interface/w32g_pref.c, interface/w32g_res.[h,rc],
+	  interface/w32g_pref.c, interface/w32g_res.{h,rc},
 	  timidity/playmidi.[ch], timidity/mix.c:
 	  Support for Surround (opt_pan_delay).
 	  Improve opt_pan_delay.

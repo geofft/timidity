@@ -3,7 +3,7 @@
 
 					出雲正尚
 					<iz@onicos.co.jp>
-					2004年02月09日
+					2004年02月14日
 					バージョン2.13.0以降
 ======================================================================
 
@@ -105,13 +105,13 @@ configureのオプションがたくさん表示されたと思います。このうち，--helpや
 
   このオプションに指定できる値は，
 
-  * ncurses: Ncursesインタフェース
-  * slang: slangインタフェース
-  * motif: Motifインタフェース(lestiffでも動きます)
+  * ncurses: ncursesインタフェース
+  * slang: S-Langインタフェース
+  * motif: Motifインタフェース(Lestiffでも動きます)
   * tcltk: Tcl/Tkインタフェース
   * emacs: Emacsフロントエンド(M-x timidity)
-  * vt100: VT100インタフェース
-  * xaw: X Athena Widgetsインタフェース
+  * vt100: vt100インタフェース
+  * xaw: X Athena Widgetインタフェース
   * xskin: X skinインタフェース
   * gtk: GTK+インタフェース
   * w32gui: Windows GUI版としてコンパイル

@@ -3,7 +3,7 @@
 
 					Masanao Izumo
 					<iz@onicos.co.jp>
-					Feb.04.2004
+					Feb.14.2004
 					version 2.13.0 or later
 ======================================================================
 
@@ -37,10 +37,10 @@ Features
 
 * Plays MIDI files without any external MIDI instruments at all
 * Understands following formats:
-  + SMF (format 0,1,2)
+  + SMF (Format 0, 1, 2)
   + MOD
-  + Recomposer RCP, R36, G18, G36
-  + MFI
+  + RCP, R36, G18, G36 (Recomposer formats)
+  + MFi (Version 3; Melody Format for i-Mode)
 * Converts MIDI files into various audio file formats:
   + RIFF WAVE (*.wav)
   + SUN AU (*.au)

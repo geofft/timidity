@@ -3,7 +3,7 @@
 
 					Masanao Izumo
 					<iz@onicos.co.jp>
-					Feb.09.2004
+					Feb.14.2004
 					version 2.13.0 or later
 ======================================================================
 
@@ -108,13 +108,13 @@ these are the following:
 
   You can select one or more interfaces listed below.
 
-  * ncurses: Ncurses interface.
-  * slang: slang interface.
-  * motif: Motif interface.  Motif interface also works under lestiff.
+  * ncurses: ncurses interface.
+  * slang: S-Lang interface.
+  * motif: Motif interface.  Motif interface also works under Lestiff.
   * tcltk: Tcl/Tk interface.
   * emacs: Emacs front-end.  Type M-x timidity to invoke.
-  * vt100: The full-screen interface using VT100 terminal control codes.
-  * xaw: X Athena Widgets interface.
+  * vt100: The full-screen interface using vt100 terminal control codes.
+  * xaw: X Athena Widget interface.
   * xskin: X skin interface.
   * gtk: GTK+ interface.
   * w32gui: Build as Windows GUI binary.
@@ -628,4 +628,4 @@ sites for many voice(patch) data:
 * ftp://ftp.cdrom.com/pub/gus/sound/patches/files/ (GUS site)
 
 If you got funny voice archive, extract it to appropriate directory
-and configure *.cfg files with the name and path of these voice dates.
+and configure *.cfg files with the name and path of these voice datas.
