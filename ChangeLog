@@ -1,5 +1,12 @@
+2004-02-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/Makefile.{am,in}:
+	  Change CR+LF -> LF due to fatal error
+
 2004-02-12  Saito <saito2@digitalme.com>
-	* interface/w32g_pref.c, interface/w32g_res.[h,rc], interface/rtsyn_common.c:
+
+	* interface/w32g_pref.c, interface/w32g_res.{h,rc},
+	  interface/rtsyn_common.c:
 	  Support for 24-bit output in Win32GUI/TWSYNTH interface.
 	* timidity/w32g_a.c, timidity/Makefile.{am,in}:
 	  Remove w32g_a.c.
@@ -38,6 +45,7 @@
 	  Support for TWSYNSRV.
 
 2004-02-11  Saito <saito2@digitalme.com>
+
 	* timidity/output.[ch], timidity/wave_a.c,
 	  timidity/w32_a.c, timidity/aq.c,
 	  timidity/effect.c, timidity/timidity.c, interface/w32g_utl.c:
