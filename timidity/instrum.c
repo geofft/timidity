@@ -1654,7 +1654,10 @@ int alloc_instrument_map_bank(int dr, int map, int bk)
 	int i;
 	
 	if (map == INST_NO_MAP)
+	{
+		alloc_instrument_bank(dr, bk);
 		return bk;
+	}
 	i = find_instrument_map_bank(dr, map, bk);
 	if (i == 0)
 		return -1;
@@ -1666,6 +1669,7 @@ int alloc_instrument_map_bank(int dr, int map, int bk)
 		bm[i].mapid = map;
 		bm[i].bankno = bk;
 		i += 128;
+		alloc_instrument_bank(dr, i);
 	}
 	return i;
 }

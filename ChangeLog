@@ -1,3 +1,8 @@
+2004-02-02  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/instrum.c, timidity/timidity.c:
+	  Changed alloc_instrument_map_bank()'s behavior.
+
 2004-02-02  Saito <saito2@digitalme.com>
 
 	* timidity/mix.c:
