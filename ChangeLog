@@ -1,13 +1,17 @@
+2004-05-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* configs/msc[67]-project.zip: Change version to "current"
+
 2004-05-14  Saito <saito@intaa.net>
 
 	* configs/msc[67]-project.zip: Fix for PortAudio DLL.
 	* timidity/w32g_pref.c: Fix typo.
-	* timidity/mix/c: Fix around envelope.
+	* timidity/mix.c: Fix around envelope.
 
 2004-05-14  Daisuke Aoki <dai@sweetparty.ne.jp>
 
-	* timidity/{output.c,portaudio_a.c,w32_portaudio.h,w32_portaudio_dll.c}:
-	  Support for PortAudio DLL.
+	* timidity/{output.c,portaudio_a.c,w32_portaudio.h,
+	  w32_portaudio_dll.c}: Support for PortAudio DLL.
 
 2004-05-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
