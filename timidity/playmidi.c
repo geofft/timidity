@@ -89,8 +89,6 @@ double CHORUS_VELOCITY_TUNING2 = 0.6;
 #define EOT_PRESEARCH_LEN		32
 #define SPEED_CHANGE_RATE		1.0594630943592953  /* 2^(1/12) */
 
-#define PAN_DIV 1
-
 /* Undefine if you don't want to use auto voice reduce implementation */
 #define REDUCE_VOICE_TIME_TUNING	(play_mode->rate/5) /* 0.2 sec */
 #ifdef REDUCE_VOICE_TIME_TUNING
@@ -126,6 +124,8 @@ int current_freq_table = 0;
 
 static void set_reverb_level(int ch, int level);
 static int make_rvid_flag = 0; /* For reverb optimization */
+
+static int sample_panning_average;
 
 /* Ring voice id for each notes.  This ID enables duplicated note. */
 static uint8 vidq_head[128 * MAX_CHANNELS], vidq_tail[128 * MAX_CHANNELS];
@@ -1090,6 +1090,23 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	}
 }
 
+static int calc_sample_panning_average(Instrument* ip)
+{
+	int i, sum = 0, average;
+
+	if(!ip->samples) {return 64;}
+
+	for(i=0;i<ip->samples;i++)
+	{
+		sum += ip->sample[i].panning;
+	}
+
+	average = sum / ip->samples;
+	if(average == 63) {average = 64;}
+
+	return average;
+}
+
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
     ToneBank **bank = ((dr) ? drumset : tonebank);
@@ -1134,6 +1151,8 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	return NULL;
     if(ip == NULL)
 	bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+
+	sample_panning_average = calc_sample_panning_average(ip);
 
     return ip;
 }
@@ -1843,28 +1862,25 @@ static int find_samples(MidiEvent *e, int *vlist)
 	return nv;
 }
 
-static int get_drum_panning(int ch, int note,int v)
+static int get_panning(int ch, int note,int v)
 {
-    int i, uv = upper_voices, pan, pan_average = 0, pan_cnt = 0;
+    int i, pan;
 
-    pan = channel[ch].drums[note]->drum_panning - 64;
+	if(channel[ch].panning != NO_PANNING) {pan = channel[ch].panning;}
+	else {pan = 64;}
 
-    /* slide the pan by the channel pan offset */
-    if(channel[ch].panning != NO_PANNING)
-        pan += channel[ch].panning - 64;
-
-    for(i = 0; i < uv; i++) {
-		if(voice[i].channel == ch &&
-		   voice[i].note == note &&
-		   (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
-		{
-			pan_average += voice[i].sample->panning;
-			pan_cnt++;
-		}
+	if(ISDRUMCHANNEL(ch) &&
+     channel[ch].drums[note] != NULL &&
+     channel[ch].drums[note]->drum_panning != NO_PANNING) {
+	    pan += channel[ch].drums[note]->drum_panning - 64;
 	}
-	if(pan_cnt) {pan_average /= pan_cnt;}
 
-	return ((pan + voice[v].sample->panning - pan_average) / PAN_DIV + 64);
+	pan += voice[v].sample->panning - voice[v].sample_panning_average;
+
+	if (pan > 127) pan = 127;
+	else if (pan < 0) pan = 0;
+
+	return pan;
 }
 
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
@@ -1939,17 +1955,9 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
     voice[i].vibrato_sample_increment[j]=0;
 
   /* Pan */
-  if(channel[ch].panning != NO_PANNING) pan = channel[ch].panning;
-  else pan = 64;
-  if(ISDRUMCHANNEL(ch) &&
-     channel[ch].drums[note] != NULL &&
-     channel[ch].drums[note]->drum_panning != NO_PANNING)
-      pan = get_drum_panning(ch, note, i);
-  else
-      pan += voice[i].sample->panning - 64;
-  if (pan > 127) pan = 127;
-  if (pan < 0) pan = 0;
-  voice[i].panning = pan;
+  voice[i].sample_panning_average = sample_panning_average;
+  voice[i].panning = get_panning(ch, note, i);
+ /* ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d Average: %d",voice[i].panning,voice[i].sample_panning_average);*/
 
   voice[i].porta_control_counter = 0;
   if(channel[ch].portamento && !channel[ch].porta_control_ratio)
@@ -2506,15 +2514,11 @@ static void adjust_panning(int c)
 	    (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
 	{
             /* adjust pan to include drum/sample pan offsets */
-            if(ISDRUMCHANNEL(c) &&
-               channel[c].drums[i] != NULL &&
-               channel[c].drums[i]->drum_panning != NO_PANNING)
-                pan += channel[c].drums[i]->drum_panning - 64;
-            else
-                pan += voice[i].sample->panning - 64;
-            if (pan > 127) pan = 127;
-            if (pan < 0) pan = 0;
+			pan = get_panning(c,i,i);
 
+#ifdef NEW_CHORUS
+			voice[i].panning = pan;
+#else
 		/* Hack to handle -EFchorus=2 in a "reasonable" way */
 	    if((channel[c].chorus_level || opt_surround_chorus) &&
 	       voice[i].chorus_link != i)
@@ -2560,6 +2564,7 @@ static void adjust_panning(int c)
 	    }
 	    else
 		voice[i].panning = pan;
+#endif
 
 	    recompute_amp(i);
 	    apply_envelope_to_amp(i);
@@ -2576,34 +2581,14 @@ void play_midi_setup_drums(int ch, int note)
 
 static void adjust_drum_panning(int ch, int note)
 {
-    int i, uv = upper_voices, pan, panning, pan_average = 0, pan_cnt = 0;
-
-    pan = channel[ch].drums[note]->drum_panning - 64;
-
-    /* slide the pan by the channel pan offset */
-    if(channel[ch].panning != NO_PANNING)
-        pan += channel[ch].panning - 64;
+    int i, uv = upper_voices, pan;
 
     for(i = 0; i < uv; i++) {
 		if(voice[i].channel == ch &&
 		   voice[i].note == note &&
 		   (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
 		{
-			pan_average += voice[i].sample->panning;
-			pan_cnt++;
-		}
-	}
-	if(pan_cnt) {pan_average /= pan_cnt;}
-
-    for(i = 0; i < uv; i++) {
-		if(voice[i].channel == ch &&
-		   voice[i].note == note &&
-		   (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
-		{
-			panning = (pan + voice[i].sample->panning - pan_average) / PAN_DIV + 64;
-			if(panning > 127) {panning = 127;}
-			else if(panning < 0) {panning = 0;}
-			voice[i].panning = panning;
+			voice[i].panning = get_panning(ch,note,i);
 			recompute_amp(i);
 			apply_envelope_to_amp(i);
 		}
