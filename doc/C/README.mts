@@ -1,6 +1,6 @@
-----------------------------------------------------------------------
+======================================================================
 MIDI Tuning Standard summary
-----------------------------------------------------------------------
+======================================================================
 
 (1) Bulk Tuning Dump Request (Non Real-Time)
 ----------------------------------------------------------------------
@@ -359,9 +359,9 @@ ll		number of formula (1 formula =
 F7		EOX
 ----------------------------------------------------------------------
 
-----------------------------------------------------------------------
+======================================================================
 Preset temperament of Temperament Type Control Tuning
-----------------------------------------------------------------------
+======================================================================
 
 First, Pythagoras tuning (major) chromatic scale is expressed by the
 following recurrence relations.  Here, the index [] is a offset of the
@@ -494,9 +494,9 @@ Now, I think that mean-tone tuning could use for a harmony-melody
 because of the characteristic that is more harmony-like than
 Pythagoras tuning, and a scale is not uneven like pure intonation.
 
-----------------------------------------------------------------------
+======================================================================
 The major/minor in the temperament tonality
-----------------------------------------------------------------------
+======================================================================
 
 The basic chords used in general music in C major are not only C, G, F
 but also Am, Em, Dm which appear frequently.  There may also be Cm,
@@ -566,9 +566,9 @@ I think it is nice to select the tuning combination whose pitch of
 parallel key is slightly lower for major music, and slightly higher
 for minor music.
 
-----------------------------------------------------------------------
+======================================================================
 User-defined temperament entry
-----------------------------------------------------------------------
+======================================================================
 
 The function of user-defined temperament entry (experimental) is
 implemented in TiMidity++.  This corresponds to (18) of MIDI Tuning
@@ -640,4 +640,5 @@ f0 7e 00 08 0c 03                                   ; temper prog number
 00 00 01 7f 03 02 01 01 00 01                       ; (both) 3/2
 f7
 
+----
 TAMUKI Shoichi <tamuki@linet.gr.jp>
