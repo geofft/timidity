@@ -20,6 +20,8 @@
 	  Fix some free() functions.
 	  Implement opt_default_module.
 	  Fix timidity_pre_load_configuration().
+	* interface/w32g_utl.c:
+	  Fix bug about number of voices.
 
 2004-02-02  Kentaro Sato <kentaro@ranvis.com>
 
