@@ -1,11 +1,14 @@
+2003-08-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix almost all warnings
+
 2003-08-02  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c : Fix typo and so on
 
 2003-08-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/timidity.c:
-	  Fix around long options
+	* timidity/timidity.c: Fix around long options
 
 2003-07-31  mput <root@mput.dip.jp>
 
