@@ -42,12 +42,16 @@
 
 /*ALSA header file*/
 #if HAVE_ALSA_ASOUNDLIB_H
+#define ALSA_PCM_OLD_HW_PARAMS_API
+#define ALSA_PCM_OLD_SW_PARAMS_API
 #include <alsa/asoundlib.h>
 #else
 #include <sys/asoundlib.h>
 #endif
 
-#if defined(SND_LIB_MINOR)
+#if SND_LIB_MAJOR > 0
+#define ALSA_LIB  9
+#elif defined(SND_LIB_MINOR)
 #define ALSA_LIB  SND_LIB_MINOR
 #else
 #define ALSA_LIB  3

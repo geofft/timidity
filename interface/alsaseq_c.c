@@ -82,7 +82,7 @@ struct seq_context {
 
 static struct seq_context alsactx;
 
-#if SND_LIB_MINOR >= 6
+#if SND_LIB_MAJOR > 0 || SND_LIB_MINOR >= 6
 /* !! this is a dirty hack.  not sure to work in future !! */
 static int snd_seq_file_descriptor(snd_seq_t *handle)
 {
@@ -749,7 +749,7 @@ static int do_sequencer(struct seq_context *ctxp)
 				seq_play_event(&evm[i]);
 		break;
 
-#if SND_LIB_MINOR >= 6
+#if SND_LIB_MAJOR > 0 || SND_LIB_MINOR >= 6
 #define snd_seq_addr_equal(a,b)	((a)->client == (b)->client && (a)->port == (b)->port)
 	case SND_SEQ_EVENT_PORT_SUBSCRIBED:
 		if (snd_seq_addr_equal(&aevp->data.connect.dest, &aevp->dest)) {
