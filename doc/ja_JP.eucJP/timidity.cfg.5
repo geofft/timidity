@@ -369,7 +369,9 @@ FTP のプロキシを設定します。プロキシのホスト名を \fIhostname\fP に，ポ
 .BI "#extension level " "progno tva_level"
 NRPN の Drum Instrument TVA Level を処理する際，音量を変化させる基準と
 なる値を設定します。曲中で Drum Instrument TVA Level が指定されない限り，
-音量には一切影響しません。あくまで基準値です。
+音量には一切影響しません。あくまで基準値です。\fIprogno\fP は `,' や 
+``[\fIstart\fP]\-[\fIend\fP]'' で一括指定できます。\fIstart\fP，
+\fIend\fP は省略すると，それぞれ \fB0\fP，\fB127\fP と見なされます。
 .TP
 .BI "#extension damper " "progno " {0|1}
 \fIprogno\fP でリダンパー効果およびハーフダンパーを有効にする(\fB1\fP)，

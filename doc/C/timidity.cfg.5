@@ -114,7 +114,7 @@ more sample data is contained, the arguments after the second can
 specify different value respectively.
 .TP
 .BI rate= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's ADSR rate.  Each value may be an integer between
+Sets the instrument's ADSR rate.  Each value may be an integer between
 \fB0\fP and \fB255\fP.  When you set only sustain rate,
 .sp
 6 GUS/hrpschrd.pat rate=::60
@@ -127,7 +127,7 @@ is available.  When two or more sample data is contained, the
 arguments after the second can specify different value respectively.
 .TP
 .BI offset= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's ADSR offset.  Each value may be an integer
+Sets the instrument's ADSR offset.  Each value may be an integer
 between \fB0\fP and \fB255\fP.  The format is same as \fBrate=\fP.
 .TP
 .B keep={loop|env}
@@ -147,27 +147,27 @@ a clicking noise whenever the instrument is played, so adding the
 \fBstrip=tail\fP option will markedly improve sound quality.
 .TP
 .BI tremolo= sweep_increment:control_ratio:depth[,...]
-Set the instrument's tremolo.  Each value may be an integer
+Sets the instrument's tremolo.  Each value may be an integer
 between \fB0\fP and \fB255\fP.  The format is similar to \fBrate=\fP.
 \fIsweep_increment\fP is the time until tremolo is started.
 \fIcontrol_ratio\fP is the rate changing amplification.
 \fIdepth\fP is the depth changing amplification.
 .TP
 .BI vibrato= sweep_increment:phase_increment:depth[,...]
-Set the instrument's vibrato.  Each value may be an integer
+Sets the instrument's vibrato.  Each value may be an integer
 between \fB0\fP and \fB255\fP.  The format is similar to \fBrate=\fP.
 \fIsweep_increment\fP is the time until vibrato is started.
 \fIphase_increment\fP is the rate changing frequency.
 \fIdepth\fP is the depth changing frequency.
 .TP
 .BI sclnote= note[,...]
-Set the instrument's standard note for scale tuning.  For example,
+Sets the instrument's standard note for scale tuning.  For example,
 \fBsclnote=60\fP causes the center note C to be standard note for
 scale tuning.  When two or more sample data is contained, the
 arguments after the second can specify different value respectively.
 .TP
 .BI scltune= tune[,...]
-Set the instrument's scale tuning factor in cents.  For example,
+Sets the instrument's scale tuning factor in cents.  For example,
 \fBscltune=50\fP causes the half tone steps as \fB50\fP cents.  When
 two or more sample data is contained, the arguments after the second
 can specify different value respectively.
@@ -180,13 +180,13 @@ Specifies the comment \fIcomment\fP.
 .ns
 .TP
 .BI modoffset= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's behavior of change of modulation envelope.
+Sets the instrument's behavior of change of modulation envelope.
 The format and values are fundamentally same as volume envelope.
 Except for some SoundFonts, even if it specifies only the option,
 nothing happens.
 .TP
 .BI envkeyf= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's volume envelope key follow.  Based on
+Sets the instrument's volume envelope key follow.  Based on
 \fBnote=60\fP, it changes envelope time according to note.  The unit
 is +\-cent/key.  For example, \fBenvkeyf=100\fP means that the attack
 time will double when it goes up by 1 octave.  The format is similar
@@ -194,7 +194,7 @@ to \fBrate=\fP.  The parameter of \fIdecay\fP and \fIsustain\fP may be
 preset in some SoundFont.
 .TP
 .BI envvelf= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's volume envelope velocity follow.  Based on
+Sets the instrument's volume envelope velocity follow.  Based on
 \fBvelocity=64\fP, it changes envelope time according to velocity.
 The unit is +\-cent/velocity.  For example, \fBenvvelf=100\fP means
 that the attack time will 38 times at \fBvelocity=127\fP.  The format
@@ -202,7 +202,7 @@ is similar to \fBrate=\fP.  In the future, the specification of this
 option may be changed.
 .TP
 .BI modkeyf= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's modulation envelope key follow.  Based on
+Sets the instrument's modulation envelope key follow.  Based on
 \fBnote=60\fP, it changes envelope time according to note.  The unit
 is +\-cent/key.  For example, \fBmodkeyf=100\fP means that the attack
 time will double when it goes up by 1 octave.  The format is similar
@@ -210,7 +210,7 @@ to \fBrate=\fP.  The parameter of \fIdecay\fP and \fIsustain\fP may be
 preset in some SoundFont.
 .TP
 .BI modvelf= attack:decay:sustain:release1:release2:release3[,...]
-Set the instrument's modulation envelope velocity follow.  Based on
+Sets the instrument's modulation envelope velocity follow.  Based on
 \fBvelocity=64\fP, it changes envelope time according to velocity.
 The unit is +\-cent/velocity.  For example, \fBmodvelf=100\fP means
 that the attack time will 38 times at \fBvelocity=127\fP.  The format
@@ -218,45 +218,45 @@ is similar to \fBrate=\fP.  In the future, the specification of this
 option may be changed.
 .TP
 .BI trempitch= num[,...]
-Set the instrument's depth of changing pitch according to tremolo.
+Sets the instrument's depth of changing pitch according to tremolo.
 The effect itself is same as vibrato, it uses to operate in another
 system.  The unit is +\-cent.  The format is similar to \fBrate=\fP.
 .TP
 .BI tremfc= num[,...]
-Set the instrument's depth of changing cutoff frequency according to
+Sets the instrument's depth of changing cutoff frequency according to
 tremolo.  It can express the so\-called glowl effect.  The unit, etc.
 are same as \fBtrempitch=\fP.
 .TP
 .BI modpitch= num[,...]
-Set the instrument's depth of changing pitch according to modulation
+Sets the instrument's depth of changing pitch according to modulation
 envelope.  It can temporarily express raising pitch only for the
 attack stage.  The unit, etc. are same as \fBtrempitch=\fP.
 .TP
 .BI modfc= num[,...]
-Set the instrument's depth of changing cutoff frequency according to
+Sets the instrument's depth of changing cutoff frequency according to
 modulation envelope.  The unit, etc. are same as \fBtrempitch=\fP.
 .TP
 .BI fc= num[,...]
-Set the instrument's standard of cutoff frequency.  The unit is Hz.
+Sets the instrument's standard of cutoff frequency.  The unit is Hz.
 The format is similar to \fBrate=\fP.
 .TP
 .BI q= num[,...]
-Set the instrument's Q (resonance).  The unit is cB.  The format is
+Sets the instrument's Q (resonance).  The unit is cB.  The format is
 similar to \fBrate=\fP.
 .TP
 .BI fckeyf= num
-Set the instrument's filter key follow.  Based on \fBnote=60\fP, it
+Sets the instrument's filter key follow.  Based on \fBnote=60\fP, it
 change cutoff frequency according to note.  The unit is +\-cent/key.
 For example, \fBfckeyf=100\fP means that it changes same as pitch.
 .TP
 .BI fcvelf= num
-Set the instrument's filter velocity follow.  Based on
+Sets the instrument's filter velocity follow.  Based on
 \fBvelocity=127\fP, it changes cutoff frequency according to velocity.
 The unit is +\-cent.  In SoundFont, \fB\-2400\fP is set up as a
 characteristic value.
 .TP
 .BI qvelf= num
-Set the instrument's resonance velocity follow.  Based on
+Sets the instrument's resonance velocity follow.  Based on
 \fBvelocity=0\fP, it changes resonance according to velocity.  The
 unit is +\-cB.
 .RE
@@ -281,35 +281,35 @@ Read the whole SoundFont.  \fIoptions\fP may be any of the following:
 .RS
 .TP
 .BI order= number
-Set the order of searching for instrument.  When \fBorder=0\fP, first
+Sets the order of searching for instrument.  When \fBorder=0\fP, first
 read SoundFont, and then search for insufficient samples in GUS/patch.
 When \fBorder=1\fP, after reading GUS/patch, search for SoundFont.
 .TP
 .BI amp= amplification
-Set the amplification of the whole SoundFont as \fIamplification\fP%.
+Sets the amplification of the whole SoundFont as \fIamplification\fP%.
 If the value is not specified, it is set by \fB100\fP%.
 .TP
 .BI cutoff= number
-Specify whether LPF in SoundFont is enable (\fB1\fP) or disable
+Specifies whether LPF in SoundFont is enable (\fB1\fP) or disable
 (\fB0\fP).  If the value is not specified, it is considered to be
 enable.
 .TP
 .BI reso= number
-Specify whether resonance in SoundFont is enable (\fB1\fP) or disable
+Specifies whether resonance in SoundFont is enable (\fB1\fP) or disable
 (\fB0\fP).  If the value is not specified, it is considered to be
 enable.
 .TP
 .B remove
-Cancel the target SoundFont from the memory.
+Cancels the target SoundFont from the memory.
 .RE
 .TP
 .BI "font exclude " "bank [prog [key]]"
-Suppress searching for SoundFont of \fIbank\fP, \fIprog\fP.
+Suppresses searching for SoundFont of \fIbank\fP, \fIprog\fP.
 If the sample is drumset, bank is \fB128\fP, drumset is \fIprog\fP,
 keynum is \fIkey\fP.
 .TP
 .BI "font order " "number bank [prog [key]]"
-Set the order of searching for instrument individually.  The format is
+Sets the order of searching for instrument individually.  The format is
 same as \fBfont exclude\fP.
 .LP
 The following statements are available only latest \fBTiMidity++\fP.
@@ -360,27 +360,30 @@ server if \fBTiMidity++\fP access any file via FTP.
 Sets the value of boot\-time options.
 .TP
 .BI "#extension undef " progno
-Undefine the tone \fIprogno\fP of current tone bank.
+Undefines the tone \fIprogno\fP of current tone bank.
 .TP
 .BI "#extension legato " "progno " {0|1}
 Specifies whether legato is enable (\fB1\fP) or disable (\fB0\fP) on
 \fIprogno\fP.
 .TP
 .BI "#extension level " "progno tva_level"
-Set the standard value of changing amplification when processing Drum
+Sets the standard value of changing amplification when processing Drum
 Instrument TVA Level of NRPN.  Unless Drum Instrument TVA Level is
-specified at playing, the amplification is no influenced.
+specified at playing, the amplification is not influenced.
+\fIprogno\fP can carry out package specification by `,' and/or
+[\fIstart\fP]\-[\fIend\fP].  If start and end are omitted, they are
+assumed to be \fB0\fP and \fB127\fP respectively.
 .TP
 .BI "#extension damper " "progno " {0|1}
 Specifies whether redamper and half-damper are enable (\fB1\fP) or
 disable (\fB0\fP) on \fIprogno\fP.
 .TP
 .BI "#extension playnote " "progno note"
-Set the frequency of pronounce to \fBnote\fP.  If the frequency of
+Sets the frequency of pronounce to \fBnote\fP.  If the frequency of
 pronounce is specified by GS SysEx Play Note, the pitch is changed
 appropriately according to the value.  \fIprogno\fP can carry out
-package specification by `,' and/or [\fIstart\fP]\-[\fIend\fP].  An
-abbreviation of start and end considers that they are \fB0\fP and
+package specification by `,' and/or [\fIstart\fP]\-[\fIend\fP].  If
+start and end are omitted, they are assumed to be \fB0\fP and
 \fB127\fP respectively.
 .sp
 For example:
@@ -398,10 +401,12 @@ drumset 0
 .ns
 .TP
 .BI "#extension reverbsend " "progno level"
-Set the send level when drum part effect is enable.  All initial value
+Sets the send level when drum part effect is enable.  All initial value
 are \fB127\fP.  If one of delay, chorus and reverb is at least set up,
 the effect which is not set as the tone will become the initial value
-\fB0\fP.
+\fB0\fP.  \fIprogno\fP can carry out package specification by `,'
+and/or [\fIstart\fP]\-[\fIend\fP].  If start and end are omitted, they
+are assumed to be \fB0\fP and \fB127\fP respectively.
 .TP
 .BI "#extension rnddelay " "progno msec"
 For every pronunciation, it is random and less than a maximum of
