@@ -77,7 +77,7 @@ extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
 
 /* How often play data. */
-#define TICKTIME_HZ 33.33
+#define TICKTIME_HZ 100
 
 
 extern double rtsyn_reachtime;
