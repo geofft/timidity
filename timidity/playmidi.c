@@ -1114,7 +1114,7 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	bk = 0;
 
     load_success = 0;
-    if(opt_realtime_playing != 2)
+    if(! opt_realtime_playing)
     {
 	ip = bank[bk]->tone[prog].instrument;
 #ifndef SUPPRESS_CHANNEL_LAYER
@@ -2973,7 +2973,7 @@ void midi_program_change(int ch, int prog)
     else
       channel[ch].program = prog;
 
-    if(opt_realtime_playing == 2 && !dr && (play_mode->flag & PF_PCM_STREAM))
+    if(opt_realtime_playing && !dr && (play_mode->flag & PF_PCM_STREAM))
     {
 	int b, p;
 
@@ -5173,7 +5173,7 @@ static int midi_play_end(void)
 
     check_eot_flag = 0;
 
-    if(opt_realtime_playing == 2 && current_sample == 0)
+    if(opt_realtime_playing && current_sample == 0)
     {
 	reset_voices();
 	return RC_TUNE_END;
@@ -5190,7 +5190,7 @@ static int midi_play_end(void)
 	for(i = 0; i < upper_voices; i++)
 	    if(voice[i].status & (VOICE_ON | VOICE_SUSTAINED))
 		finish_note(i);
-	if(opt_realtime_playing == 2)
+	if(opt_realtime_playing)
 	    fadeout_cnt = 3;
 	else
 	    fadeout_cnt = 6;
@@ -5219,7 +5219,7 @@ static int midi_play_end(void)
     }
 
     /* output null sound */
-    if(opt_realtime_playing == 2)
+    if(opt_realtime_playing)
 	rc = compute_data((int32)(play_mode->rate * PLAY_INTERLEAVE_SEC/2));
     else
 	rc = compute_data((int32)(play_mode->rate * PLAY_INTERLEAVE_SEC));
@@ -5300,7 +5300,7 @@ static int compute_data(int32 count)
 
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
       /* fall back to linear interpolation when queue < 100% */
-      if (opt_realtime_playing != 2 && (play_mode->flag & PF_CAN_TRACE)) {
+      if (! opt_realtime_playing && (play_mode->flag & PF_CAN_TRACE)) {
 	  if (!aq_fill_buffer_flag &&
 	      100 * ((double)(aq_filled() + aq_soft_filled()) /
 		     aq_get_dev_queuesize()) < 99)
@@ -5355,7 +5355,7 @@ static int compute_data(int32 count)
 	      if(voice[i].status != VOICE_FREE)
 	          nv++;
 
-	  if(opt_realtime_playing != 2)
+	  if(! opt_realtime_playing)
 	  {
 	      /* calculate ok_nv, the "optimum" max polyphony */
 	      if (auto_reduce_polyphony && rate < 85) {
@@ -5393,7 +5393,7 @@ static int compute_data(int32 count)
 	  /* EAW -- if buffer is < 75%, start reducing some voices to
 	     try to let it recover.  This really helps a lot, preserves
 	     decent sound, and decreases the frequency of lost ON notes */
-	  if ((opt_realtime_playing != 2 && rate < rate_limit)
+	  if ((! opt_realtime_playing && rate < rate_limit)
 	      || filled < filled_limit)
 	  {
 	      if(filled <= last_filled)
@@ -5401,7 +5401,7 @@ static int compute_data(int32 count)
 	          int v, kill_nv, temp_nv;
 
 		  /* set bounds on "good" and "bad" nv */
-		  if (opt_realtime_playing != 2 && rate > 20 &&
+		  if (! opt_realtime_playing && rate > 20 &&
 		      nv < min_bad_nv) {
 		  	min_bad_nv = nv;
 	                if (max_good_nv < min_bad_nv)
@@ -5424,7 +5424,7 @@ static int compute_data(int32 count)
 		  /* EAW -- buffer is dangerously low, drasticly reduce
 		     voices to a hopefully "safe" amount */
 		  if (filled < filled_limit &&
-		      (opt_realtime_playing == 2 || rate < 10)) {
+		      (opt_realtime_playing || rate < 10)) {
 		      FLOAT_T n;
 
 		      /* calculate the drastic voice reduction */
@@ -5474,7 +5474,7 @@ static int compute_data(int32 count)
 	      last_filled = filled;
 	  }
 	  else {
-	      if (opt_realtime_playing != 2 && rate >= rate_limit &&
+	      if (! opt_realtime_playing && rate >= rate_limit &&
 	          filled > last_filled) {
 
 		    /* set bounds on "good" and "bad" nv */

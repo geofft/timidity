@@ -186,7 +186,7 @@ void rtsyn_normal_modeset(){
 void rtsyn_init(void){
 	int i,j;
 		/* set constants */
-	opt_realtime_playing = 2; /* Enable loading patch while playing */
+	opt_realtime_playing = 1; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
 	auto_reduce_polyphony = 0;
 	current_keysig = current_temper_keysig = opt_init_keysig;

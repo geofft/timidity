@@ -2668,7 +2668,7 @@ static int ctl_read(int32 *valp)
 	case 't': /* toggle trace */
 	  if(ctl.trace_playing)
 	      trace_flush();
-	  ctl.trace_playing = !ctl.trace_playing;
+	  ctl.trace_playing = (ctl.trace_playing) ? 0 : 1;
 	  if(ctl_open(0, 0))
 	      return RC_QUIT; /* Error */
 	  ctl_total_time(CTL_STATUS_UPDATE);

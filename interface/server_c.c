@@ -383,7 +383,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 	if(sock == -1)
 	    return;
     }
-    opt_realtime_playing = 2; /* Enable loading patch while playing */
+    opt_realtime_playing = 1; /* Enable loading patch while playing */
     allocate_cache_size = 0; /* Don't use pre-calclated samples */
 /*  aq_set_soft_queue(-1.0, 0.0); */
     alarm(0);

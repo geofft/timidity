@@ -2577,7 +2577,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	case 'e':
 		return parse_opt_e(optarg);
 	case 'F':
-		adjust_panning_immediately = ! adjust_panning_immediately;
+		adjust_panning_immediately = (adjust_panning_immediately) ? 0 : 1;
 		break;
 	case 'f':
 		fast_decay = (fast_decay) ? 0 : 1;
@@ -2593,7 +2593,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	case 'i':
 		return set_ctl(optarg);
 	case 'j':
-		opt_realtime_playing = ! opt_realtime_playing;
+		opt_realtime_playing = (opt_realtime_playing) ? 0 : 1;
 		break;
 	case 'K':
 		return parse_opt_K(optarg);
@@ -2616,7 +2616,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 #endif
 #endif
 	case 'O':
-		return set_play_mode(optarg);
+		return parse_opt_O(optarg);
 	case 'o':
 		return parse_opt_o(optarg);
 	case 'P':
@@ -2625,7 +2625,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		if (*optarg != 'a')
 			err += parse_opt_p(optarg);
 		if (strchr(optarg, 'a'))
-			auto_reduce_polyphony = ! auto_reduce_polyphony;
+			auto_reduce_polyphony = (auto_reduce_polyphony) ? 0 : 1;
 		return err;
 	case 'Q':
 		return parse_opt_Q(optarg);
@@ -2717,7 +2717,7 @@ int set_ctl(char *cp)
 			cmp->verbosity--;
 			break;
 		case 't':	/* toggle */
-			cmp->trace_playing = ! cmp->trace_playing;
+			cmp->trace_playing = (cmp->trace_playing) ? 0 : 1;
 			break;
 		case 'l':
 			cmp->flags ^= CTLF_LIST_LOOP;
@@ -2759,66 +2759,7 @@ int set_ctl(char *cp)
 
 int set_play_mode(char *cp)
 {
-	PlayMode *pmp, **pmpp;
-	int found = 0;
-	
-	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
-		if (pmp->id_character == *cp) {
-			found = 1;
-			play_mode = pmp;
-			break;
-		}
-	if (! found) {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"Playmode `%c' is not compiled in.", *cp);
-		return 1;
-	}
-	while (*(++cp))
-		switch (*cp) {
-		case 'S':	/* stereo */
-			pmp->encoding &= ~PE_MONO;
-			break;
-		case 'M':
-			pmp->encoding |= PE_MONO;
-			break;
-		case 's':
-			pmp->encoding |= PE_SIGNED;
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
-			break;
-		case 'u':
-			pmp->encoding &= ~PE_SIGNED;
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
-			break;
-		case '1':	/* 1 for 16-bit */
-			pmp->encoding |= PE_16BIT;
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
-			break;
-		case '8':
-			pmp->encoding &= ~PE_16BIT;
-			break;
-		case 'l':	/* linear */
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
-			break;
-		case 'U':	/* uLaw */
-			pmp->encoding |= PE_ULAW;
-			pmp->encoding &=
-					~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
-			break;
-		case 'A':	/* aLaw */
-			pmp->encoding |= PE_ALAW;
-			pmp->encoding &=
-					~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
-			break;
-		case 'x':
-			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
-			break;
-		default:
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"Unknown format modifier `%c'", *cp);
-			return 1;
-		}
-	return 0;
+	return parse_opt_O(cp);
 }
 
 int set_wrd(char *w)
@@ -3725,49 +3666,11 @@ static inline int parse_opt_N(const char *arg)
 static inline int parse_opt_O(const char *arg)
 {
 	/* output mode */
-	static const struct Name2ID {
-		const char *name;
-		const int id;
-	} name2id[] = {
-		{ "default", 'd' },
-		{ "audriv", 'd' },
-		{ "bsd", 'd' },
-		{ "darwin", 'd' },
-		{ "hpux", 'd' },
-		{ "oss", 'd' },
-		{ "sun", 'd' },
-		{ "w32", 'd' },
-		{ "alsa", 's' },
-		{ "alib", 'A' },
-		{ "arts", 'R' },
-		{ "esd", 'e' },
-		{ "portaudio", 'p' },
-		{ "nas", 's' },
-		{ "wave", 'w' },
-		{ "raw", 'r' },
-		{ "au", 'u' },
-		{ "aiff", 'a' },
-		{ "vorbis", 'v' },
-		{ "gogo", 'g' },
-		{ "list", 'l' },
-		{ "modmidi", 'M' },
-		{ "mac", 'm' },
-		{ "quicktime", 'q' },
-		{ NULL, '\0' }		/* terminator */
-	};
-	int i, id, found = 0;
 	PlayMode *pmp, **pmpp;
+	int found = 0;
 	
-	if (strlen(arg) == 1)
-		id = *arg;
-	else
-		for (i = 0; name2id[i].name; i++)
-			if (! strcasecmp(name2id[i].name, arg)) {
-				id = name2id[i].id;
-				break;
-			}
 	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
-		if (pmp->id_character == id) {
+		if (pmp->id_character == *arg) {
 			found = 1;
 			play_mode = pmp;
 			break;
@@ -3777,6 +3680,51 @@ static inline int parse_opt_O(const char *arg)
 				"Playmode `%c' is not compiled in.", *arg);
 		return 1;
 	}
+	while (*(++arg))
+		switch (*arg) {
+		case 'S':	/* stereo */
+			pmp->encoding &= ~PE_MONO;
+			break;
+		case 'M':
+			pmp->encoding |= PE_MONO;
+			break;
+		case 's':
+			pmp->encoding |= PE_SIGNED;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case 'u':
+			pmp->encoding &= ~PE_SIGNED;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case '1':	/* 1 for 16-bit */
+			pmp->encoding |= PE_16BIT;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case '8':
+			pmp->encoding &= ~PE_16BIT;
+			break;
+		case 'l':	/* linear */
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case 'U':	/* uLaw */
+			pmp->encoding |= PE_ULAW;
+			pmp->encoding &=
+					~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+			break;
+		case 'A':	/* aLaw */
+			pmp->encoding |= PE_ALAW;
+			pmp->encoding &=
+					~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+			break;
+		case 'x':
+			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Unknown format modifier `%c'", *arg);
+			return 1;
+		}
 	return 0;
 }
 
