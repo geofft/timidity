@@ -727,6 +727,7 @@ URL url_arc_open(char *name)
 	return NULL;
     reuse_mblock(&arc_buffer);	/* free `base' */
     name += len + 1;
+    while(name[0] == '/') name++;	/* skip '/'s right after # */
 
     for(entry = afl->entry_list; entry; entry = entry->next)
     {
