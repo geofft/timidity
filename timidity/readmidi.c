@@ -1593,6 +1593,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 		case 0x08:	/* MIDI Tuning Standard */
 			switch (val[3]) {
+			case 0x01:
+				SETMIDIEVENT(evm[0], 0, ME_BULK_TUNING_DUMP,
+						0, val[4], 0);
+				for (i = 0; i < 128; i++) {
+					SETMIDIEVENT(evm[i * 2 + 1], 0, ME_BULK_TUNING_DUMP,
+							1, i, val[i * 3 + 21]);
+					SETMIDIEVENT(evm[i * 2 + 2], 0, ME_BULK_TUNING_DUMP,
+							2, val[i * 3 + 22], val[i * 3 + 23]);
+				}
+				num_events += 257;
+				break;
 			case 0x02:
 				SETMIDIEVENT(evm[0], 0, ME_SINGLE_NOTE_TUNING,
 						0, val[4], 0);
@@ -1602,7 +1613,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					SETMIDIEVENT(evm[i * 2 + 2], 0, ME_SINGLE_NOTE_TUNING,
 							2, val[8], val[9]);
 				}
-				num_events = val[5] * 2 + 1;
+				num_events += val[5] * 2 + 1;
 				break;
 			case 0x0b:
 				channel_tt = val[4] << 14 | val[5] << 7 | val[6];
@@ -1926,7 +1937,7 @@ static int read_sysex_event(int32 at, int me, int32 len,
 			    struct timidity_file *tf)
 {
     uint8 *val;
-    MidiEvent ev, evm[63]; /* maximum number of XG bulk dump events */
+    MidiEvent ev, evm[260]; /* maximum number of XG bulk dump events */
     int ne, i;
 
     if(len == 0)

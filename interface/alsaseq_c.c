@@ -449,7 +449,7 @@ static void stop_sequencer(struct seq_context *ctxp)
 static int do_sequencer(struct seq_context *ctxp)
 {
 	int n, ne, i;
-	MidiEvent ev, evm[16];
+	MidiEvent ev, evm[260];
 	snd_seq_event_t *aevp;
 
 	n = snd_seq_event_input(ctxp->handle, &aevp);

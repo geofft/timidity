@@ -1,4 +1,3 @@
-
 /*
     TiMidity++ -- MIDI to WAVE converter and player
     Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
@@ -201,7 +200,7 @@ int rtsyn_play_some_data(void){
 	DWORD	dwParam1;
 	DWORD	dwParam2;
 	MidiEvent ev;
-	MidiEvent evm[16];
+	MidiEvent evm[260];
 	int port;
 	UINT evbpoint;
 	MIDIHDR *IIMidiHdr;

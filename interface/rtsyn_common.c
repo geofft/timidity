@@ -1,4 +1,3 @@
-
 /*
     TiMidity++ -- MIDI to WAVE converter and player
     Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
@@ -405,7 +404,7 @@ int rtsyn_play_one_data (int port, int32 dwParam1){
 void rtsyn_play_one_sysex (char *sysexbuffer, int exlen ){
 	int i,j,chk,ne;
 	MidiEvent ev;
-	MidiEvent evm[16];
+	MidiEvent evm[260];
 	
 	if(sysexbuffer[exlen-1] == '\xf7'){            // I don't konw why this need
 		for(i=0;i<EX_RESET_NO;i++){

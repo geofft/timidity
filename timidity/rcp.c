@@ -421,7 +421,7 @@ static char *rcp_cmd_name(int cmd)
 
 static int rcp_parse_sysex_event(int32 at, uint8 *val, int32 len)
 {
-    MidiEvent ev, evm[16];
+    MidiEvent ev, evm[260];
     int ne, i;
 
     if(len == 0) {return 0;}

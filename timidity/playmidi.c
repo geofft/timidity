@@ -254,7 +254,7 @@ static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
-static void set_single_note_tuning(int, int, int);
+static void set_single_note_tuning(int, int, int, int);
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -333,6 +333,7 @@ static char *event_name(int type)
 	EVENT_NAME(ME_TIMESIG);
 	EVENT_NAME(ME_KEYSIG);
 	EVENT_NAME(ME_SCALE_TUNING);
+	EVENT_NAME(ME_BULK_TUNING_DUMP);
 	EVENT_NAME(ME_SINGLE_NOTE_TUNING);
 	EVENT_NAME(ME_TEMPER_KEYSIG);
 	EVENT_NAME(ME_TEMPER_TYPE);
@@ -4096,8 +4097,12 @@ static void seek_forward(int32 until_time)
 		channel[ch].scale_tuning[current_event->a] = current_event->b;
 		break;
 
+	case ME_BULK_TUNING_DUMP:
+		set_single_note_tuning(ch, current_event->a, current_event->b, 0);
+		break;
+
 	case ME_SINGLE_NOTE_TUNING:
-		set_single_note_tuning(ch, current_event->a, current_event->b);
+		set_single_note_tuning(ch, current_event->a, current_event->b, 0);
 		break;
 
 	case ME_TEMPER_KEYSIG:
@@ -5987,13 +5992,12 @@ int play_event(MidiEvent *ev)
 		adjust_pitch(ch);
 		break;
 
+	case ME_BULK_TUNING_DUMP:
+		set_single_note_tuning(ch, current_event->a, current_event->b, 0);
+		break;
+
 	case ME_SINGLE_NOTE_TUNING:
-		set_single_note_tuning(ch, current_event->a, current_event->b);
-		for (i = 0; i < upper_voices; i++)
-			if (voice[i].status != VOICE_FREE) {
-				voice[i].temper_instant = 1;
-				recompute_freq(i);
-			}
+		set_single_note_tuning(ch, current_event->a, current_event->b, 1);
 		break;
 
 	case ME_TEMPER_KEYSIG:
@@ -6102,12 +6106,13 @@ int play_event(MidiEvent *ev)
     return RC_NONE;
 }
 
-static void set_single_note_tuning(int part, int a, int b)
+static void set_single_note_tuning(int part, int a, int b, int rt)
 {
 	static int tp;	/* tuning program number */
 	static int kn;	/* MIDI key number */
 	static int st;	/* the nearest equal-tempered semitone */
 	double f, fst;	/* fraction of semitone */
+	int i;
 	
 	switch (part) {
 	case 0:
@@ -6123,6 +6128,12 @@ static void set_single_note_tuning(int part, int a, int b)
 		f = 440 * pow(2.0, (st - 69) / 12.0);
 		fst = pow(2.0, (a << 7 | b) / 196608.0);
 		freq_table_tuning[tp][kn] = f * fst * 1000 + 0.5;
+		if (rt)
+			for (i = 0; i < upper_voices; i++)
+				if (voice[i].status != VOICE_FREE) {
+					voice[i].temper_instant = 1;
+					recompute_freq(i);
+				}
 		break;
 	}
 }
