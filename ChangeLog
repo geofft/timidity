@@ -1,3 +1,7 @@
+2004-02-29  mput <root@mput.dip.jp>
+
+	* configure.in: version to 2.13.0-rc2
+
 2004-02-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/ja_JP.ujis/README.dl:
