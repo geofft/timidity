@@ -1,3 +1,9 @@
+2003-10-08  Takashi Iwai <tiwai@suse.de>
+
+	* timidity/timidity.c: Fixed segfault or error with use of
+	  #extension opt.  optind is reset before calling getopt_long()
+	  again.
+	
 2003-10-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* */Makefile.in, aclocal.m4, configure, configure.in,

@@ -1366,9 +1366,11 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 			continue;
 		}
 		if (*w[1] == '-') {
+			int optind_save = optind;
+			optind = 0;
 			c = getopt_long(words, w, optcommands, longopts, &longind);
 			err = set_tim_opt_long(c, optarg, longind);
-			optind = 0;
+			optind = optind_save;
 		} else {
 			/* backward compatibility */
 			if ((p = strchr(optcommands, c = *(cmd = w[1]))) == NULL)
