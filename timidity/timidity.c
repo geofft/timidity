@@ -726,131 +726,111 @@ static Quantity **config_parse_modulation(const char *name, int line, const char
 	return mod_list;
 }
 
-static int set_gus_patchconf_opts(char *name, int line, char *opts,
-				  ToneBankElement *tone)
+static int set_gus_patchconf_opts(char *name,
+		int line, char *opts, ToneBankElement *tone)
 {
-    char *cp;
-    int k;
-
-    if(!(cp = strchr(opts, '=')))
-    {
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "%s: line %d: bad patch option %s",
-		  name, line, opts);
-	return 1;
-    }
-
-    *cp++ = 0;
-    if(!strcmp(opts, "amp"))
-    {
-	k = atoi(cp);
-	if((k < 0 || k > MAX_AMPLIFICATION) ||
-	   (*cp < '0' || *cp > '9'))
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "%s: line %d: amplification must be between "
-		      "0 and %d", name, line, MAX_AMPLIFICATION);
-	    return 1;
+	char *cp;
+	int k;
+	
+	if (! (cp = strchr(opts, '='))) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"%s: line %d: bad patch option %s", name, line, opts);
+		return 1;
 	}
-	tone->amp = k;
-    }
-    else if(!strcmp(opts, "note"))
-    {
-	k = atoi(cp);
-	if((k < 0 || k > 127) || (*cp < '0' || *cp > '9'))
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "%s: line %d: note must be between 0 and 127",
-		      name, line);
-	    return 1;
-	}
-	tone->note = k;
-    }
-    else if(!strcmp(opts, "pan"))
-    {
-	if(!strcmp(cp, "center"))
-	    k = 64;
-	else if(!strcmp(cp, "left"))
-	    k = 0;
-	else if(!strcmp(cp, "right"))
-	    k = 127;
-	else
-	    k = ((atoi(cp) + 100) * 100) / 157;
-	if((k < 0 || k > 127) ||
-	   (k == 0 && *cp != '-' && (*cp < '0' || *cp > '9')))
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "%s: line %d: panning must be left, right, "
-		      "center, or between -100 and 100",
-		      name, line);
-	    return 1;
-	}
-	tone->pan = k;
-    }
-	else if(!strcmp(opts, "fckeyf"))	/* filter key-follow */
-    {
-	tone->key_to_fc = atoi(cp);
-    }
-	else if(!strcmp(opts, "fcvelf"))	/* filter velocity-follow */
-    {
-	tone->vel_to_fc = atoi(cp);
-    }
-	else if(!strcmp(opts, "qvelf"))	/* resonance velocity-follow */
-    {
-	tone->vel_to_resonance = atoi(cp);
-    }
-    else if(!strcmp(opts, "keep"))
-    {
-	if(!strcmp(cp, "env"))
-	    tone->strip_envelope = 0;
-	else if(!strcmp(cp, "loop"))
-	    tone->strip_loop = 0;
-	else
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "%s: line %d: keep must be env or loop",
-		      name, line);
-	    return 1;
-	}
-    }
-    else if(!strcmp(opts, "strip"))
-    {
-	if(!strcmp(cp, "env"))
-	    tone->strip_envelope = 1;
-	else if(!strcmp(cp, "loop"))
-	    tone->strip_loop = 1;
-	else if(!strcmp(cp, "tail"))
-	    tone->strip_tail = 1;
-	else
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "%s: line %d: strip must be "
-		      "env, loop, or tail", name, line);
-	    return 1;
-	}
-    }
-    else if(!strcmp(opts, "comm"))
-    {
-	char *p;
-	if(tone->comment)
-	    free(tone->comment);
-	p = tone->comment = safe_strdup(cp);
-	while(*p)
-	{
-	    if(*p == ',') *p = ' ';
-	    p++;
-	}
-    }
-	else if (! strcmp(opts, "tune"))
+	*cp++ = 0;
+	if (! strcmp(opts, "amp")) {
+		k = atoi(cp);
+		if ((k < 0 || k > MAX_AMPLIFICATION) || (*cp < '0' || *cp > '9')) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: amplification must be between 0 and %d",
+					name, line, MAX_AMPLIFICATION);
+			return 1;
+		}
+		tone->amp = k;
+	} else if (! strcmp(opts, "note")) {
+		k = atoi(cp);
+		if ((k < 0 || k > 127) || (*cp < '0' || *cp > '9')) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: note must be between 0 and 127",
+					name, line);
+			return 1;
+		}
+		tone->note = k;
+		tone->scltune = config_parse_int16("100", &tone->scltunenum);
+	} else if (! strcmp(opts, "pan")) {
+		if (! strcmp(cp, "center"))
+			k = 64;
+		else if (! strcmp(cp, "left"))
+			k = 0;
+		else if (! strcmp(cp, "right"))
+			k = 127;
+		else
+			k = ((atoi(cp) + 100) * 100) / 157;
+		if ((k < 0 || k > 127)
+				|| (k == 0 && *cp != '-' && (*cp < '0' || *cp > '9'))) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: panning must be left, right, "
+					"center, or between -100 and 100",
+					name, line);
+			return 1;
+		}
+		tone->pan = k;
+	} else if (! strcmp(opts, "tune"))
 		tone->tune = config_parse_tune(cp, &tone->tunenum);
-	else if (! strcmp(opts, "sclnote"))
+	else if (! strcmp(opts, "rate"))
+		tone->envrate = config_parse_envelope(cp, &tone->envratenum);
+	else if (! strcmp(opts, "offset"))
+		tone->envofs = config_parse_envelope(cp, &tone->envofsnum);
+	else if (! strcmp(opts, "keep")) {
+		if (! strcmp(cp, "env"))
+			tone->strip_envelope = 0;
+		else if (! strcmp(cp, "loop"))
+			tone->strip_loop = 0;
+		else {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: keep must be env or loop", name, line);
+			return 1;
+		}
+	} else if (! strcmp(opts, "strip")) {
+		if (! strcmp(cp, "env"))
+			tone->strip_envelope = 1;
+		else if (! strcmp(cp, "loop"))
+			tone->strip_loop = 1;
+		else if (! strcmp(cp, "tail"))
+			tone->strip_tail = 1;
+		else {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: strip must be env, loop, or tail",
+					name, line);
+			return 1;
+		}
+	} else if (! strcmp(opts, "tremolo")) {
+		if ((tone->trem = config_parse_modulation(name,
+				line, cp, &tone->tremnum, 0)) == NULL)
+			return 1;
+	} else if (! strcmp(opts, "vibrato")) {
+		if ((tone->vib = config_parse_modulation(name,
+				line, cp, &tone->vibnum, 1)) == NULL)
+			return 1;
+	} else if (! strcmp(opts, "sclnote"))
 		tone->sclnote = config_parse_int16(cp, &tone->sclnotenum);
 	else if (! strcmp(opts, "scltune"))
 		tone->scltune = config_parse_int16(cp, &tone->scltunenum);
-	else if (! strcmp(opts, "fc"))
-		tone->fc = config_parse_int16(cp, &tone->fcnum);
-	else if (! strcmp(opts, "q"))
-		tone->reso = config_parse_int16(cp, &tone->resonum);
+	else if (! strcmp(opts, "comm")) {
+		char *p;
+		
+		if (tone->comment)
+			free(tone->comment);
+		p = tone->comment = safe_strdup(cp);
+		while (*p) {
+			if (*p == ',')
+				*p = ' ';
+			p++;
+		}
+	} else if (! strcmp(opts, "modrate"))
+		tone->modenvrate = config_parse_envelope(cp, &tone->modenvratenum);
+	else if (! strcmp(opts, "modoffset"))
+		tone->modenvofs = config_parse_envelope(cp, &tone->modenvofsnum);
 	else if (! strcmp(opts, "trempitch"))
 		tone->trempitch = config_parse_int16(cp, &tone->trempitchnum);
 	else if (! strcmp(opts, "tremfc"))
@@ -859,23 +839,17 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
 		tone->modpitch = config_parse_int16(cp, &tone->modpitchnum);
 	else if (! strcmp(opts, "modfc"))
 		tone->modfc = config_parse_int16(cp, &tone->modfcnum);
-	else if (! strcmp(opts, "rate"))
-		tone->envrate = config_parse_envelope(cp, &tone->envratenum);
-	else if (! strcmp(opts, "offset"))
-		tone->envofs = config_parse_envelope(cp, &tone->envofsnum);
-	else if (! strcmp(opts, "modrate"))
-		tone->modenvrate = config_parse_envelope(cp, &tone->modenvratenum);
-	else if (! strcmp(opts, "modoffset"))
-		tone->modenvofs = config_parse_envelope(cp, &tone->modenvofsnum);
-	else if (! strcmp(opts, "tremolo")) {
-		if ((tone->trem = config_parse_modulation(name,
-				line, cp, &tone->tremnum, 0)) == NULL)
-			return 1;
-	} else if (! strcmp(opts, "vibrato")) {
-		if ((tone->vib = config_parse_modulation(name,
-				line, cp, &tone->vibnum, 1)) == NULL)
-			return 1;
-	} else {
+	else if (! strcmp(opts, "fc"))
+		tone->fc = config_parse_int16(cp, &tone->fcnum);
+	else if (! strcmp(opts, "q"))
+		tone->reso = config_parse_int16(cp, &tone->resonum);
+	else if (! strcmp(opts, "fckeyf"))		/* filter key-follow */
+		tone->key_to_fc = atoi(cp);
+	else if (! strcmp(opts, "fcvelf"))		/* filter velocity-follow */
+		tone->vel_to_fc = atoi(cp);
+	else if (! strcmp(opts, "qvelf"))		/* resonance velocity-follow */
+		tone->vel_to_resonance = atoi(cp);
+	else {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				"%s: line %d: bad patch option %s",
 				name, line, opts);

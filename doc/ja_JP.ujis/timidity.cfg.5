@@ -1,4 +1,4 @@
-.TH timidity.cfg 5 "2004年02月03日" "2.13.0"
+.TH timidity.cfg 5 "2004年02月18日" "2.13.0"
 .SH 名前
 timidity.cfg \- TiMidity++ の設定ファイル
 .SH 説明
@@ -50,17 +50,17 @@ zoo.pat が読み込まれます。
 他の設定ファイルをその場所に挿入し，続行します。\fBsource\fP のネストは
 50 段まで可能です。
 .TP
+.BI "progbase " number
+これ以降，プログラム番号を \fInumber\fP から \fInumber\fP+128 で設定・
+表示します。例えば，\fBprogbase 1\fP とした場合は，それ以降プログラム番
+号は \fB1\fP から \fB128\fP で設定・表示されます。
+.TP
 .BI "bank " "[MapID1] number"
 これ以降変更するトーンバンクを選択します。この文以後の patch の対応付け
 は，指定されたトーンバンクに対して行われます。\fIMapID1\fP に
 \fBgm2\fP，\fBsc55\fP，\fBsc88\fP，\fBsc88pro\fP，\fBsc8850\fP，
 \fBxg\fP，\fBxgsfx64\fP のいずれかを指定することで，特定のマップを対象
 にできます。
-.TP
-.BI "progbase " number
-これ以降，プログラム番号を \fInumber\fP から \fInumber\fP+128 で設定・
-表示します。例えば，\fBprogbase 1\fP とした場合は，それ以降プログラム番
-号は \fB1\fP から \fB128\fP で設定・表示されます。
 .TP
 .BI "drumset " "[MapID2] number"
 変更するドラムセットを選択します。この文以後の patch の対応付けは，指定
@@ -132,6 +132,22 @@ WAV 形式または AIFF 形式のサンプルファイルの場合は，\fBnumber
 ら \fB255\fP までの値が指定できます。 書式については，ほぼ \fBrate=\fP
 と同様です。
 .TP
+.B keep={loop|env}
+パーカッションインスツルメントでは，デフォルトでループ情報とエンベロー
+プ情報が破棄されます。また，メロディーインスツルメントに異常なエンベロ
+ープが存在した場合にも，エンベロープ情報は自動的に破棄されます。
+\fBkeep=\fP を指定することで，ループ情報やエンベロープ情報が破棄される
+のを防ぎます。例えば，Short，Long Whistle パーカッションインスツルメン
+ト(General MIDI の 71，72 番)に対しては，設定ファイルで
+\fBkeep=loop keep=env\fP としておく必要があります。
+.TP
+.B strip={loop|env|tail}
+インスツルメントとして使用する patch のループ情報やエンベロープ情報やテ
+ール(ループの後にあるデータ)をすべて強制的に破棄します。サードパーティ
+ーのインスツルメントには，ループの後にゴミが付いているものがあり，イン
+スツルメントを演奏する度にクリッキングノイズが入ってしまうことがありま
+す。その場合，\fBstrip=tail\fP オプションを指定すれば音質が改善されます。
+.TP
 .BI tremolo= sweep_increment:control_ratio:depth[,...]
 トレモロを設定するオプションです。\fB0\fP から \fB255\fP までの値が指定
 できます。\fBrate=\fP 同様，狙い撃ち設定や不要部分の省略が可能です。
@@ -157,6 +173,9 @@ WAV 形式または AIFF 形式のサンプルファイルの場合は，\fBnumber
 例えば，\fBscltune=50\fP とすれば，ノート間隔が \fB50\fP cent になりま
 す。二つ目以降の引数は，音域別に複数のサンプルデータが含まれている場合
 に，それぞれ別の値を指定できます。
+.TP
+.BI comm= comment
+\fIcomment\fP が指定できます。\fB#extension comm\fP と同じ効果です。
 .TP
 .BI modrate= attack:decay:sustain:release1:release2:release3[,...]
 .br
@@ -207,25 +226,6 @@ SoundFont では \fB\-2400\fP が固有値として設定されています。
 .BI qvelf= num
 レゾナンス・ベロシティフォローを設定します。\fBvelocity=0\fP を基準とし
 て，ベロシティに従いレゾナンスを変化させます。単位は +\-cB です。
-.TP
-.B keep={loop|env}
-パーカッションインスツルメントでは，デフォルトでループ情報とエンベロー
-プ情報が破棄されます。また，メロディーインスツルメントに異常なエンベロ
-ープが存在した場合にも，エンベロープ情報は自動的に破棄されます。
-\fBkeep=\fP を指定することで，ループ情報やエンベロープ情報が破棄される
-のを防ぎます。例えば，Short，Long Whistle パーカッションインスツルメン
-ト(General MIDI の 71，72 番)に対しては，設定ファイルで
-\fBkeep=loop keep=env\fP としておく必要があります。
-.TP
-.B strip={loop|env|tail}
-インスツルメントとして使用する patch のループ情報やエンベロープ情報やテ
-ール(ループの後にあるデータ)をすべて強制的に破棄します。サードパーティ
-ーのインスツルメントには，ループの後にゴミが付いているものがあり，イン
-スツルメントを演奏する度にクリッキングノイズが入ってしまうことがありま
-す。その場合，\fBstrip=tail\fP オプションを指定すれば音質が改善されます。
-.TP
-.BI comm= comment
-\fIcomment\fP が指定できます。\fB#extension comm\fP と同じ効果です。
 .RE
 .TP
 .BI "default " file
@@ -433,5 +433,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111\-1307
 USA
 .SH 入手元
 The latest release is available on the \fBTiMidity++\fP Page,
-.br
+.LP
 URL http://www.timidity.jp/

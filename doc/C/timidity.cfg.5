@@ -1,4 +1,4 @@
-.TH timidity.cfg 5 "February 03 2004" "2.13.0"
+.TH timidity.cfg 5 "February 18 2004" "2.13.0"
 .SH NAME
 timidity.cfg \- configure file of TiMidity++
 .SH DESCRIPTION
@@ -49,17 +49,17 @@ contained in the foo.zip are also installed.
 Reads another configuration file, then continues processing the
 current one.
 .TP
-.BI "bank " "[MapID1] number"
-Selects the tone bank to modify.  Patch mappings that follow will
-affect this tone bank.  You can indicate specific map as a target, by
-specifing any ofthe following to \fIMapID1\fP: \fBgm2\fP, \fBsc55\fP,
-\fBsc88\fP, \fBsc88pro\fP, \fBsc8850\fP, \fBxg\fP and \fBxgsfx64\fP.
-.TP
 .BI "progbase " number
 Sets and displays the tone number from \fInumber\fP to
 \fInumber\fP+128.  If \fBprogbase 1\fP are specified, tone numbers
 that follow are set and displayed as the numbers from \fB1\fP to
 \fB128\fP.
+.TP
+.BI "bank " "[MapID1] number"
+Selects the tone bank to modify.  Patch mappings that follow will
+affect this tone bank.  You can indicate specific map as a target, by
+specifing any ofthe following to \fIMapID1\fP: \fBgm2\fP, \fBsc55\fP,
+\fBsc88\fP, \fBsc88pro\fP, \fBsc8850\fP, \fBxg\fP and \fBxgsfx64\fP.
 .TP
 .BI "drumset " "[MapID2] number"
 Selects the drum set to modify.  Patch mappings that follow will
@@ -130,6 +130,22 @@ arguments after the second can specify different value respectively.
 Set the instrument's ADSR offset.  Each value may be an integer
 between \fB0\fP and \fB255\fP.  The format is same as \fBrate=\fP.
 .TP
+.B keep={loop|env}
+By default, percussion instruments have their loop and envelope
+information stripped.  Strangely shaped envelopes are removed
+automatically from melodic instruments as well.  \fBkeep=\fP can be
+used to prevent stripping loop or envelope data.  For example, the
+Short and Long Whistle percussion instruments (General Midi numbers 71
+and 72) need to have `\fBkeep=loop keep=env\fP' specified in the
+configuration file.
+.TP
+.B strip={loop|env|tail}
+Force removal of loop or envelope information from all patches in the
+instrument, or strip the tail, i.e. all data after the loop.  Some
+third\-party instruments have garbage after the loop, as evidenced by
+a clicking noise whenever the instrument is played, so adding the
+\fBstrip=tail\fP option will markedly improve sound quality.
+.TP
 .BI tremolo= sweep_increment:control_ratio:depth[,...]
 Set the instrument's tremolo.  Each value may be an integer
 between \fB0\fP and \fB255\fP.  The format is similar to \fBrate=\fP.
@@ -155,6 +171,9 @@ Set the instrument's scale tuning factor in cents.  For example,
 \fBscltune=50\fP causes the half tone steps as \fB50\fP cents.  When
 two or more sample data is contained, the arguments after the second
 can specify different value respectively.
+.TP
+.BI comm= comment
+Specifies the comment \fIcomment\fP.
 .TP
 .BI modrate= attack:decay:sustain:release1:release2:release3[,...]
 .br
@@ -208,25 +227,6 @@ characteristic value.
 Set the instrument's resonance velocity follow.  Based on
 \fBvelocity=0\fP, it change resonance according to velocity.  The unit
 is +\-cB.
-.TP
-.B keep={loop|env}
-By default, percussion instruments have their loop and envelope
-information stripped.  Strangely shaped envelopes are removed
-automatically from melodic instruments as well.  \fBkeep=\fP can be
-used to prevent stripping loop or envelope data.  For example, the
-Short and Long Whistle percussion instruments (General Midi numbers 71
-and 72) need to have `\fBkeep=loop keep=env\fP' specified in the
-configuration file.
-.TP
-.B strip={loop|env|tail}
-Force removal of loop or envelope information from all patches in the
-instrument, or strip the tail, i.e. all data after the loop.  Some
-third\-party instruments have garbage after the loop, as evidenced by
-a clicking noise whenever the instrument is played, so adding the
-\fBstrip=tail\fP option will markedly improve sound quality.
-.TP
-.BI comm= comment
-Specifies the comment \fIcomment\fP.
 .RE
 .TP
 .BI "default " file
@@ -432,5 +432,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111\-1307
 USA
 .SH AVAILABILITY
 The latest release is available on the \fBTiMidity++\fP Page,
-.br
+.LP
 URL http://www.timidity.jp/

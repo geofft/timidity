@@ -1,1 +1,1 @@
-EXTRA_DIST = dllutl.rb readme.txt
+EXTRA_DIST = dllutl.rb lspatch.pl readme.txt
