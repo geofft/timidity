@@ -303,6 +303,7 @@ void rtsyn_init(void){
 #endif
 
 #endif
+	rtsyn_server_reset();
 }
 
 void rtsyn_close(void){
