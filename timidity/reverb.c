@@ -44,7 +44,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-int opt_effect_quality = 0;
 static int32 sample_rate = 44100;
 static double REV_INP_LEV = 1.0;
 

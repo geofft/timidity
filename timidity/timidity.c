@@ -364,6 +364,7 @@ static void help(void)
 "                   v/V : Enable/Disable NRPN Vibrato.",
 "                   s/S : Enable/Disable Channel pressure.",
 "                   l/L : Enable/Disable voice-by-voice LPF.",
+"                   e/E : Enable/Disable Modulation Envelope.",
 "                   t/T : Enable/Disable Trace Text Meta Event at playing",
 "                   o/O : Enable/Disable Overlapped voice",
 "                   m<HH>: Define default Manufacture ID <HH> in two hex",
@@ -401,6 +402,12 @@ static void help(void)
 #else
 "L"
 #endif /* VOICE_BY_VOICE_LPF_ALLOW */
+
+#ifdef MODULATION_ENVELOPE_ALLOW
+"e"
+#else
+"E"
+#endif /* MODULATION_ENVELOPE_ALLOW */
 
 #ifdef ALWAYS_TRACE_TEXT_META_EVENT
 "t"
@@ -594,6 +601,9 @@ NULL
 "  -EFreverb=2 : Global reverb effect" NLS
 "  -EFns=n : Enable the n th degree noiseshaping filter. n:[0..4]" NLS
 "            This effect is only available for 8-bit linear encoding" NLS
+"  -EFquality=0 : Standard reverb quality" NLS
+"  -EFquality=1 : Enable LPF in chorus & delay" NLS
+"  -EFquality=2 : Enable same as 1 and new reverb (freeverb) (default)" NLS
 NLS
 , fp);
 
@@ -2660,6 +2670,17 @@ static int parse_effect_option(char *effect_opts)
 	return 0;
     }
 
+	if (strncmp(effect_opts, "quality=", 8) == 0) {
+		i = atoi(effect_opts + 8);
+		if (i < 0 || i > 2) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-EFquality argument range is 0 to 2");
+			return 1;
+		}
+		opt_effect_quality = i;
+		return 0;
+	}
+
     return 1;
 }
 
@@ -2727,6 +2748,11 @@ int set_extension_modes(char *flag)
 	    break;
 	  case 'L':
 	    opt_lpf_def = 0;
+	  case 'e':
+	    opt_modulation_envelope = 1;
+	    break;
+	  case 'E':
+	    opt_modulation_envelope = 0;
 	    break;
 	  case 't':
 	    opt_trace_text_meta_event = 1;

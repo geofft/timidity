@@ -1,3 +1,18 @@
+2003-05-29  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/timidity.h (DEFAULT_VOICES): to 256 (was 64)
+	* timidity/playmidi.c (do_compute_data_midi):
+	  Fix -EFchorus optoin interpretation
+
+2003-05-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/reverb.c, timidity/timidity.[ch]:
+	  Support for command line option below.
+	  -E e/E: Enable/Disable modulation envelope.
+	  -EFquality=0: Standard reverb quality
+	  -EFquality=1: Enable LPF in chorus & delay
+	  -EFquality=2: Enable same as 1 and new reverb (freeverb)
+
 2003-05-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/readmidi.c (parse_sysex_event_multi):
@@ -28,10 +43,12 @@
 	  Fix some codes to fit with EAW's commit.
 
 2003-05-25  mput <root@mput.dip.jp>
+
 	* configure.in
 	  Fix --enable-spline optoin to fit with EAW's commit.
 	
 2003-05-25  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
 	* au_a.c, wave_a.c:
 	  Fix the file headers when > 1 audio file was output per timidity
 	  session; the data length was not being reset between midi before

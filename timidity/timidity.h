@@ -123,7 +123,7 @@ typedef double FLOAT_T;
 #define DEFAULT_RATE	32000
 #endif /* DEFAULT_RATE */
 
-#define DEFAULT_VOICES	64
+#define DEFAULT_VOICES	256
 #define MAX_VOICES	256
 
 
@@ -374,6 +374,13 @@ typedef double FLOAT_T;
 #define REVERB_CONTROL_ALLOW
 
 
+/* Define if you want to use freeverb in defaults.
+ * This mode needs high CPU power.
+ * There is a command line option to enable/disable this mode.
+ */
+#define FREEVERB_ALLOW
+
+
 /* Define if you want to use chorus controls in defaults.
  * This mode needs high CPU power.
  * There is a command line option to enable/disable this mode.
@@ -393,7 +400,14 @@ typedef double FLOAT_T;
  * This mode needs high CPU power.
  * There is a command line option to enable/disable this mode.
  */
-/* #define VOICE_BY_VOICE_LPF_ALLOW */
+#define VOICE_BY_VOICE_LPF_ALLOW
+
+
+/* Define if you want to use modulation envelope.
+ * This mode needs high CPU power.
+ * There is a command line option to enable/disable this mode.
+ */
+#define MODULATION_ENVELOPE_ALLOW
 
 
 /* Define if you want to trace text meta event at playing.

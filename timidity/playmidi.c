@@ -188,7 +188,18 @@ int opt_insertion_effect = 0;	/* insertion effect control */
 int opt_drum_effect = 0;	/* drumpart effect control */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
+
+#ifdef MODULATION_ENVELOPE_ALLOW
+int opt_modulation_envelope = 1;
+#else
 int opt_modulation_envelope = 0;
+#endif /* MODULATION_ENVELOPE_ALLOW */
+
+#ifdef FREEVERB_ALLOW
+int opt_effect_quality = 2;
+#else
+int opt_effect_quality = 0;
+#endif /* FREEVERB_ALLOW */
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -4675,7 +4686,7 @@ static void do_compute_data_midi(int32 count)
 
 	/* are effects valid? / don't supported in mono */
 	channel_reverb = (opt_reverb_control == 1 && stereo);
-	channel_chorus = (opt_chorus_control > 0 && stereo);
+	channel_chorus = (opt_chorus_control != 0 && stereo);
 	channel_delay = (opt_delay_control > 0 && stereo);
 
 	/* is EQ valid? */
