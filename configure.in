@@ -565,6 +565,8 @@ AC_CHECK_FUNCS( \
   strrchr \
   strstr \
   strtol \
+  strlcat \
+  strlcpy \
   usleep])
 if test "x$VCPP" = xyes; then
   AC_DEFINE(RETSIGTYPE,int)

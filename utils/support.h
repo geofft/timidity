@@ -88,3 +88,12 @@ int stat(const char *filename, struct stat *st);
 #define S_ISDIR(mode) (((mode)&0xF000) == 0x4000)
 #endif /* S_ISDIR */
 
+#ifndef HAVE_STRLCPY
+#include <stddef.h>
+extern size_t strlcpy(char *dst, const char *src, size_t size);
+#endif
+
+#ifndef HAVE_STRLCAT
+#include <stddef.h>
+extern size_t strlcat(char *dst, const char *src, size_t size);
+#endif

@@ -10771,6 +10771,8 @@ fi
 
 
 
+
+
 for ac_func in \
   alarm \
   dup2 \
@@ -10804,6 +10806,8 @@ for ac_func in \
   strrchr \
   strstr \
   strtol \
+  strlcat \
+  strlcpy \
   usleep
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`

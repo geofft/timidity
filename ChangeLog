@@ -1,3 +1,9 @@
+2004-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* utils/support.h: ditto
+	* utils/support.c: ditto
+	* configure.in: add strlcpy and strlcat
+
 2004-09-15  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/resample.c: Reimplement bounds cheking
