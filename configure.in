@@ -1745,7 +1745,7 @@ AC_CONFIG_FILES([
   configs/Makefile
   doc/Makefile
   doc/C/Makefile
-  doc/ja_JP.ujis/Makefile
+  doc/ja_JP.eucJP/Makefile
   interface/Makefile
   interface/motif_bitmaps/Makefile
   interface/bitmaps/Makefile

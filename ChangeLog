@@ -1,5 +1,10 @@
 2004-03-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* doc/ja_JP.ujis: Move to ja_JP.eucJP
+	* doc/C/timidity.cfg.5, doc/ja_JP.eucJP/timidity.cfg.5: Update
+
+2004-03-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* timidity/playmidi.c (select_play_sample):
 	  Fix handling of resample cache in case of using MTS
 

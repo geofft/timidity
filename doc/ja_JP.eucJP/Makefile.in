@@ -255,7 +255,7 @@ EXTRA_DIST = \
 	README.m2m \
 	README.mts
 
-subdir = doc/ja_JP.ujis
+subdir = doc/ja_JP.eucJP
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/interface.h
@@ -267,7 +267,7 @@ all: all-am
 .SUFFIXES:
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  doc/ja_JP.ujis/Makefile
+	  $(AUTOMAKE) --gnu  doc/ja_JP.eucJP/Makefile
 Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 uninstall-info-am:

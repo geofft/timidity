@@ -19,7 +19,7 @@ timidity.cfg \- TiMidity++ の設定ファイル
 .SH 文法
 設定ファイル中には以下の書式が指定可能です。
 .TP
-.BI "dir " directory
+.BI "dir " "directory [...]"
 \fIdirectory\fP を探索パスに加えます。加え方は \fB\-L\fP オプションと同
 様です。
 .br
@@ -46,7 +46,7 @@ bank 0
 み込み対象になります。上の例では，foo.zip の中にある bar.pat，baz.pat，
 zoo.pat が読み込まれます。
 .TP
-.BI "source " file
+.BI "source " "file [...]"
 他の設定ファイルをその場所に挿入し，続行します。\fBsource\fP のネストは
 50 段まで可能です。
 .TP

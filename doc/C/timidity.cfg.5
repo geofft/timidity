@@ -19,7 +19,7 @@ will override earlier ones.
 .SH SYNTAX
 The following statements can be used in a configuration file:
 .TP
-.BI "dir " directory
+.BI "dir " "directory [...]"
 Adds \fIdirectory\fP to the search path in the same manner as the
 \fB\-L\fP command line option.
 .br
@@ -45,7 +45,7 @@ the path is an archive file if the expression has the last character
 previous example the patch files bar.pat, baz.pat and zoo.pat
 contained in the foo.zip are also installed.
 .TP
-.BI "source " file
+.BI "source " "file [...]"
 Reads another configuration file, then continues processing the
 current one.
 .TP

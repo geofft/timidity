@@ -17956,7 +17956,7 @@ SHLD="$SHLD $SHLDFLAGS"
 
 
 
-                                                                                                                                                                                    ac_config_files="$ac_config_files Makefile autoconf/Makefile common.makefile configs/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.ujis/Makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile utils/Makefile script/Makefile TiMidity.ad TiMidity-uj.ad"
+                                                                                                                                                                                    ac_config_files="$ac_config_files Makefile autoconf/Makefile common.makefile configs/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.eucJP/Makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile utils/Makefile script/Makefile TiMidity.ad TiMidity-uj.ad"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18814,7 +18814,7 @@ do
   "configs/Makefile" ) CONFIG_FILES="$CONFIG_FILES configs/Makefile" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "doc/C/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/C/Makefile" ;;
-  "doc/ja_JP.ujis/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/ja_JP.ujis/Makefile" ;;
+  "doc/ja_JP.eucJP/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/ja_JP.eucJP/Makefile" ;;
   "interface/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/Makefile" ;;
   "interface/motif_bitmaps/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/motif_bitmaps/Makefile" ;;
   "interface/bitmaps/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/bitmaps/Makefile" ;;

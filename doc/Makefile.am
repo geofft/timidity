@@ -19,7 +19,7 @@
 include $(top_srcdir)/common.makefile.in
 SUFFIXES = .1 .5 .txt .ps
 
-SUBDIRS = C ja_JP.ujis
+SUBDIRS = C ja_JP.eucJP
 lang_target = C
 
 man_MANS = \
@@ -51,7 +51,7 @@ install.man:
 	$(MAKE) remake-mans lang_target=C; $(MAKE) install-man
 
 install.manj:
-	$(MAKE) remake-mans lang_target=ja_JP.ujis; $(MAKE) install-man
+	$(MAKE) remake-mans lang_target=ja_JP.eucJP; $(MAKE) install-man
 
 clean:
 	rm -f timidity.1
