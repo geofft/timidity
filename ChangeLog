@@ -1,4 +1,8 @@
 
+2003-04-02  Saito <timidity@flashmail.com>
+	* timidity/effect.c, timidity/mt19937ar.[ch]:
+	  Improve noise shaping filter for 16bit output mode.
+
 2003-04-01  Saito <timidity@flashmail.com>
 	* interface/w32g_res.rc, timidity/effect.c:
 	  Implement noise shaping filter for 16bit output mode.

@@ -255,15 +255,15 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 if NEEDDLOPEN
 # dynamic_targets = @dynamic_targets@ # autoconf already define this
 install_dynamics = install.dynamics
-n_so_libs = @n_so_libs@
-s_so_libs = @s_so_libs@
-m_so_libs = @m_so_libs@
-k_so_libs = @k_so_libs@
-e_so_libs = @e_so_libs@
-T_so_libs = @T_so_libs@
-a_so_libs = @a_so_libs@
-i_so_libs = @i_so_libs@
-g_so_libs = @g_so_libs@
+#n_so_libs = @n_so_libs@
+#s_so_libs = @s_so_libs@
+#m_so_libs = @m_so_libs@
+#k_so_libs = @k_so_libs@
+#e_so_libs = @e_so_libs@
+#T_so_libs = @T_so_libs@
+#a_so_libs = @a_so_libs@
+#i_so_libs = @i_so_libs@
+#g_so_libs = @g_so_libs@
 
 all-am: $(dynamic_targets)
 

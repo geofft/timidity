@@ -35,6 +35,12 @@
 #include <strings.h>
 #endif
 
+#define USE_MT_RAND
+#ifdef USE_MT_RAND
+#include "mt19937ar.h"
+#endif
+#define RAND_MAX 0xFFFFFFFF
+
 #include "timidity.h"
 #include "instrum.h"
 #include "playmidi.h"
@@ -253,6 +259,137 @@ static void effect_left_right_delay(int32* buff, int32 count)
     memcpy(prev + count - backoff, save + count - backoff, 4 * backoff);
 }
 
+static int32 ns9_order;
+static int32 ns9_histposl;
+static int32 ns9_histposr;
+static int32 ns9_ehl[18];
+static int32 ns9_ehr[18];
+static int32 ns9_r1l;
+static int32 ns9_r2l;
+static int32 ns9_r1r;
+static int32 ns9_r2r;
+static double ns9_d = 1.0f / (double)(1U<<15) / RAND_MAX;
+static float ns9_coef[9] = {2.412f, -3.370f, 3.937f, -4.174f, 3.353f, -2.205f, 1.281f, -0.569f, 0.0847f};
+static int32 ns9_c[9];
+
+static void init_ns_tap16(void)
+{
+	int i;
+#ifdef USE_MT_RAND
+	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
+    init_by_array(init, length);
+#endif
+	ns9_order = 9;
+	for(i=0;i<ns9_order;i++) {
+		ns9_c[i] = ns9_coef[i] * 0x10000;
+	}
+	memset(ns9_ehl, 0, sizeof(ns9_ehl));
+	memset(ns9_ehr, 0, sizeof(ns9_ehr));
+	ns9_histposl = ns9_histposr = 8;
+	ns9_r1l = ns9_r2l = ns9_r1r = ns9_r2r = 0;
+}
+
+static inline int32 my_mod(int32 x, int32 n)
+{
+	if(x > n) x-=n;
+	return x;
+}
+
+#ifdef USE_MT_RAND
+#define frand() genrand_int32()
+#else
+static inline unsigned long frand()
+{
+	static unsigned long a = 0xDEADBEEF;
+
+	a = a * 140359821 + 1;
+	return a;
+}
+#endif
+
+#define NS_AMP_MAX (int32)(0x0FFFFFFF)
+#define NS_AMP_MIN (int32)(0x8FFFFFFF)
+
+#if OPT_MODE != 0
+static void ns_shaping16_9(int32* lp, int32 c)
+{
+	int32 i, l, sample, output;
+
+	for(i=0;i<c;i++)
+	{
+		/* left channel */
+		ns9_r2l = ns9_r1l;
+		ns9_r1l = frand();
+		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		sample = lp[i] - imuldiv16(ns9_c[8],ns9_ehl[ns9_histposl+8])
+			- imuldiv16(ns9_c[7],ns9_ehl[ns9_histposl+7]) - imuldiv16(ns9_c[6],ns9_ehl[ns9_histposl+6])
+			- imuldiv16(ns9_c[5],ns9_ehl[ns9_histposl+5]) - imuldiv16(ns9_c[4],ns9_ehl[ns9_histposl+4])
+			- imuldiv16(ns9_c[3],ns9_ehl[ns9_histposl+3]) - imuldiv16(ns9_c[2],ns9_ehl[ns9_histposl+1])
+			- imuldiv16(ns9_c[1],ns9_ehl[ns9_histposl+1]) - imuldiv16(ns9_c[0],ns9_ehl[ns9_histposl]);
+		l = sample >> (32-16-GUARD_BITS);
+		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1l - ns9_r2l);
+		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
+		ns9_ehl[ns9_histposl+9] = ns9_ehl[ns9_histposl] = output - sample;
+		lp[i] = output;
+
+		/* right channel */
+		++i;
+		ns9_r2r = ns9_r1r;
+		ns9_r1r = frand();
+		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		sample = lp[i] - imuldiv16(ns9_c[8],ns9_ehr[ns9_histposr+8])
+			- imuldiv16(ns9_c[7],ns9_ehr[ns9_histposr+7]) - imuldiv16(ns9_c[6],ns9_ehr[ns9_histposr+6])
+			- imuldiv16(ns9_c[5],ns9_ehr[ns9_histposr+5]) - imuldiv16(ns9_c[4],ns9_ehr[ns9_histposr+4])
+			- imuldiv16(ns9_c[3],ns9_ehr[ns9_histposr+3]) -	imuldiv16(ns9_c[2],ns9_ehr[ns9_histposr+1])
+			- imuldiv16(ns9_c[1],ns9_ehr[ns9_histposr+1]) - imuldiv16(ns9_c[0],ns9_ehr[ns9_histposr]);
+		l = sample >> (32-16-GUARD_BITS);
+		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1r - ns9_r2r);
+		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
+		ns9_ehr[ns9_histposr+9] = ns9_ehr[ns9_histposr] = output - sample;
+		lp[i] = output;
+	}
+}
+#else
+static void ns_shaping16_9(int32* lp, int32 c)
+{
+	int32 i, l, sample, output;
+
+	for(i=0;i<c;i++)
+	{
+		/* left channel */
+		ns9_r2l = ns9_r1l;
+		ns9_r1l = frand();
+		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		sample = lp[i] - ns9_coef[8]*ns9_ehl[ns9_histposl+8] - ns9_coef[7]*ns9_ehl[ns9_histposl+7] - ns9_coef[6]*ns9_ehl[ns9_histposl+6] -
+				ns9_coef[5]*ns9_ehl[ns9_histposl+5] - ns9_coef[4]*ns9_ehl[ns9_histposl+4] - ns9_coef[3]*ns9_ehl[ns9_histposl+3] -
+				ns9_coef[2]*ns9_ehl[ns9_histposl+1] - ns9_coef[1]*ns9_ehl[ns9_histposl+1] - ns9_coef[0]*ns9_ehl[ns9_histposl];
+		l = sample >> (32-16-GUARD_BITS);
+		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1 - ns9_r2);
+		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
+		ns9_ehl[ns9_histposl+9] = ns9_ehl[ns9_histposl] = output - sample;
+		lp[i] = output;
+
+		/* right channel */
+		++i;
+		ns9_r2r = ns9_r1r;
+		ns9_r1r = frand();
+		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		sample = lp[i] - ns9_coef[8]*ns9_ehr[ns9_histposr+8] - ns9_coef[7]*ns9_ehr[ns9_histposr+7] - ns9_coef[6]*ns9_ehr[ns9_histposr+6] -
+				ns9_coef[5]*ns9_ehr[ns9_histposr+5] - ns9_coef[4]*ns9_ehr[ns9_histposr+4] - ns9_coef[3]*ns9_ehr[ns9_histposr+3] -
+				ns9_coef[2]*ns9_ehr[ns9_histposr+1] - ns9_coef[1]*ns9_ehr[ns9_histposr+1] - ns9_coef[0]*ns9_ehr[ns9_histposr];
+		l = sample >> (32-16-GUARD_BITS);
+		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1 - ns9_r2);
+		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
+		ns9_ehr[ns9_histposr+9] = ns9_ehr[ns9_histposr] = output - sample;
+		lp[i] = output;
+	}
+}
+#endif
+
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  * (Modified by Masanao Izumo <mo@goice.co.jp>)
@@ -264,6 +401,7 @@ static void init_ns_tap(void)
 {
     memset(ns_z0, 0, sizeof(ns_z0));
     memset(ns_z1, 0, sizeof(ns_z0));
+	if(play_mode->encoding & PE_16BIT) {init_ns_tap16();}
 }
 
 static void ns_shaping8(int32* lp, int32 c)
@@ -333,69 +471,58 @@ static void ns_shaping8(int32* lp, int32 c)
     }
 }
 
-static void ns_shaping16(int32* lp, int32 c)
+static void ns_shaping16_trad(int32* lp, int32 c)
 {
     int32 l, i, ll;
     int32 ns_tap_0, ns_tap_1, ns_tap_2, ns_tap_3;
 
-    switch(noise_sharp_type)
-    {
-      default:
-	return;
-      case 1:
-	ns_tap_0 = 1;
-	ns_tap_1 = 0;
-	ns_tap_2 = 0;
-	ns_tap_3 = 0;
-	break;
-      case 2:
-	ns_tap_0 = -2;
-	ns_tap_1 = 1;
-	ns_tap_2 = 0;
-	ns_tap_3 = 0;
-	break;
-      case 3:
-	ns_tap_0 = 3;
-	ns_tap_1 = -3;
-	ns_tap_2 = 1;
-	ns_tap_3 = 0;
-	break;
-      case 4:
 	ns_tap_0 = -4;
 	ns_tap_1 = 6;
 	ns_tap_2 = -4;
 	ns_tap_3 = 1;
-	break;
-    }
 
     for(i = 0; i < c; i++)
     {
 	/* applied noise-shaping filter */
+	if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+	else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
 	ll = lp[i] + ns_tap_0*ns_z0[0] +
 		     ns_tap_1*ns_z0[1] +
 		     ns_tap_2*ns_z0[2] +
 		     ns_tap_3*ns_z0[3];
 	l = ll>>(32-16-GUARD_BITS);
-
-	if (l>32767) l=32767;
-	else if (l<-32768) l=-32768;
 	lp[i] = l<<(32-16-GUARD_BITS);
-
 	ns_z0[3] = ns_z0[2]; ns_z0[2] = ns_z0[1]; ns_z0[1] = ns_z0[0];
 	ns_z0[0] = ll - l*(1U<<(32-16-GUARD_BITS));
 
 	if ( play_mode->encoding & PE_MONO ) continue;
 
 	++i;
+	if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
+	else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
 	ll = lp[i] + ns_tap_0*ns_z1[0] +
 		     ns_tap_1*ns_z1[1] +
 		     ns_tap_2*ns_z1[2] +
 		     ns_tap_3*ns_z1[3];
 	l=ll>>(32-16-GUARD_BITS);
-	if (l>32767) l=32767;
-	else if (l<-32768) l=-32768;
 	lp[i] = l<<(32-16-GUARD_BITS);
 	ns_z1[3] = ns_z1[2]; ns_z1[2] = ns_z1[1]; ns_z1[1] = ns_z1[0];
 	ns_z1[0] = ll - l*(1U<<(32-16-GUARD_BITS));
+    }
+}
+
+
+static void ns_shaping16(int32* lp, int32 c)
+{
+    switch(noise_sharp_type)
+    {
+      default:
+	return;
+      case 1:
+	ns_shaping16_trad(lp, c * 2);
+	break;
+      case 2:
+	ns_shaping16_9(lp, c * 2);
+	break;
     }
 }

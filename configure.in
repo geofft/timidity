@@ -48,15 +48,16 @@ dnl SHCFLAGS	- Additional flags to compile shared object library.
 dnl		  (such as -fPIC)
 
 # This is a autoscan-generated configure.scan.
-AC_PREREQ(2.50)
+AC_PREREQ(2.56)
 
-dnl "AC_INIT(timidity/timidity.c)" is obsolate yet.
-AC_INIT(TiMidity++,2.12.0-pre1b)
+# "AC_INIT(timidity/timidity.c)" is obsolate yet.
+AC_INIT([TiMidity++],[2.12.0-pre1b])
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE(TiMidity++,2.12.0-pre1b)
 AC_CONFIG_SRCDIR([timidity/timidity.c])
-AM_CONFIG_HEADER([config.h interface.h])
+AC_CONFIG_HEADERS([config.h interface.h])
+AM_MAINTAINER_MODE
 
 SHELL=${CONFIG_SHELL-"/bin/sh"}
 WISH=${WISH-"wish"}
@@ -157,6 +158,7 @@ AC_DEFINE_UNQUOTED(PKGLIBDIR,"$tmplibdir",place to install modules)
 # Checks for programs.
 AM_PATH_LISPDIR
 AC_PROG_CC
+AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
 AC_PROG_AWK
 AC_PROG_RANLIB
@@ -278,7 +280,7 @@ case "$target" in
 esac
 
 dnl For .exe
-dnl AC_EXEEX
+dnl AC_EXEEX # obsolate
 
 # Checks for libraries.
 AC_CHECK_LIB(m,sqrt)
@@ -314,11 +316,11 @@ if test "x$with_x" = xyes -a "x$have_x" = xyes; then
   AC_CHECK_LIB(X11,XOpenDisplay)
   AC_MSG_CHECKING(X11 version 6)
   AC_CACHE_VAL(timidity_cv_x11_version_6,
-    AC_TRY_LINK([#include <X11/Xlib.h>],
-[#if XlibSpecificationRelease < 6
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Xlib.h>]], [[
+#if XlibSpecificationRelease < 6
 fail;
 #endif
-], timidity_cv_x11_version_6=yes, timidity_cv_x11_version_6=no))
+]])],[timidity_cv_x11_version_6=yes],[timidity_cv_x11_version_6=no]))
   if test "$timidity_cv_x11_version_6" = "yes"; then
     AC_MSG_RESULT(6 or newer)
     dnl AC_DEFINE(HAVE_X11R6)
@@ -391,6 +393,7 @@ AC_C_CONST
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 AC_C_INLINE
+AC_C_VOLATILE
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
@@ -399,20 +402,18 @@ AC_STRUCT_TM
 
 dnl keyword "volatile" check
 AC_CACHE_CHECK(volatile declaration,timidity_cv_type_volatile,
-  AC_TRY_COMPILE(,volatile int x,
-    timidity_cv_type_volatile=yes,timidity_cv_type_volatile=no))
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(, [[volatile int x]])],[timidity_cv_type_volatile=yes],[timidity_cv_type_volatile=no]))
 if test $timidity_cv_type_volatile = no; then
   AC_DEFINE(NO_VOLATILE,1,Define to 1 if you cannot use volatile keyword)
 fi
 
 dnl union usenum check
 AC_CACHE_CHECK(union semun declaration,timidity_cv_type_union_semun,
-  AC_TRY_COMPILE(
-[#include <sys/types.h>
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <sys/types.h>
 #include <sys/ipc.h>
-#include <sys/sem.h>],
-    union semun x,
-    timidity_cv_type_union_semun=yes,timidity_cv_type_union_semun=no))
+#include <sys/sem.h>
+]], [[union semun x]])],[timidity_cv_type_union_semun=yes],[timidity_cv_type_union_semun=no]))
 if test $timidity_cv_type_union_semun = yes; then
   AC_DEFINE(HAVE_UNION_SEMUN,1,Define to 1 if you use semun keyword)
 fi
@@ -420,11 +421,10 @@ fi
 dnl Cygnus mmsystem check
 if test "x$CYGNUS" = xyes; then
   AC_CACHE_CHECK(Cygwin new mmsystem,timidity_cv_header_new_mmsystem,
-    AC_TRY_COMPILE(
-[#include <windows.h>
-#include <mmsystem.h>],
-    return WOM_OPEN != 0x3BB,
-    timidity_cv_header_new_mmsystem=yes,timidity_cv_header_new_mmsystem=no))
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <windows.h>
+#include <mmsystem.h>
+]], [[return WOM_OPEN != 0x3BB]])],[timidity_cv_header_new_mmsystem=yes],[timidity_cv_header_new_mmsystem=no]))
   if test $timidity_cv_header_new_mmsystem = yes; then
     AC_DEFINE(HAVE_NEW_MMSYSTEM,1,Define to 1 if you have <mmsystem.h> file)
   fi
@@ -433,11 +433,10 @@ fi
 dnl MINGW mmsystem check
 if test "x$MINGW" = xyes; then
   AC_CACHE_CHECK(Mingw new mmsystem,timidity_cv_header_new_mmsystem,
-    AC_TRY_COMPILE(
-[#include <windows.h>
-#include <mmsystem.h>],
-    return WOM_OPEN != 0x3BB,
-    timidity_cv_header_new_mmsystem=yes,timidity_cv_header_new_mmsystem=no))
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <windows.h>
+#include <mmsystem.h>
+]], [[return WOM_OPEN != 0x3BB]])],[timidity_cv_header_new_mmsystem=yes],[timidity_cv_header_new_mmsystem=no]))
   if test $timidity_cv_header_new_mmsystem = yes; then
     AC_DEFINE(HAVE_NEW_MMSYSTEM,1,Define to 1 if you have <mmsystem.h> file)
   fi
@@ -446,7 +445,6 @@ fi
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
-AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP

@@ -783,9 +783,10 @@ AC_CONFIG_COMMANDS_PRE(
 Usually this means the macro was only invoked conditionally.])
 fi])])
 
-# Like AC_CONFIG_HEADER, but automatically create stamp file. -*- Autoconf -*-
+# Add --enable-maintainer-mode option to configure.
+# From Jim Meyering
 
-# Copyright 1996, 1997, 2000, 2001 Free Software Foundation, Inc.
+# Copyright 1996, 1998, 2000, 2001, 2002  Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -802,12 +803,24 @@ fi])])
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-AC_PREREQ([2.52])
+# serial 2
 
-# serial 6
+AC_DEFUN([AM_MAINTAINER_MODE],
+[AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
+  dnl maintainer-mode is disabled by default
+  AC_ARG_ENABLE(maintainer-mode,
+[  --enable-maintainer-mode enable make rules and dependencies not useful
+                          (and sometimes confusing) to the casual installer],
+      USE_MAINTAINER_MODE=$enableval,
+      USE_MAINTAINER_MODE=no)
+  AC_MSG_RESULT([$USE_MAINTAINER_MODE])
+  AM_CONDITIONAL(MAINTAINER_MODE, [test $USE_MAINTAINER_MODE = yes])
+  MAINT=$MAINTAINER_MODE_TRUE
+  AC_SUBST(MAINT)dnl
+]
+)
 
-# AM_CONFIG_HEADER is obsolete.  It has been replaced by AC_CONFIG_HEADERS.
-AU_DEFUN([AM_CONFIG_HEADER], [AC_CONFIG_HEADERS($@)])
+AU_DEFUN([jm_MAINTAINER_MODE], [AM_MAINTAINER_MODE])
 
 dnl TiMidity++ -- MIDI to WAVE converter and player
 dnl Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>

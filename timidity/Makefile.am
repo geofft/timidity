@@ -63,6 +63,8 @@ timidity_SOURCES = \
 	mod2midi.c \
 	mod2midi.h \
 	modmid_a.c \
+	mt19937ar.c \
+	mt19937ar.h \
 	optcode.c \
 	optcode.h \
 	output.c \

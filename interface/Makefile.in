@@ -164,6 +164,9 @@ LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
+MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
+MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 MINGW_FALSE = @MINGW_FALSE@
 MINGW_TRUE = @MINGW_TRUE@
@@ -188,7 +191,6 @@ SHELL = @SHELL@
 SHLD = @SHLD@
 STRIP = @STRIP@
 SYSEXTRAS = @SYSEXTRAS@
-@NEEDDLOPEN_TRUE@T_so_libs = @T_so_libs@
 T_so_libs = @T_so_libs@
 VERSION = @VERSION@
 VORBISENC_LIBS = @VORBISENC_LIBS@
@@ -203,7 +205,6 @@ X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
-@NEEDDLOPEN_TRUE@a_so_libs = @a_so_libs@
 a_so_libs = @a_so_libs@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_RANLIB = @ac_ct_RANLIB@
@@ -220,38 +221,31 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 dynamic_targets = @dynamic_targets@
-@NEEDDLOPEN_TRUE@e_so_libs = @e_so_libs@
 e_so_libs = @e_so_libs@
 exec_prefix = @exec_prefix@
-@NEEDDLOPEN_TRUE@g_so_libs = @g_so_libs@
 g_so_libs = @g_so_libs@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
-@NEEDDLOPEN_TRUE@i_so_libs = @i_so_libs@
 i_so_libs = @i_so_libs@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-@NEEDDLOPEN_TRUE@k_so_libs = @k_so_libs@
 k_so_libs = @k_so_libs@
 libdir = @libdir@
 libexecdir = @libexecdir@
 lispdir = @lispdir@
 localstatedir = @localstatedir@
-@NEEDDLOPEN_TRUE@m_so_libs = @m_so_libs@
 m_so_libs = @m_so_libs@
 mandir = @mandir@
-@NEEDDLOPEN_TRUE@n_so_libs = @n_so_libs@
 n_so_libs = @n_so_libs@
 oldincludedir = @oldincludedir@
 p_so_libs = @p_so_libs@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 r_so_libs = @r_so_libs@
-@NEEDDLOPEN_TRUE@s_so_libs = @s_so_libs@
 s_so_libs = @s_so_libs@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
@@ -623,10 +617,10 @@ all: all-recursive
 
 .SUFFIXES:
 .SUFFIXES: .ptcl .tcl .@so@ .$(so) .c .o .obj
-$(srcdir)/Makefile.in:  Makefile.am $(top_srcdir)/common.makefile.in $(top_srcdir)/configure.in $(ACLOCAL_M4)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/common.makefile.in $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  interface/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 
 AR = ar
@@ -1009,6 +1003,15 @@ install.el: $(ELFILES)
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
 	windres -o $@ -O coff w32g_res.rc
+#n_so_libs = @n_so_libs@
+#s_so_libs = @s_so_libs@
+#m_so_libs = @m_so_libs@
+#k_so_libs = @k_so_libs@
+#e_so_libs = @e_so_libs@
+#T_so_libs = @T_so_libs@
+#a_so_libs = @a_so_libs@
+#i_so_libs = @i_so_libs@
+#g_so_libs = @g_so_libs@
 
 @NEEDDLOPEN_TRUE@all-am: $(dynamic_targets)
 
