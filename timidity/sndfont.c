@@ -1666,11 +1666,21 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 
  *********************************************************************/
 
+#include <ctype.h>
+#include "freq.h"
+
+#define CFG_FOR_SF_SUPPORT_FFT	0
+
 static FILE *x_out;
 static char x_sf_file_name[1024];
 static int x_pre_bank = -1;
 static int x_pre_preset = -1;
 static int x_sort = 1;
+static int x_comment = 1;
+#if CFG_FOR_SF_SUPPORT_FFT
+static int x_fft = 0;
+#endif
+
 typedef struct x_cfg_info_t_ {
 	char m_bank[128][128];
 	char m_preset[128][128];
@@ -1681,8 +1691,10 @@ typedef struct x_cfg_info_t_ {
 	char d_rom[128][128];
 	char *d_str[128][128];
 } x_cfg_info_t;
+
 static x_cfg_info_t x_cfg_info;
 static int x_cfg_info_init_flag = 0;
+
 static void x_cfg_info_init(void)
 {
 	if(!x_cfg_info_init_flag){
@@ -1702,12 +1714,13 @@ static void x_cfg_info_init(void)
 	}
 	x_cfg_info_init_flag = 1;
 }
+
 static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote_from, int x_keynote_to, int romflag)
 {
 	int x_keynote;
 	x_cfg_info_init();
 	if(x_sort){
-//		if(x_bank!=x_pre_bank || x_preset!=x_pre_preset){
+		/*if(x_bank!=x_pre_bank || x_preset!=x_pre_preset){*/
 		{
 			char *str;
 			char buff[256];
@@ -1745,11 +1758,13 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 				if(x_cfg_info.m_str[x_bank][x_preset]==NULL){
 					str[0] = '\0';
 				}
-				if(x_keynote_from!=x_keynote_to)
-					sprintf(buff,"        # %d-%d:%s%s\n",x_keynote_from,x_keynote_to,x_name,strROM);
-				else
-					sprintf(buff,"        # %d:%s%s\n",x_keynote_from,x_name,strROM);
-				strcat(str,buff);
+				if(x_comment){
+					if(x_keynote_from!=x_keynote_to)
+						sprintf(buff,"        # %d-%d:%s%s\n",x_keynote_from,x_keynote_to,x_name,strROM);
+					else
+						sprintf(buff,"        # %d:%s%s\n",x_keynote_from,x_name,strROM);
+					strcat(str,buff);
+				}
 				x_cfg_info.m_str[x_bank][x_preset] = str;
 			}
 		}
@@ -1763,23 +1778,45 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 		}
 		if(romflag){
 			if(x_bank==128){
-				for(x_keynote=x_keynote_from;x_keynote<=x_keynote_from;x_keynote++)
-					fprintf(x_out,"#  %d %%font %s %d %d %d # %s (ROM)\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote,x_name);
+				for(x_keynote=x_keynote_from;x_keynote<=x_keynote_from;x_keynote++){
+					if(x_comment)
+						fprintf(x_out,"#  %d %%font %s %d %d %d # %s (ROM)\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote,x_name);
+					else
+						fprintf(x_out,"#  %d %%font %s %d %d %d # (ROM)\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote);
+				}
 			} else {
-				if(x_keynote_from==x_keynote_to)
-					fprintf(x_out,"#   %d %%font %s %d %d # %d:%s (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_name);
-				else
-					fprintf(x_out,"#   %d %%font %s %d %d # %d-%d:%s (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_keynote_to,x_name);
+				if(x_keynote_from==x_keynote_to) {
+					if(x_comment)
+						fprintf(x_out,"#   %d %%font %s %d %d # %d:%s (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_name);
+					else
+						fprintf(x_out,"#   %d %%font %s %d %d # (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset);
+				} else {
+					if(x_comment)
+						fprintf(x_out,"#   %d %%font %s %d %d # %d-%d:%s (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_keynote_to,x_name);
+					else
+						fprintf(x_out,"#   %d %%font %s %d %d # (ROM)\n",x_preset,x_sf_file_name,x_bank,x_preset);
+				}
 			}
 		} else {
 			if(x_bank==128){
-				for(x_keynote=x_keynote_from;x_keynote<=x_keynote_from;x_keynote++)
-					fprintf(x_out,"    %d %%font %s %d %d %d # %s\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote,x_name);
+				for(x_keynote=x_keynote_from;x_keynote<=x_keynote_from;x_keynote++){
+					if(x_comment)
+						fprintf(x_out,"    %d %%font %s %d %d %d # %s\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote,x_name);
+					else
+						fprintf(x_out,"    %d %%font %s %d %d %d\n",x_keynote,x_sf_file_name,x_bank,x_preset,x_keynote);
+				}
 			} else {
-				if(x_keynote_from==x_keynote_to)
-					fprintf(x_out,"    %d %%font %s %d %d # %d:%s\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_name);
-				else
-					fprintf(x_out,"    %d %%font %s %d %d # %d-%d:%s\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_keynote_to,x_name);
+				if(x_keynote_from==x_keynote_to){
+					if(x_comment)
+						fprintf(x_out,"    %d %%font %s %d %d # %d:%s\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_name);
+					else
+						fprintf(x_out,"    %d %%font %s %d %d\n",x_preset,x_sf_file_name,x_bank,x_preset);
+				} else {
+					if(x_comment)
+						fprintf(x_out,"    %d %%font %s %d %d # %d-%d:%s\n",x_preset,x_sf_file_name,x_bank,x_preset,x_keynote_from,x_keynote_to,x_name);
+					else
+						fprintf(x_out,"    %d %%font %s %d %d\n",x_preset,x_sf_file_name,x_bank,x_preset);
+				}
 			}
 		}
 	}
@@ -1787,13 +1824,57 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 	x_pre_preset = x_preset;
 	return 0;
 }
-int32 control_ratio = 0;
-PlayMode *play_mode = NULL;
+
+static int atoi_limited(const char *string, int v_min, int v_max)
+{
+	int value = atoi(string);
+	
+	if (value <= v_min)
+		value = v_min;
+	else if (value > v_max)
+		value = v_max;
+	return value;
+}
+
+static int get_range_string(const char *string_, int *start, int *end)
+{
+	const char *string = string_;
+	
+	if(isdigit(*string)) {
+		*start = atoi_limited(string, 0, 127);
+		while(isdigit(*++string)) ;
+	} else
+		*start = 0;
+	if (*string == '-') {
+		string++;
+		*end = isdigit(*string) ? atoi_limited(string, 0, 127) : 127;
+		if(*start > *end)
+			*end = *start;
+	} else
+		*end = *start;
+	return string != string_;
+}
+
+int32 control_ratio = 1;
+PlayMode dpm = {
+    DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
+    -1,
+    {0,0,0,0,0},
+    "null", 'n',
+    NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+};
+PlayMode *play_mode = &dpm;
+#if !CFG_FOR_SF_SUPPORT_FFT
 int32 freq_table[1];
 FLOAT_T bend_fine[1];
 FLOAT_T bend_coarse[1];
 void pre_resample(Sample *sp) {}
 void antialiasing(int16 *data, int32 data_length,int32 sample_rate, int32 output_rate) {}
+#endif
 char *event2string(int id) { return NULL; }
 int check_apply_control(void) { return 0; }
 char *wrdt = NULL; /* :-P */
@@ -1872,37 +1953,114 @@ static struct URL_module *url_module_list[] =
     NULL
 };
 
+static void cfgforsf_usage(int status)
+{
+	printf(
+"USAGE: %s [options] soundfont [cfg_output]\n"
+"  Options:\n"
+"    -s: sort by bank/program. (default)\n"
+"    -S: do not sort by bank/program.\n"
+"    -c: output comment. (default)\n"
+"    -C: do not output comment.\n"
+#if CFG_FOR_SF_SUPPORT_FFT
+"    -f drumset note: calculate sample frequency.\n"
+"    -F drumset note: do not calculate sample frequency. (default = -F - -)\n"
+#endif
+		, program_name );
+	exit(status);
+}
+
+#if CFG_FOR_SF_SUPPORT_FFT
+#define SET_PROG_MAP(map, bank, prog)		((map)[(bank << (7 - 3)) | (prog >> 3)] |= (1 << (prog & 7)))
+#define UNSET_PROG_MAP(map, bank, prog)		((map)[(bank << (7 - 3)) | (prog >> 3)] &= ~(1 << (prog & 7)))
+#define IS_SET_PROG_MAP(map, bank, prog)	((map)[(bank << (7 - 3)) | (prog >> 3)] & (1 << (prog & 7)))
+#endif
 
 int main(int argc, char **argv)
 {
     SFInsts *sf;
 	int i, x_bank, x_preset, x_keynote;
 	int initial = 0;
+	#if CFG_FOR_SF_SUPPORT_FFT
+	uint8 fft_range[128 * 128 / 8];
+	#endif
+	const char *program_name;
 
-	if(argc<=1){
-		printf("USAGE: %s [-s[-]] soundfont [cfg_output]\n", argv[0] );
-		exit(-1);
+	argc--, program_name = *argv++;
+	#if CFG_FOR_SF_SUPPORT_FFT
+	memset(fft_range, 0, sizeof fft_range);
+	#endif
+	while(argc > 0 && argv[0][0] == '-' && isalpha(argv[0][1]) && argv[0][2] == '\0') {
+		switch(tolower(argv[0][1])) {
+			case 's': case 'S':
+				x_sort = argv[0][1] == 's';
+				break;
+			case 'c': case 'C':
+				x_comment = argv[0][1] == 'c';
+				break;
+			#if CFG_FOR_SF_SUPPORT_FFT
+			case 'f': case 'F':
+				if(argc < 3)
+					cfgforsf_usage(EXIT_FAILURE);
+				else {
+					const char *mask_string;
+					int8 mask[128];
+					int flag, start, end;
+					
+					flag = argv[0][1] == 'f';
+					memset(mask, 0, sizeof mask);
+					mask_string = argv[2];
+					do {
+						if(get_range_string(mask_string, &start, &end)) {
+							for(i = start; i <= end; i++)
+								mask[i] = 1;
+						}
+						mask_string = strchr(mask_string, ',');
+					} while(mask_string++ != NULL);
+					mask_string = argv[1];
+					do {
+						if(get_range_string(mask_string, &start, &end)) {
+							x_fft = 1;
+							while(start <= end) {
+								for(i = 0; i < 128; i++) {
+									if (!mask[i])
+										continue;
+									if(flag)
+										SET_PROG_MAP(fft_range, start, i);
+									else
+										UNSET_PROG_MAP(fft_range, start, i);
+								}
+								start++;
+							}
+						}
+						mask_string = strchr(mask_string, ',');
+					} while(mask_string++ != NULL);
+					argc -= 2, argv += 2;
+				}
+				break;
+			#endif
+			default:
+				fprintf(stderr, "Error: Invalid option %s.\n", argv[0]);
+				cfgforsf_usage(EXIT_FAILURE);
+		}
+		argc--, argv++;
 	}
-#ifndef strcasecmp
-#define strcasecmp stricmp
-#endif
-	if(strcasecmp(argv[1],"-s-")==0){
-		x_sort = 0;
-		argc--;
-		argv++;
-	} else if(strcasecmp(argv[1],"-s")==0){
-		x_sort = 1;
-		argc--;
-		argv++;
+	if(argc <= 0)
+		cfgforsf_usage(EXIT_SUCCESS);
+	x_out = (argc < 2) ? stdout : fopen(argv[1], "w");
+	if (x_out == NULL) {
+		fprintf(stderr, "Error: Unable to open %s.\n", argv[1]);
+		exit(EXIT_FAILURE);
 	}
-	if(argc<=2){
-		x_out = stdout;
-	} else {
-		x_out = fopen(argv[2],"w");
+	#if CFG_FOR_SF_SUPPORT_FFT
+	if (!x_sort && x_fft) {
+		fprintf(stderr, "Error: -f option should be used with -s option.\n");
+		exit(EXIT_FAILURE);
 	}
+	#endif
 	ctl->verbosity = -1;
 #ifdef SUPPORT_SOCKET
-//	init_mail_addr();
+	/*init_mail_addr();*/
 	if(url_user_agent == NULL){
 	    url_user_agent = (char *)safe_malloc(10 + strlen(timidity_version));
 	    strcpy(url_user_agent, "TiMidity-");
@@ -1911,15 +2069,16 @@ int main(int argc, char **argv)
 #endif /* SUPPORT_SOCKET */
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
-	strncpy(x_sf_file_name, argv[1], 1024);
+	strncpy(x_sf_file_name, argv[0], 1024);
     sf = new_soundfont(x_sf_file_name);
     sf->next = NULL;
     sf->def_order = 2;
     sfrecs = sf;
 	x_cfg_info_init();
 	init_sf(sf);
-	if(strstr(x_sf_file_name, " ") != NULL) {
-		sprintf(x_sf_file_name, "\"%s\"", argv[1]);
+	if(strchr(x_sf_file_name, ' ') != NULL) {
+		char quote = strchr(x_sf_file_name, '"') == NULL ? '"' : '\'';
+		sprintf(x_sf_file_name, "%c%s%c", quote, argv[0], quote);
 	}
 	if(x_sort){
 	for(x_bank=0;x_bank<=127;x_bank++){
@@ -1961,11 +2120,37 @@ int main(int argc, char **argv)
 			fprintf(x_out,"\ndrumset %d\n",x_preset);
 		for(x_keynote=0;x_keynote<=127;x_keynote++){
 			if(x_cfg_info.d_preset[x_preset][x_keynote] >= 0 && x_cfg_info.d_keynote[x_preset][x_keynote] >= 0){
-				if(x_cfg_info.d_rom[x_preset][x_keynote])
-					fprintf(x_out,"#   %d %%font %s 128 %d %d #%s (ROM)\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote],x_cfg_info.d_str[x_preset][x_keynote]);
-				else
-					fprintf(x_out,"    %d %%font %s 128 %d %d #%s\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote],x_cfg_info.d_str[x_preset][x_keynote]);
-
+				if(x_cfg_info.d_rom[x_preset][x_keynote]){
+					if(x_comment)
+						fprintf(x_out,"#   %d %%font %s 128 %d %d #%s (ROM)\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote],x_cfg_info.d_str[x_preset][x_keynote]);
+					else
+						fprintf(x_out,"#   %d %%font %s 128 %d %d # (ROM)\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote]);
+				} else {
+					if(x_comment)
+						fprintf(x_out,"    %d %%font %s 128 %d %d #%s\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote],x_cfg_info.d_str[x_preset][x_keynote]);
+					else
+						fprintf(x_out,"    %d %%font %s 128 %d %d\n",x_keynote,x_sf_file_name,x_cfg_info.d_preset[x_preset][x_keynote],x_cfg_info.d_keynote[x_preset][x_keynote]);
+					#if CFG_FOR_SF_SUPPORT_FFT
+					if(IS_SET_PROG_MAP(fft_range, x_preset, x_keynote)) {
+						Instrument *inst;
+						float freq;
+						int chord, note;
+						
+						inst = try_load_soundfont(sf, -1, 128, x_preset, x_keynote);
+						if(inst != NULL) {
+							freq = freq_fourier(inst->sample, &chord);
+							note = ceil(-36.87631656f + 17.31234049f * log(freq)); /* freq.c */
+							if (note >= LOWEST_PITCH && note <= HIGHEST_PITCH) {
+								if(x_comment)
+									fprintf(x_out,"    #extension playnote %d %d # %.1fHz\n", x_keynote, note, freq);
+								else
+									fprintf(x_out,"    #extension playnote %d %d\n", x_keynote, note);
+							}
+							free_instrument(inst);
+						}
+					}
+					#endif
+				}
 			}
 		}
 	}
