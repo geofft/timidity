@@ -1075,6 +1075,43 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
 	return 0;
 }
 
+static int effect_view_border_draw ( RECT *lprc, int lockflag)
+{
+	HDC hdc;
+	COLORREF base = RGB(191, 191, 191);
+	HPEN hPen1 = NULL;
+	HPEN hPen3 = NULL;
+	HPEN hOldPen = NULL;
+
+	if ( !w32g_tracer_wnd.active )
+		return 0;
+	hdc = w32g_tracer_wnd.hmdc;
+
+	hPen1 = CreatePen(PS_SOLID, 1, base);
+	hPen3 = CreatePen(PS_SOLID, 1, base);
+	if ( lockflag ) TRACER_LOCK ();
+	hOldPen= (HPEN)SelectObject(hdc,GetStockObject(NULL_PEN));
+
+	// ‰Eü
+	SelectObject(hdc, hPen3);
+	MoveToEx(hdc, lprc->right, lprc->top - 1, NULL);
+	LineTo(hdc, lprc->right, lprc->bottom + 1);
+
+	// ‰ºü
+	SelectObject(hdc, hPen1);
+	MoveToEx(hdc, lprc->left - 1, lprc->bottom, NULL);
+	LineTo(hdc, lprc->right + 1, lprc->bottom);
+
+	SelectObject(hdc, hOldPen);
+
+	if ( lockflag ) TRACER_UNLOCK ();
+
+	DeleteObject (hPen1);
+	DeleteObject (hPen3);
+
+	return 0;
+}
+
 static int tracer_velocity_draw ( RECT *lprc, int vol, int max, int lockflag )
 {
 	return tracer_velocity_draw_ex ( lprc, vol, -1, max, lockflag );
@@ -1106,6 +1143,7 @@ static int tracer_velocity_draw_ex ( RECT *lprc, int vol, int vol_old, int max, 
 		tracer_bmp.hmdc, tracer_bmp.rc_velocity[0].left, tracer_bmp.rc_velocity[0].top + 19 + 1, SRCCOPY );
 
 	SetRect ( &rc, lprc->left, lprc->top, lprc->left + (( vol_old > vol ) ? vol_old : vol), lprc->bottom);
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, &rc, FALSE );
 
 	if ( lockflag ) TRACER_UNLOCK ();
@@ -1131,6 +1169,7 @@ static int tracer_volume_draw ( RECT *lprc, int vol, int max, int lockflag )
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_volume.left, tracer_bmp.rc_volume.top + 9 + 1, SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1155,6 +1194,7 @@ static int tracer_expression_draw ( RECT *lprc, int vol, int max, int lockflag )
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_expression.left, tracer_bmp.rc_expression.top + 9 + 1, SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1184,6 +1224,7 @@ static int tracer_pan_draw ( RECT *lprc, int vol, int max, int lockflag )
 	BitBlt ( hdc, lprc->left + vol, lprc->top, lprc->right - lprc->left, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_pan.left, tracer_bmp.rc_pan.top + 9 + 1, SRCAND );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1191,6 +1232,28 @@ static int tracer_pan_draw ( RECT *lprc, int vol, int max, int lockflag )
 
 static int tracer_sustain_draw ( RECT *lprc, int vol, int lockflag )
 {
+	HDC hdc;
+	const int view_max = 20, div = 6;
+	if ( !w32g_tracer_wnd.active )
+		return 0;
+	hdc = w32g_tracer_wnd.hmdc;
+
+	vol /= div;
+	if(vol >= view_max) {vol = view_max;}
+	
+	if ( lockflag ) TRACER_LOCK ();
+	// •K—v‚È‚¾‚¯”wŒi‚ð•`‰æ
+	BitBlt ( hdc, lprc->left +  vol, lprc->top, lprc->right - lprc->left -  vol, lprc->bottom - lprc->top,
+		tracer_bmp.hmdc, tracer_bmp.rc_sustain.left, tracer_bmp.rc_sustain.top, SRCCOPY );
+	// •K—v‚È‚¾‚¯•`‰æ
+	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
+		tracer_bmp.hmdc, tracer_bmp.rc_sustain.left, tracer_bmp.rc_sustain.top + 9 + 1, SRCCOPY );
+	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
+	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
+
+	return 0;
+/*
 	HDC hdc;
 	if ( !w32g_tracer_wnd.active )
 		return 0;
@@ -1201,8 +1264,10 @@ static int tracer_sustain_draw ( RECT *lprc, int vol, int lockflag )
 	BitBlt ( hdc, lprc->left, lprc->top, lprc->right - lprc->left, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_sustain.left, tracer_bmp.rc_sustain.top + vol * ( 9 + 1 ), SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
-	return 0;
+	return 0;*/
 }
 
 static int tracer_pitch_bend_draw ( RECT *lprc, int vol, int max, int lockflag )
@@ -1229,6 +1294,7 @@ static int tracer_pitch_bend_draw ( RECT *lprc, int vol, int max, int lockflag )
 		tracer_bmp.hmdc, tracer_bmp.rc_pitch_bend.left + view_max + vol, tracer_bmp.rc_pitch_bend.top + 9 + 1, SRCCOPY );
 	}
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1253,6 +1319,7 @@ static int tracer_mod_wheel_draw ( RECT *lprc, int vol, int max, int lockflag )
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_mod_wheel.left, tracer_bmp.rc_mod_wheel.top + 9 + 1, SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1277,6 +1344,7 @@ static int tracer_chorus_effect_draw ( RECT *lprc, int vol, int max, int lockfla
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_chorus_effect.left, tracer_bmp.rc_chorus_effect.top + 9 + 1, SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1301,6 +1369,7 @@ static int tracer_reverb_effect_draw ( RECT *lprc, int vol, int max, int lockfla
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,
 		tracer_bmp.hmdc, tracer_bmp.rc_reverb_effect.left, tracer_bmp.rc_reverb_effect.top + 9 + 1, SRCCOPY );
 	if ( lockflag ) TRACER_UNLOCK ();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect ( w32g_tracer_wnd.hwnd, lprc, FALSE );
 
 	return 0;
@@ -1368,6 +1437,7 @@ static int tracer_temper_type_draw(RECT *lprc, int ch, int8 tt, int lockflag)
 			SRCCOPY);
 	if (lockflag)
 		TRACER_UNLOCK();
+	effect_view_border_draw (lprc, lockflag);
 	InvalidateRect(w32g_tracer_wnd.hwnd, lprc, FALSE);
 	return 0;
 }

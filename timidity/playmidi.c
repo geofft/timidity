@@ -6916,7 +6916,7 @@ int play_event(MidiEvent *ev)
 	}
 	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
 	    drop_sustain(ch);
-	ctl_mode_event(CTLE_SUSTAIN, 1, ch, ev->a >= 64);
+	ctl_mode_event(CTLE_SUSTAIN, 1, ch, channel[ch].sustain);
 	break;
 
       case ME_SOSTENUTO:
