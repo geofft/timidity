@@ -1602,17 +1602,19 @@ static void CanvasInit(HWND hwnd)
    Canvas.rcMapSub.bottom = Canvas.rcMapSub.top +4+3+3+3+4 - 1;
 	Canvas.MapDelay = 1;
 	Canvas.MapResidual = 0;
-	Canvas.MapMode = CMAP_MODE_16;
-	//	Canvas.MapMode = CMAP_MODE_32;
+	Canvas.MapMode = (MainWndInfo.CanvasMode == CANVAS_MODE_MAP32)
+			? CMAP_MODE_32 : CMAP_MODE_16;
 	Canvas.MapBarMax = 16;
 	//	Canvas.CKNoteFrom = 24;
 	//   Canvas.CKNoteTo = 24 + 96;
 	Canvas.CKNoteFrom = 12;
    Canvas.CKNoteTo = Canvas.CKNoteFrom + 96 + 3;
 	Canvas.CKCh = 16;
-	Canvas.CKPart = 1;
+	Canvas.CKPart = (MainWndInfo.CanvasMode == CANVAS_MODE_KBD_B) ? 2 : 1;
 	Canvas.UpdateAll = 0;
-	Canvas.Mode = MainWndInfo.CanvasMode;
+	Canvas.Mode = (MainWndInfo.CanvasMode < CANVAS_MODE_GSLCD
+			|| MainWndInfo.CanvasMode > CANVAS_MODE_SLEEP)
+			? 1 : MainWndInfo.CanvasMode;
 	Canvas.PaintDone = 0;
 	GDI_UNLOCK(); // gdi_lock
 	CanvasReset();
@@ -2437,7 +2439,7 @@ void CanvasPaintAll(void)
 
 void CanvasReset(void)
 {
-	if(! CanvasOK)
+	if (! CanvasOK)
 		return;
 	switch (Canvas.Mode) {
 	case CANVAS_MODE_GSLCD:
@@ -2452,7 +2454,6 @@ void CanvasReset(void)
 		CanvasKeyboardReset();
 		break;
 	case CANVAS_MODE_SLEEP:
-	default:
 		CanvasSleepReset();
 		break;
 	}
@@ -2474,7 +2475,6 @@ void CanvasClear(void)
 	case CANVAS_MODE_KBD_B:
 		CanvasKeyboardClear();
 		break;
-	default:
 	case CANVAS_MODE_SLEEP:
 		CanvasSleepClear();
 		break;
@@ -2497,7 +2497,6 @@ void CanvasUpdate(int flag)
 	case CANVAS_MODE_KBD_B:
 		CanvasKeyboardUpdate(flag);
 		break;
-	default:
 	case CANVAS_MODE_SLEEP:
 		CanvasSleepUpdate(flag);
 		break;
@@ -2520,7 +2519,6 @@ void CanvasReadPanelInfo(int flag)
 	case CANVAS_MODE_KBD_B:
 		CanvasKeyboardReadPanelInfo(flag);
 		break;
-	default:
 	case CANVAS_MODE_SLEEP:
 //		CanvasSleepReadPanelInfo(flag);
 		break;
@@ -2534,15 +2532,19 @@ void CanvasChange(int mode)
 	else {
 		if (Canvas.Mode == CANVAS_MODE_SLEEP)
 			Canvas.Mode = CANVAS_MODE_GSLCD;
-		else if (Canvas.Mode == CANVAS_MODE_GSLCD)
+		else if (Canvas.Mode == CANVAS_MODE_GSLCD) {
+			Canvas.MapMode = CMAP_MODE_16;
 			Canvas.Mode = CANVAS_MODE_MAP16;
-		else if (Canvas.Mode == CANVAS_MODE_MAP16)
+		} else if (Canvas.Mode == CANVAS_MODE_MAP16) {
+			Canvas.MapMode = CMAP_MODE_32;
 			Canvas.Mode = CANVAS_MODE_MAP32;
-		else if (Canvas.Mode == CANVAS_MODE_MAP32)
+		} else if (Canvas.Mode == CANVAS_MODE_MAP32) {
+			Canvas.CKPart = 1;
 			Canvas.Mode = CANVAS_MODE_KBD_A;
-		else if (Canvas.Mode == CANVAS_MODE_KBD_A)
+		} else if (Canvas.Mode == CANVAS_MODE_KBD_A) {
+			Canvas.CKPart = 2;
 			Canvas.Mode = CANVAS_MODE_KBD_B;
-		else if (Canvas.Mode == CANVAS_MODE_KBD_B)
+		} else if (Canvas.Mode == CANVAS_MODE_KBD_B)
 			Canvas.Mode = CANVAS_MODE_SLEEP;
 	}
 	MainWndInfo.CanvasMode = Canvas.Mode;
