@@ -130,7 +130,7 @@ typedef struct {
   char *id_name, id_character;
   int verbosity, trace_playing, opened;
 
-  uint32 flags;
+  int32 flags;
 /* ControlMode flags.
  * Some interfaces ignore these flags.
  */

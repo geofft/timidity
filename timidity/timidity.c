@@ -4921,9 +4921,10 @@ int main(int argc, char **argv)
     if((err = timidity_pre_load_configuration()) != 0)
 	return err;
 
-	while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
-		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
-			break;
+    optind = longind = 0;
+    while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
+	if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
+	    break;
 
     initialize_resampler_coeffs();
 
