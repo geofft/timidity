@@ -2070,26 +2070,22 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  voice[i].fc.freq = -1;
   }
 
-  if(opt_nrpn_vibrato)
-  {
-	  if(channel[ch].vibrato_ratio) {
-	      voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio + channel[ch].vibrato_ratio;
-		  if(voice[i].vibrato_control_ratio < 0) {voice[i].vibrato_control_ratio = 0;}
-	  }
-	  if(channel[ch].vibrato_depth) {
-	      voice[i].vibrato_depth = voice[i].sample->vibrato_depth + channel[ch].vibrato_depth;
-		  if(voice[i].vibrato_depth > 255) {voice[i].vibrato_depth = 255;}
-		  else if(voice[i].vibrato_depth < -255) {voice[i].vibrato_depth = -255;}
-	  }
-      voice[i].vibrato_delay = voice[i].sample->vibrato_delay + channel[ch].vibrato_delay;
-  }
-  else
-  {
-      voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
-      voice[i].vibrato_depth = voice[i].sample->vibrato_depth;
-      voice[i].vibrato_delay = voice[i].sample->vibrato_delay;
-  }
-  voice[i].orig_vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
+	if (opt_nrpn_vibrato && channel[ch].vibrato_ratio) {
+		voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio + channel[ch].vibrato_ratio;
+		if (voice[i].vibrato_control_ratio < 0)
+			voice[i].vibrato_control_ratio = 0;
+	} else
+		voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
+	if (opt_nrpn_vibrato && channel[ch].vibrato_depth) {
+		voice[i].vibrato_depth = voice[i].sample->vibrato_depth + channel[ch].vibrato_depth;
+		if (voice[i].vibrato_depth > 255)
+			voice[i].vibrato_depth = 255;
+		else if (voice[i].vibrato_depth < -255)
+			voice[i].vibrato_depth = -255;
+	} else
+		voice[i].vibrato_depth = voice[i].sample->vibrato_depth;
+	voice[i].vibrato_delay = voice[i].sample->vibrato_delay + channel[ch].vibrato_delay;
+	voice[i].orig_vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
 
   voice[i].vibrato_control_counter=voice[i].vibrato_phase=0;
   for (j=0; j<VIBRATO_SAMPLE_INCREMENTS; j++)
@@ -2124,6 +2120,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   }
   else if(channel[ch].portamento && !channel[ch].porta_control_ratio)
       update_portamento_controls(ch);
+  voice[i].porta_control_ratio = 0;
   if(channel[ch].porta_control_ratio)
   {
       if(channel[ch].last_note_fine == -1)

@@ -133,7 +133,7 @@ void mix_voice(int32 *buf, int v, int32 c)
 				vp->delay -= c;
 				if (vp->tremolo_phase_increment)
 					update_tremolo(v);
-				if (opt_modulation_envelope)
+				if (opt_modulation_envelope && vp->sample->modes & MODES_ENVELOPE)
 					update_modulation_envelope(v);
 				return;
 			}
@@ -1463,7 +1463,7 @@ static inline int update_signal(int v)
 		return 1;
 	if (vp->tremolo_phase_increment)
 		update_tremolo(v);
-	if (opt_modulation_envelope)
+	if (opt_modulation_envelope && vp->sample->modes & MODES_ENVELOPE)
 		update_modulation_envelope(v);
 	return apply_envelope_to_amp(v);
 }
