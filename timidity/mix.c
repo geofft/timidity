@@ -1048,10 +1048,12 @@ int recompute_envelope(int v)
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (min_sustain_time * play_mode->rate);
 			ch = vp->channel;
-			vp->envelope_increment = -vp->sample->envelope_rate[2];
+			vp->envelope_increment = -vp->sample->envelope_rate[3];
 			/* use the slower of the two rates */
-			if (vp->envelope_increment > rate)
+			if (vp->envelope_increment < rate)
 				vp->envelope_increment = rate;
+			vp->envelope_increment = (double)vp->envelope_increment
+				* (double) vp->envelope_volume / vp->sample->envelope_offset[0];
 			if (! vp->envelope_increment)
 				/* Avoid freezing */
 				vp->envelope_increment = -1;
@@ -1128,7 +1130,8 @@ static inline int next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 512 * control_ratio) {rate = 512 * control_ratio;}
+	if (rate < 512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate)
+		rate =  512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate;
 	if (offset < vp->envelope_volume) {	/* decay-phase */
 		if(rate > vp->envelope_volume - offset) {	/* fastest decay */
 			rate = -vp->envelope_volume + offset - 1;
@@ -1374,7 +1377,8 @@ static inline int modenv_next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 512 * control_ratio) {rate = 512 * control_ratio;}
+	if (rate < 512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate)
+		rate =  512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate;
 	if (offset < vp->modenv_volume) {	/* decay-phase */
 		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;
@@ -1423,10 +1427,12 @@ int recompute_modulation_envelope(int v)
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (min_sustain_time * play_mode->rate);
 			ch = vp->channel;
-			vp->modenv_increment = -vp->sample->modenv_rate[2];
+			vp->modenv_increment = -vp->sample->modenv_rate[3];
 			/* use the slower of the two rates */
-			if (vp->modenv_increment > rate)
+			if (vp->modenv_increment < rate)
 				vp->modenv_increment = rate;
+			vp->modenv_increment = (double) vp->modenv_increment
+				* (double) vp->modenv_volume / vp->sample->modenv_offset[0];
 			if (! vp->modenv_increment)
 				/* Avoid freezing */
 				vp->modenv_increment = -1;

@@ -128,7 +128,8 @@ extern int set_extension_modes(char *flag);
 
 static struct
 {
-    int bank, bank_lsb, bank_msb, prog, tt, vol, exp, pan, sus, pitch, wheel;
+    int mute, bank, bank_lsb, bank_msb, prog;
+    int tt, vol, exp, pan, sus, pitch, wheel;
     int is_drum;
     int bend_mark;
 
@@ -196,6 +197,7 @@ static const char note_name_char[12] =
 static void ctl_note(int status, int ch, int note, int vel);
 static void ctl_temper_keysig(int8 tk, int ko);
 static void ctl_temper_type(int ch, int8 tt);
+static void ctl_mute(int ch, int mute);
 static void ctl_drumpart(int ch, int is_drum);
 static void ctl_program(int ch, int prog, char *vp, unsigned int banks);
 static void ctl_volume(int channel, int val);
@@ -532,18 +534,13 @@ static void init_trace_window_chan(int ch)
 	return;
 
     N_ctl_clrtoeol(NOTE_LINE + ch);
+    ctl_mute(ch, CTL_STATUS_UPDATE);
+    waddch(dftwin, ' ');
     if(ch != selected_channel)
     {
 	c = (COLS - 28) / 12 * 12;
 	if(c <= 0)
 	    c = 1;
-	if (IS_SET_CHANNELMASK(channel_mute, ch))
-		wattron(dftwin, A_REVERSE);
-	wprintw(dftwin, "%02d", ch + 1);
-	if (IS_SET_CHANNELMASK(channel_mute, ch))
-		wattroff(dftwin, A_REVERSE);
-	waddch(dftwin, ' ');
-
 	for(i = 0; i < c; i++)
 	    waddch(dftwin, '.');
 	ctl_temper_type(ch, CTL_STATUS_UPDATE);
@@ -560,13 +557,6 @@ static void init_trace_window_chan(int ch)
 	ToneBankElement *prog;
 	ToneBank *bank;
 	int b, type, pr;
-
-	wattron(dftwin, A_BOLD
-			| ((IS_SET_CHANNELMASK(channel_mute, ch)) ? A_REVERSE : 0));
-	wprintw(dftwin, "%02d", ch + 1);
-	wattroff(dftwin, A_BOLD
-			| ((IS_SET_CHANNELMASK(channel_mute, ch)) ? A_REVERSE : 0));
-	waddch(dftwin, ' ');
 
 	b = ChannelStatus[ch].bank;
 	pr = ChannelStatus[ch].prog;
@@ -672,6 +662,7 @@ static void init_chan_status(void)
 
     for(ch = 0; ch < MAX_CHANNELS; ch++)
     {
+	ChannelStatus[ch].mute = temper_type_mute & 1;
 	ChannelStatus[ch].bank = 0;
 	ChannelStatus[ch].bank_msb = 0;
 	ChannelStatus[ch].bank_lsb = 0;
@@ -1088,6 +1079,9 @@ static void ctl_event(CtlEvent *e)
 	case CTLE_TEMPER_TYPE:
 		ctl_temper_type((int) e->v1, (int8) e->v2);
 		break;
+	case CTLE_MUTE:
+		ctl_mute((int) e->v1, (int) e->v2);
+		break;
       case CTLE_PROGRAM:
 	ctl_program((int)e->v1, (int)e->v2, (char *)e->v3, (unsigned int)e->v4);
 	break;
@@ -1451,7 +1445,7 @@ static void ctl_temper_type(int ch, int8 tt)
 		ChannelStatus[ch].tt = tt;
 	} else
 		tt = ChannelStatus[ch].tt;
-	if (ctl_ncurs_mode != NCURS_MODE_TRACE || selected_channel == ch)
+	if (ctl_ncurs_mode != NCURS_MODE_TRACE || ch == selected_channel)
 		return;
 	wmove(dftwin, NOTE_LINE + ch, COLS - 23);
 	switch (tt) {
@@ -1469,6 +1463,31 @@ static void ctl_temper_type(int ch, int8 tt)
 		waddch(dftwin, 'p');
 		wattroff(dftwin, A_BOLD);
 		break;
+	}
+	scr_modified_flag = 1;
+}
+
+static void ctl_mute(int ch, int mute)
+{
+	if (ch >= display_channels)
+		return;
+	if (mute != CTL_STATUS_UPDATE) {
+		if (ChannelStatus[ch].mute == mute)
+			return;
+		ChannelStatus[ch].mute = mute;
+	} else
+		mute = ChannelStatus[ch].mute;
+	if (ctl_ncurs_mode != NCURS_MODE_TRACE)
+		return;
+	wmove(dftwin, NOTE_LINE + ch, 0);
+	if (ch != selected_channel) {
+		wattron(dftwin, (mute) ? A_REVERSE : 0);
+		wprintw(dftwin, "%02d", ch + 1);
+		wattroff(dftwin, (mute) ? A_REVERSE : 0);
+	} else {
+		wattron(dftwin, A_BOLD | ((mute) ? A_REVERSE : 0));
+		wprintw(dftwin, "%02d", ch + 1);
+		wattroff(dftwin, A_BOLD | ((mute) ? A_REVERSE : 0));
 	}
 	scr_modified_flag = 1;
 }

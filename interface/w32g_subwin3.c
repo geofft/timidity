@@ -171,6 +171,7 @@ static int change_tracer_wnd_mode ( int mode );
 
 static int init_tracer_bmp ( HDC hdc );
 
+static int tracer_ch_number_draw(int ch, int mute, int lockflag);
 static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrument, int mapID, int lockflag );
 static int tracer_velocity_draw ( RECT *lprc, int vol, int max, int lockflag );
 static int tracer_velocity_draw_ex ( RECT *lprc, int vol, int vol_old, int max, int lockflag );
@@ -701,6 +702,9 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		cheap_volume_view_draw ( &w32g_tracer_wnd.rc_master_volume, w32g_tracer_wnd.master_volume, 256, C_BAR_FORE, C_BAR_BACK, CVV_TYPE_LEFT, TRUE );
 #endif
 		break;
+	case CTLE_MUTE:
+		tracer_ch_number_draw((int) e->v1, (int) e->v2, TRUE);
+		break;
 	case CTLE_PROGRAM:
 		v1 = (int)e->v1; v2 = (int)e->v2;
 		tracer_ch_program_draw ( v1, -1, v2, (char *)e->v3, -1, TRUE );
@@ -931,6 +935,33 @@ static int notes_view_draw ( RECT *lprc, int note, int vel, int back_draw, int l
 
 	InvalidateRect ( w32g_tracer_wnd.hwnd, &rc1, FALSE );
 
+	return 0;
+}
+
+static int tracer_ch_number_draw(int ch, int mute, int lockflag)
+{
+	RECT rc;
+	char buff[3];
+	
+	if (mute != CTL_STATUS_UPDATE) {
+		if (((IS_SET_CHANNELMASK(
+				w32g_tracer_wnd.channel_mute, ch)) ? 1 : 0) == mute)
+			return 0;
+		if (mute)
+			SET_CHANNELMASK(w32g_tracer_wnd.channel_mute, ch);
+		else
+			UNSET_CHANNELMASK(w32g_tracer_wnd.channel_mute, ch);
+	} else
+		mute = (IS_SET_CHANNELMASK(
+				w32g_tracer_wnd.channel_mute, ch)) ? 1 : 0;
+	if (IS_SET_CHANNELMASK(w32g_tracer_wnd.quietchannels, ch))
+		return 0;
+	if (get_ch_rc(ch, &rc, &w32g_tracer_wnd.rc_channel_top) == 0) {
+		sprintf(buff, "%02d", ch + 1);
+		cheap_string_view_draw(&rc, buff, C_TEXT_FORE,
+				(mute) ? C_TEXT_BACK_DARK : C_TEXT_BACK,
+				CSV_CENTER, lockflag);
+	}
 	return 0;
 }
 

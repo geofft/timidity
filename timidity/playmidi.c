@@ -4563,6 +4563,8 @@ static int apply_controls(void)
 		TOGGLE_CHANNELMASK(channel_mute, val);
 		sync_restart(0);
 		jump_flag = 1;
+		ctl_mode_event(CTLE_MUTE, 0,
+				val, (IS_SET_CHANNELMASK(channel_mute, val)) ? 1 : 0);
 		continue;
 
 	case RC_SOLO_PLAY:
@@ -4572,6 +4574,9 @@ static int apply_controls(void)
 		if (! COMPARE_CHANNELMASK(tmp_chbitmask, channel_mute)) {
 			sync_restart(0);
 			jump_flag = 1;
+			for (i = 0; i < MAX_CHANNELS; i++)
+				ctl_mode_event(CTLE_MUTE, 0, i, 1);
+			ctl_mode_event(CTLE_MUTE, 0, val, 0);
 		}
 		continue;
 
@@ -4581,6 +4586,8 @@ static int apply_controls(void)
 		if (! COMPARE_CHANNELMASK(tmp_chbitmask, channel_mute)) {
 			sync_restart(0);
 			jump_flag = 1;
+			for (i = 0; i < MAX_CHANNELS; i++)
+				ctl_mode_event(CTLE_MUTE, 0, i, 0);
 		}
 		continue;
 	}
@@ -5806,10 +5813,15 @@ int play_event(MidiEvent *ev)
 	case ME_TEMPER_TYPE:
 		channel[ch].temper_type = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
-		if (temper_type_mute & 1 << current_event->a)
-			SET_CHANNELMASK(channel_mute, ch);
-		else
-			UNSET_CHANNELMASK(channel_mute, ch);
+		if (temper_type_mute) {
+			if (temper_type_mute & 1 << current_event->a) {
+				SET_CHANNELMASK(channel_mute, ch);
+				ctl_mode_event(CTLE_MUTE, 1, ch, 1);
+			} else {
+				UNSET_CHANNELMASK(channel_mute, ch);
+				ctl_mode_event(CTLE_MUTE, 1, ch, 0);
+			}
+		}
 		if (current_event->b)
 			for (i = 0; i < upper_voices; i++)
 				if (voice[i].status != VOICE_FREE) {
@@ -5823,10 +5835,17 @@ int play_event(MidiEvent *ev)
 			channel[i].temper_type = current_event->a;
 			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
 		}
-		if (temper_type_mute & 1 << current_event->a)
-			FILL_CHANNELMASK(channel_mute);
-		else
-			CLEAR_CHANNELMASK(channel_mute);
+		if (temper_type_mute) {
+			if (temper_type_mute & 1 << current_event->a) {
+				FILL_CHANNELMASK(channel_mute);
+				for (i = 0; i < MAX_CHANNELS; i++)
+					ctl_mode_event(CTLE_MUTE, 1, i, 1);
+			} else {
+				CLEAR_CHANNELMASK(channel_mute);
+				for (i = 0; i < MAX_CHANNELS; i++)
+					ctl_mode_event(CTLE_MUTE, 1, i, 0);
+			}
+		}
 		if (current_event->b)
 			for (i = 0; i < upper_voices; i++)
 				if (voice[i].status != VOICE_FREE) {
@@ -6180,8 +6199,10 @@ int play_midi_file(char *fn)
 	current_freq_table = j;
 	ctl_mode_event(CTLE_TEMPO, 0, current_play_tempo, 0);
 	ctl_mode_event(CTLE_TIME_RATIO, 0, 100 / midi_time_ratio + 0.5, 0);
-	for (i = 0; i < MAX_CHANNELS; i++)
+	for (i = 0; i < MAX_CHANNELS; i++) {
 		ctl_mode_event(CTLE_TEMPER_TYPE, 0, i, channel[i].temper_type);
+		ctl_mode_event(CTLE_MUTE, 0, i, temper_type_mute & 1);
+	}
   play_reload: /* Come here to reload MIDI file */
     rc = play_midi_load_file(fn, &event, &nsamples);
     if(RC_IS_SKIP_FILE(rc))

@@ -1,4 +1,15 @@
 
+2003-04-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/ncurs_c.c, interface/w32g_subwin3.c,
+	  timidity/controls.h, timidity/playmidi.c:
+	  Support for CTLE_MUTE.
+
+2003-04-30  Saito <timidity@flashmail.com>
+
+	* timidity/mix.c:
+	  Bug fix in envelope generator.
+	  
 2003-04-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/timidity.c:

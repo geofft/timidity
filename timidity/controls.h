@@ -100,6 +100,7 @@ enum {
     CTLE_TIME_RATIO,		/* v1:time ratio(%) */
     CTLE_TEMPER_KEYSIG,		/* v1:tuning key sig */
     CTLE_TEMPER_TYPE,		/* v1:ch, v2:tuning type */
+    CTLE_MUTE,			/* v1:ch, v2:is_mute */
     CTLE_PROGRAM,		/* v1:ch, v2:prog, v3:name, v4:bank,lsb.msb */
     CTLE_VOLUME,		/* v1:ch, v2:value */
     CTLE_EXPRESSION,		/* v1:ch, v2:value */
