@@ -1,3 +1,13 @@
+
+2003-05-03  Saito <timidity@flashmail.com>
+
+	* timidity/mix.c, timidity/playmidi.[ch],
+	  timidity/instrum.[ch], timidity/sndfont.c,
+	  timidity/mod2midi.c, timidity/smplfile.c:
+	  Fix around tremolo and vibrato.
+	  Fix delay.
+	  Fix in volume & modulation envelope generator.
+
 2003-05-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/w32g_{ini,pref}.c, interface/w32g_utl.[ch]:

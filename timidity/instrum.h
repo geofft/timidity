@@ -46,7 +46,6 @@ typedef struct _Sample {
     vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
-  int8 tremolo_type, vibrato_type;
   int32 cutoff_freq;	/* in Hz, [1, 20000] */
   int16 resonance;	/* in centibels, [0, 960] */
   /* in cents, [-12000, 12000] */
@@ -56,6 +55,7 @@ typedef struct _Sample {
   int16 vel_to_resonance;	/* in centibels, [-960, 960] */
   int8 envelope_velf_bpo, modenv_velf_bpo,
 	  key_to_fc_bpo, vel_to_fc_threshold;	/* in notes */
+  int32 vibrato_delay, tremolo_delay, envelope_delay, modenv_delay;	/* in samples */
   int8 inst_type;
 } Sample;
 

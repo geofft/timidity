@@ -1100,6 +1100,8 @@ static void initialize_sample(Instrument *inst, int frames, int sample_bits, int
 		memset(sample->modenv_keyf, 0, sizeof(sample->modenv_keyf));
 		memset(sample->modenv_rate, 0, sizeof(sample->modenv_rate));
 		memset(sample->modenv_offset, 0, sizeof(sample->modenv_offset));
+		sample->envelope_delay = sample->modenv_delay =
+			sample->tremolo_delay = sample->vibrato_delay = 0;
 		sample->inst_type = INST_PCM;
 	}
 	if (samples <= 6 && (panning = gen_pan_list[samples - 1]) != NULL)

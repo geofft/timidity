@@ -194,6 +194,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl);
 static void set_rootfreq(SampleList *vp);
 static int32 to_offset(int32 offset);
 static int32 to_rate(int32 diff, int timecent);
+static double to_msec(int timecent);
 static int32 calc_sustain(int sust_cB);
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl);
 static void convert_tremolo(SampleList *vp, LayerTable *tbl);
@@ -516,6 +517,14 @@ static int32 to_rate(int32 diff, int timecent)
 }
 
 /*
+ * convert timecents to sec
+ */
+static double to_msec(int timecent)
+{
+    return timecent == -12000 ? 0 : 1000.0 * pow(2.0, (double)timecent / 1200.0);
+}
+
+/*
  * Sustain level
  * sf: centibels
  * parm: 0x7f - sustain_level(dB) * 0.75
@@ -569,11 +578,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			  sp->v.low_freq, sp->v.high_freq, sp->v.root_freq,
 			  sp->v.panning);
 		memcpy(sample, &sp->v, sizeof(Sample));
-
-		/* convert mHz to control ratio */
-		sample->vibrato_control_ratio = sp->vibrato_freq *
-		    (VIBRATO_RATE_TUNING * play_mode->rate) /
-			(2 * VIBRATO_SAMPLE_INCREMENTS);
 
 		/* convert envelope parameters */
 		sample->envelope_offset[0] = to_offset(65535);
@@ -1517,6 +1521,8 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 	vp->release = modify_release;
     else
 	vp->release = to_rate(65535, tbl->val[SF_releaseEnv2]);
+	vp->v.envelope_delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayEnv2]) * 0.001;
 
     vp->modattack  = to_rate(65535, tbl->val[SF_attackEnv1]);
     vp->modhold    = to_rate(1, tbl->val[SF_holdEnv1]);
@@ -1526,6 +1532,8 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 	vp->modrelease = modify_release;
     else
 	vp->modrelease = to_rate(65535, tbl->val[SF_releaseEnv1]);
+	vp->v.modenv_delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayEnv1]) * 0.001;
 
     vp->v.modes |= MODES_ENVELOPE;
 }
@@ -1556,9 +1564,9 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
     }
 
     /* convert mHz to sine table increment; 1024<<rate_shift=1wave */
-    vp->v.tremolo_phase_increment = (freq * 1024) << RATE_SHIFT;
-    vp->v.tremolo_sweep_increment = (double)(1 << SWEEP_SHIFT) * control_ratio / play_mode->rate
-		/ pow(2.0, (double)tbl->val[SF_delayLfo1] / 1200.0);
+    vp->v.tremolo_phase_increment = ((play_mode->rate / 1000 * freq) >> RATE_SHIFT) / control_ratio;
+    vp->v.tremolo_delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayLfo1]) * 0.001;
 }
 #endif
 
@@ -1571,8 +1579,10 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 {
     int32 shift, freq;
 
-    if(!tbl->set[SF_lfo2ToPitch])
-	return;
+    if(!tbl->set[SF_lfo2ToPitch]) {
+		vp->v.vibrato_control_ratio = 0;
+		return;
+	}
 
     shift = tbl->val[SF_lfo2ToPitch];
 
@@ -1590,10 +1600,13 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
     {
 	freq = tbl->val[SF_freqLfo2];
 	freq = TO_MHZ(freq);
+	/* convert mHz to control ratio */
+	vp->v.vibrato_control_ratio = (1000 * play_mode->rate) /
+			(freq * 2 * VIBRATO_SAMPLE_INCREMENTS);
     }
-    vp->vibrato_freq = freq;
-    vp->v.vibrato_sweep_increment = (double)(1 << SWEEP_SHIFT) * control_ratio / play_mode->rate
-		/ pow(2.0, (double)tbl->val[SF_delayLfo2] / 1200.0);
+
+    vp->v.vibrato_delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayLfo2]) * 0.001;
 }
 #endif
 

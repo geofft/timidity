@@ -657,6 +657,8 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	memset(sp->modenv_keyf, 0, sizeof(sp->modenv_keyf));
 	memset(sp->modenv_rate, 0, sizeof(sp->modenv_rate));
 	memset(sp->modenv_offset, 0, sizeof(sp->modenv_offset));
+	sp->envelope_delay = sp->modenv_delay =
+		sp->tremolo_delay = sp->vibrato_delay = 0;
 
 	if (sp->data_length >= (1 << (31 - FRACTION_BITS)) - 1)
 	    shrink_huge_sample(sp);

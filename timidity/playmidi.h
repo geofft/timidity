@@ -329,6 +329,7 @@ typedef struct {
   int32
     modenv_volume, modenv_target, modenv_increment;
   FLOAT_T modenv_scale, last_modenv_volume, prev_modenv_volume;
+  int32 tremolo_delay, modenv_delay;
 } Voice;
 
 /* Voice status options: */

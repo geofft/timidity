@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#define OFFSET_MAX 0x40000000
+#define OFFSET_MAX (0x40000000)
 
 #if OPT_MODE != 0
 #define VOICE_LPF
@@ -132,6 +132,7 @@ void mix_voice(int32 *buf, int v, int32 c)
 				buf += vp->delay * 2;
 			c -= vp->delay;
 			vp->delay = 0;
+			recompute_envelope(v);
 		}
 		sp = resample_voice(v, &c);
 
@@ -174,7 +175,7 @@ void mix_voice(int32 *buf, int v, int32 c)
 }
 
 #ifdef VOICE_LPF
-#define FILTER_TRANSITION_SAMPLES control_ratio
+#define FILTER_TRANSITION_SAMPLES (control_ratio)
 static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
@@ -256,7 +257,6 @@ static inline void recalc_voice_fc(int v)
 	
 	freq = fc->freq;
 	if (freq != fc->last_freq) {
-		fc->last_freq = freq;
 		omega = 2 * M_PI * freq / play_mode->rate;
 		cos_coef = cos(omega), sin_coef = sin(omega);
 		alpha_coef = sin_coef / (2 * fc->reso_lin);
@@ -264,7 +264,7 @@ static inline void recalc_voice_fc(int v)
 		a2 = (1 - alpha_coef) / (1 + alpha_coef);
 		b1 = (1 - cos_coef) / (1 + alpha_coef) * fc->filter_gain;
 		b02 = b1 * 0.5f;
-		if(fc->filter_calculated /* or more optimization: && rapid freq. changing */) {
+		if(fc->filter_calculated) {
 			fc->a1_incr = (TIM_FSCALE(a1, 24) - fc->a1) / FILTER_TRANSITION_SAMPLES;
 			fc->a2_incr = (TIM_FSCALE(a2, 24) - fc->a2) / FILTER_TRANSITION_SAMPLES;
 			fc->b1_incr = (TIM_FSCALE(b1, 24) - fc->b1) / FILTER_TRANSITION_SAMPLES;
@@ -276,6 +276,7 @@ static inline void recalc_voice_fc(int v)
 			fc->filter_calculated = 1;
 			fc->filter_coeff_incr_count = 0;
 		}
+		fc->last_freq = freq;
 	}
 }
 #endif
@@ -1048,7 +1049,7 @@ int recompute_envelope(int v)
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (min_sustain_time * play_mode->rate);
 			ch = vp->channel;
-			vp->envelope_increment = -vp->sample->envelope_rate[3];
+			vp->envelope_increment = -vp->sample->envelope_rate[2];
 			/* use the slower of the two rates */
 			if (vp->envelope_increment < rate)
 				vp->envelope_increment = rate;
@@ -1088,6 +1089,8 @@ static inline int next_stage(int v)
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
 	
+	if(vp->delay > 0) {return 0;}
+
 	stage = vp->envelope_stage++;
 	offset = vp->sample->envelope_offset[stage];
 	rate = vp->sample->envelope_rate[stage];
@@ -1154,6 +1157,14 @@ static inline void update_tremolo(int v)
 	Voice *vp = &voice[v];
 	uint32 depth = vp->tremolo_depth << 7;
 	
+	if(vp->tremolo_delay > 0)
+	{
+		vp->tremolo_delay -= control_ratio;
+		if(vp->tremolo_delay > 0) {
+			vp->tremolo_volume = 1.0;
+			return;
+		}
+	}
 	if (vp->tremolo_sweep) {
 		/* Update sweep position */
 		vp->tremolo_sweep_position += vp->tremolo_sweep;
@@ -1202,15 +1213,15 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> 20,
+						imuldiv16((vp->envelope_volume - 1) >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						vp->envelope_volume >> 20];
+						(vp->envelope_volume - 1) >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
-				vp->envelope_volume >> 20];
+				(vp->envelope_volume - 1) >> 20];
 			lamp *= vp->last_envelope_volume;
 			ramp *= vp->last_envelope_volume;
 		}
@@ -1234,15 +1245,15 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> 20,
+						imuldiv16((vp->envelope_volume - 1) >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						vp->envelope_volume >> 20];
+						(vp->envelope_volume - 1) >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
-				vp->envelope_volume >> 20];
+				(vp->envelope_volume - 1) >> 20];
 			lamp *= vp->last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
@@ -1292,7 +1303,16 @@ static inline void compute_mix_smoothing(Voice *vp)
 static inline int update_modulation_envelope(int v)
 {
 	Voice *vp = &voice[v];
-	
+
+	if(vp->modenv_delay > 0)
+	{
+		vp->modenv_delay -= control_ratio;
+		if(vp->modenv_delay > 0) {
+			return 1;
+		} else {
+			return recompute_modulation_envelope(v);
+		}
+	}
 	vp->modenv_volume += vp->modenv_increment;
 	if ((vp->modenv_increment < 0)
 			^ (vp->modenv_volume > vp->modenv_target)) {
@@ -1319,7 +1339,7 @@ int apply_modulation_envelope(int v)
 		else if (vp->modenv_stage > 1)
 			vp->last_modenv_volume = (double)vp->modenv_volume / (double)OFFSET_MAX;
 		else
-			vp->last_modenv_volume = 1.0 - sb_vol_table[1023 - (vp->modenv_volume >> 20)];
+			vp->last_modenv_volume = 1.0 - sb_vol_table[1023 - ((vp->modenv_volume - 1) >> 20)];
 	}
 
 	recompute_voice_filter(v);
@@ -1336,6 +1356,8 @@ static inline int modenv_next_stage(int v)
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
 	
+	if(vp->modenv_delay > 0) {return 1;}
+
 	stage = vp->modenv_stage++;
 	offset = vp->sample->modenv_offset[stage];
 	rate = vp->sample->modenv_rate[stage];
@@ -1425,7 +1447,7 @@ int recompute_modulation_envelope(int v)
 			rate = -0x3fffffff * (double) control_ratio * 1000
 					/ (min_sustain_time * play_mode->rate);
 			ch = vp->channel;
-			vp->modenv_increment = -vp->sample->modenv_rate[3];
+			vp->modenv_increment = -vp->sample->modenv_rate[2];
 			/* use the slower of the two rates */
 			if (vp->modenv_increment < rate)
 				vp->modenv_increment = rate;

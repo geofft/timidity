@@ -661,7 +661,7 @@ void recompute_freq(int v)
 			channel[ch].pitchfactor = 0;
 		}
 		if(voice[v].sample->modenv_to_pitch) {
-			tuning += (1.0 - sb_vol_table[1023 - (int)(voice[v].last_modenv_volume * 1023)])
+			tuning += voice[v].last_modenv_volume
 				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f;
 			if(voice[v].last_modenv_volume != voice[v].prev_modenv_volume) {
 				voice[v].prev_modenv_volume = voice[v].last_modenv_volume;
@@ -880,7 +880,7 @@ void recompute_channel_filter(MidiEvent *e)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, reso = 0;
+	double coef = 1.0, reso = 0, cent = 0;
 	int32 freq;
 	FilterCoefficients *fc = &(voice[v].fc);
 	Sample *sp = (Sample *) &voice[v].sample;
@@ -891,27 +891,27 @@ void recompute_voice_filter(int v)
 
 	if(sp->vel_to_fc) {	/* velocity to filter cutoff frequency */
 		if(voice[v].velocity > sp->vel_to_fc_threshold)
-			coef *= pow(2.0, sp->vel_to_fc * (double)(127 - voice[v].velocity) / (1200.0f * 127.0f));
+			cent += sp->vel_to_fc * (double)(127 - voice[v].velocity) / 127.0f;
 		else
-			coef *= 0.5f;
+			coef += -1200;
 	}
 	if(sp->vel_to_resonance) {	/* velocity to filter resonance */
 		reso += (double)voice[v].velocity * sp->vel_to_resonance / 127.0f / 10.0f;
 	}
 	if(sp->key_to_fc) {	/* filter cutoff key-follow */
-		coef *= pow(2.0, sp->vel_to_fc * (double)(voice[v].note - sp->key_to_fc_bpo) / 1200.0f);
+		cent += sp->vel_to_fc * (double)(voice[v].note - sp->key_to_fc_bpo);
 	}
 
 	if(opt_modulation_envelope) {
 		if(voice[v].sample->tremolo_to_fc) {
-			coef += coef * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
-				* pow(2.0, (double)voice[v].sample->tremolo_to_fc / 1200.0f);
+			cent += (double)voice[v].sample->tremolo_to_fc * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT);
 		}
 		if(voice[v].sample->modenv_to_fc) {
-			coef += coef * voice[v].last_modenv_volume
-				* pow(2.0, (double)voice[v].sample->modenv_to_fc / 1200.0f);
+			cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
 		}
 	}
+
+	if(cent != 0) {coef *= pow(2.0, cent / 1200.0f);}
 
 	freq = (double)fc->orig_freq * coef;
 
@@ -1967,7 +1967,9 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   }
   voice[i].sample_increment=0; /* make sure it isn't negative */
   voice[i].modulation_wheel=channel[ch].modulation_wheel;
-  voice[i].delay=0;
+  voice[i].delay = voice[i].sample->envelope_delay;
+  voice[i].modenv_delay = voice[i].sample->modenv_delay;
+  voice[i].tremolo_delay = voice[i].sample->tremolo_delay;
   voice[i].vid=vid;
 
   voice[i].tremolo_phase=0;
@@ -2001,13 +2003,13 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 		  if(voice[i].vibrato_depth > 255) {voice[i].vibrato_depth = 255;}
 		  else if(voice[i].vibrato_depth < 0) {voice[i].vibrato_depth = 0;}
 	  }
-      voice[i].vibrato_delay = channel[ch].vibrato_delay;
+      voice[i].vibrato_delay = voice[i].sample->vibrato_delay + channel[ch].vibrato_delay;
   }
   else
   {
       voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
       voice[i].vibrato_depth = voice[i].sample->vibrato_depth;
-      voice[i].vibrato_delay = 0;
+      voice[i].vibrato_delay = voice[i].sample->vibrato_delay;
   }
   voice[i].orig_vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
 
@@ -2059,7 +2061,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  voice[i].modenv_stage = 0;
       voice[i].modenv_volume = 0;
       recompute_modulation_envelope(i);
-      apply_modulation_envelope(i);
+	  apply_modulation_envelope(i);
     }
   else
     {
@@ -2523,7 +2525,7 @@ static void all_sounds_off(int c)
 
 static void adjust_pressure(MidiEvent *e)
 {
-    int i, uv = upper_voices;
+ /*   int i, uv = upper_voices;
     int note, ch;
 	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl, coef;
 
@@ -2552,12 +2554,12 @@ static void adjust_pressure(MidiEvent *e)
 			recompute_voice_filter(i);
 			channel[ch].cutoff_freq_coef = coef;
 		}
-    }
+    }*/
 }
 
 static void adjust_channel_pressure(MidiEvent *e)
 {
-    if(opt_channel_pressure)
+ /*   if(opt_channel_pressure)
     {
 	int i, uv = upper_voices;
 	int ch;
@@ -2588,7 +2590,7 @@ static void adjust_channel_pressure(MidiEvent *e)
 		}
 	    }
 	}
-    }
+    }*/
 }
 
 static void adjust_panning(int c)
