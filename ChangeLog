@@ -1,3 +1,8 @@
+2004-03-02  mput <root@mput.dip.jp>
+
+	* timidity/output.h, timidity/common.h, timidity/readmidi.h,
+	  timidity/miditrace.h: Fix #inlude dependencies
+
 2004-03-02  Saito <saito@intaa.net>
 
 	* timidity/playmidi.c, timidity/readmidi.[ch],

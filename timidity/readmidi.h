@@ -23,6 +23,7 @@
 
 #ifndef ___READMIDI_H_
 #define ___READMIDI_H_
+#include "reverb.h"
 
 /* MIDI file types */
 #define IS_ERROR_FILE	-1	/* Error file */

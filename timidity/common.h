@@ -24,6 +24,7 @@
 #ifndef ___COMMON_H_
 #define ___COMMON_H_
 
+#include "sysdep.h"
 #include "url.h"
 #include "mblock.h"
 

@@ -23,6 +23,7 @@
 
 #ifndef ___OUTPUT_H_
 #define ___OUTPUT_H_
+#include "output.h"
 
 /* Data format encoding bits */
 /* {PE_16BIT,PE_ULAW,PE_ALAW} is alternative flag */

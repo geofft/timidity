@@ -20,6 +20,8 @@
 
 #ifndef ___MIDITRACE_H_
 #define ___MIDITRACE_H_
+#include "mblock.h"
+#include "controls.h"
 
 typedef struct _MidiTrace
 {
