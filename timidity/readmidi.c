@@ -429,6 +429,7 @@ static char *add_karaoke_title(char *s1, char *s2)
     ks[k1++] = ' ';
     memcpy(ks + k1, s2, k2 + 1);
     free(s1);
+	s1 = NULL;
 
     return ks;
 }

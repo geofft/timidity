@@ -171,7 +171,10 @@ static int32 _output, _bufout, _temp1, _temp2, _temp3;
 /*! delay */
 static void free_delay(delay *delay)
 {
-	if(delay->buf != NULL) {free(delay->buf);}
+	if(delay->buf != NULL) {
+		free(delay->buf);
+		delay->buf = NULL;
+	}
 }
 
 static void set_delay(delay *delay, int32 size)
@@ -237,7 +240,10 @@ inline int32 do_lfo(lfo *lfo)
 /*! modulated delay with allpass interpolation (for Chorus Effect,...) */
 static void free_mod_delay(mod_delay *delay)
 {
-	if(delay->buf != NULL) {free(delay->buf);}
+	if(delay->buf != NULL) {
+		free(delay->buf);
+		delay->buf = NULL;
+	}
 }
 
 static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
@@ -271,7 +277,10 @@ static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
 /*! modulated allpass filter with allpass interpolation (for Plate Reverberator,...) */
 static void free_mod_allpass(mod_allpass *delay)
 {
-	if(delay->buf != NULL) {free(delay->buf);}
+	if(delay->buf != NULL) {
+		free(delay->buf);
+		delay->buf = NULL;
+	}
 }
 
 static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, double feedback)
@@ -308,12 +317,18 @@ static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, doubl
 /* allpass filter */
 static void free_allpass(allpass *allpass)
 {
-	if(allpass->buf != NULL) {free(allpass->buf);}
+	if(allpass->buf != NULL) {
+		free(allpass->buf);
+		allpass->buf = NULL;
+	}
 }
 
 static void set_allpass(allpass *allpass, int32 size, double feedback)
 {
-	if(allpass->buf != NULL) {free(allpass->buf);}
+	if(allpass->buf != NULL) {
+		free(allpass->buf);
+		allpass->buf = NULL;
+	}
 	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
 	if(allpass->buf == NULL) {return;}
 	allpass->index = 0;
@@ -947,7 +962,10 @@ void reverb_rc_event(int rc, int32 val)
 /*             */
 static void set_freeverb_allpass(allpass *allpass, int32 size)
 {
-	if(allpass->buf != NULL) {free(allpass->buf);}
+	if(allpass->buf != NULL) {
+		free(allpass->buf);
+		allpass->buf = NULL;
+	}
 	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * size);
 	if(allpass->buf == NULL) {return;}
 	allpass->index = 0;
@@ -961,7 +979,10 @@ static void init_freeverb_allpass(allpass *allpass)
 
 static void set_freeverb_comb(comb *comb, int32 size)
 {
-	if(comb->buf != NULL) {free(comb->buf);}
+	if(comb->buf != NULL) {
+		free(comb->buf);
+		comb->buf = NULL;
+	}
 	comb->buf = (int32 *)safe_malloc(sizeof(int32) * size);
 	if(comb->buf == NULL) {return;}
 	comb->index = 0;
@@ -1223,17 +1244,25 @@ static void free_freeverb_buf(InfoFreeverb *rev)
 	
 	for(i = 0; i < numcombs; i++)
 	{
-		if(rev->combL[i].buf != NULL)
+		if(rev->combL[i].buf != NULL) {
 			free(rev->combL[i].buf);
-		if(rev->combR[i].buf != NULL)
+			rev->combL[i].buf = NULL;
+		}
+		if(rev->combR[i].buf != NULL) {
 			free(rev->combR[i].buf);
+			rev->combR[i].buf = NULL;
+		}
 	}
 	for(i = 0; i < numallpasses; i++)
 	{
-		if(rev->allpassL[i].buf != NULL)
+		if(rev->allpassL[i].buf != NULL) {
 			free(rev->allpassL[i].buf);
-		if(rev->allpassR[i].buf != NULL)
+			rev->allpassL[i].buf = NULL;
+		}
+		if(rev->allpassR[i].buf != NULL) {
 			free(rev->allpassR[i].buf);
+			rev->allpassR[i].buf = NULL;
+		}
 	}
 }
 
@@ -2289,9 +2318,11 @@ void free_effect_list(EffectList *ef)
 		if(efc->info != NULL) {
 			(*efc->do_effect)(NULL, MAGIC_FREE_EFFECT_INFO, efc);
 			free(efc->info);
+			efc->info = NULL;
 		}
 		efc->do_effect = NULL;
 		free(efc);
+		efc = NULL;
 	} while ((efc = efn) != NULL);
 }
 

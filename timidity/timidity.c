@@ -4620,6 +4620,11 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	exit(1);
     }
 
+    for(i = 0; i < MAX_CHANNELS; i++)
+    {
+	memset(&(channel[i]), 0, sizeof(Channel));
+    }
+
     CLEAR_CHANNELMASK(quietchannels);
     CLEAR_CHANNELMASK(default_drumchannels);
 
@@ -4840,6 +4845,7 @@ MAIN_INTERFACE void timidity_init_player(void)
 {
     /* Allocate voice[] */
     voice = (Voice *) safe_realloc(voice, max_voices * sizeof(Voice));
+	memset(voice, 0, max_voices * sizeof(Voice));
 
     /* Set play mode parameters */
     if(opt_output_rate != 0)

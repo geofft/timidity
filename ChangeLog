@@ -1,7 +1,10 @@
 2004-02-03  Saito <saito2@digitalme.com>
 
-	* timidity/mix.c, timidity/timidity.c, timidity/playmidi.[ch]:
+	* timidity/mix.c, timidity/timidity.c, timidity/playmidi.[ch],
+	  timidity/readmidi.c, timidity/reverb.c:
 	  Change implementation of #extension timeout.
+	  Fix some initializations.
+	  Fix some free() functions.
 
 2004-02-02  Kentaro Sato <kentaro@ranvis.com>
 
