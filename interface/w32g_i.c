@@ -1363,6 +1363,9 @@ struct Canvas_ {
    int CKNoteTo;
 	int CKCh;
 	int CKPart;
+	RECT rcGSLCD;
+	int8 GSLCD[16][16];
+	int8 GSLCD_old[16][16];
 	int KeyboardUpdateFlag;
   	int xnote_reset;
 // misc
@@ -1385,6 +1388,7 @@ static void CanvasPaintDo(void);
 #define IDM_CANVAS_KEYBOARD_A   2327
 #define IDM_CANVAS_KEYBOARD_B   2328
 #define IDM_CANVAS_KEYBOARD_C   2329
+#define IDM_CANVAS_GSLCD   2330
 static void InitCanvasWnd(HWND hwnd)
 {
 	WNDCLASS wndclass ;
@@ -1425,6 +1429,7 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_SLEEP,"Sleep Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP16,"Map16 Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP32,"Map32 Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_GSLCD,"LCD Mode");
 		//	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_KEYBOARD,"Keyboard Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_POPUP,(UINT)Canvas.hPopupMenuKeyboard,"Keyboard Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_SEPARATOR,0,0);
@@ -1474,6 +1479,9 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
          case IDM_CANVAS_KEYBOARD_B:
 				Canvas.CKPart = 2;
          	CanvasChange(CANVAS_MODE_KEYBOARD);
+            break;
+         case IDM_CANVAS_GSLCD:
+         	CanvasChange(CANVAS_MODE_GSLCD);
             break;
          case IDM_CANVAS_REDRAW:
 //				PanelResetPart(PANELRESET_CHANNEL);
@@ -1583,6 +1591,7 @@ static void CanvasInit(HWND hwnd)
 	SetRect((RECT *)&(Canvas.rcSleep),0,0,96,64);
 	SetRect((RECT *)&(Canvas.rcMap),3,2+2,0,0);
 	SetRect((RECT *)&(Canvas.rcKeyboard),1,1,0,0);
+	SetRect((RECT *)&(Canvas.rcGSLCD),3,4,99,68);
    Canvas.rcMapMap.left = Canvas.rcMap.left;
    Canvas.rcMapMap.top = Canvas.rcMap.top;
    Canvas.rcMapMap.right = Canvas.rcMapMap.left + 6*16 - 1;
@@ -2068,6 +2077,121 @@ static void CanvasSleepUpdate(int flag)
 	GDI_UNLOCK(); // gdi_lock
 }
 
+// Canvas GSLCD
+
+static void CanvasGSLCDReset(void)
+{
+	int i, j;
+	for(i = 0; i < 16; i++) {
+		for(j = 0; j < 16; j++) {
+			Canvas.GSLCD[i][j] = 0;
+			Canvas.GSLCD_old[i][j] = 0;
+		}
+	}
+	Canvas.PaintDone = 0;
+}
+
+static void CanvasGSLCDReadPanelInfo(int flag)
+{
+	int i, j;
+	if (!CanvasOK) {return;}
+	if (!PInfoOK) {return;}
+	if (Canvas.UpdateAll) {flag = 1;}
+	if (!Panel->changed && !flag) {return;}
+	for(i = 0; i < 16; i++) {
+		for(j = 0; j < 16; j++) {
+			Canvas.GSLCD_old[i][j] = Canvas.GSLCD[i][j];
+			Canvas.GSLCD[i][j] = Panel->GSLCD[i][j];
+		}
+	}
+}
+
+#define CGSLCD_BG RGB(0x00,0xf0,0x00)
+#define CGSLCD_ON RGB(0x00,0x00,0x00)
+#define CGSLCD_OFF RGB(0x00,0xc0,0x00)
+static void CanvasGSLCDUpdate(int flag)
+{
+	int i, j, x, y, changed = 0;
+	COLORREF colorON = CGSLCD_ON, colorOFF = CGSLCD_OFF;
+	HPEN hPen;
+	HBRUSH hBrush;
+	HGDIOBJ hgdiobj_hpen, hgdiobj_hbrush;
+
+	if(!PInfoOK) {return;}
+	if(Canvas.UpdateAll) {flag = 1;}
+	if(!Panel->changed && !flag) {return;}
+	GDI_LOCK(); // gdi_lock
+	for (i = 0; i < 16; i++) {
+		for (j = 0; j < 16; j++) {
+     		x = Canvas.rcGSLCD.left + i * 6;
+   			y = Canvas.rcGSLCD.top + j * 4;
+			if (flag || Canvas.GSLCD[i][j] != Canvas.GSLCD_old[i][j]) {
+				changed = 1;
+				if (Canvas.GSLCD[i][j] == 1) {
+					hPen = CreatePen(PS_SOLID, 1, colorON);
+					hBrush = CreateSolidBrush(colorON);
+				}
+				else {
+					hPen = CreatePen(PS_SOLID, 1, colorOFF);
+					hBrush = CreateSolidBrush(colorOFF);
+				}
+				hgdiobj_hpen = SelectObject(Canvas.hmdc, hPen);
+				hgdiobj_hbrush = SelectObject(Canvas.hmdc, hBrush);
+				Rectangle(Canvas.hmdc, x, y, x + 5, y + 3);
+				SelectObject(Canvas.hmdc, hgdiobj_hpen);
+				DeleteObject(hPen);
+				SelectObject(Canvas.hmdc, hgdiobj_hbrush);
+				DeleteObject(hBrush);
+			}
+		}
+	}
+	if (changed) {
+		GDI_UNLOCK();
+       	InvalidateRect(Canvas.hwnd, (RECT *)&Canvas.rcGSLCD, FALSE);
+		GDI_LOCK();
+	}
+	GDI_UNLOCK(); // gdi_lock
+	if(flag) {InvalidateRect(hCanvasWnd, NULL, FALSE);}
+}
+
+static void CanvasGSLCDClear(void)
+{
+	HPEN hPen;
+	HBRUSH hBrush;
+	HGDIOBJ hgdiobj_hpen, hgdiobj_hbrush;
+	COLORREF BGcolor;
+	if(!CanvasOK)
+   	return;
+ 	GDI_LOCK(); // gdi_lock
+	BGcolor = RGB(0,0,0);
+	hPen = CreatePen(PS_SOLID,1,BGcolor);
+	hBrush = CreateSolidBrush(BGcolor);
+	hgdiobj_hpen = SelectObject(Canvas.hmdc, hPen);
+	hgdiobj_hbrush = SelectObject(Canvas.hmdc, hBrush);
+	Rectangle(Canvas.hmdc,
+   	Canvas.rcMe.left,Canvas.rcMe.top,Canvas.rcMe.right,Canvas.rcMe.bottom);
+	SelectObject(Canvas.hmdc, hgdiobj_hpen);
+	DeleteObject(hPen);
+	SelectObject(Canvas.hmdc, hgdiobj_hbrush);
+	DeleteObject(hBrush);
+	BGcolor = CGSLCD_BG;
+	hPen = CreatePen(PS_SOLID,1,BGcolor);
+	hBrush = CreateSolidBrush(BGcolor);
+	hgdiobj_hpen = SelectObject(Canvas.hmdc, hPen);
+	hgdiobj_hbrush = SelectObject(Canvas.hmdc, hBrush);
+	Rectangle(Canvas.hmdc,
+   	Canvas.rcMe.left + 1,Canvas.rcMe.top + 1,Canvas.rcMe.right - 1,Canvas.rcMe.bottom - 1);
+	SelectObject(Canvas.hmdc, hgdiobj_hpen);
+	DeleteObject(hPen);
+	SelectObject(Canvas.hmdc, hgdiobj_hbrush);
+	DeleteObject(hBrush);
+	GDI_UNLOCK(); // gdi_lock
+
+	CanvasGSLCDReset();
+	CanvasGSLCDReadPanelInfo(1);
+	CanvasGSLCDUpdate(1);
+	InvalidateRect(hCanvasWnd, NULL, FALSE);
+}
 
 // Canvas Keyboard
 
@@ -2322,6 +2446,9 @@ void CanvasReset(void)
 		case CANVAS_MODE_KEYBOARD:
 			CanvasKeyboardReset();
 			break;
+		case CANVAS_MODE_GSLCD:
+			CanvasGSLCDReset();
+			break;
 		case CANVAS_MODE_SLEEP:
 		default:
 			CanvasSleepReset();
@@ -2340,6 +2467,9 @@ void CanvasClear(void)
 		case CANVAS_MODE_KEYBOARD:
 			CanvasKeyboardClear();
 			break;
+		case CANVAS_MODE_GSLCD:
+			CanvasGSLCDClear();
+			break;
 		default:
 		case CANVAS_MODE_SLEEP:
 			CanvasSleepClear();
@@ -2357,11 +2487,14 @@ void CanvasUpdate(int flag)
 			break;
 		case CANVAS_MODE_KEYBOARD:
 			CanvasKeyboardUpdate(flag);
-		break;
+			break;
+		case CANVAS_MODE_GSLCD:
+			CanvasGSLCDUpdate(flag);
+			break;
 		default:
 		case CANVAS_MODE_SLEEP:
 			CanvasSleepUpdate(flag);
-      break;
+			break;
   }
 }
 
@@ -2375,7 +2508,10 @@ void CanvasReadPanelInfo(int flag)
 			break;
 		case CANVAS_MODE_KEYBOARD:
 			CanvasKeyboardReadPanelInfo(flag);
-		break;
+			break;
+		case CANVAS_MODE_GSLCD:
+			CanvasGSLCDReadPanelInfo(flag);
+			break;
 		default:
 		case CANVAS_MODE_SLEEP:
 //			CanvasSleepReadPanelInfo(flag);
@@ -2393,6 +2529,8 @@ void CanvasChange(int mode)
 		else if(Canvas.Mode==CANVAS_MODE_MAP)
    		Canvas.Mode = CANVAS_MODE_KEYBOARD;
 		else if(Canvas.Mode==CANVAS_MODE_KEYBOARD)
+   		Canvas.Mode = CANVAS_MODE_GSLCD;
+		else if(Canvas.Mode==CANVAS_MODE_GSLCD)
    		Canvas.Mode = CANVAS_MODE_SLEEP;
 		else
    		Canvas.Mode = CANVAS_MODE_SLEEP;

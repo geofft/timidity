@@ -191,6 +191,8 @@ typedef struct {
 
 	int changed;
 	char dummy[1024];
+
+	int8 GSLCD[16][16];
 } PanelInfo;
 extern PanelInfo *Panel;
 
@@ -204,7 +206,7 @@ extern PanelInfo *Panel;
 #define CANVAS_MODE_SLEEP		0x0001
 #define CANVAS_MODE_MAP			0x0002
 #define CANVAS_MODE_KEYBOARD	0x0003
-
+#define CANVAS_MODE_GSLCD		0x0004
 
 #if 0
 #define TMCCC_BLACK	RGB(0x00,0x00,0x00)

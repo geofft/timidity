@@ -191,6 +191,11 @@ static void PanelReset(void)
     Panel->tempo = 0;
     Panel->tempo_ratio = 0;
     Panel->aq_ratio = 0;
+	for (i = 0; i < 16; i++) {
+		for (j = 0; j < 16; j++) {
+			Panel->GSLCD[i][j] = 0;
+		}
+	}
     Panel->changed = 1;
 }
 
@@ -843,6 +848,44 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
     }
 }
 
+static void ctl_lcd_mark(int flag, int x, int y)
+{
+	Panel->GSLCD[x][y] = flag;
+}
+
+static void ctl_gslcd(int id)
+{
+    char *lcd;
+    int i, j, k, data, mask;
+    char tmp[3];
+
+    if((lcd = event2string(id)) == NULL)
+	return;
+    if(lcd[0] != ME_GSLCD)
+	return;
+    lcd++;
+    for(i = 0; i < 16; i++)
+    {
+	for(j = 0; j < 4; j++)
+	{
+	    tmp[0]= lcd[2 * (j * 16 + i)];
+	    tmp[1]= lcd[2 * (j * 16 + i) + 1];
+	    if(sscanf(tmp, "%02X", &data) != 1)
+	    {
+		/* Invalid format */
+		return;
+	    }
+	    mask = 0x10;
+	    for(k = 0; k < 5; k++)
+	    {
+		if(data & mask)	{ctl_lcd_mark(1, j * 5 + k, i);}
+		else {ctl_lcd_mark(0, j * 5 + k, i);}
+		mask >>= 1;
+	    }
+	}
+    }
+	Panel->changed = 1;
+}
 
 static void ctl_channel_note(int ch, int note, int vel)
 {
@@ -1113,6 +1156,12 @@ static void ctl_event(CtlEvent *e)
 	break;
       case CTLE_NOTE:
 	ctl_note((int)e->v1, (int)e->v2, (int)e->v3, (int)e->v4);
+	break;
+      case CTLE_GSLCD:
+	ctl_gslcd((int)e->v1);
+	CanvasReadPanelInfo(0);
+	CanvasUpdate(0);
+	CanvasPaint();
 	break;
       case CTLE_MASTER_VOLUME:
 	ctl_master_volume((int)e->v1);
