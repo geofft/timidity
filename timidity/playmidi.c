@@ -275,8 +275,9 @@ static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
 
 static void init_voice_filter(int);
-void init_part_eq_xg(struct part_eq_xg *p);
-void recompute_part_eq_xg(struct part_eq_xg *p);
+void init_part_eq_xg(struct part_eq_xg *);
+void recompute_part_eq_xg(struct part_eq_xg *);
+void init_midi_controller(midi_controller *); 
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -521,7 +522,14 @@ static void reset_nrpn_controllers(int c)
   init_part_eq_xg(&(channel[c].eq_xg));
 
   /* channel pressure & polyphonic key pressure control */
-  channel[c].caf_lfo1_rate_ctl = 0;
+  init_midi_controller(&(channel[c].mod));
+  init_midi_controller(&(channel[c].bend)); 
+  init_midi_controller(&(channel[c].caf)); 
+  init_midi_controller(&(channel[c].paf)); 
+  init_midi_controller(&(channel[c].cc1)); 
+  init_midi_controller(&(channel[c].cc2)); 
+  /* channel[c].bend.pitch = 2; */
+  channel[c].mod.lfo1_pitch_depth = 10;
 
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
 	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
@@ -7349,4 +7357,15 @@ void recompute_part_eq_xg(struct part_eq_xg *p)
 		calc_filter_shelving_high(&(p->trebles));
 	} else {vtreble = 0;}
 	p->valid = vbass || vtreble;
+}
+
+void init_midi_controller(midi_controller *p)
+{
+	p->pitch = 0;
+	p->cutoff = 0;
+	p->amp = 0.0;
+	p->lfo1_rate = p->lfo2_rate = p->lfo1_tva_depth = p->lfo2_tva_depth = 0;
+	p->lfo1_pitch_depth = p->lfo2_pitch_depth = p->lfo1_tvf_depth = p->lfo2_tvf_depth = 0;
+	p->variation_control_depth = p->insertion_control_depth = 0;
+	p->valid = 0;
 }

@@ -204,6 +204,20 @@ struct part_eq_xg {
 };
 #endif /* PART_EQ_XG */
 
+typedef struct {
+  int8 pitch;	/* in +-semitones [-24, 24] */
+  int16 cutoff;	/* in +-cents [-9600, 9600] */
+  float amp;	/* in +-pct [-100.0, 100.0] */
+  /* in GS, LFO1 means LFO for voice 1, LFO2 means LFO for voice2.
+     LFO2 is not supported. */
+  float lfo1_rate, lfo2_rate;	/* in +-Hz [-10.0, 10.0] */
+  int16 lfo1_pitch_depth, lfo2_pitch_depth;	/* in cents [0, 600] */
+  int16 lfo1_tvf_depth, lfo2_tvf_depth;	/* in cents [0, 2400] */
+  float lfo1_tva_depth, lfo2_tva_depth;	/* in pct [0, 100.0] */
+  int8 variation_control_depth, insertion_control_depth;
+  int8 valid;
+} midi_controller;
+
 struct DrumParts
 {
     int8 drum_panning;
@@ -291,20 +305,7 @@ typedef struct {
   int8 legato;	/* legato footswitch */
   int8 legato_flag;	/* note-on flag for legato */
 
-  int8 mod_pitch_ctl;	/* in semitones */
-  int8 mod_amp_ctl, mod_lfo1_rate_ctl, mod_lfo2_rate_ctl, mod_lfo2_tva_depth;
-  int16 mod_tvf_cutoff_ctl, mod_lfo1_pitch_depth,
-	  mod_lfo2_pitch_depth, mod_lfo2_tvf_depth;	/* in cents */
-
-  int8 caf_pitch_ctl;	/* in semitones */
-  int8 caf_amp_ctl, caf_lfo1_rate_ctl, caf_lfo2_rate_ctl, caf_lfo2_tva_depth;
-  int16 caf_tvf_cutoff_ctl, caf_lfo1_pitch_depth,
-	  caf_lfo2_pitch_depth, caf_lfo2_tvf_depth;	/* in cents */
-
-  int8 paf_pitch_ctl;	/* in semitones */
-  int8 paf_amp_ctl, paf_lfo1_rate_ctl, paf_lfo2_rate_ctl, paf_lfo2_tva_depth;
-  int16 paf_tvf_cutoff_ctl, paf_lfo1_pitch_depth,
-	  paf_lfo2_pitch_depth, paf_lfo2_tvf_depth;	/* in cents */
+  midi_controller mod, bend, caf, paf, cc1, cc2;
 
   ChannelBitMask channel_layer;
   int port_select;
