@@ -58,11 +58,6 @@ install.el:
 install.bin:
 	cd timidity; $(MAKE) install
 
-dist-hook:
-	echo '$(SHELL) ./config.status ; if cmp -s $$CONFIG_FILES $(distdir)/$$CONFIG_FILES; then echo no need to copy $$CONFIG_FILES ; else cp -p $$CONFIG_FILES $(distdir)/$$CONFIG_FILES; fi' \
-	| env CONFIG_HEADERS='' CONFIG_FILES=configs/msc-config.h \
-	$(SHELL)
-
 ##
 ## Targets for timidity-tools
 ##

@@ -18,8 +18,6 @@
 # USA
 
 EXTRA_DIST = \
-  msc-config.h \
-  msc-config.h.in \
   msc-interface.h \
   msc-sjis.txt \
   msc-twsyn-interface.h \

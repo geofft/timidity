@@ -12,6 +12,12 @@
 
 2004-02-04  mput <root@mput.dip.jp>
 
+	* Makefile.am (dist-hook): delete
+	* configs/Makefile.am (EXTRA_DIST): delete entry for msc-config.h
+	* configs/msc-config.h{,.in}: remove
+
+2004-02-04  mput <root@mput.dip.jp>
+
 	* Makefile.am (dist-hook): Fix to preserve timestamp.
 
 2004-02-03  Kentaro Sato <kentaro@ranvis.com>
