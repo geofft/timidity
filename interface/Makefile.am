@@ -144,13 +144,11 @@ WRD_OBJS = \
 	x_sherry.$(OBJEXT)
 endif
 
-if !BORLANDC
 if CYGNUS
 WRD_WINCON_OBJS = wrdt_wcon.$(OBJEXT)
 endif
 if MSYS
 WRD_WINCON_OBJS2 = wrdt_wcon.$(OBJEXT)
-endif
 endif
 
 if NEEDDLOPEN

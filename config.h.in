@@ -3,7 +3,7 @@
 /* Define to 1 if you are in debug mode */
 #undef DEBUG
 
-/* for windows */
+/* place to install patches */
 #undef DEFAULT_PATH
 
 /* Define resampler. */

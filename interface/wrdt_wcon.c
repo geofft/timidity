@@ -51,7 +51,7 @@
 #include "wrd.h"
 
 // #define DEBUG1
-#ifndef __BORLANDC__
+#ifndef __OLD_BORLANDC__
 #define USE_ESC
 #define NULL_STMT do ; while(0)
 #define gotoxy(x, y) NULL_STMT
@@ -62,7 +62,7 @@
 #define delline() NULL_STMT
 #define clrscr() NULL_STMT
 #define clreol() NULL_STMT
-#endif /* __BORLANDC__ */
+#endif /* __OLD_BORLANDC__ */
 
 static int wrdt_open(char *dummy);
 static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[]);
@@ -90,7 +90,7 @@ static int wrd_argc;
 static int wrd_args[WRD_MAXPARAM];
 static int inkey_flag;
 
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 static struct text_info text_info;
 static struct conattr {
 	int attr;
@@ -174,7 +174,7 @@ static void putstringn(char *str, int n)
 		putch(*(str++));
 }
 
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 static void borlandc_con_color(int color)
 {
 	switch(color){
@@ -477,21 +477,21 @@ void esc_setcursorposition(void)
 
 void esc_enablecursordisplay(void)
 {
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 	_setcursortype(_NORMALCURSOR);
-#endif /* __BORLANDC__ */
+#endif /* __OLD_BORLANDC__ */
 }
 
 void esc_disablecursordisplay(void)
 {
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 	_setcursortype(_NOCURSOR);
-#endif /* __BORLANDC__ */
+#endif /* __OLD_BORLANDC__ */
 }
 
 void esc_characterattribute(int n)
 {
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 	borlandc_con_color(n);
 #endif
 }
@@ -750,7 +750,7 @@ static void borlandc_esc(char *str)
 }
 */
 
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 static void borlandc_esc(char *str)
 {
 	char local[201];
@@ -760,14 +760,14 @@ static void borlandc_esc(char *str)
 	local[200] = '\0';
 	putstring_with_esc(local);
 }
-#endif /* __BORLANDC__ */
+#endif /* __OLD_BORLANDC__ */
 
 static int wrdt_open(char *dummy)
 {
   
     wrdt.opened = 1;
     inkey_flag = 0;
-#ifdef __BORLANDC__
+#ifdef __OLD_BORLANDC__
 //	highvideo();
 	borlandc_con_init();
 	esc_disablecursordisplay();

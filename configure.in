@@ -570,7 +570,7 @@ if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
   AC_DEFINE(HAVE_VSNPRINTF,1)
   AC_DEFINE(vsnprintf,_vsnprintf,[for VC])
   AC_DEFINE(TIMID_VERSION,[$(PACKAGE_VERSION)],[for windows gui])
-  AC_DEFINE(DEFAULT_PATH,[".\\"],[for windows])
+  AC_DEFINE(DEFAULT_PATH,[".\\"],place to install patches)
 fi
 
 AC_CHECK_FUNC(getopt_long,
