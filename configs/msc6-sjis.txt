@@ -1,0 +1,185 @@
+	Visual C++ 6.0 でコンパイルしたときのメモ
+		(by Masanao Izumo <mo@goice.co.jp, Aug.1999)
+
+このメモは私が TiMidity++ を Visual C++ 6.0 でコンパイルしたときのメモです。
+ワークスベースをスクラッチから起こそうと思っている方は参考にしてください。
+誤りは指摘していただけると助かります。
+
+configs/msc-config.h を ソースルートの config.h にコピー
+configs/msc-interface.h を ソースルートの interface.h にコピー
+
+以下のファイルをプロジェクトに追加 (これが結構つかれるんだな。
+簡単にやる方法はないのかなぁ。抜け落ちていたらすみません)
+
+config.h
+interface.h
+interface/dumb_c.c
+interface/w32g.h
+interface/w32g_btn.bmp
+interface/w32g_c.c
+interface/w32g_i.c
+interface/w32g_icon.ico
+interface/w32g_ini.c
+interface/w32g_playlist.c
+interface/w32g_pref.c
+interface/w32g_pref.h
+interface/w32g_rec.h
+interface/w32g_res.h
+interface/w32g_res.rc
+interface/w32g_sleep.bmp
+interface/w32g_subbtn.bmp
+interface/w32g_subwin.c
+interface/w32g_subwin.h
+interface/w32g_utl.c
+interface/w32g_utl.h
+interface/wrdt_dumb.c
+interface/wrdt_tty.c
+interface/wrdt_wcon.c
+libarc/arc.c
+libarc/arc.h
+libarc/arc_lzh.c
+libarc/arc_mime.c
+libarc/arc_tar.c
+libarc/arc_zip.c
+libarc/deflate.c
+libarc/explode.c
+libarc/explode.h
+libarc/inflate.c
+libarc/unlzh.c
+libarc/unlzh.h
+libarc/url.c
+libarc/url.h
+libarc/url_b64decode.c
+libarc/url_buff.c
+libarc/url_cache.c
+libarc/url_dir.c
+libarc/url_file.c
+libarc/url_ftp.c
+libarc/url_hqxdecode.c
+libarc/url_http.c
+libarc/url_inflate.c
+libarc/url_mem.c
+libarc/url_news.c
+libarc/url_newsgroup.c
+libarc/url_qsdecode.c
+libarc/url_uudecode.c
+libarc/zip.h
+timidity/aiff_a.c
+timidity/aq.c
+timidity/aq.h
+timidity/au_a.c
+timidity/audio_cnv.c
+timidity/audio_cnv.h
+timidity/common.c
+timidity/common.h
+timidity/controls.c
+timidity/controls.h
+timidity/effect.c
+timidity/filter.c
+timidity/filter.h
+timidity/instrum.c
+timidity/instrum.h
+timidity/list_a.c
+timidity/load_mod.c
+timidity/loadtab.c
+timidity/mid-j.defs
+timidity/mid.defs
+timidity/miditrace.c
+timidity/miditrace.h
+timidity/mix.c
+timidity/mix.h
+timidity/mod.c
+timidity/mod.h
+timidity/output.c
+timidity/output.h
+timidity/playmidi.c
+timidity/playmidi.h
+timidity/raw_a.c
+timidity/rcp.c
+timidity/readmidi.c
+timidity/readmidi.h
+timidity/recache.c
+timidity/recache.h
+timidity/resample.c
+timidity/resample.h
+timidity/reverb.c
+timidity/reverb.h
+timidity/sbkconv.c
+timidity/sffile.c
+timidity/sffile.h
+timidity/sfitem.c
+timidity/sfitem.h
+timidity/sflayer.h
+timidity/smfconv.c
+timidity/smfconv.h
+timidity/sndfont.c
+timidity/tables.c
+timidity/tables.h
+timidity/timidity.c
+timidity/timidity.h
+timidity/version.c
+timidity/w32g_a.c
+timidity/wave_a.c
+timidity/wrd.h
+timidity/wrd_read.c
+timidity/wrdt.c
+utils/bitset.c
+utils/bitset.h
+utils/fft.c
+utils/fft.h
+utils/mblock.c
+utils/mblock.h
+utils/memb.c
+utils/memb.h
+utils/net.c
+utils/net.h
+utils/nkflib.c
+utils/nkflib.h
+utils/readdir.h
+utils/readdir_win.c
+utils/strtab.c
+utils/strtab.h
+utils/support.c
+utils/support.h
+utils/timer.c
+utils/timer.h
+
+[プロジェクト設定]
+[C/C++]
+・コード生成:
+  使用するランタイム（ライブラリ）:マルチスレッド
+  構造体メンバのアラインメント：16
+・プリプロセッサの定義
+WIN32,_DEBUG,_WINDOWS,_MBCS,__W32__,HAVE_CONFIG_H,_MT,W32GUI_DEBUG
+・インクルードファイルのパス (ソースルートを $ROOT とする)
+$ROOT
+$ROOT\timidity
+$ROOT\utils
+$ROOT\libarc
+$ROOT\interface
+
+[リンク]
+・オブジェクトライブラリモジュール
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib
+shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+libcmt.lib comctl32.lib winmm.lib wsock32.lib
+
+
+その他独り言、、、
+==================
+ANSI C の低水準入出力関数 open/read/write/close 等が未定義シンボルで
+リンクできない。`_' をつけて _open, _close とすればよいようだ。
+timidity.h で #define しちゃいました。
+何か、定義すべきマクロやインクルードファイルが抜けているのかな？
+
+あと、printf でデバッグしたい人の為に
+timidity.c で、
+#define REDIRECT_STDOUT "\\tmp\\console"
+とかしておいて、Cygwin を起動して
+
+$ tail -f \\tmp\\console
+
+とすると、printf によるデバッグができます。ただし、fflush(stdout) しないと
+書き出されないので注意。
+
+# もっと簡単にコンソールに printf できる方法はないのかなぁ？
