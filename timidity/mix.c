@@ -67,6 +67,10 @@ typedef sample_t mix_t;
 #define MIXATION(a) *lp++ += (a) * s
 #endif
 
+#define DELAYED_MIXATION(a) *lp++ += (a) * pan_delay_buf[pan_delay_wpt--];	\
+	if(pan_delay_wpt < 0) {pan_delay_wpt = vp->pan_delay_rpt - 1;}	\
+	pan_delay_buf[pan_delay_wpt] = s;
+
 void mix_voice(int32 *, int, int32);
 #ifdef VOICE_LPF
 static inline void do_voice_filter(int, sample_t*, mix_t*, int32);
@@ -503,7 +507,10 @@ static inline void mix_mystery_signal(
 #ifdef SMOOTH_MIXING
 	int32 linear_left, linear_right;
 #endif
-	
+#ifdef ENABLE_PAN_DELAY
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+#endif
+
 	if (! (cc = vp->control_counter)) {
 		cc = control_ratio;
 		if (update_signal(v))
@@ -628,11 +635,28 @@ static inline void mix_mystery_signal(
 			vp->old_right_mix = linear_right;
 			count -= i;
 #endif
+#ifdef ENABLE_PAN_DELAY
+			if(vp->panning < 64) {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					DELAYED_MIXATION(right);
+				}
+			} else {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					DELAYED_MIXATION(left);
+					MIXATION(right);
+				}
+			}
+			vp->pan_delay_wpt = pan_delay_wpt;
+#else
 			for (i = 0; i < count; i++) {
 				s = *sp++;
 				MIXATION(left);
 				MIXATION(right);
 			}
+#endif	/* ENABLE_PAN_DELAY */
 			return;
 		}
 }
@@ -646,7 +670,10 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	Voice *vp = voice + v;
 	int32 linear_left, linear_right;
 #endif
-	
+#ifdef ENABLE_PAN_DELAY
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+#endif
+
 #ifdef SMOOTH_MIXING
 	compute_mix_smoothing(vp);
 	linear_left = FROM_FINAL_VOLUME(left);
@@ -695,11 +722,28 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	vp->old_right_mix = linear_right;
 	count -= i;
 #endif
+#ifdef ENABLE_PAN_DELAY
+	if(vp->panning < 64) {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			DELAYED_MIXATION(right);
+		}
+	} else {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			DELAYED_MIXATION(left);
+			MIXATION(right);
+		}
+	}
+	vp->pan_delay_wpt = pan_delay_wpt;
+#else
 	for (i = 0; i < count; i++) {
 		s = *sp++;
 		MIXATION(left);
 		MIXATION(right);
 	}
+#endif	/* ENABLE_PAN_DELAY */
 }
 
 static inline void mix_center_signal(

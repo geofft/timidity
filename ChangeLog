@@ -1,3 +1,9 @@
+2003-10-26  Saito <saito2@digitalme.com>
+
+	* timidity/mix.c, timidity/tables.[ch], playmidi.[ch]:
+	  Implement phase difference between left and right experimentally.
+	  If you want to disable this function, please #undef "ENABLE_PAN_DELAY".
+
 2003-10-25  skeishi <s_keishi@mutt.freemail.ne.jp>
 
 	* interface/rtsyn.h:
