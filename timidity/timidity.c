@@ -350,7 +350,7 @@ static const struct option longopts[] = {
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
 
 /* main interfaces (To be used another main) */
-#if defined(main) || defined(ANOTHER_MAIN)
+#if defined(main) || defined(ANOTHER_MAIN) || defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 #define MAIN_INTERFACE
 #else
 #define MAIN_INTERFACE static
@@ -5439,7 +5439,7 @@ extern int volatile save_playlist_once_before_exit_flag;
 static int CoInitializeOK = 0;
 #endif
 
-#if !defined ANOTHER_MAIN || defined(__W32__)
+#if !defined ANOTHER_MAIN
 #ifdef __W32__ /* Windows */
 #if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
 /* Cygwin or Console */

@@ -241,6 +241,7 @@ clean:
 	rm -f *.$(OBJEXT)
 	rm -f *.$(so)
 	rm -f *.res
+	rm -f *.RES
 	rm -f *escaped.c
 	rm -f *.a
 	rm -f *.lib
@@ -396,14 +397,5 @@ clean-compile:
 	-rm -f *.RES
 
 install-exec-local: $(install_tk) $(install_xaw) $(install_el) $(install_dynamics)
-
-
-clean:
-	rm -f *.$(OBJEXT)
-	rm -f *.$(so)
-	rm -f *.a
-	rm -f *.lib	
-	rm -f *.res
-	rm -f *.RES
 
 ########## End of Makefile
