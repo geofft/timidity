@@ -3932,9 +3932,10 @@ static inline void list_dyna_interface(FILE *fp, char *path, char *mark)
 		return;
 	while (url_gets(url, fname, sizeof(fname)) != NULL)
 		if (strncmp(fname, "if_", 3) == 0) {
+			int i;
 			for (i = 0; i < 15 && fname[i + 3] != '.'; i++)
 				name[i] = fname[i + 3];
-			name[i] = '\0'
+			name[i] = '\0';
 			for (cmpp = ctl_list; (cmp = *cmpp) != NULL; cmpp++)
 				if (! strcmp(cmp->id_short_name, name)) {
 					id = cmp->id_character;

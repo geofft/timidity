@@ -1,3 +1,8 @@
+2004-11-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/timidity.c (list_dyna_interface): ditto
+	* interface/dynamic_c.c (ctl_open): fix compile error
+
 2004-11-03  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c: fix to correctly handle non-linear velocity

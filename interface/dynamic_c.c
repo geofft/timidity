@@ -83,10 +83,9 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
 static int ctl_open(int using_stdin, int using_stdout)
 {
     ControlMode *(* inferface_loader)(void);
-    char *path;
+    char *path, *name;
     char buff[256];
     int id;
-    char name[16];
 
     if(dynamic_control_mode.opened)
 	return 0;
