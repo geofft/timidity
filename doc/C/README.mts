@@ -366,7 +366,7 @@ Preset temperament of Temperament Type Control Tuning
 First, Pythagoras tuning (major) chromatic scale is expressed by the
 following recurrence relations.  Here, the index [] is a offset of the
 tonic.  The operation results are surely settled between 1 and 2, so
-they will be made into double or half if necessary.
+they will be made into half or double if necessary.
 
 [Pythagoras tuning (major) chromatic scale]
 pytha_maj[ 0] = 1                       # C  1
