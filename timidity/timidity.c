@@ -5100,7 +5100,7 @@ int win_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-    int c, err;
+    int c, err, i;
     int nfiles;
     char **files;
     int main_ret;
@@ -5302,6 +5302,7 @@ int main(int argc, char **argv)
 	free_userinst();
     tmdy_free_config();
 	free_effect_buffers();
+	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
     return main_ret;
 }
 #endif /* __MACOS__ */

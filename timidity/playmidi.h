@@ -250,6 +250,12 @@ typedef struct {
   int8 variation_control_depth, insertion_control_depth;
 } midi_controller;
 
+struct DrumPartEffect
+{
+	int32 *buf;
+	int8 note, reverb_send, chorus_send, delay_send;
+};
+
 struct DrumParts
 {
     int8 drum_panning;
@@ -350,6 +356,10 @@ typedef struct {
   int8 note_limit_high, note_limit_low;	/* Note Limit (Keyboard Range) */
   int8 vel_limit_high, vel_limit_low;	/* Velocity Limit */
   int32 rx;	/* Rx. ~ (Rcv ~) */
+
+  int drum_effect_num;
+  int8 drum_effect_flag;
+  struct DrumPartEffect *drum_effect;
 
   int8 sysex_gs_msb_addr, sysex_gs_msb_val,
 		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;
@@ -545,5 +555,7 @@ extern void free_tone_bank_element(int,int,int);
 
 extern void recompute_voice_filter(int);
 extern int32 get_note_freq(Sample *, int);
+
+extern void free_drum_effect(int);
 
 #endif /* ___PLAYMIDI_H_ */

@@ -1,3 +1,8 @@
+2004-01-10  Saito <saito2@digitalme.com>
+
+	* timidity/timidity.c, timidity/playmidi.[ch]:
+	  Support for Drumpart Effect Send Level.
+
 2004-01-09  Saito <saito2@digitalme.com>
 
 	* timidity/timidity.c, timidity/playmidi.c,
