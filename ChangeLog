@@ -1,6 +1,6 @@
 2004-03-03  Saito <saito@intaa.net>
 
-	* timidity/reverb.c, timidity/playmidi.c:
+	* timidity/reverb.c, timidity/playmidi.c, timidity/reverb.h:
 	  Under construction for XG insertion / variation / system effects.
 
 2004-03-02  TAMUKI Shoichi <tamuki@linet.gr.jp>

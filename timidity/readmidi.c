@@ -6597,6 +6597,7 @@ void realloc_effect_xg(struct effect_xg_t *st)
 	st->ef = NULL;
 
 	switch(type_msb) {
+	/* case delay: use_msb = 1;*/
 	case 0x41:
 	case 0x42:
 		st->ef = push_effect(st->ef, EFFECT_CHORUS);
@@ -6627,6 +6628,7 @@ static void init_effect_xg(struct effect_xg_t *st)
 	free_effect_list(st->ef);
 	st->ef = NULL;
 
+	st->use_msb = 0;
 	st->type_msb = st->type_lsb	= st->connection =
 		st->send_reverb = st->send_chorus = 0;
 	st->part = 0x7f;

@@ -4224,10 +4224,10 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		note = channel[ch].sysex_xg_msb_val;
 		channel[ch].sysex_xg_msb_addr = channel[ch].sysex_xg_msb_val = 0;
 		if (msb == 2) {	/* Effect 2 */
+		if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {return;}
 		switch(b)
 		{
 		case 0x00:	/* Insertion Effect Type MSB */
-			if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {break;}
 			if (insertion_effect_xg[note].type_msb != val) {
 				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%02X)", val);
 				insertion_effect_xg[note].type_msb = val;
@@ -4235,11 +4235,133 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x01:	/* Insertion Effect Type LSB */
-			if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {break;}
 			if (insertion_effect_xg[note].type_lsb != val) {
 				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%02X)", val);
 				insertion_effect_xg[note].type_lsb = val;
 				realloc_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x02:	/* Insertion Effect Parameter 1 - 10 */
+		case 0x03:
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+		case 0x08:
+		case 0x09:
+		case 0x0A:
+		case 0x0B:
+			if (insertion_effect_xg[note].use_msb) {break;}
+			temp = b - 0x02;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d)", temp + 1, val);
+			if (insertion_effect_xg[note].param_lsb[temp] != val) {
+				insertion_effect_xg[note].param_lsb[temp] = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x0C:	/* Insertion Effect Part */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Part (%d)", val);
+			if (insertion_effect_xg[note].part != val) {
+				insertion_effect_xg[note].part = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x0D:	/* MW Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MW Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].mw_depth != val) {
+				insertion_effect_xg[note].mw_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x0E:	/* BEND Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].bend_depth != val) {
+				insertion_effect_xg[note].bend_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x0F:	/* CAT Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAT Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].cat_depth != val) {
+				insertion_effect_xg[note].cat_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x10:	/* AC1 Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].ac1_depth != val) {
+				insertion_effect_xg[note].ac1_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x11:	/* AC2 Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].ac2_depth != val) {
+				insertion_effect_xg[note].ac2_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x12:	/* CBC1 Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC1 Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].cbc1_depth != val) {
+				insertion_effect_xg[note].cbc1_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x13:	/* CBC2 Insertion Control Depth */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC2 Insertion Control Depth (%d)", val);
+			if (insertion_effect_xg[note].cbc2_depth != val) {
+				insertion_effect_xg[note].cbc2_depth = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x20:	/* Insertion Effect Parameter 11 - 16 */
+		case 0x21:
+		case 0x22:
+		case 0x23:
+		case 0x24:
+		case 0x25:
+			temp = b - 0x20 + 10;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d)", temp + 1, val);
+			if (insertion_effect_xg[note].param_lsb[temp] != val) {
+				insertion_effect_xg[note].param_lsb[temp] = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x30:	/* Insertion Effect Parameter 1 - 10 MSB */
+		case 0x32:
+		case 0x34:
+		case 0x36:
+		case 0x38:
+		case 0x3A:
+		case 0x3C:
+		case 0x3E:
+		case 0x40:
+		case 0x42:
+			if (!insertion_effect_xg[note].use_msb) {break;}
+			temp = (b - 0x30) / 2;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d MSB (%d)", temp + 1, val);
+			if (insertion_effect_xg[note].param_msb[temp] != val) {
+				insertion_effect_xg[note].param_msb[temp] = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
+			}
+			break;
+		case 0x31:	/* Insertion Effect Parameter 1 - 10 LSB */
+		case 0x33:
+		case 0x35:
+		case 0x37:
+		case 0x39:
+		case 0x3B:
+		case 0x3D:
+		case 0x3F:
+		case 0x41:
+		case 0x43:
+			if (!insertion_effect_xg[note].use_msb) {break;}
+			temp = (b - 0x31) / 2;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d LSB (%d)", temp + 1, val);
+			if (insertion_effect_xg[note].param_lsb[temp] != val) {
+				insertion_effect_xg[note].param_lsb[temp] = val;
+				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		default:
@@ -4260,6 +4382,49 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type LSB (%02X)", val);
 				reverb_status_xg.type_lsb = val;
 				realloc_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x02:	/* Reverb Parameter 1 - 10 */
+		case 0x03:
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+		case 0x08:
+		case 0x09:
+		case 0x0A:
+		case 0x0B:
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Parameter %d (%d)", b - 0x02 + 1, val);
+			if (reverb_status_xg.param_lsb[b - 0x02] != val) {
+				reverb_status_xg.param_lsb[b - 0x02] = val;
+				recompute_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x0C:	/* Reverb Return */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Return (%d)", val);
+			if (reverb_status_xg.ret != val) {
+				reverb_status_xg.ret = val;
+				recompute_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x0D:	/* Reverb Pan */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Pan (%d)", val);
+			if (reverb_status_xg.pan != val) {
+				reverb_status_xg.pan = val;
+				recompute_effect_xg(&reverb_status_xg);
+			}
+			break;
+		case 0x10:	/* Reverb Parameter 11 - 16 */
+		case 0x11:
+		case 0x12:
+		case 0x13:
+		case 0x14:
+		case 0x15:
+			temp = b - 0x10 + 10;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Parameter %d (%d)", temp + 1, val);
+			if (reverb_status_xg.param_lsb[temp] != val) {
+				reverb_status_xg.param_lsb[temp] = val;
+				recompute_effect_xg(&reverb_status_xg);
 			}
 			break;
 		case 0x20:	/* Chorus Type MSB */
@@ -4299,14 +4464,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_effect_xg(&chorus_status_xg);
 			}
 			break;
-		case 0x2D:
+		case 0x2D:	/* Chorus Pan */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Pan (%d)", val);
 			if (chorus_status_xg.pan != val) {
 				chorus_status_xg.pan = val;
 				recompute_effect_xg(&chorus_status_xg);
 			}
 			break;
-		case 0x2E:
+		case 0x2E:	/* Send Chorus To Reverb */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Send Chorus To Reverb (%d)", val);
 			if (chorus_status_xg.send_reverb != val) {
 				chorus_status_xg.send_reverb = val;
@@ -4319,9 +4484,10 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x33:
 		case 0x34:
 		case 0x35:
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Parameter %d (%d)", b - 0x30 + 11, val);
-			if (chorus_status_xg.param_lsb[b - 0x30] != val) {
-				chorus_status_xg.param_lsb[b - 0x30] = val;
+			temp = b - 0x30 + 10;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Parameter %d (%d)", temp + 1, val);
+			if (chorus_status_xg.param_lsb[temp] != val) {
+				chorus_status_xg.param_lsb[temp] = val;
 				recompute_effect_xg(&chorus_status_xg);
 			}
 			break;
@@ -4339,6 +4505,160 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type LSB (%02X)", val);
 				variation_effect_xg[note].type_lsb = val;
 				realloc_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x42:	/* Variation Parameter 1 - 10 MSB */
+		case 0x44:
+		case 0x46:
+		case 0x48:
+		case 0x4A:
+		case 0x4C:
+		case 0x4E:
+		case 0x50:
+		case 0x52:
+		case 0x54:
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			temp = (b - 0x42) / 2;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Parameter %d MSB (%d)", temp, val);
+			if (variation_effect_xg[note].param_msb[temp] != val) {
+				variation_effect_xg[note].param_msb[temp] = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x43:	/* Variation Parameter 1 - 10 LSB */
+		case 0x45:
+		case 0x47:
+		case 0x49:
+		case 0x4B:
+		case 0x4D:
+		case 0x4F:
+		case 0x51:
+		case 0x53:
+		case 0x55:
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			temp = (b - 0x43) / 2;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Parameter %d LSB (%d)", temp, val);
+			if (variation_effect_xg[note].param_lsb[temp] != val) {
+				variation_effect_xg[note].param_lsb[temp] = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x56:	/* Variation Return */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Return (%d)", val);
+			if (variation_effect_xg[note].ret != val) {
+				variation_effect_xg[note].ret = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x57:	/* Variation Pan */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Pan (%d)", val);
+			if (variation_effect_xg[note].pan != val) {
+				variation_effect_xg[note].pan = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x58:	/* Send Variation To Reverb */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Send Variation To Reverb (%d)", val);
+			if (variation_effect_xg[note].send_reverb != val) {
+				variation_effect_xg[note].send_reverb = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x59:	/* Send Variation To Chorus */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Send Variation To Chorus (%d)", val);
+			if (variation_effect_xg[note].send_chorus != val) {
+				variation_effect_xg[note].send_chorus = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5A:	/* Variation Connection */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Connection (%d)", val);
+			if (variation_effect_xg[note].connection != val) {
+				variation_effect_xg[note].connection = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5B:	/* Variation Part */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Part (%d)", val);
+			if (variation_effect_xg[note].part != val) {
+				variation_effect_xg[note].part = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5C:	/* MW Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MW Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].mw_depth != val) {
+				variation_effect_xg[note].mw_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5D:	/* BEND Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].bend_depth != val) {
+				variation_effect_xg[note].bend_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5E:	/* CAT Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAT Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].cat_depth != val) {
+				variation_effect_xg[note].cat_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x5F:	/* AC1 Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].ac1_depth != val) {
+				variation_effect_xg[note].ac1_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x60:	/* AC2 Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].ac2_depth != val) {
+				variation_effect_xg[note].ac2_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x61:	/* CBC1 Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC1 Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].cbc1_depth != val) {
+				variation_effect_xg[note].cbc1_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x62:	/* CBC2 Variation Control Depth */
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC2 Variation Control Depth (%d)", val);
+			if (variation_effect_xg[note].cbc2_depth != val) {
+				variation_effect_xg[note].cbc2_depth = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
+			}
+			break;
+		case 0x70:	/* Variation Parameter 11 - 16 */
+		case 0x71:
+		case 0x72:
+		case 0x73:
+		case 0x74:
+		case 0x75:
+			temp = b - 0x70 + 10;
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Parameter %d (%d)", temp + 1, val);
+			if (variation_effect_xg[note].param_lsb[temp] != val) {
+				variation_effect_xg[note].param_lsb[temp] = val;
+				recompute_effect_xg(&variation_effect_xg[note]);
 			}
 			break;
 		default:
