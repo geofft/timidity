@@ -318,6 +318,10 @@
 #define IDC_CHECKBOX_TEMPER_USER1       2099
 #define IDC_CHECKBOX_TEMPER_USER2       2100
 #define IDC_CHECKBOX_TEMPER_USER3       2101
+#define IDC_COMBO_REVERB                2103
+#define IDC_COMBO_CHORUS                2105
+#define IDC_COMBO_DELAY                 2106
+#define IDC_COMBO_LPF                   2107
 #define IDM_MHSUPPLEMENT                40002
 #define IDC_STATIC                      -1
 
@@ -325,9 +329,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40003
-#define _APS_NEXT_CONTROL_VALUE         2101
+#define _APS_NEXT_CONTROL_VALUE         2104
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

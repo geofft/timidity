@@ -1,3 +1,9 @@
+2004-02-09  Saito <saito2@digitalme.com>
+
+	* interface/w32g_pref.c, interface/w32g_subwin3.c,
+	  interface/w32g_res.h, interface/w32g_res.rc:
+	  Fix Win32GUI preference window.
+
 2004-02-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:

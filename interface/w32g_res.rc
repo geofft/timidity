@@ -211,79 +211,73 @@ BEGIN
                     143,129,50,25,BS_MULTILINE
 END
 
-IDD_PREF_TIMIDITY1_EN DIALOG DISCARDABLE  0, 0, 219, 157
+IDD_PREF_TIMIDITY1_EN DIALOG DISCARDABLE  0, 0, 219, 166
 STYLE DS_SYSMODAL | DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_VISIBLE | 
     WS_CAPTION
 FONT 9, "Times New Roman"
 BEGIN
-    CONTROL         "Chorus Control",IDC_CHECKBOX_CHORUS,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,6,12,59,
-                    10
-    CONTROL         "Reverb Control",IDC_CHECKBOX_REVERB,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,6,22,58,
-                    10
     CONTROL         "Modulation Wheel",IDC_CHECKBOX_MODWHEEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,32,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,60,67,10
     CONTROL         "Portament",IDC_CHECKBOX_PORTAMENTO,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,42,45,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,70,45,10
     CONTROL         "NRPN Vibrato",IDC_CHECKBOX_NRPNVIB,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,52,57,10
-    CONTROL         "GM Channel pressure",IDC_CHECKBOX_CHPRESS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,62,82,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,100,57,10
+    CONTROL         "MIDI Controllers",IDC_CHECKBOX_CHPRESS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,80,82,10
     CONTROL         "Trace Text Meta Event",IDC_CHECKBOX_TRACETEXT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,72,85,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,48,85,10
     CONTROL         "Overlapped same voce",IDC_CHECKBOX_OVOICE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,82,84,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,36,84,10
     CONTROL         "Attack Time Control",IDC_CHECKBOX_TVAA,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,92,74,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,110,74,10
     CONTROL         "Decay Time Control",IDC_CHECKBOX_TVAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,102,73,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,120,73,10
     CONTROL         "Release Time Control",IDC_CHECKBOX_TVAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,112,81,10
-    CONTROL         "Delay Control",IDC_CHECKBOX_PDELAY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,122,55,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,130,81,10
     CONTROL         "EQ Control",IDC_CHECKBOX_EQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,132,55,10
+                    WS_TABSTOP,6,140,55,10
     CONTROL         "Insertion Effect Control",IDC_CHECKBOX_IEFFECT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,142,82,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,150,82,10
     CONTROL         "Static Chorus Level",IDC_CHECKBOX_CHORUS_LEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,12,70,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,12,70,10
     EDITTEXT        IDC_EDIT_CHORUS,184,11,24,12,ES_NUMBER
     CONTROL         "Static Reverb Level",IDC_CHECKBOX_REVERB_LEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,23,69,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,24,69,10
     EDITTEXT        IDC_EDIT_REVERB,184,23,24,12,ES_NUMBER
-    CONTROL         "Global Reverb",IDC_CHECKBOX_GLOBAL_REVERB,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,33,55,10
     CONTROL         "L&&R Delay",IDC_CHECKBOX_DELAY,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | WS_TABSTOP,103,44,55,10
+                    BS_LEFT | BS_TOP | WS_TABSTOP,103,98,55,10
     CONTROL         "Left",IDC_RADIOBUTTON_DELAY_LEFT,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,108,53,27,10
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,108,107,27,10
     CONTROL         "Right",IDC_RADIOBUTTON_DELAY_RIGHT,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,138,53,31,10
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,138,107,31,10
     CONTROL         "Rotate",IDC_RADIOBUTTON_DELAY_CENTER,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,171,53,38,10
-    LTEXT           "Delay(msec)",IDC_STATIC,115,64,36,8,NOT WS_GROUP | 
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,171,107,38,10
+    LTEXT           "Delay(msec)",IDC_STATIC,115,118,36,8,NOT WS_GROUP | 
                     WS_TABSTOP
-    EDITTEXT        IDC_EDIT_DELAY,151,63,32,12,ES_NUMBER
-    LTEXT           "Feedback Level(0..1000)",IDC_STATIC,103,78,68,8,NOT 
+    EDITTEXT        IDC_EDIT_DELAY,151,117,32,12,ES_NUMBER
+    LTEXT           "Pseudo Reverb(0..1000)",IDC_STATIC,103,132,67,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_MODIFY_RELEASE,184,76,28,12
-    LTEXT           "Noise Shaping (0..4)",IDC_STATIC,103,89,57,8,NOT 
+    EDITTEXT        IDC_EDIT_MODIFY_RELEASE,184,130,28,12
+    LTEXT           "Noise Shaping (0..4)",IDC_STATIC,104,73,57,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_NOISESHARPING,184,89,28,12,ES_NUMBER
-    CONTROL         "Surround Chorus",IDC_CHECKBOX_SRCHORUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,98,63,10
-    CONTROL         "LPF / Resonance",IDC_CHECKBOX_LPF_DEF,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,108,68,10
-    CONTROL         "Drumpart Effect Control",IDC_CHECKBOX_DRUM_EFFECT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,103,118,85,10
-    GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,93,152
-    GROUPBOX        "Special",IDC_STATIC,100,3,116,149
+    EDITTEXT        IDC_EDIT_NOISESHARPING,165,71,28,12,ES_NUMBER
+    CONTROL         "NRPN Drumpart Effect",IDC_CHECKBOX_DRUM_EFFECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,90,82,10
+    GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,93,160
+    GROUPBOX        "Special",IDC_STATIC,100,3,116,145
     CONTROL         "Modulation Envelope",IDC_CHECKBOX_MOD_ENV,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,128,76,10
-    LTEXT           "Effect Quality (0..2)",IDC_STATIC,103,140,57,8,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,60,76,10
+    LTEXT           "Effect Quality (0..2)",IDC_STATIC,104,85,57,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_EFFECT_QUALITY,165,138,24,12,ES_NUMBER
+    EDITTEXT        IDC_EDIT_EFFECT_QUALITY,165,84,24,12,ES_NUMBER
+    COMBOBOX        IDC_COMBO_REVERB,6,12,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_CHORUS,6,24,84,54,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_DELAY,6,36,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_LPF,6,48,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_PREF_TIMIDITY2_EN DIALOG DISCARDABLE  0, 0, 223, 186
@@ -743,6 +737,7 @@ BEGIN
     IDD_PREF_TIMIDITY1_EN, DIALOG
     BEGIN
         RIGHTMARGIN, 218
+        BOTTOMMARGIN, 157
     END
 
     IDD_DIALOG_ONE_LINE_EN, DIALOG
@@ -920,78 +915,74 @@ BEGIN
                     IDC_BUTTON_CFG_RELOAD,159,165,47,32,BS_MULTILINE
 END
 
-IDD_PREF_TIMIDITY1 DIALOG DISCARDABLE  0, 0, 211, 215
+IDD_PREF_TIMIDITY1 DIALOG DISCARDABLE  0, 0, 211, 207
 STYLE DS_SYSMODAL | DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_VISIBLE | 
     WS_CAPTION
 FONT 9, "ＭＳ Ｐゴシック"
 BEGIN
-    CONTROL         "コーラス",IDC_CHECKBOX_CHORUS,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | WS_TABSTOP,6,17,41,10
-    CONTROL         "リバーブ",IDC_CHECKBOX_REVERB,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | WS_TABSTOP,6,31,41,10
-    CONTROL         "モジュレーション",IDC_CHECKBOX_MODWHEEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,45,63,10
+    CONTROL         "モジュレーションホイール",IDC_CHECKBOX_MODWHEEL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,75,85,10
     CONTROL         "ポルタメント",IDC_CHECKBOX_PORTAMENTO,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,59,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,88,50,10
     CONTROL         "NRPN ビブラート",IDC_CHECKBOX_NRPNVIB,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,73,65,10
-    CONTROL         "チャンネルプレッシャー",IDC_CHECKBOX_CHPRESS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,87,80,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,127,65,10
+    CONTROL         "汎用コントローラ",IDC_CHECKBOX_CHPRESS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,101,80,10
     CONTROL         "テキストメタイベント",IDC_CHECKBOX_TRACETEXT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,101,73,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,101,62,73,10
     CONTROL         "同音連打",IDC_CHECKBOX_OVOICE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,115,43,10
+                    WS_TABSTOP,101,47,43,10
     CONTROL         "アタック・タイム",IDC_CHECKBOX_TVAA,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,129,59,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,140,59,10
     CONTROL         "ディケイ・タイム",IDC_CHECKBOX_TVAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,143,61,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,153,61,10
     CONTROL         "リリース・タイム",IDC_CHECKBOX_TVAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,157,61,10
-    CONTROL         "ディレイ",IDC_CHECKBOX_PDELAY,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,171,39,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,166,61,10
     CONTROL         "EQ",IDC_CHECKBOX_EQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,185,25,10
+                    WS_TABSTOP,6,179,25,10
     CONTROL         "インサーション・エフェクト",IDC_CHECKBOX_IEFFECT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,200,84,10
-    CONTROL         "コーラスレベル固定",IDC_CHECKBOX_CHORUS_LEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,17,73,10
-    EDITTEXT        IDC_EDIT_CHORUS,177,16,24,10,ES_NUMBER
-    CONTROL         "リバーブレベル固定",IDC_CHECKBOX_REVERB_LEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,31,74,10
-    EDITTEXT        IDC_EDIT_REVERB,177,31,24,10,ES_NUMBER
-    CONTROL         "グローバルリバーブ",IDC_CHECKBOX_GLOBAL_REVERB,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,46,74,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,192,84,10
+    CONTROL         "コーラス・レベル",IDC_CHECKBOX_CHORUS_LEVEL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,101,17,63,10
+    EDITTEXT        IDC_EDIT_CHORUS,167,16,24,10,ES_NUMBER
+    CONTROL         "リバーブ・レベル",IDC_CHECKBOX_REVERB_LEVEL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,101,32,63,10
+    EDITTEXT        IDC_EDIT_REVERB,167,31,24,10,ES_NUMBER
     CONTROL         "L&&R ディレイ",IDC_CHECKBOX_DELAY,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,101,61,
+                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,101,118,
                     57,10
     CONTROL         "左",IDC_RADIOBUTTON_DELAY_LEFT,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,109,76,23,10
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,109,133,23,10
     CONTROL         "右",IDC_RADIOBUTTON_DELAY_RIGHT,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,135,76,23,10
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,135,133,23,10
     CONTROL         "回転",IDC_RADIOBUTTON_DELAY_CENTER,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,161,76,30,10
-    LTEXT           "ディレイタイム(ms)",IDC_STATIC,113,90,55,8,NOT WS_GROUP | 
-                    WS_TABSTOP
-    EDITTEXT        IDC_EDIT_DELAY,171,88,32,10,ES_NUMBER
-    LTEXT           "疑似リバーブ(0..1000)",IDC_STATIC,101,104,64,8,NOT 
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,161,133,30,10
+    LTEXT           "ディレイタイム(ms)",IDC_STATIC,113,147,55,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_MODIFY_RELEASE,167,102,28,10
-    LTEXT           "ノイズシェイピング (0..4)",IDC_STATIC,101,117,70,8,NOT 
+    EDITTEXT        IDC_EDIT_DELAY,171,145,32,10,ES_NUMBER
+    LTEXT           "疑似リバーブ(0..1000)",IDC_STATIC,101,161,64,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_NOISESHARPING,173,116,16,10,ES_NUMBER
-    CONTROL         "サラウンドコーラス",IDC_CHECKBOX_SRCHORUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,130,70,10
-    CONTROL         "ドラムパート・エフェクト",IDC_CHECKBOX_DRUM_EFFECT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,160,80,10
-    GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,94,212
-    GROUPBOX        "特殊",IDC_STATIC,97,3,113,202
-    CONTROL         "LPF / レゾナンス",IDC_CHECKBOX_LPF_DEF,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,145,66,10
+    EDITTEXT        IDC_EDIT_MODIFY_RELEASE,167,159,28,10
+    LTEXT           "ノイズシェイピング (0..4)",IDC_STATIC,101,92,70,8,NOT 
+                    WS_GROUP | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_NOISESHARPING,176,90,16,10,ES_NUMBER
+    CONTROL         "NRPN ドラム・エフェクト",IDC_CHECKBOX_DRUM_EFFECT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,114,81,10
+    GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,94,204
+    GROUPBOX        "特殊",IDC_STATIC,97,3,113,175
     CONTROL         "モジュレーション・エンベロープ",IDC_CHECKBOX_MOD_ENV,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,175,100,10
-    LTEXT           "エフェクト品質 (0..2)",IDC_STATIC,101,191,61,8,NOT 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,77,100,10
+    LTEXT           "エフェクト品質 (0..2)",IDC_STATIC,101,105,61,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_EFFECT_QUALITY,165,189,23,10,ES_NUMBER
+    EDITTEXT        IDC_EDIT_EFFECT_QUALITY,169,104,23,10,ES_NUMBER
+    COMBOBOX        IDC_COMBO_REVERB,6,15,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_CHORUS,6,30,84,54,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_DELAY,6,45,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_LPF,6,60,84,78,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_PREF_TIMIDITY2 DIALOG DISCARDABLE  0, 0, 211, 217
@@ -1478,7 +1469,7 @@ BEGIN
     IDD_PREF_TIMIDITY1, DIALOG
     BEGIN
         RIGHTMARGIN, 146
-        BOTTOMMARGIN, 172
+        BOTTOMMARGIN, 164
     END
 
     IDD_PREF_TIMIDITY2, DIALOG

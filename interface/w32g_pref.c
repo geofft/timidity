@@ -551,50 +551,155 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
+// IDC_COMBO_REVERB
+#define cb_num_IDC_COMBO_REVERB 5
+
+static char *cb_info_IDC_COMBO_REVERB_en[] = {
+	"No Reverb",
+	"Standard Reverb",
+	"Global Old Reverb",
+	"New Reverb",
+	"Global New Reverb",
+};
+
+static char *cb_info_IDC_COMBO_REVERB_jp[] = {
+	"リバーブなし",
+	"標準リバーブ",
+	"標準リバーブ（グローバル）",
+	"新リバーブ",
+	"新リバーブ（グローバル）",
+};
+
+// IDC_COMBO_CHORUS
+#define cb_num_IDC_COMBO_CHORUS 3
+
+static char *cb_info_IDC_COMBO_CHORUS_en[] = {
+	"No Chorus",
+	"Standard Chorus",
+	"Surround Chorus",
+};
+
+static char *cb_info_IDC_COMBO_CHORUS_jp[] = {
+	"コーラスなし",
+	"標準コーラス",
+	"サラウンドコーラス",
+};
+
+// IDC_COMBO_DELAY
+#define cb_num_IDC_COMBO_DELAY 2
+
+static char *cb_info_IDC_COMBO_DELAY_en[] = {
+	"No Delay",
+	"Standard Delay",
+};
+
+static char *cb_info_IDC_COMBO_DELAY_jp[] = {
+	"ディレイなし",
+	"標準ディレイ",
+};
+
+// IDC_COMBO_LPF
+#define cb_num_IDC_COMBO_LPF 3
+
+static char *cb_info_IDC_COMBO_LPF_en[] = {
+	"No Filter",
+	"Lowpass Filter (12dB/oct)",
+	"Lowpass Filter (24dB/oct)",
+};
+
+static char *cb_info_IDC_COMBO_LPF_jp[] = {
+	"フィルタなし",
+	"LPF (12dB/oct)",
+	"LPF (24dB/oct)",
+};
+
 static BOOL APIENTRY
 PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
 	static int initflag = 1; 
+	int i;
+	char **cb_info;
 	switch (uMess){
 	case WM_INITDIALOG:
 		// CHORUS
-		if(GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,FALSE)==0)
-			SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,1,TRUE);
-		if(st_temp->opt_chorus_control==0){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
-		} else if(st_temp->opt_chorus_control>0){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
+		if (PlayerLanguage == LANGUAGE_JAPANESE)
+			cb_info = cb_info_IDC_COMBO_CHORUS_jp;
+		else 
+			cb_info = cb_info_IDC_COMBO_CHORUS_en;
+
+		for (i = 0; i < cb_num_IDC_COMBO_CHORUS; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_CHORUS,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info[i]);
+
+		if(GetDlgItemInt(hwnd, IDC_EDIT_CHORUS, NULL, FALSE)==0)
+			SetDlgItemInt(hwnd, IDC_EDIT_CHORUS, 1, TRUE);
+		if (st_temp->opt_surround_chorus)
+			i = 2;
+		else
+			i = st_temp->opt_chorus_control;
+		if (i >= 0) {
+			SendDlgItemMessage(hwnd, IDC_COMBO_CHORUS, CB_SETCURSEL,
+					(WPARAM) i, (LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_CHORUS_LEVEL, BM_SETCHECK, 0, 0);
 		} else {
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,1,0);
-			SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,-st_temp->opt_chorus_control,TRUE);
+			SendDlgItemMessage(hwnd, IDC_COMBO_CHORUS, CB_SETCURSEL,
+					(WPARAM) ((-i) / 128 + 1), (LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_CHORUS_LEVEL, BM_SETCHECK, 1, 0);
+			SetDlgItemInt(hwnd, IDC_EDIT_CHORUS, -i, TRUE);
 		}
-		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_CHORUS,0);
+		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_CHORUS_LEVEL, 0);
 		// REVERB
-		if(GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,FALSE)==0)
-			SetDlgItemInt(hwnd,IDC_EDIT_REVERB,1,TRUE);
-		if(st_temp->opt_reverb_control==0){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-		} else if(st_temp->opt_reverb_control==1){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-		} else if(st_temp->opt_reverb_control>=2){
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
+		if (PlayerLanguage == LANGUAGE_JAPANESE)
+			cb_info = cb_info_IDC_COMBO_REVERB_jp;
+		else 
+			cb_info = cb_info_IDC_COMBO_REVERB_en;
+
+		for (i = 0; i < cb_num_IDC_COMBO_REVERB; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_REVERB,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info[i]);
+
+		if(GetDlgItemInt(hwnd, IDC_EDIT_REVERB, NULL, FALSE)==0)
+			SetDlgItemInt(hwnd, IDC_EDIT_REVERB, 1, TRUE);
+		if (st_temp->opt_reverb_control >= 0) {
+			SendDlgItemMessage(hwnd, IDC_COMBO_REVERB, CB_SETCURSEL,
+					(WPARAM) st_temp->opt_reverb_control, (LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_REVERB_LEVEL, BM_SETCHECK, 0, 0);
 		} else {
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,1,0);
-			SetDlgItemInt(hwnd,IDC_EDIT_REVERB,-st_temp->opt_reverb_control,TRUE);
-	 }
-		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_REVERB,0);
+			SendDlgItemMessage(hwnd, IDC_COMBO_REVERB, CB_SETCURSEL,
+					(WPARAM) ((-st_temp->opt_reverb_control) / 128 + 1), (LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_REVERB_LEVEL, BM_SETCHECK, 1, 0);
+			SetDlgItemInt(hwnd, IDC_EDIT_REVERB, -st_temp->opt_reverb_control, TRUE);
+		}
+		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_REVERB_LEVEL, 0);
 		// DELAY
+		if (PlayerLanguage == LANGUAGE_JAPANESE)
+			cb_info = cb_info_IDC_COMBO_DELAY_jp;
+		else 
+			cb_info = cb_info_IDC_COMBO_DELAY_en;
+
+		for (i = 0; i < cb_num_IDC_COMBO_DELAY; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_DELAY,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info[i]);
+
+		SendDlgItemMessage(hwnd, IDC_COMBO_DELAY, CB_SETCURSEL,
+				(WPARAM) st_temp->opt_delay_control, (LPARAM) 0);
+		// LPF
+		if (PlayerLanguage == LANGUAGE_JAPANESE)
+			cb_info = cb_info_IDC_COMBO_LPF_jp;
+		else 
+			cb_info = cb_info_IDC_COMBO_LPF_en;
+
+		for (i = 0; i < cb_num_IDC_COMBO_LPF; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_LPF,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info[i]);
+
+		SendDlgItemMessage(hwnd, IDC_COMBO_LPF, CB_SETCURSEL,
+				(WPARAM) st_temp->opt_lpf_def, (LPARAM) 0);
+		// L&R DELAY
 		SetDlgItemInt(hwnd,IDC_EDIT_DELAY,st_temp->effect_lr_delay_msec,TRUE);
 		if(st_temp->effect_lr_mode<0){
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_SETCHECK,0,0);
@@ -630,13 +735,10 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
-		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MOD_ENV,st_temp->opt_modulation_envelope);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
-		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
 		SetDlgItemInt(hwnd,IDC_EDIT_MODIFY_RELEASE,st_temp->modify_release,TRUE);
 		initflag = 0;
 		break;
@@ -644,46 +746,19 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	switch (LOWORD(wParam)) {
 	  case IDCLOSE:
 		break;
-		case IDC_CHECKBOX_CHORUS:
 		case IDC_CHECKBOX_CHORUS_LEVEL:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_GETCHECK,0,0)){
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_CHORUS_LEVEL),TRUE);
-				if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_GETCHECK,0,0)){
-					EnableWindow(GetDlgItem(hwnd,IDC_EDIT_CHORUS),TRUE);
+			if(SendDlgItemMessage(hwnd, IDC_CHECKBOX_CHORUS_LEVEL, BM_GETCHECK, 0, 0)){
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_CHORUS), TRUE);
 			} else {
-					EnableWindow(GetDlgItem(hwnd,IDC_EDIT_CHORUS),FALSE);
-				}
-			} else {
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_CHORUS_LEVEL),FALSE);
-				EnableWindow(GetDlgItem(hwnd,IDC_EDIT_CHORUS),FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_CHORUS), FALSE);
 			}
-			break;
-		case IDC_CHECKBOX_REVERB:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_GETCHECK,0,0)){
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_GLOBAL_REVERB),TRUE);
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_REVERB_LEVEL),TRUE);
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_GETCHECK,0,0)){
-					EnableWindow(GetDlgItem(hwnd,IDC_EDIT_REVERB),TRUE);
-			} else {
-					EnableWindow(GetDlgItem(hwnd,IDC_EDIT_REVERB),FALSE);
-				}
-			} else {
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_GLOBAL_REVERB),FALSE);
-				EnableWindow(GetDlgItem(hwnd,IDC_CHECKBOX_REVERB_LEVEL),FALSE);
-				EnableWindow(GetDlgItem(hwnd,IDC_EDIT_REVERB),FALSE);
-			}
-			break;
-		case IDC_CHECKBOX_GLOBAL_REVERB:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_GETCHECK,0,0)){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-			}
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_REVERB,0);
 			break;
 		case IDC_CHECKBOX_REVERB_LEVEL:
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_GETCHECK,0,0)){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
+			if(SendDlgItemMessage(hwnd, IDC_CHECKBOX_REVERB_LEVEL, BM_GETCHECK, 0, 0)){
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_REVERB), TRUE);
+			} else {
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_REVERB), FALSE);
 			}
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_REVERB,0);
 			break;
 	 case IDC_CHECKBOX_DELAY:
 		case IDC_RADIOBUTTON_DELAY_LEFT:
@@ -716,28 +791,27 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	{
 		if ( initflag ) break;
 		// CHORUS
-		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_GETCHECK,0,0)){
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_GETCHECK,0,0)){
-				st_temp->opt_chorus_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,TRUE);
-			} else {
-				st_temp->opt_chorus_control = 1;
-			}
-		} else {
-			st_temp->opt_chorus_control = 0;
+		st_temp->opt_chorus_control = (int)SendDlgItemMessage(hwnd, IDC_COMBO_CHORUS, CB_GETCURSEL, 0, 0);
+		if (st_temp->opt_chorus_control && SendDlgItemMessage(hwnd, IDC_CHECKBOX_CHORUS_LEVEL, BM_GETCHECK, 0, 0)) {
+			st_temp->opt_chorus_control = -(int)GetDlgItemInt(hwnd, IDC_EDIT_CHORUS, NULL, TRUE);
 		}
-	 // REVERB
-		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_GETCHECK,0,0)){
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_GETCHECK,0,0)){
-				st_temp->opt_reverb_control = 2;
-			} else if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_GETCHECK,0,0)){
-				st_temp->opt_reverb_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,TRUE);
-			} else {
-				st_temp->opt_reverb_control = 1;
-			}
+		if (st_temp->opt_chorus_control == 2) {
+			st_temp->opt_chorus_control = 1;
+			st_temp->opt_surround_chorus = 1;
 		} else {
-			st_temp->opt_reverb_control = 0;
+			st_temp->opt_surround_chorus = 0;
 		}
-	 // DELAY
+  		// REVERB
+		st_temp->opt_reverb_control = (int)SendDlgItemMessage(hwnd, IDC_COMBO_REVERB, CB_GETCURSEL, 0, 0);
+		if(st_temp->opt_reverb_control && SendDlgItemMessage(hwnd, IDC_CHECKBOX_REVERB_LEVEL, BM_GETCHECK, 0, 0)) {
+			st_temp->opt_reverb_control = -(int)GetDlgItemInt(hwnd, IDC_EDIT_REVERB, NULL, TRUE)
+				- (st_temp->opt_reverb_control - 1) * 128;
+		}
+		// DELAY
+		st_temp->opt_delay_control = (int)SendDlgItemMessage(hwnd, IDC_COMBO_DELAY, CB_GETCURSEL, 0, 0);
+		// LPF
+		st_temp->opt_lpf_def = (int)SendDlgItemMessage(hwnd, IDC_COMBO_LPF, CB_GETCURSEL, 0, 0);
+		// L&R DELAY
 		st_temp->effect_lr_delay_msec = GetDlgItemInt(hwnd,IDC_EDIT_DELAY,NULL,FALSE);
 		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_GETCHECK,0,0)){
 			if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,BM_GETCHECK,0,0)){
@@ -764,13 +838,10 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
-		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MOD_ENV,st_temp->opt_modulation_envelope);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
-		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
 		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
 	}
 		break;
