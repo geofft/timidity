@@ -238,6 +238,7 @@ int32 current_sample;		/* Number of calclated samples */
 int note_key_offset = 0;	/* For key up/down */
 FLOAT_T midi_time_ratio = 1.0;	/* For speed up/down */
 ChannelBitMask channel_mute;	/* For channel mute */
+int temper_type_mute;		/* For temperament type mute */
 
 /* for auto amplitude compensation */
 static int mainvolume_max; /* maximum value of mainvolume */
@@ -670,7 +671,7 @@ void recompute_freq(int v)
 			channel[ch].prev_scale_tuning = st;
 		}
 	}
-	if (voice[v].temper_instant) {
+	if (! opt_pure_intonation && voice[v].temper_instant) {
 		switch (channel[ch].temper_type) {
 		case 0:
 			f = freq_table[note];
@@ -3635,7 +3636,10 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	break;
       case RPN_ADDR_0000: /* Pitch bend sensitivity */
 	ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Pitch Bend Sensitivity (CH:%d VALUE:%d)",ch,val);
-	if(channel[ch].rpnmap[RPN_ADDR_0000] > 24) {channel[ch].rpnmap[RPN_ADDR_0000] = 24;}
+	/* for mod2mid.c, arpeggio */
+	if(!IS_CURRENT_MOD_FILE && channel[ch].rpnmap[RPN_ADDR_0000] > 24) {
+		channel[ch].rpnmap[RPN_ADDR_0000] = 24;
+	} 
 	channel[ch].pitchfactor = 0;
 	break;
       case RPN_ADDR_0001: /* Master Fine Tuning */
@@ -5802,6 +5806,10 @@ int play_event(MidiEvent *ev)
 	case ME_TEMPER_TYPE:
 		channel[ch].temper_type = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
+		if (temper_type_mute & 1 << current_event->a)
+			SET_CHANNELMASK(channel_mute, ch);
+		else
+			UNSET_CHANNELMASK(channel_mute, ch);
 		if (current_event->b)
 			for (i = 0; i < upper_voices; i++)
 				if (voice[i].status != VOICE_FREE) {
@@ -5815,6 +5823,10 @@ int play_event(MidiEvent *ev)
 			channel[i].temper_type = current_event->a;
 			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
 		}
+		if (temper_type_mute & 1 << current_event->a)
+			FILL_CHANNELMASK(channel_mute);
+		else
+			CLEAR_CHANNELMASK(channel_mute);
 		if (current_event->b)
 			for (i = 0; i < upper_voices; i++)
 				if (voice[i].status != VOICE_FREE) {
@@ -6127,6 +6139,8 @@ int play_midi_file(char *fn)
 		channel[i].temper_type = 0;
 	}
     CLEAR_CHANNELMASK(channel_mute);
+	if (temper_type_mute & 1)
+		FILL_CHANNELMASK(channel_mute);
 
     /* Reset restart offset */
     midi_restart_time = 0;
@@ -6407,6 +6421,8 @@ void playmidi_stream_init(void)
     note_key_offset = 0;
     midi_time_ratio = 1.0;
     CLEAR_CHANNELMASK(channel_mute);
+	if (temper_type_mute & 1)
+		FILL_CHANNELMASK(channel_mute);
     midi_restart_time = 0;
     if(first)
     {

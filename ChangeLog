@@ -1,4 +1,27 @@
 
+2003-04-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/timidity.c:
+	  Support for channel mute by temperament type.
+	  Fix behaviour of quiet channel option -Q0.
+	  Fix around temperament control SysEx.
+
+2003-04-29  Saito <timidity@flashmail.com>
+
+	* timidity/instrum.c:
+	  Fix behaviour of user drumset / instrument.
+	* timidity/tables.c, timidity/mix.c:
+	  Modify envelope generator.
+	* timidity/playmidi.c:
+	  Disable Rx. Note Off for the moment.
+	* timidity/sndfont.c:
+	  Fix about initialization.
+
+2003-04-29  Kentaro Sato <kentaro@ps.catv.ne.jp>
+
+	* timidity/playmidi.c, timidity/mod2midi.c:
+	  Fix around MOD.
+
 2003-04-24  Saito <timidity@flashmail.com>
 
 	* timidity/reverb.c, timidity/playmidi.c, timidity/readmidi.c:
@@ -6,7 +29,7 @@
 	* timidity/tables.c:
 	  Randomize triangular waveform for SoundFont's LFO.
 	* timidity/instrum.h:
-	  Add some parameter to Sample struct.
+	  Add some parameters to Sample struct.
 
 2003-04-23  Saito <timidity@flashmail.com>
 

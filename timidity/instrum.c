@@ -893,11 +893,13 @@ Instrument *load_instrument(int dr, int b, int prog)
     int font_bank, font_preset, font_keynote;
 
 #ifndef CFG_FOR_SF
-	if(b == 64 || b == 65) {
-		if(dr) {	/* User Drumset */
-			recompute_userdrum(b, prog);
-		} else {	/* User Instrument */
-			recompute_userinst(b, prog);
+	if(play_system_mode == GS_SYSTEM_MODE) {
+		if(b == 64 || b == 65) {
+			if(dr) {	/* User Drumset */
+				recompute_userdrum(b, prog);
+			} else {	/* User Instrument */
+				recompute_userinst(b, prog);
+			}
 		}
 	}
 #endif

@@ -396,6 +396,7 @@ extern int reduce_quality_flag;
 extern int no_4point_interpolation;
 #endif
 extern ChannelBitMask channel_mute;
+extern int temper_type_mute;
 extern int8 current_keysig;
 extern int8 current_temper_keysig;
 extern int8 opt_init_keysig;

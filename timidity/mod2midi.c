@@ -639,8 +639,18 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	sp->root_freq = freq_table[MOD_ROOT_NOTE];
 	sp->volume = 1.0;		/* I guess it should use globvol... */
 	sp->panning = s->panning == PAN_SURROUND ? 64 : s->panning * 128 / 255;
+	sp->note_to_use = 0;
 	sp->low_vel = 0;
 	sp->high_vel = 127;
+	sp->tremolo_sweep_increment =
+		sp->tremolo_phase_increment = sp->tremolo_depth =
+		sp->vibrato_sweep_increment = sp->vibrato_control_ratio = sp->vibrato_depth = 0;
+	sp->cutoff_freq = sp->resonance = sp->tremolo_to_pitch = 
+		sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc =
+		sp->vel_to_fc = sp->key_to_fc = sp->vel_to_resonance = 0;
+	sp->envelope_velf_bpo = sp->modenv_velf_bpo =
+		sp->vel_to_fc_threshold = 64;
+	sp->key_to_fc_bpo = 60;
 
 	if (sp->data_length >= (1 << (31 - FRACTION_BITS)) - 1)
 	    shrink_huge_sample(sp);

@@ -95,7 +95,7 @@ int apply_envelope_to_amp(int);
 static inline void compute_mix_smoothing(Voice *);
 #endif
 
-int min_sustain_time = 0;
+int min_sustain_time = 4800;
 
 /**************** interface function ****************/
 void mix_voice(int32 *buf, int v, int32 c)
@@ -1050,7 +1050,7 @@ int recompute_envelope(int v)
 			ch = vp->channel;
 			vp->envelope_increment = -vp->sample->envelope_rate[2];
 			/* use the slower of the two rates */
-			if (vp->envelope_increment < rate)
+			if (vp->envelope_increment > rate)
 				vp->envelope_increment = rate;
 			if (! vp->envelope_increment)
 				/* Avoid freezing */
@@ -1092,20 +1092,19 @@ static inline int next_stage(int v)
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
-	else if(stage == 0 && rate > (1 << 30)) {	/* instantaneous attack */
+	else if(rate > (1L << 30)) {	/* instantaneous attack */
 		vp->envelope_volume = offset;
 		recompute_envelope(v);
-	}
+	} 
 	ch = vp->channel;
 
-	/* envelope generator (see also playmidi.c) */
+	/* envelope generator (see also playmidi.[ch]) */
 	if (ISDRUMCHANNEL(ch))
 		val = (channel[ch].drums[vp->note] != NULL)
 				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
 				: -1;
 	else {
-		/* envelope key-follow */
-		if (vp->sample->envelope_keyf[stage])
+		if (vp->sample->envelope_keyf[stage])	/* envelope key-follow */
 			rate *= pow(2.0, (double) (voice[v].note - 60)
 					* (double)vp->sample->envelope_keyf[stage] / 1200.0f);
 		val = channel[ch].envelope_rate[stage];
@@ -1113,31 +1112,31 @@ static inline int next_stage(int v)
 	if (val != -1)
 		rate *= envelope_coef[val & 0x7f];
 
-	/* envelope velocity-follow */
-	if (vp->sample->envelope_velf[stage])
+	if (vp->sample->envelope_velf[stage])	/* envelope velocity-follow */
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->envelope_velf_bpo)
 				* (double)vp->sample->envelope_velf[stage] / 1200.0f);
 
-	/* just before release phase, some modifications are necessary */
-	if (stage > 2 /* && vp->sample->inst_type == INST_SF2 */) {
-		/* adjust release rate for consistent release time */
+	/* just before release-phase, some modifications are necessary */
+	if (stage > 2) {
+		/* adjusting release-rate for consistent release-time */
 		rate *= (double) vp->envelope_volume
 				/ vp->sample->envelope_offset[0];
-		/* calculate current envelope scale and a value for optimization */
+		/* calculating current envelope scale and a inverted value for optimization */
 		vp->envelope_scale = vp->last_envelope_volume;
 		vp->inv_envelope_scale
 			= TIM_FSCALE(OFFSET_MAX	/ (double)vp->envelope_volume, 16);
 	}
 
-	/* avoid too fast envelope speed */
-	if (offset < vp->envelope_volume) {	/* decaying phase */
-		if(rate > vp->envelope_volume - offset) {
+	/* regularizing envelope */
+	if (rate < 512 * control_ratio) {rate = 512 * control_ratio;}
+	if (offset < vp->envelope_volume) {	/* decay-phase */
+		if(rate > vp->envelope_volume - offset) {	/* fastest decay */
 			rate = -vp->envelope_volume + offset - 1;
-		} else {
+		} else {	/* ordinary decay */
 			rate = -rate;
 		}
-	} else {	/* attacking phase */
-		if(rate > offset - vp->envelope_volume) {
+	} else {	/* attack-phase */
+		if(rate > offset - vp->envelope_volume) {	/* fastest attack */
 			rate = offset - vp->envelope_volume + 1;
 		}
 	}
@@ -1341,21 +1340,19 @@ static inline int modenv_next_stage(int v)
 	if (vp->modenv_volume == offset
 			|| (stage > 2 && vp->modenv_volume < offset))
 		return recompute_modulation_envelope(v);
-	else if(stage == 0 && rate > (1 << 30)) {	/* instantaneous attack */
-		vp->modenv_volume = offset;
-		recompute_modulation_envelope(v);
+	else if(stage == 0 && rate > (1L << 30)) {	/* instantaneous attack */
+			vp->modenv_volume = offset;
+			recompute_modulation_envelope(v);
 	}
-
 	ch = vp->channel;
 
-	/* envelope generator (see also playmidi.c) */
+	/* envelope generator (see also playmidi.[ch]) */
 	if (ISDRUMCHANNEL(ch))
 		val = (channel[ch].drums[vp->note] != NULL)
 				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
 				: -1;
 	else {
-		/* envelope key-follow */
-		if (vp->sample->modenv_keyf[stage])
+		if (vp->sample->modenv_keyf[stage])	/* envelope key-follow */
 			rate *= pow(2.0, (double) (voice[v].note - 60)
 					* (double)vp->sample->modenv_keyf[stage] / 1200.0f);
 		val = channel[ch].envelope_rate[stage];
@@ -1367,24 +1364,25 @@ static inline int modenv_next_stage(int v)
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->modenv_velf_bpo)
 				* (double)vp->sample->modenv_velf[stage] / 1200.0f);
 
-	/* just before release phase, some modifications are necessary */
+	/* just before release-phase, some modifications are necessary */
 	if (stage > 2) {
-		/* adjust release rate for consistent release time */
+		/* adjusting release-rate for consistent release-time */
 		rate *= (double) vp->modenv_volume
 				/ vp->sample->modenv_offset[0];
-		/* calculate current envelope scale and a value for optimization */
+		/* calculating current envelope scale */
 		vp->modenv_scale = vp->last_modenv_volume;
 	}
 
-	/* avoid too fast envelope speed */
-	if (offset < vp->modenv_volume) {	/* decaying phase */
-		if(rate > vp->modenv_volume - offset) {
+	/* regularizing envelope */
+	if (rate < 512 * control_ratio) {rate = 512 * control_ratio;}
+	if (offset < vp->modenv_volume) {	/* decay-phase */
+		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;
-		} else {
+		} else {	/* ordinary decay */
 			rate = -rate;
 		}
-	} else {	/* attacking phase */
-		if(rate > offset - vp->modenv_volume) {
+	} else {	/* attack-phase */
+		if(rate > offset - vp->modenv_volume) {	/* fastest attack */
 			rate = offset - vp->modenv_volume + 1;
 		}
 	}
@@ -1427,7 +1425,7 @@ int recompute_modulation_envelope(int v)
 			ch = vp->channel;
 			vp->modenv_increment = -vp->sample->modenv_rate[2];
 			/* use the slower of the two rates */
-			if (vp->modenv_increment < rate)
+			if (vp->modenv_increment > rate)
 				vp->modenv_increment = rate;
 			if (! vp->modenv_increment)
 				/* Avoid freezing */

@@ -1262,6 +1262,8 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	vp->v.envelope_velf_bpo = vp->v.modenv_velf_bpo =
 		vp->v.vel_to_fc_threshold = 64;
 	vp->v.key_to_fc_bpo = 60;
+	memset(vp->v.modenv_velf, 0, sizeof(vp->v.modenv_velf));
+	memset(vp->v.envelope_velf, 0, sizeof(vp->v.envelope_velf));
 
 	vp->v.inst_type = INST_SF2;
 }
@@ -1321,6 +1323,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		ctl->cmsg(CMSG_ERROR,VERB_NOISY,"error: linkedSample is not supported.");
 	}
 
+	memset(vp->v.envelope_keyf, 0, sizeof(vp->v.envelope_keyf));
 	if(tbl->set[SF_autoHoldEnv2]) {
 		vp->v.envelope_keyf[1] = (int16)tbl->val[SF_autoHoldEnv2];
 	}
@@ -1328,6 +1331,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.envelope_keyf[2] = (int16)tbl->val[SF_autoDecayEnv2];
 	}
 
+	memset(vp->v.modenv_keyf, 0, sizeof(vp->v.modenv_keyf));
 	if(tbl->set[SF_autoHoldEnv1]) {
 		vp->v.modenv_keyf[1] = (int16)tbl->val[SF_autoHoldEnv1];
 	}

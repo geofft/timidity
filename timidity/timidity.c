@@ -612,7 +612,7 @@ timidity_version
 static int set_channel_flag(ChannelBitMask *flags, int32 i, char *name)
 {
     if(i == 0)
-	CLEAR_CHANNELMASK(*flags);
+	FILL_CHANNELMASK(*flags);
     else if((i < 1 || i > MAX_CHANNELS) && (i < -MAX_CHANNELS || i > -1))
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -3019,10 +3019,16 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
 	}
 	break;
 
-      case 'Q':
-	if(set_channel_flag(&quietchannels, atoi(optarg), "Quiet channel"))
-	    return 1;
-	break;
+	case 'Q':
+		if (strchr(optarg, 't')) {
+			if (set_value(&tmpi32, atoi(optarg), 0, 3, "Quiet temperament"))
+				return 1;
+			temper_type_mute |= 1 << tmpi32;
+		} else
+			if (set_channel_flag(
+					&quietchannels, atoi(optarg), "Quiet channel"))
+				return 1;
+		break;
 
       case 'q':
 	if(strchr(optarg, '/') == NULL)
