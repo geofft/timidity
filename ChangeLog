@@ -1,3 +1,9 @@
+2003-09-18  Takashi Iwai <tiwai@suse.de>
+
+	* timidity/output.h, timidity/timidity.c, timidity/*_a.c:
+	  Added the detect callback to output record.  It's used to
+	  check the availability of default device and fallback devices.
+
 2003-09-18  mput  <root@mput.dip.jp>
 
 	* timidity/playmidi.c (note_off): Bug fix SEGV-ing for
