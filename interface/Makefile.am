@@ -124,7 +124,8 @@ EXTRA_libinterface_a_SOURCES = \
 	rtsyn.h \
 	rtsyn_common.c \
 	rtsyn_winmm.c \
-	rtsyn_portmidi.c
+	rtsyn_portmidi.c \
+	portmidisyn_c.c
 
 if ENABLE_WRD
 WRD_OBJS = \
