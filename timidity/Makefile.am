@@ -151,7 +151,15 @@ EXTRA_timidity_SOURCES = \
 	w32g_vorbis_dll.c \
 	w32g_ogg_dll.c \
 	w32_portaudio.h \
-	w32_portaudio_dll.c
+	w32_portaudio_dll.c \
+	w32_libFLAC_dll.c \
+	w32_libFLAC_dll.h \
+	w32_libFLAC_dll_g.h \
+	w32_libFLAC_dll_i.h \
+	w32_libOggFLAC_dll.c \
+	w32_libOggFLAC_dll.h \
+	w32_libOggFLAC_dll_g.h \
+	w32_libOggFLAC_dll_i.h
 
 calcnewt_SOURCES = calcnewt.c
 

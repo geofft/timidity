@@ -1,3 +1,7 @@
+2004-05-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/Makefile.{am,in}: Add new files for FLAC/OggFLAC
+
 2004-05-16  Saito <saito@intaa.net>
 
 	* configs/msc[67]-project.zip: Fix for FLAC/OggFLAC DLL.
@@ -11,12 +15,13 @@
 
 2004-05-16  skeishi <s_keishi@mutt.freemail.ne.jp>
 
-	* interface/gogo_a.c: Support for MP3 GOGO output in Win32CUI interface.
+	* interface/gogo_a.c:
+	  Support for MP3 GOGO output in Win32CUI interface.
 
 2004-05-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/msc[67]-project.zip: Change version to "current"
-	* timidity/Makefile.{am,in}: Add w32_{portaudio.h,portaudio_dll.c}
+	* timidity/Makefile.{am,in}: Add w32_portaudio{.h,_dll.c}
 
 2004-05-14  Saito <saito@intaa.net>
 
