@@ -40,10 +40,10 @@ typedef struct _Sample {
   int32
     tremolo_sweep_increment, tremolo_phase_increment,
     vibrato_sweep_increment, vibrato_control_ratio;
-  uint16
+  int16
     tremolo_depth;
+  int16 vibrato_depth;
   uint8
-    vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
   int32 cutoff_freq;	/* in Hz, [1, 20000] */

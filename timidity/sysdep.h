@@ -232,7 +232,7 @@ typedef struct _ChannelBitMask
 #define REVERSE_CHANNELMASK(bits) \
 	((bits).b[((c) >> 5) & 0x7] = ~(bits).b[((c) >> 5) & 0x7])
 #define COMPARE_CHANNELMASK(bitsA, bitsB) \
-	(memcmp(bitsA, bitsB, sizeof(ChannelBitMask)) == 0)
+	(memcmp((bitsA).b, (bitsB).b, sizeof (bitsA).b) == 0)
 #endif
 
 #ifdef LOOKUP_HACK

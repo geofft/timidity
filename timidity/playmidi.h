@@ -305,7 +305,7 @@ typedef struct {
     vibrato_phase, orig_vibrato_control_ratio, vibrato_control_ratio,
     vibrato_depth, vibrato_control_counter,
     envelope_stage, control_counter, panning, panned, modulation_wheel;
-  uint16 tremolo_depth;
+  int16 tremolo_depth;
 
   /* for portamento */
   int porta_control_ratio, porta_control_counter, porta_dpb;
@@ -328,8 +328,9 @@ typedef struct {
   int modenv_stage;
   int32
     modenv_volume, modenv_target, modenv_increment;
-  FLOAT_T modenv_scale, last_modenv_volume, prev_modenv_volume;
+  FLOAT_T modenv_scale, last_modenv_volume;
   int32 tremolo_delay, modenv_delay;
+  int32 prev_tuning;
 } Voice;
 
 /* Voice status options: */

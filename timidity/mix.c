@@ -95,7 +95,7 @@ int apply_envelope_to_amp(int);
 static inline void compute_mix_smoothing(Voice *);
 #endif
 
-int min_sustain_time = 4800;
+int min_sustain_time = 5000;
 
 /**************** interface function ****************/
 void mix_voice(int32 *buf, int v, int32 c)
@@ -1114,9 +1114,6 @@ static inline int next_stage(int v)
 					* (double)vp->sample->envelope_keyf[stage] / 1200.0f);
 		val = channel[ch].envelope_rate[stage];
 	}
-	if (val != -1)
-		rate *= envelope_coef[val & 0x7f];
-
 	if (vp->sample->envelope_velf[stage])	/* envelope velocity-follow */
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->envelope_velf_bpo)
 				* (double)vp->sample->envelope_velf[stage] / 1200.0f);
@@ -1133,19 +1130,25 @@ static inline int next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 1) {rate =  1;}
-	if (offset < vp->envelope_volume) {	/* decay-phase */
+	if (offset < vp->envelope_volume) {	/* decaying phase */
+		if (val != -1)
+			rate *= sc_eg_decay_table[val & 0x7f];
 		if(rate > vp->envelope_volume - offset) {	/* fastest decay */
 			rate = -vp->envelope_volume + offset - 1;
-		} else {	/* ordinary decay */
+		} else if (rate < 1) {	/* slowest decay */
+			rate = -1;
+		}
+		else {	/* ordinary decay */
 			rate = -rate;
 		}
-	} else {	/* attack-phase */
+	} else {	/* attacking phase */
+		if (val != -1)
+			rate *= sc_eg_attack_table[val & 0x7f];
 		if(rate > offset - vp->envelope_volume) {	/* fastest attack */
 			rate = offset - vp->envelope_volume + 1;
-		}
+		} else if (rate < 1) {rate =  1;}	/* slowest attack */
 	}
-	
+
 	vp->envelope_increment = (int32)rate;
 	vp->envelope_target = offset;
 
@@ -1155,7 +1158,7 @@ static inline int next_stage(int v)
 static inline void update_tremolo(int v)
 {
 	Voice *vp = &voice[v];
-	uint32 depth = vp->tremolo_depth << 7;
+	int32 depth = vp->tremolo_depth << 7;
 	
 	if(vp->tremolo_delay > 0)
 	{
@@ -1183,10 +1186,10 @@ static inline void update_tremolo(int v)
 		vp->tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
 #endif
 
-	if(vp->sample->inst_type == INST_SF2) {
+	if(depth < 0) {
 	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(lookup_triangular(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
-			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
+			* -depth * TREMOLO_AMPLITUDE_TUNING, 17);
 	} else {
 	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
 			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
@@ -1381,9 +1384,6 @@ static inline int modenv_next_stage(int v)
 					* (double)vp->sample->modenv_keyf[stage] / 1200.0f);
 		val = channel[ch].envelope_rate[stage];
 	}
-	if (val != -1)
-		rate *= envelope_coef[val & 0x7f];
-
 	if (vp->sample->modenv_velf[stage])
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->modenv_velf_bpo)
 				* (double)vp->sample->modenv_velf[stage] / 1200.0f);
@@ -1398,17 +1398,22 @@ static inline int modenv_next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 1) {rate = 1;}
-	if (offset < vp->modenv_volume) {	/* decay-phase */
+	if (offset < vp->modenv_volume) {	/* decaying phase */
+		if (val != -1)
+			rate *= sc_eg_decay_table[val & 0x7f];
 		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;
+		} else if (rate < 1) {	/* slowest decay */
+			rate = -1;
 		} else {	/* ordinary decay */
 			rate = -rate;
 		}
-	} else {	/* attack-phase */
+	} else {	/* attacking phase */
+		if (val != -1)
+			rate *= sc_eg_attack_table[val & 0x7f];
 		if(rate > offset - vp->modenv_volume) {	/* fastest attack */
 			rate = offset - vp->modenv_volume + 1;
-		}
+		} else if (rate < 1) {rate = 1;}	/* slowest attack */
 	}
 	
 	vp->modenv_increment = (int32)rate;

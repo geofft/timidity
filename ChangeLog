@@ -1,4 +1,22 @@
 
+2003-05-08  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Fix about tremolo again.
+
+2003-05-07  Kentaro Sato <kentaro@ps.catv.ne.jp>
+
+	* timidity/sysdep.h:
+	  Fix compile error in case of MAX_CHANNEL >= 33
+	  
+2003-05-07  Saito <timidity@flashmail.com>
+
+	* timidity/tables.[ch], timidity/mix.c,
+	  timidity/playmidi.[ch], timidity/sndfont.c, timidity/resample.c:
+	  Fix around tremolo and vibrato.
+	  Fix about envelope generator.
+	  Bug fix in pitch control.
+
 2003-05-05  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c:

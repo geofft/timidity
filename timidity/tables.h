@@ -59,13 +59,12 @@ extern FLOAT_T delay_time_center_table[];
 extern FLOAT_T pre_delay_time_table[];
 extern FLOAT_T rate1_table[];
 extern FLOAT_T attack_vol_table[];
-extern FLOAT_T envelope_coef[];
+extern FLOAT_T sc_eg_attack_table[];
+extern FLOAT_T sc_eg_decay_table[];
 extern FLOAT_T sc_vel_table[];
 extern FLOAT_T sc_vol_table[];
 extern FLOAT_T sc_pan_table[];
 extern FLOAT_T sc_drum_level_table[];
-extern FLOAT_T concave_table[];
-extern FLOAT_T convex_table[];
 extern FLOAT_T sb_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
 

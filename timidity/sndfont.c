@@ -1570,7 +1570,8 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 	return;
 
     level = abs(tbl->val[SF_lfo1ToVolume]);
-    vp->v.tremolo_depth = 512 * (1.0 - cb_to_amp_table[level]);
+    vp->v.tremolo_depth = 512 - 512 * pow(10.0, (double)level / -200.0);
+	if(tbl->val[SF_lfo1ToVolume] < 0) {level = -level;}
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo1])
@@ -1607,9 +1608,8 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
     /* cents to linear; 400cents = 256 */
     shift = shift * 256 / 400;
 	if(shift > 255) {shift = 255;}
-    if(shift < 0)
-      shift = -shift;
-    vp->v.vibrato_depth = (uint8)shift;
+    else if(shift < -255) {shift = -255;}
+    vp->v.vibrato_depth = (int16)shift;
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo2])

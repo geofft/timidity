@@ -251,6 +251,7 @@ static void ctl_timestamp(void);
 static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
+static void update_channel_freq(int ch);
 
 static char *event_name(int type)
 {
@@ -652,21 +653,15 @@ void recompute_freq(int v)
 			|| channel[ch].drums[note]->coarse)) {
 		tuning += (channel[ch].drums[note]->fine
 				+ channel[ch].drums[note]->coarse * 64) << 7;
-		channel[ch].pitchfactor = 0;
 	}
 	if(opt_modulation_envelope) {
 		if(voice[v].sample->tremolo_to_pitch) {
 			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
 				* (double)voice[v].sample->tremolo_to_pitch * (1L << 13) / 100.0f;
-			channel[ch].pitchfactor = 0;
 		}
 		if(voice[v].sample->modenv_to_pitch) {
 			tuning += voice[v].last_modenv_volume
 				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f;
-			if(voice[v].last_modenv_volume != voice[v].prev_modenv_volume) {
-				voice[v].prev_modenv_volume = voice[v].last_modenv_volume;
-				channel[ch].pitchfactor = 0;
-			}
 		}
 	}
 	/* Scale Tuning */
@@ -699,6 +694,10 @@ void recompute_freq(int v)
 			break;
 		}
 		voice[v].orig_frequency = f;
+	}
+	if(tuning != voice[v].prev_tuning) {
+		voice[v].prev_tuning = tuning;
+		channel[ch].pitchfactor = 0;
 	}
 	if (! voice[v].porta_control_ratio) {
 		if (tuning == 0 && pb == 0x2000)
@@ -1986,7 +1985,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].vibrato_sweep=voice[i].sample->vibrato_sweep_increment;
   voice[i].vibrato_sweep_position=0;
 
-  voice[i].prev_modenv_volume = 0;
+  voice[i].prev_tuning = 0;
 
   memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
@@ -2006,7 +2005,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  if(channel[ch].vibrato_depth) {
 	      voice[i].vibrato_depth = voice[i].sample->vibrato_depth + channel[ch].vibrato_depth;
 		  if(voice[i].vibrato_depth > 255) {voice[i].vibrato_depth = 255;}
-		  else if(voice[i].vibrato_depth < 0) {voice[i].vibrato_depth = 0;}
+		  else if(voice[i].vibrato_depth < -255) {voice[i].vibrato_depth = -255;}
 	  }
       voice[i].vibrato_delay = voice[i].sample->vibrato_delay + channel[ch].vibrato_delay;
   }
@@ -2053,8 +2052,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   if(cnt == 0)
       channel[ch].last_note_fine = voice[i].note * 256;
 
-  recompute_freq(i);
   recompute_amp(i);
+  recompute_freq(i);
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
       /* Ramp up from 0 */
