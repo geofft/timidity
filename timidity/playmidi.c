@@ -125,8 +125,6 @@ int current_freq_table = 0;
 static void set_reverb_level(int ch, int level);
 static int make_rvid_flag = 0; /* For reverb optimization */
 
-static int sample_panning_average = -1;
-
 /* Ring voice id for each notes.  This ID enables duplicated note. */
 static uint8 vidq_head[128 * MAX_CHANNELS], vidq_tail[128 * MAX_CHANNELS];
 
@@ -680,7 +678,8 @@ void recompute_freq(int v)
   }
   
   if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL && channel[ch].drums[note]->play_note != -1) {
-	  root_freq = freq_table[channel[ch].drums[note]->play_note];
+	  root_freq = (double)freq_table[channel[ch].drums[note]->play_note]
+		  * (double)voice[v].sample->root_freq / (double)voice[v].orig_frequency;
   } else {
 	  root_freq = voice[v].sample->root_freq;
   }
@@ -1089,22 +1088,6 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	}
 }
 
-static int calc_sample_panning_average(Instrument* ip)
-{
-	int i, sum = 0, average;
-
-	if(!ip->samples) {return 64;}
-
-	for(i=0;i<ip->samples;i++)
-	{
-		sum += ip->sample[i].panning;
-	}
-
-	average = sum / ip->samples;
-
-	return average;
-}
-
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
     ToneBank **bank = ((dr) ? drumset : tonebank);
@@ -1149,8 +1132,6 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	return NULL;
     if(ip == NULL)
 	bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
-
-	sample_panning_average = calc_sample_panning_average(ip);
 
     return ip;
 }
@@ -1800,6 +1781,28 @@ static int find_samples(MidiEvent *e, int *vlist)
 		note = ip->sample->note_to_use;
 		if(ip->type == INST_SF2) {
 			nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
+			/* Replace the sample if the sample is cached. */
+			if(!prescanning_flag)
+			{
+				if(ip->sample->note_to_use)
+				note = MIDI_EVENT_NOTE(e);
+
+				for(i = 0; i < nv; i++)
+				{
+				int j;
+
+				j = vlist[i];
+				if(!opt_realtime_playing && allocate_cache_size > 0 &&
+				   !channel[ch].portamento)
+				{
+					voice[j].cache = resamp_cache_fetch(voice[j].sample, note);
+					if(voice[j].cache) /* cache hit */
+					voice[j].sample = voice[j].cache->resampled;
+				}
+				else
+					voice[j].cache = NULL;
+				}
+			}
 			return nv;
 		} else {
 			i = vlist[0] = find_voice(e);
@@ -1877,6 +1880,26 @@ static int get_panning(int ch, int note,int v)
 	return pan;
 }
 
+static void calc_sample_panning_average(int nv,int *vlist)
+{
+	int i, v, average = 0;
+
+	if(!nv) {return;}
+
+	for(i=0;i<nv;i++)
+	{
+		v = vlist[i];
+		average += voice[v].sample->panning;
+	}
+	average /= nv;
+
+	for(i=0;i<nv;i++)
+	{
+		v = vlist[i];
+		voice[v].sample_panning_average = average;
+	}
+}
+
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
 {
   int j, ch, note, pan;
@@ -1950,11 +1973,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
     voice[i].vibrato_sample_increment[j]=0;
 
   /* Pan */
-  if(sample_panning_average == -1) {sample_panning_average = 64;}
-  voice[i].sample_panning_average = sample_panning_average;
-  sample_panning_average = -1;
   voice[i].panning = get_panning(ch, note, i);
-/*  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d",voice[i].panning);*/
+/*ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d Average:%d",voice[i].panning,voice[i].sample_panning_average);*/
 
   voice[i].porta_control_counter = 0;
   if(channel[ch].portamento && !channel[ch].porta_control_ratio)
@@ -2335,6 +2355,7 @@ static void note_on(MidiEvent *e)
 	    channel[ch].panning = int_rand(128);
 	    ctl_mode_event(CTLE_PANNING, 1, ch, channel[ch].panning);
 	}
+	calc_sample_panning_average(nv, vlist);
 	start_note(e, v, vid, nv - i - 1);
 #ifdef SMOOTH_MIXING
 	voice[v].old_left_mix = voice[v].old_right_mix =
@@ -2842,6 +2863,7 @@ static void play_midi_prescan(MidiEvent *ev)
 		Voice *vp;
 
 		nv = find_samples(ev, vlist);
+		calc_sample_panning_average(nv, vlist);
 		for(i = 0; i < nv; i++)
 		{
 		    vp = voice + vlist[i];

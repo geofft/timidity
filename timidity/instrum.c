@@ -920,18 +920,12 @@ Instrument *load_instrument(int dr, int b, int prog)
 	}
 	if(ip != NULL && bank->tone[prog].pan != -1)	/* panning */
 	{
-	    int i,pan,pan_average,panning;
-		/* calculate average of soundfont default panning */
-		pan_average = 0;
-		for(i = 0; i < ip->samples; i++) {
-			pan_average += ip->sample[i].panning;
-		}
-		pan_average /= ip->samples;
+	    int i, pan, panning;
 
-		pan = (uint8)bank->tone[prog].pan & 0x7F;
+		pan = ((int)bank->tone[prog].pan & 0x7F) - 64;
 
 		for(i = 0; i < ip->samples; i++) {
-			panning = ip->sample[i].panning + pan - pan_average;
+			panning = (int)ip->sample[i].panning + pan;
 			if(panning < 0) {panning = 0;}
 			else if(panning > 127) {panning = 127;}
 			ip->sample[i].panning = panning;
