@@ -225,7 +225,7 @@ case "$target" in
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
-    CYGNUS=yes
+    CYGNUS=yestest
     lib_user32_test=-luser32
     ;;
   *-*-mingw*)
@@ -428,8 +428,8 @@ if test $timidity_cv_type_union_semun = yes; then
   AC_DEFINE(HAVE_UNION_SEMUN,1,Define to 1 if you use semun keyword)
 fi
 
-dnl Cygnus memory struct option
-if test "x$CYGNUS" = xyes; then
+dnl Cygnus and Mingw memory struct optiontest
+if test "x$CYGNUS" = xyes ||test "x$MINGW" = xyes; then
 	msnative_struct=''
 	    AC_MSG_CHECKING([how to get MSVC-compatible struct packing])
     if test -z "$ac_cv_prog_CC"; then
@@ -459,53 +459,10 @@ if test "x$CYGNUS" = xyes; then
     fi
 fi
 
-dnl Mingw32 memory struct option
-if test "x$MINGW" = xyes; then
-	msnative_struct=''
-	    AC_MSG_CHECKING([how to get MSVC-compatible struct packing])
-    if test -z "$ac_cv_prog_CC"; then
-      our_gcc="$CC"
-    else
-      our_gcc="$ac_cv_prog_CC"
-    fi    
-    case `$our_gcc --version | sed -e 's,\..*,.,' -e q` in
-      2.)
-	if $our_gcc -v --help 2>/dev/null | grep fnative-struct >/dev/null; then
-	  msnative_struct='-fnative-struct'
-	fi
-	;;
-      *)
-	if $our_gcc -v --help 2>/dev/null | grep ms-bitfields >/dev/null; then
-	  msnative_struct='-mms-bitfields'
-	fi
-	;;
-    esac
-    if test x"$msnative_struct" = x ; then
-      AC_MSG_RESULT([no way])
-      AC_MSG_WARN([produced binary will be incompatible with windows' GUI ])
-    else
-      CFLAGS="$CFLAGS $msnative_struct"
-      CPPFLAGS="$CPPFLAGS $msnative_struct"
-      AC_MSG_RESULT([${msnative_struct}])
-    fi
 
-fi
-	
-dnl Cygnus mmsystem check
-if test "x$CYGNUS" = xyes; then
+dnl Cygnus Mingw32 mmsystem check
+if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes; then
   AC_CACHE_CHECK(Cygwin new mmsystem,timidity_cv_header_new_mmsystem,
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <windows.h>
-#include <mmsystem.h>
-]], [[return WOM_OPEN != 0x3BB]])],[timidity_cv_header_new_mmsystem=yes],[timidity_cv_header_new_mmsystem=no]))
-  if test $timidity_cv_header_new_mmsystem = yes; then
-    AC_DEFINE(HAVE_NEW_MMSYSTEM,1,Define to 1 if you have <mmsystem.h> file)
-  fi
-fi
-
-dnl MINGW mmsystem check
-if test "x$MINGW" = xyes; then
-  AC_CACHE_CHECK(Mingw new mmsystem,timidity_cv_header_new_mmsystem,
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <windows.h>
 #include <mmsystem.h>
@@ -586,7 +543,7 @@ if test "x$CYGNUS" = xyes; then
 fi
 
 # Checks on Mingw
-if test "x$CYGWIN" = xyes; then
+if test "x$MINGW" = xyes; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     AC_CHECK_FUNC(opendir,,
@@ -1094,9 +1051,15 @@ dnl portaudio E
 AC_MSG_CHECKING(enable_audio=portaudio)
 if test "x$au_enable_portaudio" = xyes; then
   AC_MSG_RESULT(yes)
-  SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
-  EXTRALIBS="$EXTRALIBS -lportaudio"
-  EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+  if test "x$CYGNUS" = xyes ||test "x$MINGW" = xyes; then
+	SYSEXTRAS="$SYSEXTRAS portaudio_a.c w32_portaudio_dll.c"
+  	EXTRALIBS="$EXTRALIBS -lportaudio"
+  	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO -DAU_PORTAUDIO_DLL"
+  else
+  	SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
+  	EXTRALIBS="$EXTRALIBS -lportaudio"
+  	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+  fi
 else
   AC_MSG_RESULT(no)
 fi
@@ -1141,11 +1104,11 @@ if test "x$au_enable_vorbis" = xyes; then
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
       if test "x$CYGNUS" = "xyes"; then
-      EXTRADEFS="-DAU_VORBIS_DLL $EXTRALIBS"
+      EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
       if test "x$MINGW" = "xyes"; then
-      EXTRADEFS="-DAU_VORBIS_DLL $EXTRALIBS"
+      EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
     ],[

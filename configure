@@ -3890,7 +3890,7 @@ case "$target" in
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
-    CYGNUS=yes
+    CYGNUS=yestest
     lib_user32_test=-luser32
     ;;
   *-*-mingw*)
@@ -9092,7 +9092,7 @@ _ACEOF
 
 fi
 
-if test "x$CYGNUS" = xyes; then
+if test "x$CYGNUS" = xyes ||test "x$MINGW" = xyes; then
 	msnative_struct=''
 	    echo "$as_me:$LINENO: checking how to get MSVC-compatible struct packing" >&5
 echo $ECHO_N "checking how to get MSVC-compatible struct packing... $ECHO_C" >&6
@@ -9126,110 +9126,10 @@ echo "${ECHO_T}${msnative_struct}" >&6
     fi
 fi
 
-if test "x$MINGW" = xyes; then
-	msnative_struct=''
-	    echo "$as_me:$LINENO: checking how to get MSVC-compatible struct packing" >&5
-echo $ECHO_N "checking how to get MSVC-compatible struct packing... $ECHO_C" >&6
-    if test -z "$ac_cv_prog_CC"; then
-      our_gcc="$CC"
-    else
-      our_gcc="$ac_cv_prog_CC"
-    fi
-    case `$our_gcc --version | sed -e 's,\..*,.,' -e q` in
-      2.)
-	if $our_gcc -v --help 2>/dev/null | grep fnative-struct >/dev/null; then
-	  msnative_struct='-fnative-struct'
-	fi
-	;;
-      *)
-	if $our_gcc -v --help 2>/dev/null | grep ms-bitfields >/dev/null; then
-	  msnative_struct='-mms-bitfields'
-	fi
-	;;
-    esac
-    if test x"$msnative_struct" = x ; then
-      echo "$as_me:$LINENO: result: no way" >&5
-echo "${ECHO_T}no way" >&6
-      { echo "$as_me:$LINENO: WARNING: produced binary will be incompatible with windows' GUI " >&5
-echo "$as_me: WARNING: produced binary will be incompatible with windows' GUI " >&2;}
-    else
-      CFLAGS="$CFLAGS $msnative_struct"
-      CPPFLAGS="$CPPFLAGS $msnative_struct"
-      echo "$as_me:$LINENO: result: ${msnative_struct}" >&5
-echo "${ECHO_T}${msnative_struct}" >&6
-    fi
 
-fi
-
-if test "x$CYGNUS" = xyes; then
+if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes; then
   echo "$as_me:$LINENO: checking Cygwin new mmsystem" >&5
 echo $ECHO_N "checking Cygwin new mmsystem... $ECHO_C" >&6
-if test "${timidity_cv_header_new_mmsystem+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <windows.h>
-#include <mmsystem.h>
-
-int
-main ()
-{
-return WOM_OPEN != 0x3BB
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  timidity_cv_header_new_mmsystem=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-timidity_cv_header_new_mmsystem=no
-fi
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $timidity_cv_header_new_mmsystem" >&5
-echo "${ECHO_T}$timidity_cv_header_new_mmsystem" >&6
-  if test $timidity_cv_header_new_mmsystem = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_NEW_MMSYSTEM 1
-_ACEOF
-
-  fi
-fi
-
-if test "x$MINGW" = xyes; then
-  echo "$as_me:$LINENO: checking Mingw new mmsystem" >&5
-echo $ECHO_N "checking Mingw new mmsystem... $ECHO_C" >&6
 if test "${timidity_cv_header_new_mmsystem+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -11339,7 +11239,7 @@ fi
 fi
 
 # Checks on Mingw
-if test "x$CYGWIN" = xyes; then
+if test "x$MINGW" = xyes; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     echo "$as_me:$LINENO: checking for opendir" >&5
@@ -13299,9 +13199,15 @@ echo $ECHO_N "checking enable_audio=portaudio... $ECHO_C" >&6
 if test "x$au_enable_portaudio" = xyes; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-  SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
-  EXTRALIBS="$EXTRALIBS -lportaudio"
-  EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+  if test "x$CYGNUS" = xyes ||test "x$MINGW" = xyes; then
+	SYSEXTRAS="$SYSEXTRAS portaudio_a.c w32_portaudio_dll.c"
+  	EXTRALIBS="$EXTRALIBS -lportaudio"
+  	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO -DAU_PORTAUDIO_DLL"
+  else
+  	SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
+  	EXTRALIBS="$EXTRALIBS -lportaudio"
+  	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+  fi
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -13964,11 +13870,11 @@ echo "${ECHO_T}yes" >&6
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
       if test "x$CYGNUS" = "xyes"; then
-      EXTRADEFS="-DAU_VORBIS_DLL $EXTRALIBS"
+      EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
       if test "x$MINGW" = "xyes"; then
-      EXTRADEFS="-DAU_VORBIS_DLL $EXTRALIBS"
+      EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
 
