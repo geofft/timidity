@@ -1,3 +1,10 @@
+2003-10-25  skeishi <s_keishi@mutt.freemail.ne.jp>
+
+	* interface/rtsyn.h:
+	  Bug fix about TWSYNTH.
+	* interface/rtsyn_common.c:
+	  Fix timer of TWSYNTH.
+
 2003-10-23  mput <root@mput.dip.jp>
 
 	* timidity/controls.h: Fix signedness for ctl->flags
