@@ -65,12 +65,6 @@ struct RCPNoteTracer
     { MidiEvent event; SETMIDIEVENT(event, at, t, ch, pa, pb); \
       readmidi_add_event(&event); }
 
-#define MIDIEVENT_LAYER(at, t, ch, pa, pb) \
-    { MidiEvent event; int _layer_cnt; \
-	for(_layer_cnt = 0; channel[ch].channel_layer[_layer_cnt] != -1; _layer_cnt++) {	\
-	SETMIDIEVENT(event, at, t, channel[ch].channel_layer[_layer_cnt], pa, pb); \
-	readmidi_add_event(&event);}}
-
 static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt);
 static int preprocess_sysex(uint8* ex, int ch, int gt, int vel);
 
@@ -815,8 +809,8 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    break;
 
 	  case 0xe2:	/* bank & program change */
-	    readmidi_add_ctl_event_layer(ntr_at(ntr), ch, 0, b); /*Change MSB Bank*/
-	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PROGRAM, ch, a & 0x7f, 0);
+	    readmidi_add_ctl_event(ntr_at(ntr), ch, 0, b); /*Change MSB Bank*/
+	    MIDIEVENT(ntr_at(ntr), ME_PROGRAM, ch, a & 0x7f, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -887,32 +881,32 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 
 	  case 0xea:	/* channel after touch (channel pressure) */
 	    a &= 0x7f;
-	    MIDIEVENT_LAYER(ntr_at(ntr), ME_CHANNEL_PRESSURE, ch, a, 0);
+	    MIDIEVENT(ntr_at(ntr), ME_CHANNEL_PRESSURE, ch, a, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xeb:	/* control change */
-	    readmidi_add_ctl_event_layer(ntr_at(ntr), ch, a, b);
+	    readmidi_add_ctl_event(ntr_at(ntr), ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xec:	/* program change */
 	    a &= 0x7f;
-	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PROGRAM, ch, a, 0);
+	    MIDIEVENT(ntr_at(ntr), ME_PROGRAM, ch, a, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xed:	/* after touch polyphonic (polyphonic key pressure) */
 	    a &= 0x7f;
 	    b &= 0x7f;
-	    MIDIEVENT_LAYER(ntr_at(ntr), ME_KEYPRESSURE, ch, a, b);
+	    MIDIEVENT(ntr_at(ntr), ME_KEYPRESSURE, ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xee:	/* pitch bend */
 	    a &= 0x7f;
 	    b &= 0x7f;
-	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PITCHWHEEL, ch, a, b);
+	    MIDIEVENT(ntr_at(ntr), ME_PITCHWHEEL, ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -1302,7 +1296,7 @@ static void ntr_note_on(struct RCPNoteTracer *ntr,
 	    return;
 	}
 
-    MIDIEVENT_LAYER(ntr->at, ME_NOTEON, ch, note, velo);
+    MIDIEVENT(ntr->at, ME_NOTEON, ch, note, velo);
     ntr_add(ntr, ch, note, gate);
 }
 
@@ -1340,7 +1334,7 @@ static void ntr_incr(struct RCPNoteTracer *ntr, int step)
 		if(ctl->verbosity >= VERB_DEBUG_SILLY)
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 			      "NoteOff %d at %d", p->note, ntr->at);
-		MIDIEVENT_LAYER(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
+		MIDIEVENT(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
 		p->next = ntr->freelist;
 		ntr->freelist = p;
 	    }
@@ -1386,7 +1380,7 @@ static void ntr_wait_all_off(struct RCPNoteTracer *ntr)
 		if(ctl->verbosity >= VERB_DEBUG_SILLY)
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 			      "NoteOff %d", p->note);
-		MIDIEVENT_LAYER(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
+		MIDIEVENT(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
 		p->next = ntr->freelist;
 		ntr->freelist = p;
 	    }

@@ -66,6 +66,8 @@ extern void convert_mod_to_midi_file(MidiEvent * ev);
 
 extern VOLATILE int intr;
 
+/* #define SUPPRESS_CHANNEL_LAYER */
+
 #ifdef SOLARIS
 /* shut gcc warning up */
 int usleep(unsigned int useconds);
@@ -252,6 +254,8 @@ static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
+
+#define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
 static char *event_name(int type)
 {
@@ -482,6 +486,8 @@ static void reset_nrpn_controllers(int c)
 		channel[c].scale_tuning[i] = 0;
 	channel[c].prev_scale_tuning = 0;
 	channel[c].temper_type = 0;
+
+  init_channel_layer(c);
 
   /* channel pressure & polyphonic key pressure control */
   channel[c].caf_lfo1_rate_ctl = 0;
@@ -1096,7 +1102,12 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
     load_success = 0;
     if(opt_realtime_playing != 2)
     {
-	if((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT)
+	ip = bank[bk]->tone[prog].instrument;
+#ifndef SUPPRESS_CHANNEL_LAYER
+	if(ip == MAGIC_LOAD_INSTRUMENT || ip == NULL)
+#else
+	if(ip == MAGIC_LOAD_INSTRUMENT)
+#endif
 	{
 	    ip = bank[bk]->tone[prog].instrument =
 		load_instrument(dr, bk, prog);
@@ -1114,9 +1125,9 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	    {
 			/* duplicate tone bank parameter */
 			elm = &bank[bk]->tone[prog];
-			memcpy(elm,&bank[0]->tone[prog],sizeof(ToneBankElement));
+			memcpy(elm, &bank[0]->tone[prog], sizeof(ToneBankElement));
 			elm->instrument = ip;
-			dup_tone_bank_element(dr,bk,prog);
+			dup_tone_bank_element(dr, bk, prog);
 			load_success = 1;
 	    }
 	}
@@ -1141,9 +1152,9 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	    {
 			/* duplicate tone bank parameter */
 			elm = &bank[bk]->tone[prog];
-			memcpy(elm,&bank[0]->tone[prog],sizeof(ToneBankElement));
+			memcpy(elm, &bank[0]->tone[prog], sizeof(ToneBankElement));
 			elm->instrument = ip;
-			dup_tone_bank_element(dr,bk,prog);
+			dup_tone_bank_element(dr, bk, prog);
 			load_success = 1;
 	    }
 	}
@@ -3297,9 +3308,20 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			insertion_effect.send_eq_switch = val;
 			recompute_insertion_effect();
 			break;
-		case 0x45:	/* MOD PITCH CONTROL */
-			/* 0x45~ MOD, CAF, PAF */
+		case 0x45:	/* Rx. Channel */
+			if(val == 0x10) {
+				remove_channel_layer(ch);
+				init_channel_layer(ch);
+			} else {
+				add_channel_layer(val, ch);
+			}
 			break;
+		case 0x46:	/* Channel Msg Rx Port */
+			add_channel_layer(ch, val);
+			break;
+			
+			/* MOD PITCH CONTROL */
+			/* 0x45~ MOD, CAF, PAF */
 		default:
 			break;
 		}
@@ -3310,11 +3332,20 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)",val);
 			reverb_status.level = val;
 			recompute_reverb_status();
+			init_reverb(play_mode->rate);
 			break;
 		case 0x01:	/* Chorus Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)",val);
 			chorus_param.chorus_level = val;
 			recompute_chorus_status();
+			break;
+		case 0x65:	/* Rcv CHANNEL */
+			if(val == 0x7F) {
+			remove_channel_layer(ch);
+			init_channel_layer(ch);
+		    } else {
+			add_channel_layer(val, ch);
+		    }
 			break;
 		default:
 			break;
@@ -3337,9 +3368,20 @@ static void play_midi_prescan(MidiEvent *ev)
 
     while(ev->type != ME_EOT)
     {
-	int ch;
+	int ch, j, orig_ch, layered;
 
+#ifndef SUPPRESS_CHANNEL_LAYER
+	orig_ch = ev->channel;
+	layered = !IS_SYSEX_EVENT_TYPE(ev->type);
+	for(j = 0; (!layered && j < 1) ||
+		(layered && channel[orig_ch].channel_layer[j] != -1); j++)
+	{
+	if(layered) {
+		ev->channel = channel[orig_ch].channel_layer[j];
+	}
+#endif
 	ch = ev->channel;
+
 	switch(ev->type)
 	{
 	  case ME_NOTEON:
@@ -3430,6 +3472,10 @@ static void play_midi_prescan(MidiEvent *ev)
 	    }
 	    break;
 	}
+#ifndef SUPPRESS_CHANNEL_LAYER
+	}
+	ev->channel = orig_ch;
+#endif
 	ev++;
     }
 
@@ -3747,9 +3793,20 @@ static void seek_forward(int32 until_time)
     wrd_midi_event(WRD_START_SKIP, WRD_NOARG);
     while(MIDI_EVENT_TIME(current_event) < until_time)
     {
-	int ch;
+	int ch, j = 0, orig_ch, layered;
 
+#ifndef SUPPRESS_CHANNEL_LAYER
+	orig_ch = current_event->channel;
+	layered = !IS_SYSEX_EVENT_TYPE(current_event->type);
+	for(j = 0; (!layered && j < 1) ||
+		(layered && channel[orig_ch].channel_layer[j] != -1); j++)
+	{
+	if(layered) {
+		current_event->channel = channel[orig_ch].channel_layer[j];
+	}
+#endif
 	ch = current_event->channel;
+	
 	switch(current_event->type)
 	{
 	  case ME_PITCHWHEEL:
@@ -4051,6 +4108,10 @@ static void seek_forward(int32 until_time)
 	    playmidi_seek_flag = 0;
 	    return;
 	}
+#ifndef SUPPRESS_CHANNEL_LAYER
+	}
+	current_event->channel = orig_ch;
+#endif
 	current_event++;
     }
     wrd_midi_event(WRD_END_SKIP, WRD_NOARG);
@@ -5461,7 +5522,7 @@ static void update_legato_controls(int ch)
 
 int play_event(MidiEvent *ev)
 {
-    int ch;
+    int ch, k, orig_ch, layered;
     int32 i, j, cet;
 
     if(play_mode->flag & PF_MIDI_EVENT)
@@ -5500,9 +5561,19 @@ int play_event(MidiEvent *ev)
 	if(rc != RC_NONE)
 	    return rc;
 	}
- 
 
+#ifndef SUPPRESS_CHANNEL_LAYER
+	orig_ch = ev->channel;
+	layered = !IS_SYSEX_EVENT_TYPE(ev->type);
+	for(k = 0; (!layered && k < 1) ||
+		(layered && channel[orig_ch].channel_layer[k] != -1); k++)
+	{
+	if(layered) {
+		ev->channel = channel[orig_ch].channel_layer[k];
+	}
+#endif
 	ch = ev->channel;
+
     switch(ev->type)
     {
 	/* MIDI Events */
@@ -5978,6 +6049,10 @@ int play_event(MidiEvent *ev)
       case ME_EOT:
 	return midi_play_end();
     }
+#ifndef SUPPRESS_CHANNEL_LAYER
+	}
+	ev->channel = orig_ch;
+#endif
 
     return RC_NONE;
 }

@@ -321,7 +321,7 @@ void do_standard_reverb(int32 *comp, int32 n)
 
 void do_ch_reverb(int32* buf, int32 count)
 {
-	if(opt_reverb_control == 3) {
+	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
 		do_freeverb(buf, count);
 	} else {
 		do_standard_reverb(buf, count);
@@ -466,7 +466,7 @@ void init_ch_delay()
 #ifdef USE_DSP_EFFECT
 void do_ch_delay(int32* buf, int32 count)
 {
-	if(opt_reverb_control == 3 && delay_status.pre_lpf) {
+	if((opt_reverb_control == 3 || opt_effect_quality >= 1)&& delay_status.pre_lpf) {
 		do_lowpass_24db(delay_effect_buffer,count,delay_status.lpf_coef,delay_status.lpf_val);
 	}
 
@@ -912,7 +912,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 
 void do_ch_chorus(int32* buf, int32 count)
 {
-	if(opt_reverb_control == 3 && chorus_param.chorus_pre_lpf) {
+	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf) {
 		do_lowpass_24db(chorus_effect_buffer, count, chorus_param.lpf_coef, chorus_param.lpf_val);
 	}
 	do_stereo_chorus(buf, count);
@@ -1865,7 +1865,7 @@ static void do_freeverb(int32 *buf, int32 count)
 void init_reverb(int32 output_rate)
 {
 	sample_rate = output_rate;
-	if(opt_reverb_control == 3) {
+	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
 		alloc_revmodel();
 		update_revmodel(revmodel);
 		init_revmodel(revmodel);
