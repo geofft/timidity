@@ -94,6 +94,9 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 A_so_libs = @A_so_libs@
+BORLANDC_FALSE = @BORLANDC_FALSE@
+BORLANDC_START = @BORLANDC_START@
+BORLANDC_TRUE = @BORLANDC_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -178,8 +181,8 @@ MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
-MINGW_FALSE = @MINGW_FALSE@
-MINGW_TRUE = @MINGW_TRUE@
+MSYS_FALSE = @MSYS_FALSE@
+MSYS_TRUE = @MSYS_TRUE@
 NEEDDLOPEN_FALSE = @NEEDDLOPEN_FALSE@
 NEEDDLOPEN_TRUE = @NEEDDLOPEN_TRUE@
 NEEDGETOPT_FALSE = @NEEDGETOPT_FALSE@
@@ -205,6 +208,9 @@ SHLD = @SHLD@
 STRIP = @STRIP@
 SYSEXTRAS = @SYSEXTRAS@
 T_so_libs = @T_so_libs@
+VCPP_FALSE = @VCPP_FALSE@
+VCPP_LDFLAGS = @VCPP_LDFLAGS@
+VCPP_TRUE = @VCPP_TRUE@
 VERSION = @VERSION@
 VORBISENC_LIBS = @VORBISENC_LIBS@
 VORBISFILE_LIBS = @VORBISFILE_LIBS@
@@ -451,27 +457,63 @@ EXTRA_timidity_SOURCES = \
 calcnewt_SOURCES = calcnewt.c
 
 CLEANFILES = newton_table.c
-
 @ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 @ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@VCPP_FALSE@timidity_LDADD = \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(W32GUI_RES)
 
-timidity_LDADD = \
-	$(SYSEXTRAS:.c=.o) \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a \
-	$(W32GUI_RES)
+
+@VCPP_TRUE@timidity_LDADD = \
+@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@VCPP_TRUE@	$(W32GUI_RES)
 
 
-timidity_dep = $(SYSEXTRAS:.c=.o) \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a \
-	$(W32GUI_RES)
+@BORLANDC_TRUE@@VCPP_FALSE@timidity_LDADD = \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib 
 
+
+@BORLANDC_FALSE@@VCPP_FALSE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a \
+@BORLANDC_FALSE@@VCPP_FALSE@	$(W32GUI_RES)
+
+
+@VCPP_TRUE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@VCPP_TRUE@	$(W32GUI_RES)
+
+
+@BORLANDC_TRUE@@VCPP_FALSE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(W32GUI_RES)
+
+
+@VCPP_TRUE@VC_LINK = link.exe
+@VCPP_TRUE@VCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
+
+@BORLANDC_TRUE@BORLANDC_LINK = ilink32.exe -C -Gn
+@BORLANDC_TRUE@BCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
 subdir = timidity
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
@@ -501,29 +543,107 @@ am_timidity_OBJECTS = aiff_a.$(OBJEXT) aq.$(OBJEXT) au_a.$(OBJEXT) \
 	timidity.$(OBJEXT) version.$(OBJEXT) wave_a.$(OBJEXT) \
 	wrd_read.$(OBJEXT) wrdt.$(OBJEXT)
 timidity_OBJECTS = $(am_timidity_OBJECTS)
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/utils/libutils.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/w32g_res.res
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/utils/libutils.a
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/utils/libutils.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@	$(top_builddir)/interface/w32g_res.res
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@timidity_DEPENDENCIES = \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/libinterface.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libarc/libarc.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/libunimod/libunimod.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/utils/libutils.a \
-@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/libutils.a \
+@BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_FALSE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_TRUE@	$(top_builddir)/interface/w32g_res.res
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@timidity_DEPENDENCIES = \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@@ENABLE_W32G_SYN_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -619,9 +739,18 @@ clean-binPROGRAMS:
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
-	@rm -f calcnewt$(EXEEXT)
-	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+@VCPP_FALSE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
+@VCPP_FALSE@	@rm -f calcnewt$(EXEEXT)
+@VCPP_FALSE@	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+@BORLANDC_FALSE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
+@BORLANDC_FALSE@	@rm -f calcnewt$(EXEEXT)
+@BORLANDC_FALSE@	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+@VCPP_FALSE@timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) 
+@VCPP_FALSE@	@rm -f timidity$(EXEEXT)
+@VCPP_FALSE@	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
+@BORLANDC_FALSE@timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) 
+@BORLANDC_FALSE@	@rm -f timidity$(EXEEXT)
+@BORLANDC_FALSE@	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -913,17 +1042,32 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	uninstall-am uninstall-binPROGRAMS uninstall-info-am
 
 
-timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
-	@rm -f timidity$(EXEEXT)
-	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
+@VCPP_TRUE@timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+@VCPP_TRUE@	@rm -f timidity$(EXEEXT)
+@VCPP_TRUE@	$(VC_LINK) $(VCPP_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS) -out:timidity.exe
 
-version.o: version.c ../configure
+@VCPP_TRUE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+@VCPP_TRUE@	@rm -f calcnewt$(EXEEXT)
+@VCPP_TRUE@	$(VCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
+@BORLANDC_TRUE@timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+@BORLANDC_TRUE@	@rm -f timidity$(EXEEXT)
+@BORLANDC_TRUE@	$(BORLANDC_LINK) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
+
+@BORLANDC_TRUE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+@BORLANDC_TRUE@	@rm -f calcnewt$(EXEEXT)
+@BORLANDC_TRUE@	$(BCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
+version.$(OBJEXT): version.c ../configure
 	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
 
 resample.c: newton_table.c
 
-newton_table.c: calcnewt
-	./calcnewt > $@
+@VCPP_TRUE@newton_table.c: calcnewt$(EXEEXT)
+@VCPP_TRUE@	./calcnewt $@
+
+@VCPP_FALSE@newton_table.c: calcnewt$(EXEEXT)
+@VCPP_FALSE@	./calcnewt > $@
 
 $(top_builddir)/interface/libinterface.a $(W32GUI_RES):
 	cd $(top_builddir)/interface; $(MAKE)

@@ -94,6 +94,9 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 A_so_libs = @A_so_libs@
+BORLANDC_FALSE = @BORLANDC_FALSE@
+BORLANDC_START = @BORLANDC_START@
+BORLANDC_TRUE = @BORLANDC_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -178,8 +181,8 @@ MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
-MINGW_FALSE = @MINGW_FALSE@
-MINGW_TRUE = @MINGW_TRUE@
+MSYS_FALSE = @MSYS_FALSE@
+MSYS_TRUE = @MSYS_TRUE@
 NEEDDLOPEN_FALSE = @NEEDDLOPEN_FALSE@
 NEEDDLOPEN_TRUE = @NEEDDLOPEN_TRUE@
 NEEDGETOPT_FALSE = @NEEDGETOPT_FALSE@
@@ -205,6 +208,9 @@ SHLD = @SHLD@
 STRIP = @STRIP@
 SYSEXTRAS = @SYSEXTRAS@
 T_so_libs = @T_so_libs@
+VCPP_FALSE = @VCPP_FALSE@
+VCPP_LDFLAGS = @VCPP_LDFLAGS@
+VCPP_TRUE = @VCPP_TRUE@
 VERSION = @VERSION@
 VORBISENC_LIBS = @VORBISENC_LIBS@
 VORBISFILE_LIBS = @VORBISFILE_LIBS@
@@ -308,7 +314,9 @@ INCLUDES = \
 	$(EXTRAINCS)
 
 
-noinst_LIBRARIES = libarc.a
+@VCPP_TRUE@noinst_DATA = arc.lib
+@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = arc.lib
+@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libarc.a
 
 libarc_a_SOURCES = \
 	arc.c \
@@ -347,13 +355,37 @@ EXTRA_libarc_a_SOURCES = \
 
 
 @ENABLE_NETWORK_TRUE@NET_OBJS = \
-@ENABLE_NETWORK_TRUE@	url_http.o \
-@ENABLE_NETWORK_TRUE@	url_ftp.o \
-@ENABLE_NETWORK_TRUE@	url_news.o \
-@ENABLE_NETWORK_TRUE@	url_newsgroup.o
+@ENABLE_NETWORK_TRUE@	url_http.$(OBJEXT) \
+@ENABLE_NETWORK_TRUE@	url_ftp.$(OBJEXT) \
+@ENABLE_NETWORK_TRUE@	url_news.$(OBJEXT) \
+@ENABLE_NETWORK_TRUE@	url_newsgroup.$(OBJEXT)
 
 
 libarc_a_LIBADD = $(NET_OBJS)
+
+libarc_OBJS = \
+	arc.$(OBJEXT) \
+	arc_lzh.$(OBJEXT) \
+	arc_mime.$(OBJEXT) \
+	arc_tar.$(OBJEXT) \
+	arc_zip.$(OBJEXT) \
+	deflate.$(OBJEXT) \
+	explode.$(OBJEXT) \
+	inflate.$(OBJEXT) \
+	unlzh.$(OBJEXT) \
+	url.$(OBJEXT) \
+	url_b64decode.$(OBJEXT) \
+	url_buff.$(OBJEXT) \
+	url_cache.$(OBJEXT) \
+	url_dir.$(OBJEXT) \
+	url_file.$(OBJEXT) \
+	url_hqxdecode.$(OBJEXT) \
+	url_inflate.$(OBJEXT) \
+	url_mem.$(OBJEXT) \
+	url_pipe.$(OBJEXT) \
+	url_qsdecode.$(OBJEXT) \
+	url_uudecode.$(OBJEXT) 
+
 subdir = libarc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
@@ -362,8 +394,9 @@ CONFIG_CLEAN_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 
 libarc_a_AR = $(AR) cru
-@ENABLE_NETWORK_TRUE@libarc_a_DEPENDENCIES = url_http.o url_ftp.o \
-@ENABLE_NETWORK_TRUE@	url_news.o url_newsgroup.o
+@ENABLE_NETWORK_TRUE@libarc_a_DEPENDENCIES = url_http.$(OBJEXT) \
+@ENABLE_NETWORK_TRUE@	url_ftp.$(OBJEXT) url_news.$(OBJEXT) \
+@ENABLE_NETWORK_TRUE@	url_newsgroup.$(OBJEXT)
 @ENABLE_NETWORK_FALSE@libarc_a_DEPENDENCIES =
 am_libarc_a_OBJECTS = arc.$(OBJEXT) arc_lzh.$(OBJEXT) arc_mime.$(OBJEXT) \
 	arc_tar.$(OBJEXT) arc_zip.$(OBJEXT) deflate.$(OBJEXT) \
@@ -397,6 +430,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libarc_a_SOURCES) $(EXTRA_libarc_a_SOURCES)
+DATA = $(noinst_DATA)
+
 DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/common.makefile.in \
 	Makefile.am
 SOURCES = $(libarc_a_SOURCES) $(EXTRA_libarc_a_SOURCES)
@@ -563,7 +598,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(DATA)
 
 installdirs:
 install: install-am
@@ -647,6 +682,20 @@ uninstall-am: uninstall-info-am
 	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
 	ps ps-am tags uninstall uninstall-am uninstall-info-am
 
+
+@VCPP_TRUE@arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
+@VCPP_TRUE@	link -lib $(libarc_OBJS) $(libarc_a_LIBADD) -out:$@
+
+@BORLANDC_TRUE@arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
+@BORLANDC_TRUE@	for foo in $(libarc_OBJS) $(libarc_a_LIBADD);do \
+@BORLANDC_TRUE@	  tlib $@ +$$foo; \
+@BORLANDC_TRUE@	done
+
+clean:
+	rm -f *.$(OBJEXT)
+	rm -f *.$(so)
+	rm -f *.a
+	rm -f *.lib
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

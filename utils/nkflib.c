@@ -233,13 +233,13 @@ static char *Patchlevel =
    これらは nkf の中でしか意味のないものであろう。
 
    SFILE は FILE みたいなもので文字列をファイルみたいに扱えるようにする。
-   SFILE を使うためには必ずオープンすること。sopen で mode=="new" または
+   SFILE を使うためには必ずオープンすること。ssopen で mode=="new" または
    "auto" 指定していなければクローズする必要はない。SFILE の中を直接操作
    した場合はいろいろ問題が出てくるであろう。
 
    SEOF は EOF みたいなもの。
 
-   sopen は open みたいな関数で、
+   ssopen は open みたいな関数で、
       sf : SFILE 型の変数
       st : 文字列
       maxsize : 文字列が許容できる最大の大きさ。sputc 時に制限を入れるもの。
@@ -280,7 +280,7 @@ static char sfile_buffer[BUFSIZ];
 #endif /* SAFE_CONVERT_LENGTH */
 
 /* Functions */
-static SFILE *sopen(SFILE *, char *string,signed int maxsize,char *md);
+static SFILE *ssopen(SFILE *, char *string,signed int maxsize,char *md);
 static void sclose(SFILE *sf);
 static int sgetc(SFILE *sf);
 static int sungetc(int c,SFILE *sf);
@@ -492,7 +492,7 @@ unsigned char fv[] = {
 /* SFILE 関連関数 */
 
 static SFILE *
-sopen(SFILE *sf, char *string, signed int maxsize, char *md)
+ssopen(SFILE *sf, char *string, signed int maxsize, char *md)
 {
   char *st;
   strcpy(sf->mode,md);
@@ -584,11 +584,11 @@ nkf_convert(char *si, char *so, int maxsize, char *in_mode, char *out_mode)
   fi = &xfi;
   fo = &xfo;
   if (so!=NULL) {
-    sopen(fi,si,0,"stdin");
-    sopen(fo,so,maxsize,"stdout");
+    ssopen(fi,si,0,"stdin");
+    ssopen(fo,so,maxsize,"stdout");
   } else {
-    sopen(fi,si,0,"stdin");
-    sopen(fo,so,maxsize,"newstr stdout");
+    ssopen(fi,si,0,"stdin");
+    ssopen(fo,so,maxsize,"newstr stdout");
   }
 
 /* 変数をデフォルト設定 */

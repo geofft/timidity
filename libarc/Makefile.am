@@ -23,8 +23,15 @@ INCLUDES = \
 	-I$(top_srcdir)/utils \
 	$(EXTRAINCS)
 
-
+if VCPP
+noinst_DATA = arc.lib
+else
+if BORLANDC
+noinst_DATA = arc.lib
+else
 noinst_LIBRARIES = libarc.a
+endif
+endif
 
 libarc_a_SOURCES = \
 	arc.c \
@@ -62,10 +69,53 @@ EXTRA_libarc_a_SOURCES = \
 
 if ENABLE_NETWORK
 NET_OBJS = \
-	url_http.o \
-	url_ftp.o \
-	url_news.o \
-	url_newsgroup.o
+	url_http.$(OBJEXT) \
+	url_ftp.$(OBJEXT) \
+	url_news.$(OBJEXT) \
+	url_newsgroup.$(OBJEXT)
 endif
 
 libarc_a_LIBADD = $(NET_OBJS)
+
+
+
+libarc_OBJS = \
+	arc.$(OBJEXT) \
+	arc_lzh.$(OBJEXT) \
+	arc_mime.$(OBJEXT) \
+	arc_tar.$(OBJEXT) \
+	arc_zip.$(OBJEXT) \
+	deflate.$(OBJEXT) \
+	explode.$(OBJEXT) \
+	inflate.$(OBJEXT) \
+	unlzh.$(OBJEXT) \
+	url.$(OBJEXT) \
+	url_b64decode.$(OBJEXT) \
+	url_buff.$(OBJEXT) \
+	url_cache.$(OBJEXT) \
+	url_dir.$(OBJEXT) \
+	url_file.$(OBJEXT) \
+	url_hqxdecode.$(OBJEXT) \
+	url_inflate.$(OBJEXT) \
+	url_mem.$(OBJEXT) \
+	url_pipe.$(OBJEXT) \
+	url_qsdecode.$(OBJEXT) \
+	url_uudecode.$(OBJEXT) 
+
+if VCPP
+arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
+	link -lib $(libarc_OBJS) $(libarc_a_LIBADD) -out:$@
+endif
+
+if BORLANDC
+arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
+	for foo in $(libarc_OBJS) $(libarc_a_LIBADD);do \
+	  tlib $@ +$$foo; \
+	done
+endif
+
+clean:
+	rm -f *.$(OBJEXT)
+	rm -f *.$(so)
+	rm -f *.a
+	rm -f *.lib

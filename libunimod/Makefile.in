@@ -94,6 +94,9 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 A_so_libs = @A_so_libs@
+BORLANDC_FALSE = @BORLANDC_FALSE@
+BORLANDC_START = @BORLANDC_START@
+BORLANDC_TRUE = @BORLANDC_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -178,8 +181,8 @@ MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
-MINGW_FALSE = @MINGW_FALSE@
-MINGW_TRUE = @MINGW_TRUE@
+MSYS_FALSE = @MSYS_FALSE@
+MSYS_TRUE = @MSYS_TRUE@
 NEEDDLOPEN_FALSE = @NEEDDLOPEN_FALSE@
 NEEDDLOPEN_TRUE = @NEEDDLOPEN_TRUE@
 NEEDGETOPT_FALSE = @NEEDGETOPT_FALSE@
@@ -205,6 +208,9 @@ SHLD = @SHLD@
 STRIP = @STRIP@
 SYSEXTRAS = @SYSEXTRAS@
 T_so_libs = @T_so_libs@
+VCPP_FALSE = @VCPP_FALSE@
+VCPP_LDFLAGS = @VCPP_LDFLAGS@
+VCPP_TRUE = @VCPP_TRUE@
 VERSION = @VERSION@
 VORBISENC_LIBS = @VORBISENC_LIBS@
 VORBISFILE_LIBS = @VORBISFILE_LIBS@
@@ -310,7 +316,9 @@ INCLUDES = \
 	$(EXTRAINCS)
 
 
-noinst_LIBRARIES = libunimod.a
+@VCPP_TRUE@noinst_DATA = unimod.lib
+@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = unimod.lib
+@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libunimod.a
 
 libunimod_a_SOURCES = \
 	load_669.c \
@@ -337,6 +345,31 @@ libunimod_a_SOURCES = \
 	munitrk.c \
 	unimod.h \
 	unimod_priv.h
+
+
+unimod_OBJS = \
+	load_669.$(OBJEXT) \
+	load_amf.$(OBJEXT) \
+	load_dsm.$(OBJEXT) \
+	load_far.$(OBJEXT) \
+	load_gdm.$(OBJEXT) \
+	load_imf.$(OBJEXT) \
+	load_it.$(OBJEXT) \
+	load_m15.$(OBJEXT) \
+	load_med.$(OBJEXT) \
+	load_mod.$(OBJEXT) \
+	load_mtm.$(OBJEXT) \
+	load_okt.$(OBJEXT) \
+	load_s3m.$(OBJEXT) \
+	load_stm.$(OBJEXT) \
+	load_stx.$(OBJEXT) \
+	load_ult.$(OBJEXT) \
+	load_uni.$(OBJEXT) \
+	load_xm.$(OBJEXT) \
+	mloader.$(OBJEXT) \
+	mlutil.$(OBJEXT) \
+	mmsup.$(OBJEXT) \
+	munitrk.$(OBJEXT) 
 
 subdir = libunimod
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -376,6 +409,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libunimod_a_SOURCES)
+DATA = $(noinst_DATA)
+
 DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/common.makefile.in \
 	AUTHORS Makefile.am
 SOURCES = $(libunimod_a_SOURCES)
@@ -539,7 +574,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(DATA)
 
 installdirs:
 install: install-am
@@ -623,6 +658,18 @@ uninstall-am: uninstall-info-am
 	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
 	ps ps-am tags uninstall uninstall-am uninstall-info-am
 
+
+@VCPP_TRUE@unimod.lib: $(unimod_OBJS)
+@VCPP_TRUE@	link -lib $(unimod_OBJS) -out:$@
+@BORLANDC_TRUE@unimod.lib: $(unimod_OBJS)
+@BORLANDC_TRUE@	for foo in  $(unimod_OBJS);do \
+@BORLANDC_TRUE@	  tlib $@ +$$foo; \
+@BORLANDC_TRUE@	done	
+clean:
+	rm -f *.$(OBJEXT)
+	rm -f *.$(so)
+	rm -f *.a
+	rm -f *.lib
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

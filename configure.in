@@ -36,7 +36,7 @@ dnl		- add to -L LDFLAGS
 dnl C_INCLUDE_PATH
 dnl		- add to -I CPPFLAGS
 dnl CYGNUS	- `yes' if cygnus windows environment.
-dnl MINGW	- `yes' if Mingw windows environment.
+dnl MSYS	- `yes' if Mingw windows environment.
 dnl WISH	- wish
 dnl LN_S	- ln -s
 dnl tcltk_dep	- make dependencies for tcl/tk interface
@@ -219,8 +219,22 @@ case "$target" in
     EXTRADEFS="-D__W32__"
     # ??
     case "x${CC} " in
-      "xbcc32 "*) test -n "$SHLD" || SHLD="tlink32 -Tpd" ;;
-      "xcl "*) test -n "$SHLD" || SHLD="link -dll" ;;
+      "xbcc32 "*) 
+#        test -n "$SHLD" || SHLD="tlink32 -Tpd"
+        test -n "$SHLD" || SHLD="BCC32 -WD"
+        BORLANDC=yes
+        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
+		BORLANDC_START='C0X32.OBJ'
+        CFLAGS="$CFLAGS -WM"
+        EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
+        ;;
+      "xcl "*)
+         test -n "$SHLD" || SHLD="link -dll" 
+         VCPP_LDFLAGS="-nologo -incremental:no  -nodefaultlib:libc.lib -nodefaultlib:msvcrt.lib kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib libcmt.lib"
+         CFLAGS="$CFLAGS -nologo -Zp16 -MT -W3 -GX  -Ob2"
+         EXTRADEFS="$EXTRADEFS -DNDEBUG -D_WINDOWS -DWIN32 -DMBCS -D_MT -YX  -FD -c"
+         VCPP=yes
+         ;;
       "xgcc"*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
@@ -232,13 +246,27 @@ case "$target" in
     EXTRADEFS="-D__W32__"
     # ??
     case "x${CC} " in
-      "xbcc32 "*) test -n "$SHLD" || SHLD="tlink32 -Tpd" ;;
-      "xcl "*) test -n "$SHLD" || SHLD="link -dll" ;;
+      "xbcc32 "*) 
+#        test -n "$SHLD" || SHLD="tlink32 -Tpd"
+        test -n "$SHLD" || SHLD="BCC32 -WD"
+        BORLANDC=yes
+        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
+        BORLANDC_START='C0X32.OBJ'
+        CFLAGS="$CFLAGS -WM"
+        EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
+        ;;
+      "xcl "*) 
+         test -n "$SHLD" || SHLD="link -dll"
+         VCPP=yes
+         VCPP_LDFLAGS="-nologo -incremental:no  -nodefaultlib:libc.lib -nodefaultlib:msvcrt.lib kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib libcmt.lib"
+         CFLAGS="$CFLAGS -nologo -Zp16 -MT -W3 -GX  -Ob2"
+         EXTRADEFS="$EXTRADEFS -DNDEBUG -D_WINDOWS -DWIN32 -DMBCS -D_MT -YX  -FD -c"
+         ;;
       "xgcc"*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
-    MINGW=yes
+    MSYS=yes
     lib_user32_test=-luser32
     ;;
   *-dec-*)
@@ -287,7 +315,9 @@ AC_CHECK_LIB(m,sqrt)
 AC_CHECK_LIB(socket,socket)
 AC_CHECK_LIB(dl,dlopen,lib_dl_opt=-ldl)
 AC_CHECK_LIB(objc,NSLinkModule,lib_dl_opt=-lobjc) # Mac OS X need this.
+if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes"; then
 AC_CHECK_LIB(xpg4,setlocale) # Mac OS X (and maybe NetBSD) need this.
+fi
 AC_CHECK_FUNCS(gethostbyname,,[ AC_CHECK_LIB(nsl,gethostbyname) ])
 AC_PATH_XTRA
 
@@ -360,7 +390,6 @@ AC_CHECK_HEADERS( \
   inttypes.h \
   limits.h \
   machine/endian.h \
-  malloc.h \
   memory.h \
   netdb.h \
   netinet/in.h \
@@ -396,12 +425,19 @@ AC_CHECK_HEADERS(\
 #endif
   ])
 AC_CHECK_HEADER(string.h,, [ AC_DEFINE(NO_STRING_H,1,Define to 1 if you do not have <string.h>.)])
+if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes; then
+AC_CHECK_HEADERS([malloc.h])
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED
 AC_C_CONST
-AC_C_INLINE
+if test "x$BORLANDC" = xyes; then
+  AC_DEFINE(inline,[])
+else
+  AC_C_INLINE
+fi
 AC_C_VOLATILE
 AC_C_STRINGIZE
 AC_C_PROTOTYPES
@@ -429,7 +465,7 @@ if test $timidity_cv_type_union_semun = yes; then
 fi
 
 dnl Cygnus and Mingw memory struct optiontest
-if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes; then
+if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
 	case "x${CC}" in
 	"xgcc"*) 
 		msnative_struct=''
@@ -465,7 +501,7 @@ if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes; then
 	esac
 fi
 dnl Cygnus Mingw32 mmsystem check
-if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes; then
+if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
   AC_CACHE_CHECK(Cygwin new mmsystem,timidity_cv_header_new_mmsystem,
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <windows.h>
@@ -483,7 +519,9 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
 AC_TYPE_SIGNAL
+if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes; then
 AC_FUNC_VPRINTF
+fi
 AC_CHECK_FUNCS( \
   [alarm \
   dup2 \
@@ -518,14 +556,35 @@ AC_CHECK_FUNCS( \
   strstr \
   strtol \
   usleep])
+if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  AC_DEFINE(RETSIGTYPE,int)
+  AC_DEFINE(HAVE_GETCWD,int)
+  AC_DEFINE(HAVE_GETHOSTBYNAME,1)
+  AC_DEFINE(HAVE_POPEN,1)
+  AC_DEFINE(popen,_popen,[for VC])
+  AC_DEFINE(pclose,_pclose,[for VC])
+  AC_DEFINE(HAVE_SELECT,1)
+  AC_DEFINE(HAVE_SNPRINTF,1)
+  AC_DEFINE(HAVE_STRDUP,1)
+  AC_DEFINE(HAVE_STRERROR,1)
+  AC_DEFINE(HAVE_STRNCASECMP,1)
+  AC_DEFINE(HAVE_STRSTR,1)
+  AC_DEFINE(snprintf,_snprintf,[for VC])
+  AC_DEFINE(HAVE_SOCKET,1)
+  AC_DEFINE(HAVE_VSNPRINTF,1)
+  AC_DEFINE(vsnprintf,_vsnprintf,[for VC])
+  AC_DEFINE(TIMID_VERSION,[$(PACKAGE_VERSION)],[for windows gui])
+  AC_DEFINE(DEFAULT_PATH,[".\\"],[for windows])
+fi
+
 AC_CHECK_FUNC(getopt_long,
 	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long function'])
 	 tm_cv_needgetopt="no",
 	 tm_cv_needgetopt="yes")
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
-# Checks on cygnus
-if test "x$CYGNUS" = xyes; then
+# Checks on cygnus and MYSYS
+if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     AC_CHECK_FUNC(opendir,,
@@ -537,34 +596,19 @@ if test "x$CYGNUS" = xyes; then
     ;;
   esac
   if test "x$enable_network" = "xyes"; then
-    AC_CHECK_FUNC(socket,,
-      WAPI_CHECK_LIB(wsock32,WSAStartup,
-  [#include <winsock.h>],
-  [WSAStartup(0,0);],
-  [ EXTRALIBS="$EXTRALIBS -lwsock32"
-    EXTRADEFS="$EXTRADEFS -DWINSOCK" ]))
-  fi
-fi
-
-# Checks on Mingw
-if test "x$CYGWIN" = xyes || test "x$MINGW" = xyes ; then
-  case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
-  *yes*)
-    AC_CHECK_FUNC(opendir,,
-  [ EXTRADEFS="$EXTRADEFS -D__W32READDIR__"
-    W32READDIR=yes ])
-    ;;
-  *)EXTRADEFS="$EXTRADEFS -D__W32READDIR__"
-    W32READDIR=yes
-    ;;
-  esac
-  if test "x$enable_network" = "xyes"; then
-    AC_CHECK_FUNC(socket,,
-      WAPI_CHECK_LIB(wsock32,WSAStartup,
-  [#include <winsock.h>],
-  [WSAStartup(0,0);],
-  [ EXTRALIBS="$EXTRALIBS -lwsock32"
-    EXTRADEFS="$EXTRADEFS -DWINSOCK" ]))
+  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+      EXTRALIBS="$EXTRALIBS  wsock32.lib"
+      EXTRADEFS="$EXTRADEFS -DWINSOCK" 
+    else
+      AC_CHECK_FUNC(socket,,
+       WAPI_CHECK_LIB(wsock32,WSAStartup,
+  	     [#include <winsock.h>],
+  	     [WSAStartup(0,0);],
+         [ EXTRALIBS="$EXTRALIBS -lwsock32"
+          EXTRADEFS="$EXTRADEFS -DWINSOCK" ]
+       )
+      )
+    fi
   fi
 fi
 
@@ -896,7 +940,11 @@ if test "x$au_enable_w32" = xyes; then
      ;;
   esac
   SYSEXTRAS="$SYSEXTRAS w32_a.c"
-  EXTRALIBS="$EXTRALIBS -lwinmm"
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  	EXTRALIBS="$EXTRALIBS winmm.lib"
+  else
+    EXTRALIBS="$EXTRALIBS -lwinmm"
+  fi
   EXTRADEFS="$EXTRADEFS -DAU_W32"
 else
   AC_MSG_RESULT(no)
@@ -1055,7 +1103,7 @@ dnl portaudio E
 AC_MSG_CHECKING(enable_audio=portaudio)
 if test "x$au_enable_portaudio" = xyes; then
   AC_MSG_RESULT(yes)
-  if test "x$CYGNUS" = xyes ||test "x$MINGW" = xyes; then
+  if test "x$CYGNUS" = xyes ||test "x$MSYS" = xyes; then
 	SYSEXTRAS="$SYSEXTRAS portaudio_a.c w32_portaudio_dll.c"
   	EXTRALIBS="$EXTRALIBS -lportaudio"
   	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO -DAU_PORTAUDIO_DLL"
@@ -1111,7 +1159,7 @@ if test "x$au_enable_vorbis" = xyes; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
-      if test "x$MINGW" = "xyes"; then
+      if test "x$MSYS" = "xyes"; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
@@ -1127,7 +1175,7 @@ else
 fi
 
 dnl libFLAC - Free Lossless Audio Codec
-if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes ; then
+if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes ; then
   AC_MSG_CHECKING(enable_audio=flac)
   if test "x$au_enable_flac" = xyes; then
     AC_MSG_RESULT([yes, configuring flac])
@@ -1192,7 +1240,7 @@ if test "x$au_enable_gogo" = xyes; then
   if test "x$CYGNUS" = "xyes"; then
     AC_MSG_RESULT(yes, configuring gogo)
   else
-    if test "x$MINGW" = "xyes"; then
+    if test "x$MSYS" = "xyes"; then
     AC_MSG_RESULT(yes, configuring gogo)
     else
       AC_MSG_WARN(May be gogo is not supported.  You need hack the gogo_a.c)
@@ -1406,8 +1454,13 @@ dnl configure must check ncurses header with -I/usr/include/ncurses option.
 		      enable_ncurses=no ])
 		  ;;
 		*)
-		  AC_MSG_WARN(ncurses interface is not enabled)
-		  enable_ncurses=no
+		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+		    lib_curses_opt=libpdcurses.lib
+		    AC_DEFINE(USE_PDCURSES,1,Define to 1 if you use PDcurses)
+		  else
+		    AC_MSG_WARN(ncurses interface is not enabled)
+		    enable_ncurses=no
+		  fi
 		  ;;
 	      esac
 	    ])
@@ -1670,10 +1723,24 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
   [  --enable-winsyng        Enable Windows GUI Synthesizer interface
                                                           (default is no)],
   ,
-  [ lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
+  [ 
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+    INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
+    AC_DEFINE(ANOTHER_MAIN,1, Windows GUI(not Mingw))
+    lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
+    lib_user32_opt='user32.lib'
+    if test "x$VCPP" = xyes; then
+      VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
+    else
+	  BORLANDC_START='C0W32.OBJ'
+      CFLAGS="$CFLAGS -W"
+    fi
+  else
+  	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
     LDFLAGS="-mwindows $LDFLAGS"
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn_escaped.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
+  fi
   ])
 
 
@@ -1682,10 +1749,24 @@ AM_CONDITIONAL(ENABLE_W32GUI, false)
 CONFIG_INTERFACE(w32gui, W32GUI, w,
   [  --enable-w32gui         Enable Windows GUI interface    (default is no)],
   ,
-  [ lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
+  [ 
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+ 	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
+	AC_DEFINE(ANOTHER_MAIN,1, Windows GUI(not Mingw))   
+    lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
+    lib_user32_opt='user32.lib'
+    if test "x$VCPP" = xyes; then
+	  VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
+	else
+	  BORLANDC_START='C0W32.OBJ'
+	  CFLAGS="$CFLAGS -W"
+	fi
+  else
+    lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
     LDFLAGS="-mwindows $LDFLAGS"
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin_escaped.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
+  fi
   ])
 
 dnl UMP configuration
@@ -1811,9 +1892,11 @@ dnl end of interfaces
 #
 
 AM_CONDITIONAL(ENABLE_WRD, test "x$enable_wrd" = "xyes")
-
 AM_CONDITIONAL(CYGNUS, test "x$CYGNUS" = xyes)
-AM_CONDITIONAL(MINGW, test "x$MINGW" = xyes)
+AM_CONDITIONAL(MSYS, test "x$MSYS" = xyes)
+AM_CONDITIONAL(VCPP, test "x$VCPP" = xyes)
+AM_CONDITIONAL(BORLANDC, test "x$BORLANDC" = xyes)
+
 AM_CONDITIONAL(W32READDIR, test "x$W32READDIR" = "xyes")
 
 SET_UNIQ_WORDS(LDFLAGS,$LDFLAGS)
@@ -1836,8 +1919,10 @@ fi
 LIBS="$LIBS $lib_dl_opt $lib_png_opt $lib_zip_opt $lib_user32_opt $lib_w32gui_opt $EXTRALIBS"
 SHLD="$SHLD $SHLDFLAGS"
 
+AC_SUBST(BORLANDC_START)
 AC_SUBST(SHELL)
 AC_SUBST(timidity_LDFLAGS)
+AC_SUBST(VCPP_LDFLAGS)
 AC_SUBST(SYSEXTRAS)
 AC_SUBST(EXTRALIBS)
 AC_SUBST(NETSRCS)

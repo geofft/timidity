@@ -1,9 +1,12 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+/* Windows GUI(not Mingw) */
+#undef ANOTHER_MAIN
+
 /* Define to 1 if you are in debug mode */
 #undef DEBUG
 
-/* place to install patches */
+/* for windows */
 #undef DEFAULT_PATH
 
 /* Define resampler. */
@@ -414,6 +417,9 @@
 /* the output specification */
 #undef TIMIDITY_OUTPUT_ID
 
+/* for windows gui */
+#undef TIMID_VERSION
+
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
@@ -459,11 +465,20 @@
 /* Define to `long' if <sys/types.h> does not define. */
 #undef off_t
 
+/* for VC */
+#undef pclose
+
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
+/* for VC */
+#undef popen
+
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+
+/* for VC */
+#undef snprintf
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
@@ -471,3 +486,6 @@
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
+
+/* for VC */
+#undef vsnprintf

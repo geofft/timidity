@@ -126,6 +126,10 @@ typedef unsigned long long uint64;
 typedef          _int64  int64;
 typedef unsigned _int64 uint64;
 #define TIMIDITY_HAVE_INT64 1
+#elif __BORLANDC__
+typedef 	__int64 int64;
+typedef unsigned __int64 uint64;
+#define TIMIDITY_HAVE_INT64 1
 #elif __MACOS__
 /* Mac's C compiler seems to have these types in common */
 typedef SInt64  int64;

@@ -27,7 +27,15 @@ INCLUDES = \
 	-I$(top_srcdir)/libarc \
 	-I$(top_srcdir)/utils
 
+if VCPP
+noinst_DATA = interface.lib
+else
+if BORLANDC
+noinst_DATA = interface.lib
+else
 noinst_LIBRARIES = libinterface.a
+endif
+endif
 
 libinterface_a_SOURCES = \
 	dumb_c.c \
@@ -129,28 +137,29 @@ EXTRA_libinterface_a_SOURCES = \
 
 if ENABLE_WRD
 WRD_OBJS = \
-	wrdt_x.o \
-	x_wrdwindow.o \
-	VTPrsTbl.o \
-	x_mag.o \
-	x_sherry.o
+	wrdt_x.$(OBJEXT) \
+	x_wrdwindow.$(OBJEXT) \
+	VTPrsTbl.$(OBJEXT) \
+	x_mag.$(OBJEXT) \
+	x_sherry.$(OBJEXT)
 endif
 
+if !BORLANDC
 if CYGNUS
-WRD_WINCON_OBJS = wrdt_wcon.o
+WRD_WINCON_OBJS = wrdt_wcon.$(OBJEXT)
 endif
-
-if MINGW
-WRD_WINCON_OBJS2 = wrdt_wcon.o
+if MSYS
+WRD_WINCON_OBJS2 = wrdt_wcon.$(OBJEXT)
+endif
 endif
 
 if NEEDDLOPEN
-DYNAMIC_OBJS = dynamic_c.o
+DYNAMIC_OBJS = dynamic_c.$(OBJEXT)
 endif
 
 if ENABLE_SOUND_SPEC
 SOUND_SPEC_OBJS = \
-	soundspec.o
+	soundspec.$(OBJEXT)
 endif
 
 if ENABLE_W32GUI
@@ -161,15 +170,17 @@ if ENABLE_W32G_SYN
 W32GUI_DEPS = w32g_res.res
 endif
 
-INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.o)
+INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.$(OBJEXT))
 
-libinterface_a_LIBADD = \
+libinterface_LIBADD = \
 	$(INTERFACE_OBJS) \
 	$(WRD_OBJS) \
 	$(WRD_WINCON_OBJS) \
 	$(WRD_WINCON_OBJS2) \
 	$(DYNAMIC_OBJS) \
 	$(SOUND_SPEC_OBJS)
+	
+libinterface_a_LIBADD=$(libinterface_LIBADD)
 
 libinterface_dep = \
 	$(top_builddir)/interface.h \
@@ -182,6 +193,21 @@ libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libin
 	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
 	$(RANLIB) libinterface.a
 
+libinterface_OBJCTS = \
+	dumb_c.$(OBJEXT) \
+	wrdt_dumb.$(OBJEXT) \
+	wrdt_tty.$(OBJEXT)
+
+if VCPP
+interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
+	link -lib $(libinterface_OBJCTS) $(libinterface_LIBADD) -out:$@
+endif
+if BORLANDC
+interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
+	for foo in   $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep);do \
+	  tlib $@ +$$foo; \
+	done	
+endif
 
 # Tcl interface sources
 TCLSRCS = tkmidity.ptcl tkpanel.tcl browser.tcl misc.tcl
@@ -212,10 +238,12 @@ EXTRA_DIST = \
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
 clean:
 	rm -f tkmidity.tcl
-	rm -f *.o
+	rm -f *.$(OBJEXT)
 	rm -f *.$(so)
 	rm -f *.res
 	rm -f *escaped.c
+	rm -f *.a
+	rm -f *.lib
 
 tclIndex: $(TCLSRCS)
 	rm -f tclIndex
@@ -254,6 +282,16 @@ install.el: $(ELFILES)
 	test -d $(DESTDIR)$(ELISP_DIR) || mkdir -p $(DESTDIR)$(ELISP_DIR)
 	for f in $(ELFILES) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(ELISP_DIR);; esac; done
 
+if VCPP
+w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
+	rc w32g_res.rc
+else
+if BORLANDC
+w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
+	brcc32 w32g_res.rc
+else
 w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
 	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
@@ -266,7 +304,8 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
 	windres -o $@ -O coff w32g_res_escaped.rc
 	rm w32g_res_escaped.rc
-
+endif
+endif
 ## This needs to build japanese resource.
 #BRCC32 = c:/borland/bcc55/bin/brcc32.exe
 #BRCC32_FLAGS = -ic:/mingw/include

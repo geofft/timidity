@@ -168,40 +168,104 @@ CLEANFILES = newton_table.c
 if ENABLE_W32GUI
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 else
-
 if ENABLE_W32G_SYN
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 endif
+endif
+
+if VCPP
+
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+
+else
+
+if BORLANDC
+timidity_LDADD = \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib 
+
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+else
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+endif
 
 endif
 
-timidity_LDADD = \
-	$(SYSEXTRAS:.c=.o) \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a \
-	$(W32GUI_RES)
+if VCPP
+VC_LINK = link.exe
+VCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
 
-timidity_dep = $(SYSEXTRAS:.c=.o) \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a \
-	$(W32GUI_RES)
-
-timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
 	@rm -f timidity$(EXEEXT)
-	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
+	$(VC_LINK) $(VCPP_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS) -out:timidity.exe
 
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+	@rm -f calcnewt$(EXEEXT)
+	$(VCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
 
-version.o: version.c ../configure
+endif
+
+if BORLANDC
+BORLANDC_LINK = ilink32.exe -C -Gn
+BCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
+
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+	@rm -f timidity$(EXEEXT)
+	$(BORLANDC_LINK) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
+
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+	@rm -f calcnewt$(EXEEXT)
+	$(BCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
+endif
+
+version.$(OBJEXT): version.c ../configure
 	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
 
 resample.c: newton_table.c
 
-newton_table.c: calcnewt
+if VCPP
+newton_table.c: calcnewt$(EXEEXT)
+	./calcnewt $@
+
+else
+newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt > $@
+
+endif
 
 $(top_builddir)/interface/libinterface.a $(W32GUI_RES):
 	cd $(top_builddir)/interface; $(MAKE)
