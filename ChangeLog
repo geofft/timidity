@@ -1,9 +1,13 @@
 
+2003-05-12  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c, timidity/mix.c:
+	  Fix tremolo.
+
 2003-05-10  Saito <timidity@flashmail.com>
 
 	* timidity/instrum.c, timidity/smplfile.c, timidity/mod2midi.c:
 	  Fix fatal bug about scaleTuning.
-
 	* timidity/sndfont.c, timidity/tables.[ch], timidity/mix.c,
 	  timidity/playmidi.[ch], timidity/instrum.[ch], timidity/reverb.c:
 	  Fix about tremolo again.

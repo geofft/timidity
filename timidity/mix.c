@@ -1165,7 +1165,7 @@ static inline void update_tremolo(int v)
 		vp->tremolo_delay -= control_ratio;
 		if(vp->tremolo_delay > 0) {
 			vp->tremolo_volume = 1.0;
-			return;
+			return 0;
 		}
 	}
 	if (vp->tremolo_sweep) {
@@ -1186,15 +1186,9 @@ static inline void update_tremolo(int v)
 		vp->tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
 #endif
 
-	if(depth < 0) {
-	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
-			* -depth * TREMOLO_AMPLITUDE_TUNING, 17);
-	} else {
-	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
+	vp->tremolo_volume = 1.0 + TIM_FSCALENEG(
+			lookup_sine(vp->tremolo_phase >> RATE_SHIFT)
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
-	}
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
 	 */

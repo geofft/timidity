@@ -1562,13 +1562,14 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 
 static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 {
-    int32 level, freq;
+    int32 freq;
+	double level;
 
     if(!tbl->set[SF_lfo1ToVolume])
 	return;
 
-    level = abs(tbl->val[SF_lfo1ToVolume]);
-    vp->v.tremolo_depth = 512 * (1.0 - pow(10.0, (double)level / -200.0));
+    level = pow(10.0, (double)abs(tbl->val[SF_lfo1ToVolume]) / -200.0);
+    vp->v.tremolo_depth = 256 * (1.0 - level);
 	if(tbl->val[SF_lfo1ToVolume] < 0) {vp->v.tremolo_depth = -vp->v.tremolo_depth;}
 
     /* frequency in mHz */

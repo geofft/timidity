@@ -575,6 +575,24 @@ static Instrument *load_gus_instrument(char *name,
 
       sp->low_vel = 0;
       sp->high_vel = 127;
+	  sp->cutoff_freq = sp->resonance = sp->tremolo_to_pitch = 
+		  sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc =
+	  sp->vel_to_fc = sp->key_to_fc = sp->vel_to_resonance = 0;
+	  sp->envelope_velf_bpo = sp->modenv_velf_bpo = sp->vel_to_fc_threshold = 64;
+	  sp->key_to_fc_bpo = 60;
+	  sp->envelope_delay = sp->modenv_delay =
+	  sp->tremolo_delay = sp->vibrato_delay = 0;
+	  sp->scale_tuning = 100;
+	  sp->inst_type = INST_GUS;
+
+	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
+	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));
+	memset(sp->modenv_velf, 0, sizeof(sp->modenv_velf));
+	memset(sp->modenv_keyf, 0, sizeof(sp->modenv_keyf));
+	memset(sp->modenv_rate, 0, sizeof(sp->modenv_rate));
+	memset(sp->modenv_offset, 0, sizeof(sp->modenv_offset));
+
+
 
       READ_LONG(sp->data_length);
       READ_LONG(sp->loop_start);
@@ -879,23 +897,6 @@ static Instrument *load_gus_instrument(char *name,
 	  sp->data_length = sp->loop_end;
 	}
     }
-
-	sp->cutoff_freq = sp->resonance = sp->tremolo_to_pitch = 
-		sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc =
-		sp->vel_to_fc = sp->key_to_fc = sp->vel_to_resonance = 0;
-	sp->envelope_velf_bpo = sp->modenv_velf_bpo = sp->vel_to_fc_threshold = 64;
-	sp->key_to_fc_bpo = 60;
-	sp->envelope_delay = sp->modenv_delay =
-		sp->tremolo_delay = sp->vibrato_delay = 0;
-	sp->scale_tuning = 100;
-	sp->inst_type = INST_GUS;
-
-	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
-	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));
-	memset(sp->modenv_velf, 0, sizeof(sp->modenv_velf));
-	memset(sp->modenv_keyf, 0, sizeof(sp->modenv_keyf));
-	memset(sp->modenv_rate, 0, sizeof(sp->modenv_rate));
-	memset(sp->modenv_offset, 0, sizeof(sp->modenv_offset));
 
   close_file(tf);
   store_instrument_cache(ip, name, panning, amp, note_to_use,
