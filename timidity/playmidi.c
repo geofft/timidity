@@ -779,12 +779,16 @@ void recompute_freq(int v)
 			+ get_midi_controller_pitch(&(channel[ch].cc2));
 	}
 	if (opt_modulation_envelope) {
-		if (voice[v].sample->tremolo_to_pitch)
+		if (voice[v].sample->tremolo_to_pitch) {
 			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
 					* (voice[v].sample->tremolo_to_pitch << 13) / 100.0 + 0.5;
-		if (voice[v].sample->modenv_to_pitch)
+			channel[ch].pitchfactor = 0;
+		}
+		if (voice[v].sample->modenv_to_pitch) {
 			tuning += voice[v].last_modenv_volume
 					* (voice[v].sample->modenv_to_pitch << 13) / 100.0 + 0.5;
+			channel[ch].pitchfactor = 0;
+		}
 	}
 	/* GS/XG - Scale Tuning */
 	if (! ISDRUMCHANNEL(ch)) {
@@ -1892,6 +1896,18 @@ static int find_free_voice(void)
     return lowest;
 }
 
+int32 get_note_freq(Sample *sp, int note)
+{
+	double ratio;
+	int32 f;
+
+	f = freq_table[note];
+	if (sp->scale_tuning != 100) {	/* SF2 - Scale Tuning */
+		ratio = (double)sp->scale_tuning / 100.0f;
+		f = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
+	}
+}
+
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
@@ -1903,7 +1919,7 @@ static int select_play_sample(Sample *splist,
 	int16 st;
 	double ratio;
 	int i, j, k, nv, nvc, vel;
-	
+
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
 			f = freq_table_pureint[current_freq_table][note];
@@ -1962,7 +1978,7 @@ static int select_play_sample(Sample *splist,
 			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 		} else {ft = f, fst = fs;}
-		if(channel[ch].drums[keynote] != NULL
+		if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
 			&& channel[ch].drums[keynote]->play_note != -1) {
 			ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
 				/ (double)sp->root_freq;
@@ -1990,7 +2006,7 @@ static int select_play_sample(Sample *splist,
 				ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 				fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 			} else {ft = f, fst = fs;}
-			if(channel[ch].drums[keynote] != NULL
+			if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
 				&& channel[ch].drums[keynote]->play_note != -1) {
 				ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
 					/ (double)sp->root_freq;
@@ -2042,7 +2058,7 @@ static int select_play_sample(Sample *splist,
 						ratio = (double)st / 100.0f;
 						ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
 					} else {ft = f;}
-					if(channel[ch].drums[keynote] != NULL
+					if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
 						&& channel[ch].drums[keynote]->play_note != -1) {
 						ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
 							/ (double)sp->root_freq;

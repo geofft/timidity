@@ -1840,6 +1840,7 @@ static inline int modenv_next_stage(int v)
 	if (vp->sample->modenv_velf[stage])
 		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->modenv_velf_bpo)
 				* (double)vp->sample->modenv_velf[stage] / 1200.0f);
+	val = -1;	/* suppress channel eg of modulation envelope */
 
 	/* just before release-phase, some modifications are necessary */
 	if (stage > 2) {

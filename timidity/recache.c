@@ -94,7 +94,7 @@ struct cache_hash *resamp_cache_fetch(Sample *sp, int note)
     if(sp->vibrato_control_ratio ||
        (sp->modes & MODES_PINGPONG) ||
        (sp->sample_rate == play_mode->rate &&
-	sp->root_freq == freq_table[sp->note_to_use]))
+	sp->root_freq == get_note_freq(sp, sp->note_to_use)))
 	    return NULL;
 
     addr = sp_hash(sp, note) % HASH_TABLE_SIZE;
@@ -119,7 +119,7 @@ void resamp_cache_refer_on(Voice *vp, int32 sample_start)
        (vp->sample->modes & MODES_PINGPONG) ||
        vp->orig_frequency != vp->frequency ||
        (vp->sample->sample_rate == play_mode->rate &&
-	vp->sample->root_freq == freq_table[vp->sample->note_to_use]))
+	vp->sample->root_freq == get_note_freq(vp->sample, vp->sample->note_to_use)))
 	    return;
 
     note = vp->note;
@@ -159,7 +159,7 @@ void resamp_cache_refer_off(int ch, int note, int32 sample_end)
 
     sp = p->sp;
     if(sp->sample_rate == play_mode->rate &&
-       sp->root_freq == freq_table[sp->note_to_use])
+       sp->root_freq == get_note_freq(sp, sp->note_to_use))
 	return;
     sample_start = channel_note_table[ch].on[note];
 
@@ -176,7 +176,7 @@ void resamp_cache_refer_off(int ch, int note, int32 sample_end)
 	int32 slen;
 
 	a = ((double)sp->root_freq * play_mode->rate) /
-	    ((double)sp->sample_rate * freq_table[note]);
+	    ((double)sp->sample_rate * get_note_freq(sp, note));
 	slen = (int32)((sp->data_length >> FRACTION_BITS) * a);
 	if(len > slen)
 	    len = slen;
@@ -238,7 +238,7 @@ static double sample_resamp_info(Sample *sp, int note,
     splen_t xls, xle, ls, le, ll, newlen;
     double a, xxls, xxle, xn;
 
-    a = ((double)sp->sample_rate * freq_table[note]) /
+    a = ((double)sp->sample_rate * get_note_freq(sp, note)) /
 	((double)sp->root_freq * play_mode->rate);
     a = TIM_FSCALENEG((double)(int32)TIM_FSCALE(a, FRACTION_BITS),
 		      FRACTION_BITS);
@@ -372,7 +372,7 @@ static int cache_resampling(struct cache_hash *p)
 	loop_connect(dest, (int32)(xls >> FRACTION_BITS), (int32)(xle >> FRACTION_BITS));
     dest[xle >> FRACTION_BITS] = dest[xls >> FRACTION_BITS];
 
-    newsp->root_freq = freq_table[p->note];
+    newsp->root_freq = get_note_freq(newsp, p->note);
     newsp->sample_rate = play_mode->rate;
 
     p->resampled = newsp;

@@ -1,7 +1,11 @@
 2004-01-08  Saito <saito2@digitalme.com>
 
-	* timidity/sndfont.c:
+	* timidity/sndfont.c, timidity/playmidi.[ch],
+	  timidity/mix.c, timidity/recache.c, timidity/resample.c:
 	  Fix vintage bug of SoundFont.
+	  Fix resampling with SF2 scale tuning.
+	  Fix modulation envelope.
+	  Fix GS SysEx. Drum Instrument Play Note.
 
 2004-01-07  Saito <saito2@digitalme.com>
 

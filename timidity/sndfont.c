@@ -1112,6 +1112,8 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
 
 	if(tbl->set[SF_keynum]) {
 		sp->v.note_to_use = (int)tbl->val[SF_keynum];
+	} else if(bank == 128) {
+		sp->v.note_to_use = keynote;
 	}
     make_info(sf, sp, tbl);
 
