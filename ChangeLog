@@ -1,3 +1,8 @@
+2004-01-11  Saito <saito2@digitalme.com>
+
+	* timidity/timidity.c, timidity/playmidi.c, timidity/instrum.h:
+	  Support for #extension reverbsend, chorussend, delaysend.
+
 2004-01-10  Saito <saito2@digitalme.com>
 
 	* timidity/timidity.c, timidity/playmidi.[ch]:

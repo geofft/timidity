@@ -1199,24 +1199,41 @@ float calc_drum_tva_level(int ch, int note, int level)
 	return (sc_drum_level_table[level] / sc_drum_level_table[def_level]);
 }
 
-void recompute_bank_parameter(int ch,int note)
+void recompute_bank_parameter(int ch, int note)
 {
-	int prog;
+	int i, nbank, nprog;
 	ToneBank *bank;
+	struct DrumParts *drum;
 
 	if(channel[ch].special_sample > 0) {return;}
 
-	prog = channel[ch].program;
+	nbank = channel[ch].bank;
 
 	if(ISDRUMCHANNEL(ch)) {
-		return;
+		nprog = note;
+		instrument_map(channel[ch].mapID, &nbank, &nprog);
+		bank = drumset[nbank];
+		if (bank == NULL) {bank = drumset[0];}
+		if (channel[ch].drums[note] != NULL) {
+			drum = channel[ch].drums[note];
+			if (drum->reverb_level == -1 && bank->tone[nprog].reverb_send != -1) {
+				drum->reverb_level = bank->tone[nprog].reverb_send;
+			}
+			if (drum->chorus_level == -1 && bank->tone[nprog].chorus_send != -1) {
+				drum->chorus_level = bank->tone[nprog].chorus_send;
+			}
+			if (drum->delay_level == -1 && bank->tone[nprog].delay_send != -1) {
+				drum->delay_level = bank->tone[nprog].delay_send;
+			}
+		}
 	} else {
-		if(prog == SPECIAL_PROGRAM) {return;}
-		bank = tonebank[(int)channel[ch].bank];
+		nprog = channel[ch].program;
+		if(nprog == SPECIAL_PROGRAM) {return;}
+		instrument_map(channel[ch].mapID, &nbank, &nprog);
+		bank = tonebank[nbank];
 		if(bank == NULL) {bank = tonebank[0];}
+		channel[ch].legato = bank->tone[nprog].legato;
 	}
-
-	channel[ch].legato = bank->tone[prog].legato;
 }
 
 static void *memdup(void *s,size_t size)

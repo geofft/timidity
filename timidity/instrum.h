@@ -119,6 +119,7 @@ typedef struct {
 	int tremnum, vibnum;
 	struct Quantity_ **trem, **vib;
 	int16 vel_to_fc, key_to_fc, vel_to_resonance;
+	int8 reverb_send, chorus_send, delay_send;
 } ToneBankElement;
 
 /* A hack to delay instrument loading until after reading the
