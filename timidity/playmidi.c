@@ -3316,7 +3316,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			if ((val & 0x10 ^ ch & 0x10) & 0x10)
 				add_channel_layer(val, ch);
 			else
-				sub_channel_layer(val + (val < 0x10) ? 0x10 : -0x10, ch);
+				sub_channel_layer(val + ((val < 0x10) ? 0x10 : -0x10), ch);
 			break;
 			
 			/* MOD PITCH CONTROL */
