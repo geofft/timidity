@@ -699,8 +699,11 @@ static void display_play_system(int mode)
       case XG_SYSTEM_MODE:
 	waddstr(dftwin, "[XG]");
 	break;
+      case GM2_SYSTEM_MODE:
+	waddstr(dftwin, "[GM2]");
+	break;
       default:
-	waddstr(dftwin, "    ");
+	waddstr(dftwin, "     ");
 	break;
     }
     scr_modified_flag = 1;

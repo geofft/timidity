@@ -1,5 +1,7 @@
 2004-12-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* interface/ncurs_c.c: [timidity-bugs-ja:00118]
+
 	* timidity/timidity.c (list_dyna_interface): bug fix : cmp can be
 	  uninitialized
 
