@@ -1054,9 +1054,9 @@ static inline int next_stage(int v)
 	ch = vp->channel;
 	tmp = vp->sample->envelope_rate[stage];
 	if (vp->sample->modes & MODES_ENVELOPE) {
-		if (stage == 1 && channel[ch].env_velf) {
-			tmp *= vel_to_envelope[voice[v].velocity & 0x7f];
-		}
+/*		if (stage == 1 && channel[ch].env_velf) {
+			tmp *= pow((double)channel[ch].env_velf / 64.0f + 1.0f,(double)voice[v].velocity / 127.0f);
+		}*/
 		if (ISDRUMCHANNEL(ch))
 			val = (channel[ch].drums[vp->note] != NULL)
 					? channel[ch].drums[vp->note]->drum_envelope_rate[stage]

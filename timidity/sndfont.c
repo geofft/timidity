@@ -1171,6 +1171,7 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
 
 	} /* for(;;) */
 
+
 	if(done==0)
 	return AWE_RET_SKIP;
 	else
@@ -1310,7 +1311,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	/* panning position: 0 to 127 */
 	val = (int)tbl->val[SF_panEffectsSend];
-    if(sample->sampletype == 1) {
+    if(sample->sampletype & 1) {
 		if(val < -500)
 		vp->v.panning = 0;
 		else if(val > 500)
@@ -1318,18 +1319,10 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		else
 		vp->v.panning = (int8)((val + 500) * 127 / 1000);
 		/* vp->fixpan = -1; */
-	} else if(sample->sampletype == 2) {
-		if(val < -500) {val = -500;}
-		else if(val > 500) {val = 500;}
-		pan = 127 + ((val + 500) * 127 / 1000) - 64;
-		if(pan > 127) {pan = 127;}
-		vp->v.panning = pan;
-	} else if(sample->sampletype == 4) {
-		if(val < -500) {val = -500;}
-		else if(val > 500) {val = 500;}
-		pan = ((val + 500) * 127 / 1000) - 64;
-		if(pan < 0) {pan = 0;}
-		vp->v.panning = pan;
+	} else if(sample->sampletype & 2) {
+		vp->v.panning = 127;
+	} else if(sample->sampletype & 4) {
+		vp->v.panning = 0;
 	}
 
 #if 0 /* Not supported */
@@ -1378,12 +1371,16 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	else
 	    val = tbl->val[SF_initialFilterFc];
 
+	val = abscent_to_Hz(val);
+
 	if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
 	{
-	    val += (int)tbl->val[SF_env1ToFilterFc];
+	    val *= pow(2.0,(double)tbl->val[SF_env1ToFilterFc] / 1200.0f);
+		if(val > 20000) {val = 20000;}
 	}
 
-	vp->cutoff_freq = abscent_to_Hz(val);
+	vp->cutoff_freq = val;
+
     }
 
     vp->resonance = 0;

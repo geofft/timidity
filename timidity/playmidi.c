@@ -459,7 +459,6 @@ static void reset_nrpn_controllers(int c)
   channel[c].velocity_sense_offset = 0x40;
   channel[c].pitch_offset_fine = 0;
   channel[c].legato = 0;
-  channel[c].env_velf = 0;
   channel[c].assign_mode = 1;
   if(play_system_mode == GS_SYSTEM_MODE) {
 	  channel[c].bank_lsb = channel[c].tone_map0_number;
@@ -910,7 +909,7 @@ void recompute_channel_filter(MidiEvent *e)
 
 	/* Velocity to Filter */
 	vel = e->b;
-	coef /= pow(2.0, 2.0f * (double)(127 - vel) / 127.0f);
+	coef *= pow(2.0, -2.0f * (double)(127 - vel) / 127.0f);
 
 	/* Filter Keyfollow - It's reserved. */
 /*	if(note > 60) {
@@ -936,23 +935,23 @@ void recompute_channel_filter(MidiEvent *e)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, diff, reso;
+	double coef = 1.0, reso;
 	FilterCoefficients *fc = &(voice[v].fc);
 
 	if(fc->freq == -1) {return;}
 
 	if(!ISDRUMCHANNEL(ch)) {
 		/* NRPN Filter Cutoff */
-		diff = (double)(channel[ch].param_cutoff_freq) * 62.0f;
+		coef *= pow(2.0f,(double)channel[ch].param_cutoff_freq / 64.0f);
 	} else if(channel[ch].drums[note] != NULL) {
 		/* NRPN Drum Instrument Filter Cutoff */
-		diff = (double)(channel[ch].drums[note]->drum_cutoff_freq) * 62.0f;
+		coef *= pow(2.0f,(double)channel[ch].drums[note]->drum_cutoff_freq / 64.0f);
 
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	}
 
-	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef * coef + diff;
+	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef * coef;
 	if(fc->freq < 20) {fc->freq = 20;}
 	else if(fc->freq > 20000) {fc->freq = 20000;}
 
@@ -1102,7 +1101,6 @@ static int calc_sample_panning_average(Instrument* ip)
 	}
 
 	average = sum / ip->samples;
-	if(average == 63) {average = 64;}
 
 	return average;
 }
@@ -1719,7 +1717,6 @@ static int select_play_sample(Sample *splist, int nsp,
 	MYCHECK(voice[j].orig_frequency);
 	voice[j].sample = splist;
 	voice[j].status = VOICE_ON;
-	voice[j].proximate_flag = 1;
 	return 1;
     }
 
@@ -1735,7 +1732,6 @@ static int select_play_sample(Sample *splist, int nsp,
 	    MYCHECK(voice[j].orig_frequency);
 	    voice[j].sample = sp;
 	    voice[j].status = VOICE_ON;
-	    voice[j].proximate_flag = 1;
 	    nv++;
 	}
     if(nv == 0)
@@ -1756,7 +1752,6 @@ static int select_play_sample(Sample *splist, int nsp,
 	voice[j].orig_frequency = f;
 	voice[j].sample = closest;
 	voice[j].status = VOICE_ON;
-	voice[j].proximate_flag = 1;
 	nv++;
     }
     return nv;
@@ -1811,7 +1806,6 @@ static int find_samples(MidiEvent *e, int *vlist)
 			voice[i].orig_frequency = freq_table[note];
 			voice[i].sample = ip->sample;
 			voice[i].status = VOICE_ON;
-			voice[i].proximate_flag = 1;
 			return 1;
 		}
 	}
@@ -1866,8 +1860,8 @@ static int get_panning(int ch, int note,int v)
 {
     int i, pan;
 
-	if(channel[ch].panning != NO_PANNING) {pan = channel[ch].panning;}
-	else {pan = 64;}
+	if(channel[ch].panning != NO_PANNING) {pan = (channel[ch].panning - 64) * 2;}
+	else {pan = 0;}
 
 	if(ISDRUMCHANNEL(ch) &&
      channel[ch].drums[note] != NULL &&
@@ -1875,7 +1869,7 @@ static int get_panning(int ch, int note,int v)
 	    pan += channel[ch].drums[note]->drum_panning - 64;
 	}
 
-	pan += voice[v].sample->panning - voice[v].sample_panning_average;
+	pan += voice[v].sample->panning - voice[v].sample_panning_average + 64;
 
 	if (pan > 127) pan = 127;
 	else if (pan < 0) pan = 0;
@@ -1895,6 +1889,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].note = note;
   voice[i].velocity = e->b;
   voice[i].chorus_link = i;	/* No link */
+  voice[i].proximate_flag = 1;
 
   j = channel[ch].special_sample;
   if(j == 0 || special_patch[j] == NULL)
@@ -1957,7 +1952,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   /* Pan */
   voice[i].sample_panning_average = sample_panning_average;
   voice[i].panning = get_panning(ch, note, i);
- /* ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d Average: %d",voice[i].panning,voice[i].sample_panning_average);*/
+/*  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d",voice[i].panning);*/
 
   voice[i].porta_control_counter = 0;
   if(channel[ch].portamento && !channel[ch].porta_control_ratio)

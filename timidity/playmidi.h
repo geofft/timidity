@@ -254,9 +254,6 @@ typedef struct {
 
   int8 legato;	/* Legato: 0 or 1 */
   int8 note_on;	/* for Legato */
-
-  int8 env_velf;	/* envelope velocity follow */
-
 } Channel;
 
 /* Causes the instrument's default panning to be used. */
