@@ -6554,13 +6554,13 @@ void free_userinst()
 	userinst_first = userinst_last = NULL;
 }
 
-static void set_effect_param_xg(struct effect_xg_t *st, int msb, int lsb)
+static void set_effect_param_xg(struct effect_xg_t *st, int type_msb, int type_lsb)
 {
 	int i, j;
 	for (i = 0; effect_parameter_xg[i].type_msb != -1
 		&& effect_parameter_xg[i].type_lsb != -1; i++) {
-		if (msb == effect_parameter_xg[i].type_msb
-			&& lsb == effect_parameter_xg[i].type_lsb) {
+		if (type_msb == effect_parameter_xg[i].type_msb
+			&& type_lsb == effect_parameter_xg[i].type_lsb) {
 			for (j = 0; j < 16; j++) {
 				st->param_lsb[j] = effect_parameter_xg[i].param_lsb[j];
 			}
@@ -6568,7 +6568,21 @@ static void set_effect_param_xg(struct effect_xg_t *st, int msb, int lsb)
 				st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
 			}
 		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name); */
-			break;
+			return;
+		}
+	}
+	if (type_msb != 0) {
+		for (i = 0; effect_parameter_xg[i].type_msb != -1
+			&& effect_parameter_xg[i].type_lsb != -1; i++) {
+			if (type_lsb == effect_parameter_xg[i].type_lsb) {
+				for (j = 0; j < 16; j++) {
+					st->param_lsb[j] = effect_parameter_xg[i].param_lsb[j];
+				}
+				for (j = 0; j < 10; j++) {
+					st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
+				}
+				return;
+			}
 		}
 	}
 }
@@ -6704,7 +6718,7 @@ static void set_effect_param_gs(struct insertion_effect_gs_t *st, int msb, int l
 			for (j = 0; j < 20; j++) {
 				st->parameter[j] = effect_parameter_gs[i].param[j];
 			}
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "GS EFX: %s", effect_parameter_gs[i].name);
+		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "GS EFX: %s", effect_parameter_gs[i].name); */
 			break;
 		}
 	}

@@ -2358,9 +2358,6 @@ void alloc_effect(EffectList *ef)
 	}
 	ef->info = safe_malloc(ef->engine->info_size);
 
-	/* initialize */
-	(*ef->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, ef);
-
 	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Effect Engine: %s", ef->engine->name);
 }
 
