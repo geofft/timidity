@@ -53,7 +53,7 @@ typedef struct _EffectList {
 } EffectList;
 
 extern void convert_effect(EffectList *);
-extern EffectList *new_effect(EffectList *, int8);
+extern EffectList *new_effect(EffectList *, int8, void *);
 extern void do_effect_list(int32 *, int32, EffectList *);
 extern void free_effect_list(EffectList *);
 
@@ -122,7 +122,7 @@ struct delay_status_t
     uint8 level_center;
     uint8 level_left;
     uint8 level_right;
-    int time_center;			/* in ms */
+    double time_center;			/* in ms */
     double time_ratio_left;		/* in pct */
     double time_ratio_right;	/* in pct */
     uint8 feedback;
@@ -138,8 +138,10 @@ struct delay_status_t
 	double level_ratio_r;
 	double feedback_ratio;
 	double send_reverb_ratio;
-	int32 lpf_coef[5];
-	int32 lpf_val[8];
+
+	/* for (negative) highpass shelving filter */
+	int32 high_coef[5];
+	int32 high_val[8];
 };
 
 /* GS parameters of reverb effect */
@@ -154,10 +156,12 @@ struct reverb_status_t
 	uint8 pre_delay_time;	/* in ms */
 
 	/* for pre-calculation */
-	int32 lpf_coef[5];
-	int32 lpf_val[8];
 	double level_ratio;
 	double time_ratio;
+
+	/* for (negative) highpass shelving filter */
+	int32 high_coef[5];
+	int32 high_val[8];
 };
 
 /* GS parameters of chorus effect */
@@ -182,8 +186,10 @@ struct chorus_param_t
 	int32 cycle_in_sample;
 	int32 depth_in_sample;
 	int32 delay_in_sample;
-	int32 lpf_coef[5];
-	int32 lpf_val[8];
+
+	/* for (negative) highpass shelving filter */
+	int32 high_coef[5];
+	int32 high_val[8];
 };
 
 /* GS parameters of channel EQ */
@@ -195,10 +201,10 @@ struct eq_status_t
 	uint8 low_gain;
 	uint8 high_gain;
 
-	/* for pre-calculation */
 	/* for highpass shelving filter */
 	int32 high_coef[5];
 	int32 high_val[8];
+
 	/* for lowpass shelving filter */
 	int32 low_coef[5];
 	int32 low_val[8];

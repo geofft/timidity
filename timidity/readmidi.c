@@ -4088,6 +4088,10 @@ char *event2string(int id)
     return string_event_table[id];
 }
 
+FLOAT_T gs_system_effect_hsf_gain_table[8] = {
+	0, -1.9, -4.0, -6.5, -9.0, -12.0, -16.5, -24.0
+};
+
 void init_delay_status()
 {
 	delay_status.type = 0;
@@ -4105,7 +4109,7 @@ void init_delay_status()
 
 void recompute_delay_status()
 {
-	int cutoff_freq;
+	FLOAT_T dBGain;
 
 	delay_status.sample_c = delay_status.time_center * play_mode->rate / 1000;
 	delay_status.sample_l = delay_status.sample_c * delay_status.time_ratio_left;
@@ -4123,20 +4127,10 @@ void recompute_delay_status()
 		delay_status.type = 1;
 	}
 
-	switch(delay_status.pre_lpf) {
-	case 0:	cutoff_freq = 0;	break;
-	case 1:	cutoff_freq = 8000;	break;
-	case 2:	cutoff_freq = 5000;	break;
-	case 3:	cutoff_freq = 3150;	break;
-	case 4:	cutoff_freq = 2000;	break;
-	case 5:	cutoff_freq = 1250;	break;
-	case 6:	cutoff_freq = 800;	break;
-	case 7:	cutoff_freq = 500;	break;
-	}
-
-	/* pre-calculate LPF coefficients */
-	if(cutoff_freq < play_mode->rate / 2) {
-		calc_lowpass_coefs_24db(delay_status.lpf_coef,cutoff_freq,0,play_mode->rate);
+	if(delay_status.pre_lpf) {
+		dBGain = gs_system_effect_hsf_gain_table[delay_status.pre_lpf];
+		/* calculate highpass shelving filter's coefficients */
+		calc_highshelf_coefs(delay_status.high_coef, 20, dBGain, play_mode->rate);
 	}
 }
 
@@ -4168,8 +4162,16 @@ void init_reverb_status()
 
 void recompute_reverb_status()
 {
+	FLOAT_T dBGain;
+
 	reverb_status.level_ratio = (double)reverb_status.level / 127.0f;
 	reverb_status.time_ratio = (double)reverb_status.time / 128.0f + 0.5f;
+
+	if(reverb_status.pre_lpf) {
+		dBGain = gs_system_effect_hsf_gain_table[reverb_status.pre_lpf];
+		/* calculate highpass shelving filter's coefficients */
+		calc_highshelf_coefs(reverb_status.high_coef, 20, dBGain, play_mode->rate);
+	}
 }
 
 void set_reverb_macro(int macro)
@@ -4200,7 +4202,7 @@ void init_chorus_status()
 
 void recompute_chorus_status()
 {
-	int cutoff_freq;
+	FLOAT_T dBGain;
 
 	chorus_param.delay_in_sample = pre_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
 	chorus_param.depth_in_sample = chorus_param.delay_in_sample * chorus_param.chorus_depth / 127;
@@ -4210,19 +4212,10 @@ void recompute_chorus_status()
 	chorus_param.send_reverb_ratio = (double)chorus_param.chorus_send_level_to_reverb / 127.0;
 	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
 
-	switch(chorus_param.chorus_pre_lpf) {
-	case 0:	cutoff_freq = 0;	break;
-	case 1:	cutoff_freq = 8000;	break;
-	case 2:	cutoff_freq = 5000;	break;
-	case 3:	cutoff_freq = 3150;	break;
-	case 4:	cutoff_freq = 2000;	break;
-	case 5:	cutoff_freq = 1250;	break;
-	case 6:	cutoff_freq = 800;	break;
-	case 7:	cutoff_freq = 500;	break;
-	}
-
-	if(cutoff_freq < play_mode->rate / 2) {	/* pre-calculate LPF coefficients */
-		calc_lowpass_coefs_24db(chorus_param.lpf_coef,cutoff_freq,0,play_mode->rate);
+	if(chorus_param.chorus_pre_lpf) {
+		dBGain = gs_system_effect_hsf_gain_table[chorus_param.chorus_pre_lpf];
+		/* calculate highpass shelving filter's coefficients */
+		calc_highshelf_coefs(chorus_param.high_coef, 20, dBGain, play_mode->rate);
 	}
 }
 
@@ -4427,6 +4420,7 @@ void init_insertion_effect_status()
 	struct GSInsertionEffect *st = &gs_ieffect;
 
 	free_effect_list(st->ef);
+	st->ef = NULL;
 
 	for(i = 0; i < 20; i++) {st->parameter[i] = 0;}
 

@@ -1,4 +1,13 @@
 
+2003-06-13  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/readmidi.c,
+	timidity/reverb.[ch], timidity/tables.c:
+	  Fix insertion effect.
+	  Fix illegal-parameter handling of delay effect.
+	  Strengthen delay and chorus effect.
+	  Support for reverb / chorus / delay LPF in correct method.
+
 2003-06-12  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c, timidity/reverb.[ch]:

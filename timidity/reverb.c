@@ -127,6 +127,10 @@ spt1++; if(spt1 == rpt1) spt1 = 0;\
 spt2++; if(spt2 == rpt2) spt2 = 0;\
 spt3++; if(spt3 == rpt3) spt3 = 0;
 
+#define MASTER_CHORUS_LEVEL 1.7
+#define MASTER_DELAY_LEVEL 3.25
+
+void do_shelving_filter(register int32 *, int32, int32 *, int32 *);
 static void do_freeverb(int32 *buf, int32 count);
 static void alloc_revmodel(void);
 
@@ -332,6 +336,9 @@ void do_standard_reverb(int32 *comp, int32 n)
 
 void do_ch_reverb(int32* buf, int32 count)
 {
+	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && reverb_status.pre_lpf) {
+		do_shelving_filter(buf, count, reverb_status.high_coef, reverb_status.high_val);
+	}
 	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
 		do_freeverb(buf, count);
 	} else {
@@ -445,7 +452,7 @@ void reverb_rc_event(int rc, int32 val)
 #ifdef USE_DSP_EFFECT
 static int32 delay_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 /* circular buffers and pointers */
-#define DELAY_BUFFER_SIZE 48000
+#define DELAY_BUFFER_SIZE 48000 + 1
 static int32 delay_buf0_L[DELAY_BUFFER_SIZE + 1];
 static int32 delay_buf0_R[DELAY_BUFFER_SIZE + 1];
 static int32 delay_rpt0 = DELAY_BUFFER_SIZE;
@@ -465,7 +472,7 @@ void init_ch_delay()
 	memset(delay_buf0_L,0,sizeof(delay_buf0_L));
 	memset(delay_buf0_R,0,sizeof(delay_buf0_R));
 	memset(delay_effect_buffer,0,sizeof(delay_effect_buffer));
-	memset(delay_status.lpf_val,0,sizeof(delay_status.lpf_val));
+	memset(delay_status.high_val,0,sizeof(delay_status.high_val));
 
 	delay_wpt0 = 0;
 	delay_spt0 = 0;
@@ -477,8 +484,8 @@ void init_ch_delay()
 #ifdef USE_DSP_EFFECT
 void do_ch_delay(int32* buf, int32 count)
 {
-	if((opt_reverb_control == 3 || opt_effect_quality >= 1)&& delay_status.pre_lpf) {
-		do_lowpass_24db(delay_effect_buffer,count,delay_status.lpf_coef,delay_status.lpf_val);
+	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && delay_status.pre_lpf) {
+		do_shelving_filter(delay_effect_buffer, count, delay_status.high_coef, delay_status.high_val);
 	}
 
 	switch(delay_status.type) {
@@ -496,7 +503,7 @@ void do_ch_delay(int32* buf, int32 count)
 void set_ch_delay(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = delay_effect_buffer;
-	level = level * 255 / 127;
+	level = level * 65536 / 127;
 
 	_asm {
 		mov		ecx, [count]
@@ -507,8 +514,8 @@ void set_ch_delay(int32 *buf, int32 count, int32 level)
 		mov		edi, [dbuf]
 L1:		mov		eax, [esi]
 		imul	ebx
-		shr		eax, 8
-		shl		edx, 24
+		shr		eax, 16
+		shl		edx, 16
 		or		eax, edx	/* u */
 		mov		edx, [edi]	/* v */
 		add		esi, 4		/* u */	
@@ -525,9 +532,9 @@ void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
 	int32 *buf = delay_effect_buffer;
-	level = level * 256 / 127;
+	level = level * 65536 / 127;
 
-	for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i], level);}
+	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
 }
 #endif	/* _MSC_VER */
 #else
@@ -551,7 +558,7 @@ void do_basic_delay(int32* buf, int32 count)
 	register int32 n = count;
 	int32 level,feedback,output,send_reverb;
 
-	level = TIM_FSCALE(delay_status.level_ratio_c, 24);
+	level = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
 	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
 	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
@@ -582,7 +589,7 @@ void do_basic_delay(int32* buf, int32 count)
 	register int32 n = count;
 	FLOAT_T level,feedback;
 
-	level = delay_status.level_ratio_c;
+	level = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
 	feedback = delay_status.feedback_ratio;
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
@@ -611,9 +618,9 @@ void do_cross_delay(int32* buf, int32 count)
 	int32 feedback,level_c,level_l,level_r,send_reverb,output;
 
 	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	level_c = TIM_FSCALE(delay_status.level_ratio_c, 24);
-	level_l = TIM_FSCALE(delay_status.level_ratio_l, 24);
-	level_r = TIM_FSCALE(delay_status.level_ratio_r, 24);
+	level_c = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
+	level_l = TIM_FSCALE(delay_status.level_ratio_l * MASTER_DELAY_LEVEL, 24);
+	level_r = TIM_FSCALE(delay_status.level_ratio_r * MASTER_DELAY_LEVEL, 24);
 	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
@@ -650,9 +657,9 @@ void do_cross_delay(int32* buf, int32 count)
 	FLOAT_T feedback,level_c,level_l,level_r;
 
 	feedback = delay_status.feedback_ratio;
-	level_c = delay_status.level_ratio_c;
-	level_l = delay_status.level_ratio_l;
-	level_r = delay_status.level_ratio_r;
+	level_c = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
+	level_l = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
+	level_r = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -686,9 +693,9 @@ void do_3tap_delay(int32* buf, int32 count)
 	int32 feedback,level_c,level_l,level_r,output,send_reverb;
 
 	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	level_c = TIM_FSCALE(delay_status.level_ratio_c, 24);
-	level_l = TIM_FSCALE(delay_status.level_ratio_l, 24);
-	level_r = TIM_FSCALE(delay_status.level_ratio_r, 24);
+	level_c = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
+	level_l = TIM_FSCALE(delay_status.level_ratio_l * MASTER_DELAY_LEVEL, 24);
+	level_r = TIM_FSCALE(delay_status.level_ratio_r * MASTER_DELAY_LEVEL, 24);
 	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
@@ -725,9 +732,9 @@ void do_3tap_delay(int32* buf, int32 count)
 	FLOAT_T feedback,level_c,level_l,level_r;
 
 	feedback = delay_status.feedback_ratio;
-	level_c = delay_status.level_ratio_c;
-	level_l = delay_status.level_ratio_l;
-	level_r = delay_status.level_ratio_r;
+	level_c = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
+	level_l = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
+	level_r = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -799,7 +806,7 @@ void init_ch_chorus()
 	memset(chorus_buf0_L,0,sizeof(chorus_buf0_L));
 	memset(chorus_buf0_R,0,sizeof(chorus_buf0_R));
 	memset(chorus_effect_buffer,0,sizeof(chorus_effect_buffer));
-	memset(chorus_param.lpf_val,0,sizeof(chorus_param.lpf_val));
+	memset(chorus_param.high_val,0,sizeof(chorus_param.high_val));
 
 	chorus_cnt0 = 0;
 	chorus_wpt0 = 0;
@@ -816,7 +823,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 	register int32 i;
 	int32 level, feedback, send_reverb, send_delay, delay, depth, output, div, v1l, v1r, f0, f1;
 
-	level = TIM_FSCALE(chorus_param.level_ratio, 24);
+	level = TIM_FSCALE(chorus_param.level_ratio * MASTER_CHORUS_LEVEL, 24);
 	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 24);
 	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio * REV_INP_LEV, 24);
 	send_delay = TIM_FSCALE(chorus_param.send_delay_ratio, 24);
@@ -873,7 +880,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 void set_ch_chorus(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = chorus_effect_buffer;
-	level = level * 255 / 127;
+	level = level * 65536 / 127;
 
 	_asm {
 		mov		ecx, [count]
@@ -884,8 +891,8 @@ void set_ch_chorus(int32 *buf, int32 count, int32 level)
 		mov		edi, [dbuf]
 L1:		mov		eax, [esi]
 		imul	ebx
-		shr		eax, 8
-		shl		edx, 24
+		shr		eax, 16
+		shl		edx, 16
 		or		eax, edx	/* u */
 		mov		edx, [edi]	/* v */
 		add		esi, 4		/* u */	
@@ -902,9 +909,9 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
     register int32 i;
 	int32 *buf = chorus_effect_buffer;
-	level = level * 256 / 127;
+	level = level * 65536 / 127;
 
-	for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i], level);}
+	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
 }
 #endif	/* _MSC_VER */
 #else	/* floating-point implementation */
@@ -924,7 +931,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 void do_ch_chorus(int32* buf, int32 count)
 {
 	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf) {
-		do_lowpass_24db(chorus_effect_buffer, count, chorus_param.lpf_coef, chorus_param.lpf_val);
+		do_lowpass_24db(chorus_effect_buffer, count, chorus_param.high_coef, chorus_param.high_val);
 	}
 	do_stereo_chorus(buf, count);
 }
@@ -1016,7 +1023,7 @@ void calc_highshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rat
 }
 
 
-void do_eq(register int32* buf,int32 count,int32* eq_coef,int32* eq_val)
+void do_shelving_filter(register int32* buf, int32 count, int32* eq_coef, int32* eq_val)
 {
 #if OPT_MODE != 0
 	register int32 i;
@@ -1073,8 +1080,8 @@ void do_ch_eq(int32* buf,int32 n)
 	register int32 i;
 	register int32 count = n;
 
-	do_eq(eq_buffer,count,eq_status.low_coef,eq_status.low_val);
-	do_eq(eq_buffer,count,eq_status.high_coef,eq_status.high_val);
+	do_shelving_filter(eq_buffer,count,eq_status.low_coef,eq_status.low_val);
+	do_shelving_filter(eq_buffer,count,eq_status.high_coef,eq_status.high_val);
 
 	for(i=0;i<count;i++) {
 		buf[i] += eq_buffer[i];
@@ -1859,6 +1866,7 @@ static void do_freeverb(int32 *buf, int32 count)
 void init_reverb(int32 output_rate)
 {
 	sample_rate = output_rate;
+	memset(reverb_status.high_val, 0, sizeof(reverb_status.high_val));
 	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
 		alloc_revmodel();
 		update_revmodel(revmodel);
@@ -1915,7 +1923,7 @@ void free_effect_buffers(void)
 EffectList *new_effect(EffectList *efc, int8 type, void *info)
 {
 	EffectList *eft, *efn;
-	if(type == EFFECT_NONE) {return;}
+	if(type == EFFECT_NONE) {return NULL;}
 	efn = (EffectList *)safe_malloc(sizeof(EffectList));
 	efn->type = type;
 	efn->next_ef = NULL;
@@ -1969,10 +1977,10 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 		return;
 	}
 	if(eq->low_gain != 0) {
-		do_eq(buf, count, eq->low_coef, eq->low_val);
+		do_shelving_filter(buf, count, eq->low_coef, eq->low_val);
 	}
 	if(eq->high_gain != 0) {
-		do_eq(buf, count, eq->high_coef, eq->high_val);
+		do_shelving_filter(buf, count, eq->high_coef, eq->high_val);
 	}
 }
 

@@ -3103,7 +3103,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 		case 0x18:	/* Delay Time Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Center (%d)",val);
 			init_ch_delay();
-			delay_status.time_center = delay_time_center_table[val];
+			delay_status.time_center = delay_time_center_table[val > 0x73 ? 0x73 : val];
 			recompute_delay_status();
 			break;
 		case 0x19:	/* Delay Time Ratio Left */
