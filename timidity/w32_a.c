@@ -27,6 +27,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __W32__
+#include "interface.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef NO_STRING_H
@@ -138,7 +141,8 @@ static void close_output    (void);
 static int  output_data     (char * Data, int32 Size);
 static int  acntl           (int request, void * arg);
 
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
+//#if defined ( IA_W32GUI )
 volatile int data_block_bits = DEFAULT_AUDIO_BUFFER_BITS;
 volatile int data_block_num = 64;
 #endif
@@ -350,6 +354,7 @@ static void close_output(void)
 
         { CHAR  b[256]; wsprintf(b, "Closing device...\n"); OutputDebugString(b); }
 
+        waveOutReset(hDevice);
         waveOutClose(hDevice);
 
         { CHAR  b[256]; wsprintf(b, "Device closed.\n"); OutputDebugString(b); }
@@ -720,7 +725,8 @@ static void WaitForBuffer(int WaitForAllBuffers)
     {
         { CHAR  b[256]; wsprintf(b, "%2d: Waiting %dms...\n", NumBuffersInUse, BufferDelay); OutputDebugString(b); }
 
-    #ifndef IA_W32GUI
+		#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+//		#if !defined ( IA_W32GUI )
         if(ctl->trace_playing)
             Sleep(0);
         else

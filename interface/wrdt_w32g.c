@@ -48,6 +48,7 @@
 #include "wrd.h"
 
 #include <windows.h>
+#include "w32g_dib.h"
 #include "w32g_wrd.h"
 
 static int wrdt_open(char *dummy);
@@ -93,6 +94,7 @@ static void esc_index(void)
 	w32g_wrd_wnd.curposy++;
 	if ( w32g_wrd_wnd.curposy >= w32g_wrd_wnd.col ) {
 		WrdWndScrollUp(TRUE);
+		w32g_wrd_wnd.curposy = w32g_wrd_wnd.col - 1;
 	}
 }
 
@@ -102,6 +104,7 @@ void esc_nextline(void)
 	w32g_wrd_wnd.curposy++;
 	if ( w32g_wrd_wnd.curposy >= w32g_wrd_wnd.col ) {
 		WrdWndScrollUp(TRUE);
+		w32g_wrd_wnd.curposy = w32g_wrd_wnd.col - 1;
 	}
 }
 
@@ -254,7 +257,6 @@ extern int gdi_unlock(void);
 static void putstring_with_esc(char *str)
 {
   char *p;
-  gdi_lock();
   while(*str)
   {
     p = str;
@@ -265,12 +267,31 @@ static void putstring_with_esc(char *str)
 		continue;
 	  }
 	  if(p-str > 0){
-		WrdWndPutStringN(str,p-str,FALSE);
+		WrdWndPutStringN(str,p-str,TRUE);
 		str = p;
 		break;
 	  }
 	  if(*p == '\0')
 		break;
+		if(*p == '\n') {
+			esc_nextline();
+			str = p + 1;
+			break;
+		}
+		if(*p == '\r' && *(p+1) == '\n') {
+			esc_nextline();
+			str = p + 2;
+			break;
+		}
+		if(*p == '\t') {
+			WrdWndPutStringN ( "        ", 8, TRUE );
+			str = p + 1;
+			break;
+		}
+	  if(*p != 0x1b){
+			str = p + 1;
+			break;
+		}
 	  if(*p == 0x1b){
 		int res, n[1024], n_max = 0;
 		char *oldp = p;
@@ -311,7 +332,7 @@ static void putstring_with_esc(char *str)
 		} else {
 			p = oldp;
 		    if(p-str > 0){
-				WrdWndPutStringN(str,p-str,FALSE);
+				WrdWndPutStringN(str,p-str,TRUE);
 					str = p;
 				break;
 			}
@@ -450,14 +471,13 @@ static void putstring_with_esc(char *str)
 			break;
 		}
 		p = oldp;
-		WrdWndPutStringN(p,1,FALSE);
+		WrdWndPutStringN(p,1,TRUE);
 		p++;
 		str = p;
 		break;
-	  }
+		}
 	}
   }
-  gdi_unlock();
 }
 
 
@@ -544,6 +564,29 @@ static void borlandc_esc(char *str)
 	putstring_with_esc(local);
 }
 
+extern void wrd_graphic_ginit ( void );
+extern void wrd_graphic_gcls ( int sw );
+extern void wrd_graphic_gscreen ( int active, int display );
+extern void wrd_graphic_gon ( int sw );
+extern void wrd_graphic_gline ( int x1, int y1, int x2, int y2, int p1, int sw, int p2 );
+extern void wrd_graphic_gcircle ( int x, int y, int r, int p1, int sw, int p2 );
+extern void wrd_graphic_pload ( char *path );
+extern void wrd_graphic_pal_g4r4b4 ( int p, int *g4r4b4, int max );
+extern void wrd_graphic_palrev ( int p );
+extern void wrd_graphic_apply_pal ( int p );
+extern void wrd_graphic_fade ( int p1, int p2, int speed );
+extern void wrd_graphic_fadestep ( int v );
+extern void wrd_graphic_gmode ( int sw );
+extern void wrd_graphic_gmove ( int x1, int y1, int x2, int y2, int xd, int yd, int vs, int vd, int sw );
+extern void wrd_graphic_mag ( char *path, int x, int y, int s, int p );
+extern void wrd_text_ton ( int sw );
+extern void wrd_text_scroll ( int x1, int y1, int x2, int y2, int mode, int color, int c );
+extern void wrd_start_skip ( void );
+extern void wrd_end_skip ( void );
+extern void wrd_graphic_xcopy ( int sx1, int sy1, int sx2, int sy2, int tx, int ty, int ss, int ts, int method,
+	 int opt1, int opt2, int opt3, int opt4, int opt5 );
+
+// #define WRD_VERBOSE
 static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 {
     char *p;
@@ -564,6 +607,10 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 	  written in EUC-JP code found*/
 
 	strcpy(text,p);
+#ifdef WRD_VERBOSE
+//	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+//		  "[WRD_LYRIC]\n%s", text );
+#endif
 	putstring_with_esc(text);
 	reuse_mblock(&tmpbuffer);
 	break;
@@ -587,49 +634,80 @@ to be ignored in kterm)*/
 		  "@EXEC(%s)", wrd_event2string(wrd_args[0]));
 	break;
       case WRD_FADE:
+		  wrd_graphic_fade ( wrd_args[0], wrd_args[1], wrd_args[2] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@FADE(%d,%d,%d)", wrd_args[0], wrd_args[1], wrd_args[2]);
+#endif
 	break;
       case WRD_FADESTEP:
+		 wrd_graphic_fadestep ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@FADESTEP(%d/%d)", wrd_args[0], WRD_MAXFADESTEP);
+#endif
 	break;
       case WRD_GCIRCLE:
+		wrd_graphic_gcircle ( wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3],
+		  wrd_args[4], wrd_args[5] );
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GCIRCLE(%d,%d,%d,%d,%d,%d)",
 		  wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3],
 		  wrd_args[4], wrd_args[5]);
 	break;
       case WRD_GCLS:
+		wrd_graphic_gcls ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GCLS(%d)", wrd_args[0]);
+#endif
 	break;
       case WRD_GINIT:
+		wrd_graphic_ginit ();
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "@GINIT()");
+#endif
 	break;
       case WRD_GLINE:
+		wrd_graphic_gline ( wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4],
+	       wrd_args[5], wrd_args[6] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GLINE(%d,%d,%d,%d,%d,%d,%d)",
 	       wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4],
 	       wrd_args[5], wrd_args[6]);
+#endif
 	break;
       case WRD_GMODE:
+		  wrd_graphic_gmode ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GMODE(%d)", wrd_args[0]);
+#endif
 	break;
       case WRD_GMOVE:
+		  wrd_graphic_gmove ( wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4],
+	       wrd_args[5], wrd_args[6], wrd_args[7], wrd_args[8] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GMOVE(%d,%d,%d,%d,%d,%d,%d)",
 	       wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4],
 	       wrd_args[5], wrd_args[6], wrd_args[7], wrd_args[8]);
+#endif
 	break;
       case WRD_GON:
+		wrd_graphic_gon ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GON(%d)", wrd_args[0]);
+#endif
 	break;
       case WRD_GSCREEN:
+		wrd_graphic_gscreen ( wrd_args[0], wrd_args[1] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@GSCREEN(%d,%d)", wrd_args[0], wrd_args[1]);
+#endif
 	break;
       case WRD_INKEY:
 	inkey_flag = 1;
@@ -648,6 +726,8 @@ to be ignored in kterm)*/
       case WRD_LOOP: /* Never call */
 	break;
       case WRD_MAG:
+		wrd_graphic_mag ( wrd_event2string(wrd_args[0]), wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4]);
+#ifdef WRD_VERBOSE
 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
 	strcpy(p, "@MAG(");
 	strcat(p, wrd_event2string(wrd_args[0]));
@@ -662,12 +742,15 @@ to be ignored in kterm)*/
 	sprintf(p + strlen(p), "%d,%d)", wrd_args[3], wrd_args[4]);
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
 	reuse_mblock(&tmpbuffer);
+#endif
 	break;
       case WRD_MIDI: /* Never call */
 	break;
       case WRD_OFFSET: /* Never call */
 	break;
       case WRD_PAL:
+		wrd_graphic_pal_g4r4b4 (wrd_args[0], wrd_args + 1, 16 );
+#ifdef WRD_VERBOSE
 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
 	sprintf(p, "@PAL(%03x", wrd_args[0]);
 	for(i = 1; i < 17; i++)
@@ -675,22 +758,32 @@ to be ignored in kterm)*/
 	strcat(p, ")");
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
 	reuse_mblock(&tmpbuffer);
+#endif
 	break;
       case WRD_PALCHG:
+		wrd_graphic_apply_pal ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@PALCHG(%s)", wrd_event2string(wrd_args[0]));
+#endif
 	break;
       case WRD_PALREV:
+		wrd_graphic_palrev ( wrd_args[0] );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@PALREV(%d)", wrd_args[0]);
+#endif
 	break;
       case WRD_PATH:
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@PATH(%s)", wrd_event2string(wrd_args[0]));
 	break;
       case WRD_PLOAD:
+		wrd_graphic_pload ( wrd_event2string(wrd_args[0]) );
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@PLOAD(%s)", wrd_event2string(wrd_args[0]));
+#endif
 	break;
       case WRD_REM:
 	p = wrd_event2string(wrd_args[0]);
@@ -709,15 +802,22 @@ to be ignored in kterm)*/
       case WRD_SCREEN: /* Not supported */
 	break;
       case WRD_SCROLL:
+		wrd_text_scroll (wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3],
+		  wrd_args[4], wrd_args[5], wrd_args[6]);
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@SCROLL(%d,%d,%d,%d,%d,%d,%d)",
 		  wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3],
 		  wrd_args[4], wrd_args[5], wrd_args[6]);
+#endif
 	break;
       case WRD_STARTUP:
+		  WrdWndReset ();
 	inkey_flag = 0;
+#ifdef WRD_VERBOSE
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@STARTUP(%d)", wrd_args[0]);
+#endif
 	esc_clearscreen();
 	break;
       case WRD_STOP: /* Never call */
@@ -749,6 +849,7 @@ to be ignored in kterm)*/
 	}
 	break;
       case WRD_TON:
+		wrd_text_ton ( wrd_args[0] );
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@TON(%d)", wrd_args[0]);
 	break;
@@ -801,8 +902,24 @@ to be ignored in kterm)*/
 	print_ecmd("VSRES", wrd_args, 0);
 	break;
       case WRD_eXCOPY:
+		wrd_graphic_xcopy ( wrd_args[0], wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4], wrd_args[5], wrd_args[6],
+			 wrd_args[7], wrd_args[8], wrd_args[9], wrd_args[10], wrd_args[11], wrd_args[12], wrd_args[13] );
 	print_ecmd("XCOPY", wrd_args, 14);
 	break;
+	case WRD_START_SKIP:
+		wrd_start_skip ();
+#ifdef WRD_VERBOSE
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+		  "WRD_START_SKIP");
+#endif
+		break;
+	case WRD_END_SKIP:
+		wrd_end_skip ();
+#ifdef WRD_VERBOSE
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+		  "WRD_END_SKIP");
+#endif
+		break;
 
 	/* Extensionals */
     }

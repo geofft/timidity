@@ -21,6 +21,12 @@
 #ifndef ___W32G_UTL_H_
 #define ___W32G_UTL_H_
 
+#ifdef IA_W32G_SYN
+#ifndef MAX_PORT
+#define MAX_PORT 4
+#endif
+#endif
+
 // ini & config
 #define IniVersion "2.2"
 typedef struct SETTING_PLAYER_ {
@@ -79,6 +85,10 @@ typedef struct SETTING_PLAYER_ {
 	int SeachDirRecursive;
 	int IniFileAutoSave;
 	int SecondMode;
+  int AutoloadPlaylist;
+  int AutosavePlaylist;
+  int PosSizeSave;
+  char DefaultPlaylistName[256];
 // End.
 } SETTING_PLAYER;
 
@@ -114,6 +124,11 @@ typedef struct SETTING_TIMIDITY_ {
 	int opt_tva_release;		// E ?
 	int opt_delay_control;		// E ?
 	int opt_resonance;			// E ?
+	int opt_lpf_def;			// E ?
+	int opt_sf_lpf;			// E ?
+	int opt_drum_effect;			// E ?
+	int opt_eq_control;			// E ?
+	int opt_insertion_effect;	// E ?
 	int opt_env_attack;			// E ?
 	int opt_velocity_table;		// E ?
     int opt_evil_mode;		// e
@@ -140,6 +155,11 @@ typedef struct SETTING_TIMIDITY_ {
     char opt_qsize[16];		// q
     int32 modify_release;	// R
     int32 allocate_cache_size;	// S
+	double opt_drum_power;	// ?
+	int key_adjust;		// K
+	int8 opt_force_keysig;	// H
+	int opt_pure_intonation;	// Z
+	int8 opt_init_keysig;	// Z
     int output_rate;		// s
     char output_text_code[16];	// t
     int free_instruments_afterwards; // U
@@ -153,6 +173,11 @@ typedef struct SETTING_TIMIDITY_ {
     int data_block_bits;
     int data_block_num;
 //??    int waveout_data_block_size;
+#ifdef IA_W32G_SYN
+		int SynIDPort[MAX_PORT];
+		int syn_ThreadPriority;
+		int SynPortNum;
+#endif
 } SETTING_TIMIDITY;
 
 // #### obsoleted
@@ -195,6 +220,7 @@ extern int TracerFontSize;
 extern int IniGetKeyInt32(char *section, char *key,int32 *n);
 extern int IniGetKeyInt32Array(char *section, char *key, int32 *n, int arraysize);
 extern int IniGetKeyInt(char *section, char *key, int *n);
+extern int IniGetKeyInt8(char *section, char *key, int8 *n);
 extern int IniGetKeyChar(char *section, char *key, char *c);
 extern int IniGetKeyIntArray(char *section, char *key, int *n, int arraysize);
 extern int IniGetKeyString(char *section, char *key,char *str);
@@ -203,6 +229,7 @@ extern int IniGetKeyFloat(char *section, char *key, FLOAT_T *n);
 extern int IniPutKeyInt32(char *section, char *key,int32 *n);
 extern int IniPutKeyInt32Array(char *section, char *key, int32 *n, int arraysize);
 extern int IniPutKeyInt(char *section, char *key, int *n);
+extern int IniPutKeyInt8(char *section, char *key, int8 *n);
 extern int IniPutKeyChar(char *section, char *key, char *c);
 extern int IniPutKeyIntArray(char *section, char *key, int *n, int arraysize);
 extern int IniPutKeyString(char *section, char *key, char *str);

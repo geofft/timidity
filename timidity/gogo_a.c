@@ -86,7 +86,7 @@ PlayMode dpm = {
     acntl
 };
 
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 #if defined(_MSC_VER)
 //typedef void (__cdecl *MSVC_BEGINTHREAD_START_ADDRESS)(void *);
 typedef LPTHREAD_START_ROUTINE MSVC_BEGINTHREAD_START_ADDRESS;
@@ -548,7 +548,7 @@ int gogo_opts_id3_tag(char *title, char *artist, char *album, char *year, char *
 {
 	mp3_id3_tag_t id3_tag;
 	char *buffer;
-	buffer = (char *)malloc(128);
+	buffer = (char *)safe_malloc(128);
 	if(buffer==NULL)
 		return -1;
 	memset(&id3_tag,0x20,128);
@@ -615,10 +615,10 @@ int commandline_to_argc_argv(char *commandline, int *argc, char ***argv)
 		(*argc)++;
 		if(*argc>argc_max)
 			argc_max += 100;
-		*argv = (char **)realloc(*argv,sizeof(char*)*argc_max);
+		*argv = (char **)safe_realloc(*argv,sizeof(char*)*argc_max);
 		if(*argv==NULL)
 			return -1;
-		*argv[*argc-1] = (char *)malloc(sizeof(char)*(p2-p1));
+		*argv[*argc-1] = (char *)safe_malloc(sizeof(char)*(p2-p1));
 		if(*argv[*argc-1]==NULL){
 			(*argc)--;
 			return 0;
@@ -994,7 +994,7 @@ static int __stdcall MPGEthread(void)
 	mcp_inpdev_userfunc.nBit = (dpm.encoding & PE_16BIT) ? 16 : 8;
 	mcp_inpdev_userfunc.nFreq = dpm.rate;
 	mcp_inpdev_userfunc.nChn = (dpm.encoding & PE_MONO) ? 1 : 2;
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
 	if(use_gogo_commandline_options && gogo_commandline_options!=NULL){
 		gogo_opts_reset();
 		set_gogo_opts_use_commandline_options(gogo_commandline_options);
@@ -1127,7 +1127,7 @@ static int CreateMPGEthread(void)
 
 
 /**********************************************************************/
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 extern volatile int w32g_gogo_id3_tag_dialog(void);
 extern int w32g_interactive_id3_tag_set;
 #endif
@@ -1139,7 +1139,7 @@ static int gogo_output_open(const char *fname)
 		gogo_opts_init();
 	strncpy((char *)gogo_opts.output_name,fname,1023);
 	gogo_opts.output_name[1023] = '\0';
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 	gogo_opts_reset_tag();
 	if(w32g_interactive_id3_tag_set){	// 演奏時にID3タグ情報入力ダイアログを開く。
 		w32g_gogo_id3_tag_dialog();
@@ -1158,7 +1158,7 @@ static int auto_gogo_output_open(const char *input_filename)
 {
   char *output_filename;
 
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
   output_filename = create_auto_output_name(input_filename,"mp3",NULL,0);
 #else
   gogo_ConfigDialogInfoApply();
@@ -1225,7 +1225,7 @@ static int open_output(void)
 
     dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
 
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
     if(dpm.name == NULL) {
       dpm.flag |= PF_AUTO_SPLIT_FILE;
       dpm.name = NULL;

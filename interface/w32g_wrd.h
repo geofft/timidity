@@ -13,6 +13,14 @@
 #define W32G_WRDWND_LIGHTBLUE	6
 #define W32G_WRDWND_WHITE	7
 #define W32G_WRDWND_GRAPHIC_PLANE_MAX 2
+#define W32G_WRDWND_GRAPHIC_PALLETE_MAX 16
+#define W32G_WRDWND_GRAPHIC_BITS 8
+#define W32G_WRDWND_GRAPHIC_PALLETE_BUF_MAX 20
+
+#define WRD_FLAG_TEXT 1
+#define WRD_FLAG_GRAPHIC 2
+#define WRD_FLAG_DEFAULT ( WRD_FLAG_TEXT | WRD_FLAG_GRAPHIC )
+
 typedef struct w32g_wrd_wnd_t_ {
 	HWND hwnd;
 	HWND hParentWnd;
@@ -20,15 +28,38 @@ typedef struct w32g_wrd_wnd_t_ {
 	HDC hmdc;
 	HGDIOBJ hgdiobj_hmdcprev;
 	HBITMAP hbitmap;
+
+	int flag;	// フラグ
+	int draw_skip;
+
+	// ワーク
+	HBITMAP hbmp_work;
+	// テキストマスク
+	HBITMAP hbmp_tmask;
+	// グラフィック
+	w32g_dib_t *graphic_dib[W32G_WRDWND_GRAPHIC_PLANE_MAX];
+	int index_active;		// アクティブ画面
+	int index_display;		// ディスプレイ画面
+	int gmode;
+	// 画像データの形式
+	BITMAPINFO *bmi_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
+	// パレットベースの画像データ
+	char *bits_mag_work;
+	// グラフィックパレットバッファ
+	RGBQUAD default_gpal[W32G_WRDWND_GRAPHIC_PALLETE_MAX];
+	RGBQUAD gpal_buff[W32G_WRDWND_GRAPHIC_PALLETE_BUF_MAX][W32G_WRDWND_GRAPHIC_PALLETE_MAX];
+	// 変更情報
+	int modified_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
+	// フェード
+	int fade_from;
+	int fade_to;
+	//
+	HPEN hNullPen;
+	HBRUSH hNullBrush;
+
 	HFONT hFont;
 	RECT rc;
-#if 0
-	BITMAPINFO bi_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
-	RGBQUAD rgbq_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
-	HBITMAP hbmp_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
-	HBITMAP hmdc_graphic[W32G_WRDWND_GRAPHIC_PLANE_MAX];
-	int cur_graphic_page;
-#endif
+
 	int font_height;
 	int font_width;
 	int height;
@@ -44,10 +75,10 @@ typedef struct w32g_wrd_wnd_t_ {
 	char forecolorbuf[W32G_WRDWND_COL][W32G_WRDWND_ROW];
 	char backcolorbuf[W32G_WRDWND_COL][W32G_WRDWND_ROW];
 	char attrbuf[W32G_WRDWND_COL][W32G_WRDWND_ROW];
-	COLORREF pals[32];
 	int valid;
 	int active;
 	int updateall;
+	COLORREF pals[32];
 } w32g_wrd_wnd_t;
 extern void WrdWndReset(void);
 extern void WrdWndCopyLine(int from, int to, int lockflag);
@@ -66,5 +97,21 @@ extern void WrdWndPaintAll(int lockflag);
 extern void WrdWndPaintDo(int flag);
 extern void WrdWndCurStateSaveAndRestore(int saveflag);
 extern w32g_wrd_wnd_t w32g_wrd_wnd;
+
+// section of ini file
+// [WrdWnd]
+// PosX =
+// PosY =
+typedef struct WRDWNDINFO_ {
+	HWND hwnd;
+	int PosX;
+	int PosY;
+	int volatile GraphicStop;
+} WRDWNDINFO;
+extern WRDWNDINFO WrdWndInfo;
+
+extern int INISaveWrdWnd(void);
+extern int INILoadWrdWnd(void);
+
 
 #endif /* __W32G_WRD_H__ */

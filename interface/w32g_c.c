@@ -79,6 +79,7 @@ int w32g_auto_output_mode = 0;
 extern void MPanelMessageAdd(char *message, int msec, int mode);
 extern void MPanelMessageClearAll(void);
 
+extern int w32g_msg_box(char *message, char *title, int type);
 
 //****************************************************************************/
 // Control funcitons
@@ -91,6 +92,8 @@ static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 
 #define ctl w32gui_control_mode
+
+#define CTL_STATUS_UPDATE -98
 
 ControlMode ctl=
 {
@@ -167,6 +170,12 @@ static void PanelReset(void)
     Panel->voices = voices;
     Panel->upper_voices = 0;
   //  Panel->master_volume = 0;
+    Panel->meas = 0;
+    Panel->beat = 0;
+    Panel->keysig[0] = '\0';
+    Panel->key_offset = 0;
+    Panel->tempo = 0;
+    Panel->tempo_ratio = 0;
     Panel->aq_ratio = 0;
     Panel->changed = 1;
 }
@@ -404,9 +413,12 @@ static int ctl_delete_playlist(int offset)
 	return RC_NONE;
     if(w32g_delete_playlist(pos))
     {
+	w32g_update_playlist();
 	ctl_panel_refresh();
-	if(w32g_play_active && selected == pos)
+	if(w32g_play_active && selected == pos) {
+		w32g_update_playlist();
 	    return RC_LOAD_FILE;
+	}
     }
     return RC_NONE;
 }
@@ -537,9 +549,81 @@ static void ctl_master_volume(int mv)
     ctl_panel_refresh();
 }
 
+static void ctl_metronome(int meas, int beat)
+{
+	static int lastmeas = CTL_STATUS_UPDATE;
+	static int lastbeat = CTL_STATUS_UPDATE;
+	
+	if (meas == CTL_STATUS_UPDATE)
+		meas = lastmeas;
+	else
+		lastmeas = meas;
+	if (beat == CTL_STATUS_UPDATE)
+		beat = lastbeat;
+	else
+		lastbeat = beat;
+	Panel->meas = meas;
+	Panel->beat = beat;
+	Panel->changed = 1;
+	ctl_panel_refresh();
+}
+
+static void ctl_keysig(int8 k, int ko)
+{
+	static int8 lastkeysig = CTL_STATUS_UPDATE;
+	static int lastoffset = CTL_STATUS_UPDATE;
+	static const char *keysig_name[] = {
+		"Cb", "Gb", "Db", "Ab", "Eb", "Bb", "F ", "C ",
+		"G ", "D ", "A ", "E ", "B ", "F#", "C#", "G#",
+		"D#", "A#"
+	};
+	int i, j;
+	
+	if (k == CTL_STATUS_UPDATE)
+		k = lastkeysig;
+	else
+		lastkeysig = k;
+	if (ko == CTL_STATUS_UPDATE)
+		ko = lastoffset;
+	else
+		lastoffset = ko;
+	i = k + ((k < 8) ? 7 : -6);
+	if (ko > 0)
+		for (j = 0; j < ko; j++)
+			i += (i > 10) ? -5 : 7;
+	else
+		for (j = 0; j < abs(ko); j++)
+			i += (i < 7) ? 5 : -7;
+	sprintf(Panel->keysig, "%s %s", keysig_name[i], (k < 8) ? "Maj" : "Min");
+	Panel->key_offset = ko;
+	Panel->changed = 1;
+	ctl_panel_refresh();
+}
+
+static void ctl_tempo(int t, int tr)
+{
+	static int lasttempo = CTL_STATUS_UPDATE;
+	static int lastratio = CTL_STATUS_UPDATE;
+	
+	if (t == CTL_STATUS_UPDATE)
+		t = lasttempo;
+	else
+		lasttempo = t;
+	if (tr == CTL_STATUS_UPDATE)
+		tr = lastratio;
+	else
+		lastratio = tr;
+	t = (int) (500000 / (double) t * 120 * (double) tr / 100 + 0.5);
+	Panel->tempo = t;
+	Panel->tempo_ratio = tr;
+	Panel->changed = 1;
+	ctl_panel_refresh();
+}
+
 extern BOOL SetWrdWndActive(void);
 static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
+	static int init_flag = 1;
     int rc;
     int32 value;
     extern void timidity_init_aq_buff(void);
@@ -551,13 +635,17 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
     w32g_play_active = 0;
     errcnt = 0;
 
-    if(w32g_nvalid_playlist() && (ctl.flags & CTLF_AUTOSTART))
+    if(init_flag && w32g_nvalid_playlist() && (ctl.flags & CTLF_AUTOSTART))
 //    if(play_mode->fd != -1 &&
 //       w32g_nvalid_playlist() && (ctl.flags & CTLF_AUTOSTART))
 	rc = RC_LOAD_FILE;
     else
 	rc = RC_NONE;
+	init_flag = 0;
 
+#ifdef W32G_RANDOM_IS_SHUFFLE
+	w32g_shuffle_playlist_reset(0);
+#endif
     while(1)
     {
 	if(rc == RC_NONE)
@@ -597,7 +685,6 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		    aq_setup();
 		    timidity_init_aq_buff();
 		}
-//		w32g_setcur_playlist();
 		if(play_mode->id_character == 'l')
 		    w32g_show_console();
 		if(!DocWndIndependent){
@@ -638,11 +725,12 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 	  case RC_TUNE_END:
 #if 0
 	    if(play_mode->id_character != 'd' ||
-	       (ctl.flags & CTLF_NOT_CONTINUE))
+			(ctl.flags & CTLF_NOT_CONTINUE)) {
 #else
-	    if(ctl.flags & CTLF_NOT_CONTINUE)
+		if(ctl.flags & CTLF_NOT_CONTINUE) {
 #endif
-		break;
+			break;
+		}
 	    /* FALLTHROUGH */
 	  case RC_NEXT:
 	    if(!w32g_nvalid_playlist())
@@ -654,12 +742,21 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		}
 		break;
 	    }
-	    if(w32g_next_playlist(!(ctl.flags & CTLF_NOT_CONTINUE)))
-	    {
-		rc = RC_LOAD_FILE;
-		goto redo;
-	    }
-	    else
+			if(ctl.flags & CTLF_LIST_RANDOM) {
+#ifdef W32G_RANDOM_IS_SHUFFLE
+				if(w32g_shuffle_playlist_next(!(ctl.flags & CTLF_NOT_CONTINUE))) {
+#else
+				if(w32g_random_playlist(!(ctl.flags & CTLF_NOT_CONTINUE))) {
+#endif
+					rc = RC_LOAD_FILE;
+					goto redo;
+				}
+			} else {
+				if(w32g_next_playlist(!(ctl.flags & CTLF_NOT_CONTINUE))) {
+					rc = RC_LOAD_FILE;
+					goto redo;
+				}
+			}
 	    {
 		/* end of list */
 		if(ctl.flags & CTLF_AUTOEXIT){
@@ -669,14 +766,28 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		}
 		if((ctl.flags & CTLF_LIST_LOOP) && w32g_nvalid_playlist())
 		{
-		    w32g_first_playlist(!(ctl.flags & CTLF_NOT_CONTINUE));
+#ifdef W32G_RANDOM_IS_SHUFFLE
+			if(ctl.flags & CTLF_LIST_RANDOM) {
+				w32g_shuffle_playlist_reset(0);
+				w32g_shuffle_playlist_next(!(ctl.flags & CTLF_NOT_CONTINUE));
+			} else {
+#endif
+				w32g_first_playlist(!(ctl.flags & CTLF_NOT_CONTINUE));
+#ifdef W32G_RANDOM_IS_SHUFFLE
+			}
+#endif
 		    rc = RC_LOAD_FILE;
 		    goto redo;
 		}
+		if((ctl.flags & CTLF_LIST_RANDOM) && w32g_nvalid_playlist())
+			w32g_shuffle_playlist_reset(0);
 	    }
 	    break;
 
 	  case RC_REALLY_PREVIOUS:
+#ifdef W32G_RANDOM_IS_SHUFFLE
+		w32g_shuffle_playlist_reset(0);
+#endif
 	    if(w32g_prev_playlist(!(ctl.flags & CTLF_NOT_CONTINUE)))
 	    {
 		rc = RC_LOAD_FILE;
@@ -699,6 +810,10 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 	    break;
 
 	  default:
+		if(rc == RC_STOP)
+#ifdef W32G_RANDOM_IS_SHUFFLE
+			w32g_shuffle_playlist_reset(0);
+#endif
 	    if(rc >= RC_EXT_BASE)
 	    {
 		rc = w32g_ext_control(rc, value);
@@ -933,8 +1048,12 @@ static void ctl_maxvoices(int v)
     Panel->changed = 1;
 }
 
+extern void w32_wrd_ctl_event(CtlEvent *e);
+extern void w32_tracer_ctl_event(CtlEvent *e);
 static void ctl_event(CtlEvent *e)
 {
+	w32_wrd_ctl_event(e);
+	w32_tracer_ctl_event(e);
     switch(e->type)
     {
       case CTLE_NOW_LOADING:
@@ -957,10 +1076,6 @@ static void ctl_event(CtlEvent *e)
 	break;
       case CTLE_PLAY_END:
 	MainWndScrollbarProgressUpdate(-1);
-	break;
-      case CTLE_TEMPO:
-	break;
-      case CTLE_METRONOME:
 	break;
       case CTLE_CURRENT_TIME: {
 	  int sec;
@@ -988,7 +1103,23 @@ static void ctl_event(CtlEvent *e)
       case CTLE_MASTER_VOLUME:
 	ctl_master_volume((int)e->v1);
 	break;
+	case CTLE_METRONOME:
+		ctl_metronome((int) e->v1, (int) e->v2);
+		break;
+	case CTLE_KEYSIG:
+		ctl_keysig((int8) e->v1, CTL_STATUS_UPDATE);
+		break;
+	case CTLE_KEY_OFFSET:
+		ctl_keysig(CTL_STATUS_UPDATE, (int) e->v1);
+		break;
+	case CTLE_TEMPO:
+		ctl_tempo((int) e->v1, CTL_STATUS_UPDATE);
+		break;
+	case CTLE_TIME_RATIO:
+		ctl_tempo(CTL_STATUS_UPDATE, (int) e->v1);
+		break;
       case CTLE_PROGRAM:
+//	ctl_program((int)e->v1, (int)e->v2, (char *)e->v3);
 	ctl_program((int)e->v1, (int)e->v2);
 	break;
       case CTLE_VOLUME:

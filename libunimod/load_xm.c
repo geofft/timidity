@@ -31,6 +31,7 @@
 #endif
 
 #include <string.h>
+extern char *safe_strdup(const char *s);
 
 #include "unimod_priv.h"
 
@@ -744,7 +745,7 @@ XM_Load (BOOL curious)
   sprintf (modtype, "%s (XM format %d.%02d)",
 	   tracker, mh->version >> 8, mh->version & 0xff);
 #endif
-  of.modtype = strdup (modtype);
+  of.modtype = safe_strdup (modtype);
   of.numchn = mh->numchn;
   of.numpat = mh->numpat;
   of.numtrk = (UWORD) of.numpat * of.numchn;	/* get number of channels */

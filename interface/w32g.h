@@ -178,6 +178,12 @@ typedef struct {
 	int titlename_setflag;
 	int32 master_volume;
 	int32 master_volume_max;
+	int meas;
+	int beat;
+	char keysig[7];
+	int key_offset;
+	int tempo;
+	int tempo_ratio;
 	int invalid_flag;
 
 	int32 xnote[MAX_W32G_MIDI_CHANNELS][4];
@@ -272,6 +278,9 @@ extern int w32g_add_playlist(int nfiles, char **files, int expand_flag,
 extern char *w32g_get_playlist(int idx);
 extern int w32g_next_playlist(int skip_invalid_file);
 extern int w32g_prev_playlist(int skip_invalid_file);
+extern int w32g_random_playlist(int skip_invalid_file);
+extern int w32g_shuffle_playlist_reset(int preserve);
+extern int w32g_shuffle_playlist_next(int skip_invalid_file);
 extern void w32g_first_playlist(int skip_invalid_file);
 extern int w32g_isempty_playlist(void);
 extern char *w32g_curr_playlist(void);
@@ -375,5 +384,7 @@ extern HWND hDocEditWnd;
 extern int gdi_lock(void);
 extern int gdi_unlock(void);
 #define GDI_SAFETY(command) (gdi_lock(),(command),gdi_unlock);
+
+#define W32G_RANDOM_IS_SHUFFLE
 
 #endif

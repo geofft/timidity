@@ -126,29 +126,105 @@ int DlgChooseFont(HWND hwnd, char *fontName, int *fontHeight, int *fontWidth)
 }
 
 /**********************************************************************/
-int INILoadAll(void)
+void SetWindowPosSize ( HWND parent_hwnd, HWND hwnd, int x, int y )
 {
-	INILoadListWnd();
-	return 0;
+	RECT rc1, rc2;
+	int width1, height1;
+	int width2, height2;
+	if ( GetWindowRect ( hwnd, &rc1 ) ) {
+		width1 = rc1.right - rc1.left;
+		height1 = rc1.bottom - rc1.top;
+		if ( x >= 0 ) {
+			rc1.right = rc1.right - rc1.left + x;
+			rc1.left = x;
+		} else {
+//			rc1.right = rc1.right - rc1.left;
+//			rc1.left = 0;
+		}
+		if ( y >= 0 ) {
+			rc1.bottom = rc1.bottom - rc1.top + y;
+			rc1.top = y;
+		} else {
+//			rc1.bottom = rc1.bottom - rc1.top;
+//			rc1.top = 0;
+		}
+		if ( GetClientRect ( parent_hwnd, &rc2 ) ) {
+			width2 = rc2.right - rc2.left;
+			height2 = rc2.bottom - rc2.top;
+			if ( rc1.left < rc2.left ) rc1.left = rc2.left;
+			if ( rc1.left > rc2.right ) rc1.left = rc2.right;
+			if ( rc1.top < rc2.top ) rc1.top = rc2.top;
+			if ( rc1.top > rc2.bottom ) rc1.top = rc2.bottom;
+			if ( width1 > width2 ) width1 = width2;
+			if ( height1 > height2 ) height1 = height2;
+			MoveWindow ( hwnd, rc1.left, rc1.top, width1, height1, TRUE );
+		}
+	}
 }
-int INISaveAll(void)
-{
-	INISaveListWnd();
-	return 0;
-}
-
 
 /**********************************************************************/
+BOOL PosSizeSave = TRUE;
+
+#define SEC_MAINWND "MainWnd"
+int INISaveMainWnd(void)
+{
+	char *section = SEC_MAINWND;
+	char *inifile = TIMIDITY_WINDOW_INI_FILE;
+	char buffer[256];
+	if ( PosSizeSave ) {
+		sprintf(buffer,"%d",MainWndInfo.PosX);
+		if ( MainWndInfo.PosX >= 0 || MainWndInfo.PosY >= 0 ) {
+			if ( MainWndInfo.PosX < 0 )
+				MainWndInfo.PosX = 0;
+			if ( MainWndInfo.PosY < 0 )
+				MainWndInfo.PosY = 0;
+		}
+		if ( MainWndInfo.PosX >= 0 )
+		WritePrivateProfileString(section,"PosX",buffer,inifile);
+		sprintf(buffer,"%d",MainWndInfo.PosY);
+		if ( MainWndInfo.PosY >= 0 )
+		WritePrivateProfileString(section,"PosY",buffer,inifile);
+	}
+	WritePrivateProfileString(NULL,NULL,NULL,inifile);		// Write Flush
+	return 0;
+}
+
+int INILoadMainWnd(void)
+{
+	char *section = SEC_MAINWND;
+	char *inifile = TIMIDITY_WINDOW_INI_FILE;
+	int num;
+	num = GetPrivateProfileInt(section,"PosX",-1,inifile);
+	MainWndInfo.PosX = num;
+	num = GetPrivateProfileInt(section,"PosY",-1,inifile);
+	MainWndInfo.PosY = num;
+	return 0;
+}
+
 #define SEC_LISTWND "ListWnd"
 int INISaveListWnd(void)
 {
 	char *section = SEC_LISTWND;
 	char *inifile = TIMIDITY_WINDOW_INI_FILE;
 	char buffer[256];
-	sprintf(buffer,"%d",ListWndInfo.Width);
-	WritePrivateProfileString(section,"Width",buffer,inifile);
-	sprintf(buffer,"%d",ListWndInfo.Height);
-	WritePrivateProfileString(section,"Height",buffer,inifile);
+	if ( PosSizeSave ) {
+		if ( ListWndInfo.PosX >= 0 || ListWndInfo.PosY >= 0 ) {
+			if ( ListWndInfo.PosX < 0 )
+				ListWndInfo.PosX = 0;
+			if ( ListWndInfo.PosY < 0 )
+				ListWndInfo.PosY = 0;
+		}
+		sprintf(buffer,"%d",ListWndInfo.PosX);
+		if ( ListWndInfo.PosX >= 0 )
+		WritePrivateProfileString(section,"PosX",buffer,inifile);
+		sprintf(buffer,"%d",ListWndInfo.PosY);
+		if ( ListWndInfo.PosY >= 0 )
+		WritePrivateProfileString(section,"PosY",buffer,inifile);
+		sprintf(buffer,"%d",ListWndInfo.Width);
+		WritePrivateProfileString(section,"Width",buffer,inifile);
+		sprintf(buffer,"%d",ListWndInfo.Height);
+		WritePrivateProfileString(section,"Height",buffer,inifile);
+	}
 	WritePrivateProfileString(section,"fontName",ListWndInfo.fontName,inifile);
 	sprintf(buffer,"%d",ListWndInfo.fontWidth);
 	WritePrivateProfileString(section,"fontWidth",buffer,inifile);
@@ -166,6 +242,10 @@ int INILoadListWnd(void)
 	char *inifile = TIMIDITY_WINDOW_INI_FILE;
 	int num;
 	char buffer[64];
+	num = GetPrivateProfileInt(section,"PosX",-1,inifile);
+	ListWndInfo.PosX = num;
+	num = GetPrivateProfileInt(section,"PosY",-1,inifile);
+	ListWndInfo.PosY = num;
 	num = GetPrivateProfileInt(section,"Width",-1,inifile);
 	if(num!=-1) ListWndInfo.Width = num;
 	num = GetPrivateProfileInt(section,"Height",-1,inifile);
@@ -187,10 +267,24 @@ int INISaveDocWnd(void)
 	char *section = SEC_DOCWND;
 	char *inifile = TIMIDITY_WINDOW_INI_FILE;
 	char buffer[256];
-	sprintf(buffer,"%d",DocWndInfo.Width);
-	WritePrivateProfileString(section,"Width",buffer,inifile);
-	sprintf(buffer,"%d",DocWndInfo.Height);
-	WritePrivateProfileString(section,"Height",buffer,inifile);
+	if ( PosSizeSave ) {
+		if ( DocWndInfo.PosX >= 0 || DocWndInfo.PosY >= 0 ) {
+			if ( DocWndInfo.PosX < 0 )
+				DocWndInfo.PosX = 0;
+			if ( DocWndInfo.PosY < 0 )
+				DocWndInfo.PosY = 0;
+		}
+		sprintf(buffer,"%d",DocWndInfo.PosX);
+		if ( DocWndInfo.PosX >= 0 )
+		WritePrivateProfileString(section,"PosX",buffer,inifile);
+		sprintf(buffer,"%d",DocWndInfo.PosY);
+		if ( DocWndInfo.PosY >= 0 )
+		WritePrivateProfileString(section,"PosY",buffer,inifile);
+		sprintf(buffer,"%d",DocWndInfo.Width);
+		WritePrivateProfileString(section,"Width",buffer,inifile);
+		sprintf(buffer,"%d",DocWndInfo.Height);
+		WritePrivateProfileString(section,"Height",buffer,inifile);
+	}
 	WritePrivateProfileString(section,"fontName",DocWndInfo.fontName,inifile);
 	sprintf(buffer,"%d",DocWndInfo.fontWidth);
 	WritePrivateProfileString(section,"fontWidth",buffer,inifile);
@@ -208,6 +302,10 @@ int INILoadDocWnd(void)
 	char *inifile = TIMIDITY_WINDOW_INI_FILE;
 	int num;
 	char buffer[64];
+	num = GetPrivateProfileInt(section,"PosX",-1,inifile);
+	DocWndInfo.PosX = num;
+	num = GetPrivateProfileInt(section,"PosY",-1,inifile);
+	DocWndInfo.PosY = num;
 	num = GetPrivateProfileInt(section,"Width",-1,inifile);
 	if(num!=-1) DocWndInfo.Width = num;
 	num = GetPrivateProfileInt(section,"Height",-1,inifile);
@@ -220,6 +318,42 @@ int INILoadDocWnd(void)
 	if(num!=-1) DocWndInfo.fontHeight = num;
 	num = GetPrivateProfileInt(section,"fontFlags",-1,inifile);
 	if(num!=-1) DocWndInfo.fontFlags = num;
+	return 0;
+}
+
+#define SEC_CONSOLEWND "ConsoleWnd"
+int INISaveConsoleWnd(void)
+{
+	char *section = SEC_CONSOLEWND;
+	char *inifile = TIMIDITY_WINDOW_INI_FILE;
+	char buffer[256];
+	if ( PosSizeSave ) {
+		if ( ConsoleWndInfo.PosX >= 0 || ConsoleWndInfo.PosY >= 0 ) {
+			if ( ConsoleWndInfo.PosX < 0 )
+				ConsoleWndInfo.PosX = 0;
+			if ( ConsoleWndInfo.PosY < 0 )
+				ConsoleWndInfo.PosY = 0;
+		}
+		sprintf(buffer,"%d",ConsoleWndInfo.PosX);
+		if ( ConsoleWndInfo.PosX >= 0 )
+		WritePrivateProfileString(section,"PosX",buffer,inifile);
+		sprintf(buffer,"%d",ConsoleWndInfo.PosY);
+		if ( ConsoleWndInfo.PosY >= 0 )
+		WritePrivateProfileString(section,"PosY",buffer,inifile);
+	}
+	WritePrivateProfileString(NULL,NULL,NULL,inifile);		// Write Flush
+	return 0;
+}
+
+int INILoadConsoleWnd(void)
+{
+	char *section = SEC_CONSOLEWND;
+	char *inifile = TIMIDITY_WINDOW_INI_FILE;
+	int num;
+	num = GetPrivateProfileInt(section,"PosX",-1,inifile);
+	ConsoleWndInfo.PosX = num;
+	num = GetPrivateProfileInt(section,"PosY",-1,inifile);
+	ConsoleWndInfo.PosY = num;
 	return 0;
 }
 

@@ -74,6 +74,7 @@ int WINAPI timeKillEvent(UINT uTimerID);
 #include "w32g.h"
 #include "w32g_res.h"
 #include "w32g_utl.h"
+#include "w32g_ut2.h"
 #include "w32g_pref.h"
 #include "w32g_subwin.h"
 
@@ -82,6 +83,19 @@ int WINAPI timeKillEvent(UINT uTimerID);
 WINAPI void InitCommonControls(void);
 #endif
 
+#if 0
+#define GDI_LOCK() { \
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "GDI_LOCK(%s: %d)", __FILE__, __LINE__ ); \
+	gdi_lock(); \
+}
+#define GDI_UNLOCK() { \
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "GDI_UNLOCK(%s: %d)", __FILE__, __LINE__ ); \
+	gdi_unlock(); \
+}
+#else
+#define GDI_LOCK() { gdi_lock(); }
+#define GDI_UNLOCK() { gdi_unlock(); }
+#endif
 
 static void InitMainWnd(HWND hStartWnd);
 
@@ -103,6 +117,7 @@ void InitListWnd(HWND hParentWnd);
 void InitTracerWnd(HWND hParentWnd);
 void InitWrdWnd(HWND hParentWnd);
 void InitDocWnd(HWND hParentWnd);
+void InitListSearchWnd(HWND hParentWnd);
 void PutsDocWnd(char *str);
 void ClearDocWnd(void);
 static void DlgPlaylistSave(HWND hwnd);
@@ -113,6 +128,9 @@ void VprintfEditCtlWnd(HWND hwnd, char *fmt, va_list argList);
 void PutsEditCtlWnd(HWND hwnd, char *str);
 void ClearEditCtlWnd(HWND hwnd);
 
+int	w32gSaveDefaultPlaylist(void);
+
+
 #ifndef CLR_INVALID
 #define CLR_INVALID 0xffffffff
 #endif /* CLR_INVALID */
@@ -122,7 +140,8 @@ HINSTANCE hInst;
 static int progress_jump = -1;
 static HWND hMainWndScrollbarProgressWnd;
 static HWND hMainWndScrollbarVolumeWnd;
-#define W32G_VOLUME_MAX 200
+// #define W32G_VOLUME_MAX 200
+#define W32G_VOLUME_MAX MAX_AMPLIFICATION
 
 // HWND
 HWND hStartWnd = 0;
@@ -214,6 +233,10 @@ int IniFileAutoSave = 1;	// INI ファイルの自動セーブ
 int DocMaxSize;
 char *DocFileExt;
 
+int AutoloadPlaylist = 0;
+int AutosavePlaylist = 0;
+int volatile save_playlist_once_before_exit_flag = 1;
+
 static volatile int w32g_wait_for_init;
 void w32g_send_rc(int rc, int32 value);
 int w32g_lock_open_file = 0;
@@ -252,7 +275,7 @@ int SecondMode = 0;
 void FirstLoadIniFile(void);
 
 #ifndef WIN32GCC
-static void CmdLineToArgv(LPSTR lpCmdLine, int *argc, CHAR ***argv);
+extern void CmdLineToArgv(LPSTR lpCmdLine, int *argc, CHAR ***argv);
 extern int win_main(int argc, char **argv); /* timidity.c */
 int WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -341,6 +364,10 @@ static LRESULT CALLBACK StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARA
 void InitStartWnd(int nCmdShow)
 {
 	WNDCLASS wndclass ;
+
+	if ( hStartWnd != NULL )
+		DestroyWindow ( hStartWnd );
+
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW | CS_CLASSDC;
 	wndclass.lpfnWndProc   = StartWinProc ;
 	wndclass.cbClsExtra    = 0 ;
@@ -357,8 +384,6 @@ void InitStartWnd(int nCmdShow)
 		WS_OVERLAPPED  | WS_MINIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN ,
 		CW_USEDEFAULT,0,STARTWND_XSIZE,STARTWND_YSIZE,0,0,hInst,0);
 	ShowWindow(hStartWnd,SW_HIDE);
-//	ShowWindow(hStartWnd,SW_SHOW);
-//	ShowWindow(hStartWnd,nCmdShow);
 	UpdateWindow(hStartWnd);
 	InitMainWnd(hStartWnd);
 	InitConsoleWnd(hStartWnd);
@@ -367,7 +392,8 @@ void InitStartWnd(int nCmdShow)
 	InitDocWnd(hStartWnd);
 	InitWrdWnd(hStartWnd);
 	InitSoundSpecWnd(hStartWnd);
-        hMainWndScrollbarProgressWnd = GetDlgItem(hMainWnd, IDC_SCROLLBAR_PROGRESS);
+
+    hMainWndScrollbarProgressWnd = GetDlgItem(hMainWnd, IDC_SCROLLBAR_PROGRESS);
 	hMainWndScrollbarVolumeWnd = GetDlgItem(hMainWnd, IDC_SCROLLBAR_VOLUME);
 	EnableScrollBar(hMainWndScrollbarVolumeWnd, SB_CTL,ESB_ENABLE_BOTH);
 	SetScrollRange(hMainWndScrollbarVolumeWnd, SB_CTL,
@@ -411,7 +437,7 @@ SUBWINDOW subwindow[] =
   {NULL,0}
 };
 
-int SubWindowMax = 3;
+int SubWindowMax = 5;
 SUBWINDOW SubWindowHistory[] =
 {
   {&hConsoleWnd,0},
@@ -423,15 +449,23 @@ SUBWINDOW SubWindowHistory[] =
   {NULL,0}
 };
 
+MAINWNDINFO MainWndInfo;
+
 BOOL CALLBACK MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 
 void update_subwindow(void);
 void OnShow(void);
 void OnHide(void);
 
+static int MainWndInfoReset(HWND hwnd);
+static int MainWndInfoApply(void);
+
 static void InitMainWnd(HWND hParentWnd)
 {
 	HICON hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	if ( hMainWnd != NULL )
+		DestroyWindow ( hMainWnd );
+	INILoadMainWnd();
 	if (PlayerLanguage == LANGUAGE_JAPANESE)
 	  hMainWnd = CreateDialog(hInst,MAKEINTRESOURCE(IDD_DIALOG_MAIN),hParentWnd,MainProc);
 	else
@@ -442,6 +476,20 @@ static void InitMainWnd(HWND hParentWnd)
    	SendMessage( hMainWnd, WM_GETTEXT, (WPARAM)255, (LPARAM)buffer);
    	SendMessage( hMainWnd, WM_SETTEXT, (WPARAM)0, (LPARAM)buffer);
 	}
+	MainWndInfoApply();
+}
+
+static int MainWndInfoReset(HWND hwnd)
+{
+	memset(&MainWndInfo,0,sizeof(MAINWNDINFO));
+	MainWndInfo.PosX = - 1;
+	MainWndInfo.PosY = - 1;
+	return 0;
+}
+
+static int MainWndInfoApply(void)
+{
+	return 0;
 }
 
 void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode);
@@ -467,6 +515,7 @@ void ToggleSubWindow(HWND hwnd);
 
 static void VersionWnd(HWND hParentWnd);
 static void TiMidityWnd(HWND hParentWnd);
+static void SupplementWnd(HWND hParentWnd);
 
 static void InitCanvasWnd(HWND hwnd);
 static void CanvasInit(HWND hwnd);
@@ -475,7 +524,6 @@ static void MPanelInit(HWND hwnd);
 
 static void InitMainToolbar(HWND hwnd);
 static void InitSubWndToolbar(HWND hwnd);
-
 
 static UINT PlayerForwardAndBackwardEventID = 0;
 static void CALLBACK PlayerForward(UINT IDEvent, UINT uReserved, DWORD dwUser,
@@ -490,13 +538,19 @@ static void CALLBACK PlayerBackward(UINT IDEvent, UINT uReserved, DWORD dwUser,
 	w32g_send_rc(RC_BACK, play_mode->rate);
 }
 
+extern void ShowPrefWnd ( void );
+extern void HidePrefWnd ( void );
+extern BOOL IsVisiblePrefWnd ( void );
+
 BOOL CALLBACK
 MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
+	static BOOL PrefWndShow;
 	// PrintfDebugWnd("MainProc: Mess%lx WPARAM%lx LPARAM%lx\n",uMess,wParam,lParam);
 	switch (uMess)
 	{
       case WM_INITDIALOG:
+		PrefWndShow = FALSE;
 		update_subwindow();
 		MainWndUpdateConsoleButton();
 		MainWndUpdateTracerButton();
@@ -528,19 +582,50 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, IDM_PLAY, "Play");
 			DrawMenuBar(hwnd);
     	}
+		SetWindowPosSize(GetDesktopWindow(),hwnd,MainWndInfo.PosX, MainWndInfo.PosY );
 		return FALSE;
 	  HANDLE_MSG(hwnd,WM_COMMAND,MainCmdProc);
 
+	  case WM_DESTROY:
+		if(save_playlist_once_before_exit_flag) {
+			save_playlist_once_before_exit_flag = 0;
+			w32gSaveDefaultPlaylist();
+		}
+		INISaveMainWnd();
+		break;
 	  case WM_CLOSE:
+		if(save_playlist_once_before_exit_flag) {
+			save_playlist_once_before_exit_flag = 0;
+			w32gSaveDefaultPlaylist();
+		}
 		DestroyWindow(hStartWnd);
 		break;
 
       case WM_SIZE:
 		if(wParam == SIZE_MINIMIZED){
+			if ( IsVisiblePrefWnd () )
+				PrefWndShow = TRUE;
+			else
+				PrefWndShow = FALSE;
+			HidePrefWnd ();
 			update_subwindow();
 			OnHide();
+		} else if ( wParam == SIZE_RESTORED ) {
+			if ( PrefWndShow ) {
+				ShowPrefWnd ();
+			}
 		}
 		return FALSE;
+	  case WM_MOVE:
+//		MainWndInfo.PosX = (int) LOWORD(lParam);
+//		MainWndInfo.PosY = (int) HIWORD(lParam);
+		{
+			RECT rc;
+			GetWindowRect(hwnd,&rc);
+			MainWndInfo.PosX = rc.left;
+			MainWndInfo.PosY = rc.top;
+		}
+		break;
       case WM_QUERYOPEN:
 		OnShow();
 		return FALSE;
@@ -708,6 +793,25 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		return FALSE;
+	case WM_SHOWWINDOW:
+	{
+		BOOL fShow = (BOOL)wParam;
+		if ( fShow ) {
+			if ( PrefWndShow ) {
+				ShowPrefWnd ();
+			} else {
+				HidePrefWnd ();
+			}
+		} else {
+			if ( IsVisiblePrefWnd () )
+				PrefWndShow = TRUE;
+			else
+				PrefWndShow = FALSE;
+			HidePrefWnd ();
+		}
+		break;
+	}
+		break;
       default:
 		return FALSE;
     }
@@ -757,8 +861,9 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
 		  break;
       case IDM_TRACER:
       case IDM_MWTRACER:
-		  MainWndUpdateTracerButton();
-		  MessageBox(hwnd, "Not Supported.","Warning!",MB_OK);
+		  ToggleSubWindow(hTracerWnd);
+//		  MainWndUpdateTracerButton();
+//		  MessageBox(hwnd, "Not Supported.","Warning!",MB_OK);
 		  break;
       case IDM_LIST:
       case IDM_MWPLAYLIST:
@@ -852,6 +957,9 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
 		  break;
       case IDM_MHTIMIDITY:
 		  TiMidityWnd(hwnd);
+		  break;
+      case IDM_MHSUPPLEMENT:
+		  SupplementWnd(hwnd);
 		  break;
     }
 }
@@ -951,10 +1059,14 @@ void MainWndUpdateSoundSpecButton(void)
 {
 }
 
+#undef SUBWINDOW_POS_IS_OLD_CLOSED_WINDOW
 void ShowSubWindow(HWND hwnd,int showflag)
 {
 	int i, num;
-  RECT rc,rc2;
+	RECT rc;
+#ifdef SUBWINDOW_POS_IS_OLD_CLOSED_WINDOW
+	RECT rc2;
+#endif
 	int max = 0;
 	if(showflag){
 		if(IsWindowVisible(hwnd))
@@ -975,10 +1087,13 @@ void ShowSubWindow(HWND hwnd,int showflag)
 					SubWindowHistory[i].status = 0;
 				}
 			}
+#ifdef SUBWINDOW_POS_IS_OLD_CLOSED_WINDOW
+		// サブウインドウを最大数を越えて閉じられる古いウインドウに合わせる仕様は止めることにした。
 		if(max>0){
 			GetWindowRect(hwnd, &rc2);
 			MoveWindow(hwnd,rc.left,rc.top,rc2.right-rc2.left,rc2.bottom-rc2.top,TRUE);
 		}
+#endif
 		ShowWindow(hwnd,SW_SHOW);
 		SubWindowHistory[num].status = 1;
 	} else {
@@ -1046,7 +1161,6 @@ void DebugThread(void *args)
 	while( GetMessage(&msg,NULL,0,0) ){
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-		Sleep(0);
 	}
 	DebugThreadExit = 1;
 	crt_endthread();
@@ -1238,17 +1352,6 @@ static void InitCanvasWnd(HWND hwnd)
 	CanvasReadPanelInfo(1);
 	CanvasUpdate(1);
 	CanvasPaintAll();
-	Canvas.hPopupMenuKeyboard = CreatePopupMenu();
-	AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_A,"A Part");
-	AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_B,"B Part");
-	Canvas.hPopupMenu = CreatePopupMenu();
-	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_SLEEP,"Sleep Mode");
-	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP16,"Map16 Mode");
-	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP32,"Map32 Mode");
-//	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_KEYBOARD,"Keyboard Mode");
-	AppendMenu(Canvas.hPopupMenu,MF_POPUP,(UINT)Canvas.hPopupMenuKeyboard,"Keyboard Mode");
-	AppendMenu(Canvas.hPopupMenu,MF_SEPARATOR,0,0);
-	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_REDRAW,"Redraw");
 	ShowWindow(hCanvasWnd,SW_SHOW);
 	UpdateWindow(hCanvasWnd);
 }
@@ -1259,6 +1362,21 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	switch (uMess)
 	{
 		case WM_CREATE:
+			Canvas.hPopupMenuKeyboard = CreatePopupMenu();
+			AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_A,"A Part");
+			AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_B,"B Part");
+			Canvas.hPopupMenu = CreatePopupMenu();
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_SLEEP,"Sleep Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP16,"Map16 Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP32,"Map32 Mode");
+		//	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_KEYBOARD,"Keyboard Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_POPUP,(UINT)Canvas.hPopupMenuKeyboard,"Keyboard Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_SEPARATOR,0,0);
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_REDRAW,"Redraw");
+			break;
+		case WM_DESTROY:
+			DestroyMenu ( Canvas.hPopupMenuKeyboard );
+			Canvas.hPopupMenuKeyboard = NULL;
 			break;
 		case WM_PAINT:
 			CanvasPaintDo();
@@ -1270,9 +1388,11 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
       {
       	RECT rc;
       	GetWindowRect(Canvas.hwnd,(RECT *)&rc);
+				SetForegroundWindow ( Canvas.hwnd );
 			TrackPopupMenu(Canvas.hPopupMenu,TPM_TOPALIGN|TPM_LEFTALIGN,
          	rc.left+(int)LOWORD(lParam),rc.top+(int)HIWORD(lParam),
             0,Canvas.hwnd,NULL);
+				PostMessage ( Canvas.hwnd, WM_NULL, 0, 0 );
       }
 			break;
 		case WM_COMMAND:
@@ -1391,7 +1511,7 @@ static void CanvasInit(HWND hwnd)
 {
 	RECT rc;
 
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
 	Canvas.hwnd = hwnd;
 	Canvas.hParentWnd = GetParent(Canvas.hwnd);
 	GetClientRect(Canvas.hParentWnd,&rc);
@@ -1429,9 +1549,9 @@ static void CanvasInit(HWND hwnd)
 	Canvas.UpdateAll = 0;
 	Canvas.Mode = CANVAS_MODE_SLEEP;
 	Canvas.PaintDone = 0;
+	GDI_UNLOCK(); // gdi_lock
 	CanvasReset();
 	CanvasOK = 1;
-	gdi_unlock(); // gdi_lock
 }
 
 // Canvas Map
@@ -1443,7 +1563,7 @@ static void CanvasMapClear(void)
 	HGDIOBJ hgdiobj_hpen, hgdiobj_hbrush;
 	if(!CanvasOK)
    	return;
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
 	hPen = CreatePen(PS_SOLID,1,CanvasColor(CC_BACK));
 	hBrush = CreateSolidBrush(CanvasColor(CC_BACK));
 	hgdiobj_hpen = SelectObject(Canvas.hmdc, hPen);
@@ -1454,8 +1574,8 @@ static void CanvasMapClear(void)
 	DeleteObject(hPen);
 	SelectObject(Canvas.hmdc, hgdiobj_hbrush);
 	DeleteObject(hBrush);
+	GDI_UNLOCK(); // gdi_lock
 	InvalidateRect(hCanvasWnd, NULL, FALSE);
-	gdi_unlock(); // gdi_lock
 }
 
 static void CanvasMapReset(void)
@@ -1563,7 +1683,8 @@ static void CanvasMapReadPanelInfo(int flag)
 			if(Panel->channel[ch].panning==NO_PANNING)
          	Canvas.MapPan[ch] = -1;
 			else {
-				Canvas.MapPan[ch] = (Panel->channel[ch].panning - 64) * 3 /128;
+				Canvas.MapPan[ch] = ( Panel->channel[ch].panning - 64 ) * 3 /128;
+//				Canvas.MapPan[ch] = ( 64 - Panel->channel[ch].panning ) * 3 /128;
 				Canvas.MapPan[ch] = SetValue(Canvas.MapPan[ch],-2,2) + 2;
 			}
 			if(Panel->channel[ch].sustain)
@@ -1649,10 +1770,10 @@ static void CanvasMapUpdate(int flag)
 	CanvasMapDrawMapBar(flag);
    if(Canvas.UpdateAll)
    	flag = 1;
-	gdi_lock(); // gdi_lock
 	if(PInfoOK && Canvas.MapMode==CMAP_MODE_16){
    if(flag || Panel->changed){
 		int ch;
+		GDI_LOCK();
 		for(ch=0;ch<Canvas.MapCh;ch++){
 			int x,y;
          COLORREF color;
@@ -1756,12 +1877,14 @@ static void CanvasMapUpdate(int flag)
       }
       }
 	 		InvalidateRect(hCanvasWnd,(RECT *)&(Canvas.rcMapSub),FALSE);
+			GDI_UNLOCK();
    }
    }
 	if(!Canvas.MapResidual && !flag)
    	return;
 	change_flag = 0;
 #ifndef MAPBAR_LIKE_TMIDI
+	GDI_LOCK();
 	for(i=0;i<Canvas.MapCh;i++){
 		for(j=0;j<Canvas.MapBarMax;j++){
 			if(Canvas.MapMap[i][j]!=Canvas.MapMapOld[i][j] || flag){
@@ -1778,7 +1901,9 @@ static void CanvasMapUpdate(int flag)
     		}
    	}
 	}
+	GDI_UNLOCK();
 #else
+	GDI_LOCK();
 	if(Canvas.MapMode==CMAP_MODE_16){
 	for(i=0;i<Canvas.MapCh;i++){
 		for(j=0;j<Canvas.MapBarMax;j++){
@@ -1822,6 +1947,7 @@ static void CanvasMapUpdate(int flag)
    		}
 	}
 	}
+	GDI_UNLOCK();
 #endif
 #ifdef CMAP_ALL_UPDATE
 	if(change_flag)
@@ -1834,7 +1960,6 @@ static void CanvasMapUpdate(int flag)
 		InvalidateRect(hCanvasWnd,NULL,FALSE);
 	if(Canvas.MapResidual<0)
 		Canvas.MapResidual = 0;
-	gdi_unlock(); // gdi_lock
 }
 
 static void CanvasSleepClear(void)
@@ -1843,7 +1968,7 @@ static void CanvasSleepClear(void)
 	HPEN hPen;
 	HBRUSH hBrush;
 	HGDIOBJ hgdiobj_hpen, hgdiobj_hbrush;
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
 	hPen = CreatePen(PS_SOLID,1,GetSysColor(COLOR_SCROLLBAR));
 	hBrush = CreateSolidBrush(GetSysColor(COLOR_SCROLLBAR));
 	hgdiobj_hpen = SelectObject(Canvas.hmdc, hPen);
@@ -1854,8 +1979,8 @@ static void CanvasSleepClear(void)
 	DeleteObject(hPen);
 	SelectObject(Canvas.hmdc, hgdiobj_hbrush);
 	DeleteObject(hBrush);
+	GDI_UNLOCK(); // gdi_lock
 	InvalidateRect(hCanvasWnd, NULL, FALSE);
-	gdi_unlock(); // gdi_lock
 }
 
 static void CanvasSleepReset(void)
@@ -1874,7 +1999,7 @@ static void CanvasSleepUpdate(int flag)
 	RECT rc;
 	int x,y;
 	CanvasSleepReset();
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
    hdc = CreateCompatibleDC(Canvas.hmdc);
 	SelectObject(hdc,Canvas.hBitmapSleep);
 	GetClientRect(Canvas.hwnd, &rc);
@@ -1884,7 +2009,7 @@ static void CanvasSleepUpdate(int flag)
 	if(y<0) y = 0;
 	BitBlt(Canvas.hmdc,x,y,Canvas.rcSleep.right,Canvas.rcSleep.bottom,hdc,0,0,SRCCOPY);
 	DeleteDC(hdc);
-	gdi_unlock(); // gdi_lock
+	GDI_UNLOCK(); // gdi_lock
 }
 
 
@@ -1942,13 +2067,13 @@ static void CanvasKeyboardUpdate(int flag)
 		return;
    if(Canvas.UpdateAll)
    	flag = 1;
-	if(Canvas.DrumChannel!=drumchannels)
+	if(!COMPARE_CHANNELMASK(Canvas.DrumChannel,drumchannels))
    	flag = 1;
 	if(!Panel->changed && !flag)
    	return;
 	ChFrom = (Canvas.CKPart - 1) * Canvas.CKCh;
 	ChTo = Canvas.CKPart * Canvas.CKCh - 1;
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
 	for(channel=ChFrom;channel<=ChTo;channel++){
 		int change_flag = 0;
 		int drumflag = IS_SET_CHANNELMASK(drumchannels,channel);
@@ -2018,16 +2143,18 @@ static void CanvasKeyboardUpdate(int flag)
 		}
 		if(change_flag){
          RECT rc;
+			GDI_UNLOCK();
 			GetClientRect(Canvas.hwnd,&rc);
          rc.top = Canvas.rcKeyboard.top + (channel - ChFrom) * 4;
 			rc.bottom = rc.top + 4;
        	InvalidateRect(Canvas.hwnd, &rc, FALSE);
+			GDI_LOCK();
 		}
 	}
+	GDI_UNLOCK(); // gdi_lock
 	if(flag)
 		InvalidateRect(hCanvasWnd, NULL, FALSE);
 	Canvas.DrumChannel = drumchannels;
-	gdi_unlock(); // gdi_lock
 }
 
 static void CanvasKeyboardClear(void)
@@ -2043,7 +2170,7 @@ static void CanvasKeyboardClear(void)
 	char buffer[16];
 	if(!CanvasOK)
    	return;
- 	gdi_lock(); // gdi_lock
+ 	GDI_LOCK(); // gdi_lock
 #if 0
 	hPen = CreatePen(PS_SOLID,1,CanvasColor(CC_BACK));
 	hBrush = CreateSolidBrush(CanvasColor(CC_BACK));
@@ -2095,12 +2222,12 @@ static void CanvasKeyboardClear(void)
    if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
    	SelectObject(Canvas.hmdc,hgdiobj);
 	DeleteObject(hfont);
+	GDI_UNLOCK(); // gdi_lock
 
 	CanvasKeyboardReset();
 	CanvasKeyboardReadPanelInfo(1);
 	CanvasKeyboardUpdate(1);
 	InvalidateRect(hCanvasWnd, NULL, FALSE);
-	gdi_unlock(); // gdi_lock
 }
 
 // Canvas All
@@ -2110,11 +2237,11 @@ static void CanvasPaintDo(void)
 	RECT rc;
 	if ( GetUpdateRect(Canvas.hwnd, &rc, FALSE) ) {
 		PAINTSTRUCT ps;
-		gdi_lock(); // gdi_lock
+		GDI_LOCK(); // gdi_lock
 		Canvas.hdc = BeginPaint(Canvas.hwnd, &ps);
 		BitBlt(Canvas.hdc,rc.left,rc.top,rc.right,rc.bottom,Canvas.hmdc,rc.left,rc.top,SRCCOPY);
 		EndPaint(Canvas.hwnd, &ps);
-		gdi_unlock(); // gdi_lock
+		GDI_UNLOCK(); // gdi_lock
 	}
 }
 void CanvasPaint(void)
@@ -2124,9 +2251,7 @@ void CanvasPaint(void)
 }
 void CanvasPaintAll(void)
 {
-	gdi_lock(); // gdi_lock
 	InvalidateRect(hCanvasWnd, NULL, FALSE);
-	gdi_unlock(); // gdi_lock
 	CanvasPaint();
 }
 
@@ -2278,6 +2403,7 @@ int CanvasGetMode(void)
 #define MP_UPDATE_TITLE		0x0001L
 #define MP_UPDATE_FILE		0x0002L
 #define MP_UPDATE_TIME			0x0004L
+#define MP_UPDATE_METRONOME		0x0008L
 #define MP_UPDATE_VOICES		0x0010L
 #define MP_UPDATE_MVOLUME		0x0020L
 #define MP_UPDATE_RATE			0x0040L
@@ -2285,6 +2411,8 @@ int CanvasGetMode(void)
 #define MP_UPDATE_MISC		0x0200L
 #define MP_UPDATE_MESSAGE	0x0400L
 #define MP_UPDATE_BACKGROUND	0x0800L
+#define MP_UPDATE_KEYSIG		0x1000L
+#define MP_UPDATE_TEMPO			0x2000L
 
 #define MP_TITLE_MAX	256
 #define MP_FILE_MAX		256
@@ -2308,6 +2436,9 @@ struct MPanel_ {
 	RECT rcVoices;
 	RECT rcMVolume;
 	RECT rcRate;
+	RECT rcMetronome;
+	RECT rcKeysig;
+	RECT rcTempo;
 	RECT rcList;
 	RECT rcMisc;
 	RECT rcMessage;
@@ -2319,6 +2450,12 @@ struct MPanel_ {
 	int MaxVoices;
    int MVolume;
 	int Rate;
+	int Meas;
+	int Beat;
+	char Keysig[7];
+	int Key_offset;
+	int Tempo;
+	int Tempo_ratio;
 	int PlaylistNum;
 	int PlaylistMax;
 	HFONT hFontTitle;
@@ -2327,6 +2464,9 @@ struct MPanel_ {
 	HFONT hFontVoices;
 	HFONT hFontMVolume;
 	HFONT hFontRate;
+	HFONT hFontMetronome;
+	HFONT hFontKeysig;
+	HFONT hFontTempo;
 	HFONT hFontList;
 	HFONT hFontMisc;
 	HFONT hFontMessage;
@@ -2412,6 +2552,32 @@ PanelWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			MPanelUpdateAll();
 		  	MPanelPaintAll();
 			break;
+		case WM_DESTROY:
+			if(MPanel.hFontTitle!=NULL)
+				DeleteObject(MPanel.hFontTitle);
+			if(MPanel.hFontFile!=NULL)
+				DeleteObject(MPanel.hFontFile);
+			if(MPanel.hFontTime!=NULL)
+				DeleteObject(MPanel.hFontTime);
+			if(MPanel.hFontVoices!=NULL)
+				DeleteObject(MPanel.hFontVoices);
+			if(MPanel.hFontMVolume!=NULL)
+				DeleteObject(MPanel.hFontMVolume);
+			if(MPanel.hFontRate!=NULL)
+				DeleteObject(MPanel.hFontRate);
+			if (MPanel.hFontMetronome != NULL)
+				DeleteObject(MPanel.hFontMetronome);
+			if (MPanel.hFontKeysig != NULL)
+				DeleteObject(MPanel.hFontKeysig);
+			if (MPanel.hFontTempo != NULL)
+				DeleteObject(MPanel.hFontTempo);
+			if(MPanel.hFontList!=NULL)
+				DeleteObject(MPanel.hFontList);
+			if(MPanel.hFontMisc!=NULL)
+				DeleteObject(MPanel.hFontMisc);
+			if(MPanel.hFontMessage!=NULL)
+				DeleteObject(MPanel.hFontMessage);
+			break;
 		default:
 			return DefWindowProc(hwnd,uMess,wParam,lParam) ;
 	}
@@ -2424,7 +2590,7 @@ static void MPanelInit(HWND hwnd)
 {
 	RECT rc;
 	int tmp;
-	gdi_lock(); // gdi_lock
+	GDI_LOCK(); // gdi_lock
 	MPanel.hwnd = hwnd;
 	MPanel.hParentWnd = GetParent(MPanel.hwnd);
 	GetClientRect(MPanel.hParentWnd,&rc);
@@ -2452,13 +2618,56 @@ static void MPanelInit(HWND hwnd)
 	SetRect(&(MPanel.rcMisc),	rc.left+2,	rc.top+2+14+1+12+1+25+1,rc.right-2,rc.top+2+14+1+12+1+25+1+12);
 	SetRect(&(MPanel.rcMessage),rc.left,rc.top,rc.right,rc.bottom);
 #else
-	SetRect(&(MPanel.rcTime),	rc.left+2,	rc.top+2+14+1+12+1,	rc.left+2+176,		rc.top+2+14+1+12+1+25);
-	SetRect(&(MPanel.rcVoices), rc.left+2+176+2,	rc.top+2+14+1+12+1,rc.left+2+176+2+50,	rc.top+2+14+1+12+1+12);
-	SetRect(&(MPanel.rcMVolume),rc.right-2-38,			rc.top+2+14+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12);
-	SetRect(&(MPanel.rcRate), 	rc.left+2+176+2+50+2,	rc.top+2+14+1+12+1,	rc.right-2-38-2,	rc.top+2+14+1+12+1+12);
-	SetRect(&(MPanel.rcList),	rc.right-2-54,				rc.top+2+14+1+12+1+12+1,	rc.right-2,				rc.top+2+14+1+12+1+12+1+12);
-	SetRect(&(MPanel.rcMisc),	rc.left+2+176+2,	rc.top+2+14+1+12+1+12+1,rc.right-2-54-2,rc.top+2+14+1+12+1+12+1+12);
-	SetRect(&(MPanel.rcMessage),	rc.left+2,	rc.top+2+14+1+12+1+25+1,rc.right-2,rc.top+2+14+1+12+1+25+1+12);
+	SetRect(&(MPanel.rcTime),
+			rc.left + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1,
+			rc.left + 2 + 176,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 25);
+	SetRect(&(MPanel.rcVoices),
+			rc.left + 2 + 176 + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1,
+			rc.left + 2 + 176 + 2 + 50,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcRate),
+			rc.left + 2 + 176 + 2 + 50 + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1,
+			rc.right - 2 - 38 - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcMVolume),
+			rc.right - 2 - 38,
+			rc.top + 2 + 14 + 1 + 12 + 1,
+			rc.right - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcMetronome),
+			rc.left + 2 + 176 - 40,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1,
+			rc.left + 2 + 176,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcKeysig),
+			rc.left + 2 + 176 + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1,
+			rc.right - 2 - 69 - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcTempo),
+			rc.right - 2 - 69,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1,
+			rc.right - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcMisc),
+			rc.left + 2 + 176 + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1,
+			rc.right - 2 - 54 - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcList),
+			rc.right - 2 - 54,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1,
+			rc.right - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 12 + 1 + 12 + 1 + 12);
+	SetRect(&(MPanel.rcMessage),
+			rc.left + 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 25 + 1,
+			rc.left + 2 + 176 - 40 - 2,
+			rc.top + 2 + 14 + 1 + 12 + 1 + 25 + 1 + 12);
 #endif
 	MPanel.hFontTitle = NULL;
 	MPanel.hFontFile = NULL;
@@ -2466,6 +2675,9 @@ static void MPanelInit(HWND hwnd)
 	MPanel.hFontVoices = NULL;
 	MPanel.hFontMVolume = NULL;
 	MPanel.hFontRate = NULL;
+	MPanel.hFontMetronome = NULL;
+	MPanel.hFontKeysig = NULL;
+	MPanel.hFontTempo = NULL;
 	MPanel.hFontList = NULL;
 //	strcpy(MPanel.Font,"Times New Roman");
 	strcpy(MPanel.Font,"Arial Bold");
@@ -2510,6 +2722,26 @@ static void MPanelInit(HWND hwnd)
 		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	DEFAULT_PITCH | FF_DONTCARE,MPanel.Font);
+	rc = MPanel.rcMetronome;
+	MPanel.hFontMetronome =
+			CreateFont(rc.bottom - rc.top + 1, 0, 0, 0, FW_DONTCARE,
+			FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+			DEFAULT_PITCH | FF_DONTCARE, MPanel.Font);
+	rc = MPanel.rcKeysig;
+	tmp = (rc.bottom - rc.top + 1) / 2;
+	MPanel.hFontKeysig =
+			CreateFont(tmp * 2, tmp, 0, 0, FW_DONTCARE,
+			FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+			FIXED_PITCH | FF_DONTCARE, MPanel.Font);
+	rc = MPanel.rcTempo;
+	tmp = (rc.bottom - rc.top + 1) / 2;
+	MPanel.hFontTempo =
+			CreateFont(tmp * 2, tmp, 0, 0, FW_DONTCARE,
+			FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+			FIXED_PITCH | FF_DONTCARE, MPanel.Font);
 	rc = MPanel.rcList;
 	MPanel.hFontList =
 		CreateFont(rc.bottom-rc.top+1,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
@@ -2528,8 +2760,8 @@ static void MPanelInit(HWND hwnd)
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
       	FIXED_PITCH | FF_DONTCARE,MPanel.FontLangFixed);
 	MPanelOK = 1;
+	GDI_UNLOCK(); // gdi_lock
 	MPanelMessageInit();
-	gdi_unlock(); // gdi_lock
 }
 
 // パネル構造体をリセットする。
@@ -2553,6 +2785,12 @@ void MPanelReset(void)
 	MPanel.MaxVoices = 0;
 	MPanel.MVolume = 0;
 	MPanel.Rate = 0;
+	MPanel.Meas = 0;
+	MPanel.Beat = 0;
+	MPanel.Keysig[0] = '\0';
+	MPanel.Key_offset = 0;
+	MPanel.Tempo = 0;
+	MPanel.Tempo_ratio = 0;
 	MPanel.PlaylistNum = 0;
 	MPanel.PlaylistMax = 0;
 	MPanel.UpdateFlag = MP_UPDATE_ALL;
@@ -2575,6 +2813,12 @@ void MPanelReset(void)
    	DeleteObject(MPanel.hFontMVolume);
 	if(MPanel.hFontRate!=NULL)
    	DeleteObject(MPanel.hFontRate);
+	if (MPanel.hFontMetronome != NULL)
+		DeleteObject(MPanel.hFontMetronome);
+	if (MPanel.hFontKeysig != NULL)
+		DeleteObject(MPanel.hFontKeysig);
+	if (MPanel.hFontTempo != NULL)
+		DeleteObject(MPanel.hFontTempo);
 	if(MPanel.hFontList!=NULL)
    	DeleteObject(MPanel.hFontList);
 #endif
@@ -2592,7 +2836,6 @@ void MPanelUpdate(void)
 	MPanelMessageUpdate();
 	if(MPanel.UpdateFlag==MP_UPDATE_NONE)
 	   	return;
-	gdi_lock(); // gdi_lock
 	if(MPanel.UpdateFlag & MP_UPDATE_BACKGROUND){
 		// ビットマップを貼り付けるが今は塗りつぶし。
 		HPEN hPen;
@@ -2601,6 +2844,7 @@ void MPanelUpdate(void)
 		COLORREF color = MPanel.BGBGColor;
 		RECT rc = MPanel.rcMe;
 		HGDIOBJ hgdiobj_hpen, hgdiobj_hbrush;
+		GDI_LOCK(); // gdi_lock
 		hPen = CreatePen(PS_SOLID,1,color);
 		hBrush = CreateSolidBrush(color);
 		hgdiobj_hpen = SelectObject(MPanel.hmdc, hPen);
@@ -2610,10 +2854,12 @@ void MPanelUpdate(void)
 		DeleteObject(hPen);
 		SelectObject(MPanel.hmdc, hgdiobj_hbrush);
 		DeleteObject(hBrush);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(MPanel.hwnd,&rc, FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_TITLE){
 		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontTitle);
+		GDI_LOCK(); // gdi_lock
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
 	//#include "w32g2_c.h"
@@ -2623,10 +2869,13 @@ void MPanelUpdate(void)
     		MPanel.Title,strlen(MPanel.Title),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcTitle), FALSE);
 	}
 	if(MPanel.UpdateFlag & MP_UPDATE_FILE){
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontFile);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontFile);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
 		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
@@ -2635,11 +2884,14 @@ void MPanelUpdate(void)
     		MPanel.File,strlen(MPanel.File),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcFile), FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_TIME){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontTime);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontTime);
    	sprintf(buffer," %02d:%02d:%02d/%02d:%02d:%02d",
 			MPanel.CurTime_h,MPanel.CurTime_m,MPanel.CurTime_s,
     		MPanel.TotalTime_h,MPanel.TotalTime_m,MPanel.TotalTime_s);
@@ -2651,11 +2903,14 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcTime), FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_VOICES){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontVoices);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontVoices);
    	sprintf(buffer," %03d/%03d",MPanel.CurVoices,MPanel.MaxVoices);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
@@ -2665,11 +2920,14 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcVoices), FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_MVOLUME){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontVoices);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontVoices);
    	sprintf(buffer," %03d%%",MPanel.MVolume);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
@@ -2679,11 +2937,14 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcMVolume), FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_RATE){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontRate);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontRate);
    	sprintf(buffer," %05dHz",MPanel.Rate);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
@@ -2693,11 +2954,76 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcRate), FALSE);
    }
+	if (MPanel.UpdateFlag & MP_UPDATE_METRONOME) {
+		char buffer[256];
+		HGDIOBJ hgdiobj;
+		
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc, MPanel.hFontMetronome);
+		sprintf(buffer, " %03d.%02d", MPanel.Meas, MPanel.Beat);
+		SetTextColor(MPanel.hmdc, MPanel.FGColor);
+		SetBkColor(MPanel.hmdc, MPanel.BGColor);
+		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+		ExtTextOut(MPanel.hmdc,
+				MPanel.rcMetronome.left, MPanel.rcMetronome.top,
+				ETO_CLIPPED | ETO_OPAQUE, &(MPanel.rcMetronome),
+				buffer, strlen(buffer), NULL);
+		if ((HGDIOBJ) hgdiobj != (HGDIOBJ) NULL
+				&& (HGDIOBJ) hgdiobj != (HGDIOBJ) GDI_ERROR)
+			SelectObject(MPanel.hmdc, hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
+		InvalidateRect(hPanelWnd, &(MPanel.rcMetronome), FALSE);
+	}
+	if (MPanel.UpdateFlag & MP_UPDATE_KEYSIG) {
+		char buffer[256];
+		HGDIOBJ hgdiobj;
+		
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc, MPanel.hFontKeysig);
+		if (MPanel.Keysig[0] == '\0')
+			strcpy(MPanel.Keysig, "-- ---");
+		sprintf(buffer, "%s (%+03d)", MPanel.Keysig, MPanel.Key_offset);
+		SetTextColor(MPanel.hmdc, MPanel.FGColor);
+		SetBkColor(MPanel.hmdc, MPanel.BGColor);
+		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+		ExtTextOut(MPanel.hmdc,
+				MPanel.rcKeysig.left + 2, MPanel.rcKeysig.top,
+				ETO_CLIPPED | ETO_OPAQUE, &(MPanel.rcKeysig),
+				buffer, strlen(buffer), NULL);
+		if ((HGDIOBJ) hgdiobj != (HGDIOBJ) NULL
+				&& (HGDIOBJ) hgdiobj != (HGDIOBJ) GDI_ERROR)
+			SelectObject(MPanel.hmdc, hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
+		InvalidateRect(hPanelWnd, &(MPanel.rcKeysig), FALSE);
+	}
+	if (MPanel.UpdateFlag & MP_UPDATE_TEMPO) {
+		char buffer[256];
+		HGDIOBJ hgdiobj;
+		
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc, MPanel.hFontTempo);
+		sprintf(buffer, "%3d (%03d %%)", MPanel.Tempo, MPanel.Tempo_ratio);
+		SetTextColor(MPanel.hmdc, MPanel.FGColor);
+		SetBkColor(MPanel.hmdc, MPanel.BGColor);
+		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+		ExtTextOut(MPanel.hmdc,
+				MPanel.rcTempo.left + 2, MPanel.rcTempo.top,
+				ETO_CLIPPED | ETO_OPAQUE, &(MPanel.rcTempo),
+				buffer, strlen(buffer), NULL);
+		if ((HGDIOBJ) hgdiobj != (HGDIOBJ) NULL
+				&& (HGDIOBJ) hgdiobj != (HGDIOBJ) GDI_ERROR)
+			SelectObject(MPanel.hmdc, hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
+		InvalidateRect(hPanelWnd, &(MPanel.rcTempo), FALSE);
+	}
 	if(MPanel.UpdateFlag & MP_UPDATE_PLAYLIST){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontList);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontList);
    	sprintf(buffer," %04d/%04d",MPanel.PlaylistNum,MPanel.PlaylistMax);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
@@ -2707,11 +3033,14 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcList), FALSE);
    }
 	if(MPanel.UpdateFlag & MP_UPDATE_MISC){
 		char buffer[256];
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontMisc);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontMisc);
 		buffer[0] = '\0';
 		switch(MPanel.play_system_mode){
     	case GM_SYSTEM_MODE:
@@ -2823,10 +3152,13 @@ void MPanelUpdate(void)
     		buffer,strlen(buffer),NULL);
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcMisc), FALSE);
    }
    if(MPanel.UpdateFlag & MP_UPDATE_MESSAGE){
-		HGDIOBJ hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontMessage);
+		HGDIOBJ hgdiobj;
+		GDI_LOCK(); // gdi_lock
+		hgdiobj = SelectObject(MPanel.hmdc,MPanel.hFontMessage);
 		SetTextColor(MPanel.hmdc,MPanel.FGColor);
 		SetBkColor(MPanel.hmdc,MPanel.BGColor);
 		SetTextAlign(MPanel.hmdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
@@ -2854,12 +3186,12 @@ void MPanelUpdate(void)
 		}
 		if((HGDIOBJ)hgdiobj!=(HGDIOBJ)NULL && (HGDIOBJ)hgdiobj!=(HGDIOBJ)GDI_ERROR)
 			SelectObject(MPanel.hmdc,hgdiobj);
+		GDI_UNLOCK(); // gdi_lock
 		InvalidateRect(hPanelWnd, &(MPanel.rcMessage), FALSE);
    }
 	if(MPanel.UpdateFlag==MP_UPDATE_ALL)
 		InvalidateRect(hPanelWnd, NULL, FALSE);
 	MPanel.UpdateFlag = MP_UPDATE_NONE;
-	gdi_unlock(); // gdi_lock
 }
 
 static void MPanelPaintDo(void)
@@ -2868,11 +3200,11 @@ static void MPanelPaintDo(void)
 	if ( GetUpdateRect(MPanel.hwnd, &rc, FALSE) ) {
 		PAINTSTRUCT ps;
 		HDC hdc;
-		gdi_lock(); // gdi_lock
+		GDI_LOCK(); // gdi_lock
 		hdc = BeginPaint(MPanel.hwnd, &ps);
 		BitBlt(hdc,rc.left,rc.top,rc.right,rc.bottom,MPanel.hmdc,rc.left,rc.top,SRCCOPY);
 		EndPaint(MPanel.hwnd, &ps);
-		gdi_unlock(); // gdi_lock
+		GDI_UNLOCK(); // gdi_lock
 	}
 }
 
@@ -2885,9 +3217,7 @@ void MPanelPaint(void)
 // 完全描画
 void MPanelPaintAll(void)
 {
-	gdi_lock(); // gdi_lock
 	InvalidateRect(hPanelWnd, NULL, FALSE);
-	gdi_unlock(); // gdi_lock
 	MPanelPaint();
 }
 
@@ -2952,6 +3282,30 @@ void MPanelReadPanelInfo(int flag)
 		MPanel.Rate = play_mode->rate;
      	MPanel.UpdateFlag |=	MP_UPDATE_RATE;
    }
+	if (flag || MPanel.Meas != Panel->meas) {
+		MPanel.Meas = Panel->meas;
+		MPanel.UpdateFlag |= MP_UPDATE_METRONOME;
+	}
+	if (flag || MPanel.Beat != Panel->beat) {
+		MPanel.Beat = Panel->beat;
+		MPanel.UpdateFlag |= MP_UPDATE_METRONOME;
+	}
+	if (flag || MPanel.Keysig != Panel->keysig) {
+		strcpy(MPanel.Keysig, Panel->keysig);
+		MPanel.UpdateFlag |= MP_UPDATE_KEYSIG;
+	}
+	if (flag || MPanel.Key_offset != Panel->key_offset) {
+		MPanel.Key_offset = Panel->key_offset;
+		MPanel.UpdateFlag |= MP_UPDATE_KEYSIG;
+	}
+	if (flag || MPanel.Tempo != Panel->tempo) {
+		MPanel.Tempo = Panel->tempo;
+		MPanel.UpdateFlag |= MP_UPDATE_TEMPO;
+	}
+	if (flag || MPanel.Tempo_ratio != Panel->tempo_ratio) {
+		MPanel.Tempo_ratio = Panel->tempo_ratio;
+		MPanel.UpdateFlag |= MP_UPDATE_TEMPO;
+	}
 
 	w32g_get_playlist_index(&cur_pl_num, &playlist_num, NULL);
 	if(playlist_num > 0)
@@ -3291,6 +3645,15 @@ timidity_version
 	MessageBox(hParentWnd, TiMidityText, "TiMidity", MB_OK);
 }
 
+static void SupplementWnd(HWND hParentWnd)
+{
+	char SupplementText[2024];
+  sprintf(SupplementText,
+"GS is a registered trademark of Roland Corporation. " NLS
+"XG is a registered trademark of Yamaha Corporation. " NLS );
+	  MessageBox(hParentWnd, SupplementText, "Supplement", MB_OK);
+}
+
 
 // ****************************************************************************
 
@@ -3527,13 +3890,17 @@ void ClearDebugWnd(void)
 // ****************************************************************************
 // Main Thread
 
+extern HWND hListSearchWnd;
+extern void HideListSearch(void);
 
+DWORD volatile dwMainThreadId = 0;
 void WINAPI MainThread(void *arglist)
 {
     MSG msg;
 
 	ThreadNumMax++;
 
+	dwMainThreadId = GetCurrentThreadId ();
 #ifdef W32GUI_DEBUG
 	PrintfDebugWnd("(*/%d)MainThread : Start.\n",ThreadNumMax);
 #endif
@@ -3555,6 +3922,24 @@ void WINAPI MainThread(void *arglist)
 //		HandleFastSearch(msg);
 //PrintfDebugWnd("H%lu M%lu WP%lu LP%lu T%lu x%d y%d\n",
 //	msg.hwnd, msg.message, msg.wParam, msg.lParam, msg.time, msg.pt.x, msg.pt.y);
+#if 1
+		// ESC で窓を閉じる。 
+		if ( msg.message == WM_KEYDOWN && (int)msg.wParam == VK_ESCAPE ) {
+			if ( msg.hwnd == hConsoleWnd || IsChild ( hConsoleWnd, msg.hwnd ) ) {
+				 ToggleSubWindow(hConsoleWnd);
+			} else if ( msg.hwnd == hDocWnd || IsChild ( hDocWnd, msg.hwnd ) ) {
+				 ToggleSubWindow(hDocWnd);
+			} else if ( msg.hwnd == hWrdWnd || IsChild ( hWrdWnd, msg.hwnd ) ) {
+				 ToggleSubWindow(hWrdWnd);
+			} else if ( msg.hwnd == hListWnd || IsChild ( hListWnd, msg.hwnd ) ) {
+				 ToggleSubWindow(hListWnd);
+			} else if ( msg.hwnd == hListSearchWnd || IsChild ( hListSearchWnd, msg.hwnd ) ) {
+				HideListSearch();
+			} else if ( msg.hwnd == hTracerWnd || IsChild ( hTracerWnd, msg.hwnd ) ) {
+				ToggleSubWindow(hTracerWnd);
+			}
+		}
+#endif
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -3888,90 +4273,14 @@ void ClearEditCtlWnd(HWND hwnd)
 // ****************************************************************************
 // Misc funciton.
 
-#ifndef WIN32GCC
-static char *get_filename(char *src, char *dest)
-{
-	char *p = src;
-	char *start = NULL;
-	int quot_flag = 0;
-	if(p == NULL)
-		return NULL;
-	for(;;){
-		if(*p != ' ' && *p != '\0' && start == NULL)
-			start = p;
-		if(*p == '\'' || *p == '\"'){
-			if(quot_flag){
-				if(p - start != 0)
-					strncpy(dest, start, p - start);
-				dest[p-start] = '\0';
-				p++;
-				return p;
-			} else {
-				quot_flag = !quot_flag;
-				p++;
-				start = p;
-				continue;
-			}
-		}
-		if(*p == '\0' || (*p == ' ' && !quot_flag)){
-			if(start == NULL)
-				return NULL;
-			if(p - start != 0)
-				strncpy(dest, start, p - start);
-			dest[p-start] = '\0';
-			if(*p != '\0')
-				p++;
-			return p;
-		}
-		p++;
-	}
-}
-
-static void CmdLineToArgv(LPSTR lpCmdLine, int *pArgc, CHAR ***pArgv)
-{
-	LPSTR p = lpCmdLine , buffer, lpsRes;
-	int i, max = -1, inc = 16;
-	int buffer_size;
-
-	*pArgv = NULL;
-	buffer_size = strlen(lpCmdLine) + 1024;
-//	buffer = safe_malloc(sizeof(CHAR) * buffer_size + 1);
-	buffer = (LPSTR)malloc(sizeof(CHAR) * buffer_size + 1);
-	strcpy(buffer, lpCmdLine);
-
-	for(i=0;;i++)
-	{
-	if(i > max){
-		max += inc;
-//		*pArgv = (CHAR **)safe_realloc(*pArgv, sizeof(CHAR *) * (max + 1));
-		*pArgv = (CHAR **)realloc(*pArgv, sizeof(CHAR *) * (max + 2));
-	}
-	if(i==0){
-		GetModuleFileName(NULL,buffer,buffer_size);
-		lpsRes = p;
-	} else
-		lpsRes = get_filename(p,buffer);
-	if(lpsRes != NULL){
-//		(*pArgv)[i] = (CHAR *)safe_malloc(sizeof(CHAR) * strlen(buffer) + 1);
-		(*pArgv)[i] = (CHAR *)malloc(sizeof(CHAR) * strlen(buffer) + 1);
-		strcpy((*pArgv)[i],buffer);
-		p = lpsRes;
-	} else {
-		*pArgc = i;
-		free(buffer);
-		return;
-	}
-	}
-}
-#endif /* !WIN32GCC */
-
 int w32g_msg_box(char *message, char *title, int type)
 {
     return MessageBox(hMainWnd, message, title, type);
 }
 
 
-#define RC_QUEUE_SIZE 8
+//#define RC_QUEUE_SIZE 8
+#define RC_QUEUE_SIZE 48
 static struct
 {
     int rc;
@@ -4104,37 +4413,8 @@ void w32g_restart(void)
 		w32g_empty_sem = NULL;
 	}
 
-	if(MPanel.hFontTitle!=NULL)
-		DeleteObject(MPanel.hFontTitle);
-	if(MPanel.hFontFile!=NULL)
-		DeleteObject(MPanel.hFontFile);
-	if(MPanel.hFontTime!=NULL)
-		DeleteObject(MPanel.hFontTime);
-	if(MPanel.hFontVoices!=NULL)
-		DeleteObject(MPanel.hFontVoices);
-	if(MPanel.hFontMVolume!=NULL)
-		DeleteObject(MPanel.hFontMVolume);
-	if(MPanel.hFontRate!=NULL)
-		DeleteObject(MPanel.hFontRate);
-	if(MPanel.hFontList!=NULL)
-		DeleteObject(MPanel.hFontList);
-	if(MPanel.hFontMisc!=NULL)
-		DeleteObject(MPanel.hFontMisc);
-	if(MPanel.hFontMessage!=NULL)
-		DeleteObject(MPanel.hFontMessage);
-
 	/* Reset variable */
-    hStartWnd = 0;
-    hMainWnd = 0;
-    hDebugWnd = 0;
-    hConsoleWnd = 0;
-    hTracerWnd = 0;
-    hDocWnd = 0;
-    hListWnd = 0;
-    hWrdWnd = 0;
-    hSoundSpecWnd = 0;
     hDebugEditWnd = 0;
-    hDocEditWnd = 0;
 
 	/* Now ready to start */
 	w32g_open();
@@ -4214,22 +4494,33 @@ void w32g_show_console(void)
 ///////////////////////////////////////////////////////////////////////
 // GDI アクセスを単一スレッドに限定するためのロック機構
 
-static HANDLE hMutexGDI = NULL;
-int gdi_lock(void)
+static HANDLE volatile hMutexGDI = NULL;
+// static int volatile lock_num = 0;
+int gdi_lock_ex ( DWORD timeout )
 {
+// lock_num++;
+// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+// 		  "gdi_lock<%d %d>", GetCurrentThreadId(),lock_num );
 	if(hMutexGDI==NULL){
 		hMutexGDI = CreateMutex(NULL,FALSE,NULL);
 		if(hMutexGDI==NULL)
 			return -1;
 	}
-	if(WaitForSingleObject(hMutexGDI,INFINITE)==WAIT_FAILED){
+	if(WaitForSingleObject(hMutexGDI,timeout)==WAIT_FAILED){
 		return -1;
 	}
 	return 0;
 }
+int gdi_lock(void)
+{
+	return gdi_lock_ex ( INFINITE );
+}
 
 extern int gdi_unlock(void)
 {
+//lock_num--;
+//ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+//		  "gdi_unlock<%d %d>", GetCurrentThreadId(),lock_num );
 	if(hMutexGDI!=NULL){
 		ReleaseMutex(hMutexGDI);
 	}

@@ -36,6 +36,7 @@
 
 #include <string.h>
 #include "unimod_priv.h"
+extern void *safe_realloc(void *old_ptr, size_t new_size);
 
 SBYTE  remap[64];           /* for removing empty channels */
 UBYTE* poslookup=NULL;      /* lookup table for pattern jumps after blank
@@ -214,7 +215,7 @@ int *AllocLinear(void)
 {
 	if(of.numsmp>noteindexcount) {
 		noteindexcount=of.numsmp;
-		noteindex=realloc(noteindex,noteindexcount*sizeof(int));
+		noteindex=safe_realloc(noteindex,noteindexcount*sizeof(int));
 	}
 	return noteindex;
 }
