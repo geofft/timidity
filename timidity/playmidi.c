@@ -482,6 +482,9 @@ static void reset_nrpn_controllers(int c)
   /* channel pressure & polyphonic key pressure control */
   channel[c].caf_lfo1_rate_ctl = 0;
 
+  channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
+	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
+	channel[c].sysex_msb_addr = channel[c].sysex_msb_val = 0;
 }
 
 /* Process the Reset All Controllers event */
@@ -1983,12 +1986,12 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].vibrato_sweep_position=0;
 
   voice[i].prev_tuning = 0;
+  voice[i].delay_counter = 0;
 
   memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
-	  recompute_voice_filter(i);
   } else {
 	  voice[i].fc.freq = -1;
   }
@@ -2050,7 +2053,6 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       channel[ch].last_note_fine = voice[i].note * 256;
 
   recompute_amp(i);
-  recompute_freq(i);
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
       /* Ramp up from 0 */
@@ -2058,7 +2060,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].envelope_volume=0;
       voice[i].control_counter=0;
       recompute_envelope(i);
-      apply_envelope_to_amp(i);
+	  apply_envelope_to_amp(i);
 	  voice[i].modenv_stage = 0;
       voice[i].modenv_volume = 0;
       recompute_modulation_envelope(i);
@@ -2071,6 +2073,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       apply_envelope_to_amp(i);
 	  apply_modulation_envelope(i);
     }
+  recompute_freq(i);
+  recompute_voice_filter(i);
 
   voice[i].timeout = -1;
   if(!prescanning_flag)
@@ -2908,7 +2912,7 @@ void midi_program_change(int ch, int prog)
 
 static void process_sysex_event(int ev,int ch,int val,int b)
 {
-	if(ev == ME_SYSEX_GS1)
+	if(ev == ME_SYSEX_GS_LSB)
 	{
 		switch(b)
 		{
@@ -3260,7 +3264,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 		default:
 			break;
 		}
-	} else if(ev == ME_SYSEX_XG) {
+	} else if(ev == ME_SYSEX_XG_LSB) {
 		switch(b)
 		{
 		case 0x00:	/* Reverb Return */
@@ -3979,12 +3983,28 @@ static void seek_forward(int32 until_time)
 			channel[i].temper_type = current_event->a;
 		break;
 
-	  case ME_SYSEX_GS1:
-	    process_sysex_event(ME_SYSEX_GS1,ch,current_event->a,current_event->b);
+	  case ME_SYSEX_LSB:
+	    process_sysex_event(ME_SYSEX_LSB,ch,current_event->a,current_event->b);
 	    break;
 
-	  case ME_SYSEX_XG:
-	    process_sysex_event(ME_SYSEX_XG,ch,current_event->a,current_event->b);
+	  case ME_SYSEX_MSB:
+	    process_sysex_event(ME_SYSEX_MSB,ch,current_event->a,current_event->b);
+	    break;
+
+	  case ME_SYSEX_GS_LSB:
+	    process_sysex_event(ME_SYSEX_GS_LSB,ch,current_event->a,current_event->b);
+	    break;
+
+	  case ME_SYSEX_GS_MSB:
+	    process_sysex_event(ME_SYSEX_GS_MSB,ch,current_event->a,current_event->b);
+	    break;
+
+	  case ME_SYSEX_XG_LSB:
+	    process_sysex_event(ME_SYSEX_XG_LSB,ch,current_event->a,current_event->b);
+	    break;
+
+	  case ME_SYSEX_XG_MSB:
+	    process_sysex_event(ME_SYSEX_XG_MSB,ch,current_event->a,current_event->b);
 	    break;
 
 	  case ME_EOT:
@@ -5874,12 +5894,28 @@ int play_event(MidiEvent *ev)
 				}
 		break;
 
-	case ME_SYSEX_GS1:
-		process_sysex_event(ME_SYSEX_GS1,ch,current_event->a,current_event->b);
+	case ME_SYSEX_LSB:
+		process_sysex_event(ME_SYSEX_LSB,ch,current_event->a,current_event->b);
 	    break;
 
-	case ME_SYSEX_XG:
-		process_sysex_event(ME_SYSEX_XG,ch,current_event->a,current_event->b);
+	case ME_SYSEX_MSB:
+		process_sysex_event(ME_SYSEX_MSB,ch,current_event->a,current_event->b);
+	    break;
+
+	case ME_SYSEX_GS_LSB:
+		process_sysex_event(ME_SYSEX_GS_LSB,ch,current_event->a,current_event->b);
+	    break;
+
+	case ME_SYSEX_GS_MSB:
+		process_sysex_event(ME_SYSEX_GS_MSB,ch,current_event->a,current_event->b);
+	    break;
+
+	case ME_SYSEX_XG_LSB:
+		process_sysex_event(ME_SYSEX_XG_LSB,ch,current_event->a,current_event->b);
+	    break;
+
+	case ME_SYSEX_XG_MSB:
+		process_sysex_event(ME_SYSEX_XG_MSB,ch,current_event->a,current_event->b);
 	    break;
 
 	case ME_NOTE_STEP:

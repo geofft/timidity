@@ -30,6 +30,7 @@ extern FLOAT_T lookup_sine(int x);
 #define lookup_sine(x) (sin((2*M_PI/1024.0) * (x)))
 #endif
 extern FLOAT_T lookup_triangular(int x);
+extern FLOAT_T lookup_log(int x);
 
 #define SINE_CYCLE_LENGTH 1024
 extern int32 freq_table[];
@@ -66,6 +67,7 @@ extern FLOAT_T sc_vol_table[];
 extern FLOAT_T sc_pan_table[];
 extern FLOAT_T sc_drum_level_table[];
 extern FLOAT_T sb_vol_table[];
+extern FLOAT_T convex_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
 extern FLOAT_T reverb_time_table[];
 
@@ -78,6 +80,7 @@ extern void init_bend_coarse(void);
 extern void init_tables(void);
 extern void init_attack_vol_table(void);
 extern void init_sb_vol_table(void);
+extern void init_convex_vol_table(void);
 extern void init_def_vol_table(void);
 extern void init_gs_vol_table(void);
 

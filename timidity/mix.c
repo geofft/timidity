@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#define OFFSET_MAX (0x40000000)
+#define OFFSET_MAX (0x3FFFFFFF)
 
 #if OPT_MODE != 0
 #define VOICE_LPF
@@ -108,6 +108,8 @@ void mix_voice(int32 *buf, int v, int32 c)
 	mix_t *lp;
 #endif
 
+	vp->delay_counter = c;
+
 	if (vp->status == VOICE_DIE) {
 		if (c >= MAX_DIE_TIME)
 			c = MAX_DIE_TIME;
@@ -132,7 +134,6 @@ void mix_voice(int32 *buf, int v, int32 c)
 				buf += vp->delay * 2;
 			c -= vp->delay;
 			vp->delay = 0;
-			recompute_envelope(v);
 		}
 		sp = resample_voice(v, &c);
 
@@ -1053,8 +1054,6 @@ int recompute_envelope(int v)
 			/* use the slower of the two rates */
 			if (vp->envelope_increment < rate)
 				vp->envelope_increment = rate;
-			vp->envelope_increment = (double)vp->envelope_increment
-				* (double) vp->envelope_volume / vp->sample->envelope_offset[0];
 			if (! vp->envelope_increment)
 				/* Avoid freezing */
 				vp->envelope_increment = -1;
@@ -1089,18 +1088,12 @@ static inline int next_stage(int v)
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
 	
-	if(vp->delay > 0) {return 0;}
-
 	stage = vp->envelope_stage++;
 	offset = vp->sample->envelope_offset[stage];
 	rate = vp->sample->envelope_rate[stage];
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
-	else if(stage == 0 && rate > OFFSET_MAX) {	/* instantaneous attack */
-		vp->envelope_volume = offset;
-		return recompute_envelope(v);
-	} 
 	ch = vp->channel;
 
 	/* envelope generator (see also playmidi.[ch]) */
@@ -1133,7 +1126,10 @@ static inline int next_stage(int v)
 	if (offset < vp->envelope_volume) {	/* decaying phase */
 		if (val != -1)
 			rate *= sc_eg_decay_table[val & 0x7f];
-		if(rate > vp->envelope_volume - offset) {	/* fastest decay */
+		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
+			vp->envelope_volume = offset;
+			return recompute_envelope(v);
+		} else if(rate > vp->envelope_volume - offset) {	/* fastest decay */
 			rate = -vp->envelope_volume + offset - 1;
 		} else if (rate < 1) {	/* slowest decay */
 			rate = -1;
@@ -1144,7 +1140,10 @@ static inline int next_stage(int v)
 	} else {	/* attacking phase */
 		if (val != -1)
 			rate *= sc_eg_attack_table[val & 0x7f];
-		if(rate > offset - vp->envelope_volume) {	/* fastest attack */
+		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
+			vp->envelope_volume = offset;
+			return recompute_envelope(v);
+		} else if(rate > offset - vp->envelope_volume) {	/* fastest attack */
 			rate = offset - vp->envelope_volume + 1;
 		} else if (rate < 1) {rate =  1;}	/* slowest attack */
 	}
@@ -1162,11 +1161,12 @@ static inline void update_tremolo(int v)
 	
 	if(vp->tremolo_delay > 0)
 	{
-		vp->tremolo_delay -= control_ratio;
+		vp->tremolo_delay -= vp->delay_counter;
 		if(vp->tremolo_delay > 0) {
 			vp->tremolo_volume = 1.0;
 			return 0;
 		}
+		vp->tremolo_delay = 0;
 	}
 	if (vp->tremolo_sweep) {
 		/* Update sweep position */
@@ -1186,9 +1186,15 @@ static inline void update_tremolo(int v)
 		vp->tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
 #endif
 
+	if(vp->sample->inst_type == INST_SF2) {
+	vp->tremolo_volume = 1.0 + TIM_FSCALENEG(
+			lookup_log(vp->tremolo_phase >> RATE_SHIFT)
+			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+	} else {
 	vp->tremolo_volume = 1.0 + TIM_FSCALENEG(
 			lookup_sine(vp->tremolo_phase >> RATE_SHIFT)
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+	}
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
 	 */
@@ -1201,7 +1207,8 @@ int apply_envelope_to_amp(int v)
 		*v_table = vp->sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
 	int32 la, ra;
 	
-	if (vp->panned == PANNED_MYSTERY) {
+	if (vp->delay > 0) {vp->left_mix = vp->right_mix = 0;}
+	else if (vp->panned == PANNED_MYSTERY) {
 		ramp = vp->right_amp;
 		if (vp->tremolo_phase_increment) {
 			lamp *= vp->tremolo_volume;
@@ -1301,21 +1308,21 @@ static inline int update_modulation_envelope(int v)
 {
 	Voice *vp = &voice[v];
 
-	if(vp->modenv_delay > 0)
-	{
-		vp->modenv_delay -= control_ratio;
+	if(vp->modenv_delay > 0) {
+		vp->modenv_delay -= vp->delay_counter;
 		if(vp->modenv_delay > 0) {
 			return 1;
-		} else {
-			return recompute_modulation_envelope(v);
 		}
+		vp->modenv_delay = 0;
 	}
 	vp->modenv_volume += vp->modenv_increment;
 	if ((vp->modenv_increment < 0)
 			^ (vp->modenv_volume > vp->modenv_target)) {
 		vp->modenv_volume = vp->modenv_target;
-		if (recompute_modulation_envelope(v))
+		if (recompute_modulation_envelope(v)) {
+			apply_modulation_envelope(v);
 			return 1;
+		}
 	}
 
 	apply_modulation_envelope(v);
@@ -1329,14 +1336,12 @@ int apply_modulation_envelope(int v)
 
 	if(!opt_modulation_envelope) {return 0;}
 
-	if (vp->sample->modes & MODES_ENVELOPE) {
-		if (vp->modenv_stage > 3)
-			vp->last_modenv_volume = (double)vp->modenv_volume
-					* vp->modenv_scale / (double)OFFSET_MAX;
-		else if (vp->modenv_stage > 1)
+	if (vp->modenv_delay > 0) {vp->last_modenv_volume = 0;}
+	else if (vp->sample->modes & MODES_ENVELOPE) {
+		if (vp->modenv_stage > 1)
 			vp->last_modenv_volume = (double)vp->modenv_volume / (double)OFFSET_MAX;
 		else
-			vp->last_modenv_volume = 1.0 - sb_vol_table[1023 - ((vp->modenv_volume - 1) >> 20)];
+			vp->last_modenv_volume = convex_vol_table[(vp->modenv_volume - 1) >> 20];
 	}
 
 	recompute_voice_filter(v);
@@ -1353,18 +1358,12 @@ static inline int modenv_next_stage(int v)
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
 	
-	if(vp->modenv_delay > 0) {return 1;}
-
 	stage = vp->modenv_stage++;
 	offset = vp->sample->modenv_offset[stage];
 	rate = vp->sample->modenv_rate[stage];
 	if (vp->modenv_volume == offset
 			|| (stage > 2 && vp->modenv_volume < offset))
 		return recompute_modulation_envelope(v);
-	else if(stage == 0 && rate > OFFSET_MAX) {	/* instantaneous attack */
-			vp->modenv_volume = offset;
-			return recompute_modulation_envelope(v);
-	}
 	ch = vp->channel;
 
 	/* envelope generator (see also playmidi.[ch]) */
@@ -1387,15 +1386,16 @@ static inline int modenv_next_stage(int v)
 		/* adjusting release-rate for consistent release-time */
 		rate *= (double) vp->modenv_volume
 				/ vp->sample->modenv_offset[0];
-		/* calculating current envelope scale */
-		vp->modenv_scale = vp->last_modenv_volume;
 	}
 
 	/* regularizing envelope */
 	if (offset < vp->modenv_volume) {	/* decaying phase */
 		if (val != -1)
 			rate *= sc_eg_decay_table[val & 0x7f];
-		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
+		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
+			vp->modenv_volume = offset;
+			return recompute_modulation_envelope(v);
+		} else if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;
 		} else if (rate < 1) {	/* slowest decay */
 			rate = -1;
@@ -1405,7 +1405,10 @@ static inline int modenv_next_stage(int v)
 	} else {	/* attacking phase */
 		if (val != -1)
 			rate *= sc_eg_attack_table[val & 0x7f];
-		if(rate > offset - vp->modenv_volume) {	/* fastest attack */
+		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
+				vp->modenv_volume = offset;
+				return recompute_modulation_envelope(v);
+		} else if(rate > offset - vp->modenv_volume) {	/* fastest attack */
 			rate = offset - vp->modenv_volume + 1;
 		} else if (rate < 1) {rate = 1;}	/* slowest attack */
 	}
@@ -1450,8 +1453,6 @@ int recompute_modulation_envelope(int v)
 			/* use the slower of the two rates */
 			if (vp->modenv_increment < rate)
 				vp->modenv_increment = rate;
-			vp->modenv_increment = (double) vp->modenv_increment
-				* (double) vp->modenv_volume / vp->sample->modenv_offset[0];
 			if (! vp->modenv_increment)
 				/* Avoid freezing */
 				vp->modenv_increment = -1;

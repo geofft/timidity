@@ -365,6 +365,36 @@ FLOAT_T lookup_triangular(int x)
     }
 }
 
+static FLOAT_T log_table[257];
+
+void init_log_table(void)
+{
+	int i;
+
+	for (i = 0; i < 257; i++) {
+		log_table[i] = 1.0 - pow(10.0, (double)i * 960.0 / (256.0 * -200.0));
+	}
+	log_table[0] = 0.0;
+	log_table[256] = 1.0;
+}
+
+FLOAT_T lookup_log(int x)
+{
+  int xx = x & 0xFF;
+  switch ((x>>8) & 0x03)
+    {
+    default:
+    case 0:
+      return log_table[xx];
+    case 1:
+      return log_table[0x100 - xx];
+    case 2:
+      return -log_table[xx];
+    case 3:
+      return -log_table[0x100 - xx];
+    }
+}
+
 #ifdef LOOKUP_HACK
 int16 _u2l[] =
 {
@@ -437,6 +467,7 @@ void init_tables(void)
 
 #endif
 	init_triangular_table();
+	init_log_table();
 }
 
 #ifdef LOOKUP_HACK
@@ -1170,7 +1201,20 @@ void init_sb_vol_table(void)
 	int i;
 	
 	for (i = 0; i < 1024; i++)
-		sb_vol_table[i] = pow(10.0, (double)(1023 - i) * 960.0 / 1023.0 / -200.0);
+		sb_vol_table[i] = pow(10.0, (double)(1023 - i) * 960.0 / (1023.0 * -200.0));
+}
+
+FLOAT_T convex_vol_table[1024];
+
+void init_convex_vol_table(void)
+{
+	int i;
+	
+	for (i = 0; i < 1024; i++)
+		convex_vol_table[i] = 1.0 - (-20.0 / 96.0 * log(((double)i * (double)i) / (1023.0 * 1023.0)) / log(10.0));
+
+	convex_vol_table[0] = 0;
+	convex_vol_table[1023] = 1.0;
 }
 
 FLOAT_T cb_to_amp_table[961] = 

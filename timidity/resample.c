@@ -489,7 +489,7 @@ static int32 update_vibrato(Voice *vp, int sign)
     }
 
   if(vp->sample->inst_type == INST_SF2) {
-  pb = (int)((lookup_sine(vp->vibrato_phase *
+  pb = (int)((lookup_triangular(vp->vibrato_phase *
 			(SINE_CYCLE_LENGTH / (2 * VIBRATO_SAMPLE_INCREMENTS)))
 	    * (double)(depth) * VIBRATO_AMPLITUDE_TUNING));
   } else {

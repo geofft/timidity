@@ -1,3 +1,12 @@
+	  
+2003-05-15  Saito <timidity@flashmail.com>
+
+	* timidity/rcp.c, timidity/playmidi.[ch], timidity/readmidi.[ch],
+	  timidity/resample.c, timidity/tables.[ch], timidity/sndfont.c,
+	  timidity/mix.c, timidity/timidity.c:
+	  Support for parse_sysex_multi() for RCP/R36/G18/G36 MIDI data.
+	  Support for channel layer (GS - Rx. Channel / XG - Rcv Channel).
+	  Fix in delay, envelope generator, vibrato and tremolo.
 
 2003-05-12  Saito <timidity@flashmail.com>
 

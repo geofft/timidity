@@ -548,6 +548,7 @@ static double to_msec(int timecent)
  */
 static int32 calc_sustain(int sust_cB)
 {
+	int32 sustain;
 	if(sust_cB <= 0) {return 65533;}
 	else if(sust_cB >= 1000) {return 0;}
 	else {return (1000 - sust_cB) * 65533 / 1000;}
@@ -623,7 +624,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		sample->modenv_rate[1] = sp->modhold;
 
 		sample->modenv_offset[2] = to_offset(sp->modsustain);
-		sample->modenv_rate[2] = sp->modsustain, sp->moddecay;
+		sample->modenv_rate[2] = sp->moddecay;
 
 		sample->modenv_offset[3] = 0;
 		sample->modenv_rate[3] = sp->modrelease;
@@ -1323,7 +1324,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(tbl->set[SF_keynum])
 	vp->v.note_to_use = tbl->val[SF_keynum];
 	if(tbl->set[SF_velocity] && tbl->val[SF_velocity] != 0) {
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"error: fixed-velocity is not supported.");
+		ctl->cmsg(CMSG_INFO,VERB_DEBUG,"error: fixed-velocity is not supported.");
 	}
 
 	/* panning position: 0 to 127 */

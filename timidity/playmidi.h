@@ -125,9 +125,12 @@ enum midi_event_t
     ME_TEMPER_TYPE,		/* Temperament type */
     ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
 
-	ME_SYSEX_GS1,	/* GS system exclusive message (1) */
-	ME_SYSEX_GS2,	/* GS system exclusive message (2) */
-	ME_SYSEX_XG,	/* XG system exclusive message */
+	ME_SYSEX_LSB,	/* Universal system exclusive message (LSB) */
+	ME_SYSEX_MSB,	/* Universal system exclusive message (MSB) */
+	ME_SYSEX_GS_LSB,	/* GS system exclusive message (LSB) */
+	ME_SYSEX_GS_MSB,	/* GS system exclusive message (MSB) */
+	ME_SYSEX_XG_LSB,	/* XG system exclusive message (LSB) */
+	ME_SYSEX_XG_MSB,	/* XG system exclusive message (MSB) */
 
     ME_WRD,			/* for MIMPI WRD tracer */
     ME_SHERRY,			/* for Sherry WRD tracer */
@@ -272,6 +275,11 @@ typedef struct {
   int8 paf_amp_ctl, paf_lfo1_rate_ctl, paf_lfo2_rate_ctl, paf_lfo2_tva_depth;
   int16 paf_tvf_cutoff_ctl, paf_lfo1_pitch_depth,
 	  paf_lfo2_pitch_depth, paf_lfo2_tvf_depth;	/* in cents */
+
+  int8 *channel_layer;
+
+  int8 sysex_gs_msb_addr, sysex_gs_msb_val,
+		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;
 } Channel;
 
 /* Causes the instrument's default panning to be used. */
@@ -341,9 +349,11 @@ typedef struct {
   int modenv_stage;
   int32
     modenv_volume, modenv_target, modenv_increment;
-  FLOAT_T modenv_scale, last_modenv_volume;
+  FLOAT_T last_modenv_volume;
   int32 tremolo_delay, modenv_delay;
   int32 prev_tuning;
+
+  int32 delay_counter;
 
   int8 key_pressure;
 } Voice;

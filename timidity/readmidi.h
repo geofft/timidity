@@ -113,6 +113,7 @@ struct midi_file_info
 extern int32 readmidi_set_track(int trackno, int rewindp);
 extern void readmidi_add_event(MidiEvent *newev);
 extern void readmidi_add_ctl_event(int32 at, int ch, int control, int val);
+extern void readmidi_add_ctl_event_layer(int32 at, int ch, int control, int val);
 extern int parse_sysex_event(uint8 *data, int32 datalen, MidiEvent *ev_ret);
 extern int parse_sysex_event_multi(uint8 *data, int32 datalen, MidiEvent *ev_ret);
 extern int convert_midi_control_change(int chn, int type, int val,

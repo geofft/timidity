@@ -65,6 +65,12 @@ struct RCPNoteTracer
     { MidiEvent event; SETMIDIEVENT(event, at, t, ch, pa, pb); \
       readmidi_add_event(&event); }
 
+#define MIDIEVENT_LAYER(at, t, ch, pa, pb) \
+    { MidiEvent event; int _layer_cnt; \
+	for(_layer_cnt = 0; channel[ch].channel_layer[_layer_cnt] != -1; _layer_cnt++) {	\
+	SETMIDIEVENT(event, at, t, channel[ch].channel_layer[_layer_cnt], pa, pb); \
+	readmidi_add_event(&event);}}
+
 static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt);
 static int preprocess_sysex(uint8* ex, int ch, int gt, int vel);
 
@@ -419,6 +425,27 @@ static char *rcp_cmd_name(int cmd)
     return "Unknown";
 }
 
+static int rcp_parse_sysex_event(int32 at, uint8 *val, int32 len)
+{
+    MidiEvent ev, evm[16];
+    int ne, i;
+
+    if(len == 0) {return 0;}
+
+    if(parse_sysex_event(val, len, &ev))
+    {
+	ev.time = at;
+	readmidi_add_event(&ev);
+    }
+	if (ne = parse_sysex_event_multi(val, len, evm))
+		for (i = 0; i < ne; i++) {
+			evm[i].time = at;
+			readmidi_add_event(&evm[i]);
+		}
+    
+    return 0;
+}
+
 #define MAX_STACK_DEPTH 16
 static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 {
@@ -436,7 +463,6 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
     } stack[MAX_STACK_DEPTH];
     int sp;
     int i, len;
-    MidiEvent ev;
     uint8 sysex[MAX_EXCLUSIVE_LENGTH];
 
     int roland_base_init = 0;
@@ -642,11 +668,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 		   USER_EXCLUSIVE_LENGTH);
 	    sysex[USER_EXCLUSIVE_LENGTH] = 0xf7;
 	    len = preprocess_sysex(sysex, ch, a, b);
-	    if(parse_sysex_event(sysex, len, &ev))
-	    {
-		ev.time = ntr_at(ntr);
-		readmidi_add_event(&ev);
-	    }
+	    rcp_parse_sysex_event(ntr_at(ntr), sysex, len);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -677,11 +699,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    tf_seek(tf, -1, SEEK_CUR);
 	    sysex[len] = 0xf7;
 	    len = preprocess_sysex(sysex, ch, a, b);
-	    if(parse_sysex_event(sysex, len, &ev))
-	    {
-		ev.time = ntr_at(ntr);
-		readmidi_add_event(&ev);
-	    }
+	    rcp_parse_sysex_event(ntr_at(ntr), sysex, len);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -715,11 +733,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    cs += sysex[7] = b;
 	    sysex[8] = 128 - (cs & 0x7f);
 	    sysex[9] = 0xf7;
-	    if(parse_sysex_event(sysex, 10, &ev))
-	    {
-		ev.time = ntr_at(ntr);
-		readmidi_add_event(&ev);
-	    }
+		rcp_parse_sysex_event(ntr_at(ntr), sysex, 10);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -747,11 +761,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    cs += sysex[7] = b;
 	    sysex[8] = 128 - (cs & 0x7f);
 	    sysex[9] = 0xf7;
-	    if(parse_sysex_event(sysex, 10, &ev))
-	    {
-		ev.time = ntr_at(ntr);
-		readmidi_add_event(&ev);
-	    }
+		rcp_parse_sysex_event(ntr_at(ntr), sysex, 10);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -785,11 +795,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    cs += sysex[7] = b;
 	    sysex[8] = 128 - (cs & 0x7f);
 	    sysex[9] = 0xf7;
-	    if(parse_sysex_event(sysex, 10, &ev))
-	    {
-		ev.time = ntr_at(ntr);
-		readmidi_add_event(&ev);
-	    }
+		rcp_parse_sysex_event(ntr_at(ntr), sysex, 10);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -809,8 +815,8 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    break;
 
 	  case 0xe2:	/* bank & program change */
-	    readmidi_add_ctl_event(ntr_at(ntr), ch, 0, b); /*Change MSB Bank*/
-	    MIDIEVENT(ntr_at(ntr), ME_PROGRAM, ch, a & 0x7f, 0);
+	    readmidi_add_ctl_event_layer(ntr_at(ntr), ch, 0, b); /*Change MSB Bank*/
+	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PROGRAM, ch, a & 0x7f, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -881,32 +887,32 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 
 	  case 0xea:	/* channel after touch (channel pressure) */
 	    a &= 0x7f;
-	    MIDIEVENT(ntr_at(ntr), ME_CHANNEL_PRESSURE, ch, a, 0);
+	    MIDIEVENT_LAYER(ntr_at(ntr), ME_CHANNEL_PRESSURE, ch, a, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xeb:	/* control change */
-	    readmidi_add_ctl_event(ntr_at(ntr), ch, a, b);
+	    readmidi_add_ctl_event_layer(ntr_at(ntr), ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xec:	/* program change */
 	    a &= 0x7f;
-	    MIDIEVENT(ntr_at(ntr), ME_PROGRAM, ch, a, 0);
+	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PROGRAM, ch, a, 0);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xed:	/* after touch polyphonic (polyphonic key pressure) */
 	    a &= 0x7f;
 	    b &= 0x7f;
-	    MIDIEVENT(ntr_at(ntr), ME_KEYPRESSURE, ch, a, b);
+	    MIDIEVENT_LAYER(ntr_at(ntr), ME_KEYPRESSURE, ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
 	  case 0xee:	/* pitch bend */
 	    a &= 0x7f;
 	    b &= 0x7f;
-	    MIDIEVENT(ntr_at(ntr), ME_PITCHWHEEL, ch, a, b);
+	    MIDIEVENT_LAYER(ntr_at(ntr), ME_PITCHWHEEL, ch, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -1296,7 +1302,7 @@ static void ntr_note_on(struct RCPNoteTracer *ntr,
 	    return;
 	}
 
-    MIDIEVENT(ntr->at, ME_NOTEON, ch, note, velo);
+    MIDIEVENT_LAYER(ntr->at, ME_NOTEON, ch, note, velo);
     ntr_add(ntr, ch, note, gate);
 }
 
@@ -1334,7 +1340,7 @@ static void ntr_incr(struct RCPNoteTracer *ntr, int step)
 		if(ctl->verbosity >= VERB_DEBUG_SILLY)
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 			      "NoteOff %d at %d", p->note, ntr->at);
-		MIDIEVENT(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
+		MIDIEVENT_LAYER(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
 		p->next = ntr->freelist;
 		ntr->freelist = p;
 	    }
@@ -1380,7 +1386,7 @@ static void ntr_wait_all_off(struct RCPNoteTracer *ntr)
 		if(ctl->verbosity >= VERB_DEBUG_SILLY)
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 			      "NoteOff %d", p->note);
-		MIDIEVENT(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
+		MIDIEVENT_LAYER(ntr->at, ME_NOTEOFF, p->ch, p->note, 0);
 		p->next = ntr->freelist;
 		ntr->freelist = p;
 	    }
