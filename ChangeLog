@@ -1,5 +1,10 @@
 2003-08-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* timidity/timidity.c:
+	  Commonize functions between short and long options
+
+2003-08-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* timidity/timidity.c: Hack up around long options
 	  Rename --temperament -> --pure-intonation
 
