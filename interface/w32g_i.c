@@ -459,6 +459,73 @@ void OnHide(void);
 static int MainWndInfoReset(HWND hwnd);
 static int MainWndInfoApply(void);
 
+extern void reload_cfg(void);
+// OUTPUT MENU
+#define IDM_OUTPUT 0x4000
+static HMENU outputMenu;
+
+static void InitOutputMenu(HWND hWnd)
+{
+	HMENU hMenu;
+	MENUITEMINFO mii;
+	int i;
+
+	hMenu = GetMenu(hWnd);
+	if (outputMenu != NULL)	{DestroyMenu (outputMenu);}
+	outputMenu = CreateMenu();
+
+	mii.cbSize = sizeof (MENUITEMINFO);
+	mii.fMask = MIIM_TYPE | MIIM_SUBMENU;
+	mii.fType = MFT_STRING;
+	mii.hSubMenu = outputMenu;
+	if (PlayerLanguage == LANGUAGE_JAPANESE) {
+		mii.dwTypeData = TEXT("o—Í(&O)");
+	} else {
+		mii.dwTypeData = TEXT("Output(&O)");
+	}
+	InsertMenuItem(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &mii);
+
+	for (i = 0; play_mode_list[i] != 0; i++) {
+		mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
+		mii.wID = IDM_OUTPUT + i;
+		mii.fType = MFT_STRING;
+		if (st_temp->opt_playmode[0] == play_mode_list[i]->id_character) {
+			mii.fState = MFS_CHECKED;
+		} else {
+			mii.fState = MFS_UNCHECKED;
+		}
+		mii.dwTypeData = play_mode_list[i]->id_name;
+		InsertMenuItem(outputMenu, i, TRUE, &mii);
+	}
+
+	SetMenu(hWnd , hMenu);
+}
+
+static void UpdateOutputMenu(HWND hWnd, UINT wId)
+{
+	MENUITEMINFO mii;
+	int i, num = -1, oldnum;
+
+	for (i = 0; play_mode_list[i] != 0; i++) {
+		mii.cbSize = sizeof (MENUITEMINFO);
+		mii.fMask = MIIM_STATE | MIIM_ID;
+		GetMenuItemInfo(outputMenu, i, TRUE, &mii);
+		if (wId == mii.wID) {
+			mii.fState = MFS_CHECKED;
+			num = i;
+		} else {mii.fState = MFS_UNCHECKED;}
+		SetMenuItemInfo(outputMenu, i, TRUE, &mii);
+		if (st_temp->opt_playmode[0] == play_mode_list[i]->id_character) {
+			oldnum = i;
+		}
+	}
+	if (num != oldnum) {
+		if (num >= 0) {st_temp->opt_playmode[0] = play_mode_list[num]->id_character;}
+		else {st_temp->opt_playmode[0] = 'd';}
+		if(!w32g_play_active) {PrefSettingApplyReally();}
+	}
+}
+
 static void InitMainWnd(HWND hParentWnd)
 {
 	HICON hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
@@ -469,6 +536,8 @@ static void InitMainWnd(HWND hParentWnd)
 	  hMainWnd = CreateDialog(hInst,MAKEINTRESOURCE(IDD_DIALOG_MAIN),hParentWnd,MainProc);
 	else
 	  hMainWnd = CreateDialog(hInst,MAKEINTRESOURCE(IDD_DIALOG_MAIN_EN),hParentWnd,MainProc);
+	InitOutputMenu(hMainWnd);
+
 	if (hIcon!=NULL) SendMessage(hMainWnd,WM_SETICON,FALSE,(LPARAM)hIcon);
 	{  // Set the title of the main window again.
    	char buffer[256];
@@ -966,8 +1035,14 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
       case IDM_MHTIMIDITY:
 		  TiMidityWnd(hwnd);
 		  break;
+      case IDM_FORCE_RELOAD:
+		  if (!w32g_play_active) {reload_cfg();}
+		  break;
       case IDM_MHSUPPLEMENT:
 		  SupplementWnd(hwnd);
+		  break;
+	  default:
+		  UpdateOutputMenu(hwnd, wId);
 		  break;
     }
 }

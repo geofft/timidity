@@ -387,6 +387,20 @@ static void PrefSettingApply(void)
 #endif
 }
 
+void reload_cfg(void)
+{
+	free_instrument_map();
+	clean_up_pathlist();
+	free_instruments(0);
+	tmdy_free_config();
+	timidity_start_initialize();
+	read_config_file ( sp_temp->ConfigFile, 0 );
+	PrefSettingApply();
+#ifndef IA_W32G_SYN
+	TracerWndApplyQuietChannel(st_temp->quietchannels);
+#endif
+}
+
 static BOOL APIENTRY
 PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
@@ -459,19 +473,10 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		case IDC_BUTTON_CFG_RELOAD:
 		{
 			int i;
-			for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+			for (i = 0; i < PREF_PAGE_MAX; i++ ) {
 				SendMessage ( pref_pages[i].hwnd, WM_MYSAVE, (WPARAM)0, (LPARAM)0 );
 			}
-			free_instrument_map();
-			clean_up_pathlist();
-		    free_instruments(0);
-			tmdy_free_config();
-			timidity_start_initialize();
-			read_config_file ( sp_temp->ConfigFile, 0 );
-			PrefSettingApply();
-#ifndef IA_W32G_SYN
-			TracerWndApplyQuietChannel(st_temp->quietchannels);
-#endif
+			reload_cfg();
 			SetWindowLong(hwnd,	DWL_MSGRESULT, TRUE);
 		}
 			break;
@@ -1164,6 +1169,21 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
+// IDC_COMBO_SAMPLE_RATE
+#define cb_num_IDC_COMBO_SAMPLE_RATE 10
+static char *cb_info_IDC_COMBO_SAMPLE_RATE[] = {
+	"4000",
+	"8000",
+	"11025",
+	"16000",
+	"22050",
+	"24000",
+	"32000",
+	"40000",
+	"44100",
+	"48000",
+};
+
 // IDC_COMBO_BANDWIDTH
 #define cb_num_IDC_COMBO_BANDWIDTH 3
 enum {
@@ -1209,7 +1229,6 @@ static BOOL APIENTRY
 PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
 	static int initflag = 1;
-	int i;
 	switch (uMess){
    case WM_INITDIALOG:
 		{
@@ -1307,10 +1326,12 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,0,0);
 		}
-		SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,st_temp->output_rate,FALSE);
-#if 0		// Buggy
-		EnableWindow(GetDlgItem(hwnd,IDC_RADIOBUTTON_LIST_MIDI_EVENT),FALSE);
-#endif
+		// SAMPLE_RATE
+		for (i = 0; i < cb_num_IDC_COMBO_SAMPLE_RATE; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_SAMPLE_RATE,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info_IDC_COMBO_SAMPLE_RATE[i]);
+		SetDlgItemInt(hwnd, IDC_COMBO_SAMPLE_RATE, st_temp->output_rate, FALSE);
 		}
 		initflag = 0;
 		break;
@@ -1351,36 +1372,6 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			}
 		 }
 			break;
-		case IDC_BUTTON_LOW:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,11025,FALSE);
-		break;
-		case IDC_BUTTON_MIDDLE:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,22050,FALSE);
-		break;
-		case IDC_BUTTON_HIGH:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,44100,FALSE);
-		break;
-		case IDC_BUTTON_4:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,4000,FALSE);
-		break;
-		case IDC_BUTTON_8:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,8000,FALSE);
-		break;
-		case IDC_BUTTON_16:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,16000,FALSE);
-		break;
-		case IDC_BUTTON_24:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,24000,FALSE);
-		break;
-		case IDC_BUTTON_32:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,32000,FALSE);
-		break;
-		case IDC_BUTTON_40:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,40000,FALSE);
-		break;
-		case IDC_BUTTON_48:
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,48000,FALSE);
-		break;
 		case IDC_CHECKBOX_ULAW:
 			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_GETCHECK,0,0)){
 				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,1,0);
@@ -1578,7 +1569,7 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		if(SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_GETCHECK,0,0))
 			st_temp->opt_playmode[i++] = 'M';
 		st_temp->opt_playmode[i] = '\0';
-		st_temp->output_rate = GetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,NULL,FALSE);
+		st_temp->output_rate = GetDlgItemInt(hwnd, IDC_COMBO_SAMPLE_RATE, NULL, FALSE);
  		if(st_temp->auto_output_mode==0)
 			GetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputName,(WPARAM)sizeof(st_temp->OutputName));
 		else

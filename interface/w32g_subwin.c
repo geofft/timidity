@@ -398,7 +398,7 @@ void InitListWnd(HWND hParentWnd)
 		AppendMenu(ListWndInfo.hPopupMenu,MF_STRING,IDM_LISTWND_CURRENT,"現在位置");
 		AppendMenu(ListWndInfo.hPopupMenu,MF_STRING,IDM_LISTWND_SEARCH,"検索");
 		AppendMenu(ListWndInfo.hPopupMenu,MF_SEPARATOR,0,0);
-		AppendMenu(ListWndInfo.hPopupMenu,MF_STRING,IDM_LISTWND_REMOVE,"除く");
+		AppendMenu(ListWndInfo.hPopupMenu,MF_STRING,IDM_LISTWND_REMOVE,"削除");
 		AppendMenu(ListWndInfo.hPopupMenu,MF_SEPARATOR,0,0);
 		AppendMenu(ListWndInfo.hPopupMenu,MF_STRING,IDM_LISTWND_CHOOSEFONT,"フォントの選択");
 		break;
