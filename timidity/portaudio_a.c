@@ -42,6 +42,10 @@
 //#include <windows.h>
 #include <portaudio.h>
 
+#ifdef AU_PORTAUDIO_DLL
+#include "w32_portaudio.h"
+#endif
+
 #include "timidity.h"
 #include "common.h"
 #include "output.h"
@@ -82,6 +86,54 @@ padata_t pa_data;
 
 /* export the playback mode */
 
+#ifdef AU_PORTAUDIO_DLL
+static int open_output_asio(void);
+static int open_output_win_ds(void);
+static int open_output_win_wmme(void);
+PlayMode portaudio_asio_play_mode = {
+	(SAMPLE_RATE),
+    PE_16BIT|PE_SIGNED,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    -1,
+    {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
+	"PortAudio(ASIO)", 'o',
+    NULL,
+    open_output_asio,
+    close_output,
+    output_data,
+    acntl
+};
+PlayMode portaudio_win_ds_play_mode = {
+	(SAMPLE_RATE),
+    PE_16BIT|PE_SIGNED,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    -1,
+    {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
+	"PortAudio(DirectSound)", 'P',
+    NULL,
+    open_output_win_ds,
+    close_output,
+    output_data,
+    acntl
+};
+PlayMode portaudio_win_wmme_play_mode = {
+	(SAMPLE_RATE),
+    PE_16BIT|PE_SIGNED,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    -1,
+    {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
+	"PortAudio(WMME)", 'p',
+    NULL,
+    open_output_win_wmme,
+    close_output,
+    output_data,
+    acntl
+};
+PlayMode * volatile portaudio_play_mode = &portaudio_win_wmme_play_mode;
+#define dpm (*portaudio_play_mode)
+
+#else
+
 #define dpm portaudio_play_mode
 
 PlayMode dpm = {
@@ -97,6 +149,7 @@ PlayMode dpm = {
     output_data,
     acntl
 };
+#endif
 
 
 int paCallback(  void *inputBuffer, void *outputBuffer,
@@ -141,13 +194,46 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 
 }
 
+#ifdef AU_PORTAUDIO_DLL
+static int open_output_asio(void)
+{
+	portaudio_play_mode = &portaudio_asio_play_mode;
+	return open_output();
+}
+static int open_output_win_ds(void)
+{
+	portaudio_play_mode = &portaudio_win_ds_play_mode;
+	return open_output();
+}
+static int open_output_win_wmme(void)
+{
+	portaudio_play_mode = &portaudio_win_wmme_play_mode;
+	return open_output();
+}
+#endif
 
 static int open_output(void)
 {
 	double rate;
 	int n, nrates, include_enc, exclude_enc;
 	PaSampleFormat SampleFormat, nativeSampleFormats;
-	
+
+#ifdef AU_PORTAUDIO_DLL
+  {
+		if(&dpm == &portaudio_asio_play_mode){
+			if(load_portaudio_dll(PA_DLL_ASIO))
+				return -1;
+		} else if(&dpm == &portaudio_win_ds_play_mode){
+			if(load_portaudio_dll(PA_DLL_WIN_DS))
+				return -1;
+		} else if(&dpm == &portaudio_win_wmme_play_mode){
+			if(load_portaudio_dll(PA_DLL_WIN_WMME))
+				return -1;
+		} else {
+			return -1;
+		}
+  }
+#endif
 	if(pa_active == 0){
 		err = Pa_Initialize();
 		if( err != paNoError ) goto error;
@@ -159,7 +245,9 @@ static int open_output(void)
 	}
 
 	DeviceID = Pa_GetDefaultOutputDeviceID();
+	if(DeviceID==paNoDevice) goto error;
 	DeviceInfo = Pa_GetDeviceInfo( DeviceID);	
+	if(DeviceInfo==NULL) goto error;
 	nativeSampleFormats = DeviceInfo->nativeSampleFormats;
 
 	exclude_enc = PE_ULAW | PE_ALAW | PE_BYTESWAP;
@@ -214,6 +302,9 @@ static int open_output(void)
 
 error:
 	Pa_Terminate(); pa_active = 0;
+#ifdef AU_PORTAUDIO_DLL
+  free_portaudio_dll();
+#endif
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
@@ -268,10 +359,18 @@ static void close_output(void)
 //	if( err != paNoError ) goto error;
 	Pa_Terminate(); 
 	pa_active=0;
+
+#ifdef AU_PORTAUDIO_DLL
+  free_portaudio_dll();
+#endif
+
 	return;
 
 error:
 	Pa_Terminate(); pa_active=0;
+#ifdef AU_PORTAUDIO_DLL
+  free_portaudio_dll();
+#endif
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return;
 }

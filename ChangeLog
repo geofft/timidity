@@ -1,3 +1,8 @@
+2004-05-14  Daisuke Aoki <dai@sweetparty.ne.jp>
+
+	* timidity/{output.c,portaudio_a.c,w32_portaudio.h,w32_portaudio_dll.c}:
+	  Support for PortAudio DLL.
+
 2004-05-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/tclIndex: Resume order
