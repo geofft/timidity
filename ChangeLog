@@ -7,7 +7,7 @@
 	  Rename --effects -> --ext
 	  Rename -EFresample -> -EFresamp
 
-2003-10-03  mput <root@Mput.dip.jp>
+2003-10-03  mput <root@mput.dip.jp>
 
 	* timidity/Makefile.in: redo automake to fit with Iwai's commit
 
