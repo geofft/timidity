@@ -1,3 +1,9 @@
+2003-07-03  Takashi Iwai <tiwai@suse.de>
+
+	* configure.in: Support for tcltk 8.3/8.4
+	* timidity/readmidi.c (read_midi_file): Support for RMI
+	* timidity/sysdep.h: Fix in C99 bit width warranted integer types
+
 2003-06-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/mod2midi.c (Voice_SetVolume): converted linear volume

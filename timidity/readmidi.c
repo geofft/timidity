@@ -3290,6 +3290,20 @@ MidiEvent *read_midi_file(struct timidity_file *tf, int32 *count, int32 *sp,
 	readmidi_read_init();
 	err = read_rcp_file(tf, magic, fn);
     }
+    else if (strncmp(magic, "RIFF", 4) == 0) {
+       if (tf_read(magic, 1, 4, tf) == 4 &&
+           tf_read(magic, 1, 4, tf) == 4 &&
+           strncmp(magic, "RMID", 4) == 0 &&
+           tf_read(magic, 1, 4, tf) == 4 &&
+           strncmp(magic, "data", 4) == 0 &&
+           tf_read(magic, 1, 4, tf) == 4) {
+           goto retry_read;
+       } else {
+           err = 1;
+           ctl->cmsg(CMSG_WARNING, VERB_NORMAL,
+                     "%s: Not a MIDI file!", current_filename);
+       }
+    }
     else if(memcmp(magic, "melo", 4) == 0)
     {
 	readmidi_read_init();

@@ -80,16 +80,16 @@ extern int volatile_touch(void* dmy);
 
 
 /* integer type definitions: ISO C now knows a better way */
-#if __STDC_VERSION__ == 199901L
+#if __STDC_VERSION__ == 199901L || __GNUC__ >= 3
 #include <stdint.h> // int types are defined here
-typedef  int_fast8_t   int8;
-typedef uint_fast8_t  uint8;
-typedef  int_fast16_t  int16;
-typedef uint_fast16_t uint16;
-typedef  int_fast32_t  int32;
-typedef uint_fast32_t uint32;
-typedef  int_fast64_t  int64;
-typedef uint_fast64_t uint64;
+typedef  int8_t   int8;
+typedef uint8_t  uint8;
+typedef  int16_t  int16;
+typedef uint16_t uint16;
+typedef  int32_t  int32;
+typedef uint32_t uint32;
+typedef  int64_t  int64;
+typedef uint64_t uint64;
 #define TIMIDITY_HAVE_INT64 1
 
 #else /* not C99 */
@@ -113,10 +113,9 @@ typedef unsigned int  uint32;
 typedef          long  int64;
 typedef unsigned long uint64;
 #define TIMIDITY_HAVE_INT64 1
-#else
+#else /* 32bit architectures */
 typedef          long  int32;
 typedef unsigned long uint32;
-#endif
 #if __GNUC__
 /* gcc version<3 (gcc3 has c99 support) */
 typedef          long long  int64;
@@ -133,6 +132,7 @@ typedef SInt64  int64;
 typedef UInt64 uint64;
 #define TIMIDITY_HAVE_INT64 1
 #endif
+#endif /* 64bit arch */
 #endif /* C99 */
 
 
