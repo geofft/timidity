@@ -60,6 +60,7 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MARKER_END_CHAR		')'
 #define REDUCE_CHANNELS		16
 
+static uint8 rhythm_part[2];
 
 enum
 {
@@ -911,7 +912,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 		else if(p <= 9) {p--;}
 		p = MERGE_CHANNEL_PORT(p);
 
-		/* check Checksum */
+		/* calculate checksum */
 		checksum = 0;
 		gslen = 9;
 		while(val[gslen] != 0xF7) {gslen++;}
@@ -923,33 +924,21 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 			return num_events;
 		}
 
-		/* search drum channel for user drumset */ 
-		dp = (val[5] & 0xF0) >> 4;
-		for(i=0;i<32;i++) {
-			if(ISDRUMCHANNEL(i)) {
-				if(dp == 0) {
-					dp = i;
-					break;
-				}
-				dp = 0;
-			}
-		}
-		if(dp == 0) {dp = 9;}
-
-		/* for double module mode SysEx. */
-		if(val[4] == 0x50) {
-			p += 16;
-			val[4] = 0x40;
-		}
-		if(val[4] == 0x51) {val[4] = 0x41;}
+		/* drum channel */
+		dp = rhythm_part[(val[5] & 0xF0) >> 4];
 
 		/* calculate user drumset number */
 		udn = (val[5] & 0xF0) >> 4;
 
-		addr = (((int32)val[4])<<16 | ((int32)val[5])<<8 | (int32)val[6]);
 		addr_h = val[4];
 		addr_m = val[5];
 		addr_l = val[6];
+		if(addr_h == 0x50) {	/* for double module mode */
+			p += 16;
+			addr_h = 0x40;
+		}
+		else if(addr_h == 0x51) {addr_h = 0x41;}
+		addr = (((int32)addr_h)<<16 | ((int32)addr_m)<<8 | (int32)addr_l);
 
 		switch(addr_h) {	
 		case 0x40:
@@ -978,6 +967,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					}
 					break;
 				case 0x15:	/* Use for Rhythm Part */
+					if(val[7]) {
+						rhythm_part[val[7] - 1] = p;
+					}
 					break;
 				case 0x16:	/* Pitch Key Shift */
 					break;
@@ -1103,7 +1095,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning B (CH:%d %dcent)",p,val[18] - 64);
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			} else if((addr & 0xFFF000) == 0x402000) {
@@ -1115,7 +1107,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					num_events += 3;
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			} else if((addr & 0xFFFF00) == 0x400100) {
@@ -1285,7 +1277,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					num_events += 3;
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			} else if((addr & 0xFFFF00) == 0x400200) {
@@ -1315,7 +1307,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					num_events += 3;
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			} else if((addr & 0xFFFF00) == 0x400300) {
@@ -1442,7 +1434,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					recompute_insertion_effect();
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			} else if((addr & 0xFFF000) == 0x404000) {
@@ -1471,7 +1463,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					num_events += 3;
 					break;
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 				}
 			}
@@ -1520,7 +1512,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				num_events += 3;
 				break;
 			default:
-				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 				break;
 			}
 			break;
@@ -1552,7 +1544,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					break;
 #endif
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 			}
 			break;
@@ -1634,7 +1626,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					break;
 #endif
 				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
+					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
 					break;
 			}
 			break;
@@ -1690,14 +1682,16 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	    p--;
 	p = MERGE_CHANNEL_PORT(p);
 
-	if(val[4] == 0x50) {
+	if(val[4] == 0x50) {	/* for double module mode */
 		p += 16;
-		val[4] = 0x40;
+		addr = (((int32)0x40)<<16 |
+			((int32)val[5])<<8 |
+			(int32)val[6]);
+	} else {	/* single module mode */
+		addr = (((int32)val[4])<<16 |
+			((int32)val[5])<<8 |
+			(int32)val[6]);
 	}
-
-	addr = (((int32)val[4])<<16 |
-		((int32)val[5])<<8 |
-		(int32)val[6]);
 
 	if((addr & 0xFFF0FF) == 0x401015) /* Rhythm Parts */
 	{
@@ -3161,6 +3155,8 @@ void readmidi_read_init(void)
 	init_insertion_effect_status();
 	init_userdrum();
 	reset_env_attack();
+	rhythm_part[0] = 9;
+	rhythm_part[1] = 9;
 
     /* Put a do-nothing event first in the list for easier processing */
     evlist = current_midi_point = alloc_midi_event();
