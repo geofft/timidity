@@ -314,9 +314,7 @@ INCLUDES = \
 	-I$(top_srcdir)/timidity
 
 
-@VCPP_TRUE@noinst_DATA = utils.lib
-@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = utils.lib
-@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libutils.a
+noinst_LIBRARIES = libutils.a
 
 libutils_a_SOURCES = \
 	bitset.c \
@@ -369,17 +367,6 @@ libutils_LIBADD = \
 
 
 libutils_a_LIBADD = $(libutils_LIBADD)
-
-libutils_OBJECTS = \
-	bitset.$(OBJEXT) \
-	fft4g.$(OBJEXT) \
-	mblock.$(OBJEXT) \
-	memb.$(OBJEXT) \
-	nkflib.$(OBJEXT) \
-	strtab.$(OBJEXT) \
-	support.$(OBJEXT) \
-	timer.$(OBJEXT) 
-
 subdir = utils
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
@@ -456,8 +443,6 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libutils_a_SOURCES) $(EXTRA_libutils_a_SOURCES)
-DATA = $(noinst_DATA)
-
 DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/common.makefile.in \
 	Makefile.am
 SOURCES = $(libutils_a_SOURCES) $(EXTRA_libutils_a_SOURCES)
@@ -476,10 +461,6 @@ AR = ar
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libutils.a: $(libutils_a_OBJECTS) $(libutils_a_DEPENDENCIES) 
-	-rm -f libutils.a
-	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
-	$(RANLIB) libutils.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -613,7 +594,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(DATA)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
 install: install-am
@@ -698,13 +679,20 @@ uninstall-am: uninstall-info-am
 	ps ps-am tags uninstall uninstall-am uninstall-info-am
 
 
-@VCPP_TRUE@utils.lib: $(libutils_OBJECTS) $(libutils_a_LIBADD)
-@VCPP_TRUE@	link -lib $(libutils_OBJECTS) $(libutils_LIBADD) -out:$@
-
-@BORLANDC_TRUE@utils.lib: $(libutils_OBJECTS) $(libutils_a_LIBADD)
-@BORLANDC_TRUE@	for foo in  $(libutils_OBJECTS) $(libutils_a_LIBADD);do \
-@BORLANDC_TRUE@	  tlib $@ +$$foo; \
-@BORLANDC_TRUE@	done
+libutils.a: $(libutils_a_OBJECTS) $(libutils_a_DEPENDENCIES)
+@VCPP_TRUE@	rm -f libutils.a
+@VCPP_TRUE@	rm -f utils.lib
+@VCPP_TRUE@	link -lib $(libutils_a_OBJECTS) $(libutils_LIBADD) -out:utils.lib
+@VCPP_TRUE@	if test -f utils.lib ; then touch $@ ; fi
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f libutils.a
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f utils.lib
+@BORLANDC_TRUE@@VCPP_FALSE@	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \
+@BORLANDC_TRUE@@VCPP_FALSE@	  tlib utils.lib +$$foo; \
+@BORLANDC_TRUE@@VCPP_FALSE@	done
+@BORLANDC_TRUE@@VCPP_FALSE@	if test -f utils.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@VCPP_FALSE@	-rm -f libutils.a
+@BORLANDC_FALSE@@VCPP_FALSE@	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+@BORLANDC_FALSE@@VCPP_FALSE@	$(RANLIB) libutils.a
 
 clean:
 	rm -f *.$(OBJEXT)

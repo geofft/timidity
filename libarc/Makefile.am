@@ -23,15 +23,7 @@ INCLUDES = \
 	-I$(top_srcdir)/utils \
 	$(EXTRAINCS)
 
-if VCPP
-noinst_DATA = arc.lib
-else
-if BORLANDC
-noinst_DATA = arc.lib
-else
 noinst_LIBRARIES = libarc.a
-endif
-endif
 
 libarc_a_SOURCES = \
 	arc.c \
@@ -77,41 +69,25 @@ endif
 
 libarc_a_LIBADD = $(NET_OBJS)
 
-
-
-libarc_OBJS = \
-	arc.$(OBJEXT) \
-	arc_lzh.$(OBJEXT) \
-	arc_mime.$(OBJEXT) \
-	arc_tar.$(OBJEXT) \
-	arc_zip.$(OBJEXT) \
-	deflate.$(OBJEXT) \
-	explode.$(OBJEXT) \
-	inflate.$(OBJEXT) \
-	unlzh.$(OBJEXT) \
-	url.$(OBJEXT) \
-	url_b64decode.$(OBJEXT) \
-	url_buff.$(OBJEXT) \
-	url_cache.$(OBJEXT) \
-	url_dir.$(OBJEXT) \
-	url_file.$(OBJEXT) \
-	url_hqxdecode.$(OBJEXT) \
-	url_inflate.$(OBJEXT) \
-	url_mem.$(OBJEXT) \
-	url_pipe.$(OBJEXT) \
-	url_qsdecode.$(OBJEXT) \
-	url_uudecode.$(OBJEXT) 
-
+libarc.a: $(libarc_a_OBJECTS) $(libarc_a_DEPENDENCIES)
 if VCPP
-arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
-	link -lib $(libarc_OBJS) $(libarc_a_LIBADD) -out:$@
-endif
-
+	rm -f libarc.a
+	rm -f arc.lib
+	link -lib $(libarc_a_OBJECTS) $(libarc_a_LIBADD) -out:arc.lib
+	if test -f arc.lib ; then touch $@ ; fi
+else
 if BORLANDC
-arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
-	for foo in $(libarc_OBJS) $(libarc_a_LIBADD);do \
-	  tlib $@ +$$foo; \
+	rm -f libarc.a
+	rm -f arc.lib
+	for foo in $(libarc_a_OBJECTS) $(libarc_a_LIBADD);do \
+	  tlib arc.lib +$$foo; \
 	done
+	if test -f arc.lib ; then touch $@ ; fi
+else
+	-rm -f libarc.a
+	$(libarc_a_AR) libarc.a $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
+	$(RANLIB) libarc.a
+endif
 endif
 
 clean:

@@ -315,9 +315,7 @@ INCLUDES = \
 	$(EXTRAINCS)
 
 
-@VCPP_TRUE@noinst_DATA = arc.lib
-@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = arc.lib
-@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libarc.a
+noinst_LIBRARIES = libarc.a
 
 libarc_a_SOURCES = \
 	arc.c \
@@ -363,30 +361,6 @@ EXTRA_libarc_a_SOURCES = \
 
 
 libarc_a_LIBADD = $(NET_OBJS)
-
-libarc_OBJS = \
-	arc.$(OBJEXT) \
-	arc_lzh.$(OBJEXT) \
-	arc_mime.$(OBJEXT) \
-	arc_tar.$(OBJEXT) \
-	arc_zip.$(OBJEXT) \
-	deflate.$(OBJEXT) \
-	explode.$(OBJEXT) \
-	inflate.$(OBJEXT) \
-	unlzh.$(OBJEXT) \
-	url.$(OBJEXT) \
-	url_b64decode.$(OBJEXT) \
-	url_buff.$(OBJEXT) \
-	url_cache.$(OBJEXT) \
-	url_dir.$(OBJEXT) \
-	url_file.$(OBJEXT) \
-	url_hqxdecode.$(OBJEXT) \
-	url_inflate.$(OBJEXT) \
-	url_mem.$(OBJEXT) \
-	url_pipe.$(OBJEXT) \
-	url_qsdecode.$(OBJEXT) \
-	url_uudecode.$(OBJEXT) 
-
 subdir = libarc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
@@ -431,8 +405,6 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libarc_a_SOURCES) $(EXTRA_libarc_a_SOURCES)
-DATA = $(noinst_DATA)
-
 DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/common.makefile.in \
 	Makefile.am
 SOURCES = $(libarc_a_SOURCES) $(EXTRA_libarc_a_SOURCES)
@@ -451,10 +423,6 @@ AR = ar
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libarc.a: $(libarc_a_OBJECTS) $(libarc_a_DEPENDENCIES) 
-	-rm -f libarc.a
-	$(libarc_a_AR) libarc.a $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
-	$(RANLIB) libarc.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -599,7 +567,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(DATA)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
 install: install-am
@@ -684,13 +652,20 @@ uninstall-am: uninstall-info-am
 	ps ps-am tags uninstall uninstall-am uninstall-info-am
 
 
-@VCPP_TRUE@arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
-@VCPP_TRUE@	link -lib $(libarc_OBJS) $(libarc_a_LIBADD) -out:$@
-
-@BORLANDC_TRUE@arc.lib: $(libarc_OBJS) $(libarc_a_LIBADD)
-@BORLANDC_TRUE@	for foo in $(libarc_OBJS) $(libarc_a_LIBADD);do \
-@BORLANDC_TRUE@	  tlib $@ +$$foo; \
-@BORLANDC_TRUE@	done
+libarc.a: $(libarc_a_OBJECTS) $(libarc_a_DEPENDENCIES)
+@VCPP_TRUE@	rm -f libarc.a
+@VCPP_TRUE@	rm -f arc.lib
+@VCPP_TRUE@	link -lib $(libarc_a_OBJECTS) $(libarc_a_LIBADD) -out:arc.lib
+@VCPP_TRUE@	if test -f arc.lib ; then touch $@ ; fi
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f libarc.a
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f arc.lib
+@BORLANDC_TRUE@@VCPP_FALSE@	for foo in $(libarc_a_OBJECTS) $(libarc_a_LIBADD);do \
+@BORLANDC_TRUE@@VCPP_FALSE@	  tlib arc.lib +$$foo; \
+@BORLANDC_TRUE@@VCPP_FALSE@	done
+@BORLANDC_TRUE@@VCPP_FALSE@	if test -f arc.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@VCPP_FALSE@	-rm -f libarc.a
+@BORLANDC_FALSE@@VCPP_FALSE@	$(libarc_a_AR) libarc.a $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
+@BORLANDC_FALSE@@VCPP_FALSE@	$(RANLIB) libarc.a
 
 clean:
 	rm -f *.$(OBJEXT)

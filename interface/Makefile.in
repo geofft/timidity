@@ -319,9 +319,7 @@ INCLUDES = \
 	-I$(top_srcdir)/utils
 
 
-@VCPP_TRUE@noinst_DATA = interface.lib
-@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = interface.lib
-@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libinterface.a
+noinst_LIBRARIES = libinterface.a
 
 libinterface_a_SOURCES = \
 	dumb_c.c \
@@ -462,12 +460,6 @@ libinterface_dep = \
 	$(libinterface_a_LIBADD) \
 	$(tcltk_dep) \
 	$(W32GUI_DEPS)
-
-
-libinterface_OBJCTS = \
-	dumb_c.$(OBJEXT) \
-	wrdt_dumb.$(OBJEXT) \
-	wrdt_tty.$(OBJEXT)
 
 
 # Tcl interface sources
@@ -776,8 +768,6 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libinterface_a_SOURCES) $(EXTRA_libinterface_a_SOURCES)
-DATA = $(noinst_DATA)
-
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -1061,7 +1051,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LIBRARIES) $(DATA)
+all-am: Makefile $(LIBRARIES)
 installdirs: installdirs-recursive
 installdirs-am:
 
@@ -1157,16 +1147,19 @@ uninstall-info: uninstall-info-recursive
 
 
 libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-	-rm -f libinterface.a
-	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
-	$(RANLIB) libinterface.a
-
-@VCPP_TRUE@interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-@VCPP_TRUE@	link -lib $(libinterface_OBJCTS) $(libinterface_LIBADD) -out:$@
-@BORLANDC_TRUE@interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-@BORLANDC_TRUE@	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
-@BORLANDC_TRUE@	  tlib $@ +$$foo; \
-@BORLANDC_TRUE@	done	
+@VCPP_TRUE@	rm -f libinterface.a
+@VCPP_TRUE@	rm -f interface.lib
+@VCPP_TRUE@	link -lib $(libinterface_a_OBJECTS) $(libinterface_LIBADD) -out:interface.lib
+@VCPP_TRUE@	if test -f interface.lib ; then touch $@ ; fi
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f libinterface.a
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f interface.lib
+@BORLANDC_TRUE@@VCPP_FALSE@	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
+@BORLANDC_TRUE@@VCPP_FALSE@	  tlib interface.lib +$$foo; \
+@BORLANDC_TRUE@@VCPP_FALSE@	done
+@BORLANDC_TRUE@@VCPP_FALSE@	if test -f interface.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@VCPP_FALSE@	rm -f libinterface.a
+@BORLANDC_FALSE@@VCPP_FALSE@	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
+@BORLANDC_FALSE@@VCPP_FALSE@	$(RANLIB) libinterface.a
 
 .ptcl.tcl:
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@

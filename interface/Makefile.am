@@ -27,15 +27,7 @@ INCLUDES = \
 	-I$(top_srcdir)/libarc \
 	-I$(top_srcdir)/utils
 
-if VCPP
-noinst_DATA = interface.lib
-else
-if BORLANDC
-noinst_DATA = interface.lib
-else
 noinst_LIBRARIES = libinterface.a
-endif
-endif
 
 libinterface_a_SOURCES = \
 	dumb_c.c \
@@ -187,24 +179,24 @@ libinterface_dep = \
 	$(W32GUI_DEPS)
 
 libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-	-rm -f libinterface.a
+if VCPP
+	rm -f libinterface.a
+	rm -f interface.lib
+	link -lib $(libinterface_a_OBJECTS) $(libinterface_LIBADD) -out:interface.lib
+	if test -f interface.lib ; then touch $@ ; fi
+else
+if BORLANDC
+	rm -f libinterface.a
+	rm -f interface.lib
+	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
+	  tlib interface.lib +$$foo; \
+	done
+	if test -f interface.lib ; then touch $@ ; fi
+else
+	rm -f libinterface.a
 	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
 	$(RANLIB) libinterface.a
-
-libinterface_OBJCTS = \
-	dumb_c.$(OBJEXT) \
-	wrdt_dumb.$(OBJEXT) \
-	wrdt_tty.$(OBJEXT)
-
-if VCPP
-interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-	link -lib $(libinterface_OBJCTS) $(libinterface_LIBADD) -out:$@
 endif
-if BORLANDC
-interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
-	  tlib $@ +$$foo; \
-	done	
 endif
 
 # Tcl interface sources

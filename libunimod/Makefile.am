@@ -25,15 +25,7 @@ INCLUDES = \
 	-I$(top_srcdir)/libarc \
 	$(EXTRAINCS)
 
-if VCPP
-noinst_DATA = unimod.lib
-else
-if BORLANDC
-noinst_DATA = unimod.lib
-else
 noinst_LIBRARIES = libunimod.a
-endif
-endif
 
 libunimod_a_SOURCES = \
 	load_669.c \
@@ -61,41 +53,27 @@ libunimod_a_SOURCES = \
 	unimod.h \
 	unimod_priv.h
 
-
-unimod_OBJS = \
-	load_669.$(OBJEXT) \
-	load_amf.$(OBJEXT) \
-	load_dsm.$(OBJEXT) \
-	load_far.$(OBJEXT) \
-	load_gdm.$(OBJEXT) \
-	load_imf.$(OBJEXT) \
-	load_it.$(OBJEXT) \
-	load_m15.$(OBJEXT) \
-	load_med.$(OBJEXT) \
-	load_mod.$(OBJEXT) \
-	load_mtm.$(OBJEXT) \
-	load_okt.$(OBJEXT) \
-	load_s3m.$(OBJEXT) \
-	load_stm.$(OBJEXT) \
-	load_stx.$(OBJEXT) \
-	load_ult.$(OBJEXT) \
-	load_uni.$(OBJEXT) \
-	load_xm.$(OBJEXT) \
-	mloader.$(OBJEXT) \
-	mlutil.$(OBJEXT) \
-	mmsup.$(OBJEXT) \
-	munitrk.$(OBJEXT) 
-
+libunimod.a: $(libunimod_a_OBJECTS) $(libunimod_a_DEPENDENCIES)
 if VCPP	
-unimod.lib: $(unimod_OBJS)
-	link -lib $(unimod_OBJS) -out:$@
-endif
+	rm -f libunimod.a
+	rm -f unimod.lib
+	link -lib $(libunimod_a_OBJECTS) -out:unimod.lib
+	if test -f unimod.lib ; then touch $@ ; fi
+else
 if BORLANDC
-unimod.lib: $(unimod_OBJS)
-	for foo in  $(unimod_OBJS);do \
-	  tlib $@ +$$foo; \
-	done	
+	rm -f libunimod.a
+	rm -f unimod.lib
+	for foo in  $(libunimod_a_OBJECTS);do \
+	  tlib unimod.lib +$$foo; \
+	done
+	if test -f unimod.lib ; then touch $@ ; fi
+else
+	-rm -f libunimod.a
+	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
+	$(RANLIB) libunimod.a
 endif
+endif
+
 clean:
 	rm -f *.$(OBJEXT)
 	rm -f *.$(so)

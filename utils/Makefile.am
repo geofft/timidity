@@ -22,15 +22,7 @@ INCLUDES = \
 	-I$(top_srcdir)/libarc \
 	-I$(top_srcdir)/timidity
 
-if VCPP
-noinst_DATA = utils.lib
-else
-if BORLANDC
-noinst_DATA = utils.lib
-else
 noinst_LIBRARIES = libutils.a
-endif
-endif
 
 libutils_a_SOURCES = \
 	bitset.c \
@@ -89,28 +81,25 @@ libutils_LIBADD= \
 
 libutils_a_LIBADD=$(libutils_LIBADD)
 
-libutils_OBJECTS = \
-	bitset.$(OBJEXT) \
-	fft4g.$(OBJEXT) \
-	mblock.$(OBJEXT) \
-	memb.$(OBJEXT) \
-	nkflib.$(OBJEXT) \
-	strtab.$(OBJEXT) \
-	support.$(OBJEXT) \
-	timer.$(OBJEXT) 
-
+libutils.a: $(libutils_a_OBJECTS) $(libutils_a_DEPENDENCIES)
 if VCPP
-utils.lib: $(libutils_OBJECTS) $(libutils_a_LIBADD)
-	link -lib $(libutils_OBJECTS) $(libutils_LIBADD) -out:$@
-
-endif
-
+	rm -f libutils.a
+	rm -f utils.lib
+	link -lib $(libutils_a_OBJECTS) $(libutils_LIBADD) -out:utils.lib
+	if test -f utils.lib ; then touch $@ ; fi
+else
 if BORLANDC
-utils.lib: $(libutils_OBJECTS) $(libutils_a_LIBADD)
-	for foo in  $(libutils_OBJECTS) $(libutils_a_LIBADD);do \
-	  tlib $@ +$$foo; \
+	rm -f libutils.a
+	rm -f utils.lib
+	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \
+	  tlib utils.lib +$$foo; \
 	done
-	
+	if test -f utils.lib ; then touch $@ ; fi
+else
+	-rm -f libutils.a
+	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+	$(RANLIB) libutils.a
+endif
 endif
 
 clean:

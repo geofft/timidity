@@ -317,9 +317,7 @@ INCLUDES = \
 	$(EXTRAINCS)
 
 
-@VCPP_TRUE@noinst_DATA = unimod.lib
-@BORLANDC_TRUE@@VCPP_FALSE@noinst_DATA = unimod.lib
-@BORLANDC_FALSE@@VCPP_FALSE@noinst_LIBRARIES = libunimod.a
+noinst_LIBRARIES = libunimod.a
 
 libunimod_a_SOURCES = \
 	load_669.c \
@@ -346,31 +344,6 @@ libunimod_a_SOURCES = \
 	munitrk.c \
 	unimod.h \
 	unimod_priv.h
-
-
-unimod_OBJS = \
-	load_669.$(OBJEXT) \
-	load_amf.$(OBJEXT) \
-	load_dsm.$(OBJEXT) \
-	load_far.$(OBJEXT) \
-	load_gdm.$(OBJEXT) \
-	load_imf.$(OBJEXT) \
-	load_it.$(OBJEXT) \
-	load_m15.$(OBJEXT) \
-	load_med.$(OBJEXT) \
-	load_mod.$(OBJEXT) \
-	load_mtm.$(OBJEXT) \
-	load_okt.$(OBJEXT) \
-	load_s3m.$(OBJEXT) \
-	load_stm.$(OBJEXT) \
-	load_stx.$(OBJEXT) \
-	load_ult.$(OBJEXT) \
-	load_uni.$(OBJEXT) \
-	load_xm.$(OBJEXT) \
-	mloader.$(OBJEXT) \
-	mlutil.$(OBJEXT) \
-	mmsup.$(OBJEXT) \
-	munitrk.$(OBJEXT) 
 
 subdir = libunimod
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -410,8 +383,6 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libunimod_a_SOURCES)
-DATA = $(noinst_DATA)
-
 DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/common.makefile.in \
 	AUTHORS Makefile.am
 SOURCES = $(libunimod_a_SOURCES)
@@ -430,10 +401,6 @@ AR = ar
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libunimod.a: $(libunimod_a_OBJECTS) $(libunimod_a_DEPENDENCIES) 
-	-rm -f libunimod.a
-	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
-	$(RANLIB) libunimod.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -575,7 +542,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(DATA)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
 install: install-am
@@ -660,12 +627,21 @@ uninstall-am: uninstall-info-am
 	ps ps-am tags uninstall uninstall-am uninstall-info-am
 
 
-@VCPP_TRUE@unimod.lib: $(unimod_OBJS)
-@VCPP_TRUE@	link -lib $(unimod_OBJS) -out:$@
-@BORLANDC_TRUE@unimod.lib: $(unimod_OBJS)
-@BORLANDC_TRUE@	for foo in  $(unimod_OBJS);do \
-@BORLANDC_TRUE@	  tlib $@ +$$foo; \
-@BORLANDC_TRUE@	done	
+libunimod.a: $(libunimod_a_OBJECTS) $(libunimod_a_DEPENDENCIES)
+@VCPP_TRUE@	rm -f libunimod.a
+@VCPP_TRUE@	rm -f unimod.lib
+@VCPP_TRUE@	link -lib $(libunimod_a_OBJECTS) -out:unimod.lib
+@VCPP_TRUE@	if test -f unimod.lib ; then touch $@ ; fi
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f libunimod.a
+@BORLANDC_TRUE@@VCPP_FALSE@	rm -f unimod.lib
+@BORLANDC_TRUE@@VCPP_FALSE@	for foo in  $(libunimod_a_OBJECTS);do \
+@BORLANDC_TRUE@@VCPP_FALSE@	  tlib unimod.lib +$$foo; \
+@BORLANDC_TRUE@@VCPP_FALSE@	done
+@BORLANDC_TRUE@@VCPP_FALSE@	if test -f unimod.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@VCPP_FALSE@	-rm -f libunimod.a
+@BORLANDC_FALSE@@VCPP_FALSE@	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
+@BORLANDC_FALSE@@VCPP_FALSE@	$(RANLIB) libunimod.a
+
 clean:
 	rm -f *.$(OBJEXT)
 	rm -f *.$(so)
