@@ -1,3 +1,9 @@
+2004-06-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/alsaseq_c.c, interface/rtsyn_common.c,
+	  timidity/playmidi.[ch], timidity/timidity.[ch]:
+	  Interlock interfaces with -K and -T command options
+
 2004-06-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/loadtab.c, timidity/tables.[ch]:

@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 #ifdef HAVE_CONFIG_H
@@ -74,7 +74,6 @@ int opt_trace_text_meta_event = 1;
 int opt_trace_text_meta_event = 0;
 #endif /* ALWAYS_TRACE_TEXT_META_EVENT */
 
-FLOAT_T tempo_adjust = 1.0;
 int opt_default_mid = 0;
 int opt_system_mid = 0;
 int ignore_midi_error = 1;
@@ -4991,7 +4990,6 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	if(meep->event.type == ME_TEMPO)
 	{
 	    tempo = ch + meep->event.b * 256 + meep->event.a * 65536;
-	    tempo *= tempo_adjust;
 	    compute_sample_increment(tempo, divisions);
 	}
 

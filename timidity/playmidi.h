@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,11 +15,10 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-   playmidi.h
-
-   */
+    playmidi.h
+*/
 
 #ifndef ___PLAYMIDI_H_
 #define ___PLAYMIDI_H_
@@ -567,6 +566,7 @@ extern int temper_adj;
 extern int8 opt_init_keysig;
 extern int8 opt_force_keysig;
 extern int key_adjust;
+extern FLOAT_T tempo_adjust;
 extern int opt_pure_intonation;
 extern int current_freq_table;
 extern int32 opt_drum_power;

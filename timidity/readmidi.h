@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,11 +15,10 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-   readmidi.h
-
-   */
+    readmidi.h
+*/
 
 #ifndef ___READMIDI_H_
 #define ___READMIDI_H_
@@ -147,7 +146,6 @@ extern int ignore_midi_error;
 extern int readmidi_error_flag;
 extern int readmidi_wrd_mode;
 extern int play_system_mode;
-extern FLOAT_T tempo_adjust;
 
 extern void recompute_delay_status_gs(void);
 extern void set_delay_macro_gs(int);

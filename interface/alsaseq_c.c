@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,12 +15,12 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     alsaseq_c.c - ALSA sequencer server interface
         Copyright (c) 2000  Takashi Iwai <tiwai@suse.de>
 
-    This interface provides an ALSA sequencer client which receives 
+    This interface provides an ALSA sequencer client which receives
     events and plays it in real-time.  On this mode, TiMidity works
     as a software (quasi-)real-time MIDI synth engine.
 
@@ -355,7 +355,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 	opt_realtime_playing = 1; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
 	current_keysig = (opt_init_keysig == 8) ? 0 : opt_init_keysig;
-	note_key_offset = 0;
+	note_key_offset = key_adjust;
 
 	if (IS_STREAM_TRACE) {
 		/* set the audio queue size as minimum as possible, since
@@ -392,7 +392,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		}
 	}
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
-	while (i != 7 && i != 19)
+	while (i != 7)
 		i += (i < 7) ? 5 : -7, j++;
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;

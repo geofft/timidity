@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,8 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     rtsyn_common.c
         Copyright (c) 2003  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
@@ -266,7 +265,7 @@ void rtsyn_init(void){
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
 	auto_reduce_polyphony = 0;
 	current_keysig = (opt_init_keysig == 8) ? 0 : opt_init_keysig;
-	note_key_offset = 0;
+	note_key_offset = key_adjust;
 	time_advance=play_mode->rate/TICKTIME_HZ*2;
 	if (!(play_mode->encoding & PE_MONO))
 		time_advance >>= 1;
@@ -285,7 +284,7 @@ void rtsyn_init(void){
 		}
 	}
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
-	while (i != 7 && i != 19)
+	while (i != 7)
 		i += (i < 7) ? 5 : -7, j++;
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;

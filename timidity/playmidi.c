@@ -124,6 +124,7 @@ int playmidi_seek_flag = 0;
 int play_pause_flag = 0;
 static int file_from_stdin;
 int key_adjust = 0;
+FLOAT_T tempo_adjust = 1.0;
 int opt_pure_intonation = 0;
 int current_freq_table = 0;
 int current_temper_freq_table = 0;
@@ -1857,7 +1858,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 					channel[ch].special_sample);
 			return 0;
 		}
-		note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
+		note = e->a + channel[ch].key_shift + note_key_offset;
 		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
 		return select_play_sample(s->sample, s->samples, &note, vlist, e);
 	}
@@ -1883,7 +1884,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 				return 0;	/* No instrument? Then we can't play. */
 		}
 		note = ((ip->sample->note_to_use) ? ip->sample->note_to_use : e->a)
-				+ channel[ch].key_shift + note_key_offset + key_adjust;
+				+ channel[ch].key_shift + note_key_offset;
 		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
 	}
 	nv = select_play_sample(ip->sample, ip->samples, &note, vlist, e);
@@ -7929,7 +7930,7 @@ int play_event(MidiEvent *ev)
 			ctl_mode_event(CTLE_KEY_OFFSET, 1, note_key_offset, 0);
 		}
 		i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
-		while (i != 7 && i != 19)
+		while (i != 7)
 			i += (i < 7) ? 5 : -7, j++;
 		j += note_key_offset, j -= floor(j / 12.0) * 12;
 		current_freq_table = j;
@@ -8455,8 +8456,8 @@ int play_midi_file(char *fn)
 
     /* Reset key & speed each files */
     current_keysig = (opt_init_keysig == 8) ? 0 : opt_init_keysig;
-    note_key_offset = 0;
-    midi_time_ratio = 1.0;
+    note_key_offset = key_adjust;
+    midi_time_ratio = tempo_adjust;
 	for (i = 0; i < MAX_CHANNELS; i++) {
 		for (j = 0; j < 12; j++)
 			channel[i].scale_tuning[j] = 0;
@@ -8497,7 +8498,7 @@ int play_midi_file(char *fn)
 	}
 	ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
-	while (i != 7 && i != 19)
+	while (i != 7)
 		i += (i < 7) ? 5 : -7, j++;
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
@@ -8750,8 +8751,8 @@ void playmidi_stream_init(void)
     int i;
     static int first = 1;
 
-    note_key_offset = 0;
-    midi_time_ratio = 1.0;
+    note_key_offset = key_adjust;
+    midi_time_ratio = tempo_adjust;
     CLEAR_CHANNELMASK(channel_mute);
 	if (temper_type_mute & 1)
 		FILL_CHANNELMASK(channel_mute);
