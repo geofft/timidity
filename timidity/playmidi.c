@@ -104,6 +104,8 @@ static int ok_nv = 32;
 static int old_rate = -1;
 #endif
 
+static int midi_streaming=0;
+int volatile stream_max_compute=500; //compute time limit (in msec) when streaming
 static int prescanning_flag;
 static int32 midi_restart_time = 0;
 Channel channel[MAX_CHANNELS];
@@ -5366,30 +5368,29 @@ int play_event(MidiEvent *ev)
     {
 	int rc;
 
-#ifdef IA_W32G_SYN
-	{
-		extern int volatile w32g_syn_sh_time;
-		if ( (cet - current_sample) * 1000 / play_mode->rate > w32g_syn_sh_time ) {
+
+    if(midi_streaming!=0){
+    	if ( (cet - current_sample) * 1000 / play_mode->rate > stream_max_compute ) {
 			kill_all_voices();
 //			reset_voices();
 //			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample);
 			current_sample = cet;
 		}
-	}
-#endif
+    }
 
 	rc = compute_data(cet - current_sample);
 	ctl_mode_event(CTLE_REFRESH, 0, 0, 0);
-	if(rc == RC_JUMP)
+    if(rc == RC_JUMP)
 	{
-	    ctl_timestamp();
-	    return RC_NONE;
+		ctl_timestamp();
+		return RC_NONE;
 	}
 	if(rc != RC_NONE)
 	    return rc;
-    }
+	}
+ 
 
-    ch = ev->channel;
+	ch = ev->channel;
     switch(ev->type)
     {
 	/* MIDI Events */
@@ -6323,6 +6324,7 @@ void playmidi_stream_init(void)
 	first = 0;
         init_mblock(&playmidi_pool);
 	current_file_info = get_midi_file_info("TiMidity", 1);
+    midi_streaming=1;
     }
     else
         reuse_mblock(&playmidi_pool);

@@ -481,7 +481,7 @@ static int is_device_output_ID(int id)
 extern int w32g_syn_id_port[];
 extern int syn_ThreadPriority;
 extern int w32g_syn_port_num;
-extern int volatile w32g_syn_sh_time;
+extern int volatile stream_max_compute;
 #endif
 
 void
@@ -605,7 +605,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	}
 	syn_ThreadPriority = st->syn_ThreadPriority;
 	w32g_syn_port_num = st->SynPortNum;
-	w32g_syn_sh_time = st->SynShTime;
+	stream_max_compute = st->SynShTime;
 #endif
 }
 
@@ -748,7 +748,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	}
 	st->syn_ThreadPriority = syn_ThreadPriority;
 	st->SynPortNum = w32g_syn_port_num;
-	st->SynShTime = w32g_syn_sh_time;
+	st->SynShTime = stream_max_compute;
 #endif
 }
 

@@ -94,7 +94,10 @@
 
 extern char *opt_aq_max_buff,*opt_aq_fill_buff;
 extern  int midi_port_number;
+extern int32 current_sample;
+extern FLOAT_T midi_time_ratio;
 
+extern int volatile stream_max_compute;	// play_event() ‚Ì compute_data() ‚ÅŒvŽZ‚ð‹–‚·Å‘åŽžŠÔ
 int playdone;
 int seq_playing;
 int seq_quit;
@@ -104,12 +107,17 @@ int system_mode=DEFAULT_SYSTEM_MODE;
 #define MAX_PORT 4
 int portnumber=1;
 
+#define MAX_EXBUF 20
+#define BUFF_SIZE 256
+
 HMIDIIN  hMidiIn[MAX_PORT];
 HMIDIOUT hMidiOut[MAX_PORT];
 UINT InNum,wInID[MAX_PORT];
-MIDIHDR *IMidiHdr[MAX_PORT][20];
+MIDIHDR *IMidiHdr[MAX_PORT][MAX_EXBUF];
 
-#define BUFF_SIZE 512
+char sIMidiHdr[MAX_PORT][MAX_EXBUF][sizeof(MIDIHDR)];
+char sImidiHdr_data[MAX_PORT][MAX_EXBUF][BUFF_SIZE];
+
 
 struct evbuf_t{
 	int status;
@@ -131,7 +139,6 @@ enum{B_OK, B_WORK, B_END};
 double starttime;
 static int time_advance;
 extern double play_start_time;
-double high_time_at=0.0;
 double lastdintime;
 
 //acitive sensing
@@ -162,7 +169,7 @@ static char sysex_resets[EX_RESET_NO][11]={
 	'\xf0','\x43','\x10','\x4c','\x00','\x00','\x7E','\x00','\xf7','\x00','\x00'  //XG on
 	};
 */
-#define TICKTIME_HZ 50
+#define TICKTIME_HZ 200
 
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
@@ -298,7 +305,6 @@ static void ctl_pass_playing_list(int n, char *args[])
 int ctl_pass_playing_list2(int n, char *args[])
 #endif
 {
-	double btime;
 	int i, j;
 	UINT ID[MAX_PORT];
 	MidiEvent ev;
@@ -405,8 +411,6 @@ int ctl_pass_playing_list2(int n, char *args[])
 		time_advance >>= 1;
 	if (play_mode->encoding & PE_16BIT)
 		time_advance >>= 1;
-	btime = (double)time_advance / play_mode->rate;
-	btime *= 1.01; /* to be sure */	
 
 	if (opt_force_keysig != 8) {
 		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
@@ -423,12 +427,10 @@ int ctl_pass_playing_list2(int n, char *args[])
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
 
-	play_mode->close_output();
-	play_mode->open_output();	
-	seq_reset();
 
+/*
 	for(port=0;port<portnumber;port++){
-		for (i=0;i<20;i++){
+		for (i=0;i<MAX_EXBUF;i++){
 			IMidiHdr[port][i] = (MIDIHDR*)safe_malloc(sizeof(MIDIHDR));
 			memset(IMidiHdr[port][i],0,sizeof(MIDIHDR));
     		IMidiHdr[port][i]->lpData = (char*)safe_malloc(BUFF_SIZE);
@@ -436,32 +438,46 @@ int ctl_pass_playing_list2(int n, char *args[])
     		IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
 		}
 	}
-
+*/
+	for(port=0;port<portnumber;port++){
+		for (i=0;i<MAX_EXBUF;i++){
+			IMidiHdr[port][i] = sIMidiHdr[port][i];
+			memset(IMidiHdr[port][i],0,sizeof(MIDIHDR));
+    		IMidiHdr[port][i]->lpData = sImidiHdr_data[port][i];
+			memset((IMidiHdr[port][i]->lpData),0,BUFF_SIZE);
+    		IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
+		}
+	}
+	
 	evbuf[0].status=B_END;
 	evbwpoint=0;
 	evbrpoint=0;
 	mvbuse=0;
 	
 	seq_quit=0;
-	
-	ev.type=ME_RESET;
-	ev.a=GS_SYSTEM_MODE; //GM is mor better ???
-	seq_play_event(&ev);
 
-	system_mode=DEFAULT_SYSTEM_MODE;
-	change_system_mode(system_mode);
 
 	for(port=0;port<portnumber;port++){
 		midiInOpen(&hMidiIn[port],wInID[port],(DWORD)MidiInProc,(DWORD)port,CALLBACK_FUNCTION);
-		for (i=0;i<20;i++){
+		for (i=0;i<MAX_EXBUF;i++){
 			midiInPrepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 			midiInAddBuffer(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 		}
 	}	
-	for(port=0;port<portnumber;port++){
+		for(port=0;port<portnumber;port++){
 	if(MMSYSERR_NOERROR !=midiInStart(hMidiIn[port]))
 		printf("midiInStarterror\n");
 	}
+
+	seq_reset();
+	
+	system_mode=DEFAULT_SYSTEM_MODE;
+	change_system_mode(system_mode);
+
+	ev.type=ME_RESET;
+	ev.a=GS_SYSTEM_MODE; //GM is mor better ???
+	seq_play_event(&ev);
+
 /*
 	ev.channel=0x00;
 	ev.a=0x3c;
@@ -469,11 +485,14 @@ int ctl_pass_playing_list2(int n, char *args[])
 	ev.type = ME_NOTEON;
 	seq_play_event(&ev);
     ev.type = ME_NOTEOFF;
-    seq_play_event(&ev);
+	seq_play_event(&ev);
 
 	for(i=0;i<0.4*TICKTIME_HZ;i++){
 			ev.type = ME_NONE;
-			seq_play_event(&ev);
+			seq_set_time(&ev);
+			play_event(&ev);
+			aq_fill_nonblocking();
+
 	}
 */
 
@@ -492,14 +511,16 @@ int ctl_pass_playing_list2(int n, char *args[])
 	
 	for(port=0;port<portnumber;port++){
 		midiInReset(hMidiIn[port]);
-		for (i=0;i<20;i++){
+		for (i=0;i<MAX_EXBUF;i++){
    			midiInUnprepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 		}
     	midiInClose(hMidiIn[port]);
-		for (i=0;i<20;i++){
+/*
+		for (i=0;i<MAX_EXBUF;i++){
 			free(IMidiHdr[port][i]->lpData);
 			free(IMidiHdr[port][i]);
 		}
+*/
 	}
 
 #ifdef IA_W32G_SYN
@@ -518,28 +539,28 @@ static void seq_reset(void){
 void seq_play_event(MidiEvent *ev)
 {
   int gch;
+  int32 cet;
 	gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
 	if(gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel) ){
     if ( !seq_quit ) {
-			seq_set_time(ev);
+			ev->time=0;
 			play_event(ev);
-			aq_fill_nonblocking();
 		}
 	}
 }
 
 void seq_set_time(MidiEvent *ev)
 {
-	double past_time;
-	event_time_offset = time_advance;
+	double past_time,btime;
+	event_time_offset = (int32)time_advance;
 	past_time = get_current_calender_time() - starttime;
-	if(play_mode->flag & PF_PCM_STREAM)
-		past_time += high_time_at;
 	ev->time = (int32)((past_time) * play_mode->rate);
-	ev->time += (int32)event_time_offset;
+	ev->time += (int32)event_time_offset; 
+
+	btime = (double)((ev->time-current_sample/midi_time_ratio)/play_mode->rate);
+	btime *= 1.01; /* to be sure */
+	aq_set_soft_queue(btime, 0.0);
 }
-
-
 
 static void stop_playing(void)
 {
@@ -585,6 +606,7 @@ static void doit(void)
 				case 'x':
 					ev.type=ME_RESET;
 					ev.a=XG_SYSTEM_MODE;
+					ev.time=0;
 					seq_play_event(&ev);
 				break;
 				
@@ -691,9 +713,10 @@ void winplaymidi(void){
 		winplaymidi_active_start_time = 0;
 	}
 #endif
-
 	ev.type = ME_NONE;
-	seq_play_event(&ev);
+	seq_set_time(&ev);
+	play_event(&ev);
+	aq_fill_nonblocking();
 
 	if(active_sensing_flag==~0 && (get_current_calender_time() > active_sensing_time+0.5)){
 //normaly acitive sensing expiering time is 330ms(>300ms) but this loop is heavy
@@ -821,11 +844,8 @@ void play_one_data (void){
 			break;
 		}
 		if (ev.type != ME_NONE) {
-
 			seq_play_event(&ev);
 			seq_playing=~0;
-			evbuf[evbpoint].status=B_END;
-				
 		}
 		break;
 	case MIM_LONGDATA:		
@@ -859,7 +879,7 @@ void play_one_data (void){
 			}
 			if(ne=parse_sysex_event_multi(exlbuf+1,exlen-1, evm)){
 				for (i = 0; i < ne; i++){
-					seq_play_event(&evm[i]);			
+					seq_play_event(&evm[i]);
 				}				
 			}
 		}

@@ -202,7 +202,7 @@ extern int system_mode;
 HANDLE msg_loopbuf_hMutex = NULL; // 排他処理用
 int syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
-int volatile w32g_syn_sh_time = 500;	// play_event() の compute_data() で計算を許す最大時間。
+extern int volatile stream_max_compute;	// play_event() の compute_data() で計算を許す最大時間。
 
 static int w32g_syn_create_win ( void );
 static int w32g_syn_main ( void );
