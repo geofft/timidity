@@ -264,8 +264,10 @@ ConvertNote (MODNOTE * n)
     effdat = 0x40;
 
   /* Ignore 100, 200 and 300 (there is no porta memory in mod files) */
+#if 0		/* space_debris.mod uses 300 and porta memory!! */
   if ((!effdat) && ((effect == 1)||(effect == 2)||(effect ==3)))
     effect = 0;
+#endif
 
   UniPTEffect (effect, effdat);
 }

@@ -1,9 +1,13 @@
+2004-05-24  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* libunimod/load_mod.c (ConvertNote): Bug fix
+
 2004-05-24  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
 
-	* configure.in 
-	  interface/Makefile.am 
+	* configure.in
+	  interface/Makefile.am
 	  libarc/Makefile.am
-	  libunimod/Makefile.am 
+	  libunimod/Makefile.am
 	  timidity/Makefile.am
 	  timidity/sysdep.h
 	  utils/Makefile.am
@@ -14,7 +18,7 @@
 	  timidity/timidity.c
 	  timidity/timidity.c
 	  interface/wrdt_wcon.c:
-	  Can compile VCC or BCC in Msys or Cygwin environment.	  
+	  Can compile VCC or BCC in Msys or Cygwin environment.
 	* timidity/timidity.c
 	  interface.h.in:
 	  Don't use ANOTHER_MAIN in timw32g and twsyn.
