@@ -2967,6 +2967,12 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 		counting_time = 1;
 	    break;
 
+	  case ME_GSLCD:
+	    if (counting_time && ctl->trace_playing)
+		counting_time = 1;
+	    skip_this_event = !ctl->trace_playing;
+	    break;
+
 	  case ME_DRUMPART:
 	    midi_drumpart_change(ch, meep->event.a);
 	    break;
@@ -3383,7 +3389,7 @@ MidiEvent *read_midi_file(struct timidity_file *tf, int32 *count, int32 *sp,
 		MidiEventList *e;
 		int32 i;
 		for(i = 0, e = evlist; i < event_count; i++, e = e->next)
-		    if(e->event.type == ME_WRD)
+		    if (e->event.type == ME_WRD || e->event.type == ME_SHERRY)
 			e->event.type = ME_NONE;
 	    }
     }
