@@ -18,6 +18,7 @@
 	  timidity/w32_a.c, timidity/aq.c,
 	  timidity/effect.c, timidity/timidity.c, interface/w32g_utl.c:
 	  Fix some codes for 24bit output.
+	  Swap s32tos24() and s32tos24x().
 	* timidity/reverb.[ch], timidity/playmidi.[ch],
 	  timidity/mix.c, timidity/sndfont.c,
 	  interface/w32g_utl.[ch], interface/w32g_res.rc,

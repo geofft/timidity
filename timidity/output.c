@@ -269,9 +269,9 @@ void s32tos24(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l >> 16;
-		*cp++ = l >> 8 & 0xFF;
 		*cp++ = l & 0xFF;
+		*cp++ = l >> 8 & 0xFF;
+		*cp++ = l >> 16;
 	}
 }
 
@@ -285,9 +285,9 @@ void s32tou24(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l >> 16 ^ 0x80;
-		*cp++ = l >> 8 & 0xFF;
 		*cp++ = l & 0xFF;
+		*cp++ = l >> 8 & 0xFF;
+		*cp++ = l >> 16 ^ 0x80;
 	}
 }
 
@@ -301,9 +301,9 @@ void s32tos24x(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l & 0xFF;
-		*cp++ = l >> 8 & 0xFF;
 		*cp++ = l >> 16;
+		*cp++ = l >> 8 & 0xFF;
+		*cp++ = l & 0xFF;
 	}
 }
 
@@ -317,9 +317,9 @@ void s32tou24x(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l & 0xFF;
-		*cp++ = l >> 8 & 0xFF;
 		*cp++ = l >> 16 ^ 0x80;
+		*cp++ = l >> 8 & 0xFF;
+		*cp++ = l & 0xFF;
 	}
 }
 
