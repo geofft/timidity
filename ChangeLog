@@ -11,12 +11,11 @@
 	* script/Makefile.{am,in}, script/lspatch.pl: Fix a little
 
 2004-02-28  Saito <saito@intaa.net>
-	* interface/w32g_icon.ico:
-	  Fix large icon. 
 
-2004-02-28  ? <>
 	* interface/w32g_i.c, interface/w32g.h:
 	  Fix about Win32 GUI.
+	* interface/w32g_icon.ico:
+	  Fix large icon.
 
 2004-02-27  Takashi Iwai <tiwai@suse.de>
 
@@ -1979,7 +1978,7 @@
 	  Fix in reverb parameters.
 	  Fix about envelope for SoundFont.
 	  Support for SF2 scaleTuning.
-	  
+
 2003-05-08  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c:
@@ -1989,7 +1988,7 @@
 
 	* timidity/sysdep.h:
 	  Fix compile error in case of MAX_CHANNEL >= 33
-	  
+
 2003-05-07  Saito <timidity@flashmail.com>
 
 	* timidity/tables.[ch], timidity/mix.c,
@@ -2054,7 +2053,7 @@
 
 	* timidity/mix.c:
 	  Bug fix in envelope generator.
-	  
+
 2003-04-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/timidity.c:
@@ -2393,7 +2392,7 @@
 
 	* interface/w32g_subwin3.c:
 	  Fix resource leak of tracer window (W32GUI version)
-	  
+
 2003-03-25  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c:
