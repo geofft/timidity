@@ -1,12 +1,6 @@
-.TH timidity.cfg 5 "01 21 2004" "2.13.0"
+.TH timidity.cfg 5 "2004年01月22日" "2.13.0"
 .SH 名前
-timidity.cfg \- TiMidity++ のコンフィグレーションファイル
-.SH 書式
-.TP
-.B /etc/timidity.cfg
-.TP
-.B /usr/local/share/timidity/timidity.cfg
-.P
+timidity.cfg \- TiMidity++ の設定ファイル
 .SH 説明
 \fItimidity.cfg\fP は，timidity(1) の実行時の様々な設定を行うための設定
 ファイルです。音色データの置き場所，音色自体の設定，その他諸々を設定す
@@ -69,8 +63,12 @@ baz.pat，zoo.pat が読み込まれます。
 されたドラムセットに対して行われます。
 .TP
 .BI "number " "file [options]"
+.br
+.ns
 .TP
 .BI "number %font " "file bank prog [key] [options]"
+.br
+.ns
 .TP
 .BI "number %sample " "file [options]"
 現在のトーンバンクやドラムセットで，MIDI プログラムナンバー \fInumber\fP
@@ -140,6 +138,8 @@ baz.pat，zoo.pat が読み込まれます。
 化する深さです。\fBrate=\fP 同様，複数のサンプルに対する設定が可能です。
 .TP
 \fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+.br
+.ns
 .TP
 \fBmodoffset=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
 モジュレーション・エンベロープの変化の仕方を設定します。設定方法や値は，
@@ -330,8 +330,12 @@ drumset 0
 #extension playnote -37,39,44-46,55-60
 .TP
 .BI "#extension delaysend " "progno level"
+.br
+.ns
 .TP
 .BI "#extension chorussend " "progno level"
+.br
+.ns
 .TP
 .BI "#extension reverbsend " "progno level"
 ドラムパート・エフェクトがオンの場合のセンドレベルを設定します。初期値
@@ -367,13 +371,13 @@ timidity 'cat fild.mid|'
 .RE
 .P
 は，cat fild.mid の出力結果から読み取ります。
-.P
-*.cfg の \fIsoundfont\fP のオプションに \fIremove\fP を指定すると，指定
-されているファイルを未定義にします。
-.P
+.SH ファイル
+.TP
+.B /etc/timidity.cfg
+.TP
+.B /usr/local/share/timidity/timidity.cfg
 .SH 関連項目
 timidity(1), lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1)
-.P
 .SH 著作権
 Copyright (C) 2004 Masanao Izumo <iz@onicos.co.jp>
 .br

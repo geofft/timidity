@@ -1,12 +1,6 @@
-.TH timidity.cfg 5 "01 21 2004" "2.13.0"
+.TH timidity.cfg 5 "January 22 2004" "2.13.0"
 .SH NAME
 timidity.cfg \- configure file of TiMidity++
-.SH SYNOPSIS
-.TP
-.B /etc/timidity.cfg
-.TP
-.B /usr/local/share/timidity/timidity.cfg
-.P
 .SH DESCRIPTION
 The file \fItimidity.cfg\fP describes the runtime environments of
 timidity(1) that are the path of sound font, instruments configurations
@@ -62,15 +56,19 @@ affect this tone bank.
 .BI "progbase " number
 Sets and displays the tone number from \fInumber\fP to
 \fInumber+128\fP.  If \fB progbase 1\fP are specified, tone numbers
-that follow are sett and displayed as the numbers from 1 to 128.
+that follow are set and displayed as the numbers from 1 to 128.
 .TP
 .BI "drumset " number
 Selects the drum set to modify.  Patch mappings that follow will
 affect this drum set.
 .TP
 .BI "number " "file [options]"
+.br
+.ns
 .TP
 .BI "number %font " "file bank prog [key] [options]"
+.br
+.ns
 .TP
 .BI "number %sample " "file [options]"
 Specifies that the MIDI program number in the current tone bank or
@@ -140,6 +138,8 @@ between 0 and 255.  The format is similar to \fBrate=\fP.
 \fIdepth\fP is the depth changing frequency.
 .TP
 \fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+.br
+.ns
 .TP
 \fBmodoffset=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
 Set the instrument's behavior of change of modulation envelope.
@@ -244,7 +244,7 @@ Specify whether resonance in SoundFont is enable (1) or disable (0).
 If the value is not specified, it is considered to be enable.
 .TP
 \fBremove\fP
-Cancel the target SoundFont from the memory. 
+Cancel the target SoundFont from the memory.
 .RE
 .TP
 .BI "font exclude " "bank [prog [key]]"
@@ -327,8 +327,12 @@ drumset 0
 #extension playnote -37,39,44-46,55-60
 .TP
 .BI "#extension delaysend " "progno level"
+.br
+.ns
 .TP
 .BI "#extension chorussend " "progno level"
+.br
+.ns
 .TP
 .BI "#extension reverbsend " "progno level"
 Set the send level when drum part effect is enable.  All initial value
@@ -364,10 +368,13 @@ timidity 'cat fild.mid|'
 .RE
 .P
 will read from the output of cat fild.mid.
-.P
+.SH FILES
+.TP
+.B /etc/timidity.cfg
+.TP
+.B /usr/local/share/timidity/timidity.cfg
 .SH SEE ALSO
 timidity(1), lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1)
-.P
 .SH COPYRIGHT
 Copyright (C) 2004 Masanao Izumo <iz@onicos.co.jp>
 .br

@@ -1,7 +1,11 @@
+2004-01-22  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5: Fix typo
+
 2004-01-22  mput <root@mput.dip.jp>
 
-	* doc/C/timidity.cfg.5 : update to fit with ranvis' patch
-	* doc/ja_JP.ujis/timidity.cfg.5 : ditto
+	* doc/C/timidity.cfg.5: update to fit with ranvis' patch
+	* doc/ja_JP.ujis/timidity.cfg.5: ditto
 
 2004-01-22  Kentaro Sato <kentaro@ranvis.com>
 
@@ -20,9 +24,9 @@
 
 2004-01-21  mput <root@mput.dip.jp>
 
-	* doc/ja_JP.ujis/timidity.cfg.5 :
+	* doc/ja_JP.ujis/timidity.cfg.5:
 	  Was written in eucJP, convert to iso-2022-jp
-	* doc/C/timidity.cfg.5 : Bug fix.
+	* doc/C/timidity.cfg.5: Bug fix.
 
 2004-01-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
