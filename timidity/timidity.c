@@ -150,14 +150,18 @@ static const struct option longopts[] = {
 	{ "trace-text-meta",        optional_argument, NULL, 208 << 8 },
 	{ "no-overlap-voice",       no_argument,       NULL, 209 << 8 },
 	{ "overlap-voice",          optional_argument, NULL, 209 << 8 },
-	{ "default-mid",            required_argument, NULL, 210 << 8 },
-	{ "system-mid",             required_argument, NULL, 211 << 8 },
-	{ "default-bank",           required_argument, NULL, 212 << 8 },
-	{ "force-bank",             required_argument, NULL, 213 << 8 },
-	{ "delay",                  required_argument, NULL, 214 << 8 },
-	{ "chorus",                 required_argument, NULL, 215 << 8 },
-	{ "reverb",                 required_argument, NULL, 216 << 8 },
-	{ "noise-shaping",          required_argument, NULL, 217 << 8 },
+	{ "no-temper-control",      no_argument,       NULL, 210 << 8 },
+	{ "temper-control",         optional_argument, NULL, 210 << 8 },
+	{ "default-mid",            required_argument, NULL, 211 << 8 },
+	{ "system-mid",             required_argument, NULL, 212 << 8 },
+	{ "default-bank",           required_argument, NULL, 213 << 8 },
+	{ "force-bank",             required_argument, NULL, 214 << 8 },
+	{ "default-program",        required_argument, NULL, 215 << 8 },
+	{ "force-program",          required_argument, NULL, 216 << 8 },
+	{ "delay",                  required_argument, NULL, 217 << 8 },
+	{ "chorus",                 required_argument, NULL, 218 << 8 },
+	{ "reverb",                 required_argument, NULL, 219 << 8 },
+	{ "noise-shaping",          required_argument, NULL, 220 << 8 },
 	{ "evil",                   required_argument, NULL, 'e' << 8 },
 	{ "no-fast-panning",        no_argument,       NULL, 'F' << 8 },
 	{ "fast-panning",           optional_argument, NULL, 'F' << 8 },
@@ -166,19 +170,18 @@ static const struct option longopts[] = {
 	{ "spectrogram",            required_argument, NULL, 'g' << 8 },
 	{ "force-keysig",           required_argument, NULL, 'H' << 8 },
 	{ "help",                   optional_argument, NULL, 'h' << 8 },
-	{ "default-program",        required_argument, NULL, 'I' << 8 },
 	{ "interface",              required_argument, NULL, 'i' << 8 },
-	{ "verbose",                optional_argument, NULL, 218 << 8 },
-	{ "quiet",                  optional_argument, NULL, 219 << 8 },
-	{ "no-trace",               no_argument,       NULL, 220 << 8 },
-	{ "trace",                  optional_argument, NULL, 220 << 8 },
-	{ "no-loop",                no_argument,       NULL, 221 << 8 },
-	{ "loop",                   optional_argument, NULL, 221 << 8 },
-	{ "no-random",              no_argument,       NULL, 222 << 8 },
-	{ "random",                 optional_argument, NULL, 222 << 8 },
-	{ "no-sort",                no_argument,       NULL, 223 << 8 },
-	{ "sort",                   optional_argument, NULL, 223 << 8 },
-	{ "background",             no_argument,       NULL, 224 << 8 },
+	{ "verbose",                optional_argument, NULL, 221 << 8 },
+	{ "quiet",                  optional_argument, NULL, 222 << 8 },
+	{ "no-trace",               no_argument,       NULL, 223 << 8 },
+	{ "trace",                  optional_argument, NULL, 223 << 8 },
+	{ "no-loop",                no_argument,       NULL, 224 << 8 },
+	{ "loop",                   optional_argument, NULL, 224 << 8 },
+	{ "no-random",              no_argument,       NULL, 225 << 8 },
+	{ "random",                 optional_argument, NULL, 225 << 8 },
+	{ "no-sort",                no_argument,       NULL, 226 << 8 },
+	{ "sort",                   optional_argument, NULL, 226 << 8 },
+	{ "background",             no_argument,       NULL, 227 << 8 },
 	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
 	{ "adjust-key",             required_argument, NULL, 'K' << 8 },
@@ -193,24 +196,24 @@ static const struct option longopts[] = {
 	{ "interpolation",          required_argument, NULL, 'N' << 8 },
 #endif
 	{ "output-mode",            required_argument, NULL, 'O' << 8 },
-	{ "output-stereo",          no_argument,       NULL, 225 << 8 },
-	{ "output-mono",            no_argument,       NULL, 225 << 8 },
-	{ "output-signed",          no_argument,       NULL, 226 << 8 },
-	{ "output-unsigned",        no_argument,       NULL, 226 << 8 },
-	{ "output-16bit",           no_argument,       NULL, 227 << 8 },
-	{ "output-8bit",            no_argument,       NULL, 227 << 8 },
-	{ "output-linear",          no_argument,       NULL, 228 << 8 },
-	{ "output-ulaw",            no_argument,       NULL, 228 << 8 },
-	{ "output-alaw",            no_argument,       NULL, 228 << 8 },
-	{ "no-output-swab",         no_argument,       NULL, 229 << 8 },
-	{ "output-swab",            optional_argument, NULL, 229 << 8 },
+	{ "output-stereo",          no_argument,       NULL, 228 << 8 },
+	{ "output-mono",            no_argument,       NULL, 228 << 8 },
+	{ "output-signed",          no_argument,       NULL, 229 << 8 },
+	{ "output-unsigned",        no_argument,       NULL, 229 << 8 },
+	{ "output-16bit",           no_argument,       NULL, 230 << 8 },
+	{ "output-8bit",            no_argument,       NULL, 230 << 8 },
+	{ "output-linear",          no_argument,       NULL, 231 << 8 },
+	{ "output-ulaw",            no_argument,       NULL, 231 << 8 },
+	{ "output-alaw",            no_argument,       NULL, 231 << 8 },
+	{ "no-output-swab",         no_argument,       NULL, 232 << 8 },
+	{ "output-swab",            optional_argument, NULL, 232 << 8 },
 	{ "output-file",            required_argument, NULL, 'o' << 8 },
 	{ "patch-file",             required_argument, NULL, 'P' << 8 },
 	{ "polyphony",              required_argument, NULL, 'p' << 8 },
-	{ "no-polyphony-reduction", no_argument,       NULL, 230 << 8 },
-	{ "polyphony-reduction",    optional_argument, NULL, 230 << 8 },
+	{ "no-polyphony-reduction", no_argument,       NULL, 233 << 8 },
+	{ "polyphony-reduction",    optional_argument, NULL, 233 << 8 },
 	{ "mute",                   required_argument, NULL, 'Q' << 8 },
-	{ "temper-mute",            required_argument, NULL, 231 << 8 },
+	{ "temper-mute",            required_argument, NULL, 234 << 8 },
 	{ "audio-buffer",           required_argument, NULL, 'q' << 8 },
 	{ "cache-size",             required_argument, NULL, 'S' << 8 },
 	{ "sampling-freq",          required_argument, NULL, 's' << 8 },
@@ -225,7 +228,7 @@ static const struct option longopts[] = {
 #endif
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",        optional_argument, NULL, 232 << 8 },
+	{ "pure-intonation",        optional_argument, NULL, 235 << 8 },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -273,14 +276,17 @@ static inline int parse_opt_E5(const char *);
 static inline int parse_opt_E6(const char *);
 static inline int parse_opt_E7(const char *);
 static inline int parse_opt_E8(const char *);
-static inline int parse_opt_E9(char *);
+static inline int parse_opt_E9(const char *);
 static inline int parse_opt_EA(char *);
-static inline int parse_opt_EB(const char *);
+static inline int parse_opt_EB(char *);
 static inline int parse_opt_EC(const char *);
 static inline int parse_opt_ED(const char *);
 static inline int parse_opt_EE(const char *);
 static inline int parse_opt_EF(const char *);
 static inline int parse_opt_EG(const char *);
+static inline int parse_opt_EH(const char *);
+static inline int parse_opt_EI(const char *);
+static inline int parse_opt_EJ(const char *);
 static inline int parse_opt_e(const char *);
 static inline int parse_opt_F(const char *);
 static inline int parse_opt_f(const char *);
@@ -293,7 +299,6 @@ static inline void list_dyna_interface(FILE *, char *, char *);
 static inline char *dynamic_interface_info(int);
 char *dynamic_interface_module(int);
 #endif
-static inline int parse_opt_I(char *);
 static inline int parse_opt_i(const char *);
 static inline int parse_opt_i1(const char *);
 static inline int parse_opt_i2(const char *);
@@ -350,6 +355,7 @@ static inline int set_flag(int32 *, int32, const char *);
 static inline FILE *open_pager(void);
 static inline void close_pager(FILE *);
 static void interesting_message(void);
+static int set_default_program(int);
 
 #ifdef IA_DYNAMIC
 MAIN_INTERFACE char dynamic_interface_id;
@@ -427,6 +433,7 @@ static char *dynamic_lib_root = SHARED_LIB_PATH;
 #endif /* MAXPATHLEN */
 
 int free_instruments_afterwards=0;
+int def_prog = -1;
 char def_instr_name[256]="";
 VOLATILE int intr = 0;
 
@@ -2146,7 +2153,9 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	case 'h':
 		return parse_opt_h(optarg);
 	case 'I':
-		return parse_opt_I(optarg);
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"-I option is obsoleted.  Please use -Ei");
+		return 1;
 	case 'i':
 		return parse_opt_i(optarg);
 	case 'j':
@@ -2289,6 +2298,12 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_EF(arg);
 	case 217:
 		return parse_opt_EG(arg);
+	case 218:
+		return parse_opt_EH(arg);
+	case 219:
+		return parse_opt_EI(arg);
+	case 220:
+		return parse_opt_EJ(arg);
 	case 'e':
 		return parse_opt_e(arg);
 	case 'F':
@@ -2301,23 +2316,21 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_H(arg);
 	case 'h':
 		return parse_opt_h(arg);
-	case 'I':
-		return parse_opt_I(arg);
 	case 'i':
 		return parse_opt_i(arg);
-	case 218:
-		return parse_opt_i1(arg);
-	case 219:
-		return parse_opt_i2(arg);
-	case 220:
-		return parse_opt_i3(arg);
 	case 221:
-		return parse_opt_i4(arg);
+		return parse_opt_i1(arg);
 	case 222:
-		return parse_opt_i5(arg);
+		return parse_opt_i2(arg);
 	case 223:
-		return parse_opt_i6(arg);
+		return parse_opt_i3(arg);
 	case 224:
+		return parse_opt_i4(arg);
+	case 225:
+		return parse_opt_i5(arg);
+	case 226:
+		return parse_opt_i6(arg);
+	case 227:
 		return parse_opt_i7(arg);
 	case 'j':
 		return parse_opt_j(arg);
@@ -2338,22 +2351,22 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case 'O':
 		return parse_opt_O(arg);
-	case 225:
+	case 228:
 		if (! strcmp(the_option->name, "output-mono"))
 			/* --output-mono == --output-stereo=no */
 			arg = "no";
 		return parse_opt_O1(arg);
-	case 226:
+	case 229:
 		if (! strcmp(the_option->name, "output-unsigned"))
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
 		return parse_opt_O2(arg);
-	case 227:
+	case 230:
 		if (! strcmp(the_option->name, "output-8bit"))
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
 		return parse_opt_O3(arg);
-	case 228:
+	case 231:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
 		else if (! strcmp(the_option->name, "output-ulaw"))
@@ -2361,7 +2374,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		else if (! strcmp(the_option->name, "output-alaw"))
 			arg = "alaw";
 		return parse_opt_O4(arg);
-	case 229:
+	case 232:
 		return parse_opt_O5(arg);
 	case 'o':
 		return parse_opt_o(arg);
@@ -2369,11 +2382,11 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_P(arg);
 	case 'p':
 		return parse_opt_p(arg);
-	case 230:
+	case 233:
 		return parse_opt_p1(arg);
 	case 'Q':
 		return parse_opt_Q(arg);
-	case 231:
+	case 234:
 		return parse_opt_Q1(arg);
 	case 'q':
 		return parse_opt_q(arg);
@@ -2399,7 +2412,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_x(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 232:
+	case 235:
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
@@ -2449,7 +2462,7 @@ static inline int parse_opt_B(const char *arg)
 	}
 	/* bits */
 	if (p = strchr(arg, ',')) {
-		if (set_value(&tmpi32, atoi(p + 1), 1, AUDIO_BUFFER_BITS,
+		if (set_value(&tmpi32, atoi(++p), 1, AUDIO_BUFFER_BITS,
 				"Buffer Fragments (bit)"))
 			return 1;
 		audio_buffer_bits = tmpi32;
@@ -2476,14 +2489,7 @@ static inline int parse_opt_c(char *arg)
 
 static inline int parse_opt_D(const char *arg)
 {
-	int val = atoi(arg);
-	
-	if (set_channel_flag(&default_drumchannels, val, "Drum channel"))
-		return 1;
-	if (val < 0)
-		val = -val;
-	set_channel_flag(&default_drumchannel_mask, val, "Drum channel");
-	return 0;
+	return set_channel_flag(&default_drumchannels, atoi(arg), "Drum channel");
 }
 
 static inline int parse_opt_d(const char *arg)
@@ -2555,40 +2561,59 @@ static inline int parse_opt_E(char *arg)
 		case 'O':
 			opt_overlap_voice_allow = 0;
 			break;
-		case 'm':
-			if (parse_opt_E9(arg + 1))
-				err++;
-			arg += 2;
+		case 'z':
+			opt_temper_control = 1;
 			break;
-		case 'M':
+		case 'Z':
+			opt_temper_control = 0;
+			break;
+		case 'm':
 			if (parse_opt_EA(arg + 1))
 				err++;
 			arg += 2;
 			break;
-		case 'b':
+		case 'M':
 			if (parse_opt_EB(arg + 1))
 				err++;
-			while (isdigit(*(arg + 1)))
-				arg++;
+			arg += 2;
 			break;
-		case 'B':
+		case 'b':
 			if (parse_opt_EC(arg + 1))
 				err++;
 			while (isdigit(*(arg + 1)))
 				arg++;
 			break;
+		case 'B':
+			if (parse_opt_ED(arg + 1))
+				err++;
+			while (*(arg + 1) == '-' || isdigit(*(arg + 1)))
+				arg++;
+			break;
+		case 'i':
+			if (parse_opt_EE(arg + 1))
+				err++;
+			while (isdigit(*(arg + 1)))
+				arg++;
+			break;
+		case 'I':
+			if (parse_opt_EF(arg + 1))
+				err++;
+			while (*(arg + 1) == '-' || isdigit(*(arg + 1))
+					|| *(arg + 1) == '/')
+				arg++;
+			break;
 		case 'F':
 			if (strncmp(arg + 1, "delay=", 6) == 0) {
-				if (parse_opt_ED(arg + 7))
+				if (parse_opt_EG(arg + 7))
 					err++;
 			} else if (strncmp(arg + 1, "chorus=", 7) == 0) {
-				if (parse_opt_EE(arg + 8))
+				if (parse_opt_EH(arg + 8))
 					err++;
 			} else if (strncmp(arg + 1, "reverb=", 7) == 0) {
-				if (parse_opt_EF(arg + 8))
+				if (parse_opt_EI(arg + 8))
 					err++;
 			} else if (strncmp(arg + 1, "ns=", 3) == 0) {
-				if (parse_opt_EF(arg + 4))
+				if (parse_opt_EJ(arg + 4))
 					err++;
 			}
 			if (err) {
@@ -2664,7 +2689,14 @@ static inline int parse_opt_E8(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_E9(char *arg)
+static inline int parse_opt_E9(const char *arg)
+{
+	/* --[no-]temper-control */
+	opt_temper_control = y_or_n_p(arg);
+	return 0;
+}
+
+static inline int parse_opt_EA(char *arg)
 {
 	/* --default-mid */
 	int val = str2mID(arg);
@@ -2677,7 +2709,7 @@ static inline int parse_opt_E9(char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EA(char *arg)
+static inline int parse_opt_EB(char *arg)
 {
 	/* --system-mid */
 	int val = str2mID(arg);
@@ -2690,7 +2722,7 @@ static inline int parse_opt_EA(char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EB(const char *arg)
+static inline int parse_opt_EC(const char *arg)
 {
 	/* --default-bank */
 	int32 tmpi32;
@@ -2701,18 +2733,60 @@ static inline int parse_opt_EB(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EC(const char *arg)
+static inline int parse_opt_ED(const char *arg)
 {
 	/* --force-bank */
 	int32 tmpi32;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
+	if (set_value(&tmpi32, atoi(arg), -1, 0x7f, "Bank number"))
 		return 1;
 	special_tonebank = tmpi32;
 	return 0;
 }
 
-static inline int parse_opt_ED(const char *arg)
+static inline int parse_opt_EE(const char *arg)
+{
+	/* --default-program */
+	int32 tmpi32;
+	int prog, i;
+	const char *p;
+	
+	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Program number"))
+		return 1;
+	prog = tmpi32;
+	if (p = strchr(arg, '/')) {
+		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
+				"Default program channel"))
+			return 1;
+		default_program[tmpi32 - 1] = prog;
+	} else
+		for (i = 0; i < MAX_CHANNELS; i++)
+			default_program[i] = prog;
+	return 0;
+}
+
+static inline int parse_opt_EF(const char *arg)
+{
+	/* --force-program */
+	int32 tmpi32;
+	const char *p;
+	int i;
+	
+	if (set_value(&tmpi32, atoi(arg), -1, 0x7f, "Program number"))
+		return 1;
+	def_prog = tmpi32;
+	if (p = strchr(arg, '/')) {
+		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
+				"Special program channel"))
+			return 1;
+		default_program[tmpi32 - 1] = SPECIAL_PROGRAM;
+	} else
+		for (i = 0; i < MAX_CHANNELS; i++)
+			default_program[i] = SPECIAL_PROGRAM;
+	return 0;
+}
+
+static inline int parse_opt_EG(const char *arg)
 {
 	/* --delay */
 	const char *p;
@@ -2733,7 +2807,7 @@ static inline int parse_opt_ED(const char *arg)
 		break;
 	}
 	if (p = strchr(arg, ','))
-		if ((effect_lr_delay_msec = atoi(p + 1)) < 0) {
+		if ((effect_lr_delay_msec = atoi(++p)) < 0) {
 			effect_lr_delay_msec = 0;
 			effect_lr_mode = -1;
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid delay parameter.");
@@ -2742,7 +2816,7 @@ static inline int parse_opt_ED(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EE(const char *arg)
+static inline int parse_opt_EH(const char *arg)
 {
 	/* --chorus */
 	int32 tmpi32;
@@ -2760,7 +2834,7 @@ static inline int parse_opt_EE(const char *arg)
 	case 's':	/* surround */
 		opt_surround_chorus = (*arg == '2' || *arg == 's') ? 1 : 0;
 		if (p = strchr(arg, ',')) {
-			if (set_value(&tmpi32, atoi(p + 1), 0, 0x7f, "Chorus level"))
+			if (set_value(&tmpi32, atoi(++p), 0, 0x7f, "Chorus level"))
 				return 1;
 			opt_chorus_control = -tmpi32;
 		} else
@@ -2773,7 +2847,7 @@ static inline int parse_opt_EE(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EF(const char *arg)
+static inline int parse_opt_EI(const char *arg)
 {
 	/* --reverb */
 	int32 tmpi32;
@@ -2787,7 +2861,7 @@ static inline int parse_opt_EF(const char *arg)
 	case '1':
 	case 'n':	/* normal */
 		if (p = strchr(arg, ',')) {
-			if (set_value(&tmpi32, atoi(p + 1), 0, 0x7f, "Reverb level"))
+			if (set_value(&tmpi32, atoi(++p), 0, 0x7f, "Reverb level"))
 				return 1;
 			opt_reverb_control = -tmpi32;
 		} else
@@ -2801,18 +2875,6 @@ static inline int parse_opt_EF(const char *arg)
 	case 'f':	/* freeverb */
 		opt_reverb_control = 3;
 		break;
-	case 'p':	/* pseudo */
-		/* I think pseudo reverb can now be retired... Computers are
-		 * enough fast to do a full reverb, don't they?
-		 */
-		if (p = strchr(arg, ',')) {
-			if (set_value(&tmpi32, atoi(p + 1), 0, MAX_MREL,
-					"Modify release"))
-				return 1;
-			modify_release = tmpi32;
-		} else
-			modify_release = DEFAULT_MREL;
-		break;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
 		return 1;
@@ -2823,7 +2885,7 @@ static inline int parse_opt_EF(const char *arg)
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  */
-static inline int parse_opt_EG(const char *arg)
+static inline int parse_opt_EJ(const char *arg)
 {
 	/* --noise-shaping */
 	int32 tmpi32;
@@ -2921,8 +2983,8 @@ static inline int parse_opt_h(const char *arg)
 "               Set ratio of sampling and control frequencies",
 "  -c file    --config-file=file",
 "               Read extra configuration file",
-"  -D ch      --drum-channel=ch",
-"               Play drums on channel ch",
+"  -D n       --drum-channel=n",
+"               Play drums on channel n",
 #ifdef IA_DYNAMIC
 "  -d path    --interface-path=path",
 "               Set dynamic interface module directory",
@@ -2942,6 +3004,8 @@ static inline int parse_opt_h(const char *arg)
 "                        M<HH>: Define system Manufacture ID <HH> in two hex",
 "                        b<n>: Use tone bank <n> as the default",
 "                        B<n>: Always use tone bank <n>",
+"                        i<n/m>: Use program <n> on channel <m> as the default",
+"                        I<n/m>: Always use program <n> on channel <m>",
 "                        F<args>: For effect.  See below for effect options",
 "                   default: -E "
 #ifdef MODULATION_WHEEL_ALLOW
@@ -2984,11 +3048,11 @@ static inline int parse_opt_h(const char *arg)
 #else
 "O"
 #endif /* OVERLAP_VOICE_ALLOW */
-#ifdef TEMPERAMENT_CONTROL_ALLOW
+#ifdef TEMPER_CONTROL_ALLOW
 "z"
 #else
 "Z"
-#endif /* TEMPERAMENT_CONTROL_ALLOW */
+#endif /* TEMPER_CONTROL_ALLOW */
 ,
 #ifdef __W32__
 "  -e         --evil",
@@ -3012,10 +3076,6 @@ static inline int parse_opt_h(const char *arg)
 "               Force keysig number of sHarp(+)/flat(-) (-7..7)",
 "  -h         --help",
 "               Display this help message",
-"  -I n/ch    --default-program=n/ch",
-"               Use program n on channel ch as the default",
-"             --force-program=n/ch",
-"               Always use program n on channel ch",
 "  -i mode    --interface=mode",
 "               Select user interface (see below for list)",
 "  -j         --[no-]realtime-load",
@@ -3058,10 +3118,10 @@ static inline int parse_opt_h(const char *arg)
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
 "     (a)     --[no-]auto-poly-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
-"  -Q ch      --mute=ch",
-"               Ignore channel ch (0: ignore all, -ch: resume channel ch)",
-"     t<n>    --temper-mute=n",
-"               Quiet temperament type <n> (0..3: preset, 4..7: user-defined)",
+"  -Q n[,...] --mute=n",
+"               Ignore channel n (0: ignore all, -n: resume channel n)",
+"     (t)     --temper-mute=n",
+"               Quiet temperament type n (0..3: preset, 4..7: user-defined)",
 "  -q sec/n   --audio-buffer=sec/n",
 "               Specify audio buffer in seconds",
 "                 sec: Maxmum buffer, n: Filled to start (default is 5.0/100%%)",
@@ -3110,7 +3170,7 @@ static inline int parse_opt_h(const char *arg)
 	static char *help_args[3];
 	FILE *fp;
 	int i, j;
-	char *h, *p;
+	char *h;
 	ControlMode *cmp, **cmpp;
 	char mark[128];
 	PlayMode *pmp, **pmpp;
@@ -3121,8 +3181,8 @@ static inline int parse_opt_h(const char *arg)
 	help_args[1] = program_name;
 	help_args[2] = NULL;
 	for (i = 0, j = 0; h = help_list[i]; i++) {
-		if (p = strchr(h, '%')) {
-			if (*(p + 1) != '%')
+		if (strchr(h, '%')) {
+			if (*(strchr(h, '%') + 1) != '%')
 				fprintf(fp, h, help_args[j++]);
 			else
 				fprintf(fp, h);
@@ -3152,8 +3212,6 @@ static inline int parse_opt_h(const char *arg)
 "  -EFreverb=g  Global reverb effect" NLS
 "  -EFreverb=f  Enable Freeverb MIDI reverb effect control" NLS
 "                 This effect is only available in stereo (default)" NLS
-"  -EFreverb=p  Pseudo reveb effect (set every instrument's release to n ms)" NLS
-"    [,n]         if n=0, n is set to 800" NLS
 "  -EFns=n      Enable the n th degree noise shaping filter" NLS
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
@@ -3167,13 +3225,16 @@ static inline int parse_opt_h(const char *arg)
 "  --[no-]mod-envelope" NLS
 "  --[no-]trace-text-meta" NLS
 "  --[no-]overlap-voice" NLS
+"  --[no-]temper-control" NLS
 "  --default-mid=<HH>" NLS
 "  --system-mid=<HH>" NLS
 "  --default-bank=n" NLS
 "  --force-bank=n" NLS
+"  --default-program=n/m" NLS
+"  --force-program=n/m" NLS
 "  --delay=(d|l|r|b)[,msec]" NLS
 "  --chorus=(d|n|s)[,level]" NLS
-"  --reverb=(d|n|g|f|p)[,level]" NLS
+"  --reverb=(d|n|g|f)[,level]" NLS
 "  --noise-shaping=n" NLS, fp);
 	fputs(NLS, fp);
 	fputs("Available interfaces (-i, --interface option):" NLS, fp);
@@ -3290,8 +3351,7 @@ static inline char *dynamic_interface_info(int id)
 	if (n <= 0)
 		return NULL;
 	libinfo[n] = '\0';
-	nl = strchr(libinfo, '\n');
-	if (libinfo == nl)
+	if ((nl = strchr(libinfo, '\n')) == libinfo)
 		return NULL;
 	if (nl != NULL) {
 		*nl = '\0';
@@ -3314,26 +3374,6 @@ char *dynamic_interface_module(int id)
 	return shared_library;
 }
 #endif	/* IA_DYNAMIC */
-
-static inline int parse_opt_I(char *arg)
-{
-	int32 tmpi32;
-	int prog, i;
-	char *p;
-	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Default program"))
-		return 1;
-	prog = tmpi32;
-	if (p = strchr(arg, '/')) {
-		if (set_value(&tmpi32, atoi(arg), 1, MAX_CHANNELS,
-				"Default program channel"))
-			return 1;
-		default_program[tmpi32 - 1] = prog;
-	} else
-		for (i = 0; i < MAX_CHANNELS; i++)
-			default_program[i] = prog;
-	return 0;
-}
 
 static inline int parse_opt_i(const char *arg)
 {
@@ -3702,7 +3742,7 @@ static inline int parse_opt_o(char *arg)
 static inline int parse_opt_P(const char *arg)
 {
 	/* set overriding instrument */
-	strncpy(def_instr_name, arg, sizeof(def_instr_name));
+	strncpy(def_instr_name, arg, sizeof(def_instr_name) - 1);
 	def_instr_name[sizeof(def_instr_name) - 1] = '\0';
 	return 0;
 }
@@ -3726,20 +3766,33 @@ static inline int parse_opt_p1(const char *arg)
 
 static inline int parse_opt_Q(const char *arg)
 {
+	const char *p = arg;
+	
 	if (strchr(arg, 't'))
 		/* backward compatibility */
 		return parse_opt_Q1(arg);
-	return set_channel_flag(&quietchannels, atoi(arg), "Quiet channel");
+	if (set_channel_flag(&quietchannels, atoi(arg), "Quiet channel"))
+		return 1;
+	while (p = strchr(p, ','))
+		if (set_channel_flag(&quietchannels, atoi(++p), "Quiet channel"))
+			return 1;
+	return 0;
 }
 
 static inline int parse_opt_Q1(const char *arg)
 {
 	/* --temper-mute */
 	int32 tmpi32;
+	const char *p = arg;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, 7, "Temperament program number"))
 		return 1;
 	temper_type_mute |= 1 << tmpi32;
+	while (p = strchr(p, ',')) {
+		if (set_value(&tmpi32, atoi(++p), 0, 7, "Temperament program number"))
+			return 1;
+		temper_type_mute |= 1 << tmpi32;
+	}
 	return 0;
 }
 
@@ -3764,6 +3817,9 @@ static inline int parse_opt_q(const char *arg)
 
 static inline int parse_opt_R(const char *arg)
 {
+	/* I think pseudo reverb can now be retired... Computers are
+	 * enough fast to do a full reverb, don't they?
+	 */
 	int32 tmpi32;
 	
 	if (atoi(arg) == -1)	/* reset */
@@ -4000,7 +4056,7 @@ static inline int set_value(int32 *param,
 	if (i < low || i > high) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				"%s must be between %ld and %ld", name, low, high);
-		return -1;
+		return 1;
 	} else
 		*param = i;
 	return 0;
@@ -4008,19 +4064,19 @@ static inline int set_value(int32 *param,
 
 static inline int set_channel_flag(ChannelBitMask *flags, int32 i, char *name)
 {
-	if (i == 0)
+	if (i == 0) {
 		FILL_CHANNELMASK(*flags);
-	else if ((i < 1 || i > MAX_CHANNELS) && (i < -MAX_CHANNELS || i > -1)) {
+		return 0;
+	} else if (abs(i) > MAX_CHANNELS) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"%s must be between 1 and %d, or between -1 and -%d, or 0",
-				name, MAX_CHANNELS, MAX_CHANNELS);
-		return -1;
-	} else {
-		if (i > 0)
-			SET_CHANNELMASK(*flags, i - 1);
-		else
-			UNSET_CHANNELMASK(*flags, -i - 1);
+				"%s must be between (-)1 and (-)%d, or 0",
+						name, MAX_CHANNELS);
+		return 1;
 	}
+	if (i > 0)
+		SET_CHANNELMASK(*flags, i - 1);
+	else
+		UNSET_CHANNELMASK(*flags, -i - 1);
 	return 0;
 }
 
@@ -4100,6 +4156,20 @@ static void interesting_message(void)
 "along with this program; if not, write to the Free Software" NLS
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA" NLS
 			NLS, timidity_version);
+}
+
+static int set_default_program(int prog)
+{
+	int bank;
+	Instrument *ip;
+	
+	bank = (special_tonebank >= 0) ? special_tonebank : default_tonebank;
+	if ((ip = load_instrument(0, bank, prog)) == NULL)
+		return 1;
+	if (default_instrument)
+		free_instrument(default_instrument);
+	default_instrument = ip;
+	return 0;
 }
 
 /* -------- functions for getopt_long ends here --------- */
@@ -4522,8 +4592,10 @@ MAIN_INTERFACE int timidity_play_main(int nfiles, char **files)
 	if(allocate_cache_size > 0)
 	    resamp_cache_reset();
 
-	if(*def_instr_name)
-	    set_default_instrument(def_instr_name);
+	if (def_prog >= 0)
+		set_default_program(def_prog);
+	if (*def_instr_name)
+		set_default_instrument(def_instr_name);
 
 	if(ctl->flags & CTLF_LIST_RANDOM)
 	    randomize_string_list(files, nfiles);

@@ -1,3 +1,11 @@
+2003-08-15  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/timidity.[ch]:
+	  Support for "Always use program n on channel m" option
+	  Support for multi-argument of -Q option
+	  Support for "Enable/Disable Temperament control" option
+	  Fix typo around short/long options
+
 2003-08-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:

@@ -400,6 +400,7 @@ extern int opt_surround_chorus;
 extern int opt_channel_pressure;
 extern int opt_lpf_def;
 extern int opt_overlap_voice_allow;
+extern int opt_temper_control;
 extern int opt_tva_attack;
 extern int opt_tva_decay;
 extern int opt_tva_release;

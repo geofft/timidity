@@ -190,6 +190,12 @@ int opt_overlap_voice_allow = 1;
 int opt_overlap_voice_allow = 0;
 #endif /* OVERLAP_VOICE_ALLOW */
 
+#ifdef TEMPER_CONTROL_ALLOW
+int opt_temper_control = 1;
+#else
+int opt_temper_control = 0;
+#endif /* TEMPER_CONTROL_ALLOW */
+
 int opt_tva_attack = 0;	/* attack envelope control */
 int opt_tva_decay = 0;	/* decay envelope control */
 int opt_tva_release = 0;	/* release envelope control */
@@ -691,7 +697,8 @@ void recompute_freq(int v)
 			channel[ch].prev_scale_tuning = st;
 		}
 	}
-	if (! opt_pure_intonation && voice[v].temper_instant) {
+	if (! opt_pure_intonation
+			&& opt_temper_control && voice[v].temper_instant) {
 		switch (tt) {
 		case 0:
 			f = freq_table_tuning[tp][note];
@@ -1742,7 +1749,7 @@ static int select_play_sample(Sample *splist,
 			f = freq_table_pureint[current_freq_table][note];
 		else
 			f = freq_table_pureint[current_freq_table + 12][note];
-	} else
+	} else if (opt_temper_control)
 		switch (tt) {
 		case 0:
 			f = freq_table_tuning[tp][note];
@@ -1772,7 +1779,12 @@ static int select_play_sample(Sample *splist,
 				f = freq_table[note];
 			break;
 		}
-	fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
+	else
+		f = freq_table[note];
+	if (opt_temper_control)
+		fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
+	else
+		fs = freq_table[note];
 	vel = e->b;
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {

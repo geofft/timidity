@@ -427,6 +427,12 @@ typedef double FLOAT_T;
 #define OVERLAP_VOICE_ALLOW
 
 
+/* Define if you want to allow temperament control.
+ * There is a command line option to enable/disable this mode.
+ */
+#define TEMPER_CONTROL_ALLOW
+
+
 
 /*****************************************************************************\
  section 2: some important definitions
