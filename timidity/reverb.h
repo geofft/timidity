@@ -113,6 +113,13 @@ typedef struct {
 
 extern void init_filter_lowpass1(filter_lowpass1 *);
 
+/*! lowpass / highpass filter */
+typedef struct {
+	double freq, q, last_freq, last_q;
+	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
+	int32 a1, a2, b1, b02;
+} filter_biquad;
+
 #ifndef PART_EQ_XG
 #define PART_EQ_XG
 /*! shelving filter */
@@ -175,6 +182,7 @@ enum {
 	EFFECT_NONE,
 	EFFECT_EQ2,
 	EFFECT_EQ3,
+	EFFECT_STEREO_EQ,
 	EFFECT_OVERDRIVE1,
 	EFFECT_DISTORTION1,
 	EFFECT_OD1OD2,
@@ -191,6 +199,9 @@ enum {
 	EFFECT_ECHO,
 	EFFECT_CROSS_DELAY,
 	EFFECT_DELAY_EQ2,
+	EFFECT_LOFI,
+	EFFECT_LOFI1,
+	EFFECT_LOFI2,
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
@@ -272,6 +283,16 @@ typedef struct {
 	filter_shelving hsf, lsf;
 	filter_peaking peak;
 } InfoEQ3;
+
+/*! Stereo EQ */
+typedef struct {
+    int16 low_freq, high_freq, m1_freq, m2_freq;		/* in Hz */
+	int16 low_gain, high_gain, m1_gain, m2_gain;		/* in dB */
+	double m1_q, m2_q, level;
+	int32 leveli;
+	filter_shelving hsf, lsf;
+	filter_peaking m1, m2;
+} InfoStereoEQ;
 
 /*! Overdrive 1 / Distortion 1 */
 typedef struct {
@@ -418,6 +439,30 @@ typedef struct {
 	int32 dryi, weti, feedbacki, input_select;
 	filter_lowpass1 lpf;
 } InfoCrossDelay;
+
+/*! Lo-Fi 1 */
+typedef struct {
+	int8 lofi_type, pan, pre_filter, post_filter;
+	double level, dry, wet;
+	int32 bit_mask, dryi, weti;
+	filter_biquad pre_fil, post_fil;
+} InfoLoFi1;
+
+/*! Lo-Fi 2 */
+typedef struct {
+	int8 wp_sel, disc_type, hum_type, ms, pan, rdetune, lofi_type, fil_type;
+	double wp_level, rnz_lev, discnz_lev, hum_level, dry, wet, level;
+	int32 bit_mask, wp_leveli, rnz_levi, discnz_levi, hum_keveki, dryi, weti;
+	filter_biquad fil, wp_lpf, hum_lpf, disc_lpf;
+} InfoLoFi2;
+
+/*! LO-FI */
+typedef struct {
+	int8 output_gain, word_length, filter_type, bit_assign, emphasis;
+	double dry, wet;
+	int32 bit_mask, dryi, weti;
+	filter_biquad lpf, srf;
+} InfoLoFi;
 
 /*                             */
 /*        System Effect        */

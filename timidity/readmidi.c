@@ -6660,6 +6660,9 @@ void realloc_effect_xg(struct effect_xg_t *st)
 	case 0x4D:
 		st->ef = push_effect(st->ef, EFFECT_EQ2);
 		break;
+	case 0x5E:
+		st->ef = push_effect(st->ef, EFFECT_LOFI);
+		break;
 	default:	/* Not Supported */
 		type_msb = type_lsb = 0;
 		break;
@@ -6777,6 +6780,9 @@ void realloc_insertion_effect_gs(void)
 	switch(type_msb) {
 	case 0x01:
 		switch(type_lsb) {
+		case 0x00: /* Stereo-EQ */
+			st->ef = push_effect(st->ef, EFFECT_STEREO_EQ);
+			break;
 		case 0x10: /* Overdrive */
 			st->ef = push_effect(st->ef, EFFECT_EQ2);
 			st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1);
@@ -6785,9 +6791,17 @@ void realloc_insertion_effect_gs(void)
 			st->ef = push_effect(st->ef, EFFECT_EQ2);
 			st->ef = push_effect(st->ef, EFFECT_DISTORTION1);
 			break;
-		case 0x40: /* Hexa-Chorus */
+		case 0x40: /* Hexa Chorus */
 			st->ef = push_effect(st->ef, EFFECT_EQ2);
 			st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS);
+			break;
+		case 0x72: /* Lo-Fi 1 */
+			st->ef = push_effect(st->ef, EFFECT_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_LOFI1);
+			break;
+		case 0x73: /* Lo-Fi 2 */
+			st->ef = push_effect(st->ef, EFFECT_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_LOFI2);
 			break;
 		default: break;
 		}

@@ -385,7 +385,6 @@ static void set_allpass(allpass *allpass, int32 size, double feedback)
 	_stream = _bufout + imuldiv24(_output, _apfeedback);	\
 }
 
-
 /*! calculate Moog VCF coefficients */
 void calc_filter_moog(filter_moog *svf)
 {
@@ -408,6 +407,57 @@ void calc_filter_moog(filter_moog *svf)
 		svf->q = TIM_FSCALE(q, 24);
 	}
 }
+
+#if 0
+#define do_filter_moog_lowpass(_stream, _f, _p, _q, _b0, _b1, _b2, _b3, _b4) \
+{ \
+	_temp3 = _stream - imuldiv24(_q, _b4);	\
+	_temp1 = _b1;  _b1 = imuldiv24(_temp3 + _b0, _p) - imuldiv24(_b1, _f);	\
+	_temp2 = _b2;  _b2 = imuldiv24(_b1 + _temp1, _p) - imuldiv24(_b2, _f);	\
+	_temp1 = _b3;  _b3 = imuldiv24(_b2 + _temp2, _p) - imuldiv24(_b3, _f);	\
+	_stream = _b4 = imuldiv24(_b3 + _temp1, _p) - imuldiv24(_b4, _f);	\
+	_b0 = _temp3;	\
+}
+
+void do_filter_moog_lowpass_stereo(int32 *buf, int32 count, filter_moog *left, filter_moog *right)
+{
+	int32 i, t1l, t2l, t1r, t2r, pl = left->p, pr = right->p, fl = left->f, fr = right->f,
+		ql = left->q, qr = right->q, b0l = left->b0l, b1l = left->b1l, b2l = left->b2l, b3l = left->b3l, b4l = left->b4l,
+		b0r = right->b0r, b1r = right->b1r, b2r = right->b2r, b3r = right->b3r, b4r = right->b4r;
+	for(i = 0; i < count; i++) {
+		do_filter_moog_lowpass(buf[i], fl, pl, ql, b0l, b1l, b2l, b3l, b4l);
+		++i;
+		do_filter_moog_lowpass(buf[i], fr, pr, qr, b0r, b1r, b2r, b3r, b4r);
+	}
+	left->b0l = b0l, left->b1l = b1l, left->b2l = b2l, left->b3l = b3l, left->b4l = b4l;
+	right->b0r = b0r, right->b1r = b1r, right->b2r = b2r, right->b3r = b3r, right->b4r = b4r;
+}
+
+#define do_filter_moog_highpass(_stream, _f, _p, _q, _b0, _b1, _b2, _b3, _b4) \
+{ \
+	_temp3 = _stream - imuldiv24(_q, _b4);	\
+	_temp1 = _b1;  _b1 = imuldiv24(_temp3 + _b0, _p) - imuldiv24(_b1, _f);	\
+	_temp2 = _b2;  _b2 = imuldiv24(_b1 + _temp1, _p) - imuldiv24(_b2, _f);	\
+	_temp1 = _b3;  _b3 = imuldiv24(_b2 + _temp2, _p) - imuldiv24(_b3, _f);	\
+	_b4 = imuldiv24(_b3 + _temp1, _p) - imuldiv24(_b4, _f);	\
+	_stream = _temp3 - _b4;	\
+	_b0 = _temp3;	\
+}
+
+void do_filter_moog_highpass_stereo(int32 *buf, int32 count, filter_moog *left, filter_moog *right)
+{
+	int32 i, t1l, t2l, t1r, t2r, pl = left->p, pr = right->p, fl = left->f, fr = right->f,
+		ql = left->q, qr = right->q, b0l = left->b0l, b1l = left->b1l, b2l = left->b2l, b3l = left->b3l, b4l = left->b4l,
+		b0r = right->b0r, b1r = right->b1r, b2r = right->b2r, b3r = right->b3r, b4r = right->b4r;
+	for(i = 0; i < count; i++) {
+		do_filter_moog_highpass(buf[i], fl, pl, ql, b0l, b1l, b2l, b3l, b4l);
+		++i;
+		do_filter_moog_highpass(buf[i], fr, pr, qr, b0r, b1r, b2r, b3r, b4r);
+	}
+	left->b0l = b0l, left->b1l = b1l, left->b2l = b2l, left->b3l = b3l, left->b4l = b4l;
+	right->b0r = b0r, right->b1r = b1r, right->b2r = b2r, right->b3r = b3r, right->b4r = b4r;
+}
+#endif
 
 /*! calculate LPF18 coefficients */
 void calc_filter_lpf18(filter_lpf18 *p)
@@ -462,17 +512,122 @@ void do_filter_lowpass1_stereo(int32 *buf, int32 count, filter_lowpass1 *p)
 	x1l = p->x1l, x1r = p->x1r;
 }
 
+void init_filter_biquad(filter_biquad *p)
+{
+	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
+		p->x2r = 0, p->y1r = 0, p->y2r = 0;
+}
+
+/*! biquad lowpass filter */
+void calc_filter_biquad_low(filter_biquad *p)
+{
+	double a0, a1, a2, b1, b02, omega, sn, cs, alpha;
+
+	if(p->freq != p->last_freq || p->q != p->last_q) {
+		if (p->last_freq == 0) {init_filter_biquad(p);}
+		p->last_freq = p->freq, p->last_q = p->q;
+		omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
+		sn = sin(omega);
+		cs = cos(omega);
+		if (p->q == 0 || p->freq < 0 || p->freq > play_mode->rate / 2) {
+			p->b02 = TIM_FSCALE(1.0, 24);
+			p->a1 = p->a2 = p->b1 = 0;
+			return;
+		} else {alpha = sn / (2.0 * p->q);}
+
+		a0 = 1.0f / (1.0f + alpha);
+		b02 = ((1.0f - cs) / 2.0f) * a0;
+		b1 = (1.0f - cs) * a0;
+		a1 = (-2.0f * cs) * a0;
+		a2 = (1.0f - alpha) * a0;
+
+		p->b1 = TIM_FSCALE(b1, 24);
+		p->a2 = TIM_FSCALE(a2, 24);
+		p->a1 = TIM_FSCALE(a1, 24);
+		p->b02 = TIM_FSCALE(b02, 24);
+	}
+}
+
+/*! biquad highpass filter */
+void calc_filter_biquad_high(filter_biquad *p)
+{
+	double a0, a1, a2, b1, b02, omega, sn, cs, alpha;
+
+	if(p->freq != p->last_freq || p->q != p->last_q) {
+		if (p->last_freq == 0) {init_filter_biquad(p);}
+		p->last_freq = p->freq, p->last_q = p->q;
+		omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
+		sn = sin(omega);
+		cs = cos(omega);
+		if (p->q == 0 || p->freq < 0 || p->freq > play_mode->rate / 2) {
+			p->b02 = TIM_FSCALE(1.0, 24);
+			p->a1 = p->a2 = p->b1 = 0;
+			return;
+		} else {alpha = sn / (2.0 * p->q);}
+
+		a0 = 1.0f / (1.0f + alpha);
+		b02 = ((1.0f - cs) / 2.0f) * a0;
+		b1 = (-(1.0f + cs)) * a0;
+		a1 = (-2.0f * cs) * a0;
+		a2 = (1.0f - alpha) * a0;
+
+		p->b1 = TIM_FSCALE(b1, 24);
+		p->a2 = TIM_FSCALE(a2, 24);
+		p->a1 = TIM_FSCALE(a1, 24);
+		p->b02 = TIM_FSCALE(b02, 24);
+	}
+}
+
+#define do_filter_biquad(_stream, _a1, _a2, _b1, _b02, _x1, _x2, _y1, _y2) \
+{ \
+	_temp1 = imuldiv24(_stream + _x2, _b02) + imuldiv24(_x1, _b1) - imuldiv24(_y1, _a1) - imuldiv24(_y2, _a2);	\
+	_x2 = _x1;	\
+	_x1 = _stream;	\
+	_y2 = _y1;	\
+	_y1 = _temp1;	\
+	_stream = _temp1;	\
+}
+
+static void do_biquad_filter_stereo(int32* buf, int32 count, filter_biquad *p)
+{
+	int32 i;
+	int32 x1l = p->x1l, x2l = p->x2l, y1l = p->y1l, y2l = p->y2l,
+		x1r = p->x1r, x2r = p->x2r, y1r = p->y1r, y2r = p->y2r;
+	int32 a1 = p->a1, a2 = p->a2, b02 = p->b02, b1 = p->b1;
+
+	for(i = 0; i < count; i++) {
+		do_filter_biquad(buf[i], a1, a2, b1, b02, x1l, x2l, y1l, y2l);
+		++i;
+		do_filter_biquad(buf[i], a1, a2, b1, b02, x1r, x2r, y1r, y2r);
+	}
+	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
+		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
+}
+
+void init_filter_shelving(filter_shelving *p)
+{
+	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
+		p->x2r = 0, p->y1r = 0, p->y2r = 0;
+}
+
 /*! shelving filter */
 void calc_filter_shelving_low(filter_shelving *p)
 {
 	double a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
 
+	init_filter_shelving(p);
+
 	A = pow(10, p->gain / 40);
 	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
 	sn = sin(omega);
 	cs = cos(omega);
-	if(p->q != 0) {beta = sqrt(A) / p->q;}
-	else {beta = sqrt(A + A);}
+	if (p->freq < 0 || p->freq > play_mode->rate / 2) {
+		p->b0 = TIM_FSCALE(1.0, 24);
+		p->a1 = p->b1 = p->a2 = p->b2 = 0;
+		return;
+	}
+	if (p->q == 0) {beta = sqrt(A + A);}
+	else {beta = sqrt(A) / p->q;}
 
 	a0 = 1.0 / ((A + 1) + (A - 1) * cs + beta * sn);
 	a1 = 2.0 * ((A - 1) + (A + 1) * cs);
@@ -498,12 +653,19 @@ void calc_filter_shelving_high(filter_shelving *p)
 {
 	double a0, a1, a2, b0, b1, b2, omega, sn, cs, A, beta;
 
+	init_filter_shelving(p);
+
 	A = pow(10, p->gain / 40);
 	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
 	sn = sin(omega);
 	cs = cos(omega);
-	if(p->q != 0) {beta = sqrt(A) / p->q;}
-	else {beta = sqrt(A + A);}
+	if (p->freq < 0 || p->freq > play_mode->rate / 2) {
+		p->b0 = TIM_FSCALE(1.0, 24);
+		p->a1 = p->b1 = p->a2 = p->b2 = 0;
+		return;
+	}
+	if (p->q == 0) {beta = sqrt(A + A);}
+	else {beta = sqrt(A) / p->q;}
 
 	a0 = 1.0 / ((A + 1) - (A - 1) * cs + beta * sn);
 	a1 = (-2 * ((A - 1) - (A + 1) * cs));
@@ -525,15 +687,8 @@ void calc_filter_shelving_high(filter_shelving *p)
 	p->b2 = TIM_FSCALE(b2, 24);
 }
 
-void init_filter_shelving(filter_shelving *p)
-{
-	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
-		p->x2r = 0, p->y1r = 0, p->y2r = 0;
-}
-
 static void do_shelving_filter_stereo(int32* buf, int32 count, filter_shelving *p)
 {
-#if OPT_MODE != 0
 	int32 i;
 	int32 x1l = p->x1l, x2l = p->x2l, y1l = p->y1l, y2l = p->y2l,
 		x1r = p->x1r, x2r = p->x2r, y1r = p->y1r, y2r = p->y2r, yout;
@@ -556,7 +711,12 @@ static void do_shelving_filter_stereo(int32* buf, int32 count, filter_shelving *
 	}
 	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
 		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
-#endif /* OPT_MODE != 0 */
+}
+
+void init_filter_peaking(filter_peaking *p)
+{
+	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
+		p->x2r = 0, p->y1r = 0, p->y2r = 0;
 }
 
 /*! peaking filter */
@@ -564,16 +724,17 @@ void calc_filter_peaking(filter_peaking *p)
 {
 	double a0, ba1, a2, b0, b2, omega, sn, cs, A, alpha;
 
+	init_filter_peaking(p);
+
 	A = pow(10, p->gain / 40);
 	omega = 2.0 * M_PI * (double)p->freq / (double)play_mode->rate;
 	sn = sin(omega);
 	cs = cos(omega);
-	if(p->q != 0) {alpha = sn / (2.0 * p->q);}
-	else {
+	if (p->q == 0 || p->freq < 0 || p->freq > play_mode->rate / 2) {
 		p->b0 = TIM_FSCALE(1.0, 24);
-		p->ba1 = p->b0 = p->a2 = p->b2 = 0;
+		p->ba1 = p->a2 = p->b2 = 0;
 		return;
-	}
+	} else {alpha = sn / (2.0 * p->q);}
 
 	a0 = 1.0 / (1.0 + alpha / A);
 	ba1 = -2.0 * cs;
@@ -592,15 +753,8 @@ void calc_filter_peaking(filter_peaking *p)
 	p->b2 = TIM_FSCALE(b2, 24);
 }
 
-void init_filter_peaking(filter_peaking *p)
-{
-	p->x1l = 0, p->x2l = 0, p->y1l = 0, p->y2l = 0, p->x1r = 0,
-		p->x2r = 0, p->y1r = 0, p->y2r = 0;
-}
-
 static void do_peaking_filter_stereo(int32* buf, int32 count, filter_peaking *p)
 {
-#if OPT_MODE != 0
 	int32 i;
 	int32 x1l = p->x1l, x2l = p->x2l, y1l = p->y1l, y2l = p->y2l,
 		x1r = p->x1r, x2r = p->x2r, y1r = p->y1r, y2r = p->y2r, yout;
@@ -623,7 +777,6 @@ static void do_peaking_filter_stereo(int32* buf, int32 count, filter_peaking *p)
 	}
 	p->x1l = x1l, p->x2l = x2l, p->y1l = y1l, p->y2l = y2l,
 		p->x1r = x1r, p->x2r = x2r, p->y1r = y1r, p->y2r = y2r;
-#endif /* OPT_MODE != 0 */
 }
 
 void init_pink_noise(pink_noise *p)
@@ -778,20 +931,6 @@ static double gs_revchar_to_rt(int character)
 	default: rt = 1.0;	break;	/* Delay, Panning Delay */
 	}
 	return rt;
-}
-
-static double gs_revchar_to_width(int character)
-{
-	double width;
-	switch(character) {
-	case 0: width = 0.5;	break;	/* Room 1 */
-	case 1: width = 0.5;	break;	/* Room 2 */
-	case 2: width = 0.5;	break;	/* Room 3 */
-	case 3: width = 0.5;	break;	/* Hall 1 */
-	case 4: width = 0.5;	break;	/* Hall 2 */
-	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return width;
 }
 
 static void init_standard_reverb(InfoStandardReverb *info)
@@ -1180,7 +1319,7 @@ static void update_freeverb(InfoFreeverb *rev)
 
 	rev->wet = (double)reverb_status_gs.level / 127.0f * gs_revchar_to_level(reverb_status_gs.character) * fixedgain;
 	rev->roomsize = gs_revchar_to_roomsize(reverb_status_gs.character) * scaleroom + offsetroom;
-	rev->width = gs_revchar_to_width(reverb_status_gs.character);
+	rev->width = 0.5f;
 
 	rev->wet1 = rev->width / 2.0f + 0.5f;
 	rev->wet2 = (1.0f - rev->width) / 2.0f;
@@ -2179,8 +2318,8 @@ static int32 eq_buffer[AUDIO_BUFFER_SIZE * 2];
 void init_eq_gs()
 {
 	memset(eq_buffer, 0, sizeof(eq_buffer));
-	init_filter_shelving(&(eq_status_gs.lsf));
-	init_filter_shelving(&(eq_status_gs.hsf));
+	calc_filter_shelving_low(&(eq_status_gs.lsf));
+	calc_filter_shelving_high(&(eq_status_gs.hsf));
 }
 
 void do_ch_eq_gs(int32* buf, int32 count)
@@ -2430,12 +2569,10 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 		eq->lsf.freq = eq->low_freq;
 		eq->lsf.gain = eq->low_gain;
 		calc_filter_shelving_low(&(eq->lsf));
-		init_filter_shelving(&(eq->lsf));
 		eq->hsf.q = 0;
 		eq->hsf.freq = eq->high_freq;
 		eq->hsf.gain = eq->high_gain;
 		calc_filter_shelving_high(&(eq->hsf));
-		init_filter_shelving(&(eq->hsf));
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -2884,18 +3021,21 @@ void free_effect_buffers(void)
 	}
 }
 
-/*! convert GS insertion effect parameters for internal 2-Band EQ. */
+static inline int clip_int(int val, int min, int max)
+{
+	return ((val > max) ? max : (val < min) ? min : val);
+}
+
 static void conv_gs_eq2(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoEQ2 *eq = (InfoEQ2 *)ef->info; 
 
 	eq->high_freq = 4000;
-	eq->high_gain = ieffect->parameter[16] - 0x40;
+	eq->high_gain = clip_int(ieffect->parameter[16] - 0x40, -12, 12);
 	eq->low_freq = 400;
-	eq->low_gain = ieffect->parameter[17] - 0x40;
+	eq->low_gain = clip_int(ieffect->parameter[17] - 0x40, -12, 12);
 }
 
-/*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
 static void conv_gs_overdrive1(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
@@ -2905,7 +3045,6 @@ static void conv_gs_overdrive1(struct insertion_effect_gs_t *ieffect, EffectList
 	od->pan = ieffect->parameter[18];
 }
 
-/*! convert GS insertion effect parameters for OD1 / OD2. */
 static void conv_gs_dual_od(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
@@ -2921,7 +3060,16 @@ static void conv_gs_dual_od(struct insertion_effect_gs_t *ieffect, EffectList *e
 	od->typer = ieffect->parameter[5];
 }
 
-/*! convert GS insertion effect parameters for Hexa-Chorus. */
+static double calc_dry_gs(int val)
+{
+	return ((double)(127 - val) / 127.0f);
+}
+
+static double calc_wet_gs(int val)
+{
+	return ((double)val / 127.0f);
+}
+
 static void conv_gs_hexa_chorus(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoHexaChorus *info = (InfoHexaChorus *)ef->info;
@@ -2935,10 +3083,8 @@ static void conv_gs_hexa_chorus(struct insertion_effect_gs_t *ieffect, EffectLis
 	info->pdelay_dev = ieffect->parameter[3];
 	info->depth_dev = ieffect->parameter[4] - 64;
 	info->pan_dev = ieffect->parameter[5];
-	info->dry = (double)(127 - ieffect->parameter[19]) / 63.0;
-	if(info->dry > 1.0) {info->dry = 1.0;}
-	info->wet = (double)ieffect->parameter[19] / 64.0;
-	if(info->wet > 1.0) {info->wet = 1.0;}
+	info->dry = calc_dry_gs(ieffect->parameter[15]);
+	info->wet = calc_wet_gs(ieffect->parameter[15]);
 }
 
 static double calc_dry_xg(int val, struct effect_xg_t *st)
@@ -2970,17 +3116,14 @@ static void do_eq3(int32 *buf, int32 count, EffectList *ef)
 		eq->lsf.freq = eq->low_freq;
 		eq->lsf.gain = eq->low_gain;
 		calc_filter_shelving_low(&(eq->lsf));
-		init_filter_shelving(&(eq->lsf));
 		eq->hsf.q = 0;
 		eq->hsf.freq = eq->high_freq;
 		eq->hsf.gain = eq->high_gain;
 		calc_filter_shelving_high(&(eq->hsf));
-		init_filter_shelving(&(eq->hsf));
 		eq->peak.q = 1.0f / eq->mid_width;
 		eq->peak.freq = eq->mid_freq;
 		eq->peak.gain = eq->mid_gain;
 		calc_filter_peaking(&(eq->peak));
-		init_filter_peaking(&(eq->peak));
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -2993,6 +3136,52 @@ static void do_eq3(int32 *buf, int32 count, EffectList *ef)
 	}
 	if(eq->mid_gain != 0) {
 		do_peaking_filter_stereo(buf, count, &(eq->peak));
+	}
+}
+
+/*! Stereo EQ */
+static void do_stereo_eq(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoStereoEQ *eq = (InfoStereoEQ *)ef->info;
+	int32 i, leveli = eq->leveli;
+	if (count == MAGIC_INIT_EFFECT_INFO) {
+		eq->lsf.q = 0;
+		eq->lsf.freq = eq->low_freq;
+		eq->lsf.gain = eq->low_gain;
+		calc_filter_shelving_low(&(eq->lsf));
+		eq->hsf.q = 0;
+		eq->hsf.freq = eq->high_freq;
+		eq->hsf.gain = eq->high_gain;
+		calc_filter_shelving_high(&(eq->hsf));
+		eq->m1.q = eq->m1_q;
+		eq->m1.freq = eq->m1_freq;
+		eq->m1.gain = eq->m1_gain;
+		calc_filter_peaking(&(eq->m1));
+		eq->m2.q = eq->m2_q;
+		eq->m2.freq = eq->m2_freq;
+		eq->m2.gain = eq->m2_gain;
+		calc_filter_peaking(&(eq->m2));
+		eq->leveli = TIM_FSCALE(eq->level, 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	if (eq->level != 1.0f) {
+		for (i = 0; i < count; i++) {
+			buf[i] = imuldiv24(buf[i], leveli);
+		}
+	}
+	if(eq->low_gain != 0) {
+		do_shelving_filter_stereo(buf, count, &(eq->lsf));
+	}
+	if(eq->high_gain != 0) {
+		do_shelving_filter_stereo(buf, count, &(eq->hsf));
+	}
+	if(eq->m1_gain != 0) {
+		do_peaking_filter_stereo(buf, count, &(eq->m1));
+	}
+	if(eq->m2_gain != 0) {
+		do_peaking_filter_stereo(buf, count, &(eq->m2));
 	}
 }
 
@@ -3036,6 +3225,28 @@ static void conv_xg_eq3(struct effect_xg_t *st, EffectList *ef)
 	val = st->param_lsb[6];
 	val = (val > 58) ? 58 : (val < 28) ? 28 : val;
 	info->high_freq = eq_freq_table_xg[val];
+}
+
+static float eq_q_table_gs[] =
+{
+	0.5, 1.0, 2.0, 4.0, 9.0,
+};
+
+static void conv_gs_stereo_eq(struct insertion_effect_gs_t *st, EffectList *ef)
+{
+	InfoStereoEQ *info = (InfoStereoEQ *)ef->info;
+
+	info->low_freq = (st->parameter[0] == 0) ? 200 : 400;
+	info->low_gain = clip_int(st->parameter[1] - 64, -12, 12);
+	info->high_freq = (st->parameter[2] == 0) ? 4000 : 8000;
+	info->high_gain = clip_int(st->parameter[3] - 64, -12, 12);
+	info->m1_freq = eq_freq_table_gs[st->parameter[4]];
+	info->m1_q = eq_q_table_gs[clip_int(st->parameter[5], 0, 4)];
+	info->m1_gain = clip_int(st->parameter[6] - 64, -12, 12);
+	info->m2_freq = eq_freq_table_gs[st->parameter[7]];
+	info->m2_q = eq_q_table_gs[clip_int(st->parameter[8], 0, 4)];
+	info->m2_gain = clip_int(st->parameter[9] - 64, -12, 12);
+	info->level = (double)st->parameter[19] / 127.0f;
 }
 
 static void conv_xg_chorus_eq3(struct effect_xg_t *st, EffectList *ef)
@@ -3683,8 +3894,171 @@ static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
 	delayL->index = indexl, delayR->index = indexr;
 }
 
+static void conv_gs_lofi1(struct insertion_effect_gs_t *st, EffectList *ef)
+{
+	InfoLoFi1 *info = (InfoLoFi1 *)ef->info;
+
+	info->pre_filter = st->parameter[0];
+	info->lofi_type = st->parameter[1];
+	info->post_filter = st->parameter[2];
+	info->dry = calc_dry_gs(st->parameter[15]);
+	info->wet = calc_wet_gs(st->parameter[15]);
+	info->pan = st->parameter[18];
+	info->level = (double)st->parameter[19] / 127.0f;
+}
+
+static void do_lofi1(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x, y;
+	InfoLoFi1 *info = (InfoLoFi1 *)ef->info;
+	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		info->bit_mask = ~((1L << (info->lofi_type + 22 - GUARD_BITS)) - 1L);
+		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
+		info->weti = TIM_FSCALE(info->wet * info->level, 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = buf[i];
+		y = x & bit_mask;
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+
+		x = buf[++i];
+		y = x & bit_mask;
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+	}
+}
+
+static void conv_gs_lofi2(struct insertion_effect_gs_t *st, EffectList *ef)
+{
+	InfoLoFi2 *info = (InfoLoFi2 *)ef->info;
+
+	info->lofi_type = st->parameter[0];
+	info->fil_type = st->parameter[1];
+	info->fil.freq = cutoff_freq_table_gs[st->parameter[2]];
+	info->rdetune = st->parameter[3];
+	info->rnz_lev = (double)st->parameter[4] / 127.0f;
+	info->wp_sel = st->parameter[5];
+	info->wp_lpf.freq = lpf_table_gs[st->parameter[6]];
+	info->wp_level = (double)st->parameter[7] / 127.0f;
+	info->disc_type = st->parameter[8];
+	info->disc_lpf.freq = lpf_table_gs[st->parameter[9]];
+	info->discnz_lev = (double)st->parameter[10] / 127.0f;
+	info->hum_type = st->parameter[11];
+	info->hum_lpf.freq = lpf_table_gs[st->parameter[12]];
+	info->hum_level = (double)st->parameter[13] / 127.0f;
+	info->ms = st->parameter[14];
+	info->dry = calc_dry_gs(st->parameter[15]);
+	info->wet = calc_wet_gs(st->parameter[15]);
+	info->pan = st->parameter[18];
+	info->level = (double)st->parameter[19] / 127.0f;
+}
+
+static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x, y;
+	InfoLoFi2 *info = (InfoLoFi2 *)ef->info;
+	filter_biquad *fil = &(info->fil);
+	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		fil->q = 1.0f;
+		if (info->fil_type == 1) {calc_filter_biquad_low(fil);}
+		else if (info->fil_type == 2) {calc_filter_biquad_high(fil);}
+		else {
+			fil->freq = -1;	/* bypass */
+			calc_filter_biquad_low(fil);
+		}
+		info->bit_mask = ~((1L << (info->lofi_type + 22 - GUARD_BITS)) - 1L);
+		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
+		info->weti = TIM_FSCALE(info->wet * info->level, 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = buf[i];
+		y = x & bit_mask;
+		do_filter_biquad(y, fil->a1, fil->a2, fil->b1, fil->b02, fil->x1l, fil->x2l, fil->y1l, fil->y2l);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+
+		x = buf[++i];
+		y = x & bit_mask;
+		do_filter_biquad(y, fil->a1, fil->a2, fil->b1, fil->b02, fil->x1r, fil->x2r, fil->y1r, fil->y2r);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+	}
+}
+
+static void conv_xg_lofi(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoLoFi *info = (InfoLoFi *)ef->info;
+	int val;
+
+	info->srf.freq = lofi_sampling_freq_table_xg[st->param_lsb[0]] / 2.0f;
+	info->word_length = st->param_lsb[1];
+	val = st->param_lsb[2];
+	val = (val > 18) ? 18 : (val < 0) ? 0 : val;
+	info->output_gain = val;
+	val = st->param_lsb[3];
+	val = (val > 80) ? 80 : (val < 10) ? 10 : val;
+	info->lpf.freq = eq_freq_table_xg[val];
+	info->filter_type = st->param_lsb[4];
+	val = st->param_lsb[5];
+	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
+	info->lpf.q = (double)val / 10.0f;
+	val = st->param_lsb[6];
+	val = (val > 6) ? 6 : (val < 0) ? 0 : val;
+	info->bit_assign = val;
+	info->emphasis = st->param_lsb[7];
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void do_lofi(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x, y;
+	InfoLoFi *info = (InfoLoFi *)ef->info;
+	filter_biquad *lpf = &(info->lpf), *srf = &(info->srf);
+	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		srf->q = 1.0f;
+		calc_filter_biquad_low(srf);
+		calc_filter_biquad_low(lpf);
+		info->bit_mask = ~((1L << (info->bit_assign + 22 - GUARD_BITS)) - 1L);
+		info->dryi = TIM_FSCALE(info->dry * pow(10.0f, (double)info->output_gain / 20.0f), 24);
+		info->weti = TIM_FSCALE(info->wet * pow(10.0f, (double)info->output_gain / 20.0f), 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = buf[i];
+		y = x & bit_mask;
+		do_filter_biquad(y, srf->a1, srf->a2, srf->b1, srf->b02, srf->x1l, srf->x2l, srf->y1l, srf->y2l);
+		do_filter_biquad(y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, lpf->x1l, lpf->x2l, lpf->y1l, lpf->y2l);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+
+		x = buf[++i];
+		y = x & bit_mask;
+		do_filter_biquad(y, srf->a1, srf->a2, srf->b1, srf->b02, srf->x1r, srf->x2r, srf->y1r, srf->y2r);
+		do_filter_biquad(y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, lpf->x1r, lpf->x2r, lpf->y1r, lpf->y2r);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+	}
+}
+
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
+	EFFECT_STEREO_EQ, "Stereo-EQ", do_stereo_eq, conv_gs_stereo_eq, NULL, sizeof(InfoStereoEQ),
 	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, conv_xg_eq2, sizeof(InfoEQ2),
 	EFFECT_EQ3, "3-Band EQ", do_eq3, NULL, conv_xg_eq3, sizeof(InfoEQ3),
 	EFFECT_OVERDRIVE1, "Overdrive", do_overdrive1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
@@ -3703,6 +4077,9 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_ECHO, "Echo", do_echo, NULL, conv_xg_echo, sizeof(InfoEcho),
 	EFFECT_CROSS_DELAY, "Cross Delay", do_cross_delay, NULL, conv_xg_cross_delay, sizeof(InfoCrossDelay),
 	EFFECT_DELAY_EQ2, "2-Band EQ (XG Delay built-in)", do_eq2, NULL, conv_xg_delay_eq2, sizeof(InfoEQ2),
+	EFFECT_LOFI, "Lo-Fi", do_lofi, NULL, conv_xg_lofi, sizeof(InfoLoFi),
+	EFFECT_LOFI1, "Lo-Fi 1", do_lofi1, conv_gs_lofi1, NULL, sizeof(InfoLoFi1),
+	EFFECT_LOFI2, "Lo-Fi 2", do_lofi2, conv_gs_lofi2, NULL, sizeof(InfoLoFi2),
 	-1, "EOF", NULL, NULL, NULL, 0, 
 };
 
@@ -3765,6 +4142,8 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	70, 34, 60, 10, 70, 28, 46, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
 	0x4D, 0, "2-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	28, 70, 46, 70, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
+	0x5E, 0, "LO-FI", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 60, 6, 54, 5, 10, 1, 1, 0, 127, 0, 0, 0, 0, 1, 0, 9, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
@@ -3772,6 +4151,8 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 struct effect_parameter_gs_t effect_parameter_gs[] = {
 	0, 0, "None", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0x01, 0x00, "Stereo-EQ", 1, 0x45, 1, 0x34, 0x48, 0, 0x48, 0x38, 0, 0x48,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 19, -1,
 	0x01, 0x10, "Overdrive", 48, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0x40, 0x40, 0x40, 96, 0, 18,
 	0x01, 0x11, "Distrotion", 76, 3, 1, 0, 0, 0, 0, 0, 0, 0,
@@ -3779,7 +4160,11 @@ struct effect_parameter_gs_t effect_parameter_gs[] = {
 	0x11, 0x03, "OD1/OD2", 0, 48, 1, 1, 0, 1, 76, 3, 1, 0,
 	0, 0, 0, 0, 0, 0x40, 96, 0x40, 84, 127, 1, 6, 
 	0x01, 0x40, "Hexa Chorus", 0x18, 0x08, 127, 5, 66, 16, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 64, 0x40, 0x40, 112, 1, 15, 
+	0, 0, 0, 0, 0, 0, 0x40, 0x40, 64, 112, 1, 15, 
+	0x01, 0x72, "Lo-Fi 1", 2, 6, 2, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 127, 0x40, 0x40, 64, 127, 15, 18, 
+	0x01, 0x73, "Lo-Fi 2", 2, 1, 0x20, 0, 64, 1, 127, 0, 0, 127,
+	0, 0, 127, 0, 1, 127, 0x40, 0x40, 64, 127, 3, 15, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };

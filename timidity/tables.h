@@ -86,6 +86,10 @@ extern float lfo_freq_table_xg[];
 extern float mod_delay_offset_table_xg[];
 extern float reverb_time_table_xg[];
 extern float delay_time_table_xg[];
+extern int16 cutoff_freq_table_gs[];
+extern int16 lpf_table_gs[];
+extern int16 eq_freq_table_gs[];
+extern float lofi_sampling_freq_table_xg[];
 
 extern void init_freq_table(void);
 extern void init_freq_table_tuning(void);
