@@ -2931,7 +2931,7 @@ void midi_program_change(int ch, int prog)
 				? SPECIAL_PROGRAM : prog;
 		channel[ch].altassign = NULL;
 		ctl_mode_event(CTLE_DRUMPART, 1, ch, 0);
-		if (opt_realtime_playing && play_mode->flag & PF_PCM_STREAM) {
+		if (opt_realtime_playing && (play_mode->flag & PF_PCM_STREAM)) {
 			b = channel[ch].bank, p = prog;
 			instrument_map(channel[ch].mapID, &b, &p);
 			play_midi_load_instrument(0, b, p);
