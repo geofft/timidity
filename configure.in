@@ -604,6 +604,7 @@ dnl esd(e):     EsounD
 dnl portaudio(p) PortAudio
 dnl vorbis(v):  Ogg Vorbis
 dnl gogo(g):    MP3 GOGO
+dnl jack(j):    JACK
 
 audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack'
 
@@ -630,6 +631,7 @@ AC_ARG_ENABLE(audio,
                               arts:      aRts
                               esd:       EsounD - Enlightened Sound Daemon
                               portaudio: PortAudio
+                              jack:      JACK
                               vorbis:    Ogg Vorbis
                               gogo:      MP3 GOGO (Only Windows is supported)],
   [ enable_audio=$enableval
@@ -652,7 +654,7 @@ AC_ARG_WITH(default-output,
   [  --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
                                 esd|wav|au|aiff|list|vorbis|
-                                gogo|portaudio)],
+                                gogo|portaudio|jack)],
   [ if test "$enable_audio" != no; then
     DEFAULT_PLAYMODE=$withval
     eval "au_enable_$DEFAULT_PLAYMODE=yes"
@@ -898,6 +900,7 @@ if test "x$au_enable_alsa" = xyes; then
     SYSEXTRAS="$SYSEXTRAS alsa_a.c"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$ALSA_CFLAGS)
     LIBS="$KEEPLIBS $ALSA_LIBS"
+    AC_CHECK_FUNCS(snd_seq_port_info_set_timestamping)
   else
     AC_MSG_WARN(Couldn't configure alsa.)
     CFLAGS=$KEEPCFLAGS
@@ -1118,6 +1121,7 @@ case ".$DEFAULT_PLAYMODE" in
   .list)     TIMIDITY_OUTPUT_ID=l ;;
   .vorbis)   TIMIDITY_OUTPUT_ID=v ;;
   .gogo)     TIMIDITY_OUTPUT_ID=g ;;
+  .jack)     TIMIDITY_OUTPUT_ID=j ;;
   *)         TIMIDITY_OUTPUT_ID= ;;
 esac
 AC_MSG_RESULT($DEFAULT_PLAYMODE/$TIMIDITY_OUTPUT_ID)

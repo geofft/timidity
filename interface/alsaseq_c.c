@@ -77,6 +77,8 @@ struct seq_context {
 	int fd;			/* The file descriptor */
 	int used;		/* number of current connection */
 	int active;		/* */
+	int queue;
+	snd_seq_queue_status_t *q_status;
 };
 
 static struct seq_context alsactx;
@@ -96,12 +98,11 @@ static int snd_seq_file_descriptor(snd_seq_t *handle)
 
 static int alsa_seq_open(snd_seq_t **seqp)
 {
-	return snd_seq_open(seqp, "hw", SND_SEQ_OPEN_INPUT, 0);
+	return snd_seq_open(seqp, "hw", SND_SEQ_OPEN_DUPLEX, 0);
 }
 
 static int alsa_create_port(snd_seq_t *seq, int index)
 {
-	snd_seq_port_info_t *pinfo;
 	char name[32];
 	int port;
 
@@ -113,6 +114,7 @@ static int alsa_create_port(snd_seq_t *seq, int index)
 		fprintf(stderr, "error in snd_seq_create_simple_port\n");
 		return -1;
 	}
+
 	return port;
 }
 
@@ -140,6 +142,35 @@ static int alsa_create_port(snd_seq_t *seq, int index)
 
 #endif
 
+static void alsa_set_timestamping(struct seq_context *ctxp, int port)
+{
+#if HAVE_SND_SEQ_PORT_INFO_SET_TIMESTAMPING
+	int q;
+	snd_seq_port_info_t *pinfo;
+
+	if (ctxp->queue < 0) {
+		q = snd_seq_alloc_queue(ctxp->handle);
+		ctxp->queue = q;
+		if (q < 0)
+			return;
+		if (snd_seq_queue_status_malloc(&ctxp->q_status) < 0) {
+			fprintf(stderr, "no memory!\n");
+			exit(1);
+		}
+	}
+
+	snd_seq_port_info_alloca(&pinfo);
+	if (snd_seq_get_port_info(ctxp->handle, port, pinfo) < 0)
+		return;
+	snd_seq_port_info_set_timestamping(pinfo, 1);
+	snd_seq_port_info_set_timestamp_real(pinfo, 1);
+	snd_seq_port_info_set_timestamp_queue(pinfo, q);
+	if (snd_seq_set_port_info(ctxp->handle, port, pinfo) < 0)
+		return;
+#endif
+}
+
+
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
@@ -165,8 +196,12 @@ ControlMode ctl=
     ctl_event
 };
 
-static int time_advance;
-static int32 event_time_offset;
+static int buffer_time_advance;
+static long buffer_time_offset;
+static long start_time_base;
+static long cur_time_offset;
+static long last_queue_offset;
+static double rate_frac, rate_frac_nsec;
 static FILE *outfp;
 
 /*ARGSUSED*/
@@ -273,6 +308,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		fprintf(stderr, "error in snd_seq_open\n");
 		return;
 	}
+	alsactx.queue = -1;
 	alsactx.client = snd_seq_client_id(alsactx.handle);
 	alsactx.fd = snd_seq_file_descriptor(alsactx.handle);
 	snd_seq_set_client_name(alsactx.handle, "TiMidity");
@@ -285,6 +321,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		if (port < 0)
 			return;
 		alsactx.port[i] = port;
+		alsa_set_timestamping(&alsactx, port);
 		printf(" %d:%d", alsactx.client, alsactx.port[i]);
 	}
 	printf("\n");
@@ -297,17 +334,24 @@ static void ctl_pass_playing_list(int n, char *args[])
 	current_keysig = current_temper_keysig = opt_init_keysig;
 	note_key_offset = 0;
 
-	/* set the audio queue size as minimum as possible, since
-	 * we don't have to use audio queue..
-	 */
-	play_mode->acntl(PM_REQ_GETFRAGSIZ, &time_advance);
-	if (!(play_mode->encoding & PE_MONO))
-		time_advance >>= 1;
-	if (play_mode->encoding & PE_16BIT)
-		time_advance >>= 1;
-	btime = (double)time_advance / play_mode->rate;
-	btime *= 1.01; /* to be sure */
-	aq_set_soft_queue(btime, 0.0);
+	if (IS_STREAM_TRACE) {
+		/* set the audio queue size as minimum as possible, since
+		 * we don't have to use audio queue..
+		 */
+		play_mode->acntl(PM_REQ_GETFRAGSIZ, &buffer_time_advance);
+		if (!(play_mode->encoding & PE_MONO))
+			buffer_time_advance >>= 1;
+		if (play_mode->encoding & PE_16BIT)
+			buffer_time_advance >>= 1;
+
+		btime = (double)buffer_time_advance / play_mode->rate;
+		btime *= 1.01; /* to be sure */
+		aq_set_soft_queue(btime, 0.0);
+	} else {
+		buffer_time_advance = 0;
+	}
+	rate_frac = (double)play_mode->rate / 1000000.0;
+	rate_frac_nsec = (double)play_mode->rate / 1000000000.0;
 
 	alarm(0);
 	signal(SIGALRM, sig_timeout);
@@ -355,17 +399,73 @@ static void ctl_pass_playing_list(int n, char *args[])
 	}
 }
 
+/*
+ * get the current time in usec from gettimeofday()
+ */
+static long get_current_time(void)
+{
+	struct timeval tv;
+	long t;
+
+	gettimeofday(&tv, NULL);
+	t = tv.tv_sec * 1000000L + tv.tv_usec;
+	return t - start_time_base;
+}
+	
+/*
+ * convert from snd_seq_real_time_t to sample count
+ */
+inline static long queue_time_to_position(const snd_seq_real_time_t *t)
+{
+	return (long)t->tv_sec * play_mode->rate + (long)(t->tv_nsec * rate_frac_nsec);
+}
+
+/*
+ * get the current queue position in sample count
+ */
+static long get_current_queue_position(struct seq_context *ctxp)
+{
+	snd_seq_get_queue_status(ctxp->handle, ctxp->queue, ctxp->q_status);
+	return queue_time_to_position(snd_seq_queue_status_get_real_time(ctxp->q_status));
+}
+
+/*
+ * update the current position from the event timestamp
+ */
+static void update_timestamp_from_event(snd_seq_event_t *ev)
+{
+	long t = queue_time_to_position(&ev->time.time) - last_queue_offset;
+	if (t < 0) {
+		// fprintf(stderr, "timestamp underflow! (delta=%d)\n", (int)t);
+		t = 0;
+	} else if (buffer_time_advance > 0 && t >= buffer_time_advance) {
+		// fprintf(stderr, "timestamp overflow! (delta=%d)\n", (int)t);
+		t = buffer_time_advance - 1;
+	}
+	t += buffer_time_offset;
+	if (t >= cur_time_offset)
+		cur_time_offset = t;
+}
+
+/*
+ * update the current position from system time
+ */
+static void update_timestamp(void)
+{
+	cur_time_offset = (long)(get_current_time() * rate_frac);
+}
+
 static void seq_play_event(MidiEvent *ev)
 {
-  //JAVE  make channel -Q channels quiet, modified some code from readmidi.c
-  int gch;
-  gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
+	//JAVE  make channel -Q channels quiet, modified some code from readmidi.c
+	int gch;
+	gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
 
-  if(gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel)){
-    //if its a global event or not a masked event
-    ev->time = event_time_offset;
-    play_event(ev);
-  }
+	if (gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel)){
+		//if its a global event or not a masked event
+		ev->time = cur_time_offset;
+		play_event(ev);
+	}
 }
 
 static void stop_playing(void)
@@ -388,20 +488,35 @@ static void doit(struct seq_context *ctxp)
 				goto __done;
 		}
 		if (ctxp->active) {
-			double fill_time;
 			MidiEvent ev;
 
-			/*event_time_offset += play_mode->rate / TICKTIME_HZ;*/
-			event_time_offset += time_advance;
-			ev.time = event_time_offset;
+			if (IS_STREAM_TRACE) {
+				/* remember the last update position */
+				if (ctxp->queue >= 0)
+					last_queue_offset = get_current_queue_position(ctxp);
+				/* advance the buffer position */
+				buffer_time_offset += buffer_time_advance;
+				ev.time = buffer_time_offset;
+			} else {
+				/* update the current position */
+				if (ctxp->queue >= 0)
+					cur_time_offset = get_current_queue_position(ctxp);
+				else
+					update_timestamp();
+				ev.time = cur_time_offset;
+			}
 			ev.type = ME_NONE;
 			play_event(&ev);
 			aq_fill_nonblocking();
-		} else {
+		}
+		if (! ctxp->active || ! IS_STREAM_TRACE) {
 			fd_set rfds;
+			struct timeval timeout;
 			FD_ZERO(&rfds);
 			FD_SET(ctxp->fd, &rfds);
-			if (select(ctxp->fd + 1, &rfds, NULL, NULL, NULL) < 0)
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 10000; /* 10ms */
+			if (select(ctxp->fd + 1, &rfds, NULL, NULL, &timeout) < 0)
 				goto __done;
 		}
 	}
@@ -419,7 +534,7 @@ static void server_reset(void)
 	if (free_instruments_afterwards)
 		free_instruments(0);
 	reduce_voice_threshold = 0; /* Disable auto reduction voice */
-	event_time_offset = 0;
+	buffer_time_offset = 0;
 }
 
 static int start_sequencer(struct seq_context *ctxp)
@@ -431,12 +546,31 @@ static int start_sequencer(struct seq_context *ctxp)
 		return 0;
 	}
 	ctxp->active = 1;
+
+	buffer_time_offset = 0;
+	last_queue_offset = 0;
+	cur_time_offset = 0;
+	if (ctxp->queue >= 0) {
+		if (snd_seq_start_queue(ctxp->handle, ctxp->queue, NULL) < 0)
+			ctxp->queue = -1;
+		else
+			snd_seq_drain_output(ctxp->handle);
+	}
+	if (ctxp->queue < 0) {
+		start_time_base = 0;
+		start_time_base = get_current_time();
+	}
+
 	return 1;
 }
 
 static void stop_sequencer(struct seq_context *ctxp)
 {
 	stop_playing();
+	if (ctxp->queue >= 0) {
+		snd_seq_stop_queue(ctxp->handle, ctxp->queue, NULL);
+		snd_seq_drain_output(ctxp->handle);
+	}
 	play_mode->close_output();
 	free_instruments(0);
 	free_global_mblock();
@@ -456,6 +590,13 @@ static int do_sequencer(struct seq_context *ctxp)
 	n = snd_seq_event_input(ctxp->handle, &aevp);
 	if (n < 0 || aevp == NULL)
 		return 0;
+
+	if (ctxp->active && ctxp->queue >= 0)
+		update_timestamp_from_event(aevp);
+	else if (IS_STREAM_TRACE)
+		cur_time_offset = buffer_time_offset;
+	else
+		update_timestamp();
 
 	switch(aevp->type) {
 	case SND_SEQ_EVENT_NOTEON:

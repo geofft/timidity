@@ -1,3 +1,16 @@
+2003-08-27  Takashi Iwai <tiwai@suse.de>
+
+	* interface/alsaseq_c.c, configure.in:
+	  higher resolution of rendering in ALSA sequencer mode
+	  with the event timestamps.  works only on the latest
+	  ALSA 0.9.
+	  works now also with the non-audio-device (e.g. wav).
+
+2003-08-26  Takashi Iwai <tiwai@suse.de>
+
+	* timidity/timidity.c: clean up set_value().
+	* interface/alsaseq_c.c: set the client name.
+
 2003-08-25  mput <root@mput.dip.jp>
 
 	* configure,timidity/Makefile.in: To fit with Iwai's changes
