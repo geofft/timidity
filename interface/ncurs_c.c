@@ -1468,6 +1468,18 @@ static void ctl_temper_type(int ch, int8 tt)
 		waddch(dftwin, 'p');
 		wattroff(dftwin, A_BOLD);
 		break;
+	case 64:
+		waddch(dftwin, '0');
+		break;
+	case 65:
+		waddch(dftwin, '1');
+		break;
+	case 66:
+		waddch(dftwin, '2');
+		break;
+	case 67:
+		waddch(dftwin, '3');
+		break;
 	}
 	scr_modified_flag = 1;
 }

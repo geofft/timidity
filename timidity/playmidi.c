@@ -268,6 +268,7 @@ static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
 static void set_single_note_tuning(int, int, int, int);
+static void set_user_temper_enter(int, int, int);
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -349,6 +350,7 @@ static char *event_name(int type)
 	EVENT_NAME(ME_TEMPER_KEYSIG);
 	EVENT_NAME(ME_TEMPER_TYPE);
 	EVENT_NAME(ME_MASTER_TEMPER_TYPE);
+	EVENT_NAME(ME_USER_TEMPER_ENTER);
 	EVENT_NAME(ME_SYSEX_LSB);
 	EVENT_NAME(ME_SYSEX_MSB);
 	EVENT_NAME(ME_SYSEX_GS_LSB);
@@ -4209,6 +4211,10 @@ static void seek_forward(int32 until_time)
 			channel[i].temper_type = current_event->a;
 		break;
 
+	case ME_USER_TEMPER_ENTER:
+		set_user_temper_enter(ch, current_event->a, current_event->b);
+		break;
+
 	  case ME_SYSEX_LSB:
 	    process_sysex_event(ME_SYSEX_LSB,ch,current_event->a,current_event->b);
 	    break;
@@ -6159,6 +6165,10 @@ int play_event(MidiEvent *ev)
 				}
 		break;
 
+	case ME_USER_TEMPER_ENTER:
+		set_user_temper_enter(ch, current_event->a, current_event->b);
+		break;
+
 	case ME_SYSEX_LSB:
 		process_sysex_event(ME_SYSEX_LSB,ch,current_event->a,current_event->b);
 	    break;
@@ -6216,8 +6226,7 @@ static void set_single_note_tuning(int part, int a, int b, int rt)
 		tp = a;
 		break;
 	case 1:
-		kn = a;
-		st = b;
+		kn = a, st = b;
 		break;
 	case 2:
 		if (st == 0x7f && a == 0x7f && b == 0x7f)	/* no change */
@@ -6231,6 +6240,97 @@ static void set_single_note_tuning(int part, int a, int b, int rt)
 					voice[i].temper_instant = 1;
 					recompute_freq(i);
 				}
+		break;
+	}
+}
+
+static void set_user_temper_enter(int part, int a, int b)
+{
+	static int tp;		/* temperament program number */
+	static int ll;		/* number of formula */
+	static int fh, fl;	/* applying pitch bit mask (forward) */
+	static int bh, bl;	/* applying pitch bit mask (backward) */
+	static int aa, bb;	/* fraction (aa/bb) */
+	static int cc, dd;	/* power (cc/dd)^(ee/ff) */
+	static int ee, ff;
+	static int ifmax, ibmax, count;
+	static double rf[11], rb[11];
+	int i, j, k, l, n, m;
+	double ratio[12], f, sc;
+	
+	switch (part) {
+	case 0:
+		for (i = 0; i < 11; i++)
+			rf[i] = rb[i] = 1;
+		ifmax = ibmax = 0;
+		count = 0;
+		tp = a, ll = b;
+		break;
+	case 1:
+		fh = a, fl = b;
+		break;
+	case 2:
+		bh = a, bl = b;
+		break;
+	case 3:
+		aa = a, bb = b;
+		break;
+	case 4:
+		cc = a, dd = b;
+		break;
+	case 5:
+		ee = a, ff = b;
+		for (i = 0; i < 11; i++) {
+			if (((fh & 0xf) << 7 | fl) & 1 << i) {
+				rf[i] *= (double) aa / bb
+						* pow((double) cc / dd, (double) ee / ff);
+				if (ifmax < i + 1)
+					ifmax = i + 1;
+			}
+			if (((bh & 0xf) << 7 | bl) & 1 << i) {
+				rb[i] *= (double) aa / bb
+						* pow((double) cc / dd, (double) ee / ff);
+				if (ibmax < i + 1)
+					ibmax = i + 1;
+			}
+		}
+		if (++count < ll)
+			break;
+		ratio[0] = 1;
+		for (i = n = m = 0; i < ifmax; i++, m = n) {
+			n += (n > 4) ? -5 : 7;
+			ratio[n] = ratio[m] * rf[i];
+			if (ratio[n] > 2)
+				ratio[n] /= 2;
+		}
+		for (i = n = m = 0; i < ibmax; i++, m = n) {
+			n += (n > 6) ? -7 : 5;
+			ratio[n] = ratio[m] / rb[i];
+			if (ratio[n] < 1)
+				ratio[n] *= 2;
+		}
+		sc = 27 / ratio[9] / 16;	/* syntonic comma */
+		for (i = 0; i < 12; i++)
+			for (j = -1; j < 11; j++) {
+				f = 440 * pow(2.0, (i - 9) / 12.0 + j - 5);
+				for (k = 0; k < 12; k++) {
+					l = i + j * 12 + k;
+					if (l < 0 || l >= 128)
+						continue;
+					if (! (fh & 0x40)) {	/* major */
+						freq_table_user[tp][i][l] =
+								f * ratio[k] * 1000 + 0.5;
+						freq_table_user[tp][i + 36][l] =
+								f * ratio[k] * sc * 1000 + 0.5;
+					}
+					if (! (bh & 0x40)) {	/* minor */
+						freq_table_user[tp][i + 12][l] =
+								f * ratio[k] * sc * 1000 + 0.5;
+						freq_table_user[tp][i + 24][l] =
+								f * ratio[k] * 1000 + 0.5;
+					}
+				}
+			}
 		break;
 	}
 }
