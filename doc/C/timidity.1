@@ -155,11 +155,11 @@ The following command line options are accepted by \fBTiMidity++\fP:
 .br
 .ns
 .TP
-.BI "\-\-amplification " n
+.BI \-\-amplification= n
 .br
 .ns
 .TP
-.BI "\-\-drumpower " m
+.BI \-\-drumpower= m
 .br
 .ns
 .TP
@@ -203,7 +203,7 @@ Turns on antialiasing.  Samples are run through a lowpass filter
 before playing, which reduces aliasing noise at low resampling
 frequencies.
 .TP
-.BI "\-B, \-\-buffer\-fragments " n,m
+.BI "\-B " n,m ", \-\-buffer\-fragments=" n,m
 For the Linux/FreeBSD/OSS/ALSA/Windows sound driver, selects the
 number of buffer fragments in interactive mode.  Increasing the number
 of fragments may reduce choppiness when many processes are running.
@@ -212,24 +212,24 @@ forward, rewind, and volume controls, and it will throw the status
 display off sync.  Specify a fragments number of 0 to use the maximum
 number of fragments available.
 .TP
-.BI "\-C, \-\-control\-ratio " n
+.BI "\-C " n ", \-\-control\-ratio=" n
 Sets the ratio of sampling and control frequencies.  This determines
 how often envelopes are recalculated \-\- small ratios yield better
 quality but use more CPU time.
 .TP
-.BI "\-c, \-\-config\-file " file
+.BI "\-c " file ", \-\-config\-file=" file
 Reads an extra configuration file.
 .TP
-.BI "\-D, \-\-drum\-channel " n
+.BI "\-D " n ", \-\-drum\-channel=" n
 Marks channel as a drum channel.  If channel is negative, channel
 \-\fIn\fP is marked as an instrumental channel.  If \fIn\fP is
 \fB0\fP, all channels are marked as instrumental.
 .TP
-.BI "\-d, \-\-interface\-path " dir
+.BI "\-d " dir ", \-\-interface\-path=" dir
 Specifies the directory containing installed dynamic\-link interface
 modules.
 .TP
-.BI "\-E, \-\-ext " mode
+.BI "\-E " mode ", \-\-ext=" mode
 Set \fBTiMidity++\fP extend modes.  The following modes are available
 (capitalized switch means disable this feature):
 .RS
@@ -258,42 +258,42 @@ Accept/reject pronouncing multiple same notes.
 .B z/Z, \-\-[no\-]temper\-control
 Enable/disable MIDI Tuning Standard temperament controlling.
 .TP
-.BI "m, \-\-default\-mid " HH
+.BI m HH ", \-\-default\-mid=" HH
 Sets the manufacturer ID to \fIHH\fP (where \fIHH\fP are two
 hex\-digits).
 .br
 \fIHH\fP values of \fBGS/gs\fP, \fBXG/xg\fP or \fBGM/gm\fP are
 understood as \fB41\fP, \fB43\fP and \fB7e\fP respectively.
 .TP
-.BI "M, \-\-system\-mid " HH
+.BI M HH ", \-\-system\-mid=" HH
 Sets the system manufacturer ID to \fIHH\fP (where \fIHH\fP are two
 hex\-digits).
 .br
 In this option, the manufacuture ID is set unchangable. Manufacuture
 ID from the input file would be ignored.
 .TP
-.BI "b, \-\-default\-bank " n
+.BI b n ", \-\-default\-bank=" n
 Use tone bank \fIn\fP as the default.
 .TP
-.BI "B, \-\-force\-bank " n
+.BI B n ", \-\-force\-bank=" n
 Sets the bank number of all channels to \fIn\fP.
 .TP
-.BI "i, \-\-default\-program " n[/m]
+.BI i n[/m] ", \-\-default\-program=" n[/m]
 Use the program number as the default instrument.  Any Program Change
 events in MIDI files will override this option.
 .br
 If \fIn\fP is followed by \fI/m\fP the default program number of the
 channel \fIm\fP is specified by \fIn\fP.
 .TP
-.BI "I, \-\-force\-program " n[/m]
+.BI I n[/m] ", \-\-force\-program=" n[/m]
 Similar to \fB\-Ei\fP but this ignores all program changes.
 .TP
-.B "F " args
+.BI "F " args
 For effects.  See below.  In \fIargs\fP option, you can specify
 following effect options:
 .RS
 .TP
-.BI "delay=, \-\-delay " (d|l|r|b)[,msec]
+.BI delay= (d|l|r|b)[,msec] ", \-\-delay=" (d|l|r|b)[,msec]
 Sets delay type.
 .RS
 .TP
@@ -312,7 +312,7 @@ Swap left & right.
 Optional \fImsec\fP is the delay time.
 .RE
 .TP
-.BI "chorus=, \-\-chorus " (d|n|s)[,level]
+.BI chorus= (d|n|s)[,level] ", \-\-chorus=" (d|n|s)[,level]
 .RS
 .TP
 .B d, 0
@@ -328,7 +328,7 @@ The optional parameter \fIlevel\fP specifies the chorus level \fB0\fP
 to \fB127\fP.
 .RE
 .TP
-.BI "reverb=, \-\-reverb " (d|n|g|f|G)[,level]
+.BI reverb= (d|n|g|f|G)[,level] ", \-\-reverb=" (d|n|g|f|G)[,level]
 .RS
 .TP
 .B d, 0
@@ -351,7 +351,7 @@ The optional parameter \fIlevel\fP specifies the reverb level \fB0\fP
 to \fB127\fP.
 .RE
 .TP
-.BI "vlpf=, \-\-voice\-lpf " (d|c|m)
+.BI vlpf= (d|c|m) ", \-\-voice\-lpf=" (d|c|m)
 .RS
 .TP
 .B d, 0
@@ -364,7 +364,7 @@ Chamberlin resonant LPF (12dB/oct) (default).
 Moog resonant low\-pass VCF (24dB/oct)
 .RE
 .TP
-.BI "ns=, \-\-noise\-shaping " n
+.BI ns= n ", \-\-noise\-shaping=" n
 Enable the \fIn\fP th degree noiseshaping filter.  The distortion at
 decay stage is improved, but the noise on human auditory feeling
 increases because it shifts to a high frequency.  In case of 8\-bit
@@ -391,7 +391,7 @@ Tube-amplifier-like soft-clipping + new noise shaping.
 New noise shaping.
 .RE
 .TP
-.BI "resamp=, \-\-resample " (d|l|c|L|n|g)
+.BI resamp= (d|l|c|L|n|g) ", \-\-resample=" (d|l|c|L|n|g)
 .RS
 .TP
 .B d, 0
@@ -435,11 +435,11 @@ In the current version of \fBTiMidity++\fP this option is a toggle.
 Toggles fast envelopes.  This option makes \fBTiMidity++\fP faster but
 the release time of the notes are shortened.
 .TP
-.BI "\-g, \-\-spectrogram " sec
+.BI "\-g " sec ", \-\-spectrogram=" sec
 Open the Sound\-Spectrogram window.  This option is activated if the
 system has support for the X Window System.
 .TP
-.BI "\-H, \-\-force\-keysig " n
+.BI "\-H " n ", \-\-force\-keysig=" n
 Specify the number of key signature.  MIDI file is performed with
 transposition to the key of the number of sharp (when \fIn\fP is
 positive) or flat (when \fIn\fP is negative).  Valid values of \fIn\fP
@@ -452,15 +452,15 @@ instrument by the tonality which is easy to perform.
 .B \-h, \-\-help
 Show the help message.
 .TP
-.BI "\-i, \-\-interface " mode
+.BI "\-i " mode ", \-\-interface=" mode
 .br
 .ns
 .TP
-.BI "\-\-realtime\-priority " n
+.BI \-\-realtime\-priority= n
 .br
 .ns
 .TP
-.BI "\-\-sequencer\-ports " n
+.BI \-\-sequencer\-ports= n
 Selects the user interfaces from the compiled\-in alternatives.
 \fImode\fP must be begun with one of the supported interface
 identifiers.  Run \fBTiMidity++\fP with the \fB\-h\fP option to see a
@@ -532,10 +532,10 @@ Option characters may be added immediately after the interface
 identifier.  The following options are recognized:
 .RS
 .TP
-.B v, \-\-verbose=n
+.BI "v, \-\-verbose=" n
 Increases verbosity level.  This option is cumulative.
 .TP
-.B q, \-\-quiet=n
+.BI "q, \-\-quiet=" n
 Decreases verbosity level.  This option is cumulative.
 .TP
 .B t, \-\-[no\-]trace
@@ -561,48 +561,48 @@ Daemonize \fBTiMidity++\fP in background (for alsaseq only)
 .B \-j, \-\-[no\-]realtime\-load
 Enable the loading of patch files during play.
 .TP
-.BI "\-K, \-\-adjust\-key " n
+.BI "\-K " n ", \-\-adjust\-key=" n
 Adjusts key (i.e., transposes the song) by \fIn\fP half tones.  Ranges
 from \fB\-24\fP to \fB24\fP.
 .TP
-.BI "\-k, \-\-voice\-queue " msec
+.BI "\-k " msec ", \-\-voice\-queue=" msec
 Specify audio queue time limit to reduce voices.  If the remaining
 audio buffer is less than \fImsec\fP milliseconds, \fBTiMidity++\fP
 tries to kill some voices.  This feature makes it possible to play
 complicated MIDI files on slow CPUs.  Setting \fImsec\fP to zero tells
 \fBTiMidity++\fP to never remove any voices.
 .TP
-.BI "\-L, \-\-patch\-path " path
+.BI "\-L " path ", \-\-patch\-path=" path
 Adds \fIpath\fP to the library path.  Patch, configuration, and MIDI
 files are searched along this path.  Directories added last will be
 searched first.  Note that the current directory is always searched
 first before the library path.
 .TP
-.BI "\-M, \-\-pcm\-file " name
+.BI "\-M " name ", \-\-pcm\-file=" name
 \fBTiMidity++\fP can play a PCM file instead of a MIDI file.  If
 ``auto'' is specified, \fBTiMidity++\fP tries to open foo.mid.wav or
 foo.mid.aiff when playing foo.mid.  If ``none'' is specified, this
 feature is disabled.  Otherwise just plays \fIname\fP.
 .TP
-.BI "\-m, \-\-decay\-time " msec
+.BI "\-m " msec ", \-\-decay\-time=" msec
 Modify envelope volume decay time.  \fImsec\fP is the minimum number
 of milliseconds to sustain a sustained note.
 .RS
 .TP
-.B \-m0
+.BI \-m 0
 Disable sustain ramping, causes constant volume sustains (default).
 .TP
-.B \-m1
+.BI \-m 1
 Effectively behaves as if all sustains are ignored, volume ramping is
 the same as normal stage 3.
 .TP
-.B \-m3000
+.BI \-m 3000
 A note at full volume will decay for \fB3\fP seconds once it begins to
 be sustained (assuming the regular stage 3 rate would not cause it to
 decay even longer).  Softer notes will of course die sooner.
 .RE
 .TP
-.BI "\-N, \-\-interpolation " n
+.BI "\-N " n ", \-\-interpolation=" n
 Sets interpolation parameter.  This option depends on the
 \fB\-EFresamp\fP option's value.
 .RS
@@ -621,7 +621,7 @@ an odd number from \fB1\fP to \fB57\fP.
 In either way, linear interpolation is used if audio queue < 99%.
 .RE
 .TP
-.BI "\-O, \-\-output\-mode " mode
+.BI "\-O " mode ", \-\-output\-mode=" mode
 .br
 .ns
 .TP
@@ -629,11 +629,11 @@ In either way, linear interpolation is used if audio queue < 99%.
 .br
 .ns
 .TP
-.BI "\-\-flac\-padding " n
+.BI \-\-flac\-padding= n
 .br
 .ns
 .TP
-.BI "\-\-flac\-complevel " n
+.BI \-\-flac\-complevel= n
 .br
 .ns
 .TP
@@ -641,7 +641,7 @@ In either way, linear interpolation is used if audio queue < 99%.
 .br
 .ns
 .TP
-.BI "\-\-speex\-quality " n
+.BI \-\-speex\-quality= n
 .br
 .ns
 .TP
@@ -649,7 +649,7 @@ In either way, linear interpolation is used if audio queue < 99%.
 .br
 .ns
 .TP
-.BI "\-\-speex\-abr " n
+.BI \-\-speex\-abr= n
 .br
 .ns
 .TP
@@ -661,11 +661,11 @@ In either way, linear interpolation is used if audio queue < 99%.
 .br
 .ns
 .TP
-.BI "\-\-speex\-complexity " n
+.BI \-\-speex\-complexity= n
 .br
 .ns
 .TP
-.BI "\-\-speex\-nframes " n
+.BI \-\-speex\-nframes= n
 Selects the output mode from the compiled\-in alternatives.
 \fImode\fP must begin with one of the supported output mode
 identifiers.  Run \fBTiMidity++\fP with the \fB\-h\fP option to see
@@ -802,20 +802,20 @@ on a Linux PCM device.
 .RE
 .RE
 .TP
-.BI "\-o, \-\-output\-file " file
+.BI "\-o " file ", \-\-output\-file=" file
 Place output on \fIfile\fP, which may be a file, device, or HP\-UX
 audio server, depending on the output mode selected with the \fB\-O\fP
 option.  The special filename `\-' causes output to be placed on
 stdout.
 .TP
-.BI "\-P, \-\-patch\-file " file
+.BI "\-P " file ", \-\-patch\-file=" file
 Use patch file for all programs.
 .TP
 .BI "\-p " [n](a)
 .br
 .ns
 .TP
-.BI "\-\-polyphony " n
+.BI \-\-polyphony= n
 .br
 .ns
 .TP
@@ -830,11 +830,11 @@ automatic polyphony reduction algorithm.
 .br
 .ns
 .TP
-.BI "\-\-mute " n[,...]
+.BI \-\-mute= n[,...]
 .br
 .ns
 .TP
-.BI "\-\-temper\-mute " n[,...]
+.BI \-\-temper\-mute= n[,...]
 Cause channel \fIn\fP to be quiet.  \fIn\fP can carry out package
 specification by `,'.  If \fIn\fP is \fB0\fP, all channels are turned
 off.  Continuously, specifying \-\fIn\fP, channel \fIn\fP is turned
@@ -846,7 +846,7 @@ channels of specific temperament type \fIn\fP.  For preset
 temperament, \fIn\fP can range \fB0\fP to \fB3\fP.  For user\-defined
 temperament, \fIn\fP can range \fB4\fP to \fB7\fP.
 .TP
-.BI "\-q, \-\-audio\-buffer " sec/n
+.BI "\-q " sec/n ", \-\-audio\-buffer=" sec/n
 Specify audio buffer in seconds.  \fIsec\fP maximum size of buffer,
 \fIn\fP percentage filled at the beginning (default is \fB5.0/100\fP)
 (size of 100% equals the whole device buffer size).
@@ -856,21 +856,21 @@ Enables Pseudo Reverb Mode.  It sets every instrument's release to
 \fImsec\fP ms.  If \fImsec\fP is \fB0\fP, \fImsec\fP is set to
 \fB800\fP (default).
 .TP
-.BI "\-S, \-\-cache\-size " n
+.BI "\-S " n ", \-\-cache\-size=" n
 Sets the re\-sample cache size to \fIn\fP bytes.  If \fIn\fP equals
 \fB0\fP any sample caches are disabled.  The default value of
 \fIn\fP is \fB2097152\fP (2MB).
 .TP
-.BI "\-s, \-\-sampling\-freq " freq
+.BI "\-s " freq ", \-\-sampling\-freq=" freq
 Sets the resampling frequency (Hz or kHz).  Not all sound devices are
 capable of all frequencies \-\- an approximate frequency may be
 selected, depending on the implementation.
 .TP
-.BI "\-T, \-\-adjust\-tempo " n
+.BI "\-T " n ", \-\-adjust\-tempo=" n
 Adjust tempo to \fIn\fP%; \fB120\fP play MOD files with an NTSC
 Amiga's timing.
 .TP
-.BI "\-t, \-\-output\-charset " code
+.BI "\-t " code ", \-\-output\-charset=" code
 Sets output coding of Japanese text.  Possible values of \fIcode\fP
 are:
 .RS
@@ -901,7 +901,7 @@ Outputs SJIS coding.
 Unload all instruments from memory between MIDI files.  This can
 reduce memory requirements when playing many files in succession.
 .TP
-.BI "\-V, \-\-volume\-curve " power
+.BI "\-V " power ", \-\-volume\-curve=" power
 Set the power of volume curve.  The total amplification becomes
 volume^\fIpower\fP.  \fB0\fP (default) uses the regular tables.  Any
 non\-zero value causes all midi to use the new user defined
@@ -911,7 +911,7 @@ velocity/volume/expression curve (linear: \fB1\fP, ideal:
 .B \-v, \-\-version
 Show the version string
 .TP
-.BI "\-W, \-\-wrd " mode
+.BI "\-W " mode ", \-\-wrd=" mode
 Play WRD file.
 .sp
 Allowed values of \fImode\fP are:
@@ -936,29 +936,29 @@ do not trace WRD
 Sets WRD options:
 .RS
 .TP
-.B a1=b1,a2=b2,...
+.BI a1= b1 ,a2= b2 ,...
 Sets the WRD options.  \fBan\fP is the name of option and \fBbn\fP is
 the value.
 .TP
-.B d=n
+.BI d= n
 Emulates timing (@WAIT, @WMODE) bugs of the original MIMPI player.
 The emulation levels are:
 .RS
 .TP
-.B \-WRd=0
+.BI \-WRd= 0
 do not emulate any bugs of MIMPI
 .TP
-.B \-WRd=1
+.BI \-WRd= 1
 only emulate some bugs (default)
 .TP
-.B \-WRd=2
+.BI \-WRd= 2
 emulate all known bugs
 .RE
 .TP
-.B F=file
+.BI F= file
 Use \fIfile\fP as WRD file only no file matching *.wrd is found.
 .TP
-.B f=file
+.BI f= file
 Uses \fIfile\fP as WRD file.
 .RE
 .LP
@@ -966,7 +966,7 @@ WRD mode must also use trace mode (option \fB\-i?t\fP) or
 the timing of the WRD events will be terrible.
 .RE
 .TP
-.BI "\-w, \-\-rcpcv\-dll " mode
+.BI "\-w " mode ", \-\-rcpcv\-dll=" mode
 Extended mode for MS Windows.  The following options are available:
 .RS
 .TP
@@ -977,7 +977,7 @@ Use rcpcv.dll to play RCP/R36 files.
 Do not use rcpcv.dll (default).
 .RE
 .TP
-.BI "\-x \-\-config\-string " str
+.BI "\-x " str ", \-\-config\-string=" str
 Configure \fBTiMidity++\fP with \fIstr\fP.  The format of \fIstr\fP is
 the same as \fBtimidity.cfg\fP.
 .sp
@@ -991,13 +991,13 @@ Character `\\' (Ascii 0x5c) in the \fIstr\fP is treated as escape
 character like in C literals.  For example \fB\\n\fP is treated as
 carriage return.
 .TP
-.BI "\-Z, \-\-freq\-table " file
+.BI "\-Z " file ", \-\-freq\-table=" file
 Cause the table of frequencies to be read from \fIfile\fP.  This is
 useful to define a tuning different from 12\-equal temperament.  If
 ``pure'' is specified, TiMidity++ plays in trial pure intonation.
 .RS
 .TP
-.BI "\-Zpure, \-\-pure\-intonation " [n(m)]
+.BI \-Zpure [n(m)] ", \-\-pure\-intonation=" [n(m)]
 Play in trial pure intonation by Key Signature meta\-event in the MIDI
 file.  You can specify the initial keysig by hand, in case the MIDI
 file does not contains the meta\-event.  Optionally, \fIn\fP is the
@@ -1007,7 +1007,7 @@ interval from \fB\-7\fP to \fB7\fP.  In case of minor mode, you should
 put `a' character along with \fB\-Zpure\fP option.
 .RE
 .TP
-.BI "\-\-module=" n
+.BI \-\-module= n
 Simulate behavior of specific synthesizer module as much as possible.
 For the moment, the value of \fIn\fP defined is as follows:
 .RS

@@ -157,11 +157,11 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 .br
 .ns
 .TP
-.BI "\-\-amplification " n
+.BI \-\-amplification= n
 .br
 .ns
 .TP
-.BI "\-\-drumpower " m
+.BI \-\-drumpower= m
 .br
 .ns
 .TP
@@ -208,7 +208,7 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 ることがあります。\fB\-a\fP オプションで起動することで，この不自然な成
 分を取り除くことができます。
 .TP
-.BI "\-B, \-\-buffer\-fragments " n,m
+.BI "\-B " n,m ", \-\-buffer\-fragments=" n,m
 音源にデータを書き込む時の分割数(バッファフラグメント) \fIn\fP およびバ
 ッファサイズ 2^\fIm\fP を指定します。\fIn\fP は，\fB0\fP から
 \fB1000\fP までの値が有効です。フラグメントの数を大きくすると，プロセス
@@ -217,7 +217,7 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 す。\fIn\fP を \fB0\fP にすると，できるだけ大きなフラグメントの値を取り
 ます。このオプションは Linux，FreeBSD，Windows のみで有効です。
 .TP
-.BI "\-C, \-\-control\-ratio " n
+.BI "\-C " n ", \-\-control\-ratio=" n
 制御レートを指定します。\fBTiMidity++\fP では，エンベロープやトレモロな
 どの音量計算を 1 サンプルごとに行うのではなく，複数のサンプルをまとめて
 計算することで高速化を図っています。すなわち，\fIn\fP サンプルごとに，
@@ -226,22 +226,22 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 \fIn\fP には \fB1\fP から \fB255\fP までの値を指定することができます。
 デフォルトでは 1 msec に相当するサンプル数となっています。
 .TP
-.BI "\-c, \-\-config\-file " file
+.BI "\-c " file ", \-\-config\-file=" file
 \fBTiMidity++\fP の設定ファイル \fIfile\fP を読み込みます。
 \fBTiMidity++\fP のデフォルトの設定ファイルを読み込んだ後，\fIfile\fP
 が読み込まれます。
 .TP
-.BI "\-D, \-\-drum\-channel " n
+.BI "\-D " n ", \-\-drum\-channel=" n
 \fIn\fP チャンネル目をドラムチャンネルにします。\fB\-D\fP \-\fIn\fP の
 ように指定すると， \fIn\fP チャンネル目をドラムではなく，メロディチャン
 ネルにすることできます。\fIn\fP に \fB0\fP を与えると，すべてのチャンネ
 ルがメロディチャンネルになります。
 .TP
-.BI "\-d, \-\-interface\-path " dir
+.BI "\-d " dir ", \-\-interface\-path=" dir
 ダイナミックリンクインタフェースモジュールがインストールされているディ
 レクトリを \fIdir\fP で指定します。
 .TP
-.BI "\-E, \-\-ext " mode
+.BI "\-E " mode ", \-\-ext=" mode
 \fBTiMidity++\fP シーケンサの拡張モードを指定します(複数指定可)。以下の
 \fImode\fP が指定できます。
 .RS
@@ -270,7 +270,7 @@ NRPN ビブラート制御を有効/無効にします。
 .B z/Z, \-\-[no\-]temper\-control
 MIDI Tuning Standard の音律制御を有効/無効にします。
 .TP
-.BI "m, \-\-default\-mid " HH
+.BI m HH ", \-\-default\-mid=" HH
 デフォルトマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
 .br
 このとき，\fIHH\fP を \fBGS/gs\fP，\fBXG/xg\fP，\fBGM/gm\fP にすること
@@ -279,21 +279,21 @@ MIDI Tuning Standard の音律制御を有効/無効にします。
 入力ファイルから音源を自動的に認識できないような場合には，このパラメー
 タでデフォルトの ID を指定することができます。
 .TP
-.BI "M, \-\-system\-mid " HH
+.BI M HH ", \-\-system\-mid=" HH
 システムマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
 .br
 このオプションで指定されたマニュファクチュア ID は固定され，入力ファイ
 ルからのマニュファクチュア ID は無視されます。
 .TP
-.BI "b, \-\-default\-bank " n
+.BI b n ", \-\-default\-bank=" n
 パッチのデフォルトのバンクを \fIn\fP にします。この設定は，MIDI の
 Bank select メッセージにより変更されます。
 .TP
-.BI "B, \-\-force\-bank " n
+.BI B n ", \-\-force\-bank=" n
 \fB\-Eb\fP と異なり，すべてのチャンネルのパッチのバンクを常に \fIn\fP
 にします。\fIn\fP を省略するとデフォルトの動作になります。
 .TP
-.BI "i, \-\-default\-program " n[/m]
+.BI i n[/m] ", \-\-default\-program=" n[/m]
 デフォルトのプログラム番号を \fIn\fP にします。デフォルトでは \fIn\fP
 は \fB0\fP(通常はピアノ)となっています。
 .br
@@ -301,7 +301,7 @@ Bank select メッセージにより変更されます。
 トのプログラム番号を指定することができます。\fI/m\fP を省略した場合には，
 全チャンネルに対する指定となります。
 .TP
-.BI "I, \-\-force\-program " n[/m]
+.BI I n[/m] ", \-\-force\-program=" n[/m]
 プログラム番号を常に \fIn\fP にします。この設定は，MIDI の Program
 change メッセージを受け取っても変更されません。
 .br
@@ -309,11 +309,11 @@ change メッセージを受け取っても変更されません。
 ム番号を指定することができます。\fI/m\fP を省略した場合には，全チャンネ
 ルに対する指定となります。
 .TP
-.B "F " args
+.BI "F " args
 エフェクトオプションです。以下の \fIargs\fP が指定できます。
 .RS
 .TP
-.BI "delay=, \-\-delay " (d|l|r|b)[,msec]
+.BI delay= (d|l|r|b)[,msec] ", \-\-delay=" (d|l|r|b)[,msec]
 イヤホンで聞いた時の音の臨場感を出すようにします。
 .RS
 .TP
@@ -332,7 +332,7 @@ change メッセージを受け取っても変更されません。
 \fImsec\fP は左右のディレイタイムを指定するオプションです。
 .RE
 .TP
-.BI "chorus=, \-\-chorus " (d|n|s)[,level]
+.BI chorus= (d|n|s)[,level] ", \-\-chorus=" (d|n|s)[,level]
 .RS
 .TP
 .B d, 0
@@ -348,7 +348,7 @@ change メッセージを受け取っても変更されません。
 ンです。
 .RE
 .TP
-.BI "reverb=, \-\-reverb " (d|n|g|f|G)[,level]
+.BI reverb= (d|n|g|f|G)[,level] ", \-\-reverb=" (d|n|g|f|G)[,level]
 .RS
 .TP
 .B d, 0
@@ -370,7 +370,7 @@ Freeverb MIDI リバーブ制御を有効にします(デフォルト)。
 ンです。
 .RE
 .TP
-.BI "vlpf=, \-\-voice\-lpf " (d|c|m)
+.BI vlpf= (d|c|m) ", \-\-voice\-lpf=" (d|c|m)
 .RS
 .TP
 .B d, 0
@@ -383,7 +383,7 @@ Chamberlin レゾナント LPF (12dB/oct)を有効にします(デフォルト)。
 Moog レゾナントローパス VCF (24dB/oct)を有効にします。
 .RE
 .TP
-.BI "ns=, \-\-noise\-shaping " n
+.BI ns= n ", \-\-noise\-shaping=" n
 \fIn\fP 次ノイズシェーピングフィルタを有効にします。ディケイでの歪みが
 改善されますが，ノイズが高域にシフトし聴感上のノイズも増えます。8 ビッ
 ト線形符号化のとき，\fIn\fP には \fB0\fP から \fB4\fP までの値を指定す
@@ -409,7 +409,7 @@ Moog レゾナントローパス VCF (24dB/oct)を有効にします。
 新ノイズシェーピング
 .RE
 .TP
-.BI "resamp=, \-\-resample " (d|l|c|L|n|g)
+.BI resamp= (d|l|c|L|n|g) ", \-\-resample=" (d|l|c|L|n|g)
 .RS
 .TP
 .B d, 0
@@ -451,13 +451,13 @@ C スプライン補完アルゴリズムを有効にします。
 ープの変化時間が半分になり高速に動作します。ただし，音の立ち上がりとリ
 リース時間が短くなってしまいます。
 .TP
-.BI "\-g, \-\-spectrogram " sec
+.BI "\-g " sec ", \-\-spectrogram=" sec
 サウンドスペクトログラムを表示する Window を開きます。このオプションは
 X Window System がサポートされている環境のみで動作します。サウンドスペ
 クトログラムは声紋のようなもので，スペクトラムの時間変化を表現したもの
 です。
 .TP
-.BI "\-H, \-\-force\-keysig " n
+.BI "\-H " n ", \-\-force\-keysig=" n
 調号の数を指定します。\fIn\fP が正の場合は♯(シャープ)の数，\fIn\fP が
 負の場合は♭(フラット)の数のキーに移調ながら，MIDI ファイルを演奏します。
 \fIn\fP には \fB\-7\fP から \fB7\fP までの値を指定することができます。
@@ -468,15 +468,15 @@ X Window System がサポートされている環境のみで動作します。サウンドスペ
 .B \-h, \-\-help
 \fBTiMidity++\fP のオプションの簡単な説明を表示します。
 .TP
-.BI "\-i, \-\-interface " mode
+.BI "\-i " mode ", \-\-interface=" mode
 .br
 .ns
 .TP
-.BI "\-\-realtime\-priority " n
+.BI \-\-realtime\-priority= n
 .br
 .ns
 .TP
-.BI "\-\-sequencer\-ports " n
+.BI \-\-sequencer\-ports= n
 ユーザインタフェースを指定します。環境によって利用可能なインタフェー
 スが異なります。
 .br
@@ -545,10 +545,10 @@ UMP インタフェース
 上記オプションに続けて，以下の文字列を追加することができます(複数指定化)。
 .RS
 .TP
-.B v, \-\-verbose=n
+.BI "v, \-\-verbose=" n
 冗長表示のレベルを累積的に上げます。
 .TP
-.B q, \-\-quiet=n
+.BI "q, \-\-quiet=" n
 冗長表示のレベルを累積的に下げます。
 .TP
 .B t, \-\-[no\-]trace
@@ -571,44 +571,44 @@ UMP インタフェース
 .B \-j, \-\-[no\-]realtime\-load
 このオプションを有効にすると，演奏しながらパッチファイルを読み込みます。
 .TP
-.BI "\-K, \-\-adjust\-key " n
+.BI "\-K " n ", \-\-adjust\-key=" n
 \fIn\fP 半音単位でキーを調節(移調)します。\fIn\fP には \fB\-24\fP から
 \fB24\fP までの値を指定することができます。
 .TP
-.BI "\-k, \-\-voice\-queue " msec
+.BI "\-k " msec ", \-\-voice\-queue=" msec
 ボイスを減少させるオーディオキュータイムを指定します。
 .TP
-.BI "\-L, \-\-patch\-path " path
+.BI "\-L " path ", \-\-patch\-path=" path
 サーチパスに \fIpath\fP を追加します。patch ファイル，設定ファイル，
 MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 たディレクトリは最初に探索されます。ただし，このサーチパスに関係なく，
 カレントディレクトリがいつも最初に探索されるので注意すること。
 .TP
-.BI "\-M, \-\-pcm\-file " name
+.BI "\-M " name ", \-\-pcm\-file=" name
 演奏する PCM ファイル名(*.wav または *.aiff)を指定します。\fIname\fP に
 \fBauto\fP を指定すると，*.mid.wav または *.mid.aiff を演奏します。
 \fIname\fP に \fBnone\fP を指定すると，この機能を無効にします(デフォル
 ト)。
 .TP
-.BI "\-m, \-\-decay\-time " msec
+.BI "\-m " msec ", \-\-decay\-time=" msec
 サステインしたノートがディケイされるまでの最大時間を指定します。
 .RS
 .TP
-.B \-m0
+.BI \-m 0
 サステイン減衰を無効にして，サステインボリュームを一定にします(デフォル
 ト)。
 .TP
-.B \-m1
+.BI \-m 1
 サステインが存在しないものとします。音量減衰は，標準のステージ 3 と同じ
 です。
 .TP
-.B \-m3000
+.BI \-m 3000
 最大音量のノートがサステイン状態になってから \fB3\fP 秒 で減衰します(ス
 テージ 3 の rate がそれ以上伸びないものとします)。十分小さくなったノー
 トは，もちろんすぐに消えます。
 .RE
 .TP
-.BI "\-N, \-\-interpolation " n
+.BI "\-N " n ", \-\-interpolation=" n
 補完パラメータを指定します。\fB\-N\fP オプションの挙動は
 \fB\-EFresamp\fP オプション指定に依存します。
 .RS
@@ -628,7 +628,7 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 オーディオキューが 99% 以下のときは，線形補完が使われます。
 .RE
 .TP
-.BI "\-O, \-\-output\-mode " mode
+.BI "\-O " mode ", \-\-output\-mode=" mode
 .br
 .ns
 .TP
@@ -636,11 +636,11 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 .br
 .ns
 .TP
-.BI "\-\-flac\-padding " n
+.BI \-\-flac\-padding= n
 .br
 .ns
 .TP
-.BI "\-\-flac\-complevel " n
+.BI \-\-flac\-complevel= n
 .br
 .ns
 .TP
@@ -648,7 +648,7 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 .br
 .ns
 .TP
-.BI "\-\-speex\-quality " n
+.BI \-\-speex\-quality= n
 .br
 .ns
 .TP
@@ -656,7 +656,7 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 .br
 .ns
 .TP
-.BI "\-\-speex\-abr " n
+.BI \-\-speex\-abr= n
 .br
 .ns
 .TP
@@ -668,11 +668,11 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 .br
 .ns
 .TP
-.BI "\-\-speex\-complexity " n
+.BI \-\-speex\-complexity= n
 .br
 .ns
 .TP
-.BI "\-\-speex\-nframes " n
+.BI \-\-speex\-nframes= n
 出力モードやフォーマットを指定します。
 .br
 Ogg FLAC 出力モードでは，別途 \fB\-\-flac\-verify\fP，
@@ -807,18 +807,18 @@ Linux PCM デバイスに対しては使用できません。
 .RE
 .RE
 .TP
-.BI "\-o, \-\-output\-file " file
+.BI "\-o " file ", \-\-output\-file=" file
 出力ファイル名を指定します。出力先がファイルでない場合はこのオプション
 は無視されます。\fIfile\fP を `\-' にすると標準出力に出力されます。
 .TP
-.BI "\-P, \-\-patch\-file " file
+.BI "\-P " file ", \-\-patch\-file=" file
 すべての楽器を \fIfile\fP(パッチ) を用いて演奏します。
 .TP
 .BI "\-p " [n](a)
 .br
 .ns
 .TP
-.BI "\-\-polyphony " n
+.BI \-\-polyphony= n
 .br
 .ns
 .TP
@@ -833,11 +833,11 @@ Linux PCM デバイスに対しては使用できません。
 .br
 .ns
 .TP
-.BI "\-\-mute " n[,...]
+.BI \-\-mute= n[,...]
 .br
 .ns
 .TP
-.BI "\-\-temper\-mute " n[,...]
+.BI \-\-temper\-mute= n[,...]
 \fIn\fP チャンネル目を演奏しないようにします。`,' で区切って，複数のチ
 ャンネルを指定することができます。\fIn\fP に \fB0\fP を指定すると，すべ
 てのチャンネルを演奏しないようにします。続けて，\-\fIn\fP を指定するこ
@@ -849,7 +849,7 @@ Linux PCM デバイスに対しては使用できません。
 \fB0\fP から \fB3\fP までの値を，ユーザ定義音律種別として \fB4\fP から
 \fB7\fP までの値を指定することができます。
 .TP
-.BI "\-q, \-\-audio\-buffer " sec/n
+.BI "\-q " sec/n ", \-\-audio\-buffer=" sec/n
 オーディオ最大バッファを \fIsec\fP 秒，オーディオ開始バッファを
 \fIn\fP% にします。デフォルトでは \fB5.0/100\fP です。100% のサイズはデ
 バイスバッファサイズと等価です。
@@ -859,21 +859,21 @@ Linux PCM デバイスに対しては使用できません。
 ブ)。\fImsec\fP が \fB0\fP のとき，\fImsec\fP は \fB800\fP に設定されま
 す。
 .TP
-.BI "\-S, \-\-cache\-size " n
+.BI "\-S " n ", \-\-cache\-size=" n
 リサンプリングキャッシュの大きさをバイト数で指定します。頻繁に用いられ
 るサンプルは，あらかじめリサンプリングしておくことで高速化しています。
 ただし，ビブラートやピッチベンドなどによってピッチが変化するサンプルは
 キャッシュされません。\fB0\fP を指定すると，まったくキャッシュしません。
 デフォルトでは \fIn\fP は \fB2097152\fP (2MB)となっています。
 .TP
-.BI "\-s, \-\-sampling\-freq " freq
+.BI "\-s " freq ", \-\-sampling\-freq=" freq
 再生サンプルレート(Hz または kHz)を指定します。
 .TP
-.BI "\-T, \-\-adjust\-tempo " n
+.BI "\-T " n ", \-\-adjust\-tempo=" n
 テンポを \fIn\fP% に調節します。\fIn\fP を \fB120\fP にすると，MOD ファ
 イルを NTSC Amiga のタイミングで演奏します。
 .TP
-.BI "\-t, \-\-output\-charset " code
+.BI "\-t " code ", \-\-output\-charset=" code
 テキストの出力文字コードを指定します。以下の \fIcode\fP が指定可能です
 (大文字小文字は区別されません)。
 .RS
@@ -904,7 +904,7 @@ SJIS コードで出力します。
 このオプションを有効にすると，演奏ごとに毎回，パッチに割り当てられてい
 たメモリを解放します。
 .TP
-.BI "\-V, \-\-volume\-curve " power
+.BI "\-V " power ", \-\-volume\-curve=" power
 ベロシティ/ボリューム/エクスプレッションカーブを amp=vol^\fIpower\fP で
 \fIpower\fP の値が \fB0\fP で自動，\fB1\fP で線形，約 \fB1.661\fP で理
 想，約 \fB2\fP で GS 設定となります。
@@ -912,7 +912,7 @@ SJIS コードで出力します。
 .B \-v, \-\-version
 \fBTiMidity++\fP のバージョン情報を表示します。
 .TP
-.BI "\-W, \-\-wrd " mode
+.BI "\-W " mode ", \-\-wrd=" mode
 入力ファイルの拡張子を .WRD または .wrd に変更したファイルが存在すれば，
 それを WRD ファイル として読み込み，そのコマンドと歌詞を表示します。
 .sp
@@ -938,33 +938,33 @@ WRD のトレースを行いません。
 WRD 読み込み時の設定を行います。
 .RS
 .TP
-.B a1=b1,a2=b2,...
+.BI a1= b1 ,a2= b2 ,...
 WRD 読み込み時のオプションを指定します。\fBan\fP にオプション名，
 \fBbn\fP にその値が入ります。
 .TP
-.B d=n
+.BI d= n
 @WAIT，@WMODE まわりの MIMPI のタイミングに関するバグをエミュレートしま
 す。以下のオプションでエミュレートレベルを変更できます。
 .RS
 .TP
-.B \-WRd=0
+.BI \-WRd= 0
 MIMPI のバグをエミュレートしないで，規格通りに動作します。
 .TP
-.B \-WRd=1
+.BI \-WRd= 1
 おそらく間違いないと思われるバグのみをエミュレートします(デフォルト)。
 .TP
-.B \-WRd=2
+.BI \-WRd= 2
 怪しいバグまでエミュレートします。
 .LP
 エミュレートレベルをあげると，今までタイミングが合っていたものがずれる
 可能性があります。
 .RE
 .TP
-.B F=file
+.BI F= file
 WRD ファイル名を指定します。WRD ファイルが見つからない場合のみ，指定し
 た \fIfile\fP が WRD ファイルとして用いられます。
 .TP
-.B f=file
+.BI f= file
 WRD ファイル名を指定します。常に指定した WRD ファイル \fIfile\fP を用い
 ます。
 .RE
@@ -972,7 +972,7 @@ WRD ファイル名を指定します。常に指定した WRD ファイル \fIfile\fP を用い
 なお，WRD はトレースモードで実行しないとタイミングが合いません。
 .RE
 .TP
-.BI "\-w, \-\-rcpcv\-dll " mode
+.BI "\-w " mode ", \-\-rcpcv\-dll=" mode
 Windows 用の拡張モードのオプションです。以下の \fImode\fP が有効です。
 .RS
 .TP
@@ -983,7 +983,7 @@ rcpcv.dll を使用します。
 rcpcv.dll を使用しません(デフォルト)。
 .RE
 .TP
-.BI "\-x \-\-config\-string " str
+.BI "\-x " str ", \-\-config\-string=" str
 指定した文字列で \fBTiMidity++\fP の設定を行います。\fIstr\fP の書式は
 timidity.cfg と同じです。例えば
 .sp
@@ -994,12 +994,12 @@ timidity.cfg と同じです。例えば
 れ以降の文字(列)に対し，C 言語のリテラルと同様の展開が行われます。例え
 ば，`\\n' は改行を意味します。
 .TP
-.BI "\-Z, \-\-freq\-table " file
+.BI "\-Z " file ", \-\-freq\-table=" file
 周波数テーブルを読み込みます。\fIfile\fP に ``pure'' を指定すると，簡易
 純正律で演奏します。
 .RS
 .TP
-.BI "\-Zpure, \-\-pure\-intonation " [n(m)]
+.BI "\-Zpure [n(m)] ", \-\-pure\-intonation=" [n(m)]
 MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
 奏します。MIDI ファイルに Key Signature メタイベントが含まれていない場
 合は，初期の調性として \fIn(m)\fP を指定することで，正しい純正律演奏が
@@ -1009,7 +1009,7 @@ MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
 します。
 .RE
 .TP
-.BI "\-\-module=" n
+.BI \-\-module= n
 特定の音源モジュールの動作をできるだけ真似ます。今のところ，定義されて
 いる \fIn\fP の値は次のとおりです。
 .RS
