@@ -2234,9 +2234,11 @@ static void init_voice_pan_delay(int v)
 			vp->pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
 		}
 		if(vp->pan_delay_rpt < 1) {vp->pan_delay_rpt = 0;}
-		vp->pan_delay_wpt = vp->pan_delay_rpt - 1;
-		vp->pan_delay_buf = (int32 *)safe_malloc(sizeof(int32) * (vp->pan_delay_rpt + 1));
-		memset(vp->pan_delay_buf, 0, sizeof(int32) * (vp->pan_delay_rpt + 1));
+		vp->pan_delay_wpt = 0;
+		vp->pan_delay_spt = vp->pan_delay_wpt - vp->pan_delay_rpt;
+		if (vp->pan_delay_spt < 0) {vp->pan_delay_spt += PAN_DELAY_BUF_MAX;}
+		vp->pan_delay_buf = (int32 *)safe_malloc(sizeof(int32) * PAN_DELAY_BUF_MAX);
+		memset(vp->pan_delay_buf, 0, sizeof(int32) * PAN_DELAY_BUF_MAX);
 	}
 #endif	/* ENABLE_PAN_DELAY */
 }
@@ -3012,7 +3014,7 @@ static void adjust_panning(int c)
 	    else
 		voice[i].panning = pan;
 
-	    recompute_amp(i);
+		recompute_amp(i);
 	    apply_envelope_to_amp(i);
 	}
     }

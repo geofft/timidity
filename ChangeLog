@@ -18,8 +18,9 @@
 	  Support for TWSYNG service mode.
 	* interface/w32g_utl.[ch], interface/w32g_ini.c,
 	  interface/w32g_pref.c, interface/w32g_res.[h,rc],
-	  timidity/playmidi.[ch]:
+	  timidity/playmidi.[ch], timidity/mix.c:
 	  Support for Surround (opt_pan_delay).
+	  Improve opt_pan_delay.
 
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 

@@ -66,9 +66,10 @@ typedef sample_t mix_t;
 #define MIXATION(a) *lp++ += (a) * s
 #endif
 
-#define DELAYED_MIXATION(a) *lp++ += pan_delay_buf[pan_delay_wpt--];	\
-	if(pan_delay_wpt < 0) {pan_delay_wpt = vp->pan_delay_rpt - 1;}	\
-	pan_delay_buf[pan_delay_wpt] = (a) * s
+#define DELAYED_MIXATION(a) *lp++ += pan_delay_buf[pan_delay_spt];	\
+	if (++pan_delay_spt == PAN_DELAY_BUF_MAX) {pan_delay_spt = 0;}	\
+	pan_delay_buf[pan_delay_wpt] = (a) * s;	\
+	if (++pan_delay_wpt == PAN_DELAY_BUF_MAX) {pan_delay_wpt = 0;}
 
 void mix_voice(int32 *, int, int32);
 #ifdef VOICE_LPF
@@ -281,7 +282,8 @@ static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 	mix_t s = 0;
 #ifdef ENABLE_PAN_DELAY
 	Voice *vp = &voice[v];
-	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf,
+		pan_delay_spt = vp->pan_delay_spt;
 #endif
 
 	left = voice[v].left_mix;
@@ -334,6 +336,7 @@ static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 				}
 			}
 			vp->pan_delay_wpt = pan_delay_wpt;
+			vp->pan_delay_spt = pan_delay_spt;
 #else
 			right = voice[v].right_mix;
 			ri = -(right / c);
@@ -534,7 +537,8 @@ static inline void mix_mystery_signal(
 #ifdef SMOOTH_MIXING
 	int32 linear_left, linear_right;
 #endif
-	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf,
+		pan_delay_spt = vp->pan_delay_spt;
 
 	if (! (cc = vp->control_counter)) {
 		cc = control_ratio;
@@ -800,6 +804,7 @@ static inline void mix_mystery_signal(
 				}
 			}
 			vp->pan_delay_wpt = pan_delay_wpt;
+			vp->pan_delay_spt = pan_delay_spt;
 			return;
 		}
 }
@@ -959,7 +964,8 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	Voice *vp = voice + v;
 	int32 linear_left, linear_right;
 #endif
-	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf;
+	int32 pan_delay_wpt = vp->pan_delay_wpt, *pan_delay_buf = vp->pan_delay_buf,
+		pan_delay_spt = vp->pan_delay_spt;
 
 #ifdef SMOOTH_MIXING
 	compute_mix_smoothing(vp);
@@ -1082,6 +1088,7 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 		}
 	}
 	vp->pan_delay_wpt = pan_delay_wpt;
+	vp->pan_delay_spt = pan_delay_spt;
 }
 #else	/* ENABLE_PAN_DELAY */
 static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)

@@ -453,7 +453,7 @@ typedef struct {
   int32 delay_counter;
 
 #ifdef ENABLE_PAN_DELAY
-  int32 *pan_delay_buf, pan_delay_rpt, pan_delay_wpt;
+  int32 *pan_delay_buf, pan_delay_rpt, pan_delay_wpt, pan_delay_spt;
 #endif	/* ENABLE_PAN_DELAY */
 } Voice;
 
