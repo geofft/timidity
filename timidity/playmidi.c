@@ -103,7 +103,7 @@ static int old_rate = -1;
 #endif
 
 static int midi_streaming=0;
-int volatile stream_max_compute=500; //compute time limit (in msec) when streaming
+int volatile stream_max_compute=500; /* compute time limit (in msec) when streaming */
 static int prescanning_flag;
 static int32 midi_restart_time = 0;
 Channel channel[MAX_CHANNELS];
@@ -5595,8 +5595,8 @@ int play_event(MidiEvent *ev)
     if(midi_streaming!=0){
     	if ( (cet - current_sample) * 1000 / play_mode->rate > stream_max_compute ) {
 			kill_all_voices();
-//			reset_voices();
-//			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample);
+			/* reset_voices(); */
+/* 			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample); */
 			current_sample = cet;
 		}
     }

@@ -1,3 +1,7 @@
+2003-09-12  mput <root@mput.dip.jp>
+
+	* timidity/playmidi.c : Remove C++ style ``//'' comments
+
 2003-09-09  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (new_chorus_voice_alternate) : Revert
