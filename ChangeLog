@@ -2,6 +2,8 @@
 
 	* interface/w32g_tracer.bmp:
 	  Fix.
+	* timidity/playmidi.c:
+	  Fix sostenuto and redamper.
 
 2004-02-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

@@ -2803,13 +2803,14 @@ static void update_sostenuto_controls(int ch)
 
   for(i = 0; i < uv; i++)
   {
-	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
-	  {
+	 if(voice[i].channel == ch &&
+		 (voice[i].status & VOICE_ON || voice[i].status & VOICE_OFF))
+	 {
 		  voice[i].status = VOICE_SUSTAINED;
 		  ctl_note_event(i);
 		  voice[i].envelope_stage = EG_GUS_RELEASE1;
 		  recompute_envelope(i);
-	  }
+	 }
   }
 }
 
@@ -2822,7 +2823,8 @@ static void update_redamper_controls(int ch)
 
   for(i = 0; i < uv; i++)
   {
-	 if(voice[i].status == VOICE_ON && voice[i].channel == ch)
+	 if(voice[i].channel == ch &&
+		 (voice[i].status & VOICE_ON || voice[i].status & VOICE_OFF))
 	  {
 		  voice[i].status = VOICE_SUSTAINED;
 		  ctl_note_event(i);
@@ -2861,19 +2863,19 @@ static void note_off(MidiEvent *e)
 	  return;	/* Note Off is not allowed. */
   }
 
-  if((vid = last_vidq(ch, note)) == -1)
+  if ((vid = last_vidq(ch, note)) == -1)
       return;
   sustain = channel[ch].sustain;
-  for(i = 0; i < uv; i++)
+  for (i = 0; i < uv; i++)
   {
-      if(voice[i].status==VOICE_ON &&
-	 voice[i].channel==ch &&
-	 voice[i].note==note &&
-	 voice[i].vid==vid)
+      if(voice[i].status == VOICE_ON &&
+	 voice[i].channel == ch &&
+	 voice[i].note == note &&
+	 voice[i].vid == vid)
       {
 	  if(sustain)
 	  {
-	      voice[i].status=VOICE_SUSTAINED;
+	      voice[i].status = VOICE_SUSTAINED;
 	      ctl_note_event(i);
 	  }
 	  else
