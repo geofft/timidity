@@ -1045,6 +1045,12 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
     case SC_88PRO_DRUM_MAP:
 		p_buff = "88Pro D";
 		break;
+    case SC_8850_TONE_MAP:
+		p_buff = "8850 T";
+		break;
+    case SC_8850_DRUM_MAP:
+		p_buff = "8850 D";
+		break;
     case XG_NORMAL_MAP:
 		p_buff = "XG";
 		break;
@@ -1057,6 +1063,11 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
     case XG_DRUM_MAP:
 		p_buff = "XG D";
 		break;
+    case GM2_TONE_MAP:
+		p_buff = "GM2 T";
+		break;
+    case GM2_DRUM_MAP:
+		p_buff = "GM2 D";
 	}
 	if ( get_ch_rc ( ch, &rc, &w32g_tracer_wnd.rc_inst_map ) == 0 )
 		cheap_string_view_draw ( &rc, p_buff, C_TEXT_FORE, C_TEXT_BACK, CSV_CENTER, lockflag );
