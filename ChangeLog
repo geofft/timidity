@@ -7,6 +7,8 @@
 	  Update.
 	* timidity/gogo_a.c, timidity/vorbis_a.c:
 	  Fix for 24-bit output mode.
+	* configs/msc6-project.zip, configs/msc6-sjis.txt:
+	  Support for TWSYNG service mode.
 
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 
