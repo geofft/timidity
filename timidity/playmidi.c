@@ -7346,7 +7346,7 @@ void recompute_part_eq_xg(struct part_eq_xg *p)
 		p->trebles.freq = eq_freq_table_xg[p->treble_freq];
 		if(p->treble == 0) {p->trebles.gain = -12.0;}
 		else {p->trebles.gain = 0.19 * (double)(p->treble - 0x40);}
-		calc_filter_shelving_low(&(p->trebles));
+		calc_filter_shelving_high(&(p->trebles));
 	} else {vtreble = 0;}
 	p->valid = vbass || vtreble;
 }
