@@ -205,7 +205,7 @@ static int update_header(void)
 static int aiff_output_open(const char *fname)
 {
   int t, compressed;
-  const char *compressionName = "";
+  const char *compressionName = NULL;
   char compressionNamePad;
   uint8 compressionNameLength;
 

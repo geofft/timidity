@@ -1070,7 +1070,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
-    int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0;
+    int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0x7FFFFFFF;
     int extension_flag, param_parse_err;
 
     if(rcf_count > 50)
