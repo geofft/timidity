@@ -782,7 +782,7 @@ static int read_AIFFCommonChunk(struct timidity_file *tf, AIFFCommonChunk *comm,
 			goto fail;
 		}
 		csize -= 4;
-		/* ignore compressionName and it's padding */
+		/* ignore compressionName and its padding */
 	}
 	if (tf_seek(tf, csize, SEEK_CUR) == -1)
 		goto fail;
