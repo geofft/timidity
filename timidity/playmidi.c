@@ -3532,7 +3532,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 {
 	int temp, msb, note;
 
-	if (ch > MAX_CHANNELS) {return;}
+	if (ch >= MAX_CHANNELS)
+		return;
 	if (ev == ME_SYSEX_MSB) {
 		channel[ch].sysex_msb_addr = b;
 		channel[ch].sysex_msb_val = val;
@@ -7043,8 +7044,6 @@ int play_event(MidiEvent *ev)
 			}
 #endif
 	ch = ev->channel;
-	while(ch >= MAX_CHANNELS)
-	  ch -= MAX_CHANNELS;
 
     switch(ev->type)
     {
