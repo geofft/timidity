@@ -52,7 +52,8 @@
  * 15) extended bend range to 4 octaves using note+pitchbend shifting
  * 16) automatic sample chord/pitch assignment and cfg file generation !!! :)
  * 17) can offset pitchbends to undo out of tune sample tuning (detuning)
- * 18) other more minor things that may or may not be commented
+ * 18) converts linear mod volumes into non-linear midi volumes
+ * 19) other more minor things that may or may not be commented
  *
  * TODO LIST (likely to be done eventually)
  *  1) correctly implement fine tuning tweaks via extra pitch bends
@@ -158,7 +159,35 @@ static double samples_per_tick;
 static int maxsample;
 static char chord_letters[4] = { 'M', 'm', 'd', 'f' };
 
-#define ROUND(frac)			(ceil(frac - 0.5))
+#define ROUND(frac)			(floor(frac + 0.5))
+
+/* mod volumes are linear, midi volumes are x^1.66 (for generic hardware)
+ * scale the mod volumes so they sound linear on non-linear midi devices
+ * EXPRESSION events are the new corrected volume levels
+ * MAINVOLUME events fine tune the volume correction
+ *
+ * lookup_table[mod_vol][expression, volume]
+ */
+static char vol_nonlin_to_lin[128][2] = {
+      0, 127,   7, 125,  11, 120,  14, 121,  16, 126,  19, 121,  21, 122,
+     23, 122,  25, 122,  26, 126,  28, 125,  30, 123,  31, 126,  33, 124,
+     34, 126,  36, 124,  37, 125,  38, 126,  40, 124,  41, 125,  42, 126,
+     43, 127,  45, 125,  46, 125,  47, 126,  48, 126,  49, 127,  50, 127,
+     52, 125,  53, 125,  54, 125,  55, 125,  56, 126,  57, 126,  58, 126,
+     59, 126,  60, 126,  61, 126,  62, 126,  63, 126,  64, 126,  65, 126,
+     66, 126,  67, 125,  68, 125,  69, 125,  69, 127,  70, 127,  71, 126,
+     72, 126,  73, 126,  74, 126,  75, 126,  76, 125,  76, 127,  77, 127,
+     78, 126,  79, 126,  80, 126,  81, 126,  81, 127,  82, 126,  83, 126,
+     84, 126,  85, 126,  85, 127,  86, 126,  87, 126,  88, 126,  88, 127,
+     89, 127,  90, 126,  91, 126,  91, 127,  92, 127,  93, 126,  94, 126,
+     94, 127,  95, 127,  96, 126,  97, 126,  97, 127,  98, 126,  99, 126,
+    100, 126, 100, 127, 101, 126, 102, 126, 102, 127, 103, 126, 104, 126,
+    104, 127, 105, 127, 106, 126, 106, 127, 107, 127, 108, 126, 108, 127,
+    109, 127, 110, 126, 110, 127, 111, 127, 112, 126, 112, 127, 113, 127,
+    114, 126, 114, 127, 115, 127, 116, 126, 116, 127, 117, 126, 118, 126,
+    118, 127, 119, 126, 120, 126, 120, 127, 121, 126, 121, 127, 122, 126,
+    123, 126, 123, 127, 124, 126, 124, 127, 125, 127, 126, 126, 126, 127,
+    127, 126, 127, 127 };
 
 /* generate the names of the output and cfg files from the input file */
 /* modified from auto_wav_output_open() in wave_a.c */
@@ -1012,14 +1041,23 @@ void m2m_process_events(MidiEvent * ev)
 	    /* HACK -- insert a prior expression event */
 	    else if (expression != current_channel_expr[ch])
 	    {
-		n = 7;
-		event[3] = 0x00;
-		event[4] = event[0];
-		event[5] = event[1];
-		event[6] = event[2];
+	    	/* NOTEON event */
+		n = 11;
+		event[7] = 0x00;
+		event[8] = event[0];
+		event[9] = event[1];
+		event[10] = event[2];
+
+		/* non-linear expression event */
 		event[0] = 0xB0 | (ch & 0x0F);
 		event[1] = 0x0B;
-		event[2] = expression;
+		event[2] = vol_nonlin_to_lin[expression][0];
+
+		/* non-linear volume event */
+		event[3] = 0x00;
+		event[4] = 0xB0 | (ch & 0x0F);
+		event[5] = 0x07;
+		event[6] = vol_nonlin_to_lin[expression][1];
 		current_channel_expr[ch] = expression;
 	    }
 
@@ -1174,7 +1212,7 @@ void m2m_process_events(MidiEvent * ev)
 	    break;
 
 	case ME_EXPRESSION:
-	    n = 3;
+	    n = 7;
 
 	    orig_track_expr[old_ch] = ev->a;
 
@@ -1202,10 +1240,16 @@ void m2m_process_events(MidiEvent * ev)
 	    	n = 0;
 #endif
 
+	    /* non-linear expression event */
 	    event[0] = 0xB0 | (ch & 0x0F);
 	    event[1] = 0x0B;
-	    event[2] = expression;
+	    event[2] = vol_nonlin_to_lin[expression][0];
 
+	    /* non-linear volume event */
+	    event[3] = 0x00;
+	    event[4] = 0xB0 | (ch & 0x0F);
+	    event[5] = 0x07;
+	    event[6] = vol_nonlin_to_lin[expression][1];
 	    break;
 
 	case ME_RPN_LSB:

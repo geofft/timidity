@@ -811,6 +811,12 @@ static void recompute_amp(int v)
 		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
 		   sc_vol_table[channel[voice[v].channel].volume] *
 		   sc_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+	} else if (IS_CURRENT_MOD_FILE) {	/* use linear curve */
+	tempamp = master_volume *
+		  voice[v].sample->volume *
+		  calc_velocity(voice[v].channel,voice[v].velocity) *
+		  channel[voice[v].channel].volume *
+		  channel[voice[v].channel].expression; /* 21 bits */
 	} else {	/* use generic exponential curve */
 	tempamp = master_volume *
 		  voice[v].sample->volume *
@@ -2346,9 +2352,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     /* Don't bother with trying to figure out drum pitches... */
     /* Don't bother with mod files for the same reason... */
     /* Drums and mods could be fixed, but pitch detection is too expensive */
-    if (!ISDRUMCHANNEL(voice[v1].channel) &&
-    	current_file_info->file_type != IS_MOD_FILE &&
-    	current_file_info->file_type != IS_S3M_FILE)
+    if (!ISDRUMCHANNEL(voice[v1].channel) && !(IS_CURRENT_MOD_FILE))
     {
     	double freq, frac;
     

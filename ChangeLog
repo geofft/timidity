@@ -1,3 +1,15 @@
+2003-09-14  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/m2m.c (m2m_process_events): Bug Fix
+	* timidity/m2m.c (vol_nonlin_to_lin): Bug Fix
+	* timidity/mod2midi.c: Move all linear/non-linear MOD volume
+	  conversion stuff into m2m.c
+	* timidity/playmidi.c (recompute_amp): Use linear volume curves
+	  when playing MOD files
+	* timidity/playmidi.c (new_chorus_voice_alternate): Use
+	  IS_CURRENT_MOD_FILE to check for MOD file types instead of
+	  checking specifically for IS_MOD_FILE and IS_S3M_FILE
+
 2003-09-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:
