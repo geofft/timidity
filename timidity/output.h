@@ -155,6 +155,10 @@ extern void s32tou8(int32 *lp, int32 c);
 extern void s32tos16(int32 *lp, int32 c);
 extern void s32tou16(int32 *lp, int32 c);
 
+/* 24-bit */
+extern void s32tos24(int32 *lp, int32 c);
+extern void s32tou24(int32 *lp, int32 c);
+
 /* byte-exchanged 16-bit */
 extern void s32tos16x(int32 *lp, int32 c);
 extern void s32tou16x(int32 *lp, int32 c);

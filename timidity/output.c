@@ -261,26 +261,52 @@ void s32tou16x(int32 *lp, int32 c)
 
 void s32tos24(int32 *lp, int32 c)
 {
-	int32 l, i;
+	int32 l, i, *sp = (int32 *)(lp);
 
 	for(i = 0; i < c; i++)
 	{
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
-		lp[i] = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
+		sp[i] = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
 	}
 }
 
 void s32tou24(int32 *lp, int32 c)
 {
-	int32 l, i;
+	int32 l, i, *sp = (uint32 *)(lp);
 
 	for(i = 0; i < c; i++)
 	{
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		lp[i] = 0x800000 ^ (uint32)(l);
+		sp[i] = 0x800000 ^ (uint32)(l);
+	}
+}
+
+void s32tos24x(int32 *lp, int32 c)
+{
+	int32 l, i, *sp = (int32 *)(lp);
+
+	for(i = 0; i < c; i++)
+	{
+		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
+		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
+				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
+		sp[i] = XCHG_LONG(l);
+	}
+}
+
+void s32tou24x(int32 *lp, int32 c)
+{
+	int32 l, i, *sp = (uint32 *)(lp);
+
+	for(i = 0; i < c; i++)
+	{
+		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
+		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
+				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
+		sp[i] = XCHG_LONG(0x800000 ^ (uint32)(l));
 	}
 }
 
@@ -337,7 +363,13 @@ int32 general_output_convert(int32 *buf, int32 count)
     }
 	else if(play_mode->encoding & PE_24BIT) {
 		bytes *= 3;
-		if(play_mode->encoding & PE_SIGNED)
+		if(play_mode->encoding & PE_BYTESWAP)
+		{
+			if(play_mode->encoding & PE_SIGNED)
+			s32tos24x(buf, count);
+			else
+			s32tou24x(buf, count);
+		} else if(play_mode->encoding & PE_SIGNED)
 			s32tos24(buf, count);
 		else
 			s32tou24(buf, count);
@@ -364,7 +396,7 @@ int validate_encoding(int enc, int include_enc, int exclude_enc)
     enc &= ~exclude_enc;
     if(enc & (PE_ULAW|PE_ALAW))
 	enc &= ~(PE_24BIT|PE_16BIT|PE_SIGNED|PE_BYTESWAP);
-    if(!(enc & PE_16BIT))
+    if(!(enc & PE_16BIT || enc & PE_24BIT))
 	enc &= ~PE_BYTESWAP;
 	if(enc & PE_24BIT)
 	enc &= ~PE_16BIT;	/* 24bit overrides 16bit */

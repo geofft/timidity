@@ -1,5 +1,5 @@
 2004-02-11  Saito <saito2@digitalme.com>
-        * timidity/output.c, timidity/wave_a.c,
+        * timidity/output.[ch], timidity/wave_a.c,
           timidity/w32_a.c, timidity/aq.c,
           timidity/effect.c, timidity/timidity.c, interface/w32g_utl.c:
           Fix some codes for 24bit output.

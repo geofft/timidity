@@ -226,7 +226,7 @@ static int open_output(void)
     int include_enc, exclude_enc;
 
     include_enc = exclude_enc = 0;
-    if(dpm.encoding & PE_16BIT || dpm.encoding & PE_24BIT)
+    if(dpm.encoding & PE_16BIT)
     {
 #ifdef LITTLE_ENDIAN
 	exclude_enc = PE_BYTESWAP;
@@ -235,7 +235,10 @@ static int open_output(void)
 #endif /* LITTLE_ENDIAN */
 	include_enc |= PE_SIGNED;
     }
-    else if(!(dpm.encoding & (PE_ULAW|PE_ALAW)))
+	else if(dpm.encoding & PE_24BIT) {
+		include_enc |= PE_SIGNED;
+    }
+	else if(!(dpm.encoding & (PE_ULAW|PE_ALAW)))
     {
 	exclude_enc = PE_SIGNED;
     }

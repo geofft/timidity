@@ -4031,14 +4031,14 @@ static inline int parse_opt_O(const char *arg)
 			break;
 		case '1':	/* 1 for 16-bit */
 			pmp->encoding |= PE_16BIT;
-			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			pmp->encoding &= ~(PE_24BIT | PE_ULAW | PE_ALAW);
 			break;
 		case '2':	/* 2 for 24-bit */
 			pmp->encoding |= PE_24BIT;
 			pmp->encoding &= ~(PE_16BIT | PE_ULAW | PE_ALAW);
 			break;
 		case '8':
-			pmp->encoding &= ~PE_16BIT;
+			pmp->encoding &= ~(PE_24BIT | PE_16BIT);
 			break;
 		case 'l':	/* linear */
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
@@ -4046,12 +4046,12 @@ static inline int parse_opt_O(const char *arg)
 		case 'U':	/* uLaw */
 			pmp->encoding |= PE_ULAW;
 			pmp->encoding &=
-					~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+					~(PE_SIGNED | PE_24BIT | PE_16BIT | PE_ALAW | PE_BYTESWAP);
 			break;
 		case 'A':	/* aLaw */
 			pmp->encoding |= PE_ALAW;
 			pmp->encoding &=
-					~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+					~(PE_SIGNED | PE_24BIT | PE_16BIT | PE_ULAW | PE_BYTESWAP);
 			break;
 		case 'x':
 			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
@@ -4092,6 +4092,7 @@ static inline int parse_opt_output_signed(const char *arg)
 static inline int parse_opt_output_16bit(const char *arg)
 {
 	/* --output-16bit, --output-8bit */
+	play_mode->encoding != ~PE_24BIT;
 	if (set_flag(&(play_mode->encoding), PE_16BIT, arg))
 		return 1;
 	if (y_or_n_p(arg))
@@ -4119,12 +4120,12 @@ static inline int parse_opt_output_format(const char *arg)
 	case 'u':	/* uLaw */
 		play_mode->encoding |= PE_ULAW;
 		play_mode->encoding &=
-				~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+				~(PE_SIGNED | PE_16BIT | PE_24BIT | PE_ALAW | PE_BYTESWAP);
 		return 0;
 	case 'a':	/* aLaw */
 		play_mode->encoding |= PE_ALAW;
 		play_mode->encoding &=
-				~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+				~(PE_SIGNED | PE_16BIT | PE_24BIT | PE_ULAW | PE_BYTESWAP);
 		return 0;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid output format %s", arg);
