@@ -390,7 +390,7 @@ int set_current_resampler(int type)
 #ifdef FIXED_RESAMPLATION
     return -1;
 #else
-    if (type < 0 || type >= RESAMPLE_NONE)
+    if (type < 0 || type > RESAMPLE_NONE)
 	return -1;
     cur_resample = resamplers[type];
     return 0;

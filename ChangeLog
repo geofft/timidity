@@ -1,3 +1,8 @@
+2004-03-28  mput <root@mput.dip.jp>
+
+	* timidity/resample.c (set_current_resampler): RESAMPLE_NONE was
+	  deactivated.
+
 2004-03-26  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/instrum.[ch], timidity/smplfile.c, timidity/sndfont.c:
