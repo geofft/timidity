@@ -926,7 +926,8 @@ static char *cb_info_IDC_COMBO_INIT_KEYSIG[] = {
 	"E  Maj / C# Min",
 	"B  Maj / G# Min",
 	"F# Maj / D# Min",
-	"C# Maj / A# Min"
+	"C# Maj / A# Min",
+	""
 };
 
 // IDC_COMBO_FORCE_KEYSIG
@@ -993,21 +994,28 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		SetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,st_temp->control_ratio,FALSE);
 		SetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,st_temp->opt_drum_power,FALSE);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
-		for (i = 0; i < 15; i++)
+		for (i = 0; i < 16; i++)
 			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG,
 					CB_INSERTSTRING, (WPARAM) -1,
 					(LPARAM) cb_info_IDC_COMBO_INIT_KEYSIG[i]);
 		if (! st_temp->opt_pure_intonation) {
 			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
-					(WPARAM) 7, (LPARAM) 0);
+					(WPARAM) 15, (LPARAM) 0);
 			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
 					0, 0);
 		} else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
-					(WPARAM) st_temp->opt_init_keysig + 7 & 0x0f,
-					(LPARAM) 0);
-			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
-					(st_temp->opt_init_keysig + 7 & 0x10) ? 1 : 0, 0);
+			if (st_temp->opt_init_keysig == 8) {
+				SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
+						(WPARAM) 15, (LPARAM) 0);
+				SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
+						0, 0);
+			} else {
+				SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
+						(WPARAM) st_temp->opt_init_keysig + 7 & 0x0f,
+						(LPARAM) 0);
+				SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
+						(st_temp->opt_init_keysig + 7 & 0x10) ? 1 : 0, 0);
+			}
 		}
 		DLG_FLAG_TO_CHECKBUTTON(hwnd, IDC_CHECKBOX_PURE_INTONATION,
 				st_temp->opt_pure_intonation);
@@ -1035,28 +1043,31 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		case IDC_CHECKBOX_SPECIAL_TONEBANK:
 			if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_SPECIAL_TONEBANK,
 					BM_GETCHECK, 0, 0))
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_EDIT_SPECIAL_TONEBANK), TRUE);
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_SPECIAL_TONEBANK),
+						TRUE);
 			else
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_EDIT_SPECIAL_TONEBANK), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_EDIT_SPECIAL_TONEBANK),
+						FALSE);
 			break;
 		case IDC_CHECKBOX_PURE_INTONATION:
 			if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_PURE_INTONATION,
 					BM_GETCHECK, 0, 0)) {
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_COMBO_INIT_KEYSIG), TRUE);
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), TRUE);
+				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INIT_KEYSIG), TRUE);
+				EnableWindow(GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), TRUE);
 			} else {
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_COMBO_INIT_KEYSIG), FALSE);
-				EnableWindow(
-						GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INIT_KEYSIG), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), FALSE);
 			}
 			break;
 		case IDC_COMBO_INIT_KEYSIG:
 		case IDC_CHECKBOX_INIT_MI:
+			if (SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
+					(WPARAM) 0, (LPARAM) 0) == 15) {
+				SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
+						0, 0);
+				EnableWindow(GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), FALSE);
+			} else
+				EnableWindow(GetDlgItem(hwnd, IDC_CHECKBOX_INIT_MI), TRUE);
 			st_temp->opt_init_keysig = SendDlgItemMessage(hwnd,
 					IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
 					(WPARAM) 0, (LPARAM) 0) + ((SendDlgItemMessage(hwnd,
@@ -1145,7 +1156,7 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					IDC_CHECKBOX_INIT_MI, BM_GETCHECK,
 					0, 0)) ? 16 : 0) - 7;
 		else
-			st_temp->opt_init_keysig = 0;
+			st_temp->opt_init_keysig = 8;
 		st_temp->key_adjust = GetDlgItemInt(
 				hwnd, IDC_EDIT_KEY_ADJUST, NULL, TRUE);
 		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,

@@ -4437,7 +4437,7 @@ static inline int parse_opt_Z1(const char *arg)
 	
 	opt_pure_intonation = 1;
 	if (*arg) {
-		if (set_value(&keysig, atoi(arg), -7, -7,
+		if (set_value(&keysig, atoi(arg), -7, 7,
 				"Initial keysig (number of #(+)/b(-)[m(minor)])"))
 			return 1;
 		opt_init_keysig = keysig;

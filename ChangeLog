@@ -1,3 +1,11 @@
+2004-03-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c (parse_opt_Z1): Fix typo
+	* interface/alsaseq_c.c, interface/rtsyn_common.c,
+	  interface/w32g_pref.c, timidity/playmidi.c:
+	  Change behavior so that keysig control may not react
+	  when initial keysig option for pure intonation is specified
+
 2004-03-04  mput <root@mput.dip.jp>
 
 	* timidity/readmidi.c (set_xg_chorus_type): Re-activate flanger

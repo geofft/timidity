@@ -112,7 +112,7 @@ Voice *voice = NULL;
 int8 current_keysig = 0;
 int8 current_temper_keysig = 0;
 int temper_adj = 0;
-int8 opt_init_keysig = 0;
+int8 opt_init_keysig = 8;
 int8 opt_force_keysig = 8;
 int32 current_play_tempo = 500000;
 int opt_realtime_playing = 0;
@@ -5726,6 +5726,8 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	case ME_KEYSIG:
+		if (opt_init_keysig != 8)
+			break;
 		current_keysig = current_event->a + current_event->b * 16;
 		break;
 
@@ -7753,6 +7755,8 @@ int play_event(MidiEvent *ev)
 	break;
 
 	case ME_KEYSIG:
+		if (opt_init_keysig != 8)
+			break;
 		current_keysig = current_event->a + current_event->b * 16;
 		ctl_mode_event(CTLE_KEYSIG, 1, current_keysig, 0);
 		if (opt_force_keysig != 8) {
@@ -8295,7 +8299,7 @@ int play_midi_file(char *fn)
 	return rc;
 
     /* Reset key & speed each files */
-    current_keysig = opt_init_keysig;
+    current_keysig = (opt_init_keysig == 8) ? 0 : opt_init_keysig;
     note_key_offset = 0;
     midi_time_ratio = 1.0;
 	for (i = 0; i < MAX_CHANNELS; i++) {
