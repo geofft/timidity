@@ -1214,17 +1214,17 @@ void recompute_bank_parameter(int ch, int note)
 		instrument_map(channel[ch].mapID, &nbank, &nprog);
 		bank = drumset[nbank];
 		if (bank == NULL) {bank = drumset[0];}
-		if (channel[ch].drums[note] != NULL) {
-			drum = channel[ch].drums[note];
-			if (drum->reverb_level == -1 && bank->tone[nprog].reverb_send != -1) {
-				drum->reverb_level = bank->tone[nprog].reverb_send;
-			}
-			if (drum->chorus_level == -1 && bank->tone[nprog].chorus_send != -1) {
-				drum->chorus_level = bank->tone[nprog].chorus_send;
-			}
-			if (drum->delay_level == -1 && bank->tone[nprog].delay_send != -1) {
-				drum->delay_level = bank->tone[nprog].delay_send;
-			}
+		if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+		drum = channel[ch].drums[note];
+		if (drum->reverb_level == -1 && bank->tone[nprog].reverb_send != -1) {
+			drum->reverb_level = bank->tone[nprog].reverb_send;
+		}
+		if (drum->chorus_level == -1 && bank->tone[nprog].chorus_send != -1) {
+			drum->chorus_level = bank->tone[nprog].chorus_send;
+		}
+		if (drum->delay_level == -1 && bank->tone[nprog].delay_send != -1) {
+			drum->delay_level = bank->tone[nprog].delay_send;
 		}
 	} else {
 		nprog = channel[ch].program;
@@ -1975,6 +1975,11 @@ static int find_free_voice(void)
     return lowest;
 }
 
+inline static double calc_st_ratio(double st)
+{
+	return (pow(2.0, st / 100.0f) - 1.0f);
+}
+
 int32 get_note_freq(Sample *sp, int note)
 {
 	double ratio;
@@ -1982,7 +1987,7 @@ int32 get_note_freq(Sample *sp, int note)
 
 	f = freq_table[note];
 	if (sp->scale_tuning != 100) {	/* SF2 - Scale Tuning */
-		ratio = (double)sp->scale_tuning / 100.0f;
+		ratio = calc_st_ratio(sp->scale_tuning);
 		f = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
 	}
 	return f;
@@ -2078,7 +2083,7 @@ static int select_play_sample(Sample *splist,
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
 		if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-			ratio = (double)st / 100.0f;
+			ratio = calc_st_ratio(st);
 			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 		} else {ft = f, fst = fs;}
@@ -2104,7 +2109,7 @@ static int select_play_sample(Sample *splist,
 		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
 			if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-				ratio = (double)st / 100.0f;
+				ratio = calc_st_ratio(st);
 				ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 				fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 			} else {ft = f, fst = fs;}
@@ -2155,7 +2160,7 @@ static int select_play_sample(Sample *splist,
 					sp->sf_sample_index == sample_link) {
 					/* right sample is found. */
 					if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-						ratio = (double)st / 100.0f;
+						ratio = calc_st_ratio(st);
 						ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
 					} else {ft = f;}
 					ratio = get_play_note_ratio(ch, keynote);
@@ -2867,6 +2872,8 @@ static void note_on_prescan(MidiEvent *ev)
 		channel[ch].vel_limit_high < ev->b) {
 		return;
 	}
+
+	recompute_bank_parameter(ch, note);
 
     if((channel[ch].portamento_time_msb |
 		channel[ch].portamento_time_lsb) == 0 ||
