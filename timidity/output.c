@@ -264,7 +264,7 @@ void s32tou16x(int32 *lp, int32 c)
 #define STORE_U24_LE(cp, l) *cp++ = l & 0xFF, *cp++ = l >> 8 & 0xFF, *cp++ = l >> 16 ^ 0x80
 #define STORE_U24_BE(cp, l) *cp++ = l >> 16 ^ 0x80, *cp++ = l >> 8 & 0xFF, *cp++ = l & 0xFF
 
-#if LITTLE_ENDIAN
+#ifdef LITTLE_ENDIAN
   #define STORE_S24  STORE_S24_LE
   #define STORE_S24X STORE_S24_BE
   #define STORE_U24  STORE_U24_LE
