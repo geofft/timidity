@@ -39,9 +39,13 @@ extern char *strerror(int errnum);
 extern int usleep(unsigned int usec);
 #endif
 
+#ifdef __W32__
+#define sleep(time) Sleep(time)
+#else
 #ifndef HAVE_SLEEP
 #define sleep(s) usleep((s) * 1000000)
 #endif /* HAVE_SLEEP */
+#endif
 
 #ifndef HAVE_STRDUP
 extern char *strdup(const char *s);

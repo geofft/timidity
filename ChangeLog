@@ -1,3 +1,19 @@
+2004-02-05  kekyo <>
+
+	* interface/rtsyn_winmm.c, interface/w32g_pref.c,
+	  interface/w32g_subwin3.c, interface/winsyn_c.c,
+	  timidity/gogo_a.c, timidity/timidity.c,
+	  timidity/vorbis_a.c, timidity/wave_a.c,
+	  utils/support.h:
+	  Fix codes for Visual C++ 7.0.
+
+2004-02-05  Saito <saito2@digitalme.com>
+
+	* configs/msc-project.zip:
+	  Remove this file.
+	* configs/msc-project6.zip, configs/msc-project7.zip:
+	  Add files.
+
 2004-02-05  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/smplfile.c:

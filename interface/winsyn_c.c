@@ -406,7 +406,7 @@ static void doit(void)
 #endif
 
 	while(seq_quit==0){
-#if __W32__
+#ifdef __W32__
 		if(kbhit()){
 			switch(getch()){
 #else			

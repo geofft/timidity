@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef AU_VORBIS
+
 #ifdef AU_VORBIS_DLL
 #include <stdlib.h>
 #include <io.h>
@@ -474,3 +476,5 @@ static int acntl(int request, void *arg)
   }
   return -1;
 }
+
+#endif

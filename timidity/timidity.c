@@ -22,7 +22,7 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
-#if STDC_HEADERS
+#ifdef STDC_HEADERS
 #include <stdlib.h>
 #include <ctype.h>
 #include <stddef.h>

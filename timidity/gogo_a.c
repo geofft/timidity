@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef AU_GOGO
+
 #ifdef __W32__
 #include <io.h>
 #include <windows.h>
@@ -1355,3 +1357,5 @@ static int acntl(int request, void *arg)
 	}
 	return -1;
 }
+
+#endif

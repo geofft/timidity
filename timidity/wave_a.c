@@ -29,7 +29,6 @@
 #include <stdio.h>
 
 #ifdef __W32__
-#include <stdlib.h>
 #include <io.h>
 #endif
 

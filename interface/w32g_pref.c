@@ -1371,11 +1371,16 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				} else {
 					st_temp->opt_playmode[0]='d';
 				}
+#ifdef AU_VORBIS
 				if(st_temp->opt_playmode[0]=='v'){
 					vorbisConfigDialog();
-				} else if(st_temp->opt_playmode[0]=='g'){
+				}
+#endif
+#ifdef AU_GOGO
+				if(st_temp->opt_playmode[0]=='g'){
 					gogoConfigDialog();
 				}
+#endif
 			}
 			break;
 		case IDC_COMBO_OUTPUT_MODE:

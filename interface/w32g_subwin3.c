@@ -670,7 +670,7 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		break;
 	case CTLE_NOTE:
 		{
-		int vel, vel_old = w32g_tracer_wnd.velocity[(int)e->v2];
+		int vel = 0, vel_old = w32g_tracer_wnd.velocity[(int)e->v2];
 		switch ( (int)e->v1 ) {
 		case VOICE_ON:
 			w32g_tracer_wnd.velocity[(int)e->v2] += (int)e->v4;
