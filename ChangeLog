@@ -1,3 +1,9 @@
+2004-01-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1,
+	  timidity/timidity.c (parse_opt_h):
+	  Rewrite and Fix typo a little
+
 2004-01-26  mput <root@mput.dip.jp>
 
 	* doc/C/timidity.1: Remove Japanese characters

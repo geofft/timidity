@@ -498,13 +498,13 @@ MIDI サーバインタフェース
 ALSA シーケンサインタフェース
 .TP
 .B \-iW
-Windodws シンセサイザインタフェース
+Windows シンセサイザインタフェース
+.TP
+.B \-iw
+Windows GUI インターフェース
 .TP
 .B \-iP
 PortMIDI シンセサイザインタフェース
-.TP
-.B \-iw
-Windodws GUI インターフェース
 .TP
 .B \-ip
 UMP インターフェース
@@ -534,11 +534,12 @@ UMP インターフェース
 .B D, \-\-[no\-]background
 \fBTiMidity++\fP をバックグラウンドでデーモン化します(alsaseq のみ)。
 .TP
-.B \-\-realtime\-priority=n
-(alsaseq のみ)リアルタイム・プライオリティの指定。
+.BI \-\-realtime\-priority n
+リアルタイム・プライオリティを指定します(alsaseq のみ)。
 .TP
-.B \-\-sequencer\-ports=n
-(alsaseq のみ)シーケンサのポート数を指定(デフォルトは4)。
+.BI \-\-sequencer\-ports n
+シーケンサのポート数を指定します(alsaseq のみ)。デフォルトでは \fB4\fP
+です。
 .RE
 .RE
 .TP
