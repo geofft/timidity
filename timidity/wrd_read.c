@@ -1814,7 +1814,7 @@ struct sry_drawtext_{
 	char	back_color;
 	short	x;
 	short	y;
-	char	text[];
+	char	*text;
 };
 typedef struct sry_drawtext_ sry_drawtext;
 

@@ -1,8 +1,13 @@
+2004-01-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/wrd_read.c:
+	  Fix bug
+
 2004-01-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* INSTALL(.jp), README(.jp):
 	  Update README and INSTALL
-	  doc/C/{timidity.1,timidity.cfg.5},
+	* doc/C/{timidity.1,timidity.cfg.5},
 	  doc/ja_JP.ujis/{timidity.1,timidity.cfg.5}:
 	  Fix typo
 
