@@ -3186,126 +3186,126 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			break;
 		case 0x27:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			insertion_effect.type_msb = val;
+			gs_ieffect.type_msb = val;
 			break;
 		case 0x28:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
-			insertion_effect.type_lsb = val;
-			insertion_effect.type = ((int32)insertion_effect.type_msb << 8) | (int32)insertion_effect.type_lsb;
+			gs_ieffect.type_lsb = val;
+			gs_ieffect.type = ((int32)gs_ieffect.type_msb << 8) | (int32)gs_ieffect.type_lsb;
 			set_insertion_effect_default_parameter();
 			recompute_insertion_effect();
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",insertion_effect.type_msb,insertion_effect.type_lsb);
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",gs_ieffect.type_msb,gs_ieffect.type_lsb);
 			break;
 		case 0x29:
-			insertion_effect.parameter[0] = val;
+			gs_ieffect.parameter[0] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2A:
-			insertion_effect.parameter[1] = val;
+			gs_ieffect.parameter[1] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2B:
-			insertion_effect.parameter[2] = val;
+			gs_ieffect.parameter[2] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2C:
-			insertion_effect.parameter[3] = val;
+			gs_ieffect.parameter[3] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2D:
-			insertion_effect.parameter[4] = val;
+			gs_ieffect.parameter[4] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2E:
-			insertion_effect.parameter[5] = val;
+			gs_ieffect.parameter[5] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x2F:
-			insertion_effect.parameter[6] = val;
+			gs_ieffect.parameter[6] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x30:
-			insertion_effect.parameter[7] = val;
+			gs_ieffect.parameter[7] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x31:
-			insertion_effect.parameter[8] = val;
+			gs_ieffect.parameter[8] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x32:
-			insertion_effect.parameter[9] = val;
+			gs_ieffect.parameter[9] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x33:
-			insertion_effect.parameter[10] = val;
+			gs_ieffect.parameter[10] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x34:
-			insertion_effect.parameter[11] = val;
+			gs_ieffect.parameter[11] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x35:
-			insertion_effect.parameter[12] = val;
+			gs_ieffect.parameter[12] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x36:
-			insertion_effect.parameter[13] = val;
+			gs_ieffect.parameter[13] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x37:
-			insertion_effect.parameter[14] = val;
+			gs_ieffect.parameter[14] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x38:
-			insertion_effect.parameter[15] = val;
+			gs_ieffect.parameter[15] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x39:
-			insertion_effect.parameter[16] = val;
+			gs_ieffect.parameter[16] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3A:
-			insertion_effect.parameter[17] = val;
+			gs_ieffect.parameter[17] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3B:
-			insertion_effect.parameter[18] = val;
+			gs_ieffect.parameter[18] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3C:
-			insertion_effect.parameter[19] = val;
+			gs_ieffect.parameter[19] = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3D:
-			insertion_effect.send_reverb = val;
+			gs_ieffect.send_reverb = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3E:
-			insertion_effect.send_chorus = val;
+			gs_ieffect.send_chorus = val;
 			recompute_insertion_effect();
 			break;
 		case 0x3F:
-			insertion_effect.send_delay = val;
+			gs_ieffect.send_delay = val;
 			recompute_insertion_effect();
 			break;
 		case 0x40:
-			insertion_effect.control_source1 = val;
+			gs_ieffect.control_source1 = val;
 			recompute_insertion_effect();
 			break;
 		case 0x41:
-			insertion_effect.control_depth1 = val;
+			gs_ieffect.control_depth1 = val;
 			recompute_insertion_effect();
 			break;
 		case 0x42:
-			insertion_effect.control_source2 = val;
+			gs_ieffect.control_source2 = val;
 			recompute_insertion_effect();
 			break;
 		case 0x43:
-			insertion_effect.control_depth2 = val;
+			gs_ieffect.control_depth2 = val;
 			recompute_insertion_effect();
 			break;
 		case 0x44:
-			insertion_effect.send_eq_switch = val;
+			gs_ieffect.send_eq_switch = val;
 			recompute_insertion_effect();
 			break;
 		case 0x45:	/* Rx. Channel */
@@ -4838,10 +4838,10 @@ static void do_compute_data_midi(int32 count)
 			/* applying insertion effect */
 			do_insertion_effect(insertion_effect_buffer, cnt);
 			/* sending insertion effect voice to channel effect */
-			set_ch_chorus(insertion_effect_buffer, cnt, insertion_effect.send_chorus);
-			set_ch_delay(insertion_effect_buffer, cnt, insertion_effect.send_delay);
-			set_ch_reverb(insertion_effect_buffer, cnt,	insertion_effect.send_reverb);
-			if(insertion_effect.send_eq_switch && channel_eq) {
+			set_ch_chorus(insertion_effect_buffer, cnt, gs_ieffect.send_chorus);
+			set_ch_delay(insertion_effect_buffer, cnt, gs_ieffect.send_delay);
+			set_ch_reverb(insertion_effect_buffer, cnt,	gs_ieffect.send_reverb);
+			if(gs_ieffect.send_eq_switch && channel_eq) {
 				set_ch_eq(insertion_effect_buffer, cnt);
 			} else {
 				set_dry_signal(insertion_effect_buffer, cnt);

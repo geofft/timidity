@@ -39,13 +39,24 @@
 #include "timidity.h"
 #include "controls.h"
 #include "tables.h"
-#include "reverb.h"
 #include "common.h"
+#include "output.h"
+#include "reverb.h"
 #include <math.h>
 #include <stdlib.h>
 
 int opt_effect_quality = 0;
 static int32 sample_rate = 44100;
+
+enum play_system_modes
+{
+    DEFAULT_SYSTEM_MODE,
+    GM_SYSTEM_MODE,
+    GS_SYSTEM_MODE,
+    XG_SYSTEM_MODE
+};
+extern int play_system_mode;
+
 static double REV_INP_LEV = 1.0;
 
 /* delay buffers @65kHz */
@@ -1265,9 +1276,9 @@ void do_0110_overdrive(int32* buf, int32 count)
 	FLOAT_T pan;
 	FLOAT_T level,volume;
 
-	volume = (FLOAT_T)insertion_effect.parameter[19] / 127.0;
-	level = (FLOAT_T)insertion_effect.parameter[0] / 127.0;
-	pan = (insertion_effect.parameter[18] - 0x40) / 63.0;
+	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
+	level = (FLOAT_T)gs_ieffect.parameter[0] / 127.0;
+	pan = (gs_ieffect.parameter[18] - 0x40) / 63.0;
 
 	for(i=0;i<n;i++) {
 		/* Left */
@@ -1292,9 +1303,9 @@ void do_0111_distortion(int32* buf, int32 count)
 	FLOAT_T pan;
 	FLOAT_T level,volume;
 
-	volume = (FLOAT_T)insertion_effect.parameter[19] / 127.0;
-	level = (FLOAT_T)insertion_effect.parameter[0] / 127.0;
-	pan = (insertion_effect.parameter[18] - 0x40) / 63.0;
+	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
+	level = (FLOAT_T)gs_ieffect.parameter[0] / 127.0;
+	pan = (gs_ieffect.parameter[18] - 0x40) / 63.0;
 
 	for(i=0;i<n;i++) {
 		/* Left */
@@ -1320,19 +1331,19 @@ void do_1103_dual_od(int32* buf, int32 count)
 	FLOAT_T level1,level2,volume,volume1,volume2;
 	int32 (*od1)(int32,FLOAT_T,FLOAT_T,int32),(*od2)(int32,FLOAT_T,FLOAT_T,int32);
 
-	volume = (FLOAT_T)insertion_effect.parameter[19] / 127.0;
-	volume1 = (FLOAT_T)insertion_effect.parameter[16] / 127.0 * volume;
-	volume2 = (FLOAT_T)insertion_effect.parameter[18] / 127.0 * volume;
-	level1 = (FLOAT_T)insertion_effect.parameter[1] / 127.0;
-	level2 = (FLOAT_T)insertion_effect.parameter[6] / 127.0;
-	pan1 = (insertion_effect.parameter[15] - 0x40) / 63.0;
-	pan2 = (insertion_effect.parameter[17] - 0x40) / 63.0;
+	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
+	volume1 = (FLOAT_T)gs_ieffect.parameter[16] / 127.0 * volume;
+	volume2 = (FLOAT_T)gs_ieffect.parameter[18] / 127.0 * volume;
+	level1 = (FLOAT_T)gs_ieffect.parameter[1] / 127.0;
+	level2 = (FLOAT_T)gs_ieffect.parameter[6] / 127.0;
+	pan1 = (gs_ieffect.parameter[15] - 0x40) / 63.0;
+	pan2 = (gs_ieffect.parameter[17] - 0x40) / 63.0;
 
-	type = insertion_effect.parameter[0];
+	type = gs_ieffect.parameter[0];
 	if(type == 0) {od1 = do_overdrive;}
 	else {od1 = do_distortion;}
 
-	type = insertion_effect.parameter[5];
+	type = gs_ieffect.parameter[5];
 	if(type == 0) {od2 = do_overdrive;}
 	else {od2 = do_distortion;}
 
@@ -1355,31 +1366,14 @@ void do_1103_dual_od(int32* buf, int32 count)
 
 void init_insertion_effect()
 {
-	memset(insertion_effect.eq_low_val,0,sizeof(insertion_effect.eq_low_val));
-	memset(insertion_effect.eq_high_val,0,sizeof(insertion_effect.eq_high_val));
 	od_max_volume1 = 0;
 	od_max_volume2 = 0;
 }
 
-void do_insertion_effect(int32 *buf,int32 count)
+/* !!! rename this function to do_insertion_effect_gs() !!! */
+void do_insertion_effect(int32 *buf, int32 count)
 {
-	if(insertion_effect.eq_low_gain != 0 || insertion_effect.eq_high_gain != 0) {
-		do_eq(buf,count,insertion_effect.eq_low_coef,insertion_effect.eq_low_val);
-		do_eq(buf,count,insertion_effect.eq_high_coef,insertion_effect.eq_high_val);
-	}
-
-	switch(insertion_effect.type) {
-	case 0x0110: /* Overdrive */
-		do_0110_overdrive(buf,count);
-		break;
-	case 0x0111: /* Distortion */
-		do_0111_distortion(buf,count);
-		break;
-	case 0x1103: /* OD1 / OD2 */
-		do_1103_dual_od(buf,count);
-		break;
-	default: break;
-	}
+	do_effect_list(buf, count, gs_ieffect.ef);
 }
 
 
@@ -1914,9 +1908,93 @@ void free_effect_buffers(void)
 	free_revmodel();
 }
 
+
+/*                                       */
+/* New Insertion Effect (now testing...) */
+/*                                       */
+EffectList *new_effect(EffectList *efc, int8 type, void *info)
+{
+	EffectList *eft, *efn;
+	if(type == EFFECT_NONE) {return;}
+	efn = (EffectList *)safe_malloc(sizeof(EffectList));
+	efn->type = type;
+	efn->next_ef = NULL;
+	efn->info = info;
+	convert_effect(efn);
+
+	if(efc == NULL) {
+		efc = efn;
+	} else {
+		eft = efc;
+		while(eft->next_ef != NULL) {
+			eft = eft->next_ef;
+		}
+		eft->next_ef = efn;
+	}
+	return efc;
+}
+
+void do_effect_list(int32 *buf, int32 count, EffectList *ef)
+{
+	EffectList *efc = ef;
+	if(ef == NULL) {return;}
+	while(efc != NULL && efc->do_effect != NULL)
+	{
+		(*efc->do_effect)(buf, count, efc);
+		efc = efc->next_ef;
+	}
+}
+
+void free_effect_list(EffectList *ef)
+{
+	EffectList *efc, *efn;
+	efc = ef;
+	if(efc == NULL) {return;}
+	do {
+		efn = efc->next_ef;
+		efc->do_effect = NULL;
+		if(efc->info != NULL) {free(efc->info);}
+		free(efc);
+	} while ((efc = efn) != NULL);
+}
+
+void do_eq2(int32 *buf, int32 count, EffectList *ef)
+{
+	struct InfoEQ2 *eq = (struct InfoEQ2 *)ef->info;
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		calc_lowshelf_coefs(eq->low_coef, eq->low_freq, eq->low_gain, play_mode->rate);
+		calc_highshelf_coefs(eq->high_coef, eq->high_freq, eq->high_gain, play_mode->rate);
+		memset(eq->low_val, 0, sizeof(eq->low_val));
+		memset(eq->high_val, 0, sizeof(eq->high_val));
+		return;
+	}
+	if(eq->low_gain != 0) {
+		do_eq(buf, count, eq->low_coef, eq->low_val);
+	}
+	if(eq->high_gain != 0) {
+		do_eq(buf, count, eq->high_coef, eq->high_val);
+	}
+}
+
+void convert_effect(EffectList *ef)
+{
+	ef->do_effect = NULL;
+	switch(ef->type)
+	{
+	case EFFECT_NONE:
+		break;
+	case EFFECT_EQ2:
+		ef->do_effect = do_eq2;
+		break;
+	default:
+		break;
+	}
+
+	(*ef->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, ef);
+}
+
 struct delay_status_t delay_status;
 struct reverb_status_t reverb_status;
-struct insertion_effect_t insertion_effect;
 struct chorus_status_t chorus_status;
 struct chorus_param_t chorus_param;
 struct eq_status_t eq_status;

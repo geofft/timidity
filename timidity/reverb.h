@@ -35,6 +35,44 @@
 extern int opt_reverb_control;
 extern int opt_effect_quality;
 
+enum {
+	EFFECT_NONE,
+	EFFECT_EQ2,
+	EFFECT_OVERDRIVE1,
+	EFFECT_DISTORTION1,
+	EFFECT_OD1OD2,
+};
+
+#define MAGIC_INIT_EFFECT_INFO -1
+
+typedef struct _EffectList {
+	int8 type;
+	void *info;	/* private effect information struct */
+	void (*do_effect)(int32 *, int32, struct _EffectList *);
+	struct _EffectList *next_ef;
+} EffectList;
+
+extern void convert_effect(EffectList *);
+extern EffectList *new_effect(EffectList *, int8);
+extern void do_effect_list(int32 *, int32, EffectList *);
+extern void free_effect_list(EffectList *);
+
+/* general purpose 2-Band Equalizer */
+struct InfoEQ2
+{
+    int16 low_freq;		/* in Hz */
+	int16 high_freq;	/* in Hz */
+	int16 low_gain;		/* in dB */
+	int16 high_gain;	/* in dB */
+
+	/* for highpass shelving filter */
+	int32 high_coef[5];
+	int32 high_val[8];
+	/* for lowpass shelving filter */
+	int32 low_coef[5];
+	int32 low_val[8];
+};
+
 extern void set_dry_signal(register int32 *, int32);
 extern void mix_dry_signal(register int32 *, int32);
 
@@ -166,33 +204,13 @@ struct eq_status_t
 	int32 low_val[8];
 };
 
-/* GS paramters of insertion effect */
-struct insertion_effect_t
-{
-	/* GS parameters */
-	int8 type_lsb;
-	int8 type_msb;
+struct GSInsertionEffect {
 	int32 type;
-	int8 parameter[20];
-	int8 send_reverb;
-	int8 send_chorus;
-	int8 send_delay;
-	int8 control_source1;
-	int8 control_depth1;
-	int8 control_source2;
-	int8 control_depth2;
-	int8 send_eq_switch;
-
-	/* EQ for insertion effect */
-	int32 eq_low_freq;
-	int32 eq_low_gain;
-	int32 eq_low_coef[5];
-	int32 eq_low_val[8];
-	int32 eq_high_freq;
-	int32 eq_high_gain;
-	int32 eq_high_coef[5];
-	int32 eq_high_val[8];
-};
+	int8 type_lsb, type_msb, parameter[20], send_reverb,
+		send_chorus, send_delay, control_source1, control_depth1,
+		control_source2, control_depth2, send_eq_switch;
+	struct _EffectList *ef;
+} gs_ieffect;
 
 /* see also readmidi.c */
 struct chorus_status_t
@@ -214,6 +232,5 @@ extern struct chorus_status_t chorus_status;
 extern struct chorus_param_t chorus_param;
 extern struct reverb_status_t reverb_status;
 extern struct eq_status_t eq_status;
-extern struct insertion_effect_t insertion_effect;
 
 #endif /* ___REVERB_H_ */

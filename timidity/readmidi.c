@@ -4424,9 +4424,11 @@ void free_userinst()
 void init_insertion_effect_status()
 {
 	int i;
-	struct insertion_effect_t *st = &insertion_effect;
+	struct GSInsertionEffect *st = &gs_ieffect;
 
-	for(i=0;i<20;i++) {st->parameter[i] = 0;}
+	free_effect_list(st->ef);
+
+	for(i = 0; i < 20; i++) {st->parameter[i] = 0;}
 
 	st->type = 0;
 	st->type_lsb = 0;
@@ -4439,13 +4441,11 @@ void init_insertion_effect_status()
 	st->control_source2 = 0;
 	st->control_depth2 = 0x40;
 	st->send_eq_switch = 0x01;
-	st->eq_low_gain = 0;
-	st->eq_high_gain = 0;
 }
 
 void set_insertion_effect_default_parameter()
 {
-	struct insertion_effect_t *st = &insertion_effect;
+	struct GSInsertionEffect *st = &gs_ieffect;
 
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
@@ -4485,32 +4485,36 @@ void set_insertion_effect_default_parameter()
 	}
 }
 
+static void *conv_gs_ieffect_to_eq2(struct GSInsertionEffect *ieffect)
+{
+	struct InfoEQ2 *eq = (struct InfoEQ2 *)safe_malloc(sizeof(struct InfoEQ2));
+
+	eq->high_freq = 4000;
+	eq->high_gain = ieffect->parameter[16] - 0x40;
+	eq->low_freq = 400;
+	eq->low_gain = ieffect->parameter[17] - 0x40;
+
+	return eq;
+}
+
 void recompute_insertion_effect()
 {
-	int32 freq;
-	FLOAT_T dbGain;
-	struct insertion_effect_t *st = &insertion_effect;
+	struct GSInsertionEffect *st = &gs_ieffect;
+	void *info;
 
+	free_effect_list(st->ef);
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		st->eq_low_gain = st->parameter[16] - 0x40;
-		st->eq_high_gain = st->parameter[17] - 0x40;
+		info = conv_gs_ieffect_to_eq2(st);
+		st->ef = new_effect(st->ef, EFFECT_EQ2, info);
 		break;
 	case 0x0111: /* Distortion */
-		st->eq_low_gain = st->parameter[16] - 0x40;
-		st->eq_high_gain = st->parameter[17] - 0x40;
+		info = conv_gs_ieffect_to_eq2(st);
+		st->ef = new_effect(st->ef, EFFECT_EQ2, info);
+		break;
+	case 0x1103: /* OD1 / OD2 */
 		break;
 	default: break;
-	}
-
-	/* calculate EQ coefficients */
-	if(st->eq_low_gain != 0 || st->eq_high_gain != 0) {
-		freq = st->eq_low_freq = 400;
-		dbGain = st->eq_low_gain;
-		calc_lowshelf_coefs(st->eq_low_coef,freq,dbGain,play_mode->rate);
-		freq = st->eq_high_freq = 4000;
-		dbGain = st->eq_high_gain;
-		calc_highshelf_coefs(st->eq_high_coef,freq,dbGain,play_mode->rate);
 	}
 }
 
