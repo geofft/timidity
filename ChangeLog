@@ -1,5 +1,10 @@
 2004-09-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* timidity/readmidi.c (check_midi_file): Fix to recognize .rmi & .mfi
+	  (Fix for [timidity-bugs-en:00030])
+
+2004-09-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
 	* timidity/timidity.c: add null_play_mode
 	  (fix for [timidity-bugs-en:00031])
 	* timidity/timidity.c (parse_opt_h): add prototype for

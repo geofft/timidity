@@ -4898,9 +4898,11 @@ int check_midi_file(char *filename)
 
     if(strncmp(tmp, "RCM-", 4) == 0 ||
        strncmp(tmp, "COME", 4) == 0 ||
+       strncmp(tmp, "RIFF", 4) == 0 ||
+       strncmp(tmp, "melo", 4) == 0 ||
        strncmp(tmp, "M1", 2) == 0)
     {
-	p->format = 1;
+	p->format = format = 1;
 	goto end_of_header;
     }
 
