@@ -1,3 +1,9 @@
+2003-09-12  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (new_chorus_voice_alternate): Revert
+	  surround chorus delay back again (to 0.003)
+	  (midi_drumpart_change): set/unset drumchannel info
+
 2003-09-12  mput <root@mput.dip.jp>
 
 	* timidity/playmidi.c : Remove C++ style ``//'' comments
