@@ -1377,17 +1377,17 @@ void init_modenv_vol_table(void)
 	int i;
 	double x;
 
-	for (i = 0; i < 1024; i++) {
-		modenv_decay_vol_table[i] = log((double)i / 1023.0f + 1) / log(2);
-	}
-
 	modenv_attack_vol_table[0] = 0;
 	for (i = 1; i < 1023; i++) {
 		x = (1.0 - (-20.0 / 96.0 * log(((double)i * (double)i) / (1023.0 * 1023.0)) / log(10.0)));
-		if(x < 0) {x = 0;}
+		if (x < 0) {x = 0;}
 		modenv_attack_vol_table[i] = log(x + 1) / log(2);
 	}
 	modenv_attack_vol_table[1023] = 1.0;
+
+	for (i = 0; i < 1024; i++) {
+		modenv_decay_vol_table[i] = modenv_attack_vol_table[i];
+	}
 }
 
 FLOAT_T cb_to_amp_table[961] = 

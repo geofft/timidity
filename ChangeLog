@@ -1,3 +1,8 @@
+2004-02-19  Saito <saito2@digitalme.com>
+
+	* timidity/tables.c:
+	  Fix volume table of modulation envelope (incomplete).
+
 2004-02-18 Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/resample.c: Fixed noise of c-spline/lagrange/linear.
