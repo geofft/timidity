@@ -1078,7 +1078,7 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
 static int effect_view_border_draw ( RECT *lprc, int lockflag)
 {
 	HDC hdc;
-	COLORREF base = RGB(191, 191, 191);
+	COLORREF base = RGB(128, 128, 128);
 	HPEN hPen1 = NULL;
 	HPEN hPen3 = NULL;
 	HPEN hOldPen = NULL;
