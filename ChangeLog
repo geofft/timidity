@@ -5,6 +5,8 @@
 	  Remove w32g_a.c.
 	* configs/msc[67]-sjis.txt:
 	  Update.
+	* timidity/gogo_a.c, timidity/vorbis_a.c:
+	  Fix for 24-bit output mode.
 
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 

@@ -1226,11 +1226,15 @@ static int open_output(void)
 #endif
 
     include_enc = exclude_enc = 0;
-    if(dpm.encoding & PE_16BIT){
+    if(dpm.encoding & PE_24BIT) {	/* 24 bit is not supported */
+		exclude_enc |= PE_24BIT;
+		include_enc |= PE_16BIT;
+	}
+    if(dpm.encoding & PE_16BIT || dpm.encoding & PE_24BIT) {
 #ifdef LITTLE_ENDIAN
-		exclude_enc = PE_BYTESWAP;
+		exclude_enc |= PE_BYTESWAP;
 #else
-		include_enc = PE_BYTESWAP;
+		include_enc |= PE_BYTESWAP;
 #endif /* LITTLE_ENDIAN */
 		include_enc |= PE_SIGNED;
     } else {

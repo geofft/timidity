@@ -327,7 +327,7 @@ static int open_output(void)
 
   /* only 16 bit is supported */
   include_enc |= PE_16BIT|PE_SIGNED;
-  exclude_enc |= PE_BYTESWAP;
+  exclude_enc |= PE_BYTESWAP|PE_24BIT;
   dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
 
 #if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
