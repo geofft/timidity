@@ -1105,7 +1105,8 @@ static void wrdstep_inc(struct wrd_step_tracer *wrdstep, int32 inc)
 
 static void wrdstep_wait(struct wrd_step_tracer *wrdstep, int bar, int step)
 {
-    bar = bar + wrdstep->offset - 1;
+    int tmp = bar + wrdstep->offset - 1;
+    bar = tmp >= 0 ? tmp : 0;
     step = wrdstep->timebase * step / 48;
 
     if(mimpi_bug_emulation_level >= 2 && wrdstep->bar > bar)

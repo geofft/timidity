@@ -1120,6 +1120,7 @@ void init_voice_filter(int i)
 		  voice[i].fc.gain = pow(10.0f, -voice[i].fc.orig_reso_dB / 2.0f / 20.0f);
 		  voice[i].fc.type = 1;
 	  }
+	  voice[i].fc.start_flag = 0;
   } else {
 	  voice[i].fc.type = 0;
   }
@@ -1196,13 +1197,14 @@ void recompute_voice_filter(int v)
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
 
 	if(fc->type == 1) {	/* Chamberlin filter */
-		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
+		if(fc->start_flag == 0 && fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
 		if(fc->reso_dB > CHAMBERLIN_RESONANCE_MAX) {fc->reso_dB = CHAMBERLIN_RESONANCE_MAX;}
 	} else if(fc->type == 2) {	/* Moog VCF */
 		if(fc->reso_dB > fc->orig_reso_dB / 2) {
 			fc->gain = pow(10.0f, (fc->reso_dB - fc->orig_reso_dB / 2) / 20.0f);
 		}
 	}
+	fc->start_flag = 1;	/* filter is started. */
 }
 
 float calc_drum_tva_level(int ch, int note, int level)

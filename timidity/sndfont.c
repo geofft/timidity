@@ -1465,18 +1465,12 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 			(tbl->set[SF_lfo1ToFilterFc]) ? tbl->val[SF_lfo1ToFilterFc] : 0;
 	vp->v.modenv_to_pitch =
 			(tbl->set[SF_env1ToPitch]) ? tbl->val[SF_env1ToPitch] : 0;
-	if (get_module() == MODULE_SBLIVE)
-		vp->v.modenv_to_pitch = (vp->v.modenv_to_pitch > SF_MODENV_CENT_MAX) ? SF_MODENV_CENT_MAX
-				: (vp->v.modenv_to_pitch < -SF_MODENV_CENT_MAX) ? -SF_MODENV_CENT_MAX : vp->v.modenv_to_pitch;
 	/* correct tune with the sustain level of modulation envelope */
 	temp = vp->v.modenv_to_pitch
 			* (double) (1000 - tbl->val[SF_sustainEnv1]) / 1000 + 0.5;
 	vp->tune += temp, vp->v.modenv_to_pitch -= temp;
 	vp->v.modenv_to_fc =
 			(tbl->set[SF_env1ToFilterFc]) ? tbl->val[SF_env1ToFilterFc] : 0;
-	if (get_module() == MODULE_SBLIVE)
-		vp->v.modenv_to_fc = (vp->v.modenv_to_fc > SF_MODENV_CENT_MAX) ? SF_MODENV_CENT_MAX
-				: (vp->v.modenv_to_fc < -SF_MODENV_CENT_MAX) ? -SF_MODENV_CENT_MAX : vp->v.modenv_to_fc;
 }
 
 static void set_rootfreq(SampleList *vp)

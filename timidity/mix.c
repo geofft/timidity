@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#define OFFSET_MAX (0x3FFFFFFF)
+#define OFFSET_MAX (0x3FFFFFFFL)
 
 #if OPT_MODE != 0
 #define VOICE_LPF
@@ -1823,11 +1823,12 @@ int apply_modulation_envelope(int v)
 	if(!opt_modulation_envelope) {return 0;}
 
 	if (vp->sample->modes & MODES_ENVELOPE) {
-		if (vp->modenv_stage > 1)
-			vp->last_modenv_volume = (double)vp->modenv_volume / (double)OFFSET_MAX;
-		else
+	/*	if (vp->modenv_stage > 1)
+			vp->last_modenv_volume = attack_vol_table[vp->modenv_volume >> 20];
+		else*/
 			vp->last_modenv_volume = convex_vol_table[vp->modenv_volume >> 20];
 	}
+
 	recompute_voice_filter(v);
 	if(!(vp->porta_control_ratio && vp->porta_control_counter == 0)) {
 		recompute_freq(v);

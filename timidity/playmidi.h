@@ -387,6 +387,7 @@ typedef struct {
 	int32 f, q, p;	/* coefficients in fixed-point */
 	int32 b0, b1, b2, b3, b4;
 	float gain;
+	int8 start_flag;
 } FilterCoefficients;
 
 #define ENABLE_PAN_DELAY

@@ -1,3 +1,10 @@
+2004-02-14  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/mix.c,
+	  timidity/sndfont.c:
+	  Fix modulation envelope of SoundFont.
+	  Fix bahaviour of filter.
+
 2004-02-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* README(.ja), AUTHORS, INSTALL(.ja),
@@ -7,6 +14,7 @@
 
 	* Makefile.am (EXTRA_DIST): Fix to fit below
 	* timidity.ide, timidity.mak: Remove
+	* timidity/wrd_read.c: Fix aborting about WRD
 
 2004-02-13  mput <root@mput.dip.jp>
 
