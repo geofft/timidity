@@ -71,7 +71,7 @@ can use this syntax even in the MS Windows environment.
 .B zip (*.zip)
 .TP
 .B lzh (*.lzh, *.lha)
-(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4 and lz5 are available)
+(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lz4, lzs and lz5 are available)
 .LP
 Other archives can be expanded if expander command is specified on the
 compile phase.  \fBTiMidity++\fP will pipe that command.
@@ -96,17 +96,17 @@ The following MIME\-types are allowed:
 .RS
 .TP
 .B uu\-encoded file
-\fIbegin\fP
+\fBbegin\fP
 .br
 is required
 .TP
 .B base64 encoded
-\fIContent\-Transfer\-Encoding: base64\fP
+\fBContent\-Transfer\-Encoding: base64\fP
 .br
 is required
 .TP
 .B quoted\-string
-\fIContent\-Transfer\-Encoding: quoted\-string\fP
+\fBContent\-Transfer\-Encoding: quoted\-string\fP
 .br
 is required
 .TP
@@ -262,8 +262,8 @@ Enable/disable MIDI Tuning Standard temperament controlling.
 Sets the manufacturer ID to \fIHH\fP (where \fIHH\fP are two
 hex\-digits).
 .br
-\fIHH\fP values of \fIGM/gm\fP, \fIGS/gs\fP or \fIXG/xg\fP are
-understood as \fI41\fP, \fI43\fP and \fI7e\fP respectively.
+\fIHH\fP values of \fBGS/gs\fP, \fBXG/xg\fP or \fBGM/gm\fP are
+understood as \fB41\fP, \fB43\fP and \fB7e\fP respectively.
 .TP
 .BI "M, \-\-system\-mid " HH
 Sets the system manufacturer ID to \fIHH\fP (where \fIHH\fP are two
@@ -276,7 +276,7 @@ ID from the input file would be ignored.
 Use tone bank \fIn\fP as the default.
 .TP
 .BI "B, \-\-force\-bank " n
-Sets the bank number of all channels to \fIbank\fP.
+Sets the bank number of all channels to \fIn\fP.
 .TP
 .BI "i, \-\-default\-program " n[/m]
 Use the program number as the default instrument.  Any Program Change
@@ -286,8 +286,7 @@ If \fIn\fP is followed by \fI/m\fP the default program number of the
 channel \fIm\fP is specified by \fIn\fP.
 .TP
 .BI "I, \-\-force\-program " n[/m]
-Similar to \fB\-\-default\-progrm\fP but this ignores all program
-changes.
+Similar to \fB\-Ei\fP but this ignores all program changes.
 .TP
 .B "F " args
 For effects.  See below.  In \fIargs\fP option, you can specify
@@ -367,7 +366,7 @@ Moog resonant low\-pass VCF (24dB/oct)
 .TP
 .BI "ns=, \-\-noise\-shaping " n
 Enable the \fIn\fP th degree noiseshaping filter.  Valid values of n
-are in the interval from \fI0\fP (min) to \fI4\fP (max).[0..4].
+are in the interval from \fB0\fP (min) to \fB4\fP (max).
 .TP
 .BI "resamp=, \-\-resample " (d|l|c|L|n|g)
 .RS
@@ -433,7 +432,7 @@ Show the help message.
 .TP
 .BI "\-\-sequencer\-ports " n
 Selects the user interfaces from the compiled\-in alternatives.
-\fIinterface\fP must be begun with one of the supported interface
+\fImode\fP must be begun with one of the supported interface
 identifiers.  Run \fBTiMidity++\fP with the \fB\-h\fP option to see a
 list.
 .br
@@ -550,8 +549,8 @@ first before the library path.
 .TP
 .BI "\-M, \-\-pcm\-file " name
 \fBTiMidity++\fP can play a PCM file instead of a MIDI file.  If
-`auto' is specified, \fBTiMidity++\fP tries to open foo.mid.wav or
-foo.mid.aiff when playing foo.mid.  If `none' is specified, this
+``auto'' is specified, \fBTiMidity++\fP tries to open foo.mid.wav or
+foo.mid.aiff when playing foo.mid.  If ``none'' is specified, this
 feature is disabled.  Otherwise just plays \fIname\fP.
 .TP
 .BI "\-m, \-\-decay\-time " msec
@@ -567,14 +566,14 @@ Effectively behaves as if all sustains are ignored, volume ramping is
 the same as normal stage 3.
 .TP
 .B \-m3000
-A note at full volume will decay for 3 seconds once it begins to be
-sustained (assuming the regular stage 3 rate would not cause it to
+A note at full volume will decay for \fB3\fP seconds once it begins to
+be sustained (assuming the regular stage 3 rate would not cause it to
 decay even longer).  Softer notes will of course die sooner.
 .RE
 .TP
 .BI "\-N, \-\-interpolation " n
 Sets interpolation parameter.  This option depends on the
-\fB\-\-resample\fP option's value.
+\fB\-EFresamp\fP option's value.
 .RS
 .TP
 .B cspline, lagrange
@@ -585,17 +584,17 @@ Toggles 4-point linear interpolation (default is on).
 an odd number from \fB1\fP to \fB57\fP.
 .TP
 .B gauss
-\fIn+1\fP point modified Gauss interpolation.  Ranges \fB0\fP
+\fIn\fP+1 point modified Gauss interpolation.  Ranges \fB0\fP
 (disable) to \fB34\fP (max), default to \fB25\fP.
 .LP
 In either way, linear interpolation is used if audio queue < 99%.
 .RE
 .TP
 .BI "\-O, \-\-output\-mode " mode
-Selects the output mode from the compiled\-in alternatives.  mode must
-begin with one of the supported output mode identifiers.  Run
-\fBTiMidity++\fP with the \fB\-h\fP option to see the list.  The
-following identifiers are available in all versions:
+Selects the output mode from the compiled\-in alternatives.
+\fImode\fP must begin with one of the supported output mode
+identifiers.  Run \fBTiMidity++\fP with the \fB\-h\fP option to see
+the list.  The following identifiers are available in all versions:
 .RS
 .TP
 .B \-Od
@@ -628,9 +627,9 @@ Generate AIFF data
 .B \-Ow
 Generate RIFF WAVE format output.  If output is directed to a
 non\-seekable file, or if \fBTiMidity++\fP is interrupted before
-closing the file, the file header will contain 0xFFFFFFFF in the RIFF
+closing the file, the file header will contain 0xffffffff in the RIFF
 and data block length fields.  The popular sound conversion utility
-\fIsox\fP is able to read such malformed files, so you can pipe data
+sox is able to read such malformed files, so you can pipe data
 directly to sox for on\-the\-fly conversion to other formats.
 .TP
 .B \-Ol
@@ -684,7 +683,7 @@ Unsigned output
 Linear encoding
 .TP
 .B U, \-\-output\-ulaw
-uLaw (8\-bit) encoding
+u\-Law (8\-bit) encoding
 .TP
 .B A, \-\-output\-alaw
 A\-Law encoding
@@ -732,27 +731,28 @@ automatic polyphony reduction algorithm.
 .TP
 .BI "\-\-temper\-mute " n[,...]
 Causes channel \fIn\fP to be quiet.  If channel \fIn\fP is negative,
-channel \fI\-n\fP is turned back on.  If \fIn\fP is 0, all channels
-are turned off.
+channel \-\fIn\fP is turned back on.  If \fIn\fP is \fB0\fP, all
+channels are turned off.
 .br
 On the other hand, to put `t' character after \fB\-Q\fP option or to
 use \fB\-\-temper\-mute\fP describes temperament mute.  This mutes
 channels of the specific temperament.  \fIn\fP can range \fB0\fP to
 \fB7\fP.
 .TP
-.BI "\-q, \-\-audio\-buffer " seq/n
-Specify audio buffer in seconds.  m: maximum size of buffer, n:
-percentage filled at the beginning (default is 5.0/100%) (size of 100%
-equals the whole device buffer size)
+.BI "\-q, \-\-audio\-buffer " sec/n
+Specify audio buffer in seconds.  \fIsec\fP maximum size of buffer,
+\fIn\fP percentage filled at the beginning (default is \fB5.0/100\fP)
+(size of 100% equals the whole device buffer size).
 .TP
 .BI "\-R " msec
-Enables Pseudo Reverb Mode.  It sets every instrument's release to n
-ms.  If n=0, n is set to 800 (default).
+Enables Pseudo Reverb Mode.  It sets every instrument's release to
+\fImsec\fP ms.  If \fImsec\fP is \fB0\fP, \fImsec\fP is set to
+\fB800\fP (default).
 .TP
 .BI "\-S, \-\-cache\-size " n
-Sets the re\-sample cache size to \fIsize\fP bytes.  If \fIsize\fP
-equals 0 any sample caches are disabled.  The default value of
-\fIsize\fP is 2097152 (2MB).
+Sets the re\-sample cache size to \fIn\fP bytes.  If \fIn\fP equals
+\fB0\fP any sample caches are disabled.  The default value of
+\fIn\fP is \fB2097152\fP (2MB).
 .TP
 .BI "\-s, \-\-sampling\-freq " freq
 Sets the resampling frequency (Hz or kHz).  Not all sound devices are
@@ -760,7 +760,8 @@ capable of all frequencies \-\- an approximate frequency may be
 selected, depending on the implementation.
 .TP
 .BI "\-T, \-\-adjust\-tempo " n
-Adjust tempo to n%; 120=play MOD files with an NTSC Amiga's timing.
+Adjust tempo to \fIn\fP%; \fB120\fP play MOD files with an NTSC
+Amiga's timing.
 .TP
 .BI "-t, \-\-output\-charset " code
 Sets output coding of Japanese text.  Possible values of \fIcode\fP
@@ -768,7 +769,7 @@ are:
 .RS
 .TP
 .B auto
-determined by the \fILANG\fP environment variable.
+determined by the LANG environment variable.
 .TP
 .B ascii
 Translates non\-ASCII code to period.
@@ -829,7 +830,7 @@ Sets WRD options:
 .RS
 .TP
 .B a1=b1,a2=b2,...
-Sets the WRD options.  \fIan\fP is the name of option and \fIbn\fP is
+Sets the WRD options.  \fBan\fP is the name of option and \fBbn\fP is
 the value.
 .TP
 .B d=n
@@ -879,9 +880,9 @@ For example:
 .br
 Sets the instrument number 0 to violin.
 .br
-Character \fB\\\fP (Ascii 0x5c) in the \fIstring\fP is treated as
-escape character like in C literals.  For example \fB\\n\fP is treated
-as carriage return.
+Character `\\' (Ascii 0x5c) in the \fIstr\fP is treated as escape
+character like in C literals.  For example \fB\\n\fP is treated as
+carriage return.
 .TP
 .BI "\-Z, \-\-freq\-table " file
 Cause the table of frequencies to be read from \fIfile\fP.  This is

@@ -71,7 +71,7 @@ shell の正規表現とは少し異なり，大文字/小文字は区別されません。
 .B zip ファイル(*.zip)
 .TP
 .B lzh ファイル(*.lzh *.lha)
-(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4, lz5 に対応)
+(lh0，lh1，lh2，lh3，lh4，lh5，lh6，lz4，lzs，lz5 に対応)
 .LP
 なお，これ以外でも，拡張子に対してその展開コマンドがコンパイル時に定義
 されている場合，\fBTiMidity++\fP は指定された展開コマンドにファイルをパ
@@ -97,17 +97,17 @@ shell の正規表現とは少し異なり，大文字/小文字は区別されません。
 .RS
 .TP
 .B uu\-encoded file
-\fIbegin\fP
+\fBbegin\fP
 .br
 という文字から始まっている行が必要
 .TP
 .B base64 encoded
-\fIContent\-Transfer\-Encoding: base64\fP
+\fBContent\-Transfer\-Encoding: base64\fP
 .br
 が必要
 .TP
 .B quoted\-string
-\fIContent\-Transfer\-Encoding: quoted\-string\fP
+\fBContent\-Transfer\-Encoding: quoted\-string\fP
 .br
 が必要
 .TP
@@ -210,7 +210,7 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 .TP
 .BI "\-B, \-\-buffer\-fragments " n,m
 音源にデータを書き込む時の分割数(バッファフラグメント) \fIn\fP およびバ
-ッファサイズ \fI2^m\fP を指定します。\fIn\fP は，\fB0\fP から
+ッファサイズ 2^\fIm\fP を指定します。\fIn\fP は，\fB0\fP から
 \fB1000\fP までの値が有効です。フラグメントの数を大きくすると，プロセス
 が多数動いている時の音切れが減りますが，早送り，巻き戻し，ボリューム制
 御などに対する反応は遲くなります。また，状態表示も同期が取れなくなりま
@@ -232,7 +232,7 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 が読み込まれます。
 .TP
 .BI "\-D, \-\-drum\-channel " n
-\fIn\fP チャンネル目をドラムチャンネルにします。\fB\-D\fP \fI\-n\fP の
+\fIn\fP チャンネル目をドラムチャンネルにします。\fB\-D\fP \-\fIn\fP の
 ように指定すると， \fIn\fP チャンネル目をドラムではなく，メロディチャン
 ネルにすることできます。\fIn\fP に \fB0\fP を与えると，すべてのチャンネ
 ルがメロディチャンネルになります。
@@ -273,8 +273,8 @@ MIDI Tuning Standard の音律制御を有効/無効にします。
 .BI "m, \-\-default\-mid " HH
 デフォルトマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
 .br
-このとき，\fIHH\fP を \fBgm\fP，\fBgs\fP，\fBxg\fP にすることで，それぞ
-れ \fB7e\fP，\fB41\fP，\fB43\fP を指定したことになります。
+このとき，\fIHH\fP を \fBGS/gs\fP，\fBXG/xg\fP，\fBGM/gm\fP にすること
+で，それぞれ \fB41\fP，\fB43\fP，\fB7e\fP を指定したことになります。
 .br
 入力ファイルから音源を自動的に認識できないような場合には，このパラメー
 タでデフォルトの ID を指定することができます。
@@ -586,9 +586,9 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 です。
 .TP
 .B \-m3000
-最大音量の note がサステイン状態になってから 3 秒 で減衰します(ステージ
-3 の rate がそれ以上伸びないものとします)。十分小さくなったnote は，も
-ちろんすぐに消えます。
+最大音量のノートがサステイン状態になってから \fB3\fP 秒 で減衰します(ス
+テージ 3 の rate がそれ以上伸びないものとします)。十分小さくなったノー
+トは，もちろんすぐに消えます。
 .RE
 .TP
 .BI "\-N, \-\-interpolation " n
@@ -604,7 +604,7 @@ MIDI ファイルなどは，このサーチパスに従って探索されます。最後に加えられ
 \fB57\fP までの奇数を指定することができます。
 .TP
 .B gauss
-\fIn+1\fP 点ガウス風補完を指定します。\fIn\fP には \fB1\fP から
+\fIn\fP+1 点ガウス風補完を指定します。\fIn\fP には \fB1\fP から
 \fB34\fP までの整数を指定することができます。デフォルトでは \fB25\fP で
 す。
 .LP
@@ -743,7 +743,7 @@ Linux PCM デバイスに対しては使用できません。
 .BI "\-\-temper\-mute " n[,...]
 \fIn\fP チャンネル目を演奏しないようにします。`,' で区切って，複数のチ
 ャンネルを指定することができます。\fIn\fP に \fB0\fP を指定すると，すべ
-てのチャンネルを演奏しないようにします。続けて，\fI\-n\fP を指定するこ
+てのチャンネルを演奏しないようにします。続けて，\-\fIn\fP を指定するこ
 とにより，\fIn\fP チャンネル目だけを演奏することができます。
 .br
 一方，\fB\-Q\fP オプションに `t' の文字を付加するか，
@@ -752,8 +752,8 @@ Linux PCM デバイスに対しては使用できません。
 \fB0\fP から \fB3\fP までの値を，ユーザ定義音律種別として \fB4\fP から
 \fB7\fP までの値を指定することができます。
 .TP
-.BI "\-q, \-\-audio\-buffer " seq/n
-オーディオ最大バッファを \fIseq\fP 秒，オーディオ開始バッファを
+.BI "\-q, \-\-audio\-buffer " sec/n
+オーディオ最大バッファを \fIsec\fP 秒，オーディオ開始バッファを
 \fIn\fP% にします。デフォルトでは \fB5.0/100\fP です。100% のサイズはデ
 バイスバッファサイズと等価です。
 .TP
@@ -842,8 +842,8 @@ WRD 読み込み時の設定を行います。
 .RS
 .TP
 .B a1=b1,a2=b2,...
-WRD 読み込み時のオプションを指定します。\fIan\fP にオプション名，
-\fIbn\fP にその値が入ります。
+WRD 読み込み時のオプションを指定します。\fBan\fP にオプション名，
+\fBbn\fP にその値が入ります。
 .TP
 .B d=n
 @WAIT，@WMODE まわりの MIMPI のタイミングに関するバグをエミュレートしま
