@@ -1,3 +1,11 @@
+
+2003-06-16  Saito <timidity@flashmail.com>
+
+	* timidity/readmidi.c, timidity/reverb.c, timidity/timidity.c:
+	  Fix lowpass filters of system effects.
+	  Fix reverb-time calculation for new reverberation effect.
+	  Remove overlapping initialize_gauss_table().
+
 2003-06-15  mput<root@mput.dip.jp>
 
 	* configure.in, timidity/Makefile.am: Fix a bit to merge

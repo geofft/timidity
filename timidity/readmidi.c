@@ -4088,7 +4088,9 @@ char *event2string(int id)
     return string_event_table[id];
 }
 
-FLOAT_T gs_system_effect_hsf_gain_table[8] = {
+#define SYSTEM_EFFECT_LPF_FC 110
+
+FLOAT_T gs_system_effect_hsf_gain_table[8] = {	/* in decibels. It works a sort of lowpass-filter. */
 	0, -1.9, -4.0, -6.5, -9.0, -12.0, -16.5, -24.0
 };
 
@@ -4130,7 +4132,7 @@ void recompute_delay_status()
 	if(delay_status.pre_lpf) {
 		dBGain = gs_system_effect_hsf_gain_table[delay_status.pre_lpf];
 		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(delay_status.high_coef, 20, dBGain, play_mode->rate);
+		calc_highshelf_coefs(delay_status.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
 	}
 }
 
@@ -4170,7 +4172,7 @@ void recompute_reverb_status()
 	if(reverb_status.pre_lpf) {
 		dBGain = gs_system_effect_hsf_gain_table[reverb_status.pre_lpf];
 		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(reverb_status.high_coef, 20, dBGain, play_mode->rate);
+		calc_highshelf_coefs(reverb_status.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
 	}
 }
 
@@ -4215,7 +4217,7 @@ void recompute_chorus_status()
 	if(chorus_param.chorus_pre_lpf) {
 		dBGain = gs_system_effect_hsf_gain_table[chorus_param.chorus_pre_lpf];
 		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(chorus_param.high_coef, 20, dBGain, play_mode->rate);
+		calc_highshelf_coefs(chorus_param.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
 	}
 }
 
