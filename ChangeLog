@@ -1,6 +1,7 @@
 2004-05-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/msc[67]-project.zip: Change version to "current"
+	* timidity/Makefile.{am,in}: Add w32_{portaudio.h,portaudio_dll.c}
 
 2004-05-14  Saito <saito@intaa.net>
 
@@ -28,7 +29,7 @@
 	  interface/vt100_c.c, interface/w32g_{i,syn}.c, interface/xaw_i.c,
 	  timidity/timidity.c: Fix to fit with case of "current" version
 
-2004-05-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-05-02  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (parse_opt_h): ditto.
 	* timidity/timidity.h (DEFAULT_RESAMPLATION): ditto.

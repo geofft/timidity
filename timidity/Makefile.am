@@ -149,7 +149,9 @@ EXTRA_timidity_SOURCES = \
 	gogo_a.c \
 	w32g_vorbisenc_dll.c \
 	w32g_vorbis_dll.c \
-	w32g_ogg_dll.c
+	w32g_ogg_dll.c \
+	w32_portaudio.h \
+	w32_portaudio_dll.c
 
 calcnewt_SOURCES = calcnewt.c
 
