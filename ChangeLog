@@ -1,3 +1,7 @@
+2004-02-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c (get_play_note_ratio): Fix bug
+
 2004-02-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/Makefile.{am,in}:

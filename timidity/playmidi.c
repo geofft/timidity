@@ -2122,7 +2122,7 @@ static double get_play_note_ratio(int ch, int note)
 	ToneBank *dbank;
 	int def_play_note;
 	
-	if (play_note != -1)
+	if (play_note == -1)
 		return 1.0;
 	instrument_map(channel[ch].mapID, &bank, &note);
 	dbank = (drumset[bank]) ? drumset[bank] : drumset[0];
