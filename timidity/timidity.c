@@ -350,7 +350,9 @@ static void help(void)
 "  -4      Toggle 4-point interpolation (default on)",
 "          Linear interpolation is used if audio queue < 99%%",
 #endif
-"  -A n    Amplify volume by n percent (may cause clipping)",
+"  -A n,m  Amplify volume by n percent (may cause clipping),",
+"          and amplify drum power by m percent",
+"     (a)  Toggle amplify compensation (disabled by default)",
 "  -a      Enable the antialiasing filter",
 "  -B n,m  Set number of buffer fragments(n), and buffer size(2^m)",
 "  -C n    Set ratio of sampling and control frequencies",
@@ -371,7 +373,7 @@ static void help(void)
 "                   m<HH>: Define default Manufacture ID <HH> in two hex",
 "                   b<n>: Use tone bank <n> as the default",
 "                   B<n>: Always use tone bank <n>",
-"                   F<args>: For effect.  See below for effect options."
+"                   F<args>: For effect.  See below for effect options.",
 "              default: -E "
 
 #ifdef MODULATION_WHEEL_ALLOW
@@ -459,17 +461,18 @@ static void help(void)
 "  -O mode Select output mode and format (see below for list)",
 "  -o file Output to another file (or device/server)  (Use \"-\" for stdout)",
 "  -P file Use patch file for all programs",
-"  -p n(a) Allow n-voice polyphony.  Optional auto polyphony reduction toggle."
-,
-"  -p a    Toggle automatic polyphony reduction.  Enabled by default.",
-"  -Q n    Ignore channel n",
+"  -p n    Allow n-voice polyphony.  Optional auto polyphony reduction toggle.",
+"     (a)  Toggle automatic polyphony reduction.  Enabled by default.",
+"  -Q n    Ignore channel n (0 means ignore all, -n means resume channel n)",
+"     (t)  Quiet temperament type n (0..3: preset, 4..7: user-defined)",
 "  -q m/n  Specify audio buffer in seconds",
 "            m:Maxmum buffer, n:Filled to start   (default is 5.0/100%%)",
 "            (size of 100%% equals device buffer size)",
 "  -R n    Pseudo Reveb (set every instrument's release to n ms",
 "            if n=0, n is set to 800(default)",
-"  -s f    Set sampling frequency to f (Hz or kHz)",
 "  -S n    Cache size (0 means no cache)",
+"  -s f    Set sampling frequency to f (Hz or kHz)",
+"  -T n    Adjust tempo to n%%; 120=play MOD files with an NTSC Amiga's timing",
 "  -t code Output text language code:",
 "              code=auto  : Auto conversion by `LANG' environment variable",
 "                           (UNIX only)",
@@ -481,7 +484,6 @@ static void help(void)
 "                   jis   : JIS",
 "                   sjis  : shift JIS",
 #endif /* JAPANESE */
-"  -T n    Adjust tempo to n%%; 120=play MOD files with an NTSC Amiga's timing",
 "  -U      Unload instruments from memory between MIDI files",
 "  -W mode Select WRD interface (see below for list)",
 #ifdef __W32__
@@ -491,6 +493,8 @@ static void help(void)
 "  -x \"configuration-string\"",
 "          Read configuration from command line argument",
 "  -Z file Load frequency table (Use \"pure\" for pure intonation)",
+"     n    Initial keysig number of sharp(+)/flat(-) (-7..7)",
+"     (m)  Toggle minor mode",
 NULL
 };
 
@@ -602,7 +606,7 @@ NULL
 "  -EFreverb=3 : Enable NEW MIDI reverb effect control (freeverb)" NLS
 "                This effect is only available in stereo" NLS
 "                (default)" NLS
-"  -EFns=n : Enable the n th degree noiseshaping filter." NLS
+"  -EFns=n : Enable the n th degree noise shaping filter." NLS
 "            n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "            n:[0..2] (for 16-bit linear encoding, default is 2)" NLS
 NLS
@@ -3226,18 +3230,18 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
 	    return 1;
 	break;
 
-      case 't':
-	if(output_text_code)
-	    free(output_text_code);
-	output_text_code = safe_strdup(optarg);
-	break;
-
        case 'T':
          tmpi32 = atoi(optarg);
          if(set_value(&tmpi32, tmpi32, 10, 400, "Tempo adjust"))
  	    return 1;
  	tempo_adjust = 100.0 / tmpi32;
  	break;
+
+      case 't':
+	if(output_text_code)
+	    free(output_text_code);
+	output_text_code = safe_strdup(optarg);
+	break;
 
       case 'U':
 	free_instruments_afterwards = 1;

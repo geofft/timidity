@@ -309,26 +309,26 @@ static void ns_shaping8(int32 *lp, int32 c)
 	}
 	for (i = 0; i < c; i++) {
 		/* applied noise-shaping filter */
+		if (lp[i] > NS_AMP_MAX)
+			lp[i] = NS_AMP_MAX;
+		else if (lp[i] < NS_AMP_MIN)
+			lp[i] = NS_AMP_MIN;
 		ll = lp[i] + ns_tap_0 * ns_z0[0] + ns_tap_1 * ns_z0[1]
 				+ ns_tap_2 * ns_z0[2] + ns_tap_3 * ns_z0[3];
 		l = ll >> (32 - 8 - GUARD_BITS);
-		if (l > 127)
-			l = 127;
-		else if (l < -128)
-			l= -128;
 		lp[i] = l << (32 - 8 - GUARD_BITS);
 		ns_z0[3] = ns_z0[2], ns_z0[2] = ns_z0[1], ns_z0[1] = ns_z0[0];
 		ns_z0[0] = ll - l * (1U << (32 - 8 - GUARD_BITS));
 		if (play_mode->encoding & PE_MONO)
 			continue;
 		i++;
+		if (lp[i] > NS_AMP_MAX)
+			lp[i] = NS_AMP_MAX;
+		else if (lp[i] < NS_AMP_MIN)
+			lp[i] = NS_AMP_MIN;
 		ll = lp[i] + ns_tap_0 * ns_z1[0] + ns_tap_1 * ns_z1[1]
 				+ ns_tap_2 * ns_z1[2] + ns_tap_3 * ns_z1[3];
 		l = ll >> (32 - 8 - GUARD_BITS);
-		if (l > 127)
-			l = 127;
-		else if (l < -128)
-			l = -128;
 		lp[i] = l << (32 - 8 - GUARD_BITS);
 		ns_z1[3] = ns_z1[2], ns_z1[2] = ns_z1[1], ns_z1[1] = ns_z1[0];
 		ns_z1[0] = ll - l * (1U << (32 - 8 - GUARD_BITS));
