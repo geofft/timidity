@@ -1,6 +1,7 @@
 2003-06-26  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* timidity/playmidi.c (reduce_voice_CPU): Bug fix
+	* timidity/playmidi.c (reduce_voice_CPU): Bug fix (this is
+	  obsolate yet)
 
 	* timidity/playmidi.c (note_off): rx_note_off == 0 should only
 	  ignore drum Note Off if the sample is not looped, otherwise the

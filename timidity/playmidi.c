@@ -1354,7 +1354,7 @@ static int reduce_voice_CPU(void)
     {
       if(voice[j].status & VOICE_FREE || voice[j].cache != NULL)
 	    continue;
-      if(voice[j].sample->modes & ~MODES_LOOPING)
+      if(!(voice[j].sample->modes & MODES_LOOPING))
       {
 	/* score notes based on both volume AND duration */
 	/* this scoring function needs some more tweaking... */
@@ -1383,7 +1383,7 @@ static int reduce_voice_CPU(void)
     {
 	if(voice[j].status & VOICE_FREE || voice[j].cache != NULL)
 	    continue;
-	if (voice[j].sample->modes & ~MODES_LOOPING) continue;
+	if (!(voice[j].sample->modes & MODES_LOOPING)) continue;
 
 	/* score notes based on both volume AND duration */
 	/* this scoring function needs some more tweaking... */
@@ -2501,8 +2501,20 @@ static void note_off(MidiEvent *e)
   ch = e->channel;
   note = MIDI_EVENT_NOTE(e);
 
-  if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
-	  && !channel[ch].drums[note]->rx_note_off) {
+  if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL &&
+     !channel[ch].drums[note]->rx_note_off)
+  {
+      ToneBank *bank;
+
+      bank = drumset[channel[ch].bank];
+      if(bank == NULL) bank = drumset[0];
+      
+      /* uh oh, this drum doesn't have an instrument loaded yet */
+      if (bank->tone[note].instrument == NULL)
+          return;
+
+      /* only disallow Note Off if the drum sample is not looped */
+      if (!(bank->tone[note].instrument->sample->modes & MODES_LOOPING))
 	  return;	/* Note Off is not allowed. */
   }
 
@@ -2510,6 +2522,7 @@ static void note_off(MidiEvent *e)
       return;
   sustain = channel[ch].sustain;
   for(i = 0; i < uv; i++)
+  {
       if(voice[i].status==VOICE_ON &&
 	 voice[i].channel==ch &&
 	 voice[i].note==note &&
@@ -2524,8 +2537,9 @@ static void note_off(MidiEvent *e)
 	  else
 	      finish_note(i);
       }
+  }
 
-	  channel[ch].legato_flag = 0;
+  channel[ch].legato_flag = 0;
 }
 
 /* Process the All Notes Off event */
