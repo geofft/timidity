@@ -1136,7 +1136,7 @@ void recompute_voice_filter(int v)
 		reso += (double)voice[v].velocity * sp->vel_to_resonance / 127.0f / 10.0f;
 	}
 	if(sp->key_to_fc) {	/* filter cutoff key-follow */
-		cent += sp->vel_to_fc * (double)(voice[v].note - sp->key_to_fc_bpo);
+		cent += sp->key_to_fc * (double)(voice[v].note - sp->key_to_fc_bpo);
 	}
 
 	if(opt_modulation_envelope) {
@@ -1240,6 +1240,12 @@ void dup_tone_bank_element(int dr, int bk, int prog)
 	if (elm->tunenum)
 		elm->tune = (float *) memdup(
 				elm->tune, elm->tunenum * sizeof(float));
+	if (elm->fcnum)
+		elm->fc = (float *) memdup(
+				elm->fc, elm->fcnum * sizeof(int16));
+	if (elm->resonum)
+		elm->reso = (float *) memdup(
+				elm->reso, elm->resonum * sizeof(int16));
 	if (elm->envratenum) {
 		elm->envrate = (int **) memdup(
 				elm->envrate, elm->envratenum * sizeof(int *));
@@ -1251,6 +1257,18 @@ void dup_tone_bank_element(int dr, int bk, int prog)
 				elm->envofs, elm->envofsnum * sizeof(int *));
 		for (i = 0; i < elm->envofsnum; i++)
 			elm->envofs[i] = (int *) memdup(elm->envofs[i], 6 * sizeof(int));
+	}
+	if (elm->modenvratenum) {
+		elm->modenvrate = (int **) memdup(
+				elm->modenvrate, elm->modenvratenum * sizeof(int *));
+		for (i = 0; i < elm->modenvratenum; i++)
+			elm->modenvrate[i] = (int *) memdup(elm->modenvrate[i], 6 * sizeof(int));
+	}
+	if (elm->modenvofsnum) {
+		elm->modenvofs = (int **) memdup(
+				elm->modenvofs, elm->modenvofsnum * sizeof(int *));
+		for (i = 0; i < elm->modenvofsnum; i++)
+			elm->modenvofs[i] = (int *) memdup(elm->modenvofs[i], 6 * sizeof(int));
 	}
 	if (elm->tremnum) {
 		elm->trem = (Quantity **) memdup(elm->trem, elm->tremnum * sizeof(Quantity *));
@@ -1282,6 +1300,14 @@ void free_tone_bank_element(int dr, int bk, int prog)
 		free(elm->tune);
 		elm->tune = NULL;
 	}
+	if (elm->fc) {
+		free(elm->fc);
+		elm->fc = NULL;
+	}
+	if (elm->reso) {
+		free(elm->reso);
+		elm->reso = NULL;
+	}
 	if (elm->envratenum) {
 		free_ptr_list(elm->envrate, elm->envratenum);
 		elm->envrate = NULL;
@@ -1291,6 +1317,16 @@ void free_tone_bank_element(int dr, int bk, int prog)
 		free_ptr_list(elm->envofs, elm->envofsnum);
 		elm->envofs = NULL;
 		elm->envofsnum = 0;
+	}
+	if (elm->modenvratenum) {
+		free_ptr_list(elm->modenvrate, elm->modenvratenum);
+		elm->modenvrate = NULL;
+		elm->modenvratenum = 0;
+	}
+	if (elm->modenvofsnum) {
+		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+		elm->modenvofs = NULL;
+		elm->modenvofsnum = 0;
 	}
 	if (elm->tremnum) {
 		free_ptr_list(elm->trem, elm->tremnum);

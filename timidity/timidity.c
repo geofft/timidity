@@ -582,8 +582,14 @@ static void copybank(ToneBank *to, ToneBank *from)
 	toelm->instrument = NULL;
 	toelm->tune = NULL;
 	toelm->tunenum = 0;
+	toelm->fc = NULL;
+	toelm->fcnum = 0;
+	toelm->reso = NULL;
+	toelm->resonum = 0;
 	toelm->envrate = toelm->envofs = NULL;
 	toelm->envratenum = toelm->envofsnum = 0;
+	toelm->modenvrate = toelm->modenvofs = NULL;
+	toelm->modenvratenum = toelm->modenvofsnum = 0;
 	toelm->trem = toelm->vib = NULL;
 	toelm->tremnum = toelm->vibnum = 0;
 	toelm->instype = 0;
@@ -609,6 +615,27 @@ static float *config_parse_tune(const char *cp, int *num)
 			break;
 	}
 	return tune_list;
+}
+
+static int16 *config_parse_int16(const char *cp, int *num)
+{
+	const char *p;
+	int16 *list;
+	int i;
+	
+	/* count num */
+	*num = 1, p = cp;
+	while (p = strchr(p, ','))
+		(*num)++, p++;
+	/* alloc */
+	list = (int16 *) safe_malloc((*num) * sizeof(int16));
+	/* regist */
+	for (i = 0, p = cp; i < *num; i++, p++) {
+		list[i] = atoi(p);
+		if (! (p = strchr(p, ',')))
+			break;
+	}
+	return list;
 }
 
 static int **config_parse_envelope(const char *cp, int *num)
@@ -760,6 +787,18 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
 	}
 	tone->pan = k;
     }
+	else if(!strcmp(opts, "fckeyf"))	/* filter key-follow */
+    {
+	tone->key_to_fc = atoi(cp);
+    }
+	else if(!strcmp(opts, "fcvelf"))	/* filter velocity-follow */
+    {
+	tone->vel_to_fc = atoi(cp);
+    }
+	else if(!strcmp(opts, "resovelf"))	/* resonance velocity-follow */
+    {
+	tone->vel_to_resonance = atoi(cp);
+    }
     else if(!strcmp(opts, "keep"))
     {
 	if(!strcmp(cp, "env"))
@@ -804,10 +843,19 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
     }
     else if(!strcmp(opts, "tune")) {
       tone->tune = config_parse_tune(cp, &tone->tunenum);
-	} else if (! strcmp(opts, "rate"))
+	} else if(!strcmp(opts, "fc")) {
+      tone->fc = config_parse_int16(cp, &tone->fcnum);
+	} else if(!strcmp(opts, "reso")) {
+      tone->reso = config_parse_int16(cp, &tone->resonum);
+	}
+	else if (! strcmp(opts, "rate"))
 		tone->envrate = config_parse_envelope(cp, &tone->envratenum);
 	else if (! strcmp(opts, "offset"))
 		tone->envofs = config_parse_envelope(cp, &tone->envofsnum);
+	else if (! strcmp(opts, "modrate"))
+		tone->modenvrate = config_parse_envelope(cp, &tone->modenvratenum);
+	else if (! strcmp(opts, "modoffset"))
+		tone->modenvofs = config_parse_envelope(cp, &tone->modenvofsnum);
 	else if (! strcmp(opts, "tremolo"))
 	{
 		if ((tone->trem = config_parse_modulation(name, line, cp, &tone->tremnum, 0)) == NULL)
@@ -842,6 +890,18 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	free(tone->tune);
 	tone->tune = NULL;
     }
+    if (tone->fcnum)
+    {
+	tone->fcnum = 0;
+	free(tone->fc);
+	tone->fc = NULL;
+    }
+    if (tone->resonum)
+    {
+	tone->resonum = 0;
+	free(tone->reso);
+	tone->reso = NULL;
+    }
     if (tone->envratenum)
     {
 	free_ptr_list(tone->envrate, tone->envratenum);
@@ -853,6 +913,18 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	free_ptr_list(tone->envofs, tone->envofsnum);
 	tone->envofsnum = 0;
 	tone->envofs = NULL;
+    }
+    if (tone->modenvratenum)
+    {
+	free_ptr_list(tone->modenvrate, tone->modenvratenum);
+	tone->modenvratenum = 0;
+	tone->modenvrate = NULL;
+    }
+    if (tone->modenvofsnum)
+    {
+	free_ptr_list(tone->modenvofs, tone->modenvofsnum);
+	tone->modenvofsnum = 0;
+	tone->modenvofs = NULL;
     }
     if (tone->tremnum)
     {
@@ -870,7 +942,7 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	tone->strip_loop = tone->strip_envelope =
 	tone->strip_tail = -1;
     tone->amp = -1;
-    tone->legato = 0;
+    tone->legato = tone->key_to_fc = tone->vel_to_fc = 0;
     tone->tva_level = -1;
 	tone->play_note = -1;
 }
@@ -2132,6 +2204,12 @@ MAIN_INTERFACE void tmdy_free_config(void)
 	if (elm->tune)
 		free(elm->tune);
 	elm->tune = NULL;
+	if (elm->fc)
+		free(elm->fc);
+	elm->fc = NULL;
+	if (elm->reso)
+		free(elm->reso);
+	elm->reso = NULL;
 	if (elm->envrate)
 		free_ptr_list(elm->envrate, elm->envratenum);
 	elm->envrate = NULL;
@@ -2140,6 +2218,14 @@ MAIN_INTERFACE void tmdy_free_config(void)
 		free_ptr_list(elm->envofs, elm->envofsnum);
 	elm->envofs = NULL;
 	elm->envofsnum = 0;
+	if (elm->modenvrate)
+		free_ptr_list(elm->modenvrate, elm->modenvratenum);
+	elm->modenvrate = NULL;
+	elm->modenvratenum = 0;
+	if (elm->modenvofs)
+		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+	elm->modenvofs = NULL;
+	elm->modenvofsnum = 0;
 	if (elm->trem)
 		free_ptr_list(elm->trem, elm->tremnum);
 	elm->trem = NULL;
@@ -2171,6 +2257,12 @@ MAIN_INTERFACE void tmdy_free_config(void)
 	if (elm->tune)
 		free(elm->tune);
 	elm->tune = NULL;
+	if (elm->fc)
+		free(elm->fc);
+	elm->fc = NULL;
+	if (elm->reso)
+		free(elm->reso);
+	elm->reso = NULL;
 	if (elm->envrate)
 		free_ptr_list(elm->envrate, elm->envratenum);
 	elm->envrate = NULL;
@@ -2179,6 +2271,14 @@ MAIN_INTERFACE void tmdy_free_config(void)
 		free_ptr_list(elm->envofs, elm->envofsnum);
 	elm->envofs = NULL;
 	elm->envofsnum = 0;
+	if (elm->modenvrate)
+		free_ptr_list(elm->modenvrate, elm->modenvratenum);
+	elm->modenvrate = NULL;
+	elm->modenvratenum = 0;
+	if (elm->modenvofs)
+		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+	elm->modenvofs = NULL;
+	elm->modenvofsnum = 0;
 	if (elm->trem)
 		free_ptr_list(elm->trem, elm->tremnum);
 	elm->trem = NULL;

@@ -299,6 +299,24 @@ adjust_tune_freq(int val, float tune)
   return (int)(val / pow(2.0, tune / 12.0));
 }
 
+static int16 adjust_fc(int16 val)
+{
+	if (val < 0 || val > play_mode->rate / 2) {
+		return 0;
+	} else {
+		return val;
+	}
+}
+
+static int16 adjust_reso(int16 val)
+{
+	if (val < 0 || val > 960) {
+		return 0;
+	} else {
+		return val;
+	}
+}
+
 static int32 to_rate(int rate)
 {
 	return (rate) ? (int32) (0x200 * pow(2.0, rate / 17.0)
@@ -328,6 +346,24 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 				sp->root_freq = adjust_tune_freq(sp->root_freq, tone->tune[i]);
 			}
 		}
+	if (tone->fcnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->fcnum == 1) {
+				sp->cutoff_freq = adjust_fc(tone->fc[0]);
+			} else if (i < tone->fcnum) {
+				sp->cutoff_freq = adjust_fc(tone->fc[i]);
+			}
+		}
+	if (tone->resonum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->resonum == 1) {
+				sp->resonance = adjust_reso(tone->reso[0]);
+			} else if (i < tone->resonum) {
+				sp->resonance = adjust_reso(tone->reso[i]);
+			}
+		}
 	if (tone->envratenum)
 		for (i =0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
@@ -352,6 +388,32 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 				for (j =0; j < 6; j++)
 					if (tone->envofs[i][j] >= 0)
 						sp->envelope_offset[j] = to_offset(tone->envofs[i][j]);
+			}
+		}
+	if (tone->modenvratenum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modenvratenum == 1) {
+				for (j =0; j < 6; j++)
+					if (tone->modenvrate[0][j] >= 0)
+						sp->modenv_rate[j] = to_rate(tone->modenvrate[0][j]);
+			} else if (i < tone->modenvratenum) {
+				for (j =0; j < 6; j++)
+					if (tone->modenvrate[i][j] >= 0)
+						sp->modenv_rate[j] = to_rate(tone->modenvrate[i][j]);
+			}
+		}
+	if (tone->modenvofsnum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modenvofsnum == 1) {
+				for (j =0; j < 6; j++)
+					if (tone->modenvofs[0][j] >= 0)
+						sp->modenv_offset[j] = to_offset(tone->modenvofs[0][j]);
+			} else if (i < tone->modenvofsnum) {
+				for (j =0; j < 6; j++)
+					if (tone->modenvofs[i][j] >= 0)
+						sp->modenv_offset[j] = to_offset(tone->modenvofs[i][j]);
 			}
 		}
 	if (tone->tremnum)
@@ -451,8 +513,9 @@ static Instrument *load_gus_instrument(char *name,
       tone = NULL;
   }
 
-	if (tone && tone->tunenum == 0
+	if (tone && tone->tunenum == 0 && tone->fcnum == 0 && tone->resonum == 0
 			&& tone->envratenum == 0 && tone->envofsnum == 0
+			&& tone->modenvratenum == 0 && tone->modenvofsnum == 0
 			&& tone->tremnum == 0 && tone->vibnum == 0) {
     if((ip = search_instrument_cache(name, panning, amp, note_to_use,
 				     strip_loop, strip_envelope, strip_tail))
@@ -979,6 +1042,27 @@ Instrument *load_instrument(int dr, int b, int prog)
 	    int i;
 		for(i = 0; i < ip->samples; i++) {
 			ip->sample[i].root_freq = freq_table[bank->tone[prog].note & 0x7F];
+		}
+	}
+	if(ip != NULL && bank->tone[prog].key_to_fc != 0)	/* filter key-follow */
+	{
+	    int i;
+		for(i = 0; i < ip->samples; i++) {
+			ip->sample[i].key_to_fc = bank->tone[prog].key_to_fc;
+		}
+	}
+	if(ip != NULL && bank->tone[prog].vel_to_fc != 0)	/* filter velocity-follow */
+	{
+	    int i;
+		for(i = 0; i < ip->samples; i++) {
+			ip->sample[i].key_to_fc = bank->tone[prog].vel_to_fc;
+		}
+	}
+	if(ip != NULL && bank->tone[prog].vel_to_resonance != 0)	/* resonance velocity-follow */
+	{
+	    int i;
+		for(i = 0; i < ip->samples; i++) {
+			ip->sample[i].vel_to_resonance = bank->tone[prog].vel_to_resonance;
 		}
 	}
 	if(ip != NULL && bank->tone[prog].strip_tail == 1)	/* strip tail */

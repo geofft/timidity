@@ -103,13 +103,20 @@ typedef struct {
 		    2: %sample
 		    3-255: reserved
 		    */
-  int16 amp,cutoff_freq,resonance;
+  int16 amp;
   int tunenum;
   float *tune;
+  int fcnum;
+  int16 *fc;
+  int resonum;
+  int16 *reso;
 	int envratenum, envofsnum;
 	int **envrate, **envofs;
+	int modenvratenum, modenvofsnum;
+	int **modenvrate, **modenvofs;
 	int tremnum, vibnum;
 	struct Quantity_ **trem, **vib;
+	int16 vel_to_fc, key_to_fc, vel_to_resonance;
 } ToneBankElement;
 
 /* A hack to delay instrument loading until after reading the
