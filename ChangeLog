@@ -1,3 +1,7 @@
+2004-03-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/recache.c: Beautify (functionally no change)
+
 2004-03-02  Kouji 'kekyo' Suzuki <k@kekyo.net>
 
 	* configs/msc7-project.zip:
