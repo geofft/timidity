@@ -569,6 +569,7 @@ static int acntl(int request, void *arg)
 {
   int i;
   snd_pcm_status_t *status;
+  snd_pcm_sframes_t delay;
 
   if (handle == NULL)
     return -1;
@@ -598,19 +599,17 @@ static int acntl(int request, void *arg)
   case PM_REQ_GETFILLED:
     if (total_bytes == -1)
       return -1;
-    snd_pcm_status_alloca(&status);
-    if (snd_pcm_status(handle, status) < 0)
+    if (snd_pcm_delay(handle, &delay) < 0)
       return -1;
-    *((int *)arg) = snd_pcm_status_get_delay(status);
+    *((int *)arg) = delay;
     return 0;
 
   case PM_REQ_GETSAMPLES:
     if (total_bytes == -1)
       return -1;
-    snd_pcm_status_alloca(&status);
-    if (snd_pcm_status(handle, status) < 0)
+    if (snd_pcm_delay(handle, &delay) < 0)
       return -1;
-    *((int *)arg) = snd_pcm_status_get_delay(status) + output_counter;
+    *((int *)arg) = output_counter - delay;
     return 0;
 
   case PM_REQ_DISCARD:
