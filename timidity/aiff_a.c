@@ -206,8 +206,7 @@ static int aiff_output_open(const char *fname)
 {
   int t, compressed;
   const char *compressionName = NULL;
-  char compressionNamePad;
-  uint8 compressionNameLength;
+  uint8 padByte, compressionNameLength;
 
   if(strcmp(fname, "-") == 0) {
     dpm.fd = 1; /* data to stdout */
@@ -243,10 +242,9 @@ static int aiff_output_open(const char *fname)
     comm_chunk_offset = 12;
     comm_chunk_size = 18;
   } else {
-    compressionNameLength = 1 + strlen(compressionName);
-    compressionNamePad = compressionNameLength & 1;
+    compressionNameLength = strlen(compressionName);
     comm_chunk_offset = 12 + 12;
-    comm_chunk_size = 18 + 4 + compressionNameLength + compressionNamePad;
+    comm_chunk_size = 18 + 4 + (1 + compressionNameLength);
   }
   if(chunk_start("COMM", comm_chunk_size) == -1) return -1;
 
@@ -277,10 +275,11 @@ static int aiff_output_open(const char *fname)
     if(write_str((dpm.encoding & PE_ULAW) ? "ulaw" : "alaw") == -1) return -1;
     if(write(dpm.fd, &compressionNameLength, 1) == -1) return -1;
     if(write_str(compressionName) == -1) return -1;
-    if(compressionNamePad) {
-      compressionNamePad = 0;
-      if(write(dpm.fd, &compressionNamePad, 1) == -1) return -1;
-    }
+  }
+  if(comm_chunk_size & 1) {
+    padByte = 0;
+    if(write(dpm.fd, &padByte, 1) == -1) return -1;
+    comm_chunk_size++;
   }
 
   /* SSND chunk */
