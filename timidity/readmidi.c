@@ -58,7 +58,6 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MAX_MIDI_EVENT ((MAX_SAFE_MALLOC_SIZE / sizeof(MidiEvent)) - 1)
 #define MARKER_START_CHAR	'('
 #define MARKER_END_CHAR		')'
-#define REDUCE_CHANNELS		16
 
 static uint8 rhythm_part[2];
 
@@ -977,25 +976,50 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		case 0x04:	/* Rcv CHANNEL */
 			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x65);
+			num_events++;
 		    break;
 
 		case 0x05:	/* mono/poly mode */
-		    if(*body == 0) {
-			channel[p].mono = 1;
-		    } else {
-			channel[p].mono = 0;
-		    }
+			if(*body == 0) {SETMIDIEVENT(evm[num_events], 0, ME_MONO, p, 0, SYSEX_TAG);}
+			else {SETMIDIEVENT(evm[num_events], 0, ME_POLY, p, 0, SYSEX_TAG);}
+			num_events++;
 		    break;
 
-		case 0x08:	/* note shift ? */
+		case 0x06:	/* Same Note Number Key On Assign */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Same Note Number Key On Assign is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x07:	/* Part Mode */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Part Mode is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x08:	/* note shift */
 		    SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, SYSEX_TAG);
 		    num_events++;
+		    break;
+
+		case 0x09:	/* Detune 1st bit */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 1st bit is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x0A:	/* Detune 2nd bit */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 2nd bit is not supported. (CH:%d VAL:%d)", p, *body); 
 		    break;
 
 		case 0x0B:	/* volume */
 		    SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
+
+		case 0x0C:	/* Velocity Sense Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, *body, 0x21);
+			num_events++;
+			break;
+
+		case 0x0D:	/* Velocity Sense Offset */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, *body, 0x22);
+			num_events++;
+			break;
 
 		case 0x0E:	/* pan */
 		    if(*body == 0) {
@@ -1005,6 +1029,18 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, SYSEX_TAG);
 		    }
 		    num_events++;
+		    break;
+
+		case 0x0F:	/* Note Limit Low */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit Low is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x10:	/* Note Limit High */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit High is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x11:	/* Dry Level */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level is not supported. (CH:%d VAL:%d)", p, *body); 
 		    break;
 
 		case 0x12:	/* chorus send */
@@ -1017,12 +1053,130 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    num_events++;
 		    break;
 
+		case 0x14:	/* Variation Send */
+		    SETMIDIEVENT(evm[num_events], 0, ME_CELESTE_EFFECT, p, *body, SYSEX_TAG);
+		    num_events++;
+		    break;
+
+		case 0x15:	/* Vibrato Rate */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x08, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x16:	/* Vibrato Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x09, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x17:	/* Vibrato Delay */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x0A, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x18:	/* Filter Cutoff Frequency */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x20, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x19:	/* Filter Resonance */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x21, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x1A:	/* EG Attack Time */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x63, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x1B:	/* EG Decay Time */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x64, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x1C:	/* EG Release Time */
+			SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x66, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
+			num_events += 3;
+		    break;
+
+		case 0x1D:	/* MW Pitch Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x16);
+			num_events++;
+			break;
+
+		case 0x1E:	/* MW Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x17);
+			num_events++;
+			break;
+
+		case 0x1F:	/* MW Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x18);
+			num_events++;
+			break;
+
+		case 0x20:	/* MW LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x1A);
+			num_events++;
+			break;
+
+		case 0x21:	/* MW LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x1B);
+			num_events++;
+			break;
+
+		case 0x22:	/* MW LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x1C);
+			num_events++;
+			break;
+
 		case 0x23:	/* bend pitch control */
 		    SETMIDIEVENT(evm[num_events], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
 		    SETMIDIEVENT(evm[num_events + 1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
 		    SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, (*body - 0x40) & 0x7F, SYSEX_TAG);
 		    num_events += 3;
 		    break;
+
+		case 0x24:	/* Bend Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x22);
+			num_events++;
+			break;
+
+		case 0x25:	/* Bend Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x23);
+			num_events++;
+			break;
+
+		case 0x26:	/* Bend LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x25);
+			num_events++;
+			break;
+
+		case 0x27:	/* Bend LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x26);
+			num_events++;
+			break;
+
+		case 0x28:	/* Bend LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x27);
+			num_events++;
+			break;
+
+		/* 0x30 - 0x40: Rcv X */
 
 		case 0x41:	/* scale tuning */
 		case 0x42:
@@ -1040,6 +1194,174 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    num_events++;
 		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Scale Tuning %s (CH:%d %d cent)",
 			      note_name[ent - 0x41], p, *body - 64);
+		    break;
+
+		case 0x4D:	/* CAT Pitch Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x00);
+			num_events++;
+			break;
+
+		case 0x4E:	/* CAT Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x01);
+			num_events++;
+			break;
+
+		case 0x4F:	/* CAT Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x02);
+			num_events++;
+			break;
+
+		case 0x50:	/* CAT LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x04);
+			num_events++;
+			break;
+
+		case 0x51:	/* CAT LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x05);
+			num_events++;
+			break;
+
+		case 0x52:	/* CAT LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x06);
+			num_events++;
+			break;
+
+		case 0x53:	/* PAT Pitch Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x0B);
+			num_events++;
+			break;
+
+		case 0x54:	/* PAT Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x0C);
+			num_events++;
+			break;
+
+		case 0x55:	/* PAT Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x0D);
+			num_events++;
+			break;
+
+		case 0x56:	/* PAT LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x0F);
+			num_events++;
+			break;
+
+		case 0x57:	/* PAT LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x10);
+			num_events++;
+			break;
+
+		case 0x58:	/* PAT LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x11);
+			num_events++;
+			break;
+		
+		case 0x59:	/* AC1 Controller Number */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Controller Number is not supported. (CH:%d VAL:%d)", p, *body); 
+			break;
+
+		case 0x5A:	/* AC1 Pitch Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x2C);
+			num_events++;
+			break;
+
+		case 0x5B:	/* AC1 Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x2D);
+			num_events++;
+			break;
+
+		case 0x5C:	/* AC1 Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x2E);
+			num_events++;
+			break;
+
+		case 0x5D:	/* AC1 LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x30);
+			num_events++;
+			break;
+
+		case 0x5E:	/* AC1 LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x31);
+			num_events++;
+			break;
+
+		case 0x5F:	/* AC1 LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x32);
+			num_events++;
+			break;
+
+		case 0x60:	/* AC2 Controller Number */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Controller Number is not supported. (CH:%d VAL:%d)", p, *body); 
+			break;
+
+		case 0x61:	/* AC2 Pitch Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x37);
+			num_events++;
+			break;
+
+		case 0x62:	/* AC2 Filter Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x38);
+			num_events++;
+			break;
+
+		case 0x63:	/* AC2 Amplitude Control */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x39);
+			num_events++;
+			break;
+
+		case 0x64:	/* AC2 LFO PMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x3B);
+			num_events++;
+			break;
+
+		case 0x65:	/* AC2 LFO FMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x3C);
+			num_events++;
+			break;
+
+		case 0x66:	/* AC2 LFO AMod Depth */
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x3D);
+			num_events++;
+			break;
+
+		case 0x67:	/* Portamento Switch */
+			SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO, p, *body, SYSEX_TAG);
+		    num_events++;
+
+		case 0x68:	/* Portamento Time */
+			SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO_TIME_MSB, p, *body, SYSEX_TAG);
+		    num_events++;
+
+		case 0x69:	/* Pitch EG Initial Level */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Initial Level is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x6A:	/* Pitch EG Attack Time */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Attack Time is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x6B:	/* Pitch EG Release Level */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Level is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x6C:	/* Pitch EG Release Time */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Time is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x6D:	/* Velocity Limit Low */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit Low is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x6E:	/* Velocity Limit High */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit High is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x70:	/* Bend Pitch Low Control */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Bend Pitch Low Control is not supported. (CH:%d VAL:%d)", p, *body); 
+		    break;
+
+		case 0x71:	/* Filter EG Depth */
+		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Filter EG Depth is not supported. (CH:%d VAL:%d)", p, *body); 
 		    break;
 
 		case 0x72:	/* EQ BASS */
@@ -1252,15 +1574,41 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  num_events++;
 				  break;
 
+				case 0x06:	/* Same Note Number Key On Assign */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Same Note Number Key On Assign is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x07:	/* Part Mode */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Part Mode is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
 				case 0x08:	/* note shift ? */
 				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
+				case 0x09:	/* Detune 1st bit */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 1st bit is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x0A:	/* Detune 2nd bit */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Detune 2nd bit is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
 				case 0x0B:	/* volume */
 				  SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
+
+				case 0x0C:	/* Velocity Sense Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, val[6], 0x21);
+					num_events++;
+					break;
+
+				case 0x0D:	/* Velocity Sense Offset */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, val[6], 0x22);
+					num_events++;
+					break;
 
 				case 0x0E:	/* pan */
 				  if(val[6] == 0) {
@@ -1272,6 +1620,18 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  num_events++;
 				  break;
 
+				case 0x0F:	/* Note Limit Low */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit Low is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x10:	/* Note Limit High */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit High is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x11:	/* Dry Level */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
 				case 0x12:	/* chorus send */
 				  SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[6], SYSEX_TAG);
 				  num_events++;
@@ -1282,12 +1642,130 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  num_events++;
 				  break;
 
+				case 0x14:	/* Variation Send */
+					SETMIDIEVENT(evm[num_events], 0, ME_CELESTE_EFFECT, p, val[6], SYSEX_TAG);
+					num_events++;
+					break;
+
+				case 0x15:	/* Vibrato Rate */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x08, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x16:	/* Vibrato Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x09, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x17:	/* Vibrato Delay */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x0A, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x18:	/* Filter Cutoff Frequency */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x20, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x19:	/* Filter Resonance */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x21, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x1A:	/* EG Attack Time */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x63, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x1B:	/* EG Decay Time */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x64, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x1C:	/* EG Release Time */
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x66, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					num_events += 3;
+					break;
+
+				case 0x1D:	/* MW Pitch Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x16);
+					num_events++;
+					break;
+
+				case 0x1E:	/* MW Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x17);
+					num_events++;
+					break;
+
+				case 0x1F:	/* MW Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x18);
+					num_events++;
+					break;
+
+				case 0x20:	/* MW LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1A);
+					num_events++;
+					break;
+
+				case 0x21:	/* MW LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1B);
+					num_events++;
+					break;
+
+				case 0x22:	/* MW LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x1C);
+					num_events++;
+					break;
+
 				case 0x23:	/* bend pitch control */
 				  SETMIDIEVENT(evm[0], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
 				  SETMIDIEVENT(evm[1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
 				  SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, (val[6] - 0x40) & 0x7F, SYSEX_TAG);
 				  num_events += 3;
 				  break;
+
+				case 0x24:	/* Bend Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x22);
+					num_events++;
+					break;
+
+				case 0x25:	/* Bend Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x23);
+					num_events++;
+					break;
+
+				case 0x26:	/* Bend LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x25);
+					num_events++;
+					break;
+
+				case 0x27:	/* Bend LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x26);
+					num_events++;
+					break;
+
+				case 0x28:	/* Bend LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x27);
+					num_events++;
+					break;
+
+				/* 0x30 - 0x40: Rcv X */
 
 				case 0x41:	/* scale tuning */
 				case 0x42:
@@ -1307,6 +1785,174 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					ctl->cmsg(CMSG_INFO, VERB_NOISY,
 							"Scale Tuning %s (CH:%d %d cent)",
 							note_name[ent - 0x41], p, val[6] - 64);
+					break;
+
+				case 0x4D:	/* CAT Pitch Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x00);
+					num_events++;
+					break;
+
+				case 0x4E:	/* CAT Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x01);
+					num_events++;
+					break;
+
+				case 0x4F:	/* CAT Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x02);
+					num_events++;
+					break;
+
+				case 0x50:	/* CAT LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x04);
+					num_events++;
+					break;
+
+				case 0x51:	/* CAT LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x05);
+					num_events++;
+					break;
+
+				case 0x52:	/* CAT LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x06);
+					num_events++;
+					break;
+
+				case 0x53:	/* PAT Pitch Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0B);
+					num_events++;
+					break;
+
+				case 0x54:	/* PAT Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0C);
+					num_events++;
+					break;
+
+				case 0x55:	/* PAT Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0D);
+					num_events++;
+					break;
+
+				case 0x56:	/* PAT LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x0F);
+					num_events++;
+					break;
+
+				case 0x57:	/* PAT LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x10);
+					num_events++;
+					break;
+
+				case 0x58:	/* PAT LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x11);
+					num_events++;
+					break;
+				
+				case 0x59:	/* AC1 Controller Number */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Controller Number is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x5A:	/* AC1 Pitch Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2C);
+					num_events++;
+					break;
+
+				case 0x5B:	/* AC1 Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2D);
+					num_events++;
+					break;
+
+				case 0x5C:	/* AC1 Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x2E);
+					num_events++;
+					break;
+
+				case 0x5D:	/* AC1 LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x30);
+					num_events++;
+					break;
+
+				case 0x5E:	/* AC1 LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x31);
+					num_events++;
+					break;
+
+				case 0x5F:	/* AC1 LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x32);
+					num_events++;
+					break;
+
+				case 0x60:	/* AC2 Controller Number */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Controller Number is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x61:	/* AC2 Pitch Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x37);
+					num_events++;
+					break;
+
+				case 0x62:	/* AC2 Filter Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x38);
+					num_events++;
+					break;
+
+				case 0x63:	/* AC2 Amplitude Control */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x39);
+					num_events++;
+					break;
+
+				case 0x64:	/* AC2 LFO PMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3B);
+					num_events++;
+					break;
+
+				case 0x65:	/* AC2 LFO FMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3C);
+					num_events++;
+					break;
+
+				case 0x66:	/* AC2 LFO AMod Depth */
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x3D);
+					num_events++;
+					break;
+
+				case 0x67:	/* Portamento Switch */
+					SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO, p, val[6], SYSEX_TAG);
+					num_events++;
+
+				case 0x68:	/* Portamento Time */
+					SETMIDIEVENT(evm[num_events], 0, ME_PORTAMENTO_TIME_MSB, p, val[6], SYSEX_TAG);
+					num_events++;
+
+				case 0x69:	/* Pitch EG Initial Level */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Initial Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x6A:	/* Pitch EG Attack Time */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Attack Time is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x6B:	/* Pitch EG Release Level */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Level is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x6C:	/* Pitch EG Release Time */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Pitch EG Release Time is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x6D:	/* Velocity Limit Low */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit Low is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x6E:	/* Velocity Limit High */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit High is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x70:	/* Bend Pitch Low Control */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Bend Pitch Low Control is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					break;
+
+				case 0x71:	/* Filter EG Depth */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Filter EG Depth is not supported. (CH:%d VAL:%d)", p, val[6]); 
 					break;
 
 				case 0x72:	/* EQ BASS */
@@ -1397,7 +2043,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x40:
 			if((addr & 0xFFF000) == 0x401000) {
 				switch(addr & 0xFF) {
-				case 0x00:
+				case 0x00:	/* Tone Number */
 					SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p,val[7], SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_PROGRAM, p, val[8], SYSEX_TAG);
 					num_events += 2;
@@ -1416,7 +2062,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					}
 					num_events++;
 					break;
-				case 0x13:
+				case 0x13:	/* MONO/POLY Mode */
 					if(val[7] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[7], SYSEX_TAG);}
 					else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[7], SYSEX_TAG);}
 					num_events++;
@@ -1430,13 +2076,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 						rhythm_part[val[7] - 1] = p;
 					}
 					break;
-				case 0x16:	/* Pitch Key Shift */
+				case 0x16:	/* Pitch Key Shift (dummy. see parse_sysex_event()) */
 					break;
 				case 0x17:	/* Pitch Offset Fine */
 					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x26);
 					num_events++;
 					break;
-				case 0x19:
+				case 0x19:	/* Part Level */
 					SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
@@ -1448,7 +2094,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x22);
 					num_events++;
 					break;
-				case 0x1C:
+				case 0x1C:	/* Part Panpot */
 					if (val[7] == 0) {
 						SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, SYSEX_TAG);
 					} else {
@@ -1456,68 +2102,80 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					}
 					num_events++;
 					break;
-				case 0x21:
+				case 0x1D:	/* Keyboard Range Low */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Keyboard Range Low is not supported. (CH:%d VAL:%d)", p, val[7]);
+					break;
+				case 0x1E:	/* Keyboard Range High */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Keyboard Range High is not supported. (CH:%d VAL:%d)", p, val[7]);
+					break;
+				case 0x1F:	/* CC1 Controller Number */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Controller Number is not supported. (CH:%d VAL:%d)", p, val[7]);
+					break;
+				case 0x20:	/* CC2 Controller Number */
+					ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Controller Number is not supported. (CH:%d VAL:%d)", p, val[7]);
+					break;
+				case 0x21:	/* Chorus Send Level */
 					SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
-				case 0x22:
+				case 0x22:	/* Reverb Send Level */
 					SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
-				case 0x2C:
+				case 0x2C:	/* Delay Send Level */
 					SETMIDIEVENT(evm[0], 0, ME_CELESTE_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
-				case 0x2A:
+				case 0x2A:	/* Pitch Fine Tune */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x00, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					SETMIDIEVENT(evm[3], 0, ME_DATA_ENTRY_LSB, p, val[8], SYSEX_TAG);
 					num_events += 4;
 					break;
-				case 0x30:
+				case 0x30:	/* TONE MODIFY1: Vibrato Rate */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x08, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x31:
+				case 0x31:	/* TONE MODIFY2: Vibrato Depth */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x09, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x32:
+				case 0x32:	/* TONE MODIFY3: TVF Cutoff Freq */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x20, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x33:
+				case 0x33:	/* TONE MODIFY4: TVF Resonance */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x21, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x34:
+				case 0x34:	/* TONE MODIFY5: TVF&TVA Env.attack */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x63, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x35:
+				case 0x35:	/* TONE MODIFY6: TVF&TVA Env.decay */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x64, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x36:
+				case 0x36:	/* TONE MODIFY7: TVF&TVA Env.release */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x66, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x37:
+				case 0x37:	/* TONE MODIFY8: Vibrato Delay */
 					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x0A, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
@@ -1539,11 +2197,272 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				}
 			} else if((addr & 0xFFF000) == 0x402000) {
 				switch(addr & 0xFF) {
-				case 0x10:	/* Bend Pitch Control */
+				case 0x00:	/* MOD Pitch Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x16);
+					num_events++;
+					break;
+				case 0x01:	/* MOD TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x17);
+					num_events++;
+					break;
+				case 0x02:	/* MOD Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x18);
+					num_events++;
+					break;
+				case 0x03:	/* MOD LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x19);
+					num_events++;
+					break;
+				case 0x04:	/* MOD LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1A);
+					num_events++;
+					break;
+				case 0x05:	/* MOD LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1B);
+					num_events++;
+					break;
+				case 0x06:	/* MOD LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1C);
+					num_events++;
+					break;
+				case 0x07:	/* MOD LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1D);
+					num_events++;
+					break;
+				case 0x08:	/* MOD LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1E);
+					num_events++;
+					break;
+				case 0x09:	/* MOD LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x1F);
+					num_events++;
+					break;
+				case 0x0A:	/* MOD LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x20);
+					num_events++;
+					break;
+				case 0x10:	/* !!!FIXME!!! Bend Pitch Control */
 					SETMIDIEVENT(evm[0], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
 					SETMIDIEVENT(evm[1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, (val[7] - 0x40) & 0x7F, SYSEX_TAG);
-					num_events += 3;
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x21);
+					num_events += 4;
+					break;
+				case 0x11:	/* Bend TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x22);
+					num_events++;
+					break;
+				case 0x12:	/* Bend Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x23);
+					num_events++;
+					break;
+				case 0x13:	/* Bend LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x24);
+					num_events++;
+					break;
+				case 0x14:	/* Bend LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x25);
+					num_events++;
+					break;
+				case 0x15:	/* Bend LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x26);
+					num_events++;
+					break;
+				case 0x16:	/* Bend LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x27);
+					num_events++;
+					break;
+				case 0x17:	/* Bend LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x28);
+					num_events++;
+					break;
+				case 0x18:	/* Bend LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x29);
+					num_events++;
+					break;
+				case 0x19:	/* Bend LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2A);
+					num_events++;
+					break;
+				case 0x1A:	/* Bend LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2B);
+					num_events++;
+					break;
+				case 0x20:	/* CAf Pitch Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x00);
+					num_events++;
+					break;
+				case 0x21:	/* CAf TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x01);
+					num_events++;
+					break;
+				case 0x22:	/* CAf Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x02);
+					num_events++;
+					break;
+				case 0x23:	/* CAf LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x03);
+					num_events++;
+					break;
+				case 0x24:	/* CAf LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x04);
+					num_events++;
+					break;
+				case 0x25:	/* CAf LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x05);
+					num_events++;
+					break;
+				case 0x26:	/* CAf LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x06);
+					num_events++;
+					break;
+				case 0x27:	/* CAf LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x07);
+					num_events++;
+					break;
+				case 0x28:	/* CAf LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x08);
+					num_events++;
+					break;
+				case 0x29:	/* CAf LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x09);
+					num_events++;
+					break;
+				case 0x2A:	/* CAf LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0A);
+					num_events++;
+					break;
+				case 0x30:	/* PAf Pitch Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0B);
+					num_events++;
+					break;
+				case 0x31:	/* PAf TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0C);
+					num_events++;
+					break;
+				case 0x32:	/* PAf Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0D);
+					num_events++;
+					break;
+				case 0x33:	/* PAf LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0E);
+					num_events++;
+					break;
+				case 0x34:	/* PAf LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x0F);
+					num_events++;
+					break;
+				case 0x35:	/* PAf LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x10);
+					num_events++;
+					break;
+				case 0x36:	/* PAf LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x11);
+					num_events++;
+					break;
+				case 0x37:	/* PAf LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x12);
+					num_events++;
+					break;
+				case 0x38:	/* PAf LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x13);
+					num_events++;
+					break;
+				case 0x39:	/* PAf LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x14);
+					num_events++;
+					break;
+				case 0x3A:	/* PAf LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x15);
+					num_events++;
+					break;
+				case 0x40:	/* CC1 Pitch Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2C);
+					num_events++;
+					break;
+				case 0x41:	/* CC1 TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2D);
+					num_events++;
+					break;
+				case 0x42:	/* CC1 Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2E);
+					num_events++;
+					break;
+				case 0x43:	/* CC1 LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x2F);
+					num_events++;
+					break;
+				case 0x44:	/* CC1 LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x30);
+					num_events++;
+					break;
+				case 0x45:	/* CC1 LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x31);
+					num_events++;
+					break;
+				case 0x46:	/* CC1 LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x32);
+					num_events++;
+					break;
+				case 0x47:	/* CC1 LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x33);
+					num_events++;
+					break;
+				case 0x48:	/* CC1 LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x34);
+					num_events++;
+					break;
+				case 0x49:	/* CC1 LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x35);
+					num_events++;
+					break;
+				case 0x4A:	/* CC1 LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x36);
+					num_events++;
+					break;
+				case 0x50:	/* CC2 Pitch Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x37);
+					num_events++;
+					break;
+				case 0x51:	/* CC2 TVF Cutoff Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x38);
+					num_events++;
+					break;
+				case 0x52:	/* CC2 Amplitude Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x39);
+					num_events++;
+					break;
+				case 0x53:	/* CC2 LFO1 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3A);
+					num_events++;
+					break;
+				case 0x54:	/* CC2 LFO1 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3B);
+					num_events++;
+					break;
+				case 0x55:	/* CC2 LFO1 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3C);
+					num_events++;
+					break;
+				case 0x56:	/* CC2 LFO1 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3D);
+					num_events++;
+					break;
+				case 0x57:	/* CC2 LFO2 Rate Control */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3E);
+					num_events++;
+					break;
+				case 0x58:	/* CC2 LFO2 Pitch Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x3F);
+					num_events++;
+					break;
+				case 0x59:	/* CC2 LFO2 TVF Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x40);
+					num_events++;
+					break;
+				case 0x5A:	/* CC2 LFO2 TVA Depth */
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x41);
+					num_events++;
 					break;
 				default:
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);

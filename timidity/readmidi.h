@@ -54,6 +54,8 @@
 #define IS_PTM_FILE	714	/* Poly Tracker */
 #define IS_MFI_FILE	800	/* Melody Format for i-mode */
 
+#define REDUCE_CHANNELS		16
+
 enum play_system_modes
 {
     DEFAULT_SYSTEM_MODE,

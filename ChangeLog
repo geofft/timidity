@@ -1,3 +1,9 @@
+2003-12-27  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c, timidity/readmidi.[ch]:
+	  Fix about SysEx.
+	  Fix XG channel layer.
+
 2003-12-26  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c:

@@ -3196,9 +3196,9 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			channel[ch].paf.lfo2_tvf_depth = conv_lfo_filter_depth(val);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].paf.lfo2_tvf_depth); 
 			break;
-		case 0x15:	/* MOD LFO2 Amplitude Depth */
-			channel[ch].mod.lfo2_tva_depth = (float)val / 127.0f;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].mod.lfo2_tva_depth); 
+		case 0x15:	/* PAf LFO2 Amplitude Depth */
+			channel[ch].paf.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].paf.lfo2_tva_depth); 
 			break;
 		case 0x16:	/* MOD Pitch Control */
 			if(val > 0x58) {val = 0x58;}
@@ -3787,9 +3787,6 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				ch, note, channel[ch].drums[note]->play_note);
 			channel[ch].pitchfactor = 0;
 			break;
-
-			/* MOD PITCH CONTROL */
-			/* 0x45~ MOD, CAF, PAF */
 		default:
 			break;
 		}
@@ -3958,10 +3955,19 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x65:	/* Rcv CHANNEL */
+			reset_controllers(ch);
+			redraw_controllers(ch);
+			all_notes_off(ch);
 			if (val == 0x7f)
 				remove_channel_layer(ch);
-			else
-				add_channel_layer(ch, val);
+			else {
+				if((ch < REDUCE_CHANNELS) != (val < REDUCE_CHANNELS)) {
+					channel[ch].port_select = ch < REDUCE_CHANNELS ? 1 : 0;
+				}
+				if((ch % REDUCE_CHANNELS) != (val % REDUCE_CHANNELS)) {
+					add_channel_layer(ch, val);
+				}
+			}
 			break;
 		default:
 			break;
