@@ -835,6 +835,7 @@ static int32 update_vibrato(Voice *vp, int sign)
   int32 depth;
   int phase, pb;
   double a;
+  int ch = vp->channel;
 
   if(vp->vibrato_delay > 0)
   {
@@ -858,11 +859,9 @@ static int32 update_vibrato(Voice *vp, int sign)
   /* Need to compute this sample increment. */
 
   depth = vp->vibrato_depth;
-  if(abs(depth) < vp->modulation_wheel)
-      depth = vp->modulation_wheel;
   depth <<= 7;
 
-  if (vp->vibrato_sweep && !vp->modulation_wheel)
+  if (vp->vibrato_sweep && !channel[ch].mod.val)
     {
       /* Need to update sweep */
       vp->vibrato_sweep_position += vp->vibrato_sweep;
@@ -902,7 +901,7 @@ static int32 update_vibrato(Voice *vp, int sign)
   a += 0.5;
 
   /* If the sweep's over, we can store the newly computed sample_increment */
-  if (!vp->vibrato_sweep || vp->modulation_wheel)
+  if (!vp->vibrato_sweep || channel[ch].mod.val)
     vp->vibrato_sample_increment[phase] = (int32) a;
 
   if (sign)

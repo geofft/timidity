@@ -563,7 +563,12 @@ static void reset_controllers(int c)
   channel[c].sustain = 0;
   channel[c].pitchbend = 0x2000;
   channel[c].pitchfactor = 0; /* to be computed */
-  channel[c].modulation_wheel = 0;
+  channel[c].mod.val = 0;
+  channel[c].bend.val = 0;
+  channel[c].caf.val = 0;
+  channel[c].paf.val = 0;
+  channel[c].cc1.val = 0;
+  channel[c].cc2.val = 0;
   channel[c].portamento_time_lsb = 0;
   channel[c].portamento_time_msb = 0;
   channel[c].porta_control_ratio = 0;
@@ -585,7 +590,7 @@ static void redraw_controllers(int c)
     ctl_mode_event(CTLE_VOLUME, 1, c, channel[c].volume);
     ctl_mode_event(CTLE_EXPRESSION, 1, c, channel[c].expression);
     ctl_mode_event(CTLE_SUSTAIN, 1, c, channel[c].sustain);
-    ctl_mode_event(CTLE_MOD_WHEEL, 1, c, channel[c].modulation_wheel);
+    ctl_mode_event(CTLE_MOD_WHEEL, 1, c, channel[c].mod.val);
     ctl_mode_event(CTLE_PITCH_BEND, 1, c, channel[c].pitchbend);
     ctl_prog_event(c);
     ctl_mode_event(CTLE_TEMPER_TYPE, 1, c, channel[c].temper_type);
@@ -680,39 +685,54 @@ void recompute_freq(int v)
 	int32 tmp;
 	FLOAT_T pf, root_freq;
 	int32 a;
-	
+	Voice *vp = &(voice[v]);
+
 	if (! voice[v].sample->sample_rate)
 		return;
 	if (! opt_modulation_wheel)
-		voice[v].modulation_wheel = 0;
+		channel[ch].mod.val = 0;
 	if (! opt_portamento)
 		voice[v].porta_control_ratio = 0;
 	voice[v].vibrato_control_ratio = voice[v].orig_vibrato_control_ratio;
-	if (voice[v].vibrato_control_ratio || voice[v].modulation_wheel > 0) {
+	if (voice[v].vibrato_control_ratio || channel[ch].mod.val > 0) {
 		/* This instrument has vibrato. Invalidate any precomputed
 		 * sample_increments.
 		 */
 
 		/* MIDI controllers LFO pitch depth */
 		if (opt_channel_pressure) {
-			voice[v].vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
-				+ get_midi_controller_pitch_depth(&(channel[ch].bend))
-				+ get_midi_controller_pitch_depth(&(channel[ch].caf))
-				+ get_midi_controller_pitch_depth(&(channel[ch].paf))
-				+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
-				+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-			if (voice[v].vibrato_depth > 255) {voice[v].vibrato_depth = 255;}
+			if (vp->sample->vibrato_depth < 0) {
+				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
+				vp->vibrato_depth -= get_midi_controller_pitch_depth(&(channel[ch].mod))
+					+ get_midi_controller_pitch_depth(&(channel[ch].bend))
+					+ get_midi_controller_pitch_depth(&(channel[ch].caf))
+					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
+					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
+					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
+				if (vp->vibrato_depth < -channel[ch].rpnmap[RPN_ADDR_0005] / 4) {vp->vibrato_depth = -channel[ch].rpnmap[RPN_ADDR_0005] / 4;}
+			} else {
+				vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
+				vp->vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
+					+ get_midi_controller_pitch_depth(&(channel[ch].bend))
+					+ get_midi_controller_pitch_depth(&(channel[ch].caf))
+					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
+					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
+					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
+				if (vp->vibrato_depth > channel[ch].rpnmap[RPN_ADDR_0005] / 4) {vp->vibrato_depth = channel[ch].rpnmap[RPN_ADDR_0005] / 4;}
+			}
 		}
 		
-		if (voice[v].modulation_wheel > 0) {
-			if(voice[v].vibrato_control_ratio == 0) {
-				voice[v].vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS));
+		/* fill parameters for modulation wheel */
+		if (channel[ch].mod.val > 0) {
+			if(vp->vibrato_control_ratio == 0) {
+				vp->vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
 			}
+			vp->vibrato_delay = 0;
 		}
 
 		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
-			voice[v].vibrato_sample_increment[i] = 0;
-		voice[v].cache = NULL;
+			vp->vibrato_sample_increment[i] = 0;
+		vp->cache = NULL;
 	}
 	/* fine: [0..128] => [-256..256]
 	 * 1 coarse = 256 fine (= 1 note)
@@ -2126,6 +2146,7 @@ static void init_voice_vibrato(int v)
 	Voice *vp = &(voice[v]);
 	int ch = vp->channel, j, flag;
 	double ratio;
+	int32 depth_range;
 
 	flag = opt_nrpn_vibrato
 		&& (channel[ch].vibrato_ratio != 1.0 || channel[ch].vibrato_depth);
@@ -2149,14 +2170,15 @@ static void init_voice_vibrato(int v)
 	
 	/* vibrato depth */
 	if (flag) {
-		if (vp->vibrato_depth < 0) {
+		if (vp->sample->vibrato_depth < 0) {
 			vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
 		} else {
 			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 		}
 		if (vp->vibrato_depth == 0) {vp->vibrato_depth = 1;}
-		if (vp->vibrato_depth > 255) {vp->vibrato_depth = 255;}
-		else if (vp->vibrato_depth < -255) {vp->vibrato_depth = -255;}
+		depth_range = channel[ch].rpnmap[RPN_ADDR_0005] / 4;
+		if (vp->vibrato_depth > depth_range) {vp->vibrato_depth = depth_range;}
+		else if (vp->vibrato_depth < -depth_range) {vp->vibrato_depth = -depth_range;}
 	} else {
 		vp->vibrato_depth = vp->sample->vibrato_depth;
 	}
@@ -2276,7 +2298,6 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       }
   }
   voice[i].sample_increment = 0; /* make sure it isn't negative */
-  voice[i].modulation_wheel = channel[ch].modulation_wheel;
   voice[i].vid = vid;
   voice[i].delay = voice[i].sample->envelope_delay;
   voice[i].modenv_delay = voice[i].sample->modenv_delay;
@@ -4276,6 +4297,7 @@ static int last_rpn_addr(int ch)
 		{0x0002, 0xffff, RPN_ADDR_0002},
 		{0x0003, 0xffff, RPN_ADDR_0003},
 		{0x0004, 0xffff, RPN_ADDR_0004},
+		{0x0005, 0xffff, RPN_ADDR_0005},
 		{0x7f7f, 0xffff, RPN_ADDR_7F7F},
 		{0xffff, 0xffff, RPN_ADDR_FFFF},
 		{-1, -1}
@@ -4593,6 +4615,10 @@ static void update_rpn_map(int ch, int addr, int update_now)
 				recompute_freq(i);
 			}
 		break;
+	case RPN_ADDR_0005:		/* GM2: Modulation Depth Range */
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Modulation Depth Range (CH:%d VALUE:%d)", ch, channel[ch].rpnmap[RPN_ADDR_0005]);
+		break;
 	case RPN_ADDR_7F7F:		/* RPN reset */
 		channel[ch].rpn_7f7f_flag = 1;
 		break;
@@ -4605,6 +4631,11 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		channel[ch].rpnmap[RPN_ADDR_0000] = 2;
 		channel[ch].rpnmap[RPN_ADDR_0001] = 0x40;
 		channel[ch].rpnmap[RPN_ADDR_0002] = 0x40;
+		if(play_system_mode == GM2_SYSTEM_MODE) {
+			channel[ch].rpnmap[RPN_ADDR_0005] = 0x40;	/* +- 50 cents */
+		} else {
+			channel[ch].rpnmap[RPN_ADDR_0005] = 0x400;	/* +- 400 cents */
+		}
 		channel[ch].pitchfactor = 0;
 		break;
 	}
@@ -4708,8 +4739,7 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	  case ME_MODULATION_WHEEL:
-	    channel[ch].modulation_wheel =
-		midi_cnv_vib_depth(current_event->a);
+	    channel[ch].mod.val = current_event->a;
 	    break;
 
 	  case ME_PORTAMENTO_TIME_MSB:
@@ -6317,16 +6347,18 @@ static int compute_data(int32 count)
   return RC_NONE;
 }
 
-static void update_modulation_wheel(int ch, int val)
+static void update_modulation_wheel(int ch)
 {
     int i, uv = upper_voices;
+	channel[ch].pitchfactor = 0;
     for(i = 0; i < uv; i++)
 	if(voice[i].status != VOICE_FREE && voice[i].channel == ch)
 	{
 	    /* Set/Reset mod-wheel */
-	    voice[i].modulation_wheel = val;
-	    voice[i].vibrato_delay = 0;
+	    recompute_amp(i);
+		apply_envelope_to_amp(i);
 	    recompute_freq(i);
+		recompute_voice_filter(i);
 	}
 }
 
@@ -6506,10 +6538,9 @@ int play_event(MidiEvent *ev)
 	break;
 
       case ME_MODULATION_WHEEL:
-	channel[ch].modulation_wheel =
-	    midi_cnv_vib_depth(ev->a);
-	update_modulation_wheel(ch, channel[ch].modulation_wheel);
-	ctl_mode_event(CTLE_MOD_WHEEL, 1, ch, channel[ch].modulation_wheel);
+	channel[ch].mod.val = ev->a;
+	update_modulation_wheel(ch);
+	ctl_mode_event(CTLE_MOD_WHEEL, 1, ch, channel[ch].mod.val);
 	break;
 
       case ME_MAINVOLUME:

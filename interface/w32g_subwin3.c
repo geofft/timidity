@@ -624,7 +624,7 @@ void w32_tracer_ctl_event(CtlEvent *e)
 			w32g_tracer_wnd.panning[i] = channel[i].panning;
 			w32g_tracer_wnd.sustain[i] = channel[i].sustain;
 			w32g_tracer_wnd.pitch_bend[i] = channel[i].pitchbend;
-			w32g_tracer_wnd.mod_wheel[i] = channel[i].modulation_wheel;
+			w32g_tracer_wnd.mod_wheel[i] = channel[i].mod.val;
 			w32g_tracer_wnd.chorus_effect[i] = channel[i].chorus_level;
 			w32g_tracer_wnd.reverb_effect[i] = channel[i].reverb_level;
 		}

@@ -1047,7 +1047,7 @@ static void ctl_reset(void)
 	ctl_panning(i, channel[i].panning);
 	ctl_sustain(i, channel[i].sustain);
 	if(channel[i].pitchbend == 0x2000 &&
-	   channel[i].modulation_wheel > 0)
+	   channel[i].mod.val > 0)
 	    ctl_pitch_bend(i, -1);
 	else
 	    ctl_pitch_bend(i, channel[i].pitchbend);

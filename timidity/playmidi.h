@@ -184,6 +184,7 @@ enum rpn_data_address_t /* NRPN/RPN */
     RPN_ADDR_0002,
     RPN_ADDR_0003,
     RPN_ADDR_0004,
+	RPN_ADDR_0005,
     RPN_ADDR_7F7F,
     RPN_ADDR_FFFF,
     RPN_MAX_DATA_ADDR
@@ -233,7 +234,7 @@ struct DrumParts
 
 typedef struct {
   int8	bank_msb, bank_lsb, bank, program, volume,
-	expression, sustain, panning, mono, portamento, modulation_wheel,
+	expression, sustain, panning, mono, portamento,
 	key_shift;
 
   /* chorus, reverb... Coming soon to a 300-MHz, eight-way superscalar
@@ -365,7 +366,7 @@ typedef struct {
   int
 	vibrato_phase, orig_vibrato_control_ratio, vibrato_control_ratio,
     vibrato_depth, vibrato_control_counter,
-    envelope_stage, control_counter, panning, panned, modulation_wheel;
+    envelope_stage, control_counter, panning, panned;
   int16 tremolo_depth;
 
   /* for portamento */

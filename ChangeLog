@@ -4,6 +4,11 @@
 	  Fix about SysEx.
 	  Fix XG channel layer.
 	  Fix around channel pressure.
+	* timidity/playmidi.[ch], timidity/resample.c,
+	  interface/slang_c.c, interface/tk_c.c,
+	  interface/w32g_subwin3.c, interface/xaw_c.c,
+	  interface/w32g_c.c, interface/ vt100_c.c:
+	  Rewrite modulation wheel.
 
 2003-12-26  Saito <saito2@digitalme.com>
 
