@@ -4136,6 +4136,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if(temp == insertion_effect_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "EFX TYPE (%02X %02X)", insertion_effect_gs.type_msb, insertion_effect_gs.type_lsb);
 				realloc_insertion_effect_gs();
 			}
 			break;

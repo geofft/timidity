@@ -7,6 +7,8 @@
 
 	* timidity/readmidi.c, timidity/reverb.[ch], timidity/tables.[ch]:
 	  Support for effect: Lo-Fi (incomplete), Stereo-EQ.
+	* timidity/playmidi.c:
+	  Fix around effects.
 
 2004-03-08  Saito <saito@intaa.net>
 
