@@ -246,7 +246,7 @@ void v_memzero(void* dest, size_t len);
 void v_set_dry_signal(void* dest, const int32* buf, int32 n);
 
 /* inline functions */
-static inline bool is_altivec_available(void)
+extern inline bool is_altivec_available(void)
 {
   int sel[2] = { CTL_HW, HW_VECTORUNIT };
   int has_altivec = false;
@@ -259,7 +259,7 @@ static inline bool is_altivec_available(void)
   }
 }
 
-static inline void libc_memset(void* destp, int c, size_t len)
+extern inline void libc_memset(void* destp, int c, size_t len)
 {
     memset(destp,c,len);
 }

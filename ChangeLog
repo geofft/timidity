@@ -1,3 +1,8 @@
+2003-04-12  Saito <timidity@flashmail.com>
+
+	* interface/w32g_c.c:
+	  Improve timer resolution. (W32GUI version)
+
 2003-04-12  mput  <root@mput.dip.jp>
 
 	* timidity/optcode.h

@@ -108,6 +108,11 @@ ControlMode ctl=
     ctl_event
 };
 
+#define FORCE_TIME_PERIOD
+#ifdef FORCE_TIME_PERIOD
+static TIMECAPS tcaps;
+#endif
+
 static int ctl_open(int using_stdin, int using_stdout)
 {
     if(ctl.opened)
@@ -120,6 +125,11 @@ static int ctl_open(int using_stdin, int using_stdout)
     memset((void *)Panel,0,sizeof(PanelInfo));
     Panel->changed = 1;
 
+#ifdef FORCE_TIME_PERIOD
+	timeGetDevCaps(&tcaps, sizeof(TIMECAPS));
+	timeBeginPeriod(tcaps.wPeriodMin);
+#endif
+
     return w32g_open();
 }
 
@@ -130,6 +140,10 @@ static void ctl_close(void)
 	w32g_close();
 	ctl.opened = 0;
 	free(Panel);
+
+#ifdef FORCE_TIME_PERIOD
+	timeEndPeriod(tcaps.wPeriodMin);
+#endif
     }
 }
 
