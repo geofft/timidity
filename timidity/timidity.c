@@ -3252,7 +3252,7 @@ static inline int parse_opt_h(const char *arg)
 			dynamic_lib_root);
 	memset(mark, 0, sizeof(mark));
 	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
-		mark[(int) cmpp->id_character] = 1;
+		mark[(int) cmp->id_character] = 1;
 	if (dynamic_interface_id != 0)
 		mark[(int) dynamic_interface_id] = 0;
 	list_dyna_interface(fp, dynamic_lib_root, mark);

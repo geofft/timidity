@@ -1,3 +1,7 @@
+2003-08-17  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (parse_opt_h): Bug Fix
+
 2003-08-17 Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/timidity.c (parse_opt_s): -s option works correctly aain
