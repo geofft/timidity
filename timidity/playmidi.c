@@ -180,11 +180,15 @@ int opt_channel_pressure = 1;
 int opt_channel_pressure = 0;
 #endif /* GM_CHANNEL_PRESSURE_ALLOW */
 
-#ifdef VOICE_BY_VOICE_LPF_ALLOW
+#ifdef VOICE_CHAMBERLIN_LPF_ALLOW
 int opt_lpf_def = 1;
 #else
+#ifdef VOICE_MOOG_LPF_ALLOW
+int opt_lpf_def = 2;
+#else
 int opt_lpf_def = 0;
-#endif /* VOICE_BY_VOICE_LPF_ALLOW */
+#endif /* VOICE_MOOG_LPF_ALLOW */
+#endif /* VOICE_CHAMBERLIN_LPF_ALLOW */
 
 #ifdef OVERLAP_VOICE_ALLOW
 int opt_overlap_voice_allow = 1;

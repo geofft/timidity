@@ -128,7 +128,6 @@ enum {
 	TIM_OPT_PORTAMENTO,
 	TIM_OPT_VIBRATO,
 	TIM_OPT_CH_PRESS,
-	TIM_OPT_VOICE_LPF,
 	TIM_OPT_MOD_ENV,
 	TIM_OPT_TRACE_TEXT,
 	TIM_OPT_OVERLAP,
@@ -142,6 +141,7 @@ enum {
 	TIM_OPT_DELAY,
 	TIM_OPT_CHORUS,
 	TIM_OPT_REVERB,
+	TIM_OPT_VOICE_LPF,
 	TIM_OPT_NS,
 	TIM_OPT_RESAMPLE,
 	TIM_OPT_EVIL,
@@ -224,8 +224,6 @@ static const struct option longopts[] = {
 	{ "vibrato",                optional_argument, NULL, TIM_OPT_VIBRATO },
 	{ "no-ch-pressure",         no_argument,       NULL, TIM_OPT_CH_PRESS },
 	{ "ch-pressure",            optional_argument, NULL, TIM_OPT_CH_PRESS },
-	{ "no-voice-lpf",           no_argument,       NULL, TIM_OPT_VOICE_LPF },
-	{ "voice-lpf",              optional_argument, NULL, TIM_OPT_VOICE_LPF },
 	{ "no-mod-envelope",        no_argument,       NULL, TIM_OPT_MOD_ENV },
 	{ "mod-envelope",           optional_argument, NULL, TIM_OPT_MOD_ENV },
 	{ "no-trace-text-meta",     no_argument,       NULL, TIM_OPT_TRACE_TEXT },
@@ -243,6 +241,7 @@ static const struct option longopts[] = {
 	{ "delay",                  required_argument, NULL, TIM_OPT_DELAY },
 	{ "chorus",                 required_argument, NULL, TIM_OPT_CHORUS },
 	{ "reverb",                 required_argument, NULL, TIM_OPT_REVERB },
+	{ "voice-lpf",              required_argument, NULL, TIM_OPT_VOICE_LPF },
 	{ "noise-shaping",          required_argument, NULL, TIM_OPT_NS },
 #ifndef FIXED_RESAMPLATION
 	{ "resample",               required_argument, NULL, TIM_OPT_RESAMPLE },
@@ -358,7 +357,6 @@ static inline int parse_opt_mod_wheel(const char *);
 static inline int parse_opt_portamento(const char *);
 static inline int parse_opt_vibrato(const char *);
 static inline int parse_opt_ch_pressure(const char *);
-static inline int parse_opt_voice_lpf(const char *);
 static inline int parse_opt_mod_env(const char *);
 static inline int parse_opt_trace_text(const char *);
 static inline int parse_opt_overlap_voice(const char *);
@@ -373,6 +371,7 @@ static inline int set_default_program(int);
 static inline int parse_opt_delay(const char *);
 static inline int parse_opt_chorus(const char *);
 static inline int parse_opt_reverb(const char *);
+static inline int parse_opt_voice_lpf(const char *);
 static inline int parse_opt_noise_shaping(const char *);
 static inline int parse_opt_resample(const char *);
 static inline int parse_opt_e(const char *);
@@ -2355,8 +2354,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_vibrato(arg);
 	case TIM_OPT_CH_PRESS:
 		return parse_opt_ch_pressure(arg);
-	case TIM_OPT_VOICE_LPF:
-		return parse_opt_voice_lpf(arg);
 	case TIM_OPT_MOD_ENV:
 		return parse_opt_mod_env(arg);
 	case TIM_OPT_TRACE_TEXT:
@@ -2383,6 +2380,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_chorus(arg);
 	case TIM_OPT_REVERB:
 		return parse_opt_reverb(arg);
+	case TIM_OPT_VOICE_LPF:
+		return parse_opt_voice_lpf(arg);
 	case TIM_OPT_NS:
 		return parse_opt_noise_shaping(arg);
 #ifndef FIXED_RESAMPLATION
@@ -2625,12 +2624,6 @@ static inline int parse_opt_E(char *arg)
 		case 'S':
 			opt_channel_pressure = 0;
 			break;
-		case 'l':
-			opt_lpf_def = 1;
-			break;
-		case 'L':
-			opt_lpf_def = 0;
-			break;
 		case 'e':
 			opt_modulation_envelope = 1;
 			break;
@@ -2750,13 +2743,6 @@ static inline int parse_opt_ch_pressure(const char *arg)
 {
 	/* --[no-]ch-pressure */
 	opt_channel_pressure = y_or_n_p(arg);
-	return 0;
-}
-
-static inline int parse_opt_voice_lpf(const char *arg)
-{
-	/* --[no-]voice-lpf */
-	opt_lpf_def = y_or_n_p(arg);
 	return 0;
 }
 
@@ -3023,6 +3009,29 @@ static inline int parse_opt_reverb(const char *arg)
 	return 0;
 }
 
+static inline int parse_opt_voice_lpf(const char *arg)
+{
+	/* --voice-lpf */
+	switch (*arg) {
+	case '0':
+	case 'd':	/* disable */
+		opt_lpf_def = 0;
+		break;
+	case '1':
+	case 'c':	/* chamberlin */
+		opt_lpf_def = 1;
+		break;
+	case '2':
+	case 'm':	/* moog */
+		opt_lpf_def = 2;
+		break;
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid voice LPF type %s", arg);
+		return 1;
+	}
+	return 0;
+}
+
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  */
@@ -3168,7 +3177,6 @@ static inline int parse_opt_h(const char *arg)
 "                        p/P : Enable/Disable Portamento",
 "                        v/V : Enable/Disable NRPN Vibrato",
 "                        s/S : Enable/Disable Channel pressure",
-"                        l/L : Enable/Disable voice-by-voice LPF",
 "                        e/E : Enable/Disable Modulation Envelope",
 "                        t/T : Enable/Disable Trace Text Meta Event at playing",
 "                        o/O : Enable/Disable Overlapped voice",
@@ -3201,11 +3209,6 @@ static inline int parse_opt_h(const char *arg)
 #else
 "S"
 #endif /* GM_CHANNEL_PRESSURE_ALLOW */
-#ifdef VOICE_BY_VOICE_LPF_ALLOW
-"l"
-#else
-"L"
-#endif /* VOICE_BY_VOICE_LPF_ALLOW */
 #ifdef MODULATION_ENVELOPE_ALLOW
 "e"
 #else
@@ -3390,6 +3393,9 @@ static inline int parse_opt_h(const char *arg)
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFreverb=G  Global Freeverb effect" NLS
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
+"  -EFvlpf=d    Disable voice LPF" NLS
+"  -EFvlpf=c    Enable Chamberlin resonant LPF (12dB/oct) (default)" NLS
+"  -EFvlpf=m    Enable Moog resonant lowpass VCF (24dB/oct)" NLS
 "  -EFns=n      Enable the n th degree noise shaping filter" NLS
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
@@ -3409,7 +3415,6 @@ static inline int parse_opt_h(const char *arg)
 "  --[no-]portamento" NLS
 "  --[no-]vibrato" NLS
 "  --[no-]ch-pressure" NLS
-"  --[no-]voice-lpf" NLS
 "  --[no-]mod-envelope" NLS
 "  --[no-]trace-text-meta" NLS
 "  --[no-]overlap-voice" NLS
@@ -3423,6 +3428,7 @@ static inline int parse_opt_h(const char *arg)
 "  --delay=(d|l|r|b)[,msec]" NLS
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f)[,level]" NLS
+"  --voice-lpf=(d|c|m)" NLS
 "  --noise-shaping=n" NLS, fp);
 #ifndef FIXED_RESAMPLATION
 	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);

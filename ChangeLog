@@ -1,3 +1,8 @@
+2003-12-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/timidity.[ch]:
+	  Support for voice LPF command line option
+
 2003-12-04  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/readmidi.[ch], timidity/playmidi.c:

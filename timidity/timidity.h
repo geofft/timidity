@@ -348,11 +348,12 @@ typedef double FLOAT_T;
 /* #define GM_CHANNEL_PRESSURE_ALLOW */
 
 
-/* Define if you want to use voice-by-voice LPF.
+/* Define if you want to use voice chamberlin / moog LPF.
  * This mode needs high CPU power.
  * There is a command line option to enable/disable this mode.
  */
-#define VOICE_BY_VOICE_LPF_ALLOW
+#define VOICE_CHAMBERLIN_LPF_ALLOW
+/* #define VOICE_MOOG_LPF_ALLOW */
 
 
 /* Define if you want to use modulation envelope.
