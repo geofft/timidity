@@ -2,14 +2,15 @@
 
 	* interface/alsaseq_c.c, interface/rtsyn_common.c,
 	  timidity/playmidi.c:
-	  Make natural performance for force keysig function
+	  Adjust force keysig modulation so that performance may
+	  feel it natural
 
 2004-06-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/alsaseq_c.c, interface/rtsyn_common.c,
 	  timidity/playmidi.[ch], timidity/readmidi.c,
 	  timidity/timidity.[ch]:
-	  Interlock interfaces with -K and -T command options
+	  Reflect the result of -K and -T command option on interfaces
 	  Improve force keysig calculation
 	  Change the base number of measure (bar) counter as 1 (was 0)
 
