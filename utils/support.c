@@ -731,7 +731,9 @@ int stat(const char *filename, struct stat *st)
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
 #include <string.h>
 
 /*
@@ -783,7 +785,9 @@ strlcpy(char *dst, const char *src, size_t siz)
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
 #include <string.h>
 
 /*
