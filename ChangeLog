@@ -1,3 +1,8 @@
+2004-04-14  Kentaro Sato <kentaro@ranvis.com>
+
+	* libarc/arc.c, timidity/timidity.c:
+	  Removed trailing directory separator from $basedir.
+
 2004-04-13  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* autoconf/ao.m4: Add.

@@ -1185,16 +1185,16 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	if (sep == NULL)
 	{
 		#ifndef __MACOS__
-		basedir = "." PATH_STRING;
+		basedir = ".";
 		#else
-		basedir = PATH_STRING;
+		basedir = "";
 		#endif
 	}
 	else
 	{
 		if ((cp = strchr(sep, '#')) != NULL)
-			sep = cp;
-		sep[1] = '\0';
+			sep = cp + 1;	/* inclusive of '#' */
+		*sep = '\0';
 	}
 
     errno = 0;
