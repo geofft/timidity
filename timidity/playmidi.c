@@ -1724,10 +1724,10 @@ static int find_free_voice(void)
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
-	int32 f, fs, cdiff, diff;
+	int32 f, fs, ft, fst, fc, cdiff, diff;
 	int8 tt = channel[e->channel].temper_type;
 	uint8 tp = channel[e->channel].rpnmap[RPN_ADDR_0003];
-	Sample *sp, *closest;
+	Sample *sp, *spc;
 	int16 st;
 	double ratio;
 	int i, j, nv, vel;
@@ -1774,13 +1774,13 @@ static int select_play_sample(Sample *splist,
 		/* SF2 - Scale Tuning */
 		if ((st = sp->scale_tuning) != 100) {
 			ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
-			f *= ratio + 0.5;
-			fs *= ratio + 0.5;
-		}
-		if (sp->low_freq <= fs && sp->high_freq >= fs
+			ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
+		} else
+			ft = f, fst = fs;
+		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel) {
 			j = vlist[nv] = find_voice(e);
-			voice[j].orig_frequency = f;
+			voice[j].orig_frequency = ft;
 			MYCHECK(voice[j].orig_frequency);
 			voice[j].sample = sp;
 			voice[j].status = VOICE_ON;
@@ -1790,22 +1790,23 @@ static int select_play_sample(Sample *splist,
 	if (nv == 0) {
 		cdiff = 0x7fffffff;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			diff = abs(sp->root_freq - fs);
+			/* SF2 - Scale Tuning */
+			if ((st = sp->scale_tuning) != 100) {
+				ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
+				ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
+			} else
+				ft = f, fst = fs;
+			diff = abs(sp->root_freq - fst);
 			if (diff < cdiff) {
-				closest = sp;
+				fc = ft;
+				spc = sp;
 				cdiff = diff;
 			}
 		}
-		/* SF2 - Scale Tuning */
-		if ((st = sp->scale_tuning) != 100) {
-			ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
-			f *= ratio + 0.5;
-			fs *= ratio + 0.5;
-		}
 		j = vlist[nv] = find_voice(e);
-		voice[j].orig_frequency = f;
+		voice[j].orig_frequency = fc;
 		MYCHECK(voice[j].orig_frequency);
-		voice[j].sample = closest;
+		voice[j].sample = spc;
 		voice[j].status = VOICE_ON;
 		nv++;
 	}
