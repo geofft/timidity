@@ -1,360 +1,382 @@
-==============================================================================
-	   TiMidity++ -- MIDI to WAVE converter and player
+======================================================================
+	TiMidity++ -- MIDI_to_WAVE変換およびプレーヤー
 
 					出雲正尚
-					<mo@goice.co.jp>
-					1999年4月28日
-					バージョン 2.0.0
-==============================================================================
-  本ドキュメントは TiMidity++ 2.0.0 以降の説明を記述しています。
+					<iz@onicos.co.jp>
+					2004年1月25日
+					バージョン2.13.0以降
+======================================================================
 
-  本プログラムは全く無保証のフリーです。GPL に従い、自由に再配布／修正
-することができます。ただし再配布する場合は、付属の COPYING、あるいは
-GPL のファイル (バージョン 2 以降) を取り寄せ、本プログラムと一緒に配
-布してください。
+本プログラムは，まったく無保証のフリーです。GPLに従い，自由に再配布/修
+正することができます。ただし，再配布する場合は付属のCOPYING，あるいは
+GPLのファイル(バージョン2以降)を取り寄せ，本プログラムと一緒に配布して
+ください。
 
-  本プログラムのオリジナルは Tuukka Toivonen <tt@cgs.fi> さんによって
-作られた TiMidity です。その後、出雲氏、あるいは他の様々な人達の協力に
-よって、TiMidity の改良版である TiMidity++ がリリースされました。
+本プログラムのオリジナルは，Tuukka Toivonen <tt@cgs.fi>さんによって作ら
+れたTiMidityです。その後，出雲氏，あるいは他の様々な人達の協力によって，
+TiMidityの改良版であるTiMidity++がリリースされました。
 
-  TiMidity はもともと MIDI ファイルをソフトウェアのみで WAVE ファイル
-に変換するツールとして開発されました。今ではただ単なる変換ではなく、リ
-アルタイムに MIDI を演奏するプレイヤーとして利用されています。外部音源
-なしにソフトウェアのみで MIDI を演奏するソフトウェアシーケンサとして動
-作します。
+TiMidityは，もともとMIDIファイルをソフトウェアのみで，WAVEファイルに変
+換するツールとして開発されました。今ではただ単なる変換ではなく，リアル
+タイムにMIDIを演奏するプレーヤーとして利用されています。外部音源なしに
+ソフトウェアのみで，MIDIを演奏するソフトウェアシーケンサとして動作しま
+す。
 
-  音源には、GUS/patch (Gravis Ultrasound) が用いられます。また SoundFont
+音源には，GUS/patch (Gravis Ultrasound)が用いられます。また，SoundFont
 と呼ばれる音源も利用できます。
 
-
 * TiMidity++ の主な特徴
-  - 外部 MIDI 音源なしで MIDI ファイルを演奏できる
-  - MIDI ファイルを様々な PCM 形式のファイル (wav や au など) に変換できる
-  - 音源には GUS/patch と呼ばれるファイルを用いる
-  - SoundFont と呼ばれる音源も利用できる
+  - 外部MIDI音源なしでMIDIファイルを演奏できる
+  - MIDIファイルを様々なPCM形式のファイル(wavやauなど)に変換できる
+  - 音源にはGUS/patchと呼ばれるファイルを用いる
+  - SoundFontと呼ばれる音源も利用できる
   - リアルタイムに演奏中の状態が表示できる
-  - ncurses, motif, xaw など、様々なユーザインターフェースがある
-  - 日本語が表示できる (日本語をサポートしていないインターフェースは除く)
-  - ネットワークを介して MIDI ファイルを演奏できる
-  - アーカイブ/圧縮 ファイルを演奏できる
-  - MIMPI の WRD ファイルの表示をサポート
-  - SMF の他に、RCP/R36/G18/G36, MOD ファイルも演奏できる
-  - 32 チャネル対応。
-  - ユーザインターフェースをダイナミックリンク可能
+  - ncurses，motif，xawなど，様々なユーザインターフェースがある
+  - 日本語が表示できる(日本語をサポートしていないインターフェースは除く)
+  - ネットワークを介してMIDIファイルを演奏できる
+  - アーカイブ/圧縮ファイルを演奏できる
+  - MIMPIのWRDファイルの表示をサポート
+  - SMFの他に，RCP/R36/G18/G36，MODファイルも演奏できる
+  - 32チャネル対応
+  - ユーザインタフェースをダイナミックリンク可能
   - サウンドスペクトログラムを表示できる
-  - GM/GS/XG モードの認識
-  - GS/XG のドラムパート自動判別
-  - 音と表示の同期 (trace plaing)
-  - 低負荷 (trace plaing でない時)
-  - メモリを喰う (最低 20M bytes の空き容量は欲しい)
+  - GM/GS/XGモードの認識
+  - GS/XGのドラムパート自動判別
+  - 音と表示の同期(トレース再生)
+  - 低負荷(トレース再生でないとき)
+  - メモリを喰う(最低20Mバイトの空き容量は欲しい)
   - オルタネートアサインをサポート
-  - リアルタイムに演奏することが困難になると、音数を自動的に減らし、
-    処理の軽減を図る
-  - ストリーム形式の MIDI を演奏できる。
+  - リアルタイムに演奏することが困難になると，音数を自動的に減らして処
+    理の軽減を図る
+  - ストリーム形式のMIDIを演奏できる
   - 以下の MIDI イベントをサポート：
-	NoteOn/Off, KeyPressure, Program, ChannelPressure, Pitchwheel,
-	ToneBank, ModulationWheel, MainVolume, Panning, Expression,
-	Sustain, Portamento, DataEntry, ReverbEffect, ChorusEffect,
-	RPN+/-, NRPN, RPN, AllSoundsOff, ResetControllers, AllNotesOff,
-	Mono/Poly Part, RandomPan, KeyShift,
-	TempoChange, Lyric, InsertText, KARAOKE-Part(@KMIDI),
-	MasterVolume, MIDI-Reset, SystemExclusiveMessages
+    NoteOn/Off, KeyPressure, Program, ChannelPressure, Pitchwheel,
+    ToneBank, ModulationWheel, MainVolume, Panning, Expression,
+    Sustain, Portamento, DataEntry, ReverbEffect, ChorusEffect,
+    RPN+/-, NRPN, RPN, AllSoundsOff, ResetControllers, AllNotesOff,
+    Mono/Poly Part, RandomPan, KeyShift,
+    TempoChange, Lyric, InsertText, KARAOKE-Part(@KMIDI),
+    MasterVolume, MIDI-Reset, SystemExclusiveMessages
 
+* 使用法:
+  timidity [options] filename [...]
 
-* 起動
-  - 形式: timidity [options] midi-filename
+  標準入力からMIDIファイルを読み込むにはファイル名として“-”を使います
 
-  - オプション:
-      -A n		 音量を指定します．デフォルトでは n=70 です． 大き
-			 な値を指定するほど大きな音になります．1〜800 の値
-			 が有効です．
+* オプション:
+  -A n,m     --volume=n, --drum-power=m
+               音量をn%で指定します(クリッピングを引き起こすかも知れません)
+                 またドラムパワーをm%で指定します
+     (a)     --[no-]volume-compensation
+               音量補正を有効/無効にします(デフォルトは無効です)
+  -a         --[no-]anti-alias
+               アンチエイリアシングを有効にします
+  -B n,m     --buffer-fragments=n,m
+               バッファフラグメントの数(n)とバッファサイズ(2^m)を指定します
+  -C n       --control-ratio=n
+               制御レートを指定します
+  -c file    --config-file=file
+               追加のコンフィグレーションファイルを読み込みます
+  -D n       --drum-channel=n
+               nチャンネル目をドラムチャンネルにします
+  -E mode    --ext=mode
+               TiMidityシーケンサ拡張モードを指定します:
+                 mode = w/W : モジュレーション制御を有効/無効にします
+                        p/P : ポルタメント制御を有効/無効にします
+                        v/V : NRPNビブラートを有効/無効にします
+                        s/S : チャンネルプレッシャーを有効/無効にします
+                        e/E : モジュレーションエンベロープを有効/無効にします
+                        t/T : 全て/特定のテキストメタイベントをトレースします
+                        o/O : 同一音の重複を許します/許しません
+                        z/Z : 音律制御を有効/無効にします
+                        m<HH>: デフォルトマニュファクチュアID<HH>を指定します
+                        M<HH>: システムマニュファクチュアID<HH>を指定します
+                        b<n>: 全chをデフォルトバンク<n>に設定します
+                        B<n>: 全chをバンク<n>で演奏します
+                        i<n/m>: 全/<m>chをデフォルトプログラム<n>に設定します
+                        I<n/m>: 全/<m>chをプログラム<n>で演奏します
+                        F<args>: 下記のエフェクトオプションを参照してください
+                   デフォルト: -E wpvSEToz
+  -e         --evil
+               スレッドプライオリティを上げます(危険) - 注意すること！
+  -F         --[no-]fast-panning
+               ファーストパンを無効/有効にします(デフォルトは有効です)
+  -f         --[no-]fast-decay
+               ファーストディケイを有効にします(トグル)
+  -g sec     --spectrogram=sec
+               サウンドスペクトログラムを表示するウィンドウを開きます
+  -H n       --force-keysig=n
+               強制的にキーシグネチャを固定します
+  -h         --help
+               オプションの説明を表示します
+  -i mode    --interface=mode
+               ユーザインタフェースを指定します(下記のリストを参照ください)
+             --realtime-priority=n (for alsaseq only)
+               リアルタイムプライオリティを設定します(0-100)
+             --sequencer-ports=n (for alsaseq only)
+               オープンするシーケンサポートの数を指定します(デフォルトは4)
+  -j         --[no-]realtime-load
+               演奏しながらパッチファイルを読み込みます(トグル)
+  -K n       --adjust-key=n
+               n半音単位でキーを調節します(-24..24)
+  -k msec    --voice-queue=msec
+               ボイスを減少させるオーディオキュータイムを指定します
+  -L path    --patch-path=path
+               TiMidity++のサーチパスを追加します
+  -M name    --pcm-file=name
+               演奏するPCMファイル名(*.wavまたは*.aiff)を指定します
+                 "auto" : *.mid.wavまたは*.mid.aiffを演奏します
+                 "none" : この機能を無効にします(デフォルト)
+  -m msec    --decay-time=msec
+               サステインしたノートがディケイされるまでの最大時間を指定します
+                 0で無効です
+  -N n       --interpolation=n
+               補完パラメータを指定します(-EFresampオプションに依存します)
+                 オーディオキューが99%以下のときは，線形補完が使われます
+                 cspline, lagrange:
+                   4点補完を指定します(デフォルト有効)
+                 newton:
+                   n次のニュートン補完を指定します。n=1-57の奇数
+                 gauss:
+                   n+1点ガウス風補完を指定します。n=1-34(デフォルト25)
+  -O mode    --output-mode=mode
+               出力モードやフォーマットを指定します(下記のリストを参照ください)
+  -o file    --output-file=file
+               出力ファイル名(デバイス/サーバ)を指定します("-"で標準出力)
+  -P file    --patch-file=file
+               すべての楽器を指定したパッチファイルを用いて演奏します
+  -p n       --polyphony=n
+               最大同時発音数を指定します。
+     (a)     --[no-]polyphony-reduction
+               自動で発音数の減少させることを可能にします(デフォルト有効)
+  -Q n[,...] --mute=n[,...]
+               nチャンネルを無視します(0: すべて無視, -n: nチャンネルを復活)
+     (t)     --temper-mute=n[,...]
+               音律種別nをミュートします(0..3: プリセット, 4..7: ユーザ定義)
+  -q sec/n   --audio-buffer=sec/n
+               オーディオバッファを秒で指定します
+                 sec: 最大バッファ, n: 開始バッファ% (デフォルトは5.0/100%)
+                 (100%のサイズはデバイスバッファサイズと等価です)
+  -R msec      エンベロープリリースをmsecに修正して音響効果を得ます
+                 n=0でnは800に設定されます
+  -S n       --cache-size=n
+               キャッシュサイズを指定します(0はキャッシュなしです)
+  -s freq    --sampling-freq=freq
+               再生サンプルレートを(HzまたはkHz)を指定します
+  -T n       --adjust-tempo=n
+               テンポをn%に調節します
+                 n=120でMODファイルをNTSC Amigaのタイミングで演奏します
+  -t code    --output-charset=code
+               テキストの出力文字コードを指定します:
+                 code=auto  : LANG環境変数によってコードが決まります
+                              (UNIXのみ)
+                      ascii : 非可読ASCIIをピリオド(0x2e)に変換して出力します
+                      nocnv : 出力文字コードを変換しません
+                      1251  : windows-1251からkoi8-rに変換して出力します
+                      euc   : EUCコード(japan)で出力します
+                      jis   : JISコードで出力します
+                      sjis  : SJISコードで出力します
+  -U         --[no-]unload-instruments
+               毎曲パッチに割り当てられていたメモリを開放します
+  -V power   --volume-curve=power
+               ベロシティ/ボリューム/エクスプレッションカーブを設定します
+                 amp = vol^power (自動: 0, 線形: 1, 理想: ~1.661, GS: ~2)
+  -v         --version
+               TiMidityバージョン情報を表示します
+  -W mode    --wrd=mode
+               WRDインタフェースを選択します(下記のリストを参照ください)
+  -w mode    --rcpcv-dll=mode
+               Windowsの拡張モード:
+                 mode=r/R : rcpcv.dllを有効/無効にします
+  -x str     --config-string=str
+               指定した文字列strで設定を行います
+  -Z file    --freq-table=file
+               周波数テーブルを読み込みます("pure"で簡易純正律演奏します)
+  pure<n>(m) --pure-intonation=n(m)
+               初期のキーシグネチャ<n>を指定します(-7..7)
+                 'm'は短調を意味します
 
-      -a		 アンチエイリアシングを有効にします．
-			 低いレートで再生したときに，折り返し雑音と呼ばれる
-			 不自然な成分が含まれることがあります．-a オプショ
-			 ンで起動することでこの 不自然な成分を取り除くこと
-			 ができます．
+* エフェクトオプション(-EF, --ext=Fオプション):
+  -EFdelay=d   ディレイを無効にします(デフォルト)
+  -EFdelay=l   左ディレイを有効にします
+    [,msec]      “msec”は左右のディレイタイムを指定するオプションです
+  -EFdelay=r   右ディレイを有効にします
+    [,msec]      “msec”は左右のディレイタイムを指定するオプションです
+  -EFdelay=b   左右ローテートを有効にします
+    [,msec]      “msec”は左右のディレイタイムを指定するオプションです
+  -EFchorus=d  コーラスを無効にします
+  -EFchorus=n  標準的なMIDIコーラス制御を有効にします
+    [,level]     “level”はコーラスレベル[0..127]を指定するオプションです
+                 (デフォルト)
+  -EFchorus=s  サラウンドコーラスを有効にします
+    [,level]     “level”はコーラスレベル[0..127]を指定するオプションです
+  -EFreverb=d  MIDIリバーブ制御を無効にします
+  -EFreverb=n  標準的なMIDIリバーブ制御を有効にします
+    [,level]     “level”はリバーブレベル[0..127]を指定するオプションです
+  -EFreverb=g  グローバルリバーブ
+    [,level]     “level”はリバーブレベル[0..127]を指定するオプションです
+  -EFreverb=f  Freeverb MIDIリバーブ制御を有効にします(デフォルト)
+    [,level]     “level”はリバーブレベル[0..127]を指定するオプションです
+  -EFreverb=G  グローバルFreeverb
+    [,level]     “level”はリバーブレベル[0..127]を指定するオプションです
+  -EFvlpf=d    ボイス単位LPFを無効にします
+  -EFvlpf=c    ChamberlinレゾナントLPF(12dB/oct)を有効にします(デフォルト)
+  -EFvlpf=m    MoogレゾナントローパスVCF(24dB/oct)を有効にします
+  -EFns=n      n次ノイズシェーピングフィルタを有効にします
+                 n:[0..4] (8ビット線形符号化のとき，デフォルトは4)
+                 n:[0..2] (16ビット線形符号化のとき，デフォルトは2)
+  -EFresamp=d  補完処理を無効にします
+  -EFresamp=l  線形補完アルゴリズムを有効にします
+  -EFresamp=c  Cスプライン補完アルゴリズムを有効にします
+  -EFresamp=L  ラグランジュ補完アルゴリズムを有効にします
+  -EFresamp=n  ニュートン補完アルゴリズムを有効にします
+  -EFresamp=g  ガウス風補完アルゴリズムを有効にします(デフォルト)
+                 -EFresampは-Nオプションの挙動に影響します
 
-      -B n		 音源にデータを書き込む時の分割数を指定します． 0〜
-			 1000 の値が有効です．このオプションは Linux,
-			 FreeBSD, Windows のみで有効です．
+* TiMidityシーケンサ拡張モードの代替ロングオプション:
+  --[no-]mod-wheel
+  --[no-]portamento
+  --[no-]vibrato
+  --[no-]ch-pressure
+  --[no-]mod-envelope
+  --[no-]trace-text-meta
+  --[no-]overlap-voice
+  --[no-]temper-control
+  --default-mid=<HH>
+  --system-mid=<HH>
+  --default-bank=n
+  --force-bank=n
+  --default-program=n/m
+  --force-program=n/m
+  --delay=(d|l|r|b)[,msec]
+  --chorus=(d|n|s)[,level]
+  --reverb=(d|n|g|f|G)[,level]
+  --voice-lpf=(d|c|m)
+  --noise-shaping=n
+  --resample=(d|l|c|L|n|g)
 
-      -b mode		 ヘッドホンやイヤホンで聞いた時の音の臨場感を 出す
-			 ようにします． mode には以下のモードが有効です．
-			 -bl  主に左から音が聞こえてきます．
-			 -br  主に右から音が聞こえてきます．
-			 -bb  ときどき，左右の音場が変化します．
-			 -bc  この機能は無効になります．
+* 有効なインタフェース(-i, --interfaceオプション):
+  -in          ncursesインタフェース
+  -iT          vt100インタフェース
+  -im          motifインタフェース
+  -ik          Tcl/Tkインタフェース
+  -ie          Emacsインタフェース(“M-x timidity”から起動)
+  -ia          XAWインタフェース
+  -ii          skinインタフェース
+  -ig          gtk+インタフェース
+  -id          dumbインタフェース
+  -iA          ALSAシーケンサインタフェース
+  -iW          Windowsシンセサイザインタフェース
 
-      -C n		 制御レートを指定します．TiMidity++ では， エンベロー
-			 プやトレモロなどの音量計算を 1 サンプル毎行うので
-			 はなく， 複数のサンプルをまとめて計算することで高
-			 速化をはかっています． n サンプル毎に，エンベロー
-			 プやトレモロの音量が再計算されます． n の値を小さ
-			 くすればするほど音質が良くなりますが，その分 CPU
-			 パワー を必要とします．n は 1〜255 までの値を指定
-			 することができます． デフォルトでは 1 ミリ秒に相当
-			 するサンプル数となっており、再生サンプルレート に
-			 よって変わってきます。
+* インタフェースオプション(-i?オプションに追加):
+  `v'          より冗長に(累積的)
+  `q'          より寡黙に(累積的)
+  `t'          トレース再生
+  `l'          ループ再生(インタフェースによっては無視されます)
+  `r'          再生前にファイルリスト順をランダムにします
+  `s'          再生前にファイルリスト順をソートします
+  `D'          TiMidity++をバックグラウンドでデーモン化します(alsaseqのみ)
 
-      -c file		 TiMidity++ の設定ファイル file を読み込みます．
-			 TiMidity++ のデフォルトの設定ファルを読み込んだ後，
-			 file が読み込まれます．
+* インタフェースの代替ロングオプション:
+  --verbose=n
+  --quiet=n
+  --[no-]trace
+  --[no-]loop
+  --[no-]random
+  --[no-]sort
+  --[no-]background
 
-      -D n		 n チャネル目をドラムチャネルにします． -nとすると
-			 n チャネル目がドラムではなくメロディーチャネルに
-			 することできます．
+* 有効な出力モード(-O, --output-modeオプション):
+  -Od          dspデバイス
+  -Os          ALSA pcmデバイス
+  -Ow          RIFF WAVEファイル
+  -Or          生の波形データ
+  -Ou          Sunオーディオファイル
+  -Oa          AIFFファイル
+  -Ol          MIDIイベントのリストアップ
+  -OM          MOD -> MIDIファイル変換
 
-      -d dir		 ダイナミックリンクインターフェース モジュールがイ
-			 ンストールされているディレクトリを指定します．
-      -e		 TiMidity++ のプライオリティをあげます．Windows のみ
-			 で有効です． このオプションを有効にすると，
-			 TiMidity++ 以外のプログラムがほとんど動作 しなくなり
-			 ます．
+* 出力フォーマットオプション(-O?オプションに追加):
+  `S'          ステレオ
+  `M'          モノラル
+  `s'          符号あり出力
+  `u'          符号なし出力
+  `1'          16ビットサンプル精度
+  `8'          8ビットサンプル精度
+  `l'          線形符号化
+  `U'          μ-Law符号化
+  `A'          A-Law符号化
+  `x'          バイト反転出力
 
-      -E mode		 TiMidity++ の拡張モードを指定します(複数指定可)．
-			 主に演奏時の機能に影響を与えます． 以下の mode が
-			 指定できます．
-			 w  モジュレーションコントロールを有効にします．
-			 W  モジュレーションコントロールを無効にします．
-			 p  ポルタメントコントロールを有効にします．
-			 P  ポルタメントコントロールを無効にします．
-			 v  NRPN ビブラートを有効にします．
-			 V  NRPN ビブラートを無効にします．
-			 r  リバーブエフェクトコントロールを有効にします．
-			 R  リバーブエフェクトコントロールを無効にします．
-			 c  コーラスエフェクトコントロールを有効にします．
-			 cn 全てのチャネルのコーラスエフェクトを n で演奏
-			    します．
-			 C  コーラスフェクトコントロールを無効にします．
-			 s  チャンネルプレッシャーを有効にします．
-			 S  チャンネルプレッシャーを無効にします．
-			 t  全てのテキストメタイベントをトレースします．
-			 T  特定のテキストメタイベントをトレースします．
-			 o  同一音の重複を許します．
-			 O  同一音の重複は許しません．前の音は消音されま
-			 す．
-			 mHH  デフォルトのマニュファクチュア ID を 2 桁の16
-			      数 HH で指定します．
-			 mgm  デフォルトのマニュファクチュア ID を 0x7f
-			      (GM) にします．
-			 mgs  デフォルトのマニュファクチュア ID を 0x41
-			      (GS) にします．
-			 mxg  デフォルトのマニュファクチュア ID を 0x43
-			      (XG) にします．
-			 Bn   全てのチャネルをバンク n で演奏します． n を省
-			      略するとデフォルトの動作に戻ります．
-			 bn   全てのチャネルのデフォルトバンクを n に 設定し
-			      ます．Bn と異なり，演奏中のバンクセレクト命令
-			      を受け付けます．n を省略するとデフォルトの動作
-			      に戻ります．
+* 出力フォーマットの代替ロングオプション:
+  --output-stereo
+  --output-mono
+  --output-signed
+  --output-unsigned
+  --output-16bit
+  --output-8bit
+  --output-linear
+  --output-ulaw
+  --output-alaw
+  --[no-]output-swab
 
-      -F		 このオプションを指定すると，Note ON のままの状態で
-			 Midi control change 10: Panning が有効になります．
-			 デフォルトではすぐには変化しないで，音量の再計算が
-			 必要になったときに 変化します．改良版ではトグルオ
-			 プションになっています．
-
-      -f		 このオプションを有効にすると， エンベロープの変化
-			 時間が半分になり高速に動作します．ただし， 音の立
-			 ち上がりとリリース時間が短くなってしまいます．
-
-      -g sec		 Sound-Spectrogram を表示する Window を開きます．
-			 このオプションは X Window がサポートされている環境
-			 のみで動作します． Sound-Spectrogram は声紋のよう
-			 なもので，スペクトラムの時間変化を 表現したもので
-			 す．
-
-      -h		 オプションの説明を表示します．
-
-      -I n		 デフォルトの楽器番号を指定します． デフォルトでは
-      -I n/		 n=0 (通常はピアノ) となっています．改良版では， チ
-			 ャネル毎にデフォルトの楽器番号を指定でき，チャネル
-			 番号 cを nに続けて「n/c」と記述します．「/c」が 省
-			 略されると，全チャネルのデフォルトの楽器番号が設定
-			 されます．
-
-      -i mode		 ユーザインターフェースを指定します． 環境によって
-			 利用可能なインターフェースが異なります． 以下の
-			 mode が存在します．
-			 -id  dumb interface
-			 -in  ncurses interface
-			 -is  slang interface
-			 -ia  X Athena Widget interface (拡張版のみ)
-			 -ik  Tcl/Tk interface
-			 -im  motif interface
-			 -iT  vt100 interface (拡張版のみ)
-			 -ie  Emacs interface (拡張版のみ、Emacs 上から M-x
-			 timidity により起動されます)
-			 上記オプションに続けて(スペースを空けずに)， 以下
-			 の文字列を追加することができます(複数指定化)．
-			 v  冗長表示のレベルを上げます．
-			 q  冗長表示のレベルを下げます．
-			 t  トレース表示の on/off (トグル)．
-
-      -j		 このオプションを有効にすると， 演奏しながらパッチ
-			 ファイルを読み込みます．
-
-      -L dir		 TiMidity++ のサーチパス dir を追加します．
-
-      -n mode		 Noise Shaping Filter
-			 8 bit linear 出力時の量子化誤差による歪みを改善し
-			 ます．ただし， ノイズが増えます．
-			 mode には 0〜4 の値が有効で， noise shaping filter
-			 の次数を表します．0 の時はフィルタ無しです．
-
-      -O mode		 出力モードやフォーマットを指定します． 以下の mode
-			 が有効です．
-			 -Od  オーディオデバイスに出力します(デフォルト)．
-			 -Ow  Windows WAV ファイルを出力します．
-			 -Or  ヘッダのないオーディオのデータ部分のみを出力
-			      します．
-			 -Ou  Sun Audio (au) ファイルを出力します(拡張版の
-			      み)．
-			 -Oa  AIFF ファイルを出力します(拡張版のみ)．
-			      上記オプションに続けて(スペースを空けずに)， 
-			      以下の文字を追加することで出力フォーマットを
-			      指定できます(複数可)．
-			 8  8-bit サンプル精度
-			 1  16-bit サンプル精度 (数字のいち)
-			 U  U-Law 符合化方式
-			 A  A-Law 符合化方式 (拡張版のみ)
-			 l  linear PCM 符合化方式 (英小文字のエル)
-			 M  モノラル
-			 S  ステレオ
-			 s  符合付き整数
-			 u  符合無し整数
-			 x  バイト反転
-
-      -o file		 出力ファイル名を指定します．出力先が ファイルでな
-			 い場合はこのオプションは無視されます．
-
-      -P file		 全ての楽器を file を用いて演奏します．file には
-			 GUS のパッチファイルを指定します。
-
-      -p n		 最大同時発音数を指定します．
-
-      -Q n		 n チャネル目を演奏しないようにします．
-
-      -R n		 エンベロープリリース を修正して音響効果を得ます．
-			 0〜2 の値が指定可能で，nの値によってその効果が異な
-			 ります．
-
-      -r		 このオプションを有効にすると， リバーブ効果を得ま
-			 す．
-
-      -S size		 リサンプリングキャッシュの大きさを バイト数で指定
-			 します． 頻繁に用いられるサンプルは予めリサンプリ
-			 ングしておくことで 高速化しています．ただし，ビブ
-			 ラートやピッチベンドなどによってピッチが 変化する
-			 サンプルはキャッシュされません．0 を指定すると全く
-			 キャッシュ しません．デフォルトでは n=2097152 (2M)
-			 となっています．
-
-      -s freq		 再生サンプルレート (Hz または kHz) を指定します．4
-			 〜65 の場合は kHz、4000〜65000 の場合は Hz として
-			 解釈されます。それ以外のレートはエラーとなります。
-
-      -t code		 テキストの出力文字コードを指定します． 以下の code
-			 が指定可能です(大文字小文字は区別されません)．
-			 auto	LANG 環境変数によって，コードが決まります．
-			 ascii	非可読 ASCII を ピリオド(0x2e) に変換して出
-				力します．
-			 nocnv	出力文字コードを変換しません．
-			 euc	EUC コード(japan) で出力します．
-			 jis	JIS コードで出力します．
-			 sjis	SJIS コードで出力します．
-
-      -U		 このオプションを有効にすると，毎曲， パッチに割り
-			 当てられていたメモリを解放します．
-
-      -W mode		 MIMPI の WRD ファイルのトレース表示する インターフ
-			 ェースを指定します。以下の mode が有効です．
-			 -W-  WRD ファイルを無視します(デフォルト)．W と
-			 '-' にスペースを 入れないことに注意すること
-			 -Wd  WRD コマンドを表示します． -Wt  vt100 や
-			 kterm に基づいた制御コードを用いて、WRD のテキスト
-			 表示の部分を表示します。 -Ww  Windows のコンソール
-			 に基づいた制御コードを用いて、 WRD のテキスト表示
-			 の部分を表示します。
-
-      -W Ropts1,opts2,...MIMPI の WRD ファイルに関するオプションです。以下
-			 の opts が指定可能です。
-			 -WRd=level	MIMPI のバグエミュレーションレベル
-					を指定します。以下の値を取ります。
-				0  MIMPI のバグをエミュレーションしないで
-				   規格通りに忠実に WRD をトレースします。
-				   @WAIT 命令によって時間をさかのぼるような
-				   WRD も、指定した時刻通りにタイミングを
-				   合わせます。
-				1  既知のバグのみをエミュレーションします。
-				2  バグらしい部分までもエミュレーションしますが
-				   今までタイミングのあっていたものが
-				   ずれてしまうことがあります。
-				3 以上
-				   開発用に設けたレベルで、一部の特定の WRD
-				   のみに対象を絞ってタイミングを合わせます。
-			 -WRf=filename	WRD ファイルが見つからない場合の
-			   み、 指定した filename が WRD ファイルとして用いら
-			   れます。
-			 -WRF=filename	常に指定した WRD ファイル filename
-			   が用いられます。
-			 -WRp=path  @MAG, @PLOAD のデフォルトパス path を指
-			   定します。
-
-      -w mode		 Windows 用の拡張モードのオプションです． 以下の
-			 mode が有効です．
-			 -w r  rcpcv.dll を使用します．
-			 -w R  rcpcv.dll を使用しません(デフォルト)．
-
-      -x str		 指定した文字列 str で設定を行います． 例えば
-			 -x'bank 0\n0 violin.pat'
-			 とすると 0 番をバイオリンにすることができます．
-
+* 有効なWRDインタフェース(-W, --wrdオプション):
+  -Wx          X WRDトレーサ
+  -Ww          WindowsコンソールWRDトレーサ
+  -Wt          TTY WRDトレーサ
+  -Wd          dumb WRDトレーサ
+  -W-          WRDトレーサなし
 
 * アーカイブファイルの演奏
-  TiMidity++ では、アーカイブファイルをそのまま読み込んで演奏
-  することができます。以下のアーカイブ形式をサポートしています。
+  TiMidity++では，アーカイブファイルをそのまま読み込んで演奏することが
+  できます。以下のアーカイブ形式をサポートしています。
 
-  - tar ファイル (*.tar) 
-  - tar + gzip'ed ファイル (*.tar.gz, *.tgz) 
-  - zip ファイル (*.zip) 
-  - lzh ファイル (*.lzh)
-	(lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz5, lz4 対応) 
+    - tarファイル       (*.tar)
+    - tar+gzipファイル  (*.tar.gz, *.tgz)
+    - zipファイル       (*.zip)
+    - lzhファイル       (*.lzh)
+        (lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4, lz5に対応)
 
-  アーカイブファイル中の個々のファイルを指定するには，アーカイブファイル名の
-  後に続けて # を記述し，その後に続けて アーカイブ中のファイル名を指定します． 
-  # の後は UNIX shell の正規表現のパターンになっていますが、大文字／小文字は
-  区別されません。以下に例をいくつかあげます。
-	      timidity 'file.zip#file.mid'
-		  file.zip 中の file.mid ファイルを演奏します． 
-	      timidity 'file.lzh#*.mid'
-		  file.lzh 中の *.mid にマッチするファイルを演奏します． 
-	      timidity 'file.tgz#*'
-		  これは timidity 'file.tgz' と等価です． 
+  アーカイブファイル中の個々のファイルを指定するには，アーカイブファイ
+  ル名の後に続けて‘#’を記述し，その後に続けてアーカイブ中のファイル名
+  を指定します。
+  ‘#’の後は，UNIXシェルの正規表現のパターンになっていますが，大文字/
+  小文字は区別されません。以下に例をいくつか挙げます。
 
+    timidity file.zip#file.mid
+        file.zip中のfile.midファイルを演奏します。
+
+    timidity file.lzh#*.mid
+        file.lzh中の*.midにマッチするファイルを演奏します。
+
+    timidity file.tgz#*
+        これはtimidity file.tgzと等価です。
 
 * MIDI ファイルのネットワークアクセス。
-  TiMidity++ では、MIDI ファイルをネットワークを介してアクセスする
-  ことができます。現在サポートしているプロトコルは HTTP, FTP, NNTP(NetNews)
-  で、それぞれ、http://〜, ftp://〜, news://〜 のように指定します。
-  ネットワーク上にアーカイブされた MIDI ファイルも同様な方法で指定すると
-  演奏することができます。なお、NetNews によるアクセスにおいて、
-  MessageID 部に NewsGroup 名を記述すると、その Group 中に投稿されている
-  全ての MIDI ファイルを演奏します。また、投稿された MIDI ファイルは、
-  uuencode されているか、あるいは Multipart 形式の uuencode/base64/hexbin
-  でなければなりません。
+  TiMidity++では，MIDIファイルをネットワークを介してアクセスすることが
+  できます。現在サポートしているプロトコルはHTTP，FTP，NNTP(NetNews)で，
+  それぞれ，http://〜，ftp://〜，news://〜のように指定します。
 
+  ネットワーク上にアーカイブされたMIDIファイルも同様な方法で指定すると
+  演奏することができます。なお，NetNewsによるアクセスにおいて，MessageID
+  部にNewsGroup名を記述すると，そのGroup中に投稿されているすべてのMIDI
+  ファイルを演奏します。また，投稿されたMIDIファイルは，uuencodeされて
+  いるか，あるいはMultipart形式のuuencode/base64/hexbinでなければなりま
+  せん。
 
 * 入手元
-  以下の場所から最新の TiMidity++ が入手できます。
-    ・http://www.goice.co.jp/member/mo/timidity/
-	(主に UNIX 用)
-    ・http://www.asahi-net.or.jp/~gb7t-ngm/timidity/
-	(Macintosh 版)
-    ・http://www2.off.ne.jp/~dai/timidity/timidity-izumo.html
-	(Windows 版)
-    なお、オリジナル版である Tuukka Toivonen さんの TiMidity の公式な
-    配付サイトは閉じてしまいました。もし、オリジナル版を入手したいならば、
+  以下の場所から最新のTiMidity++が入手できます。
+
+    http://www.goice.co.jp/member/mo/timidity/
+        (主にUNIX用)
+    http://www.asahi-net.or.jp/~gb7t-ngm/timidity/
+        (Macintosh版)
+    http://www2.off.ne.jp/~dai/timidity/timidity-izumo.html
+        (Windows版)
+
+  なお，オリジナル版であるTuukka ToivonenさんのTiMidityの公式な配付サイ
+  トは閉じてしまいました。もし，オリジナル版を入手したいならば，
+  
     http://www.goice.co.jp/member/mo/timidity/dist/timidity-0.2i.tar.gz
-    から得ることが出来ます。
+
+  から得ることができます。

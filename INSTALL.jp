@@ -1,565 +1,572 @@
-==============================================================================
+======================================================================
+	TiMidity++¥¤¥ó¥¹¥È¡¼¥ë¥¬¥¤¥É
 
-                    TiMidity++ $B$N%$%s%9%H!<%k(B
+					½Ð±ÀÀµ¾°
+					<iz@onicos.co.jp>
+					2004Ç¯1·î25Æü
+					¥Ð¡¼¥¸¥ç¥ó2.13.0°Ê¹ß
+======================================================================
 
-					$B=P1@@5>0(B <mo@goice.co.jp>
-					$B:G=*=$@5F|(B 1999$BG/(B9$B7n(B2$BF|(B
-==============================================================================
+¤³¤Î¥É¥­¥å¥á¥ó¥È¤Ï¡¤TiMidity++(¥Ð¡¼¥¸¥ç¥ó2.13.0°Ê¹ß)¤ÎUNIX¾å¤Ç¤Î¥¤¥ó¥¹
+¥È¡¼¥ëÊýË¡¤òÀâÌÀ¤·¤Æ¤¤¤Þ¤¹¡£Macintosh¤Î¥¤¥ó¥¹¥È¡¼¥ëÊýË¡¤Ï¡¤ËÜ¥É¥­¥å¥á¥ó
+¥È¤Ç¤ÏÀâÌÀ¤µ¤ì¤Æ¤¤¤Þ¤»¤ó¡£
 
-$B$3$N%I%-%e%a%s%H$O(B TiMidity++ ($B%P!<%8%g%s$O(B 2.6.0 $B0J9_(B) $B$N(B UNIX $B>e$G$N(B
-$B%$%s%9%H!<%kJ}K!$r@bL@$7$F$$$^$9!#(BMacintosh $B$N%$%s%9%H!<%kJ}K!$O!"(B
-$BK\%I%-%e%a%s%H$G$O@bL@$5$l$F$$$^$;$s!#(B
+TiMidity++¤Ï¡¤Windows¾å¤ÎCygwin´Ä¶­¤Ç¤âconfigure¤¬Æ°ºî¤·¡¤timidity.exe
+¤òºîÀ®¤¹¤ë¤³¤È¤¬²ÄÇ½¤Ç¤¹¡£¤â¤·¡¤Cygwin¤¬¤Ê¤¤¾ì¹ç¤Ï¡¤
 
-TiMidity++ $B$O!"(BWindows $B>e$N(B Cygwin $B4D6-$G$b(B configure $B$,F0:n$7!"(B
-timidity.exe $B$r:n@.$9$k$3$H$,2DG=$G$9!#$b$7!"(Bcygwin $B$,$J$$>l9g$O!"(B
-http://sourceware.cygnus.com/cygwin/ $B$+$iF~<j$7$F%$%s%9%H!<%k$7$F$/$@$5$$!#(B
-$B$=$7$F!"(BCYGNUS $B$r5/F0$7!"(B/bin/sh $B$K(B bash $B$X$N(B
-$B%7%s%\%j%C%/%j%s%/$r:n@.$7$F$*$$$F$/$@$5$$!#(B
+http://sourceware.cygnus.com/cygwin/
 
-$B%$%s%9%H!<%k$NBg$^$+$J<j=g$O(B
+¤«¤éÆþ¼ê¤·¤Æ¥¤¥ó¥¹¥È¡¼¥ë¤·¤Æ¤¯¤À¤µ¤¤¡£
+¤½¤·¤Æ¡¤CYGNUS¤òµ¯Æ°¤·¡¤/bin/sh¤Ëbash¤Ø¤Î¥·¥ó¥Ü¥ê¥Ã¥¯¥ê¥ó¥¯¤òºîÀ®¤·¤Æ¤ª
+¤¤¤Æ¤¯¤À¤µ¤¤¡£
 
-1. configure
-2. common.makefile, Makefile, timidity.h $B$NJT=8(B ($B$7$J$/$F$b$h$$(B)
-3. make              (GNU $B$N(B make $B$,I,MW(B)
-4. $B%$%s%9%H!<%k(B
-5. $B2;8;$r$=$m$($k(B
+¥¤¥ó¥¹¥È¡¼¥ë¤ÎÂç¤Þ¤«¤Ê¼ê½ç¤Ï
 
-$B$H$J$j$^$9!#0J2<!"=g$r$*$C$F@bL@$7$^$9!#(B
-$B$J$*!"%I%-%e%a%s%HCf$N(B % $B$O%7%'%k$N%W%m%s%W%H$rI=$7$F$$$^$9!#(B
+  1. configure
+  2. common.makefile¡¤Makefile¡¤timidity.h¤ÎÊÔ½¸(¤·¤Ê¤¯¤Æ¤â¤è¤¤)
+  3. make (GNU¤Îmake¤¬É¬Í×)
+  4. ¥¤¥ó¥¹¥È¡¼¥ë
+  5. ²»¸»¤ò¤½¤í¤¨¤ë
+
+¤È¤Ê¤ê¤Þ¤¹¡£°Ê²¼¡¤½ç¤òÄÉ¤Ã¤ÆÀâÌÀ¤·¤Þ¤¹¡£
+¤Ê¤ª¡¤¥É¥­¥å¥á¥ó¥ÈÃæ¤Î¡Æ%¡Ç¤Ï¥·¥§¥ë¤Î¥×¥í¥ó¥×¥È¤òÉ½¤·¤Æ¤¤¤Þ¤¹¡£
 
 1. configure
 ------------
-$B$^$:$O!"(B
+¤Þ¤º¤Ï¡¤
 
 % /bin/sh configure --help
 
-$B$H$7$F$/$@$5$$!#$9$k$H!"$$$m$$$m$J(B configure $B$N%*%W%7%g%s$,$"$i$o$l$F$-$^$9!#(B
-$B$3$N$&$A!"<g$J$b$N$r@bL@$7$^$9!#(B
+¤È¤·¤Æ¤¯¤À¤µ¤¤¡£¤¹¤ë¤È¡¤¤¤¤í¤¤¤í¤Êconfigure¤Î¥ª¥×¥·¥ç¥ó¤¬¸½¤ì¤Æ¤­¤Þ¤¹¡£
+¤³¤Î¤¦¤Á¡¤¼ç¤Ê¤â¤Î¤òÀâÌÀ¤·¤Þ¤¹¡£
 
   --help
-	$B%*%W%7%g%s$N4JC1$J@bL@$,I=<($5$l$^$9!#(B
+    ¥ª¥×¥·¥ç¥ó¤Î´ÊÃ±¤ÊÀâÌÀ¤¬É½¼¨¤µ¤ì¤Þ¤¹¡£
 
   --prefix=PREFIX
-	$B%$%s%9%H!<%k@h$N%Y!<%9$H$J$k%G%#%l%/%H%j$r;XDj$7$^$9!#%G%U%)%k%H$G$O(B
-	$B!V(B/usr/local$B!W$,(B PREFIX $B$H$J$C$F$$$^$9!#(B
-	  PREFIX/bin $B$K<B9T%U%!%$%k(B
-	  PREFIX/lib/timidity $B$K(B TiMidity $B$,I,MW$H$9$k2;8;$d%i%$%V%i%j$J$I(B
-	  PREFIX/man $B$K%^%K%e%"%k(B
-	$B$,%$%s%9%H!<%k$5$l$^$9!#(B
-	$BNc!'(B
-	% sh configure --prefix=/opt/gnu
-	# /opt/gnu/bin, /opt/gnu/lib/timidity, /opt/gnu/man $B0J2<$K%$%s%9%H!<%k$7$^$9!#(B
+    ¥¤¥ó¥¹¥È¡¼¥ëÀè¤Î¥Ù¡¼¥¹¤È¤Ê¤ë¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Þ¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç
+    ¤Ï¡È/usr/local¡É¤¬PREFIX¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£
+        PREFIX/bin          ¼Â¹Ô¥Õ¥¡¥¤¥ë
+        PREFIX/lib/timidity TiMidity¤¬É¬Í×¤È¤¹¤ë²»¸»¤ä¥é¥¤¥Ö¥é¥ê¤Ê¤É
+        PREFIX/man          ¥Þ¥Ë¥å¥¢¥ë
+    ¤Ë¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Þ¤¹¡£
+    Îã¡§
+    % sh configure --prefix=/opt/gnu
+    /opt/gnu/bin¡¤/opt/gnu/lib/timidity¡¤/opt/gnu/man°Ê²¼¤Ë¥¤¥ó¥¹¥È¡¼¥ë
+    ¤·¤Þ¤¹¡£
 
   --x-includes=DIR
-	X $B$N%$%s%/%k!<%I%G%#%l%/%H%j$r;XDj$7$^$9!#(Bconfigure $B$O<+F0E*$K(B
-	X $B$N%$%s%/%k!<%I%G%#%l%/%H%j$r8!:w$7$^$9$,!"I,$:$7$b@.8y$9$k$H$O(B
-	$B8B$j$^$;$s!#Nc$($P!"(BR5, R6 $B$NN>J}$,%$%s%9%H!<%k$5$l$F$$$k(B
-	$B4D6-$G$O!"$I$A$i$r;H$&$+$rL@<(E*$K;XDj$7$?$[$&$,3N<B$G$9!#(B
+    X¤Î¥¤¥ó¥¯¥ë¡¼¥É¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Þ¤¹¡£configure¤Ï¡¤¼«Æ°Åª¤ËX¤Î¥¤
+    ¥ó¥¯¥ë¡¼¥É¥Ç¥£¥ì¥¯¥È¥ê¤ò¸¡º÷¤·¤Þ¤¹¤¬¡¤É¬¤º¤·¤âÀ®¸ù¤¹¤ë¤È¤Ï¸Â¤ê¤Þ¤»
+    ¤ó¡£Îã¤¨¤Ð¡¤R5¡¤R6¤ÎÎ¾Êý¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤ë´Ä¶­¤Ç¤Ï¡¤¤É¤Á¤é¤ò
+    »È¤¦¤«¤òÌÀ¼¨Åª¤Ë»ØÄê¤·¤¿¤Û¤¦¤¬³Î¼Â¤Ç¤¹¡£
 
   --x-libraries=DIR
-	X $B$N%i%$%V%i%j%G%#%l%/%H%j$r;XDj$7$^$9!#(Bconfigure $B$O<+F0E*$K(B
-	X $B$N%i%$%V%i%j%G%#%l%/%H%j$r8!:w$7$^$9$,!"I,$:$7$b@.8y$9$k$H$O(B
-	$B8B$j$^$;$s!#Nc$($P!"(BR5, R6 $B$NN>J}$,%$%s%9%H!<%k$5$l$F$$$k(B
-	$B4D6-$G$O!"$I$A$i$r;H$&$+$rL@<(E*$K;XDj$7$?$[$&$,3N<B$G$9!#(B
+    X¤Î¥é¥¤¥Ö¥é¥ê¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Þ¤¹¡£configure¤Ï¡¤¼«Æ°Åª¤ËX¤Î¥é¥¤
+    ¥Ö¥é¥ê¥Ç¥£¥ì¥¯¥È¥ê¤ò¸¡º÷¤·¤Þ¤¹¤¬¡¤É¬¤º¤·¤âÀ®¸ù¤¹¤ë¤È¤Ï¸Â¤ê¤Þ¤»¤ó¡£
+    Îã¤¨¤Ð¡¤R5¡¤R6¤ÎÎ¾Êý¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤ë´Ä¶­¤Ç¤Ï¡¤¤É¤Á¤é¤ò»È¤¦
+    ¤«¤òÌÀ¼¨Åª¤Ë»ØÄê¤·¤¿¤Û¤¦¤¬³Î¼Â¤Ç¤¹¡£
 
   --enable-debug
-	$B%G%P%C%0MQ$K%3%s%Q%$%k$7$^$9!#(B
+    ¥Ç¥Ð¥Ã¥°ÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤·¤Þ¤¹¡£
 
   --with-x
-	X Window $B4D6-$,$"$k>l9g$O;XDj$7$F$/$@$5$$!#(B
+    X Window´Ä¶­¤¬¤¢¤ë¾ì¹ç¤Ï»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
 
   --without-x
-	X Window $B4D6-$,$J$$>l9g$O;XDj$7$F$/$@$5$$!#(B
+    X Window´Ä¶­¤¬¤Ê¤¤¾ì¹ç¤Ï»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
 
   --with-tcl-includes=dir
-	Tcl $B$N%$%s%/%k!<%I%U%!%$%k$N$"$k%G%#%l%/%H%j$r;XDj$7$F2<$5$$!#(B
-	($B$3$l$O!"(BTcl/Tk $B$^$o$j$N(B configure $B$K<:GT$7$?;~$N$_;n$7$F$_$F2<$5$$(B)
+    Tcl¤Î¥¤¥ó¥¯¥ë¡¼¥É¥Õ¥¡¥¤¥ë¤Î¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
+    (¤³¤ì¤Ï¡¤Tcl/Tk¤Þ¤ï¤ê¤Îconfigure¤Ë¼ºÇÔ¤·¤¿»þ¤Î¤ß»î¤·¤Æ¤ß¤Æ¤¯¤À¤µ¤¤)
 
   --with-tcl-libs=dir
-	Tcl $B$N%i%$%V%i%j%U%!%$%k$N$"$k%G%#%l%/%H%j$r;XDj$7$F2<$5$$!#(B
-	($B$3$l$O!"(BTcl/Tk $B$^$o$j$N(B configure $B$K<:GT$7$?;~$N$_;n$7$F$_$F2<$5$$(B)
+    Tcl¤Î¥é¥¤¥Ö¥é¥ê¥Õ¥¡¥¤¥ë¤Î¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
+    (¤³¤ì¤Ï¡¤Tcl/Tk¤Þ¤ï¤ê¤Îconfigure¤Ë¼ºÇÔ¤·¤¿»þ¤Î¤ß»î¤·¤Æ¤ß¤Æ¤¯¤À¤µ¤¤)
 
   --with-tk-includes=dir
-	Tk $B$N%$%s%/%k!<%I%U%!%$%k$N$"$k%G%#%l%/%H%j$r;XDj$7$F2<$5$$!#(B
-	($B$3$l$O!"(BTcl/Tk $B$^$o$j$N(B configure $B$K<:GT$7$?;~$N$_;n$7$F$_$F2<$5$$(B)
+    Tk¤Î¥¤¥ó¥¯¥ë¡¼¥É¥Õ¥¡¥¤¥ë¤Î¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
+    (¤³¤ì¤Ï¡¤Tcl/Tk¤Þ¤ï¤ê¤Îconfigure¤Ë¼ºÇÔ¤·¤¿»þ¤Î¤ß»î¤·¤Æ¤ß¤Æ¤¯¤À¤µ¤¤)
 
   --with-tk-libs=dir
-	Tk $B$N%i%$%V%i%j%U%!%$%k$N$"$k%G%#%l%/%H%j$r;XDj$7$F2<$5$$!#(B
-	($B$3$l$O!"(BTcl/Tk $B$^$o$j$N(B configure $B$K<:GT$7$?;~$N$_;n$7$F$_$F2<$5$$(B)
+    Tk¤Î¥é¥¤¥Ö¥é¥ê¥Õ¥¡¥¤¥ë¤Î¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
+    (¤³¤ì¤Ï¡¤Tcl/Tk¤Þ¤ï¤ê¤Îconfigure¤Ë¼ºÇÔ¤·¤¿»þ¤Î¤ß»î¤·¤Æ¤ß¤Æ¤¯¤À¤µ¤¤)
 
   --enable-audio
-	TiMidity $B$G(B MIDI $B%U%!%$%k$r1iAU$G$-$k$h$&$K$7$^$9!#(B
-	$B$?$@C1$J$k(B MIDI to WAVE converter $B$H$7$F9=C[$9$k>l9g$O!"(B
-	--enable-audio=no $B$H$7$F$/$@$5$$!#(B
+    TiMidity¤ÇMIDI¥Õ¥¡¥¤¥ë¤ò±éÁÕ¤Ç¤­¤ë¤è¤¦¤Ë¤·¤Þ¤¹¡£
+    ¤¿¤ÀÃ±¤Ê¤ëMIDI_to_WAVE¥³¥ó¥Ð¡¼¥¿¤È¤·¤Æ¹½ÃÛ¤¹¤ë¾ì¹ç¤Ï¡¤
+    --enable-audio=no¤È¤·¤Æ¤¯¤À¤µ¤¤¡£
 
   --enable-nas
-	NAS (Network Audio System) $B=PNO$rM-8z$K$7$^$9!#(B
+    NAS(Network Audio System)½ÐÎÏ¤òÍ­¸ú¤Ë¤·¤Þ¤¹¡£
 
   --enable-esd
-	EsounD $B=PNO$rM-8z$K$7$^$9!#(B
+    EsounD½ÐÎÏ¤òÍ­¸ú¤Ë¤·¤Þ¤¹¡£
 
   --enable-dynamic
-	$B%7%'%"!<%I%i%$%V%i%j7A<0$G:n@.$7$?%f!<%6%$%s%?!<%U%'!<%9$r(B
-	$B%@%$%J%_%C%/%m!<%G%#%s%0$K$h$j;HMQ$9$k$3$H$r2DG=$K$7$^$9!#(B
+    ¥·¥§¥¢¡¼¥É¥é¥¤¥Ö¥é¥ê·Á¼°¤ÇºîÀ®¤·¤¿¥æ¡¼¥¶¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤ò¥À¥¤¥Ê¥ß¥Ã
+    ¥¯¥í¡¼¥Ç¥£¥ó¥°¤Ë¤è¤ê»ÈÍÑ¤¹¤ë¤³¤È¤ò²ÄÇ½¤Ë¤·¤Þ¤¹¡£
 
   --enable-ncurses
-	Ncurses $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-ncurses=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -in $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    Ncurses¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-ncurses=dynamic¤È¤¹¤ì
+    ¤Ð¡¤¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-in
+    ¥ª¥×¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
   --enable-slang
-	slang $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-slang=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -is $B%*%W%7%g%s$G5/F0$7$^$9!#(B
-	-is $B%$%s%?!<%U%'!<%9$O(B -in $B$K?'$r$D$1$?46$8$K$J$j$^$9!#(B
+    slang¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-slang=dynamic¤È¤¹¤ì¤Ð¡¤
+    ¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-is¥ª¥×
+    ¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£-is¥¤¥ó¥¿¡¼¥Õ¥§¡¼¥¹¤Ï-in¤Ë¿§¤ò¤Ä¤±¤¿´¶¤¸¤Ë¤Ê¤ê
+    ¤Þ¤¹¡£
 
-  --enable-motif          Enable motif interface 
-	Motif $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-motif=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -im $B%*%W%7%g%s$G5/F0$7$^$9!#(B
-	$B$*6b$,$J$/$F(B Mofif $B%i%$%;%s%9$,<j$KF~$i$J$$?M$O(B lesstif $B$G$bF0$-$^$9!#(B
+  --enable-motif
+    Motif¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-motif=dynamic¤È¤¹¤ì¤Ð¡¤
+    ¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-im¥ª¥×
+    ¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£¤ª¶â¤¬¤Ê¤¯¤ÆMofif¥é¥¤¥»¥ó¥¹¤¬¼ê¤ËÆþ¤é¤Ê¤¤¿Í¤Ï¡¤
+    lesstif¤Ç¤âÆ°¤­¤Þ¤¹¡£
 
   --enable-tcltk
-	Tcl/Tk $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-tcltk=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -ik $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    Tcl/Tk¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-tcltk=dynamic¤È¤¹¤ì¤Ð¡¤
+    ¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-ik¥ª¥×
+    ¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
   --enable-emacs
-	Emacs $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-emacs=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	Emacs $B>e$+$i(B M-x timidity $B$G5/F0$7$^$9!#(B
-	Emacs $B%$%s%?!<%U%'!<%9$rM-8z$K$9$k$K$O!"$5$i$K(B timidity.el $B$NJT=8(B
-	$B$H%$%s%9%H!<%k$,I,MW$G$9!#(B
-	
+    Emacs¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-emacs=dynamic¤È¤¹¤ì¤Ð¡¤
+    ¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£Emacs¾å¤«¤é
+    ¡ÈM-x timidity¡É¤Çµ¯Æ°¤·¤Þ¤¹¡£Emacs¥¤¥ó¥¿¡¼¥Õ¥§¡¼¥¹¤òÍ­¸ú¤Ë¤¹¤ë¤Ë¤Ï¡¤
+    ¤µ¤é¤Ëtimidity.el¤ÎÊÔ½¸¤È¥¤¥ó¥¹¥È¡¼¥ë¤¬É¬Í×¤Ç¤¹¡£
+
   --enable-vt100
-	VT100 $BC<Kv$N@)8f%3!<%I$rMQ$$$?!"%U%k%9%/%j!<%s%$%s%?!<%U%'!<%9$G$9!#(B
-	--enable-ncurses=dynamic $B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9(B
-	$B$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -iT $B%*%W%7%g%s$G5/F0$7$^$9!#(B
-	-iT $B$O(B -iN $B$K;w$?46$8$N%$%s%?!<%U%'!<%9$G$9!#(B
+    VT100Ã¼Ëö¤ÎÀ©¸æ¥³¡¼¥É¤òÍÑ¤¤¤¿¡¤¥Õ¥ë¥¹¥¯¥ê¡¼¥ó¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤Ç¤¹¡£
+    --enable-ncurses=dynamic¤È¤¹¤ì¤Ð¡¤¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹
+    ¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-iT¥ª¥×¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£-iT¤Ï-iN¤Ë»÷
+    ¤¿´¶¤¸¤Î¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤Ç¤¹¡£
 
   --enable-xaw
-	X Athena Widget $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-xaw=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -ia $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    X Athena Widget¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-xaw=dynamic¤È
+    ¤¹¤ì¤Ð¡¤¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity
+    ¤Î-ia¥ª¥×¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
   --enable-xskin
-	skin $B%G!<%?$rMxMQ$7$?%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B
-	--enable-xskin=dynamic$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9(B
-	$B$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -ii $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    skin¥Ç¡¼¥¿¤òÍøÍÑ¤·¤¿¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£
+    --enable-xskin=dynamic¤È¤¹¤ì¤Ð¡¤¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È
+    ¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-ii¥ª¥×¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
   --enable-gtk
-	gtk+ $BHG%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B--enable-gtk=dynamic
-	$B$H$9$l$P!"%@%$%J%_%C%/%j%s%/%$%s%?!<%U%'!<%9$H$7$F9=C[$7$^$9!#(B
-	timidity $B$N(B -ig $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    gtk+ÈÇ¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£--enable-gtk=dynamic¤È¤¹¤ì¤Ð¡¤
+    ¥À¥¤¥Ê¥ß¥Ã¥¯¥ê¥ó¥¯¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤È¤·¤Æ¹½ÃÛ¤·¤Þ¤¹¡£timidity¤Î-ig¥ª¥×
+    ¥·¥ç¥ó¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
   --enable-w32gui
-	Windows GUI $BHG$H$7$F%3%s%Q%$%k$7$^$9!#(B
+    Windows GUIÈÇ¤È¤·¤Æ¥³¥ó¥Ñ¥¤¥ë¤·¤Þ¤¹¡£
 
   --enable-network
-	$B$3$N%*%W%7%g%s$r;XDj$9$k$H!"%M%C%H%o!<%/$r2p$7$F(B MIDI $B%U%!%$%k$r(B
-	$B1iAU$G$-$k$h$&$K$J$j$^$9!#(BMIDI $B%U%!%$%k$r(B http://$B!A(B $B$H$$$&$U$&$J(B
-	URL $B$G;XDj$9$k$H!"$=$N%U%!%$%k$,1iAU$5$l$^$9!#(B
+    ¤³¤Î¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤¹¤ë¤È¡¤¥Í¥Ã¥È¥ï¡¼¥¯¤ò²ð¤·¤ÆMIDI¥Õ¥¡¥¤¥ë¤ò±éÁÕ
+    ¤Ç¤­¤ë¤è¤¦¤Ë¤Ê¤ê¤Þ¤¹¡£MIDI¥Õ¥¡¥¤¥ë¤òhttp://¡Á¤È¤¤¤¦¤Õ¤¦¤ÊURL¤Ç»ØÄê
+    ¤¹¤ë¤È¡¤¤½¤Î¥Õ¥¡¥¤¥ë¤¬±éÁÕ¤µ¤ì¤Þ¤¹¡£
 
   --enable-spectrogram
-	X Window $BHG$K$*$$$F!"%5%&%s%I%9%Z%/%H%m%0%i%`I=<($r2DG=$K$7$^$9!#(B
-	timidity $B$N(B -g0.02 $B$H$$$C$?%*%W%7%g%s$G%&%#%s%I%&$,3+$-$^$9!#(B
+    X WindowÈÇ¤Ë¤ª¤¤¤Æ¡¤¥µ¥¦¥ó¥É¥¹¥Ú¥¯¥È¥í¥°¥é¥àÉ½¼¨¤ò²ÄÇ½¤Ë¤·¤Þ¤¹¡£
+    timidity¤Î-g0.02¤È¤¤¤Ã¤¿¥ª¥×¥·¥ç¥ó¤Ç¥¦¥£¥ó¥É¥¦¤¬³«¤­¤Þ¤¹¡£
 
   --enable-wrd
-	X Window $BHG(B WRD $B%$%s%?!<%U%'!<%9$rAH$_9~$_$^$9!#(B
-	timidity $B$N(B -Wx $B%*%W%7%g%s$G5/F0$7$^$9!#(B
+    X WindowÈÇWRD¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤òÁÈ¤ß¹þ¤ß¤Þ¤¹¡£timidity¤Î-Wx¥ª¥×¥·¥ç¥ó
+    ¤Çµ¯Æ°¤·¤Þ¤¹¡£
 
+Îã¤¨¤Ð¡¤°Ê²¼¤Î¤è¤¦¤Ë¼Â¹Ô¤·¤Þ¤¹¡£
 
-$BNc$($P!"0J2<$N$h$&$K<B9T$7$^$9!#(B
+% ./configure --enable-ncurses --enable-slang --enable-motif \
+              --enable-tcltk --enable-emacs --enable-vt100 --enable-xaw \
+              --enable-xskin --enable-gtk \
+              --enable-network --enable-spectrogram --enable-wrd
 
-% /bin/sh configure --enable-ncurses --enable-slang  --enable-motif \
-               --enable-tcltk --enable-emacs --enable-vt100 --enable-xaw \
-               --enable-xskin --enable-gtk \
-               --enable-network --enable-spectrogram --enable-wrd
+¤¤¤¯¤Ä¤«¤ÎMIDI¤Î±éÁÕ¤Ë¤Ï¡¤CPU¥Ñ¥ï¡¼¤òÉ¬Í×¤È¤·¤Þ¤¹¡£ºÇÅ¬²½¥ª¥×¥·¥ç¥ó¤ò¤¦
+¤Þ¤¯Áª¤ó¤Ç¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¤³¤È¤Ç¡¤º£¤Þ¤ÇÅÓÀÚ¤ìÅÓÀÚ¤ì¤Ç¤·¤«±éÁÕ¤Ç¤­¤Ê¤«¤Ã
+¤¿¤â¤Î¤¬ÅÓÀÚ¤ì¤º¤Ë±éÁÕ¤Ç¤­¤ë¤³¤È¤¬¤¢¤ê¤Þ¤¹¡£configure»þ¤Ë¥³¥ó¥Ñ¥¤¥é¥ª¥×
+¥·¥ç¥ó¤ò»ØÄê¤¹¤ë¤³¤È¤Ç¡¤TiMidity¤ò¤è¤ê¹âÂ®¤ËÆ°ºî¤µ¤»¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
 
-$B$$$/$D$+$N(B MIDI $B$N1iAU$K$O!"(BCPU $B%Q%o!<$rI,MW$H$7$^$9!#:GE,2=%*%W%7%g%s(B
-$B$r$&$^$/A*$s$G%3%s%Q%$%k$9$k$3$H$G!":#$^$GES@Z$lES@Z$l$G$7$+1iAU$G$-$J(B
-$B$+$C$?$b$N$,ES@Z$l$:$K1iAU$G$-$k$3$H$,$"$j$^$9!#(Bconfigure $B;~$K%3%s%Q%$%i(B
-$B%*%W%7%g%s$r;XDj$9$k$3$H$G!"(BTiMidity $B$r$h$j9bB.$KF0:n$5$;$k$3$H$,$G$-$^$9!#(B
-$BNc$($P!"(Bsuper-sparc/gcc $B$G$O!"(B
+Îã¤¨¤Ð¡¤super-sparc/gcc¤Ç¤Ï¡¤
 
-(csh, tcsh $B$J$I$N>l9g(B)
-% env CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [$B0J2<!"%*%W%7%g%s(B]...
+(csh, tcsh ¤Ê¤É¤Î¾ì¹ç)
+% env CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer \
+              -msupersparc /bin/sh configure [°Ê²¼¡¤¥ª¥×¥·¥ç¥ó]...
 
-(sh, bash $B$J$I$N>l9g(B)
-% CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -msupersparc /bin/sh configure [$B0J2<!"%*%W%7%g%s(B]...
+(sh, bash ¤Ê¤É¤Î¾ì¹ç)
+% CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer \
+          -msupersparc /bin/sh configure [°Ê²¼¡¤¥ª¥×¥·¥ç¥ó]...
 
-$B$N$h$&$K$7$^$9!#(B
+¤Î¤è¤¦¤Ë¤·¤Þ¤¹¡£
 
-
-2. common.makefile, Makefile, timidity.h $B$NJT=8(B
------------------------------------------------
-$B$b$7!"@5$7$/%3%s%Q%$%k$G$-$J$$>l9g$d!"MM!9$J%Q%i%a%?$r=$@5$7$?$$>l9g$O!"(B
-common.makefile, Makefile, timidity.h $BFb$N%Q%i%a%?$r=$@5$7$F$/$@$5$$!#(B
+2. common.makefile¡¤Makefile¡¤timidity.h¤ÎÊÔ½¸
+----------------------------------------------
+¤â¤·¡¤Àµ¤·¤¯¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¾ì¹ç¤ä¡¤ÍÍ¡¹¤Ê¥Ñ¥é¥á¥¿¤ò½¤Àµ¤·¤¿¤¤¾ì¹ç¤Ï¡¤
+common.makefile¡¤Makefile¡¤timidity.hÆâ¤Î¥Ñ¥é¥á¥¿¤ò½¤Àµ¤·¤Æ¤¯¤À¤µ¤¤¡£
 
 3. make
 -------
-$B0J>e$N@_Dj$,=*N;$7$?$i!"(Bmake $B$H%?%$%W$9$k$@$1$G$9!#(Bmake $B$K$O(B GNU $B$N(B make
-$B$,I,MW$G$9!#4D6-$K$h$C$F$O!"(Bgmake $B$H$$$&%3%^%s%IL>$G%$%s%9%H!<%k$5$l$F$$$k(B
-$B>l9g$,$"$j$^$9!#(B
+°Ê¾å¤ÎÀßÄê¤¬½ªÎ»¤·¤¿¤é¡¤make¤È¥¿¥¤¥×¤¹¤ë¤À¤±¤Ç¤¹¡£make¤Ë¤ÏGNU¤Îmake¤¬É¬
+Í×¤Ç¤¹¡£´Ä¶­¤Ë¤è¤Ã¤Æ¤Ï¡¤gmake¤È¤¤¤¦¥³¥Þ¥ó¥ÉÌ¾¤Ç¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤ë¾ì
+¹ç¤¬¤¢¤ê¤Þ¤¹¡£
 
-$B$J$*!"(BXAW $B$r%j%s%/$9$k$H$3$m$G!"(B
+¤Ê¤ª¡¤XAW ¤ò¥ê¥ó¥¯¤¹¤ë¤È¤³¤í¤Ç¡¤
 
 vendorShellClassRec
 vendorShellWidgetClass
 
-$B$K4X$7$F%o!<%K%s%0$,=P$k4D6-$,$"$j$^$9$,!"$3$l$OLdBj$J$$$N$G(B
-$B5$$K$7$F$/$F$b$$$$$G$9!#(B
-
+¤Ë´Ø¤·¤Æ¥ï¡¼¥Ë¥ó¥°¤¬½Ð¤ë´Ä¶­¤¬¤¢¤ê¤Þ¤¹¤¬¡¤¤³¤ì¤ÏÌäÂê¤Ê¤¤¤Î¤Çµ¤¤Ë¤·¤Æ¤¯
+¤Æ¤â¤¤¤¤¤Ç¤¹¡£
 
 4. install
 ----------
-$B!&(Bmake install.bin - $B<B9T%U%!%$%k$N%$%s%9%H!<%k(B
-$B!&(Bmake install.tk  - Tcl/Tk $B%$%s%?!<%U%'!<%9$N%$%s%9%H!<%k(B
-$B!&(Bmake install.el  - Emacs $B%$%s%?!<%U%'!<%9$N%$%s%9%H!<%k(B
-$B!&(Bmake install.man - Manual $B$N%$%s%9%H!<%k(B
-$B!&(Bmake install     - $BA4$F$N%U%!%$%k$r%$%s%9%H!<%k(B
+    make install.bin    - ¼Â¹Ô¥Õ¥¡¥¤¥ë¤Î¥¤¥ó¥¹¥È¡¼¥ë
+    make install.tk     - Tcl/Tk¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤Î¥¤¥ó¥¹¥È¡¼¥ë
+    make install.el     - Emacs ¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤Î¥¤¥ó¥¹¥È¡¼¥ë
+    make install.man    - Manual¤Î¥¤¥ó¥¹¥È¡¼¥ë
+    make install        - ¤¹¤Ù¤Æ¤Î¥Õ¥¡¥¤¥ë¤ò¥¤¥ó¥¹¥È¡¼¥ë
 
-$B<B:]$K%$%s%9%H!<%k$r<B9T$9$kA0$K!"(B
+¼ÂºÝ¤Ë¥¤¥ó¥¹¥È¡¼¥ë¤ò¼Â¹Ô¤¹¤ëÁ°¤Ë¡¤
 
 % make -n ...
 
-$B$J$I$H$7$F%$%s%9%H!<%k$5$l$k%G%l%/%H%j$d%U%!%$%k$r3NG'$7$F$/$@$5$$!#(B
+¤Ê¤É¤È¤·¤Æ¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤ë¥Ç¥ì¥¯¥È¥ê¤ä¥Õ¥¡¥¤¥ë¤ò³ÎÇ§¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-
-5. $B2;8;$r$=$m$($k(B
-$B$3$N%Q%C%1!<%8$N(B TiMidity $B$r%$%s%9%H!<%k$7$?$@$1$G$O!"2;$,$J$j$^$;$s!#(B
-$B1iAU$9$k$K$O!"(BGUS $B$N2;8;%U%!%$%k$rF~<j$7!"@_Dj%U%!%$%k$G$"$k(B timidity.cfg
-$B$r:n@.$7$J$1$l$P$J$j$^$;$s!#%G%U%)%k%H$G$O!"(B
-/usr/local/share/timidity/timidity.cfg $B$K$J$j$^$9(B($B$?$@$7!"(BWindows $B>e$G$O!"(B
-(C:/WINDOWS/TIMIDITY.CFG)$B!#%Q%C%A$rC5$9$N$K!"0J2<$N%5%$%H$rK,$l$F$_$F2<$5$$!#(B
+5. ²»¸»¤ò¤½¤í¤¨¤ë
+-----------------
+¤³¤Î¥Ñ¥Ã¥±¡¼¥¸¤ÎTiMidity¤ò¥¤¥ó¥¹¥È¡¼¥ë¤·¤¿¤À¤±¤Ç¤Ï¡¤²»¤¬ÌÄ¤ê¤Þ¤»¤ó¡£±é
+ÁÕ¤¹¤ë¤Ë¤Ï¡¤GUS¤Î²»¸»¥Õ¥¡¥¤¥ë¤òÆþ¼ê¤·¡¤ÀßÄê¥Õ¥¡¥¤¥ë¤Ç¤¢¤ëtimidity.cfg¤ò
+ºîÀ®¤·¤Ê¤±¤ì¤Ð¤Ê¤ê¤Þ¤»¤ó¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï¡¤
+¡È/usr/local/share/timidity/timidity.cfg¡É¤Ë¤Ê¤ê¤Þ¤¹(¤¿¤À¤·¡¤Windows¾å
+¤Ç¤Ï¡ÈC:/WINDOWS/timidity.cfg¡É)¡£¥Ñ¥Ã¥Á¤òÃµ¤¹¤Î¤Ë¡¤°Ê²¼¤Î¥µ¥¤¥È¤òË¬¤ì
+¤Æ¤ß¤Æ¤¯¤À¤µ¤¤¡£
 
 http://www.goice.co.jp/member/mo/timidity/link.html#gus
-http://www.goice.co.jp/member/mo/timidity/dist/cfg/	(Some samples of *.cfg)
-http://www.i.h.kyoto-u.ac.jp/~shom/timidity/		(10M or 4M patch)
-ftp://ftp.cdrom.com/pub/gus/sound/patches/files/	(GUS $B%5%$%H$N0\E>@h(B)
+http://www.goice.co.jp/member/mo/timidity/dist/cfg/ (Some samples of *.cfg)
+http://www.i.h.kyoto-u.ac.jp/~shom/timidity/        (10M or 4M patch)
+ftp://ftp.cdrom.com/pub/gus/sound/patches/files/    (GUS ¥µ¥¤¥È¤Î°ÜÅ¾Àè)
 
-$BF~<j$7$?2;8;$O!"E,@Z$J>l=j$KE83+$7$F$/$@$5$$!#I,MW$K1~$8$F!"(B*.cfg $B%U%!%$%k$N(B
-dir $B$N%Q%9L>$r=$@5$7$F$/$@$5$$!#(B
-
+Æþ¼ê¤·¤¿²»¸»¤Ï¡¤Å¬ÀÚ¤Ê¾ì½ê¤ËÅ¸³«¤·¤Æ¤¯¤À¤µ¤¤¡£É¬Í×¤Ë±þ¤¸¤Æ¡¤*.cfg¥Õ¥¡¥¤
+¥ë¤Îdir¤Î¥Ñ¥¹Ì¾¤ò½¤Àµ¤·¤Æ¤¯¤À¤µ¤¤¡£
 
 ==============================================================================
-                         timidity.h $B$NJT=8(B
+	timidity.h¤ÎÊÔ½¸
 ==============================================================================
-$BI,MW$K1~$8$F(B CONFIG_FILE $B$rDj5A$7$F$/$@$5$$!#%G%U%)%k%H$G$O(B
+
+É¬Í×¤Ë±þ¤¸¤ÆCONFIG_FILE¤òÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
 
-$B$H$J$C$F$$$^$9!#(BDEFAULT_PATH $B$O(B Makefile $B$GDj5A$7$?(B TIMID_DIR $B$HF1$8$G$9!#(B
-$B$b$7!"$I$&$7$F$bB>$N>l=j$KCV$-$?$$$J$i(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£DEFAULT_PATH¤Ï¡¤Makefile¤ÇÄêµÁ¤·¤¿TIMID_DIR¤ÈÆ±¤¸¤Ç¤¹¡£
+¤â¤·¡¤¤É¤¦¤·¤Æ¤âÂ¾¤Î¾ì½ê¤ËÃÖ¤­¤¿¤¤¤Ê¤é
 
 #define CONFIG_FILE "/etc/timidity.cfg"
 
-$B$N$h$&$KDj5A$7$^$9!#(B
+¤Î¤è¤¦¤ËÄêµÁ¤·¤Þ¤¹¡£
 
-
-$B<!$K%U%!%$%kE83+%3%^%s%I$N@_Dj$G$9!#$3$N@_Dj$O(B Windows $B$G$OL5;k$7$F$/$@$5$$!#(B
-$B%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤¥Õ¥¡¥¤¥ëÅ¸³«¥³¥Þ¥ó¥É¤ÎÀßÄê¤Ç¤¹¡£¤³¤ÎÀßÄê¤ÏWindows¤Ç¤ÏÌµ»ë¤·¤Æ¤¯¤À
+¤µ¤¤¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define DECOMPRESSOR_LIST { \
-			      ".gz", "gunzip -c %s", \
-			      ".bz2", "bunzip2 -c %s", \
-			      ".Z", "zcat %s", \
-			      ".zip", "unzip -p %s", \
-			      ".lha", "lha -pq %s", \
-			      ".lzh", "lha -pq %s", \
-			      ".shn", "shorten -x %s -", \
-			     0 }
+		".gz", "gunzip -c %s", \
+		".bz2", "bunzip2 -c %s", \
+		".Z", "zcat %s", \
+		".zip", "unzip -p %s", \
+		".lha", "lha -pq %s", \
+		".lzh", "lha -pq %s", \
+		".shn", "shorten -x %s -", \
+		0 }
 
-$B$H$J$C$F$$$^$9!#%*%j%8%J%k$N(B TiMidity $B$G$O!">e5-$G;XDj$7$?3HD%;R$KBP1~$7$?(B
-$B%3%^%s%I$rMxMQ$7$F%U%!%$%k$rE83+$7$FFI$_9~$`$3$H$,$G$-$^$9!#(BTiMidity++ $B$G$O(B
-$B4v$D$+$N7A<0$K$D$$$F$O(B TiMidity $B$,<+A0$GE83+$7$F%U%!%$%k$rFI$_9~$_$^$9!#(B
-$B$7$+$7!"A4$F$N7A<0$O%5%]!<%H$7$F$$$J$$$N$G!"%5%]!<%H$5$l$F$$$J$$7A<0$K$O!"(B
-$B>e5-$G;XDj$7$?%3%^%s%I$,MxMQ$5$l$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¥ª¥ê¥¸¥Ê¥ë¤ÎTiMidity¤Ç¤Ï¡¤¾åµ­¤Ç»ØÄê¤·¤¿³ÈÄ¥»Ò¤ËÂÐ±þ¤·
+¤¿¥³¥Þ¥ó¥É¤òÍøÍÑ¤·¤Æ¡¤¥Õ¥¡¥¤¥ë¤òÅ¸³«¤·¤ÆÆÉ¤ß¹þ¤à¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£°ìÊý¡¤
+TiMidity++¤Ç¤Ï´ö¤Ä¤«¤Î·Á¼°¤Ë¤Ä¤¤¤Æ¤Ï¡¤TiMidity¤¬¼«Á°¤ÇÅ¸³«¤·¤Æ¥Õ¥¡¥¤¥ë
+¤òÆÉ¤ß¹þ¤ß¤Þ¤¹¡£¤·¤«¤·¡¤¤¹¤Ù¤Æ¤Î·Á¼°¤Ï¥µ¥Ý¡¼¥È¤·¤Æ¤¤¤Ê¤¤¤Î¤Ç¡¤¥µ¥Ý¡¼¥È
+¤µ¤ì¤Æ¤¤¤Ê¤¤·Á¼°¤Ë¤Ï¡¤¾åµ­¤Ç»ØÄê¤·¤¿¥³¥Þ¥ó¥É¤¬ÍøÍÑ¤µ¤ì¤Þ¤¹¡£
 
-$B<!$K!"%Q%C%A%U%!%$%k$NJQ49%3%^%s%I$K4X$9$k@_Dj$G$9!#$3$N@_Dj$O(B
-Windows $B$G$OL5;k$7$F$/$@$5$$!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤¥Ñ¥Ã¥Á¥Õ¥¡¥¤¥ë¤ÎÊÑ´¹¥³¥Þ¥ó¥É¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¤³¤ÎÀßÄê¤ÏWindows¤Ç
+¤ÏÌµ»ë¤·¤Æ¤¯¤À¤µ¤¤¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define PATCH_CONVERTERS { \
-			     ".wav", "wav2pat %s", \
-			     0 }
+		".wav", "wav2pat %s", \
+		0 }
 
-$B$H$J$C$F$$$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£
 
-
-$B<!$K(B GUS/patch $B%U%!%$%k$N3HD%;R$N;XDj$G$9!#$3$3$K;XDj$7$?3HD%;R$O(B
-*.cfg $BFb$N%U%!%$%kL>$G>JN,$G$-$^$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤GUS/patch¥Õ¥¡¥¤¥ë¤Î³ÈÄ¥»Ò¤Î»ØÄê¤Ç¤¹¡£¤³¤³¤Ë»ØÄê¤·¤¿³ÈÄ¥»Ò¤Ï*.cfg
+Æâ¤Î¥Õ¥¡¥¤¥ëÌ¾¤Ç¾ÊÎ¬¤Ç¤­¤Þ¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define PATCH_EXT_LIST { \
-			   ".pat", \
-			   ".shn", ".pat.shn", \
-			   ".gz", ".pat.gz", \
-			   ".bz2", ".pat.bz2", \
-			   0 }
+		".pat", \
+		".shn", ".pat.shn", \
+		".gz", ".pat.gz", \
+		".bz2", ".pat.bz2", \
+		0 }
 
-$B$H$J$C$F$$$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£
 
-
-$B<!$K%G%U%)%k%H$N(B instrument $B$N@_Dj$G$9!#(B
+¼¡¤Ë¡¤¥Ç¥Õ¥©¥ë¥È¤Îinstrument¤ÎÀßÄê¤Ç¤¹¡£
 
 #define DEFAULT_PROGRAM 0
 
-$B$H$J$C$F$$$^$9!#(BMIDI $B$N(B Program Change $B%$%Y%s%H$,$J$$>l9g$K(B
-$B$3$NCM$,MxMQ$5$l$^$9!#DL>o(B 0 $BHV$O%T%"%N$G$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£MIDI¤ÎProgram Change¥¤¥Ù¥ó¥È¤¬¤Ê¤¤¾ì¹ç¤Ë¡¤¤³¤ÎÃÍ¤¬ÍøÍÑ
+¤µ¤ì¤Þ¤¹¡£ÄÌ¾ï¡¤0ÈÖ¤Ï¥Ô¥¢¥Î¤Ç¤¹¡£
 
-
-$B<!$K%I%i%`%A%c%M%k$N@_Dj$G$9!#%G%U%)%k%H$G$O(B 
+¼¡¤Ë¡¤¥É¥é¥à¥Á¥ã¥ó¥Í¥ë¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define DEFAULT_DRUMCHANNELS {10, -1}
 
-$B$H$J$C$F$$$^$9!#$3$l$O%3%^%s%I%i%$%s%*%W%7%g%s$GJQ99$G$-$k$N$G!"$3$N$^$^$G(B
-$B$$$$$H;W$$$^$9!#JQ99$9$k>l9g$O!"%I%i%`%A%c%M%k$N%j%9%H$rJ#?t;XDj$7!"(B-1 $B$G=*N;(B
-$B$7$^$9!#$b$7!"(B10 $B$H(B 16 $B%A%c%M%k$r%G%U%)%k%H$G%I%i%`%A%c%M%k$K$7$?$$$J$i$P!"(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤Ï¡¤¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤Ç¤­¤ë¤Î¤Ç¡¤¤³¤Î
+¤Þ¤Þ¤ÇÎÉ¤¤¤È»×¤¤¤Þ¤¹¡£ÊÑ¹¹¤¹¤ë¾ì¹ç¤Ï¡¤¥É¥é¥à¥Á¥ã¥ó¥Í¥ë¤Î¥ê¥¹¥È¤òÊ£¿ô»Ø
+Äê¤·¡¤-1¤Ç½ªÎ»¤·¤Þ¤¹¡£¤â¤·¡¤10¤È16¥Á¥ã¥ó¥Í¥ë¤ò¥Ç¥Õ¥©¥ë¥È¤Ç¥É¥é¥à¥Á¥ã¥ó
+¥Í¥ë¤Ë¤·¤¿¤¤¤Ê¤é¤Ð¡¤
 
 #define DEFAULT_DRUMCHANNELS {10, 16, -1}
 
-$B$H$7$^$9!#$J$*!"%I%i%`%A%c%M%k$O%3%^%s%I%i%$%s%*%W%7%g%s$GJQ99$G$-$^$9!#(B
+¤È¤·¤Þ¤¹¡£¤Ê¤ª¡¤¥É¥é¥à¥Á¥ã¥ó¥Í¥ë¤Ï¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤Ç¤­¤Þ
+¤¹¡£
 
+¼¡¤Ë¡¤ÉâÆ°¾®¿ôÅÀ¿ô¤Î·¿¤Î»ØÄê¤Ç¤¹¡£
 
-$B<!$KIbF0>.?tE@?t$N7?$N;XDj$G$9!#(B
+¡¦typedef double FLOAT_T;
+¡¦typedef float FLOAT_T;
 
-$B!&(Btypedef double FLOAT_T;
-$B!&(Btypedef float FLOAT_T;
+¤Î¤É¤Á¤é¤«¤òÁª¤ó¤Ç¤¯¤À¤µ¤¤¡£doubleÀºÅÙ¤ÎFPU¤òÅëºÜ¤·¤Æ¤¤¤ë¥Þ¥·¥ó¤Ç¤Ï¡¤
+float¤è¤êdouble¤ÎÊý¤¬¹âÂ®¤Ç¤¹¡£sparc¤äSGI/IP¤Ê¤É¤Ï¡¤double¤ÎÊý¤¬¹âÂ®¤Ç
+¤¹¡£ºÇ¶á¤ÎFPU¤Ï¡¤¤¿¤¤¤Æ¤¤¤Î¾ì¹ç¤ÏdoubleÀºÅÙ¤ÎÊý¤¬¹âÂ®¤Ç¤¹¡£¤¿¤À¤·¡¤°ìÉô
+¤Î¥Þ¥·¥ó¤ä¥Ñ¥½¥³¥ó¤Ç¤Ï¡¤float¤ÎÊý¤¬¹âÂ®¤Ë¤Ê¤ë¤«¤âÃÎ¤ì¤Þ¤»¤ó¡£
 
-$B$N$I$A$i$+$rA*$s$G$/$@$5$$!#(B
-double $B@:EY$N(B FPU $B$rEk:\$7$F$$$k%^%7%s$G$O!"(B
-float $B$h$j(B double $B$NJ}$,9bB.$G$9!#(Bsparc $B$d(B SGI/IP $B$J$I$O(B double $B$NJ}$,(B
-$B9bB.$G$9!#:G6a$N(B FPU $B$O$?$$$F$$$N>l9g$O(B double $B@:EY$NJ}$,9bB.$G$9!#(B
-$B$?$@$7!"0lIt$N%^%7%s$d%Q%=%3%s$G$O(B float $B$NJ}$,9bB.$K$J$k$+$b$7$l$^$;$s!#(B
+¼¡¤Ë¡¤ºÆÀ¸¥µ¥ó¥×¥ë¥ì¡¼¥È¤Î²¼¸Â¡¤¾å¸Â¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
+#define MIN_OUTPUT_RATE 4000
+#define MAX_OUTPUT_RATE 65000
 
-$B<!$K!":F@8%5%s%W%k%l!<%H$N2<8B!">e8B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤ÏÆÃ¤ËÊÑ¹¹¤¹¤ëÉ¬Í×¤Ï¤Ê¤¤¤Ç¤·¤ç¤¦¡£
 
-#define MIN_OUTPUT_RATE 	4000
-#define MAX_OUTPUT_RATE 	65000
+¼¡¤Ë¡¤¥Þ¥¹¥¿¡¼¥Ü¥ê¥å¡¼¥à¤Î¥Ç¥Õ¥©¥ë¥ÈÃÍ¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
-$B$H$J$C$F$$$^$9!#$3$l$OFC$KJQ99$9$kI,MW$O$J$$$G$7$g$&!#(B
+#define DEFAULT_AMPLIFICATION 70
 
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ÎÃÍ¤Ï¥Ñ¡¼¥»¥ó¥ÈÃÍ¤Ç»ØÄê¤·¤Þ¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Î70%¤Ï¤ï¤ê
+¤ÈÎÉ¤¤ÃÍ¤Ê¤Î¤Ç¡¤¤³¤ì¤âÆÃ¤ËÊÑ¹¹¤·¤Ê¤¯¤Æ¤âÎÉ¤¤¤Ç¤·¤ç¤¦¡£¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª
+¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤¹¤ë¤³¤È¤â¤Ç¤­¤Þ¤¹¡£
 
-$B<!$K!"%^%9%?!<%\%j%e!<%`$N%G%U%)%k%HCM$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤¥Ç¥Õ¥©¥ë¥È¤ÎºÆÀ¸¥µ¥ó¥×¥ë¥ì¡¼¥È¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
-#define DEFAULT_AMPLIFICATION 	70
+#define DEFAULT_RATE 44100
 
-$B$H$J$C$F$$$^$9!#$3$NCM$O%Q!<%;%s%HCM$G;XDj$7$^$9!#%G%U%)%k%H$N(B 70% $B$O(B
-$B$o$j$H$$$$CM$J$N$G!"$3$l$bFC$KJQ99$7$J$/$F$b$$$$$G$7$g$&!#(B
-$B%3%^%s%I%i%$%s%*%W%7%g%s$GJQ99$9$k$3$H$b$G$-$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ÎÃÍ¤Ï¡¤¥³¥ó¥Ñ¥¤¥é¥ª¥×¥·¥ç¥ó-DDEFAULT_RATE=<rate>¤Î¤è
+¤¦¤Ë»ØÄê¤·¤Æ¤âÎÉ¤¤¤Ç¤¹¡£¥Ñ¥ï¡¼¤Î¤¢¤ë¥Þ¥·¥ó¤Ç¡¤DATÉÊ¼ÁÊÂ¤ß¤ÎGUS/patch¤ò
+»È¤Ã¤Æ²÷Å¬¤Ê²»¤òÊ¹¤­¤¿¤¤¾ì¹ç¤Ï
 
+#define DEFAULT_RATE	48000
 
-$B<!$K!"%G%U%)%k%H$N:F@8%5%s%W%k%l!<%H$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¤È¤¹¤ë¤Î¤âÎÉ¤¤¤Ç¤¹¡£
 
-#define DEFAULT_RATE	32000
+¼¡¤Ë¡¤Æ±»þÈ¯²»¿ô¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
-$B$H$J$C$F$$$^$9!#$3$NCM$O%3%s%Q%$%i%*%W%7%g%s(B -DDEFAULT_RATE=$B%l!<%H(B $B$N$h$&$K(B
-$B;XDj$7$F$b$$$$$G$9!#%Q%o!<$N$"$k%^%7%s$G(B CD quality $BJB$_$N(B GUS/patch $B$r;H$C$F(B
-$B2wE,$J2;$rJ9$-$?$$>l9g$O(B
+#define DEFAULT_VOICES 256
 
-#define DEFAULT_RATE	44100
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£DEFAULT_VOICES¤Ïµ¯Æ°»þ¤ÎÆ±»þÈ¯²»¿ô¤Ç¡¤¤³¤ÎÃÍ¤Ï-p¥ª¥×¥·
+¥ç¥ó¤òÍÑ¤¤¤Æ1¤«¤é¥á¥â¥ê¤¬µö¤µ¤ì¤ë¤Þ¤Ç¤Î¿ô¤òÀßÄê¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£-in
+¥¤¥ó¥¿¡¼¥Õ¥§¡¼¥¹¤Ç¤Ï¡¤¼Â¹Ô»þ¤ËÊÑ²½¤µ¤»¤ë¤³¤È¤â¤Ç¤­¤Þ¤¹¡£¥Ñ¥ï¡¼¤Î¤¢¤ë¥Þ
+¥·¥ó¤Ê¤é¡¤¥Ç¥Õ¥©¥ë¥È¤ÎÆ±»þÈ¯²»¿ô¤òÁý¤ä¤·¤Æ
 
-$B$H$9$k$N$b$$$$$G$9!#(B
+#define DEFAULT_VOICES 512
 
+¤Î¤è¤¦¤Ë¤¹¤ë¤Î¤âÎÉ¤¤¤Ç¤¹¡£¤·¤«¤·¤Ê¤¬¤é¡¤·Ð¸³¾å128½Å²»¤¢¤ì¤Ð¡¤ÂçÄñ¤ÎMIDI
+¥Õ¥¡¥¤¥ë¤¬²÷Å¬¤ËÊ¹¤±¤Þ¤¹¡£¤Þ¤¿¡¤256½Å²»¤ò±Û¤¨¤ëMIDI¥Õ¥¡¥¤¥ë¤Ï¤Û¤È¤ó¤ÉÂ¸
+ºß¤·¤Ê¤¯(¶Ë´õ¤Ë¤¢¤ê¤Þ¤¹¤¬)¡¤256½Å²»°Ê¾å¤ò½èÍý¤¹¤ë¤Ë¤Ï¤«¤Ê¤ê¹âÀ­Ç½¤ÊCPU
+(Îã¤¨¤ÐR10000¤È¤«)¤Ç¤¢¤Ã¤Æ¤âÉé²Ù¤¬¹â¤¤¤Ç¤¹¡£¤½¤Î¤¿¤á¡¤DEFAULT_VOICES¤Ï
+¶ËÃ¼¤ËÁý¤ä¤·¤Æ¤â¤¢¤Þ¤ê°ÕÌ£¤¬¤Ê¤¤¤Î¤Ç¡¤256¤¯¤é¤¤¤ò¾å¸Â¤Ë¤¹¤ë¤Î¤¬ÂÅÅö¤Ç¤¹¡£
 
-$B<!$K!"F1;~H/2;?t$K4X$9$k@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤ÆâÉô¥Ð¥Ã¥Õ¥¡¤ÎÂç¤­¤µ¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
-#define DEFAULT_VOICES	32
-#define MAX_VOICES	256
+#define AUDIO_BUFFER_BITS 12
 
-$B$H$J$C$F$$$^$9!#(BDEFAULT_VOICES $B$O5/F0;~$NF1;~H/2;?t$G!"$3$NCM$O(B -p $B%*%W%7%g%s(B
-$B$rMQ$$$F(B 1$B!A(BMAX_VOICES $B$N?t$r@_Dj$9$k$3$H$,$G$-$^$9!#(B-in $B%$%s%?!<%U%'!<%9$G$O(B
-$B<B9T;~$KJQ2=$5$;$k$3$H$b$G$-$^$9!#(B
-$B%Q%o!<$N$"$k%^%7%s$J$i!"%G%U%)%k%H$NF1;~H/2;?t$rA}$d$7$F(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤³¤ÏÆÃ¤ËÊÑ¹¹¤¹¤ë¤³¤È¤Ï¤Ê¤¤¤Ç¤·¤ç¤¦¡£
 
-#define DEFAULT_VOICES	64
-
-$B$N$h$&$K$9$k$N$b$$$$$G$9!#7P83>e!"(B64 $B=E2;$"$l$P!"BgDq$N(B MIDI
-$B%U%!%$%k$,2wE,$KJ9$1$^$9!#$^$?!"(B128 $B=E2;$r1[$($k(B MIDI $B%U%!%$%k$O$[$H$s$I(B
-$BB8:_$7$J$/(B($B6K4u$K$"$j$^$9$,(B)$B!"(B128 $B=E2;0J>e$r=hM}$9$k$K$O$+$J$j9b@-G=$J(B CPU
-($BNc$($P(B R10000 $B$H$+(B)$B$G$J$$$HL5M}$G$9!#$=$N$?$a!"(BMAX_VOICES $B$O6KC<$KA}$d$7$F(B
-$B$b$"$^$j0UL#$,$J$$$N$G(B 256 $B$/$i$$$r>e8B$K$9$k$N$,BEEv$G$9!#(B
-
-
-$B<!$K!"FbIt%P%C%U%!$NBg$-$5$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
-
-#define AUDIO_BUFFER_BITS 11
-
-$B$H$J$C$F$$$^$9!#$3$3$OFC$KJQ99$9$k$3$H$O$J$$$G$7$g$&!#(B
-
-
-$B<!$K(B CONTROLS_PER_SECOND $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤CONTROLS_PER_SECOND¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define CONTROLS_PER_SECOND 1000
 
-$B$H$J$C$F$$$^$9!#$3$l$b$3$N$^$^$G$$$$$G$7$g$&!#(B
-(TiMidity $B$G$O!"%(%s%Y%m!<%W$N2;NL7W;;$r(B 1 $B%5%s%W%kKh7W;;$9$k$N$G$O$J$/(B
- $B$"$kDxEY$^$H$a$F7W;;$7$^$9!#$3$NCM$rBg$-$/$9$l$P$9$k$[$I:Y$+$/7W;;$9$k$?$a!"(B
- $B2;$N<A$O$h$/$J$j$^$9$,!"5U$K(B CPU $BIi2Y$,9b$/$J$j$^$9!#%3%^%s%I%i%$%s(B
- $B%*%W%7%g%s$GJQ99$b$G$-$k$N$G!"$3$N$^$^$K$7$H$-$^$7$g$&(B)
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤â¤³¤Î¤Þ¤Þ¤ÇÎÉ¤¤¤Ç¤·¤ç¤¦¡£
+# TiMidity¤Ç¤Ï¡¤¥¨¥ó¥Ù¥í¡¼¥×¤Î²»ÎÌ·×»»¤ò1¥µ¥ó¥×¥ë¤´¤È¤Ë·×»»¤¹¤ë¤Î¤Ç¤Ï¤Ê
+# ¤¯¡¤¤¢¤ëÄøÅÙ¤Þ¤È¤á¤Æ·×»»¤·¤Þ¤¹¡£¤³¤ÎÃÍ¤òÂç¤­¤¯¤¹¤ì¤Ð¤¹¤ë¤Û¤ÉºÙ¤«¤¯·×
+# »»¤¹¤ë¤¿¤á¡¤²»¤Î¼Á¤Ï¤è¤¯¤Ê¤ê¤Þ¤¹¤¬¡¤µÕ¤ËCPUÉé²Ù¤¬¹â¤¯¤Ê¤ê¤Þ¤¹¡£¥³¥Þ¥ó
+# ¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤â¤Ç¤­¤ë¤Î¤Ç¡¤¤³¤Î¤Þ¤Þ¤Ë¤·¤È¤­¤Þ¤·¤ç¤¦¡£
 
+¼¡¤Ë¡¤¥ê¥µ¥ó¥×¥ë»þ¤Ë¤ª¤±¤ëÊä´°¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï¡¤
 
-$B<!$K!"%j%5%s%W%k;~$K$*$1$kJd40$N@_Dj$G$9!#%G%U%)%k%H$G$O!"(B
+#define DEFAULT_RESAMPLATION resample_gauss
 
-#define LINEAR_INTERPOLATION
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤òÄêµÁ¤¹¤ë¤È¡¤¥ê¥µ¥ó¥×¥ë»þ¤Ë¥¬¥¦¥¹É÷Êä´°¤ò¹Ô¤¤¡¤²»
+¼Á¤¬¸þ¾å¤·¤Þ¤¹¡£¤½¤ÎÈ¿ÌÌ¡¤CPUÉé²Ù¤¬¾å¤¬¤ê¤Þ¤¹¡£ÈóÎÏ¤Ê¥Þ¥·¥ó¤Ç¤Ê¤¤¸Â¤êÄê
+µÁ¤·¤Æ¤ª¤­¤Þ¤·¤ç¤¦¡£Êä´°¥¢¥ë¥´¥ê¥º¥à¤È¤·¤Æ¡¤²¼µ­¤Î¤â¤Î¤¬»ÈÍÑ²ÄÇ½¤Ç¤¹¡£
 
-$B$H$J$C$F$$$^$9!#$3$l$rDj5A$9$k$H!"%j%5%s%W%k;~$K@~7AJd40$r9T$$!"2;<A$,(B
-$B8~>e$7$^$9!#$=$NH?LL(B CPU $BIi2Y$,>e$,$j$^$9!#(B
-$BHsNO$J%^%7%s$G$J$$8B$jDj5A$7$F$*$-$^$7$g$&!#(B
+#define DEFAULT_RESAMPLATION resample_none
+#define DEFAULT_RESAMPLATION resample_linear
+#define DEFAULT_RESAMPLATION resample_cspline
+#define DEFAULT_RESAMPLATION resample_lagrange
+#define DEFAULT_RESAMPLATION resample_newton
+#define DEFAULT_RESAMPLATION resample_gauss
 
+Êä´°¥¢¥ë¥´¥ê¥º¥à¤Ï¡¤¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤â¤Ç¤­¤Þ¤¹¡£¥æ¡¼¥¶¤Ë
+¤è¤Ã¤ÆÊÑ¹¹¤Ç¤­¤Ê¤¯¤¹¤ë¤Ë¤Ï
 
-$B<!$K(B LOOKUP_HACK $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+#define FIXED_RESAMPLATION
 
-/* #define LOOKUP_HACK
-   #define LOOKUP_INTERPOLATION */
+¤Î¥³¥á¥ó¥È¥¢¥¦¥È¤ò³°¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-$B$HL$Dj5A$K$J$C$F$$$^$9!#$3$N%^%/%m$rDj5A$9$k$H!"B?>/9bB.$KF0:n$7$^$9!#(B
-$B$?$@$7!"(B16 $B%S%C%H$N%5%s%W%k$r(B 8 $B%S%C%H$G7W;;$9$k$N$G2;<A$,Nt2=$7$^$9!#(B
-$BHsNO$J%^%7%s$G1iAU=hM}$,DI$$IU$+$J$$$J$iDj5A$7$F$_$^$7$g$&!#(B
+¼¡¤Ë¡¤DSP¥¨¥Õ¥§¥¯¥È¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
+#define USE_DSP_EFFECT
 
-$B<!$K(B FAST_DECAY $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¥³¡¼¥é¥¹¡¤¥Ç¥£¥ì¥¤¡¤EQ¤ª¤è¤Ó¥¤¥ó¥µ¡¼¥·¥ç¥ó¥¨¥Õ¥§¥¯¥È¤Î
+À­Ç½¤ò¸þ¾å¤µ¤»¤ë¤â¤Î¤Ç¡¤¤³¤ì¤ÏÆÃ¤ËÊÑ¹¹¤¹¤ëÉ¬Í×¤Ï¤Ê¤¤¤Ç¤·¤ç¤¦¡£
+
+¼¡¤Ë¡¤LOOKUP_HACK¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
+
+/* #define LOOKUP_HACK */
+/* #define LOOKUP_INTERPOLATION */
+
+¤ÈÌ¤ÄêµÁ¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤Î¥Þ¥¯¥í¤òÄêµÁ¤¹¤ë¤È¡¤Â¿¾¯¹âÂ®¤ËÆ°ºî¤·¤Þ¤¹¡£
+¤¿¤À¤·¡¤16¥Ó¥Ã¥È¤Î¥µ¥ó¥×¥ë¤ò8¥Ó¥Ã¥È¤Ç·×»»¤¹¤ë¤Î¤Ç²»¼Á¤¬Îô²½¤·¤Þ¤¹¡£ÈóÎÏ
+¤Ê¥Þ¥·¥ó¤Ç±éÁÕ½èÍý¤¬ÄÉ¤¤ÉÕ¤«¤Ê¤¤¤Ê¤éÄêµÁ¤·¤Æ¤ß¤Þ¤·¤ç¤¦¡£
+
+¼¡¤Ë¡¤FAST_DECAY¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 /* #define FAST_DECAY */
 
-$B$HL$Dj5A$K$J$C$F$$$^$9!#$3$l$rDj5A$9$k$H%(%s%Y%m!<%W%9%F!<%8$r(B 2 $BG\B.$/(B
-$B?J$a$k$h$&$K$J$j$^$9!#7k2L$H$7$F!"9bB.2=$K$D$J$,$k$N$G$9$,!"(B
-$B$=$NH?LL!"2;$ND9$5$,C;$/$J$j!"GwNO$K7g$F$-$^$9!#$3$N@_Dj$O%3%^%s%I%i%$%s(B
-$B$+$i(B on/off $B$G$-$k$N$G!"$3$l$OL$Dj5A$N$^$^$G$$$$$G$7$g$&!#(B
+¤ÈÌ¤ÄêµÁ¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤òÄêµÁ¤¹¤ë¤È¥¨¥ó¥Ù¥í¡¼¥×¥¹¥Æ¡¼¥¸¤ò2ÇÜÂ®¤¯¿Ê
+¤á¤ë¤è¤¦¤Ë¤Ê¤ê¤Þ¤¹¡£·ë²Ì¤È¤·¤Æ¡¤¹âÂ®²½¤Ë¤Ä¤Ê¤¬¤ë¤Î¤Ç¤¹¤¬¡¤¤½¤ÎÈ¿ÌÌ¡¤²»
+¤ÎÄ¹¤µ¤¬Ã»¤¯¤Ê¤ê¡¤Ç÷ÎÏ¤Ë·ç¤Æ¤­¤Þ¤¹¡£¤³¤ÎÀßÄê¤Ï¥³¥Þ¥ó¥É¥é¥¤¥ó¤«¤éon/off
+¤Ç¤­¤ë¤Î¤Ç¡¤¤³¤ì¤ÏÌ¤ÄêµÁ¤Î¤Þ¤Þ¤ÇÎÉ¤¤¤Ç¤·¤ç¤¦¡£
 
-
-$B<!$K(B FRACTION_BITS $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤FRACTION_BITS ¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define FRACTION_BITS 12
 
-$B$H$J$C$F$$$^$9!#$3$l$O$3$N$^$^$G$$$$$G$7$g$&!#(B
-$BJdB-(B: TiMidity $B$G$O!"2;$N2;DxJQ49$KIbF0>.?tE@?t$rMQ$$$:$K!"(B32 bit $B8GDj>.?tE@?t(B
-$B$rMQ$$$F7W;;$7$F$$$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤Ï¤³¤Î¤Þ¤Þ¤ÇÎÉ¤¤¤Ç¤·¤ç¤¦¡£
+ÊäÂ­¡§TiMidity¤Ç¤Ï¡¤²»¤Î²»ÄøÊÑ´¹¤ËÉâÆ°¾®¿ôÅÀ¿ô¤òÍÑ¤¤¤º¤Ë¡¤32¥Ó¥Ã¥È¸ÇÄê
+¾®¿ôÅÀ¿ô¤òÍÑ¤¤¤Æ·×»»¤·¤Æ¤¤¤Þ¤¹¡£
 
-$B<!$K!"<+F0(B GUS/patch $B2;NLD4@a$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤¼«Æ°GUS/patch²»ÎÌÄ´Àá¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define ADJUST_SAMPLE_VOLUMES
 
-$B$HDj5A$5$l$F$$$^$9!#$3$l$rDj5A$7$F$*$/$H!"(BGUS/patch $B$N2;NL$r<+F0E*$K(B
-$BD4@a$7$FF1$82;$NBg$-$5$K$7$^$9!#$b$7!">.$5$$2;$N(B GUS/patch $B$O>.$5$$$^$^$K!"(B
-$BBg$-$$2;$N(B GUS/patch $B$OBg$-$$$^$^$K$7$?$$$J$iL$Dj5A$K$7$F$/$@$5$$!#(B
-$B@53N$K%A%e!<%K%s%0$5$l$F$$$k(B GUS/patch $B%;%C%H$N$_$rMQ$$$k$J$iL$Dj5A$G$b(B
-$B$$$$$G$9!#$7$+$7!"B>$NMM!9$J(B GUS/patch $B$rMxMQ$9$k>l9g$K!"2;NL$,ITB7$$$K(B
-$B$J$C$F$7$^$&$N$G!"$3$N%^%/%m$ODj5A$7$F$*$/$[$&$,$$$$$G$7$g$&!#(B
+¤ÈÄêµÁ¤µ¤ì¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤òÄêµÁ¤·¤Æ¤ª¤¯¤È¡¤GUS/patch¤Î²»ÎÌ¤ò¼«Æ°Åª¤ËÄ´Àá
+¤·¤ÆÆ±¤¸²»¤ÎÂç¤­¤µ¤Ë¤·¤Þ¤¹¡£¤â¤·¡¤¾®¤µ¤¤²»¤ÎGUS/patch¤Ï¾®¤µ¤¤¤Þ¤Þ¤Ë¡¤Âç
+¤­¤¤²»¤ÎGUS/patch¤ÏÂç¤­¤¤¤Þ¤Þ¤Ë¤·¤¿¤¤¤Ê¤éÌ¤ÄêµÁ¤Ë¤·¤Æ¤¯¤À¤µ¤¤¡£Àµ³Î¤Ë¥Á
+¥å¡¼¥Ë¥ó¥°¤µ¤ì¤Æ¤¤¤ëGUS/patch¥»¥Ã¥È¤Î¤ß¤òÍÑ¤¤¤ë¤Ê¤éÌ¤ÄêµÁ¤Ç¤âÎÉ¤¤¤Ç¤¹¡£
+¤·¤«¤·¡¤Â¾¤ÎÍÍ¡¹¤ÊGUS/patch¤òÍøÍÑ¤¹¤ë¾ì¹ç¤Ë¡¤²»ÎÌ¤¬ÉÔÂ·¤¤¤Ë¤Ê¤Ã¤Æ¤·¤Þ¤¦
+¤Î¤Ç¡¤¤³¤Î¥Þ¥¯¥í¤ÏÄêµÁ¤·¤Æ¤ª¤¯Êý¤¬ÎÉ¤¤¤Ç¤·¤ç¤¦¡£
 
-
-$B<!$K(B DANGEROUS_RENICE $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤DANGEROUS_RENICE¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 /* #define DANGEROUS_RENICE -15 */
 
-$B$HL$Dj5A$K$J$C$F$$$^$9!#(B
-setuid root $B$N(B TiMidity $B$G%W%m%;%9$N%W%i%$%*%j%F%#$r>e$2$F<B9T$7$?$$>l9g$O$3$N(B
-$B%^%/%m$rDj5A$7$F$/$@$5$$!#(BUNIX $B$N$_$GM-8z$G$9!#$3$N%^%/%m$rDj5A$7$F(B TiMidity
-$B$r%$%s%9%H!<%k$7$?8e$O!"(B
+¤ÈÌ¤ÄêµÁ¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£setuid root¤ÎTiMidity¤Ç¡¤¥×¥í¥»¥¹¤Î¥×¥é¥¤¥ª¥ê¥Æ
+¥£¤ò¾å¤²¤Æ¼Â¹Ô¤·¤¿¤¤¾ì¹ç¤Ï¡¤¤³¤Î¥Þ¥¯¥í¤òÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£UNIX¤Î¤ß¤ÇÍ­
+¸ú¤Ç¤¹¡£¤³¤Î¥Þ¥¯¥í¤òÄêµÁ¤·¤ÆTiMidity¤ò¥¤¥ó¥¹¥È¡¼¥ë¤·¤¿¸å¤Ï¡¤
 
 # chown root /usr/local/bin/timidity
 # chmod u+s /usr/local/bin/timidity
 
-$B$N$h$&$K$7$^$9!#(B
-$BCm!'(B
-DANGEROUS_RENICE $B$rDj5A$7$F$$$J$$>l9g$O!"(Bsetuid $B%W%m%0%i%`$K$7$J$$$G$/$@$5$$!#(B
+¤Î¤è¤¦¤Ë¤·¤Þ¤¹¡£
+Ãí°Õ¡§DANGEROUS_RENICE¤òÄêµÁ¤·¤Æ¤¤¤Ê¤¤¾ì¹ç¤Ï¡¤setuid¥×¥í¥°¥é¥à¤Ë¤·¤Ê¤¤
+¤Ç¤¯¤À¤µ¤¤¡£
 
-
-$B<!$K(B MAX_DIE_TIME $B$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤MAX_DIE_TIME¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define MAX_DIE_TIME 20
 
-$B$H$J$C$F$$$^$9!#$"$^$j>.$5$J?t$K$9$k$H!"%W%D$C$F$$$&%N%$%:2;(B ($B%/%j%C%/%N%$%:(B) 
-$B$,82Cx$K$J$j$^$9!#$3$NCM$O$3$N$^$^$G$$$$$G$7$g$&!#(B
-($B%b%N%i%k%Q!<%H$N2;Dx$,(B A->B $B$H0\$k$H$-!"(BA $B$N2;$r=V;~$K>C$7$F$7$^$&$H%/%j%C%/(B
- $B%N%$%:$,=P$F$7$^$$$^$9!#$3$N%Q%i%a%?$G!"=V;~$K>C$9$Y$-2;$K%/%j%C%/%N%$%:$,(B
- $B=P$J$$$h$&$K%3%s%H%m!<%k$7$^$9!#(B)
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤¢¤Þ¤ê¾®¤µ¤Ê¿ô¤Ë¤¹¤ë¤È¡¤¥×¥Ä¤Ã¤Æ¤¤¤¦¥Î¥¤¥º²»(¥¯¥ê¥Ã¥¯¥Î
+¥¤¥º)¤¬¸²Ãø¤Ë¤Ê¤ê¤Þ¤¹¡£¤³¤ÎÃÍ¤Ï¤³¤Î¤Þ¤Þ¤ÇÎÉ¤¤¤Ç¤·¤ç¤¦¡£
+# ¥â¥Î¥é¥ë¥Ñ¡¼¥È¤Î²»Äø¤¬A->B¤È°Ü¤ë¤È¤­¡¤A¤Î²»¤ò½Ö»þ¤Ë¾Ã¤·¤Æ¤·¤Þ¤¦¤È¥¯¥ê
+# ¥Ã¥¯¥Î¥¤¥º¤¬½Ð¤Æ¤·¤Þ¤¤¤Þ¤¹¡£¤³¤Î¥Ñ¥é¥á¡¼¥¿¤Ç¡¤½Ö»þ¤Ë¾Ã¤¹¤Ù¤­²»¤Ë¥¯¥ê
+# ¥Ã¥¯¥Î¥¤¥º¤¬½Ð¤Ê¤¤¤è¤¦¤Ë¥³¥ó¥È¥í¡¼¥ë¤·¤Þ¤¹¡£
 
+¼¡¤Ë¡¤Àµ¸¹´Ø¿ô¥Æ¡¼¥Ö¥ë»²¾È¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
-$B<!$K%j%5%s%W%j%s%0:GE,2=$K4X$9$k@_Dj$G$9!#%G%U%)%k%H$G$O(B
+#define LOOKUP_SINE
+
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£´ö¤Ä¤«¤Î´Ä¶­(ÆÃ¤Ë¿ôÃÍ±é»»¥×¥í¥»¥Ã¥µ¤ò»ý¤¿¤Ê¤¤PC¤Ê¤É)¤Ç
+¤Ï¡¤Àµ¸¹´Ø¿ôÃÍ¤ò¥Æ¡¼¥Ö¥ë»²¾È¤·¤¿Êý¤¬¡¤¤½¤ÎÅÔÅÙ·×»»¤¹¤ë¤è¤ê¤«¤Ê¤ê¹âÂ®¤Ë
+¤Ê¤ê¤Þ¤¹¡£¤³¤Î¥Þ¥¯¥í¤ÏÄêµÁ¤·¤Æ¤ª¤¯Êý¤¬ÎÉ¤¤¤Ç¤·¤ç¤¦¡£
+
+¼¡¤Ë¡¤¥ê¥µ¥ó¥×¥ê¥ó¥°ºÇÅ¬²½¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define PRECALC_LOOPS
 
-$B$H$J$C$F$$$^$9!#4v$D$+$N4D6-$G$O!"$3$N%^%/%m$rL$Dj5A$K$7$?$[$&$,9bB.$K(B
-$B$J$j$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£´ö¤Ä¤«¤Î´Ä¶­¤Ç¤Ï¡¤¤³¤Î¥Þ¥¯¥í¤òÌ¤ÄêµÁ¤Ë¤·¤¿¤Û¤¦¤¬¹âÂ®¤Ë
+¤Ê¤ê¤Þ¤¹¡£
 
-
-$B<!$K!"(Bldexp() $B$r;H$&$+$I$&$+$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤ldexp()¤ò»È¤¦¤«¤É¤¦¤«¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 /* #define USE_LDEXP */
 
-$B$HL$Dj5A$K$J$C$F$$$^$9!#IbF0>.?tE@?t$N3]$1;;$,(B ldexp() $B$rMQ$$$?J}$,B.$$(B
-$B%^%7%s$N>l9g$ODj5A$7$F$/$@$5$$!#(B
+¤ÈÌ¤ÄêµÁ¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£ÉâÆ°¾®¿ôÅÀ¿ô¤Î³Ý¤±»»¤¬¡¤ldexp()¤òÍÑ¤¤¤¿Êý¤¬Â®¤¤
+¥Þ¥·¥ó¤Î¾ì¹ç¤ÏÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-
-$B<!$K%W%j%j%5%s%W%j%s%0%-%c%C%7%e$NBg$-$5$N@_Dj$G$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤¥×¥ê¥ê¥µ¥ó¥×¥ê¥ó¥°¥­¥ã¥Ã¥·¥å¤ÎÂç¤­¤µ¤ÎÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 #define DEFAULT_CACHE_DATA_SIZE (2*1024*1024)
 
-$B$H(B 2M $B$K$J$C$F$$$^$9!#(BTiMidity++ $B$G$O!"(BMIDI $B%$%Y%s%H$r1iAUA0$K(B scan $B$7$F!"(B
-$B0lIt$N2;$r$"$i$+$8$a%j%5%s%W%j%s%0$7$^$9!#$=$N%j%5%s%W%j%s%0$N%P%C%U%!$N(B
-$BBg$-$5$r;XDj$7$F$/$@$5$$!#Bg$-$/$9$k$[$I9bB.$K$J$j$^$9$,!"$=$NJ,!"(B
-$B%a%b%j$rO2Hq$7$^$9!#(B2M $B0J>e$KA}$d$7$F$b!"$"$^$j82Cx$K9bB.2=$7$J$/!"$^$?!"(B
-$B%3%^%s%I%i%$%s%*%W%7%g%s$+$i$bJQ99$G$-$k$N$G!"$3$3$O%G%U%)%k%H$N$^$^$G(B
-$B$$$$$G$7$g$&!#(B
+¤È2M¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£TiMidity++¤Ç¤Ï¡¤MIDI¥¤¥Ù¥ó¥È¤ò±éÁÕÁ°¤Ë¥¹¥­¥ã¥ó¤·¤Æ¡¤
+°ìÉô¤Î²»¤ò¤¢¤é¤«¤¸¤á¥ê¥µ¥ó¥×¥ê¥ó¥°¤·¤Þ¤¹¡£¤½¤Î¥ê¥µ¥ó¥×¥ê¥ó¥°¤Î¥Ð¥Ã¥Õ¥¡
+¤ÎÂç¤­¤µ¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£Âç¤­¤¯¤¹¤ë¤Û¤É¹âÂ®¤Ë¤Ê¤ê¤Þ¤¹¤¬¡¤¤½¤ÎÊ¬¥á¥â
+¥ê¤òÏ²Èñ¤·¤Þ¤¹¡£2M°Ê¾å¤ËÁý¤ä¤·¤Æ¤â¡¤¤¢¤Þ¤ê¸²Ãø¤Ë¹âÂ®²½¤·¤Ê¤¯¡¤¤Þ¤¿¥³¥Þ
+¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤«¤é¤âÊÑ¹¹¤Ç¤­¤ë¤Î¤Ç¡¤¤³¤³¤Ï¥Ç¥Õ¥©¥ë¥È¤Î¤Þ¤Þ¤ÇÎÉ¤¤
+¤Ç¤·¤ç¤¦¡£
 
+¼¡¤Ë¡¤¥Í¥Ã¥È¥ï¡¼¥¯¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£TiMidity++¤Ç¤Ï¡¤URL¤òÍÑ¤¤¤Æ¥Í¥Ã¥È¥ï
+¡¼¥¯¤ò²ð¤·¤Æ¥Õ¥¡¥¤¥ë¤Ë¥¢¥¯¥»¥¹¤¹¤ë¤³¤È¤¬²ÄÇ½¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£Makefile¤Î
+ÀßÄê¤ÇÍ­¸ú¤Ë¤·¤Æ¤¤¤ë¾ì¹ç¤Î¤ß¡¤¤³¤Îµ¡Ç½¤¬Í­¸ú¤Ë¤Ê¤ê¤Þ¤¹¡£°Ê²¼¤Î¥Þ¥¯¥í¤ò
+ÀßÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-$B<!$K!"%M%C%H%o!<%/$K4X$9$k@_Dj$G$9!#(BTiMidity++ $B$G$O(B URL $B$rMQ$$$F(B
-$B%M%C%H%o!<%/$r2p$7$F%U%!%$%k$K%"%/%;%9$9$k$3$H$,2DG=$K$J$C$F$$$^$9!#(B
-Makefile $B$N@_Dj$GM-8z$K$7$F$$$k>l9g$N$_!"$3$N5!G=$,M-8z$K$J$j$^$9!#(B
-$B0J2<$N%^%/%m$r@_Dj$7$F$/$@$5$$!#(B
+¡¦MAIL_DOMAIN
+  ¥á¡¼¥ë¥¢¥É¥ì¥¹¤Î¥É¥á¥¤¥óÌ¾¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£Îã¤¨¤Ð¡¤¥á¡¼¥ë¥¢¥É¥ì¥¹
+  ¤¬iz@onicos.co.jp¤À¤È¤¹¤ë¤È¡¤
+  #define MAIL_DOMAIN "@onicos.co.jp"
+  ¤Èµ­½Ò¤·¤Þ¤¹¡£
 
-$B!&(BMAIL_DOMAIN
-  $B%a!<%k%"%I%l%9$N%I%a%$%sL>$r;XDj$7$F$/$@$5$$!#Nc$($P%a!<%k%"%I%l%9$,(B
-  mo@goice.co.jp $B$H$9$k$H!"(B
-  #define MAIL_DOMAIN "@goice.co.jp"
-  $B$H5-=R$7$^$9!#(B
+¡¦MAIL_NAME
+  UNIX¤Ç¤ÏÌ¤ÄêµÁ¤Ë¤·¤Æ¤¯¤À¤µ¤¤¡£Windows¤Ç¤Ï¥á¡¼¥ëÌ¾¤òÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£
+  Îã¤¨¤Ð¡¤¥á¡¼¥ë¥¢¥É¥ì¥¹¤¬iz@onicos.co.jp¤À¤È¤¹¤ë¤È¡¤
+  #define MAIL_NAME "iz"
+  ¤Èµ­½Ò¤·¤Þ¤¹¡£
 
-$B!&(BMAIL_NAME
-  UNIX $B$G$OL$Dj5A$K$7$F$/$@$5$$!#(BWindows $B$G$O%a!<%kL>$rDj5A$7$F$/$@$5$$!#(B
-  $BNc$($P%a!<%k%"%I%l%9$,(B mo@goice.co.jp $B$H$9$k$H!"(B
-  #define MAIL_NAME "mo"
-  $B$H5-=R$7$^$9!#(B
+¤³¤Î¥á¡¼¥ë¥¢¥É¥ì¥¹¤Ï¡¤anonymous FTP¤Ëproxy¤ò²ð¤µ¤º¤Ë¥¢¥¯¥»¥¹¤¹¤ë¾ì¹ç¤Ë
+ÍøÍÑ¤µ¤ì¤Þ¤¹¡£
 
-$B$3$N%a!<%k%"%I%l%9$O!"(Banonymous FTP $B$K(B proxy $B$r2p$5$:$K%"%/%;%9$9$k>l9g$K(B
-$BMxMQ$5$l$^$9!#(B
-
-
-$B<!$K!"0l;~%U%!%$%k$NCV>l=j$r;XDj$7$^$9!#%G%U%)%k%H$G$O(B
+¼¡¤Ë¡¤°ì»þ¥Õ¥¡¥¤¥ë¤ÎÃÖ¾ì½ê¤ò»ØÄê¤·¤Þ¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
 
 /* #define TMPDIR "/var/tmp" */
 
-$B$HL$Dj5A$K$J$C$F$$$^$9!#(BUNIX $B$G$O!"$3$N%^%/%m$rL$Dj5A$K$7$F$*$/$H!"(B
-TMPDIR $B4D6-JQ?t$GDj5A$5$l$F$$$k%G%#%l%/%H%j$K0l;~%U%!%$%k$r:n@.$7$^$9!#(B
-TMPDIR $B%^%/%m$b(B TMPDIR $B4D6-JQ?t$b$I$A$i$H$bL$Dj5A$N>l9g$O(B /tmp $B$K(B
-$B0l;~%U%!%$%k$,:n@.$5$l$^$9!#(B
-Windows $B$G$O!"(BTMPDIR $B4D6-JQ?t$OL5;k$5$l$^$9$N$G!"(B
-TMPDIR $B%^%/%m$rDj5A$7$F$/$@$5$$!#(B
+¤ÈÌ¤ÄêµÁ¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£UNIX¤Ç¤Ï¡¤¤³¤Î¥Þ¥¯¥í¤òÌ¤ÄêµÁ¤Ë¤·¤Æ¤ª¤¯¤ÈTMPDIR
+´Ä¶­ÊÑ¿ô¤ÇÄêµÁ¤µ¤ì¤Æ¤¤¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Ë°ì»þ¥Õ¥¡¥¤¥ë¤òºîÀ®¤·¤Þ¤¹¡£TMPDIR
+¥Þ¥¯¥í¤âTMPDIR´Ä¶­ÊÑ¿ô¤â¤É¤Á¤é¤È¤âÌ¤ÄêµÁ¤Î¾ì¹ç¤Ï¡¤/tmp¤Ë°ì»þ¥Õ¥¡¥¤¥ë¤¬
+ºîÀ®¤µ¤ì¤Þ¤¹¡£Windows¤Ç¤Ï¡¤TMPDIR´Ä¶­ÊÑ¿ô¤ÏÌµ»ë¤µ¤ì¤Þ¤¹¤Î¤Ç¡¤TMPDIR¥Þ¥¯
+¥í¤òÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-
-$B<!$K!"(BGS $B$N%I%i%`%Q!<%H$NG'<1$K4X$9$k@_Dj$G$9!#(B
+¼¡¤Ë¡¤GS¤Î¥É¥é¥à¥Ñ¡¼¥È¤ÎÇ§¼±¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£
 
 #define GS_DRUMPART
 
-$B$HDj5A$9$l$P!"(BGS $B$N%(%/%9%/%k!<%7%C%V%a%C%;!<%8$+$i%I%i%`%Q!<%H$rG'<1$7$^$9!#(B
+¤ÈÄêµÁ¤¹¤ì¤Ð¡¤GS¤Î¥¨¥¯¥¹¥¯¥ë¡¼¥·¥Ã¥Ö¥á¥Ã¥»¡¼¥¸¤«¤é¥É¥é¥à¥Ñ¡¼¥È¤òÇ§¼±¤·
+¤Þ¤¹¡£
 
 /* #define GS_DRUMPART */
 
-$B$HL$Dj5A$K$9$l$P$3$N5!G=$OL58z$K$J$j$^$9!#(B
+¤ÈÌ¤ÄêµÁ¤Ë¤¹¤ì¤Ð¤³¤Îµ¡Ç½¤ÏÌµ¸ú¤Ë¤Ê¤ê¤Þ¤¹¡£
 
-
-$B<!$K!"=PNOJ8;z%3!<%I$N@_Dj$G$9!#F|K\8l4D6-$G$O(B
+¼¡¤Ë¡¤½ÐÎÏÊ¸»ú¥³¡¼¥É¤ÎÀßÄê¤Ç¤¹¡£ÆüËÜ¸ì´Ä¶­¤Ç¤Ï
 
 #define JAPANESE
 
-$B$HDj5A$7$F$/$@$5$$!#F|K\8l4D6-$G$J$$>l9g$O!"(B
+¤ÈÄêµÁ¤·¤Æ¤¯¤À¤µ¤¤¡£ÆüËÜ¸ì´Ä¶­¤Ç¤Ê¤¤¾ì¹ç¤Ï¡¤
 
 /* #define JAPANESE */
 
-$B$H%3%a%s%H%"%&%H$7$F$/$@$5$$!#<!$K=PNO%3!<%I$r7h$a$^$9!#(BOUTPUT_TEXT_CODE
-$B%^%/%m$K=PNO%3!<%I$r;XDj$7$^$9!#0J2<$NJ8;zNs$,M-8z$G$9!#(B
+¤È¥³¥á¥ó¥È¥¢¥¦¥È¤·¤Æ¤¯¤À¤µ¤¤¡£¼¡¤Ë½ÐÎÏ¥³¡¼¥É¤ò·è¤á¤Þ¤¹¡£OUTPUT_TEXT_CODE
+¥Þ¥¯¥í¤Ë½ÐÎÏ¥³¡¼¥É¤ò»ØÄê¤·¤Þ¤¹¡£°Ê²¼¤ÎÊ¸»úÎó¤¬Í­¸ú¤Ç¤¹¡£
 
 "AUTO"	- Auto conversion by `LANG' environment variable (UNIX only)
 "ASCII"	- Convert unreadable characters to '.'(0x2e)
@@ -568,52 +575,76 @@ TMPDIR $B%^%/%m$rDj5A$7$F$/$@$5$$!#(B
 "JIS"	- JIS
 "SJIS"	- shift JIS
 
-UNIX $B>e$NF|K\8l4D6-$G$O!">e5-$9$Y$FM-8z$G$9!#(B
-Windows $BF|K\8l4D6-$G$O!"(B"ASCII"$B!"(B"NOCNV"$B!"(B"SJIS" $B$N$I$l$+$r;XDj$7$F$/$@$5$$!#(B
-$BF|K\8l4D6-$G$J$$>l9g$O!"(B"ASCII"$B!"(B"NOCNV" $B$N$I$A$i$+$r;XDj$7$F$/$@$5$$!#(B
+UNIX¾å¤ÎÆüËÜ¸ì´Ä¶­¤Ç¤Ï¡¤¾åµ­¤¹¤Ù¤ÆÍ­¸ú¤Ç¤¹¡£WindowsÆüËÜ¸ì´Ä¶­¤Ç¤Ï¡¤
+"ASCII"¡¤"NOCNV"¡¤"SJIS" ¤Î¤É¤ì¤«¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£ÆüËÜ¸ì´Ä¶­¤Ç¤Ê¤¤¾ì
+¹ç¤Ï¡¤"ASCII"¡¤"NOCNV"¤Î¤É¤Á¤é¤«¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-
-$B<!$K!"(BMIDI $B$N@)8f$K4X$9$k@_Dj$G$9!#%G%U%)%k%H$O(B
+¼¡¤Ë¡¤MIDI¤ÎÀ©¸æ¤Ë´Ø¤¹¤ëÀßÄê¤Ç¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ï
 
 #define MODULATION_WHEEL_ALLOW
 #define PORTAMENTO_ALLOW
 #define NRPN_VIBRATO_ALLOW
-#define REVERB_CONTROL_ALLOW
+/* #define REVERB_CONTROL_ALLOW */
+#define FREEVERB_CONTROL_ALLOW
 #define CHORUS_CONTROL_ALLOW
+/* #define SURROUND_CHORUS_ALLOW */
 /* #define GM_CHANNEL_PRESSURE_ALLOW */
-/* #define XG_BANK_SELECT_LSB_ALLOW */
+#define VOICE_CHAMBERLIN_LPF_ALLOW
+/* #define VOICE_MOOG_LPF_ALLOW */
+/* #define MODULATION_ENVELOPE_ALLOW */
 /* #define ALWAYS_TRACE_TEXT_META_EVENT */
 #define OVERLAP_VOICE_ALLOW
+#define TEMPER_CONTROL_ALLOW
 
-$B$H$J$C$F$$$^$9!#$3$l$i$O%3%^%s%I%i%$%s%*%W%7%g%s$GJQ99$9$k$3$H$,$G$-$^$9$N$G!"(B
-$B$3$N$^$^$G$$$$$H;W$$$^$9!#(B
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£¤³¤ì¤é¤Ï¡¤¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤¹¤ë¤³¤È¤¬¤Ç¤­
+¤Þ¤¹¤Î¤Ç¡¤¤³¤Î¤Þ¤Þ¤ÇÎÉ¤¤¤È»×¤¤¤Þ¤¹¡£
 
-$B!&(BMODULATION_WHEEL_ALLOW
-  $BDj5A$9$k$H!"(BModulation wheel $B5!G=$r%G%U%)%k%H$GM-8z$K$7$^$9!#(B
+¡¦MODULATION_WHEEL_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Modulation wheelµ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
   (-Ew:on -EW:off)
-$B!&(BPORTAMENTO_ALLOW
-  $BDj5A$9$k$H!"%]%k%?%a%s%H5!G=$r%G%U%)%k%H$GM-8z$K$7$^$9!#(B
+¡¦PORTAMENTO_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤¥Ý¥ë¥¿¥á¥ó¥Èµ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
   (-Ep:on -EP:off)
-$B!&(BNRPN_VIBRATO_ALLOW
-  $BDj5A$9$k$H(B NRPN $B%S%V%i!<%H5!G=$r%G%U%)%k%H$GM-8z$K$7$^$9!#(B
+¡¦NRPN_VIBRATO_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤NRPN¥Ó¥Ö¥é¡¼¥Èµ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
   (-Ev:on -EV:off)
-$B!&(BREVERB_CONTROL_ALLOW
-  $BDj5A$9$k$H!"%j%P!<%V5!G=$r%G%U%)%k%H$GM-8z$K$7$^$9!#$3$N5!G=$OHs>o$K(B CPU
-  $B%Q%o!<$rI,MW$H$9$k$?$a!"%j%"%k%?%$%`1iAU$,:$Fq$K$J$j$^$9!#(B
-  (-Er:on -ER:off)
-$B!&(BCHORUS_CONTROL_ALLOW
-  $BDj5A$9$k$H!"%3!<%i%95!G=$r%G%U%)%k%H$GM-8z$K$7$^$9!#$3$N5!G=$OHs>o$K(B CPU
-  $B%Q%o!<$rI,MW$H$9$k$?$a!"%j%"%k%?%$%`1iAU$,:$Fq$K$J$j$^$9!#(B
-  (-Ec:on -EC:off)
-$B!&(BGM_CHANNEL_PRESSURE_ALLOW
-  $BDj5A$9$k$H!"%G%U%)%k%H$G(B Channel pressure $B$rM-8z$K$7$^$9!#(B
+¡¦REVERB_CONTROL_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤É¸½àÅª¤Ê¥ê¥Ð¡¼¥Öµ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£¤³¤Îµ¡Ç½
+  ¤Ï¡¤¤ä¤äCPU¥Ñ¥ï¡¼¤òÉ¬Í×¤È¤·¤Þ¤¹¡£
+  (-EFreverb=1:on -EFreverb=0:off)
+¡¦FREEVERB_CONTROL_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Freeverb¤Ê¥ê¥Ð¡¼¥Öµ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£¤³¤Îµ¡
+  Ç½¤Ï¡¤Èó¾ï¤ËCPU¥Ñ¥ï¡¼¤òÉ¬Í×¤È¤¹¤ë¤¿¤á¡¤¥ê¥¢¥ë¥¿¥¤¥à±éÁÕ¤¬º¤Æñ¤Ë¤Ê¤ê¤Þ
+  ¤¹¡£
+  (-EFreverb=3:on -EFreverb=0:off)
+¡¦CHORUS_CONTROL_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤É¸½àÅª¤Ê¥³¡¼¥é¥¹µ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£¤³¤Îµ¡Ç½
+  ¤Ï¡¤¤ä¤äCPU¥Ñ¥ï¡¼¤òÉ¬Í×¤È¤·¤Þ¤¹¡£
+  (-EFchorus=1:on -EFchorus=0:off)
+¡¦SURROUND_CHORUS_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤¥µ¥é¥¦¥ó¥É¥³¡¼¥é¥¹µ¡Ç½¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£¤³¤Îµ¡
+  Ç½¤Ï¡¤¤ä¤äCPU¥Ñ¥ï¡¼¤òÉ¬Í×¤È¤·¤Þ¤¹¡£
+  (-EFchorus=2:on -EFchorus=0:off)
+¡¦GM_CHANNEL_PRESSURE_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Channel pressure¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
   (-Es:on -ES:off)
-$B!&(BXG_BANK_SELECT_LSB_ALLOW
-  $BDj5A$9$k$H!"%G%U%)%k%H$G(B XG $B$N%P%s%/%;%l%/%H$rM-8z$K$7$^$9!#(B
-  (-Ex:on -EX:off)
-$B!&(BALWAYS_TRACE_TEXT_META_EVENT
-  $BDj5A$9$k$H!"%G%U%)%k%H$G(B Text Meta $B%$%Y%s%H$NJ8;zNs$r%H%l!<%9I=<($7$^$9!#(B
+¡¦VOICE_CHAMBERLIN_LPF_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Chamberlin¥ì¥¾¥Ê¥ó¥ÈLPF(12dB/oct)¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ
+  ¤¹¡£
+  (-EFvlpf=1:on -EFvlpf=0:off)
+¡¦VOICE_MOOG_LPF_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Moog¥ì¥¾¥Ê¥ó¥È¥í¡¼¥Ñ¥¹VCF(24dB/oct)¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·
+  ¤Þ¤¹¡£
+  (-EFvlpf=2:on -EFvlpf=0:off)
+¡¦MODULATION_ENVELOPE_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤¥â¥¸¥å¥ì¡¼¥·¥ç¥ó¥¨¥ó¥Ù¥í¡¼¥×¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
+  (-Ee:on -EE:off)
+¡¦ALWAYS_TRACE_TEXT_META_EVENT
+  ÄêµÁ¤¹¤ë¤È¡¤Text Meta¥¤¥Ù¥ó¥È¤ÎÊ¸»úÎó¤ò¥Ç¥Õ¥©¥ë¥È¤Ç¥È¥ì¡¼¥¹É½¼¨¤·¤Þ¤¹¡£
   (-Et:on -ET:off)
-$B!&(BOVERLAP_VOICE_ALLOW
-  $BDj5A$9$k$H!"F10l2;$N=E$J$C$?(B voice $B$rM-8z$K$7$^$9!#(B
+¡¦OVERLAP_VOICE_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤Æ±°ì²»¤Î½Å¤Ê¤Ã¤¿voice¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
   (-Eo:on -EO:off)
+¡¦TEMPER_CONTROL_ALLOW
+  ÄêµÁ¤¹¤ë¤È¡¤MIDI Tuning Standard¤Î²»Î§À©¸æ¤ò¥Ç¥Õ¥©¥ë¥È¤ÇÍ­¸ú¤Ë¤·¤Þ¤¹¡£
+  (-Ez:on -EZ:off)

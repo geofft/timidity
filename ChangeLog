@@ -1,12 +1,20 @@
 2004-01-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* INSTALL(.jp), README(.jp):
+	  Update README and INSTALL
+	  doc/C/{timidity.1,timidity.cfg.5},
+	  doc/ja_JP.ujis/{timidity.1,timidity.cfg.5}:
+	  Fix typo
+
+2004-01-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
 	  Rewrite and fix typo a little
 
 2004-01-26  mput <root@mput.dip.jp>
 
 	* doc/C/timidity.1: Remove Japanese characters
-	* doc/ja_JP.ujis/timidity.1 : Add some missed entries
+	* doc/ja_JP.ujis/timidity.1: Add some missed entries
 
 2004-01-26  Saito <saito2@digitalme.com>
 
@@ -724,11 +732,11 @@
 
 2003-09-12  mput <root@mput.dip.jp>
 
-	* timidity/playmidi.c : Remove C++ style ``//'' comments
+	* timidity/playmidi.c: Remove C++ style ``//'' comments
 
 2003-09-09  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* timidity/playmidi.c (new_chorus_voice_alternate) : Revert
+	* timidity/playmidi.c (new_chorus_voice_alternate): Revert
 	  surround chorus delay back to the value (0.002) used in v2.11.3.
 
 2003-09-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
@@ -1150,7 +1158,7 @@
 	* interface/winsyn_c.c: To work under PortAudio
 	* interface/Makefile.am (EXTRA_DIST): Add entry for escape_sjis.pl
 	* interface/escape_sjis.pl: Add
-	* timidity/portaudio_a.c : Bug fix
+	* timidity/portaudio_a.c: Bug fix
 
 2003-06-16  Saito <timidity@flashmail.com>
 
@@ -1226,7 +1234,7 @@
 
 2003-06-06  mput <root@mput.dip.jp>
 
-	* timidity/esd_a.c : Restore. Latest changes into this file turned
+	* timidity/esd_a.c: Restore. Latest changes into this file turned
 	  out to be unable to run on Windows.
 
 2003-06-06  Takashi Iwai <tiwai@suse.de>

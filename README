@@ -1,38 +1,31 @@
-==============================================================================
-	   TiMidity++ -- MIDI to WAVE converter and player
+======================================================================
+	TiMidity++ -- MIDI to WAVE converter and player
 
 					Masanao Izumo
-					<mo@goice.co.jp>
-					Apr.28.1999
-					version 2.0.0 or lator
-==============================================================================
+					<iz@onicos.co.jp>
+					Jan.25.2004
+					version 2.13.0 or later
+======================================================================
 
-  This program is free software; you can redistribute it and/or
-  modify it under  the  terms  of  the  GNU  General  Public
-  License  as  published  by  the  Free Software Foundation;
-  either version 2 of the License, or (at your  option)  any
-  later version.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your  option) any later version.
 
-  This program is free software; you can redistribute it and/or
-  modify it under  the  terms  of  the  GNU  General  Public
-  License  as  published  by  the  Free Software Foundation;
-  either version 2 of the License, or (at your  option)  any
-  later version.
+The original version of this program was written by Tuuka Tiovonen
+<tt@cgs.fi> until TiMidity 0.2i (he discontinued development because
+he was too busy with work).  Masanao Izumo <mo@goice.co.jp> and other
+people began to hack it, then we officially released the new version,
+which is called TiMidity++.
 
-  The original version of this program was written by Tuuka Tiovonen
-  <tt@cgs.fi> until TiMidity 0.2i (he discontinued development
-  because he was too busy with work). Masanao Izumo <mo@goice.co.jp> and
-  other people began to hack it, then we officially released the new
-  version, which is called TiMidity++.
+TiMidity was originally a converter that converted MIDI files to WAV
+audio files.  But now TiMidity++ is not only a converter but also a
+real-time player that can play a MIDI file in real time.  TiMidity
+does not requires an external MIDI instrument module to play MIDI
+file; it can perform with software power only.
 
-  TiMidity was originally a converter that converted MIDI files to WAV
-  audio files. But now TiMidity++ is not only a converter but also a
-  real-time player that can play a MIDI file in real time. TiMidity does
-  not requires an external MIDI instrument module to play MIDI file; it can
-  perform with software power only.
-
-  TiMidity++ uses GUS/patch (Glavis Ultrasound) as the voice data to play.
-  It can also handle SoundFont data for voice data.
+TiMidity++ uses GUS/patch (Glavis Ultrasound) as the voice data to
+play.  It can also handle SoundFont data for voice data.
 
 *Features of TiMidity++:
   - Plays MIDI files without external MIDI instruments
@@ -61,340 +54,325 @@
     MasterVolume, MIDI-Reset, SystemExclusiveMessages
 
 *Usage:
-  -format: timidity [options] midi-filenames
+  timidity [options] filename [...]
 
-  -option:
-      -A amplification
-              Multiplies  the  master  volume by amplification %.
-              Default value is 70%.  The grater number of  amplification
-              makes louder sounds.  Range of the amplification is from 0 to 800%.
+  Use "-" as filename to read a MIDI file from stdin
 
-      -a      Turns on anti-aliasing. Samples are  run  through  a
-              low-pass filter before playing, which reduces aliasing
-              noise at low resampling frequencies.
+*Options:
+  -A n,m     --volume=n, --drum-power=m
+               Amplify volume by n percent (may cause clipping),
+                 and amplify drum power by m percent
+     (a)     --[no-]volume-compensation
+               Toggle amplify compensation (disabled by default)
+  -a         --[no-]anti-alias
+               Enable the anti-aliasing filter
+  -B n,m     --buffer-fragments=n,m
+               Set number of buffer fragments(n), and buffer size(2^m)
+  -C n       --control-ratio=n
+               Set ratio of sampling and control frequencies
+  -c file    --config-file=file
+               Read extra configuration file
+  -D n       --drum-channel=n
+               Play drums on channel n
+  -E mode    --ext=mode
+               TiMidity sequencer extensional modes:
+                 mode = w/W : Enable/Disable Modulation wheel
+                        p/P : Enable/Disable Portamento
+                        v/V : Enable/Disable NRPN Vibrato
+                        s/S : Enable/Disable Channel pressure
+                        e/E : Enable/Disable Modulation Envelope
+                        t/T : Enable/Disable Trace Text Meta Event at playing
+                        o/O : Enable/Disable Overlapped voice
+                        z/Z : Enable/Disable Temperament control
+                        m<HH>: Define default Manufacture ID <HH> in two hex
+                        M<HH>: Define system Manufacture ID <HH> in two hex
+                        b<n>: Use tone bank <n> as the default
+                        B<n>: Always use tone bank <n>
+                        i<n/m>: Use program <n> on channel <m> as the default
+                        I<n/m>: Always use program <n> on channel <m>
+                        F<args>: For effect.  See below for effect options
+                   default: -E wpvSEToz
+  -e         --evil
+               Increase thread priority (evil) - be careful!
+  -F         --[no-]fast-panning
+               Disable/Enable fast panning (toggle on/off, default is on)
+  -f         --[no-]fast-decay
+               Enable fast decay mode (toggle)
+  -g sec     --spectrogram=sec
+               Open Sound-Spectrogram Window
+  -H n       --force-keysig=n
+               Force keysig number of sHarp(+)/flat(-) (-7..7)
+  -h         --help
+               Display this help message
+  -i mode    --interface=mode
+               Select user interface (see below for list)
+             --realtime-priority=n (for alsaseq only)
+               Set the realtime priority (0-100)
+             --sequencer-ports=n (for alsaseq only)
+               Set the number of opened sequencer ports (default is 4)
+  -j         --[no-]realtime-load
+               Realtime load instrument (toggle on/off)
+  -K n       --adjust-key=n
+               Adjust key by n half tone (-24..24)
+  -k msec    --voice-queue=msec
+               Specify audio queue time limit to reduce voice
+  -L path    --patch-path=path
+               Append dir to search path
+  -M name    --pcm-file=name
+               Specify PCM filename (*.wav or *.aiff) to be played or:
+                 "auto" : Play *.mid.wav or *.mid.aiff
+                 "none" : Disable this feature (default)
+  -m msec    --decay-time=msec
+               Minimum time for a full volume sustained note to decay,
+                 0 disables
+  -N n       --interpolation=n
+               Set the interpolation parameter (depends on -EFresamp option)
+                 Linear interpolation is used if audio queue < 99%
+                 cspline, lagrange:
+                   Toggle 4-point interpolation (default on)
+                 newton:
+                   n'th order Newton polynomial interpolation, n=1-57 odd
+                 gauss:
+                   n+1 point Gauss-like interpolation, n=1-34 (default 25)
+  -O mode    --output-mode=mode
+               Select output mode and format (see below for list)
+  -o file    --output-file=file
+               Output to another file (or device/server) (Use "-" for stdout)
+  -P file    --patch-file=file
+               Use patch file for all programs
+  -p n       --polyphony=n
+               Allow n-voice polyphony.  Optional auto polyphony reduction
+     (a)     --[no-]polyphony-reduction
+               Toggle automatic polyphony reduction.  Enabled by default
+  -Q n[,...] --mute=n[,...]
+               Ignore channel n (0: ignore all, -n: resume channel n)
+     (t)     --temper-mute=n[,...]
+               Quiet temperament type n (0..3: preset, 4..7: user-defined)
+  -q sec/n   --audio-buffer=sec/n
+               Specify audio buffer in seconds
+                 sec: Maxmum buffer, n: Filled to start (default is 5.0/100%)
+                 (size of 100% equals device buffer size)
+  -R msec      Pseudo reveb effect (set every instrument's release to msec)
+                 if n=0, n is set to 800
+  -S n       --cache-size=n
+               Cache size (0 means no cache)
+  -s freq    --sampling-freq=freq
+               Set sampling frequency to freq (Hz or kHz)
+  -T n       --adjust-tempo=n
+               Adjust tempo to n%,
+                 120=play MOD files with an NTSC Amiga's timing
+  -t code    --output-charset=code
+               Output text language code:
+                 code=auto  : Auto conversion by `LANG' environment variable
+                              (UNIX only)
+                      ascii : Convert unreadable characters to '.' (0x2e)
+                      nocnv : No conversion
+                      1251  : Convert from windows-1251 to koi8-r
+                      euc   : EUC-japan
+                      jis   : JIS
+                      sjis  : shift JIS
+  -U         --[no-]unload-instruments
+               Unload instruments from memory between MIDI files
+  -V power   --volume-curve=power
+               Define the velocity/volume/expression curve
+                 amp = vol^power (auto: 0, linear: 1, ideal: ~1.661, GS: ~2)
+  -v         --version
+               Display TiMidity version information
+  -W mode    --wrd=mode
+               Select WRD interface (see below for list)
+  -w mode    --rcpcv-dll=mode
+               Windows extensional modes:
+                 mode=r/R : Enable/Disable rcpcv.dll
+  -x str     --config-string=str
+               Read configuration str from command line argument
+  -Z file    --freq-table=file
+               Load frequency table (Use "pure" for pure intonation)
+  pure<n>(m) --pure-intonation=n(m)
+               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)
+                 'm' stands for minor mode
 
-      -B fragments
-              For the Linux /  FreeBSD  /  OSS  /  Windows  sound
-              driver,  selects  the  number  of buffer  fragments
-              in interactive  mode.   Increasing  the  number  of
-              fragments  may  reduce  choppiness  when many  proc-
-              esses are running.  It will make TiMidity++ seem  to
-              respond  sluggishly  to  fast  forward, rewind, and
-              volume  controls, and  it  will  throw  the  status
-              display off sync.  Specify a fragments of 0 to  use
-              the maximum number of fragments available.
+*Effect options (-EF, --ext=F option):
+  -EFdelay=d   Disable delay effect (default)
+  -EFdelay=l   Enable Left delay
+    [,msec]      `msec' is optional to specify left-right delay time
+  -EFdelay=r   Enable Right delay
+    [,msec]      `msec' is optional to specify left-right delay time
+  -EFdelay=b   Enable rotate Both left and right
+    [,msec]      `msec' is optional to specify left-right delay time
+  -EFchorus=d  Disable MIDI chorus effect control
+  -EFchorus=n  Enable Normal MIDI chorus effect control
+    [,level]     `level' is optional to specify chorus level [0..127]
+                 (default)
+  -EFchorus=s  Surround sound, chorus detuned to a lesser degree
+    [,level]     `level' is optional to specify chorus level [0..127]
+  -EFreverb=d  Disable MIDI reverb effect control
+  -EFreverb=n  Enable Normal MIDI reverb effect control
+    [,level]     `level' is optional to specify reverb level [1..127]
+  -EFreverb=g  Global reverb effect
+    [,level]     `level' is optional to specify reverb level [1..127]
+  -EFreverb=f  Enable Freeverb MIDI reverb effect control (default)
+    [,level]     `level' is optional to specify reverb level [1..127]
+  -EFreverb=G  Global Freeverb effect
+    [,level]     `level' is optional to specify reverb level [1..127]
+  -EFvlpf=d    Disable voice LPF
+  -EFvlpf=c    Enable Chamberlin resonant LPF (12dB/oct) (default)
+  -EFvlpf=m    Enable Moog resonant lowpass VCF (24dB/oct)
+  -EFns=n      Enable the n th degree noise shaping filter
+                 n:[0..4] (for 8-bit linear encoding, default is 4)
+                 n:[0..2] (for 16-bit linear encoding, default is 2)
+  -EFresamp=d  Disable resamplation
+  -EFresamp=l  Enable Linear resample algorithm
+  -EFresamp=c  Enable C-spline resample algorithm
+  -EFresamp=L  Enable Lagrange resample algorithm
+  -EFresamp=n  Enable Newton resample algorithm
+  -EFresamp=g  Enable Gauss-like resample algorithm (default)
+                 -EFresamp affects the behavior of -N option
 
-      -b mode
+*Alternative TiMidity sequencer extensional mode long options:
+  --[no-]mod-wheel
+  --[no-]portamento
+  --[no-]vibrato
+  --[no-]ch-pressure
+  --[no-]mod-envelope
+  --[no-]trace-text-meta
+  --[no-]overlap-voice
+  --[no-]temper-control
+  --default-mid=<HH>
+  --system-mid=<HH>
+  --default-bank=n
+  --force-bank=n
+  --default-program=n/m
+  --force-program=n/m
+  --delay=(d|l|r|b)[,msec]
+  --chorus=(d|n|s)[,level]
+  --reverb=(d|n|g|f|G)[,level]
+  --voice-lpf=(d|c|m)
+  --noise-shaping=n
+  --resample=(d|l|c|L|n|g)
 
-              Enables pseudo surround effects.   mode  parameters
-              are the following:
-              -bl    Sounds are comes mainly from left.
-              -br    Sounds are comes mainly from right.
-              -bb    Sounds are comes left and right in random.
-              -bc    Disables this feature.
+*Available interfaces (-i, --interface option):
+  -in          ncurses interface
+  -iT          vt100 interface
+  -im          motif interface
+  -ik          Tcl/Tk interface
+  -ie          Emacs interface (invoked from `M-x timidity')
+  -ia          XAW interface
+  -ii          skin interface
+  -ig          gtk+ interface
+  -id          dumb interface
+  -iA          ALSA sequencer interface
+  -iW          Windows Synthesizer interface
 
-      -C ratio
-              Sets the ratio of sampling and control frequencies.
-              This determines how often  envelopes  are  recalcu-
-              lated  -- small ratios yield better quality but use
-              more CPU time.
+*Interface options (append to -i? option):
+  `v'          more verbose (cumulative)
+  `q'          quieter (cumulative)
+  `t'          trace playing
+  `l'          loop playing (some interface ignore this option)
+  `r'          randomize file list arguments before playing
+  `s'          sorting file list arguments before playing
+  `D'          daemonize TiMidity++ in background (for alsaseq only)
 
-      -c filename
-              Reads an extra configuration file.
+*Alternative interface long options:
+  --verbose=n
+  --quiet=n
+  --[no-]trace
+  --[no-]loop
+  --[no-]random
+  --[no-]sort
+  --[no-]background
 
-      -D channel
-              Marks channel as a drum  channel.   If  channel  is
-              negative,  channel -channel is marked as an instru-
-              mental channel.  If channel is 0, all channels  are
-              marked as instrumental.
+*Available output modes (-O, --output-mode option):
+  -Od          dsp device
+  -Os          ALSA pcm device
+  -Ow          RIFF WAVE file
+  -Or          Raw waveform data
+  -Ou          Sun audio file
+  -Oa          AIFF file
+  -Ol          List MIDI event
+  -OM          MOD -> MIDI file conversion
 
-      -d dir  Specifies the directory contains installed dynamic-
-              link interface modules.
+*Output format options (append to -O? option):
+  `S'          stereo
+  `M'          monophonic
+  `s'          signed output
+  `u'          unsigned output
+  `1'          16-bit sample width
+  `8'          8-bit sample width
+  `l'          linear encoding
+  `U'          U-Law encoding
+  `A'          A-Law encoding
+  `x'          byte-swapped output
 
+*Alternative output format long options:
+  --output-stereo
+  --output-mono
+  --output-signed
+  --output-unsigned
+  --output-16bit
+  --output-8bit
+  --output-linear
+  --output-ulaw
+  --output-alaw
+  --[no-]output-swab
 
-      -e      Make   TiMidity++   evil.   On  Win32  version,  this
-              increases the task priority by  one.  It  can  give
-              better  playback  when  you  switch  tasks  at  the
-              expense of slowing all other tasks down.
-
-      -E mode
-              Set  TiMidity++ extend modes. The following modes are
-              available (capitalized switch  means  disable  this
-              feature):
-              w/W    Enables/disables modulation controlling.
-              p/P    Enables/disables portamento controlling.
-              v/V    Enables/disables NRPM vibration.
-              r/R    Enables/disables  reverb effect controlling.
-              c/C    Enables/disables chorus effect  controlling.
-              c ratio
-                     Sets the chorus effect value of all channels
-                     to ratio.
-              s/S    Enables/disables channel  pressure  control-
-                     ling.
-              t/T    Enables/disables   tracing   all  Text  Meta
-                     Events.
-              o/O    Accepts/rejects  pronouncing  multiple  same
-                     notes.
-              m HH   Sets  the  manufacture  ID to HH ( HH is the
-                     two hex-digits ).
-                     In addition if HH is GM/gm , GS/gs or  XG/xg
-                     that are same as to 41 , 43 and 7e.
-              B bank Sets  the  bank  number  of  all channels to
-                     bank.
-
-      -F      Turns  on  fast  panning to accommodate MIDI pieces
-              that expect panning  adjustments  to  affect  notes
-              that  are  already  playing.  Some files that don't
-              expect  this  have  a  habit  of  flipping  balance
-              rapidly  between  left  and  right, which can cause
-              severe popping when the -F flag is used.
-              In  current  versions  of  TiMidity++ this option are
-              toggled.
-
-      -f      Toggles fast envelopes. This option makes  TiMidity++
-              do  fast  but  the  release  time  of the notes are
-              shorten.
-
-      -g sec  Open the Sound-Spectrogram window. This  option  is
-              activated  if  the  system has support for X Window
-              System.
-
-      -h     Show the help message.
-
-      -I voice[/c]
-              Uses the program number as the default  instrument.
-              Any  Program Change events in MIDI files will over-
-              ride this option.
-              If the voice followed by  /c  the  default  program
-              number  of the channel c is specified by the voice.
-
-      -i interface
-              Selects the user interfaces  from  the  compiled-in
-              alternatives.  interface  must be begun with one of
-              the supported interface identifiers.  Run  TiMidity++
-              with  the  -h  option to see a list.  The following
-              identifiers may be available:
-              -id    dumb interface
-              -in    ncurses interface
-              -is    slang interface
-              -ia    X Athena Widget interface
-              -ik    Tcl/Tk interface
-              -im    motif interface
-              -iT    vt100 interface
-              -ie    Emacs  interface  (press  M-x  timidity   on
-                     Emacs)
-              -ii    skin interface
-                     Environment  variable  TIMIDITY_SKIN must be
-                     specified with path of  the  skin  data(com-
-                     pressed data are also available).
-
-              Interface options
-                     Option characters may be  added  immediately
-                     after the interface identifier.  The follow-
-                     ing options are recognized:
-
-              v      Increases  verbosity  level.  This option is
-                     cumulative.
-              q      Decreases verbosity level.  This  option  is
-                     cumulative.
-              t      Toggles  trace mode.  In trace  mode, TiMid-
-                     ity attempts  to  display  its current state
-                     in real time.  For the Linux  sound  driver,
-                     this is  accomplished  through  the  use  of
-                     short  DMA  buffer  fragments,  which can be
-                     tuned via the -B option.
-
-      -j      This option enables to load the  patch  file  while
-              playing.
-
-      -L  directory
-              Adds directory to the library path.  Patch, config-
-              uration, and  MIDI  files  are searched along  this
-              path.  Directories  added  last  will  be  searched
-              first.   Note  that the current directory is always
-              searched first before the library path.
-
-      -n degree
-              Enables Noise Shaping Filter. degree is from 0(min)
-              to 4(max).
-
-      -O mode
-              Selects the output mode from the compiled-in alter-
-              natives.  mode must begin with one of the supported
-              output mode identifiers.  Run TiMidity++ with the  -h
-              option  to  see  a list.  The following identifiers
-              should be available in all versions:
-              -Od    Output via audio device (default)
-              -Or    Generate  raw  waveform  data.   All  format
-                     options   are   supported.   Common  formats
-                     include:
-                      -OrU   uLaw
-                      -Or1sl 16-bit signed linear PCM
-                      -Or8ul 8-bit unsigned linear PCM
-              -Ou    Generate Sun Audio (au) file
-              -Oa    Generate AIFF file
-              -Ow    Generate RIFF WAVE format output.  If output
-                     is  directed  to  a non-seekable file, or if
-                     TiMidity++ is interrupted before  closing  the
-                     file,   the   file   header   will   contain
-                     0xFFFFFFFF in the RIFF and data block length
-                     fields.   The popular sound conversion util-
-                     ity sox  is  able  to  read  such  malformed
-                     files,  so you can pipe data directly to sox
-                     for on-the-fly conversion to other  formats.
-              Format options
-                     Option  characters  may be added immediately
-                     after the mode identifier to change the out-
-                     put  format.  The following options are rec-
-                     ognized:
-                      8      8-bit sample width
-                      1      6-bit sample width
-                      l      Linear encoding
-                      U      uLaw (8-bit) encoding
-                      M      Monophonic
-                      S      Stereo
-                      s      Signed output
-                      u      Unsigned output
-                      x      Byte-swapped output
-              Note that some  options  have  no  effect  on  some
-              modes.   For  example,  you cannot generate a byte-
-              swapped RIFF WAVE file, or force uLaw output  on  a
-              Linux PCM device.
-
-      -o filename
-              Place  output  on  filename,  which  may be a file,
-              device, or HP-UX audio  server,  depending  on  the
-              output  mode  selected with the -O option. The spe-
-              cial filename ``-'' causes output to be  placed  on
-              stdout.
-
-      -p voices
-              Sets  polyphony  (maximum  number  of  simultaneous
-              voices) to voices.
-
-      -Q channel
-              Causes channel to be quiet.  If  channel  is  nega-
-              tive, channel -channel is turned back on.  If chan-
-              nel is 0, all channels are turned on.
-
-      -R value
-              Enables Pseudo Reverb Mode. value are  the  follow-
-              ing:
-              0      Long slight release
-              1      Long loud release
-              2      Short release
-              3      No release
-
-      -r      This options causes another reverb effects.
-
-      -s frequency
-              Sets  the resampling frequency(Hz or kHz).  Not all
-              sound devices are capable of all frequencies --  an
-              approximate frequency may be selected, depending on
-              the implementation.
-
-      -U      Instructs  TiMidity++  to unload all instruments from
-              memory between MIDI files.  This can reduce  memory
-              requirements when playing many files in succession.
-
-      -w mode
-	      Extend mode for MS-Windows. The following  options  are
-	      available:
-	      -wr  Use rcpcv.dll to play RCP/R36 files.
-	      -wR  Not use rcpcv.dll (default).
-
-      -W mode
-	      Play with WRD file.  mode are the follwing:
-	      x    X Window System mode
-	      t    TTY mode
-	      d    Dumb mode (outputs WRD events directry)
-	      -    not traces WRD
-              WRD mode must be with trace mode(option -i?t) or  timing  of
-              WRD events are terrible.
-
-      -WR[opts]
-	      Sets WRD options:
-
-	      a1=b1,a2=b2, ...
-	          Sets the WRD options. an is the name of option and
-	          bn is the value.
-
-	      -WRd=n
-	          Emulates timing(@WAIT,@WMODE) bugs of the original
-	          MIMPI player.  The emulate level is following:
-	          -WRd=0
-		      not emulates any bugs of MIMPI
-	          -WRd=1
-		      only emulates some bugs (default)
-	          -WRd=2
-		      emulates all known bugs
-	      -WRF=filename
-	          Uses	filename     as	    WRD	    file     only
-	          (input-file-name):r.wrd	(like  csh syntax) is not
-	          available.
-	      -WRf=filename
-	          Uses filername as WRD file.
-
-      -x string
-              Configure  TiMidity++  by  the  string. The format of
-              string is the same as timidity.cfg.
-              For example:
-              -x'bank 0\n0 violin.pat'
-              Sets the instrument number 0 to violin.
+*Available WRD interfaces (-W, --wrd option):
+  -Wx          X WRD tracer
+  -Ww          Windows Console WRD tracer
+  -Wt          TTY WRD tracer
+  -Wd          dumb WRD tracer
+  -W-          No WRD trace
 
 *Play the MIDI file in archive file:
+  TiMidity++ can play a file contained in various kinds of archive
+  file.  The following archive formats are supported:
+    - tar           (*.tar)
+    - gzipped tar   (*.tar.gz, *.tgz)
+    - zip file      (*.zip)
+    - lzh file      (*.lzh)
+        (lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4, lz5 are available)
 
- TiMidity++ can play a file contained in various kinds of archive file. The
- following archive formats are supported:
+  If you want to specify a certain MIDI file in the archive, describe
+  the #<MIDI-filename> expression following the archive name.
+  The expressions after the # are allowed to use regular expressions
+  (case insensitive).  Note that the single quotes are needed to
+  prevent the shell from misinterpreting the # character.  For example:
 
-  - tar           (*.tar)
-  - gzipped tar   (*.tar.gz, *.tgz)
-  - zip file      (*.zip)
-  - lzh file      (*.lzh)
+    timidity file.zip#file.mid
+        Plays file.mid in file.zip
 
- If you want to specify a certain MIDI file in the archive, describe the
- #<MIDI-filename> expression following the archive name.  The
- expressions after the # are allowed to use regular expressions (case
- insensitive).  Note that the single quotes are needed to prevent the
- shell from misinterpreting the # character.  For example:
+    timidity file.lzh#*.mid
+        Plays any files that match the regular expression *.mid in
+        file.zip
 
-              timidity 'file.zip#file.mid'
-                     Plays file.mid in file.zip
-
-              timidity 'file.lzh#*.mid'
-                     Plays  any  files that  match  the  regular
-                     expression '*.mid' in file.zip
-
-              timidity 'file.tgz#*'
-                     This  expression is the same as 
-                     timidity 'file.tgz'
+    timidity file.tgz#*
+        This expression is the same as timidity file.tgz
 
 *Play the MIDI file over a network
- TiMidity++ can access a file over a network. Supported network protocols
- include HTTP, FTP and NNTP(NetNews); specify these as http://foo,
- ftp://foo, and news://foo respectively.  An archived file is also
- accessible over a network.
+  TiMidity++ can access a file over a network.  Supported network
+  protocols include HTTP, FTP and NNTP (NetNews); specify these as
+  http://foo, ftp://foo, and news://foo respectively.  An archived
+  file is also accessible over a network.
 
- With NNTP, if you specify a newsgroup in the message-ID field TiMidity++
- plays all MIDI files posted in the specified newsgroup. These MIDI files
- must be encoded using uuencode or the Multipart encoded
- uuencode/base64/hexbin.
+  With NNTP, if you specify a newsgroup in the message-ID field
+  TiMidity++ plays all MIDI files posted in the specified newsgroup.
+  These MIDI files must be encoded using uuencode or the Multipart
+  encoded uuencode/base64/hexbin.
 
 *Availability:
- The latest release of TiMidity++ are available in these sites:
+  The latest release of TiMidity++ are available in these sites:
 
-     http://www.goice.co.jp/member/mo/timidity/
+    http://www.goice.co.jp/member/mo/timidity/
         (Unix version; the developer's site)
 
-     http://www.asahi-net.or.jp/~gb7t-ngm/timidity/
+    http://www.asahi-net.or.jp/~gb7t-ngm/timidity/
         (Macintosh version)
 
-     http://www2.off.ne.jp/~dai/timidity/timidity-izumo.html
+    http://www2.off.ne.jp/~dai/timidity/timidity-izumo.html
         (Windows version)
 
-
--------------------------------------------------------------------------
-This document was translated from the original README.jp (written in Japanese).
+----------------------------------------------------------------------
+This document is translated from the original README.jp (written in
+Japanese).
 Translator: NAGANO Daisuke <breeze_geo@geocities.co.jp>
             (And modified by Masanao Izumo <mo@goice.co.jp>)
 Proofreader: Mike Vanier (mvanier@bbb.caltech.edu)
