@@ -2939,27 +2939,22 @@ static inline int parse_opt_reverb(const char *arg)
 {
 	/* --reverb */
 	const char *p;
-
-	/* reverb == 1          old reverb, opt_effect_quality = 0
-	 * reverb == 3          new reverb, opt_effect_quality = 2
-	 *
-	 * reverb == 2          "global" old reverb, opt_effect_quality = -111
-	 * reverb == 4          "global" new reverb, opt_effect_quality =  333
-	 *
-	 * reverb == x,n	set reverb level to n
-	 *
+	
+	/* option       action                  opt_reverb_control
+	 * reverb=0     no reverb                 0
+	 * reverb=1     old reverb                1
+	 * reverb=1,n   set reverb level to n   (-1 to -127)
+	 * reverb=2     "global" old reverb       2
+	 * reverb=2,n   set reverb level to n   (-1 to -127) - 128
+	 * reverb=3     new reverb                3
+	 * reverb=3,n   set reverb level to n   (-1 to -127) - 256
+	 * reverb=4     "global" new reverb       4
+	 * reverb=4,n   set reverb level to n   (-1 to -127) - 384
+	 * 
 	 * I think "global" was meant to apply a single global reverb,
 	 * without applying any reverb to the channels.  The do_effects()
 	 * function in effects.c looks like a good way to do this.
-	 * opt_effect_quality == -111 will now indicate global "old" reverb,
-	 * while opt_effect_quality == 333 will indicate global "new" reverb.
-	 * -111 was chosen to be less than 0, so that the code in
-	 * do_ch_reverb() would not need to be rewritten.  333 was chosen to
-	 * be >= 2 for the same reason.  -111 is the negative of mode 1
-	 * repeated three times, and 333 is mode 3 repeated three times.
-	 * Future reverb modes could follow the same system of choosing
-	 * special reserved opt_effect_quality numbers for global reverb.
-	 *
+	 * 
 	 * This is NOT the "correct" way to implement global reverb, we should
 	 * really make a new variable just for that.  But if opt_reverb_control
 	 * is already used in a similar fashion, rather than creating a new
@@ -2973,7 +2968,6 @@ static inline int parse_opt_reverb(const char *arg)
 	case '0':
 	case 'd':	/* disable */
 		opt_reverb_control = 0;
-		opt_effect_quality = 0;
 		break;
 	case '1':
 	case 'n':	/* normal */
@@ -2984,7 +2978,6 @@ static inline int parse_opt_reverb(const char *arg)
 			opt_reverb_control = -opt_reverb_control;
 		} else
 			opt_reverb_control = 1;
-		opt_effect_quality = 0;
 		break;
 	case '2':
 	case 'g':	/* global */
@@ -2992,10 +2985,9 @@ static inline int parse_opt_reverb(const char *arg)
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
-			opt_reverb_control = -opt_reverb_control;
+			opt_reverb_control = -opt_reverb_control - 128;
 		} else
 			opt_reverb_control = 2;
-		opt_effect_quality = -111;
 		break;
 	case '3':
 	case 'f':	/* freeverb */
@@ -3003,10 +2995,9 @@ static inline int parse_opt_reverb(const char *arg)
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
-			opt_reverb_control = -opt_reverb_control;
+			opt_reverb_control = -opt_reverb_control - 256;
 		} else
 			opt_reverb_control = 3;
-		opt_effect_quality = 2;
 		break;
 	case '4':
 	case 'G':	/* global freeverb */
@@ -3014,10 +3005,9 @@ static inline int parse_opt_reverb(const char *arg)
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
-			opt_reverb_control = -opt_reverb_control;
+			opt_reverb_control = -opt_reverb_control - 384;
 		} else
 			opt_reverb_control = 4;
-		opt_effect_quality = 333;
 		break;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
@@ -3386,7 +3376,7 @@ static inline int parse_opt_h(const char *arg)
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFreverb=g  Global reverb effect" NLS
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
-"  -EFreverb=f  Enable Freeverb MIDI reverb effect control" NLS
+"  -EFreverb=f  Enable Freeverb MIDI reverb effect control (default)" NLS
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
 "  -EFreverb=G  Global Freeverb effect" NLS
 "    [,level]     `level' is optional to specify reverb level [1..127]" NLS
@@ -3937,10 +3927,10 @@ static inline int parse_opt_P(const char *arg)
 
 static inline int parse_opt_p(const char *arg)
 {
-	max_voices = atoi(arg);
-	if (set_value(&voices, max_voices, 1,
-		      MAX_SAFE_MALLOC_SIZE / sizeof(Voice), "Polyphony"))
+	if (set_value(&voices, atoi(arg), 1,
+			MAX_SAFE_MALLOC_SIZE / sizeof(Voice), "Polyphony"))
 		return 1;
+	max_voices = voices;
 	return 0;
 }
 

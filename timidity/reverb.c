@@ -334,17 +334,19 @@ void do_standard_reverb(int32 *comp, int32 n)
 }
 #endif /* OPT_MODE != 0 */
 
-void do_ch_reverb(int32* buf, int32 count)
+void do_ch_reverb(int32 *buf, int32 count)
 {
-	int i;
-	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && reverb_status.pre_lpf) {
-		do_shelving_filter(effect_buffer, count, reverb_status.high_coef, reverb_status.high_val);
-	}
-	if(opt_reverb_control == 3 || opt_effect_quality >= 2) {
+	if ((opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
+		do_shelving_filter(effect_buffer, count, reverb_status.high_coef,
+		reverb_status.high_val);
+	if (opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 2)
 		do_freeverb(buf, count);
-	} else {
+	else
 		do_standard_reverb(buf, count);
-	}
 }
 
 void do_reverb(int32 *comp, int32 n)
@@ -483,19 +485,23 @@ void init_ch_delay()
 }
 
 #ifdef USE_DSP_EFFECT
-void do_ch_delay(int32* buf, int32 count)
+void do_ch_delay(int32 *buf, int32 count)
 {
-	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && delay_status.pre_lpf) {
-		do_shelving_filter(delay_effect_buffer, count, delay_status.high_coef, delay_status.high_val);
-	}
-
-	switch(delay_status.type) {
-	case 1: do_3tap_delay(buf,count);
-			break;
-	case 2: do_cross_delay(buf,count);
-			break;
-	default: do_basic_delay(buf,count);
-			break;
+	if ((opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 1) && delay_status.pre_lpf)
+		do_shelving_filter(delay_effect_buffer, count, delay_status.high_coef,
+				delay_status.high_val);
+	switch (delay_status.type) {
+	case 1:
+		do_3tap_delay(buf, count);
+		break;
+	case 2:
+		do_cross_delay(buf, count);
+		break;
+	default:
+		do_basic_delay(buf, count);
+		break;
 	}
 }
 
@@ -929,11 +935,13 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 }
 #endif /* OPT_MODE != 0 */
 
-void do_ch_chorus(int32* buf, int32 count)
+void do_ch_chorus(int32 *buf, int32 count)
 {
-	if((opt_reverb_control == 3 || opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf) {
-		do_shelving_filter(chorus_effect_buffer, count, chorus_param.high_coef, chorus_param.high_val);
-	}
+	if ((opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
+			|| opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf)
+		do_shelving_filter(chorus_effect_buffer, count, chorus_param.high_coef,
+				chorus_param.high_val);
 	do_stereo_chorus(buf, count);
 }
 #endif /* USE_DSP_EFFECT */
@@ -1864,9 +1872,11 @@ void init_reverb(int32 output_rate)
 	sample_rate = output_rate;
 	memset(reverb_status.high_val, 0, sizeof(reverb_status.high_val));
 	/* Only initialize freeverb if stereo output */
-        /* Old non-freeverb must be initialized for mono reverb not to crash */
-        if(!(play_mode->encoding & PE_MONO) &&
-	   opt_reverb_control == 3 || opt_effect_quality >= 2) {
+	/* Old non-freeverb must be initialized for mono reverb not to crash */
+	if (! (play_mode->encoding & PE_MONO)
+			&& (opt_reverb_control == 3 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))
+			|| opt_effect_quality >= 2) {
 		alloc_revmodel();
 		update_revmodel(revmodel);
 		init_revmodel(revmodel);
@@ -1874,39 +1884,40 @@ void init_reverb(int32 output_rate)
 		memset(direct_buffer, 0, direct_bufsize);
 		REV_INP_LEV = fixedgain * revmodel->wet;
 	} else {
-		ta = 0; tb = 0;
-		HPFL = 0; HPFR = 0;
-		LPFL = 0; LPFR = 0;
-		EPFL = 0; EPFR = 0;
-		spt0 = 0; spt1 = 0;
-		spt2 = 0; spt3 = 0;
-
-		rev_memset(buf0_L); rev_memset(buf0_R);
-		rev_memset(buf1_L); rev_memset(buf1_R);
-		rev_memset(buf2_L); rev_memset(buf2_R);
-		rev_memset(buf3_L); rev_memset(buf3_R);
-
+		ta = tb = 0;
+		HPFL = HPFR = LPFL = LPFR = EPFL = EPFR = 0;
+		spt0 = spt1 = spt2 = spt3 = 0;
+		rev_memset(buf0_L);
+		rev_memset(buf0_R);
+		rev_memset(buf1_L);
+		rev_memset(buf1_R);
+		rev_memset(buf2_L);
+		rev_memset(buf2_R);
+		rev_memset(buf3_L);
+		rev_memset(buf3_R);
 		memset(effect_buffer, 0, effect_bufsize);
 		memset(direct_buffer, 0, direct_bufsize);
-
-		if(output_rate > 65000) output_rate=65000;
-		else if(output_rate < 4000)  output_rate=4000;
-
+		if (output_rate > 65000)
+			output_rate = 65000;
+		else if (output_rate < 4000)
+			output_rate = 4000;
 		def_rpt0 = rpt0 = REV_VAL0 * output_rate / 1000;
 		def_rpt1 = rpt1 = REV_VAL1 * output_rate / 1000;
 		def_rpt2 = rpt2 = REV_VAL2 * output_rate / 1000;
 		def_rpt3 = rpt3 = REV_VAL3 * output_rate / 1000;
-
 		REV_INP_LEV = 1.0;
-
 		rpt0 = def_rpt0 * reverb_status.time_ratio;
 		rpt1 = def_rpt1 * reverb_status.time_ratio;
 		rpt2 = def_rpt2 * reverb_status.time_ratio;
 		rpt3 = def_rpt3 * reverb_status.time_ratio;
-		while(!isprime(rpt0)) rpt0++;
-		while(!isprime(rpt1)) rpt1++;
-		while(!isprime(rpt2)) rpt2++;
-		while(!isprime(rpt3)) rpt3++;
+		while (! isprime(rpt0))
+			rpt0++;
+		while (! isprime(rpt1))
+			rpt1++;
+		while (! isprime(rpt2))
+			rpt2++;
+		while (! isprime(rpt3))
+			rpt3++;
 	}
 }
 

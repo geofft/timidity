@@ -244,42 +244,43 @@ static void init_ns_tap16(void)
 	ns9_r1l = ns9_r2l = ns9_r1r = ns9_r2r = 0;
 }
 
-void do_effect(int32* buf, int32 count)
+void do_effect(int32 *buf, int32 count)
 {
+	int32 nsamples = (play_mode->encoding & PE_MONO)
+			? count : count * 2;
+	int reverb_level = (opt_reverb_control < 0)
+			? -opt_reverb_control & 0x7f : DEFAULT_REVERB_SEND_LEVEL;
+	
 	/* reverb in mono */
-	if (opt_reverb_control && (play_mode->encoding & PE_MONO))
+	if (opt_reverb_control && play_mode->encoding & PE_MONO)
 		do_mono_reverb(buf, count);
-
 	/* for static reverb / chorus level */
-	if (opt_effect_quality == -111 ||
-	    opt_effect_quality == 333 ||
-	    opt_chorus_control < 0) {
-		int32 nsamples = count;
-		int reverb_level = DEFAULT_REVERB_SEND_LEVEL;
-		
-		if (!(play_mode->encoding & PE_MONO))
-			nsamples *= 2;
+	if (opt_reverb_control == 2 || opt_reverb_control == 4
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80)
+			|| opt_chorus_control < 0) {
 		set_dry_signal(buf, nsamples);
-
-		if (opt_reverb_control < 0)
-		    reverb_level = -opt_reverb_control;
-
-#if 0 /* chorus sounds horrible if applied globally on top of channel chorus */
+		/* chorus sounds horrible
+		 * if applied globally on top of channel chorus
+		 */
+#if 0
 		if (opt_chorus_control < 0)
 			set_ch_chorus(buf, nsamples, -opt_chorus_control);
 #endif
-		if (opt_effect_quality == -111 || opt_effect_quality == 333)
+		if (opt_reverb_control == 2 || opt_reverb_control == 4
+				|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
 			set_ch_reverb(buf, nsamples, reverb_level);
 		mix_dry_signal(buf, nsamples);
-
-#if 0 /* chorus sounds horrible if applied globally on top of channel chorus */
+		/* chorus sounds horrible
+		 * if applied globally on top of channel chorus
+		 */
+#if 0
 		if (opt_chorus_control < 0)
 			do_ch_chorus(buf, nsamples);
 #endif
-		if (opt_effect_quality == -111 || opt_effect_quality == 333)
+		if (opt_reverb_control == 2 || opt_reverb_control == 4
+				|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
 			do_ch_reverb(buf, nsamples);
 	}
-
 	/* L/R Delay */
 	effect_left_right_delay(buf, count);
 	/* Noise shaping filter must apply at last */
@@ -496,3 +497,4 @@ static inline int32 my_mod(int32 x, int32 n)
 		x -= n;
 	return x;
 }
+

@@ -832,14 +832,16 @@ static void recompute_amp(int v)
 		  perceived_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
 	}
 
-	/* every digital effect increases amplitude, so that it must be reduced in advance. */
-	if((opt_reverb_control || opt_chorus_control
-			|| opt_delay_control || (opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40)) || opt_insertion_effect)
-			&& !(play_mode->encoding & PE_MONO)) {
-		tempamp *= 0.55f * 1.35f;
-	} else {
+	/* every digital effect increases amplitude,
+	 * so that it must be reduced in advance.
+	 */
+	if (! (play_mode->encoding & PE_MONO)
+			&& (opt_reverb_control || opt_chorus_control || opt_delay_control
+			|| opt_eq_control && (eq_status.low_gain != 0x40
+			|| eq_status.high_gain != 0x40) || opt_insertion_effect))
+		tempamp *= 1.35f * 0.55f;
+	else
 		tempamp *= 1.35f;
-	}
 
 	/* NRPN - drum instrument tva level */
 	if(ISDRUMCHANNEL(voice[v].channel)) {
@@ -2809,36 +2811,23 @@ static void adjust_volume(int c)
 
 static void set_reverb_level(int ch, int level)
 {
-    if (level == -1)
-    {
-	make_rvid_flag = 1;
-
-    	if (opt_reverb_control < 0)
-    	{
-	    channel[ch].reverb_level = channel[ch].reverb_id =
-	    	-opt_reverb_control;
-	    return;
-    	}
-
-	channel[ch].reverb_level = channel[ch].reverb_id =
-	    DEFAULT_REVERB_SEND_LEVEL;
-	return;
-    }
-
-    channel[ch].reverb_level = level;
-    make_rvid_flag = 0;	/* to update reverb_id */
+	if (level == -1) {
+		channel[ch].reverb_level = channel[ch].reverb_id =
+				(opt_reverb_control < 0)
+				? -opt_reverb_control & 0x7f : DEFAULT_REVERB_SEND_LEVEL;
+		make_rvid_flag = 1;
+		return;
+	}
+	channel[ch].reverb_level = level;
+	make_rvid_flag = 0;	/* to update reverb_id */
 }
 
 int get_reverb_level(int ch)
 {
-    if(channel[ch].reverb_level == -1)
-    {
-    	if (opt_reverb_control < 0)
-    	    return -opt_reverb_control;
-    	else
-    	    return DEFAULT_REVERB_SEND_LEVEL;
-    }
-    return channel[ch].reverb_level;
+	if (channel[ch].reverb_level == -1)
+		return (opt_reverb_control < 0)
+			? -opt_reverb_control & 0x7f : DEFAULT_REVERB_SEND_LEVEL;
+	return channel[ch].reverb_level;
 }
 
 int get_chorus_level(int ch)
@@ -4879,19 +4868,17 @@ static void do_compute_data_midi(int32 count)
 	memset(insertion_effect_buffer, 0, n);
 
 	/* are effects valid? / don't supported in mono */
-	channel_reverb = ((opt_effect_quality != -111 &&
-			   opt_effect_quality != 333) &&
-			  (opt_reverb_control == 1 ||
-			   opt_reverb_control == 3 ||
-			   opt_reverb_control < 0) && stereo);
-	channel_chorus = (opt_chorus_control != 0 && stereo);
-	channel_delay = (opt_delay_control > 0 && stereo);
+	channel_reverb = (stereo && (opt_reverb_control == 1
+			|| opt_reverb_control == 3
+			|| opt_reverb_control < 0 && opt_reverb_control & 0x80));
+	channel_chorus = (stereo && opt_chorus_control);
+	channel_delay = (stereo && opt_delay_control > 0);
 
 	/* is EQ valid? */
 	channel_eq = opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40);
 
-	channel_effect = ((channel_reverb || channel_chorus
-			|| channel_delay || channel_eq || opt_insertion_effect) && stereo);
+	channel_effect = (stereo && (channel_reverb || channel_chorus
+			|| channel_delay || channel_eq || opt_insertion_effect));
 
 	uv = upper_voices;
 	for(i=0;i<uv;i++) {
@@ -5025,15 +5012,13 @@ static void do_compute_data_midi(int32 count)
 	stereo = ! (play_mode->encoding & PE_MONO);
 	n = count * ((stereo) ? 8 : 4); /* in bytes */
 	/* don't supported in mono */
-	channel_reverb = ((opt_effect_quality != -111 &&
-			   opt_effect_quality != 333) &&
-			  (opt_reverb_control == 1 ||
-			   opt_reverb_control == 3 ||
-			   opt_reverb_control < 0) && stereo);
+	channel_reverb = (stereo && (opt_reverb_control == 1
+			|| opt_reverb_control == 3
+			|| opt_reverb_control < 0 && opt_reverb_control & 0x80));
 	memset(buffer_pointer, 0, n);
 
-	channel_effect = ((opt_reverb_control || opt_chorus_control
-			|| opt_delay_control || opt_eq_control || opt_insertion_effect) && stereo);
+	channel_effect = (stereo && (opt_reverb_control || opt_chorus_control
+			|| opt_delay_control || opt_eq_control || opt_insertion_effect));
 	uv = upper_voices;
 	for (i = 0; i < uv; i++)
 		if (voice[i].status != VOICE_FREE)
@@ -5860,13 +5845,12 @@ int play_event(MidiEvent *ev)
 	channel[ch].nrpn = -1;
 	break;
 
-      case ME_REVERB_EFFECT:
-	if(opt_reverb_control)
-	{
-	    set_reverb_level(ch, ev->a);
-	    ctl_mode_event(CTLE_REVERB_EFFECT, 1, ch, get_reverb_level(ch));
-	}
-	break;
+	case ME_REVERB_EFFECT:
+		if (opt_reverb_control) {
+			set_reverb_level(ch, ev->a);
+			ctl_mode_event(CTLE_REVERB_EFFECT, 1, ch, get_reverb_level(ch));
+		}
+		break;
 
       case ME_CHORUS_EFFECT:
 	if(opt_chorus_control)

@@ -1,3 +1,9 @@
+2003-11-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/effect.c, timidity/playmidi.c, timidity/reverb.c,
+	  timidity/timidity.c:
+	  Hack up reverb levels without opt_effect_quality
+
 2003-11-08  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/timidity.c (parse_opt_p): max voices to be changeable
