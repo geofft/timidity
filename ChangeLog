@@ -1,3 +1,8 @@
+2003-10-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/readmidi.c:
+	  Fix around channel layer
+
 2003-10-12  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/rcp.c: RCP tempo gradation is supported.

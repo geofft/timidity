@@ -998,7 +998,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
 								block_to_part(val[5],
 								midi_port_number ^ port),
-								block_to_part(val[7],
+								MERGE_CHANNEL_PORT2(val[7],
 								midi_port_number ^ port), 0x45);
 					}
 					num_events++;
@@ -4593,8 +4593,8 @@ void add_channel_layer(int to_ch, int from_ch)
 	if (to_ch >= MAX_CHANNELS || from_ch >= MAX_CHANNELS)
 		return;
 	/* add a channel layer */
-	SET_CHANNELMASK(channel[to_ch].channel_layer, from_ch);
 	UNSET_CHANNELMASK(channel[to_ch].channel_layer, to_ch);
+	SET_CHANNELMASK(channel[to_ch].channel_layer, from_ch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 			"Channel Layer (CH:%d -> CH:%d)", from_ch, to_ch);
 }
