@@ -12,6 +12,8 @@
 	  Fix fatal typo around Chamberlin filter.
 	* interface/w32g_pref.c:
 	  Fix static reverb level.
+	* timidity/reverb.c:
+	  Fix reverb level.
 
 2004-02-14  Saito <saito2@digitalme.com>
 

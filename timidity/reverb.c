@@ -819,7 +819,7 @@ static void init_standard_reverb(InfoStandardReverb *info)
 	info->epflev = 0.4f;
 	info->epfinp = 0.48f;
 	info->width = 0.125f;
-	info->wet = 3.0f * (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
+	info->wet = 2.0f * (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
 	info->fbklevi = TIM_FSCALE(info->fbklev, 24);
 	info->nmixlevi = TIM_FSCALE(info->nmixlev, 24);
 	info->cmixlevi = TIM_FSCALE(info->cmixlev, 24);
@@ -1124,7 +1124,7 @@ static void init_freeverb_comb(comb *comb)
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
 #define fixedgain 0.025f
-#define combfbk 3.5f
+#define combfbk 3.0f
 
 static void realloc_freeverb_buf(InfoFreeverb *rev)
 {
