@@ -72,6 +72,7 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
+static int detect(void);
 static int output_counter;
 static int total_bytes; /* Maximum buffer size in bytes */
 
@@ -94,8 +95,19 @@ PlayMode dpm = {
     open_output,
     close_output,
     output_data,
-    acntl
+    acntl,
+    detect
 };
+
+static int detect(void)
+{
+    int fd;
+    fd = open(dpm.name, O_WRONLY | O_NONBLOCK);
+    if (fd < 0)
+	return 0;
+    close(fd);
+    return 1; /* found */
+}
 
 /*************************************************************************/
 /* We currently only honor the PE_MONO bit, the sample rate, and the

@@ -71,6 +71,7 @@ static int open_jack(void);
 static void close_jack(void);
 static int write_jack(char *buf, int32 nbytes);
 static int actl_jack(int request, void *arg);
+static int detect(void);
 
 
 /*
@@ -89,7 +90,8 @@ PlayMode dpm = {
 	open_jack,
 	close_jack,
 	write_jack,
-	actl_jack
+	actl_jack,
+	detect
 };
 
 /*
@@ -257,6 +259,16 @@ static struct tm_jack jack_ctx;
 
 #define TIMIDITY_JACK_CLIENT_NAME	"TiMidity"
 #define TIMIDITY_JACK_PORT_NAME		"port_%d"
+
+static int detect(void)
+{
+	jack_client_t *client;
+	client = jack_client_new(TIMIDITY_JACK_CLIENT_NAME);
+	if (! client)
+		return 0;
+	jack_client_close(client);
+	return 1; /* found */
+}
 
 static int open_jack(void)
 {

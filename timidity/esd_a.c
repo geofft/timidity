@@ -53,7 +53,7 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
-
+static int detect(void);
 
 
 /* export the playback mode */
@@ -71,16 +71,14 @@ PlayMode dpm = {
     open_output,
     close_output,
     output_data,
-    acntl
+    acntl,
+    detect
 };
 
 
-/*************************************************************************/
-/* We currently only honor the PE_MONO bit, and the sample rate. */
-
-static int open_output(void)
+static int try_open(void)
 {
-    int fd, tmp, i, warnings = 0;
+    int fd, tmp, i;
     int include_enc, exclude_enc;
     esd_format_t esdformat;
 
@@ -95,7 +93,32 @@ static int open_output(void)
     /* Open the audio device */
     esdformat = (dpm.encoding & PE_16BIT) ? ESD_BITS16 : ESD_BITS8;
     esdformat |= (dpm.encoding & PE_MONO) ? ESD_MONO : ESD_STEREO;
-    fd = esd_play_stream_fallback(esdformat,dpm.rate,NULL,"timidity");
+    return esd_play_stream_fallback(esdformat,dpm.rate,NULL,"timidity");
+}
+
+
+static int detect(void)
+{
+    int fd;
+
+    /* FIXME: do we need to set this? */
+    /* setenv("ESD_NO_SPAWN", "1", 0); */
+    fd = try_open();
+    if (fd < 0)
+	return 0;
+    close(fd);
+    return 1; /* found */
+}
+
+/*************************************************************************/
+/* We currently only honor the PE_MONO bit, and the sample rate. */
+
+static int open_output(void)
+{
+    int fd;
+
+    fd = try_open();
+
     if(fd < 0)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: %s",
@@ -106,7 +129,7 @@ static int open_output(void)
 
     dpm.fd = fd;
 
-    return warnings;
+    return 0;
 }
 
 static int output_data(char *buf, int32 nbytes)

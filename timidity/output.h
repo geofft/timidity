@@ -134,6 +134,7 @@ typedef struct {
     int (* acntl)(int request, void *arg); /* see PM_REQ_* above
 					    * return: 0=success, -1=fail
 					    */
+    int (* detect)(void); /* 0=not available, 1=available */
 } PlayMode;
 
 extern PlayMode *play_mode_list[], *play_mode;

@@ -4289,7 +4289,6 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	char *output_id;
 	int i;
 
-	play_mode = play_mode_list[0];
 	output_id = getenv("TIMIDITY_OUTPUT_ID");
 #ifdef TIMIDITY_OUTPUT_ID
 	if(output_id == NULL)
@@ -4300,10 +4299,31 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	    for(i = 0; play_mode_list[i]; i++)
 		if(play_mode_list[i]->id_character == *output_id)
 		{
+		    if (! play_mode_list[i]->detect ||
+			play_mode_list[i]->detect()) {
+			play_mode = play_mode_list[i];
+			break;
+		    }
+		}
+	}
+    }
+
+    if (play_mode == NULL) {
+	/* try to detect the first available device */  
+	for(i = 0; play_mode_list[i]; i++) {
+	    /* check only the devices with detect callback */
+	    if (play_mode_list[i]->detect) {
+		if (play_mode_list[i]->detect()) {
 		    play_mode = play_mode_list[i];
 		    break;
 		}
+	    }
 	}
+    }
+    
+    if (play_mode == NULL) {
+	fprintf(stderr, "Couldn't open output device" NLS);
+	exit(1);
     }
 
     if(is_first) /* initialize once time */
@@ -4806,34 +4826,6 @@ int main(int argc, char **argv)
     }
 #endif
 
-#ifdef AU_ARTS
-    if(play_mode == NULL && arts_init()==0) {
-	    arts_free();
-	    set_play_mode("k");
-    }
-#endif
-#ifdef AU_PORTAUDIO
-    if(play_mode == NULL)
-	    set_play_mode("p");
-#endif
-#ifdef AU_ESD
-    if(play_mode == NULL) {
-#if defined(__x86_64__) || (__powerpc64__)
-	    const char *libesd_path = "/usr/lib64/libesd.so.0";
-#else
-	    const char *libesd_path = "/usr/lib/libesd.so.0";
-#endif
-	    if(!access(libesd_path, R_OK)) {
-		    setenv("ESD_NO_SPAWN", "1", 0);
-		    set_play_mode("e");
-	    }
-    }
-#endif
-#ifdef AU_OSS
-    if(play_mode == NULL)
-	    set_play_mode("d");
-#endif
-    
     if((err = timidity_pre_load_configuration()) != 0)
 	return err;
 

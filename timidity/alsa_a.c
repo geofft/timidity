@@ -41,7 +41,7 @@
 #endif
 
 /*ALSA header file*/
-#if HAHE_ALSA_ASOUNDLIB_H
+#if HAVE_ALSA_ASOUNDLIB_H
 #include <alsa/asoundlib.h>
 #else
 #include <sys/asoundlib.h>
@@ -70,6 +70,9 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
+#if ALSA_LIB >= 5
+static int detect(void);
+#endif
 
 /* export the playback mode */
 
@@ -86,7 +89,10 @@ PlayMode dpm = {
   open_output,
   close_output,
   output_data,
-  acntl
+  acntl,
+#if ALSA_LIB >= 5
+  detect
+#endif
 };
 
 /*************************************************************************/
@@ -247,6 +253,31 @@ static int check_sound_cards (int* card__, int* device__,
  * ALSA API version 0.9.x
  *================================================================*/
 
+static char *get_pcm_name(void)
+{
+  char *name;
+  if (dpm.name && *dpm.name)
+    return dpm.name;
+  name = getenv("TIMIDITY_PCM_NAME");
+  if (! name || ! *name)
+    name = "default";
+  return name;
+}
+
+static void error_handle(const char *file, int line, const char *func, int err, const char *fmt, ...)
+{
+}
+
+static int detect(void)
+{
+  snd_pcm_t *pcm;
+  snd_lib_error_set_handler(error_handle);
+  if (snd_pcm_open(&pcm, get_pcm_name(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0)
+    return 0;
+  snd_pcm_close(pcm);
+  return 1; /* found */
+}
+
 /*return value == 0 sucess
                == 1 warning
                == -1 fails
@@ -257,18 +288,11 @@ static int open_output(void)
   int ret_val = 0;
   int tmp, frags, r, pfds;
   int buf_time, rate;
-  static const char default_pcm_name[] = "default";
-  const char* env_pcm_name = getenv("TIMIDITY_PCM_NAME");
   snd_pcm_hw_params_t *pinfo;
   snd_pcm_sw_params_t *swpinfo;
 
-  if (! dpm.name || ! *dpm.name) {
-    if (env_pcm_name && *env_pcm_name)
-      dpm.name = safe_strdup(env_pcm_name);
-  }
-  if (! dpm.name || ! *dpm.name)
-    dpm.name = safe_strdup(default_pcm_name);
-
+  dpm.name = get_pcm_name();
+  snd_lib_error_set_handler(NULL);
   tmp = snd_pcm_open(&handle, dpm.name, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK); /* avoid blocking by open */
   if (tmp < 0) {
     ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Can't open pcm device '%s'.", dpm.name);
@@ -790,6 +814,15 @@ static int set_playback_info (snd_pcm_t* handle__,
   return ret_val;
 }
 
+
+static int detect(void)
+{
+  snd_pcm_t *pcm;
+  if (snd_pcm_open(&pcm, card, device, SND_PCM_OPEN_PLAYBACK | SND_PCM_OPEN_NONBLOCK) < 0)
+    return 0;
+  snd_pcm_close(pcm);
+  return 1; /* found */
+}
 
 static int open_output(void)
 {

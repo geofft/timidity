@@ -64,6 +64,7 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
+static int detect(int probing);
 
 /* export the playback mode */
 
@@ -81,7 +82,8 @@ PlayMode dpm = {
     open_output,
     close_output,
     output_data,
-    acntl
+    acntl,
+    detect
 };
 
 PlayMode arts_play_mode2 = {
@@ -95,8 +97,18 @@ PlayMode arts_play_mode2 = {
     open_output,
     close_output,
     output_data,
-    acntl
+    acntl,
+    detect
 };
+
+static int detect(int probing)
+{
+    if (arts_init() == 0) {
+	arts_free();
+	return 1; /* ok, found */
+    }
+    return 0;
+}
 
 /*************************************************************************/
 /* We currently only honor the PE_MONO bit, and the sample rate. */
