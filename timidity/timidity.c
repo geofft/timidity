@@ -2873,7 +2873,9 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
 #endif
 
       case 'A':
-	if(set_value(&amplification, atoi(optarg), 0, MAX_AMPLIFICATION,
+	if(!strncmp(optarg,"auto",4))
+	    opt_amp_compensation = 1;
+	else if(set_value(&amplification, atoi(optarg), 0, MAX_AMPLIFICATION,
 		     "Amplification"))
 	    return 1;
 	break;
