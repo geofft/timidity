@@ -1,3 +1,8 @@
+2004-01-20  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c:
+	  Fix around NRPN vibrato.
+
 2004-01-18  mput <root@mput.dip.jp>
 
 	* timidity/playmidi.c (calc_random_delay): tiny bug fix

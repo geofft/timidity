@@ -396,6 +396,12 @@ static char *event_name(int type)
 #undef EVENT_NAME
 }
 
+/*! convert Hz to internal vibrato control ratio. */
+static FLOAT_T cnv_Hz_to_vib_ratio(FLOAT_T freq)
+{
+	return ((FLOAT_T)(play_mode->rate) / (freq * 2.0f * VIBRATO_SAMPLE_INCREMENTS));
+}
+
 static void adjust_amplification(void)
 {
     /* compensate master volume */
@@ -728,24 +734,17 @@ void recompute_freq(int v)
 
 		/* MIDI controllers LFO pitch depth */
 		if (opt_channel_pressure || opt_modulation_wheel) {
-			if (vp->sample->vibrato_depth < 0) {
-				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
-				vp->vibrato_depth -= get_midi_controller_pitch_depth(&(channel[ch].mod))
-					+ get_midi_controller_pitch_depth(&(channel[ch].bend))
-					+ get_midi_controller_pitch_depth(&(channel[ch].caf))
-					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
-					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
-					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth < -VIBRATO_DEPTH_MAX) {vp->vibrato_depth = -VIBRATO_DEPTH_MAX;}
-			} else {
-				vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
-				vp->vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
-					+ get_midi_controller_pitch_depth(&(channel[ch].bend))
-					+ get_midi_controller_pitch_depth(&(channel[ch].caf))
-					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
-					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
-					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth > VIBRATO_DEPTH_MAX) {vp->vibrato_depth = VIBRATO_DEPTH_MAX;}
+			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
+			vp->vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
+				+ get_midi_controller_pitch_depth(&(channel[ch].bend))
+				+ get_midi_controller_pitch_depth(&(channel[ch].caf))
+				+ get_midi_controller_pitch_depth(&(channel[ch].paf))
+				+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
+				+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
+			if (vp->vibrato_depth > VIBRATO_DEPTH_MAX) {vp->vibrato_depth = VIBRATO_DEPTH_MAX;}
+			else if (vp->vibrato_depth < 1) {vp->vibrato_depth = 1;}
+			if (vp->sample->vibrato_depth < 0) {	/* in opposite phase */
+				vp->vibrato_depth = -vp->vibrato_depth;
 			}
 		}
 		
@@ -753,7 +752,7 @@ void recompute_freq(int v)
 		if (channel[ch].mod.val > 0) {
 			if(vp->vibrato_control_ratio == 0) {
 				vp->vibrato_control_ratio = 
-					vp->orig_vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
+					vp->orig_vibrato_control_ratio = (int)(cnv_Hz_to_vib_ratio(5.0) * channel[ch].vibrato_ratio);
 			}
 			vp->vibrato_delay = 0;
 		}
@@ -2350,20 +2349,21 @@ static int get_panning(int ch, int note,int v)
 static void init_voice_vibrato(int v)
 {
 	Voice *vp = &(voice[v]);
-	int ch = vp->channel, j, flag;
+	int ch = vp->channel, j, nrpn_vib_flag;
 	double ratio;
 
-	flag = opt_nrpn_vibrato
-		&& (channel[ch].vibrato_ratio != 1.0 || channel[ch].vibrato_depth);
+	/* if NRPN vibrato is set, it's believed that there must be vibrato. */
+	nrpn_vib_flag = opt_nrpn_vibrato
+		&& (channel[ch].vibrato_ratio != 1.0 || channel[ch].vibrato_depth != 0);
 	
 	/* vibrato sweep */
 	vp->vibrato_sweep = vp->sample->vibrato_sweep_increment;
 	vp->vibrato_sweep_position = 0;
 
 	/* vibrato rate */
-	if (flag) {
+	if (nrpn_vib_flag) {
 		if(vp->sample->vibrato_control_ratio == 0) {
-			ratio = (double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio;
+			ratio = cnv_Hz_to_vib_ratio(5.0) * channel[ch].vibrato_ratio;
 		} else {
 			ratio = (double)vp->sample->vibrato_control_ratio * channel[ch].vibrato_ratio;
 		}
@@ -2374,15 +2374,13 @@ static void init_voice_vibrato(int v)
 	}
 	
 	/* vibrato depth */
-	if (flag) {
-		if (vp->sample->vibrato_depth < 0) {
-			vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
-		} else {
-			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
-		}
-		if (vp->vibrato_depth == 0) {vp->vibrato_depth = 1;}
+	if (nrpn_vib_flag) {
+		vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 		if (vp->vibrato_depth > VIBRATO_DEPTH_MAX) {vp->vibrato_depth = VIBRATO_DEPTH_MAX;}
-		else if (vp->vibrato_depth < -VIBRATO_DEPTH_MAX) {vp->vibrato_depth = -VIBRATO_DEPTH_MAX;}
+		else if (vp->vibrato_depth < 1) {vp->vibrato_depth = 1;}
+		if (vp->sample->vibrato_depth < 0) {	/* in opposite phase */
+			vp->vibrato_depth = -vp->vibrato_depth;
+		}
 	} else {
 		vp->vibrato_depth = vp->sample->vibrato_depth;
 	}
@@ -4700,20 +4698,12 @@ static double gs_cnv_vib_rate(int rate)
 }
 
 /*! convert GS NRPN to vibrato depth. */
-/* from 1 cents to 476 cents. */
+/* from -9.6 cents to +9.45 cents. */
 static int32 gs_cnv_vib_depth(int depth)
 {
 	double cent;
-	
-	if(depth >= 64 && depth <= 85) {
-		cent = (double)(depth - 64) * 6.25 / 21.0 + 1.0;
-	} else if(depth >= 86 && depth <= 117) {
-		cent = (double)(depth - 86) * 13.0 / 31.0 + 72.0;
-	} else if(depth >= 118 && depth <= 127) {
-		cent = 4.0 * (double)(depth - 118) * (double)(depth - 118) + 152.0;
-	} else {
-		cent = 1.0;
-	}
+	cent = (double)(depth - 64) * 0.15;
+
 	return (int32)(cent * 256.0 / 400.0);
 }
 
@@ -4725,23 +4715,6 @@ static int32 gs_cnv_vib_delay(int delay)
 	ms = 0.2092 * exp(0.0795 * (double)delay);
 	if(delay == 0) {ms = 0;}
 	return (int32)((double)play_mode->rate * ms * 0.001);
-}
-
-static int32 midi_cnv_vib_rate(int rate)
-{
-    return (int32)((double)play_mode->rate * MODULATION_WHEEL_RATE
-		   / (midi_time_table[rate] *
-		      2.0 * VIBRATO_SAMPLE_INCREMENTS));
-}
-
-static int midi_cnv_vib_depth(int depth)
-{
-    return (int)(depth * VIBRATO_DEPTH_TUNING);
-}
-
-static int32 midi_cnv_vib_delay(int delay)
-{
-    return (int32)(midi_time_table[delay]);
 }
 
 static int last_rpn_addr(int ch)
