@@ -720,7 +720,7 @@ void recompute_freq(int v)
 		 */
 
 		/* MIDI controllers LFO pitch depth */
-		if (opt_channel_pressure) {
+		if (opt_channel_pressure || opt_modulation_wheel) {
 			depth_range = ((channel[ch].rpnmap[RPN_ADDR_0005] << 8) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) / 4;
 			if (vp->sample->vibrato_depth < 0) {
 				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;

@@ -480,10 +480,10 @@ static FLOAT_T calc_volume(LayerTable *tbl)
 {
     int v;
 
-    if(!tbl->set[SF_initAtten] || tbl->val[SF_initAtten] == 0)
+    if(!tbl->set[SF_initAtten] || (int)tbl->val[SF_initAtten] == 0)
 	return (FLOAT_T)1.0;
 
-	v = tbl->val[SF_initAtten];
+	v = (int)tbl->val[SF_initAtten];
     if(v < 0) {v = 0;}
     else if(v > 960) {v = 960;}
 	return cb_to_amp_table[v];
@@ -1146,7 +1146,7 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
 
     if(bank == 128) {
 		if(tbl->set[SF_keynum]) {
-			sp->v.note_to_use = tbl->val[SF_keynum];
+			sp->v.note_to_use = (int)tbl->val[SF_keynum];
 		} else {
 			sp->v.note_to_use = keynote;
 		}
@@ -1328,8 +1328,8 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* fixed key & velocity */
     if(tbl->set[SF_keynum])
-		vp->v.note_to_use = tbl->val[SF_keynum];
-	if(tbl->set[SF_velocity] && tbl->val[SF_velocity] != 0) {
+		vp->v.note_to_use = (int)tbl->val[SF_keynum];
+	if(tbl->set[SF_velocity] && (int)tbl->val[SF_velocity] != 0) {
 		ctl->cmsg(CMSG_INFO,VERB_DEBUG,"error: fixed-velocity is not supported.");
 	}
 
@@ -1374,21 +1374,21 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* initial cutoff & resonance */
     vp->cutoff_freq = 0;
-    if(tbl->val[SF_initialFilterFc] < 0)
+    if((int)tbl->val[SF_initialFilterFc] < 0)
 	tbl->set[SF_initialFilterFc] = tbl->val[SF_initialFilterFc] = 0;
     if(current_sfrec->def_cutoff_allowed &&
-       (tbl->set[SF_initialFilterFc] && tbl->val[SF_initialFilterFc] <= 13500 && tbl->val[SF_initialFilterFc] >= 1500))
+       (tbl->set[SF_initialFilterFc] && (int)tbl->val[SF_initialFilterFc] <= 13500 && (int)tbl->val[SF_initialFilterFc] >= 1500))
     {
 	if(!tbl->set[SF_initialFilterFc])
 	    val = 13500;
 	else
-	    val = tbl->val[SF_initialFilterFc];
+	    val = (int)tbl->val[SF_initialFilterFc];
 
 	val = abscent_to_Hz(val);
 
 #ifndef CFG_FOR_SF
 	if(!opt_modulation_envelope) {
-		if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
+		if(tbl->set[SF_env1ToFilterFc] && (int)tbl->val[SF_env1ToFilterFc] > 0)
 		{
 			val *= pow(2.0,(double)tbl->val[SF_env1ToFilterFc] / 1200.0f);
 			if(val > 20000) {val = 20000;}
@@ -1401,7 +1401,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     if(current_sfrec->def_resonance_allowed && tbl->set[SF_initialFilterQ])
     {
-	val = tbl->val[SF_initialFilterQ];
+	val = (int)tbl->val[SF_initialFilterQ];
 	vp->resonance = val;
 	}
 
@@ -1425,18 +1425,18 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	int val;
 
     /* scale tuning */
-/* #ifdef SF_EMULATE_SBLIVE */
+#ifdef SF_EMULATE_SBLIVE 
 	vp->v.scale_tuning = 100;
-/* #else
-	vp->v.scale_tuning = tbl->val[SF_scaleTuning];
-#endif */
+#else
+	vp->v.scale_tuning = (int)tbl->val[SF_scaleTuning];
+#endif
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
     {
 	/* set from sample pitch */
-	vp->root = tbl->val[SF_samplePitch] / 100;
-	vp->tune = -tbl->val[SF_samplePitch] % 100;
+	vp->root = (int)tbl->val[SF_samplePitch] / 100;
+	vp->tune = -(int)tbl->val[SF_samplePitch] % 100;
 	if(vp->tune <= -50)
 	{
 	    vp->root++;
@@ -1456,9 +1456,9 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* orverride root key */
     if(tbl->set[SF_rootKey])
-	vp->root += tbl->val[SF_rootKey] - sp->originalPitch;
+	vp->root += (int)tbl->val[SF_rootKey] - sp->originalPitch;
 
-    vp->tune += tbl->val[SF_coarseTune] * 100 +
+    vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
 	(int)tbl->val[SF_fineTune];
 
     /* correct too high pitch */
@@ -1583,14 +1583,14 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 
     level = pow(10.0, (double)abs(tbl->val[SF_lfo1ToVolume]) / -200.0);
     vp->v.tremolo_depth = 256 * (1.0 - level);
-	if(tbl->val[SF_lfo1ToVolume] < 0) {vp->v.tremolo_depth = -vp->v.tremolo_depth;}
+	if((int)tbl->val[SF_lfo1ToVolume] < 0) {vp->v.tremolo_depth = -vp->v.tremolo_depth;}
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo1])
 	freq = 0;
     else
     {
-	freq = tbl->val[SF_freqLfo1];
+	freq = (int)tbl->val[SF_freqLfo1];
 	freq = TO_MHZ(freq);
     }
 
@@ -1615,7 +1615,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 		return;
 	}
 
-    shift = tbl->val[SF_lfo2ToPitch];
+    shift = (int)tbl->val[SF_lfo2ToPitch];
 
     /* cents to linear; 400cents = 256 */
     shift = shift * 256 / 400;
@@ -1628,7 +1628,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 	freq = 0;
     else
     {
-	freq = tbl->val[SF_freqLfo2];
+	freq = (int)tbl->val[SF_freqLfo2];
 	freq = TO_MHZ(freq);
 	if(freq == 0) {freq = 1;}
 	/* convert mHz to control ratio */
