@@ -3249,11 +3249,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			} else if((addr & 0xFFF000) == 0x404000) {
 				switch(addr & 0xFF) {
 				case 0x00:	/* TONE MAP NUMBER */
-					if(val[7] == 0) {
-						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, channel[p].tone_map0_number, SYSEX_TAG);
-					} else {
-						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[7], SYSEX_TAG);
-					}
+					SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
 				case 0x01:	/* TONE MAP-0 NUMBER */

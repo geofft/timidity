@@ -1,3 +1,10 @@
+2004-01-28  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Fix "TONE MAP-0 NUMBER".
+	  Fix around select_play_sample().
+	  Fix about modulation wheel depth.
+
 2004-01-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/wrd_read.c:

@@ -102,8 +102,8 @@ static int ok_nv = 32;
 static int old_rate = -1;
 #endif
 
-static int midi_streaming=0;
-int volatile stream_max_compute=500; /* compute time limit (in msec) when streaming */
+static int midi_streaming = 0;
+int volatile stream_max_compute = 500; /* compute time limit (in msec) when streaming */
 static int prescanning_flag;
 static int32 midi_restart_time = 0;
 Channel channel[MAX_CHANNELS];
@@ -228,11 +228,11 @@ ChannelBitMask default_drumchannel_mask;
 ChannelBitMask default_drumchannels;
 ChannelBitMask drumchannel_mask;
 ChannelBitMask drumchannels;
-int adjust_panning_immediately=1;
-int auto_reduce_polyphony=1;
+int adjust_panning_immediately = 1;
+int auto_reduce_polyphony = 1;
 double envelope_modify_rate = 1.0;
-int reduce_quality_flag=0;
-int no_4point_interpolation=0;
+int reduce_quality_flag = 0;
+int no_4point_interpolation = 0;
 char* pcm_alternate_file = NULL; /* NULL or "none": Nothing (default)
 				  * "auto": Auto select
 				  * filename: Use it
@@ -540,9 +540,6 @@ static void reset_nrpn_controllers(int c)
 	  if(ISDRUMCHANNEL(c)) {channel[c].assign_mode = 1;}
 	  else {channel[c].assign_mode = 2;}
   } else {channel[c].assign_mode = 1;}
-  if(play_system_mode == GS_SYSTEM_MODE) {
-	  channel[c].bank_lsb = channel[c].tone_map0_number;
-  }
 	for (i = 0; i < 12; i++)
 		channel[c].scale_tuning[i] = 0;
 	channel[c].prev_scale_tuning = 0;
@@ -656,8 +653,8 @@ static void reset_midi(int playing)
 			else
 				channel[i].bank = default_tonebank;
 		}
-		channel[i].bank_lsb = channel[i].bank_msb =
-				channel[i].tone_map0_number = 0;
+		channel[i].bank_lsb = channel[i].bank_msb = 0;
+		channel[i].tone_map0_number = 3;	/* SC-88Pro MAP */
 		if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
 			channel[i].bank_msb = 127;	/* Use MSB=127 for XG */
 		update_rpn_map(i, RPN_ADDR_FFFF, 0);
@@ -2011,56 +2008,61 @@ static int select_play_sample(Sample *splist,
 	double ratio;
 	int i, j, k, nv, nvc;
 	
-	if (opt_pure_intonation) {
-		if (current_keysig < 8)
-			f = freq_table_pureint[current_freq_table][note];
-		else
-			f = freq_table_pureint[current_freq_table + 12][note];
-	} else if (opt_temper_control)
-		switch (tt) {
-		case 0:
-			f = freq_table_tuning[tp][note];
-			break;
-		case 1:
-			if (current_temper_keysig < 8)
-				f = freq_table_pytha[current_freq_table][note];
+	if (ISDRUMCHANNEL(ch)) {
+		f = fs = freq_table[note];
+	} else {
+		if (opt_pure_intonation) {
+			if (current_keysig < 8)
+				f = freq_table_pureint[current_freq_table][note];
 			else
-				f = freq_table_pytha[current_freq_table + 12][note];
-			break;
-		case 2:
-			if (current_temper_keysig < 8)
-				f = freq_table_meantone[current_freq_table
-						+ ((temper_adj) ? 36 : 0)][note];
-			else
-				f = freq_table_meantone[current_freq_table
-						+ ((temper_adj) ? 24 : 12)][note];
-			break;
-		case 3:
-			if (current_temper_keysig < 8)
-				f = freq_table_pureint[current_freq_table
-						+ ((temper_adj) ? 36 : 0)][note];
-			else
-				f = freq_table_pureint[current_freq_table
-						+ ((temper_adj) ? 24 : 12)][note];
-			break;
-		default:	/* user-defined temperament */
-			if ((tt -= 0x40) >= 0 && tt < 4) {
+				f = freq_table_pureint[current_freq_table + 12][note];
+		} else if (opt_temper_control)
+			switch (tt) {
+			case 0:
+				f = freq_table_tuning[tp][note];
+				break;
+			case 1:
 				if (current_temper_keysig < 8)
-					f = freq_table_user[tt][current_freq_table
+					f = freq_table_pytha[current_freq_table][note];
+				else
+					f = freq_table_pytha[current_freq_table + 12][note];
+				break;
+			case 2:
+				if (current_temper_keysig < 8)
+					f = freq_table_meantone[current_freq_table
 							+ ((temper_adj) ? 36 : 0)][note];
 				else
-					f = freq_table_user[tt][current_freq_table
+					f = freq_table_meantone[current_freq_table
 							+ ((temper_adj) ? 24 : 12)][note];
-			} else
-				f = freq_table[note];
-			break;
-		}
-	else
-		f = freq_table[note];
-	if (opt_temper_control)
-		fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
-	else
-		fs = freq_table[note];
+				break;
+			case 3:
+				if (current_temper_keysig < 8)
+					f = freq_table_pureint[current_freq_table
+							+ ((temper_adj) ? 36 : 0)][note];
+				else
+					f = freq_table_pureint[current_freq_table
+							+ ((temper_adj) ? 24 : 12)][note];
+				break;
+			default:	/* user-defined temperament */
+				if ((tt -= 0x40) >= 0 && tt < 4) {
+					if (current_temper_keysig < 8)
+						f = freq_table_user[tt][current_freq_table
+								+ ((temper_adj) ? 36 : 0)][note];
+					else
+						f = freq_table_user[tt][current_freq_table
+								+ ((temper_adj) ? 24 : 12)][note];
+				} else
+					f = freq_table[note];
+				break;
+			}
+		else
+			f = freq_table[note];
+		if (opt_temper_control)
+			fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
+		else
+			fs = freq_table[note];
+	}
+
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
 		/* SF2 - Scale Tuning */
@@ -2237,24 +2239,17 @@ static int find_samples(MidiEvent *e, int *vlist)
 	    instrument_map(channel[ch].mapID, &bk, &note);
 	    if(!(ip = play_midi_load_instrument(1, bk, note)))
 		return 0;	/* No instrument? Then we can't play. */
-
-		if(ip->type == INST_GUS && ip->samples != 1)
-		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
-			  "Strange: percussion instrument with %d samples!",
-			  ip->samples);
+		/* "keynum" of SF2, and patch option "note=" */
 		if(ip->sample->note_to_use) {note = ip->sample->note_to_use;}
-		if(ip->type == INST_SF2) {
-			nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
-			/* Replace the sample if the sample is cached. */
-			if(!prescanning_flag)
-			{
-				if(ip->sample->note_to_use)
-				note = MIDI_EVENT_NOTE(e);
-
+		nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
+		/* Replace the sample if the sample is cached. */
+		if(!prescanning_flag)
+		{
+			if(ip->sample->note_to_use)
+			note = MIDI_EVENT_NOTE(e);
 				for(i = 0; i < nv; i++)
-				{
+			{
 				int j;
-
 				j = vlist[i];
 				if(!opt_realtime_playing && allocate_cache_size > 0 &&
 				   !channel[ch].portamento)
@@ -2265,16 +2260,9 @@ static int find_samples(MidiEvent *e, int *vlist)
 				}
 				else
 					voice[j].cache = NULL;
-				}
 			}
-			return nv;
-		} else {
-			i = vlist[0] = find_voice(e);
-			voice[i].orig_frequency = freq_table[note];
-			voice[i].sample = ip->sample;
-			voice[i].status = VOICE_ON;
-			return 1;
 		}
+		return nv;
 	}
 
 	prog = channel[ch].program;
@@ -2516,7 +2504,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   /* initialize modulation envelope */
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
-	  voice[i].modenv_stage = 0;
+	  voice[i].modenv_stage = EG_GUS_ATTACK;
       voice[i].modenv_volume = 0;
       recompute_modulation_envelope(i);
 	  apply_modulation_envelope(i);
@@ -2534,15 +2522,15 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   if (voice[i].sample->modes & MODES_ENVELOPE)
     {
       /* Ramp up from 0 */
-	  voice[i].envelope_stage=0;
-      voice[i].envelope_volume=0;
-      voice[i].control_counter=0;
+	  voice[i].envelope_stage = EG_GUS_ATTACK;
+      voice[i].envelope_volume = 0;
+      voice[i].control_counter = 0;
       recompute_envelope(i);
 	  apply_envelope_to_amp(i);
     }
   else
     {
-      voice[i].envelope_increment=0;
+      voice[i].envelope_increment = 0;
       apply_envelope_to_amp(i);
     }
 
@@ -2555,35 +2543,35 @@ static void finish_note(int i)
 {
     if (voice[i].sample->modes & MODES_ENVELOPE)
     {
-	/* We need to get the envelope out of Sustain stage. */
-	/* Note that voice[i].envelope_stage < 3 */
-	voice[i].status=VOICE_OFF;
-	voice[i].envelope_stage=3;
-	recompute_envelope(i);
-	voice[i].modenv_stage=3;
-	recompute_modulation_envelope(i);
-	apply_modulation_envelope(i);
-	apply_envelope_to_amp(i);
-	ctl_note_event(i);
+		/* We need to get the envelope out of Sustain stage. */
+		/* Note that voice[i].envelope_stage < EG_GUS_RELEASE1 */
+		voice[i].status = VOICE_OFF;
+		voice[i].envelope_stage = EG_GUS_RELEASE1;
+		recompute_envelope(i);
+		voice[i].modenv_stage = EG_GUS_RELEASE1;
+		recompute_modulation_envelope(i);
+		apply_modulation_envelope(i);
+		apply_envelope_to_amp(i);
+		ctl_note_event(i);
 	}
     else
     {
-	if(current_file_info->pcm_mode != PCM_MODE_NON)
-	{
-	    free_voice(i);
-	    ctl_note_event(i);
-	}
-	else
-	{
-	    /* Set status to OFF so resample_voice() will let this voice out
-		of its loop, if any. In any case, this voice dies when it
-		    hits the end of its data (ofs>=data_length). */
-	    if(voice[i].status != VOICE_OFF)
-	    {
-		voice[i].status = VOICE_OFF;
-		ctl_note_event(i);
-	    }
-	}
+		if(current_file_info->pcm_mode != PCM_MODE_NON)
+		{
+			free_voice(i);
+			ctl_note_event(i);
+		}
+		else
+		{
+			/* Set status to OFF so resample_voice() will let this voice out
+			of its loop, if any. In any case, this voice dies when it
+				hits the end of its data (ofs>=data_length). */
+			if(voice[i].status != VOICE_OFF)
+			{
+			voice[i].status = VOICE_OFF;
+			ctl_note_event(i);
+			}
+		}
     }
 }
 
@@ -2606,10 +2594,11 @@ static void set_envelope_time(int ch, int val, int stage)
 	channel[ch].envelope_rate[stage] = val;
 }
 
+/*! pseudo Delay Effect without DSP */
 static void new_delay_voice(int v1, int level)
 {
-    int v2,ch=voice[v1].channel;
-	FLOAT_T delay,vol;
+    int v2, ch = voice[v1].channel;
+	FLOAT_T delay, vol;
 	FLOAT_T threshold = 1.0;
 
 	/* NRPN Delay Send Level of Drum */
@@ -2843,6 +2832,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     if (level) recompute_freq(v2);
 }
 
+/*! prescanning variation of note_on() */
 static void note_on_prescan(MidiEvent *ev)
 {
 	int i, ch = ev->channel, note = MIDI_EVENT_NOTE(ev);
@@ -2954,6 +2944,7 @@ static void note_on(MidiEvent *e)
     channel[ch].legato_flag = 1;
 }
 
+/*! set time-out to voices for finite sustain */
 static void set_voice_timeout(Voice *vp, int ch, int note)
 {
     int prog;
@@ -2984,6 +2975,7 @@ static void set_voice_timeout(Voice *vp, int ch, int note)
 			      + current_sample);
 }
 
+/*! sostenuto is now implemented as an instant sustain */
 static void update_sostenuto_controls(int ch)
 {
   int uv = upper_voices, i;
@@ -2997,12 +2989,13 @@ static void update_sostenuto_controls(int ch)
 		  voice[i].status = VOICE_SUSTAINED;
 		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
-		  voice[i].envelope_stage = 3;
+		  voice[i].envelope_stage = EG_GUS_RELEASE1;
 		  recompute_envelope(i);
 	  }
   }
 }
 
+/*! redamper effect for piano instruments */
 static void update_redamper_controls(int ch)
 {
   int uv = upper_voices, i;
@@ -3016,7 +3009,7 @@ static void update_redamper_controls(int ch)
 		  voice[i].status = VOICE_SUSTAINED;
 		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
-		  voice[i].envelope_stage = 3;
+		  voice[i].envelope_stage = EG_GUS_RELEASE1;
 		  recompute_envelope(i);
 	  }
   }
@@ -3245,7 +3238,7 @@ static void adjust_drum_panning(int ch, int note)
 		   voice[i].note == note &&
 		   (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
 		{
-			voice[i].panning = get_panning(ch,note,i);
+			voice[i].panning = get_panning(ch, note, i);
 			recompute_amp(i);
 			apply_envelope_to_amp(i);
 		}
@@ -3256,7 +3249,7 @@ static void drop_sustain(int c)
 {
   int i, uv = upper_voices;
   for(i = 0; i < uv; i++)
-    if (voice[i].status==VOICE_SUSTAINED && voice[i].channel==c)
+    if (voice[i].status == VOICE_SUSTAINED && voice[i].channel == c)
       finish_note(i);
 }
 
@@ -3264,7 +3257,7 @@ static void adjust_pitch(int c)
 {
   int i, uv = upper_voices;
   for(i = 0; i < uv; i++)
-    if (voice[i].status!=VOICE_FREE && voice[i].channel==c)
+    if (voice[i].status != VOICE_FREE && voice[i].channel == c)
 	recompute_freq(i);
 }
 
@@ -3272,7 +3265,7 @@ static void adjust_volume(int c)
 {
   int i, uv = upper_voices;
   for(i = 0; i < uv; i++)
-    if (voice[i].channel==c &&
+    if (voice[i].channel == c &&
 	(voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
       {
 	recompute_amp(i);
@@ -3435,24 +3428,31 @@ int midi_drumpart_change(int ch, int isdrum)
 void midi_program_change(int ch, int prog)
 {
 	int dr = ISDRUMCHANNEL(ch);
-	int newbank, b, p;
+	int newbank, b, p, map;
 	
 	switch (play_system_mode) {
 	case GS_SYSTEM_MODE:	/* GS */
-		switch (channel[ch].bank_lsb) {
+		if ((map = channel[ch].bank_lsb) == 0) {
+			map = channel[ch].tone_map0_number;
+		}
+		switch (map) {
 		case 0:		/* No change */
 			break;
 		case 1:
 			channel[ch].mapID = (dr) ? SC_55_DRUM_MAP : SC_55_TONE_MAP;
+			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 2:
 			channel[ch].mapID = (dr) ? SC_88_DRUM_MAP : SC_88_TONE_MAP;
+			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 3:
 			channel[ch].mapID = (dr) ? SC_88PRO_DRUM_MAP : SC_88PRO_TONE_MAP;
+			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 4:
 			channel[ch].mapID = (dr) ? SC_8850_DRUM_MAP : SC_8850_TONE_MAP;
+			channel[ch].mod.lfo1_pitch_depth = 50;
 			break;
 		default:
 			break;
@@ -3460,6 +3460,7 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_msb;
 		break;
 	case XG_SYSTEM_MODE:	/* XG */
+		channel[ch].mod.lfo1_pitch_depth = 50;
 		switch (channel[ch].bank_msb) {
 		case 0:		/* Normal */
 			if (ch == 9 && channel[ch].bank_lsb == 127
@@ -3487,10 +3488,12 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_lsb;
 		break;
 	case GM2_SYSTEM_MODE:	/* GM2 */
+		channel[ch].mod.lfo1_pitch_depth = 50;
 		channel[ch].mapID = (dr) ? GM2_DRUM_MAP : GM2_TONE_MAP;
 		newbank = channel[ch].bank_lsb;
 		break;
 	default:
+		channel[ch].mod.lfo1_pitch_depth = 50;
 		newbank = channel[ch].bank_msb;
 		break;
 	}
