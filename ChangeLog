@@ -1,7 +1,20 @@
+2003-11-22  Saito <saito2@digitalme.com>
+
+	* interface/w32g_utl.c:
+	  Fix typos.
+
+2003-11-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/w32g_pref.c, interface/w32g_res.{h,rc},
+	  interface/w32g_subwin3.c, interface/w32g_tracer.bmp:
+	  Support for user-defined temperament (W32GUI version)
+
 2003-11-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/ncurs_c.c, timidity/playmidi.[ch], timidity/readmidi.c:
-	  Support for user-defined temperament entry
+	  Support for user-defined temperament entry with Universal SysEx.
+	  - User-defined Temperament Entry (F0 7E id 08 0C tt <temper name>
+	            ll [fh fl bh bl aa bb cc dd ee ff] ... F7)
 
 2003-11-17  Takashi Iwai <tiwai@suse.de>
 	

@@ -155,7 +155,7 @@ static struct tracer_bmp_ {
 	RECT rc_xg_on;
 	RECT rc_xg_off;
 	RECT rc_temper_keysig[32];
-	RECT rc_temper_type[4];
+	RECT rc_temper_type[8];
 } tracer_bmp;
 
 static int get_head_rc ( RECT *rc, RECT *rc_base );
@@ -497,7 +497,7 @@ static int init_tracer_bmp ( HDC hdc )
 		for (j = 0; j < 8; j++)
 			SetRect(&tracer_bmp.rc_temper_keysig[i * 8 + j],
 					16 + j * 37, 155 + i * 23, 49 + j * 37, 174 + i * 23);
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 8; i++)
 		SetRect(&tracer_bmp.rc_temper_type[i],
 				16 + i * 23, 247, 35 + i * 23, 266);
 
@@ -1351,8 +1351,10 @@ static int tracer_temper_type_draw(RECT *lprc, int ch, int8 tt, int lockflag)
 		TRACER_LOCK();
 	BitBlt(hdc, lprc->left, lprc->top,
 			lprc->right - lprc->left, lprc->bottom - lprc->top,
-			tracer_bmp.hmdc, tracer_bmp.rc_temper_type[tt].left,
-			tracer_bmp.rc_temper_type[tt].top, SRCCOPY);
+			tracer_bmp.hmdc,
+			tracer_bmp.rc_temper_type[(tt < 0x40) ? tt : tt - 0x3c].left,
+			tracer_bmp.rc_temper_type[(tt < 0x40) ? tt : tt - 0x3c].top,
+			SRCCOPY);
 	if (lockflag)
 		TRACER_UNLOCK();
 	InvalidateRect(w32g_tracer_wnd.hwnd, lprc, FALSE);

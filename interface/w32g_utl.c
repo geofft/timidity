@@ -557,7 +557,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 				   MIN_OUTPUT_RATE, MAX_OUTPUT_RATE);
     else if(play_mode->rate == 0)
 	play_mode->rate = DEFAULT_RATE;
-    voices = SetValue(st->voices, 1, MAX_VOICES);
+    voices = SetValue(st->voices, 1, DEFAULT_VOICES);
 	auto_reduce_polyphony = st->auto_reduce_polyphony;
     quietchannels = st->quietchannels;
     temper_type_mute = st->temper_type_mute;
@@ -706,7 +706,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	strncpy(st->OutputDirName,w32g_output_dir,MAXPATH);
 	st->OutputDirName[MAXPATH-1] = '\0';
 	st->auto_output_mode = w32g_auto_output_mode;
-    st->voices = SetValue(voices, 1, MAX_VOICES);
+    st->voices = SetValue(voices, 1, DEFAULT_VOICES);
 	st->auto_reduce_polyphony = auto_reduce_polyphony;
     st->quietchannels = quietchannels;
     st->temper_type_mute = temper_type_mute;

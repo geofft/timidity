@@ -1490,6 +1490,14 @@ PrefTiMidity4DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				st_temp->temper_type_mute & 1 << 2);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_PUREINT,
 				st_temp->temper_type_mute & 1 << 3);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_USER0,
+				st_temp->temper_type_mute & 1 << 4);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_USER1,
+				st_temp->temper_type_mute & 1 << 5);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_USER2,
+				st_temp->temper_type_mute & 1 << 6);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_USER3,
+				st_temp->temper_type_mute & 1 << 7);
 		initflag = 0;
 		break;
 	case WM_MYRESTORE:
@@ -1673,6 +1681,18 @@ else UNSET_CHANNELMASK((channelbitmask),(ch)); }
 		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_PUREINT,
 				BM_GETCHECK, 0, 0))
 			st_temp->temper_type_mute |= 1 << 3;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_USER0,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 4;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_USER1,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 5;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_USER2,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 6;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_USER3,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 7;
 	SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
 	break;
   case WM_SIZE:

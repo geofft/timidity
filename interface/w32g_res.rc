@@ -486,11 +486,19 @@ BEGIN
     CONTROL         "Equal",IDC_CHECKBOX_TEMPER_EQUAL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,155,37,8
     CONTROL         "Pythagoras",IDC_CHECKBOX_TEMPER_PYTHA,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,168,46,8
-    CONTROL         "Meantone",IDC_CHECKBOX_TEMPER_MEANTONE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,54,155,43,8
-    CONTROL         "Pure intonation",IDC_CHECKBOX_TEMPER_PUREINT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,54,168,58,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,55,155,46,8
+    CONTROL         "Mean-tone",IDC_CHECKBOX_TEMPER_MEANTONE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,105,155,45,8
+    CONTROL         "Pure int.",IDC_CHECKBOX_TEMPER_PUREINT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,155,155,45,8
+    CONTROL         "User #0",IDC_CHECKBOX_TEMPER_USER0,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,168,45,8
+    CONTROL         "User #1",IDC_CHECKBOX_TEMPER_USER1,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,55,168,45,8
+    CONTROL         "User #2",IDC_CHECKBOX_TEMPER_USER2,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,105,168,45,8
+    CONTROL         "User #3",IDC_CHECKBOX_TEMPER_USER3,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,155,168,45,8
 END
 
 IDD_DIALOG_VORBIS_EN DIALOG DISCARDABLE  0, 0, 197, 93
@@ -1189,11 +1197,19 @@ BEGIN
     CONTROL         "平均律",IDC_CHECKBOX_TEMPER_EQUAL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,157,37,10
     CONTROL         "ピタゴラス音律",IDC_CHECKBOX_TEMPER_PYTHA,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,173,59,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,69,157,59,10
     CONTROL         "中全音律",IDC_CHECKBOX_TEMPER_MEANTONE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,69,157,43,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,133,157,43,10
     CONTROL         "純正律",IDC_CHECKBOX_TEMPER_PUREINT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,69,173,37,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,197,157,37,10
+    CONTROL         "ユーザ#0",IDC_CHECKBOX_TEMPER_USER0,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,173,43,10
+    CONTROL         "ユーザ#1",IDC_CHECKBOX_TEMPER_USER1,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,69,173,43,10
+    CONTROL         "ユーザ#2",IDC_CHECKBOX_TEMPER_USER2,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,133,173,43,10
+    CONTROL         "ユーザ#3",IDC_CHECKBOX_TEMPER_USER3,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,197,173,43,10
 END
 
 IDD_DIALOG_WAVEFORM DIALOGEX 0, 0, 240, 120
