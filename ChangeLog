@@ -1,3 +1,8 @@
+2004-03-03  Saito <saito@intaa.net>
+
+	* timidity/reverb.c, timidity/playmidi.c:
+	  Under construction for XG insertion / variation / system effects.
+
 2004-03-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/recache.c: Beautify (functionally no change)

@@ -4227,15 +4227,17 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		switch(b)
 		{
 		case 0x00:	/* Insertion Effect Type MSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%d)", val);
+			if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {break;}
 			if (insertion_effect_xg[note].type_msb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%02X)", val);
 				insertion_effect_xg[note].type_msb = val;
 				realloc_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x01:	/* Insertion Effect Type LSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%d)", val);
+			if (note >= XG_INSERTION_EFFECT_NUM || note < 0) {break;}
 			if (insertion_effect_xg[note].type_lsb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%02X)", val);
 				insertion_effect_xg[note].type_lsb = val;
 				realloc_effect_xg(&insertion_effect_xg[note]);
 			}
@@ -4247,29 +4249,29 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		switch(b)
 		{
 		case 0x00:	/* Reverb Type MSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type MSB (%d)", val);
 			if (reverb_status_xg.type_msb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type MSB (%02X)", val);
 				reverb_status_xg.type_msb = val;
 				realloc_effect_xg(&reverb_status_xg);
 			}
 			break;
 		case 0x01:	/* Reverb Type LSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type LSB (%d)", val);
 			if (reverb_status_xg.type_lsb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Reverb Type LSB (%02X)", val);
 				reverb_status_xg.type_lsb = val;
 				realloc_effect_xg(&reverb_status_xg);
 			}
 			break;
 		case 0x20:	/* Chorus Type MSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type MSB (%d)", val);
 			if (chorus_status_xg.type_msb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type MSB (%02X)", val);
 				chorus_status_xg.type_msb = val;
 				realloc_effect_xg(&chorus_status_xg);
 			}
 			break;
 		case 0x21:	/* Chorus Type LSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type LSB (%d)", val);
 			if (chorus_status_xg.type_lsb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Type LSB (%02X)", val);
 				chorus_status_xg.type_lsb = val;
 				realloc_effect_xg(&chorus_status_xg);
 			}
@@ -4324,15 +4326,17 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x40:	/* Variation Type MSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type MSB (%d)", val);
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
 			if (variation_effect_xg[note].type_msb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type MSB (%02X)", val);
 				variation_effect_xg[note].type_msb = val;
 				realloc_effect_xg(&variation_effect_xg[note]);
 			}
 			break;
 		case 0x41:	/* Variation Type LSB */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type LSB (%d)", val);
+			if (note >= XG_VARIATION_EFFECT_NUM || note < 0) {break;}
 			if (variation_effect_xg[note].type_lsb != val) {
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Variation Type LSB (%02X)", val);
 				variation_effect_xg[note].type_lsb = val;
 				realloc_effect_xg(&variation_effect_xg[note]);
 			}
