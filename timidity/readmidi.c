@@ -993,8 +993,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					if (val[7] == 0x10) {
 						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
 								block_to_part(val[5],
-								midi_port_number ^ port),
-								block_to_part(val[7], 0x80), 0x45);
+								midi_port_number ^ port), 0x80, 0x45);
 					} else {
 						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
 								block_to_part(val[5],
@@ -2591,18 +2590,13 @@ static void move_channels(int *chidx)
 			}
 	for (i = 0, e = evlist; i < event_count; i++, e = e->next)
 		if (e->event.type == ME_SYSEX_GS_LSB) {
-			if (e->event.b == 0x45 && e->event.a != 0x10) {
-				if (maxch < e->event.a)
-					maxch = e->event.a;
-			} else if (e->event.b == 0x46) {
-				if (maxch < e->event.a)
-					maxch = e->event.a;
-			}
+			if (e->event.b == 0x45 || e->event.b == 0x46)
+				if (maxch < e->event.channel)
+					maxch = e->event.channel;
 		} else if (e->event.type == ME_SYSEX_XG_LSB) {
-			if (e->event.b == 0x65 && e->event.a != 0x7f) {
-				if (maxch < e->event.a)
-					maxch = e->event.a;
-			}
+			if (e->event.b == 0x65)
+				if (maxch < e->event.channel)
+					maxch = e->event.channel;
 		}
 	current_file_info->max_channel = maxch;
 }
