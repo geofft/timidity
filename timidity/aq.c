@@ -98,7 +98,9 @@ int aq_calc_fragsize(void)
 	ch = 1;
     else
 	ch = 2;
-    if(play_mode->encoding & PE_16BIT)
+    if(play_mode->encoding & PE_24BIT)
+	bps = ch * 3;
+    else if(play_mode->encoding & PE_16BIT)
 	bps = ch * 2;
     else
 	bps = ch;
@@ -128,7 +130,9 @@ void aq_setup(void)
 	ch = 1;
     else
 	ch = 2;
-    if(play_mode->encoding & PE_16BIT)
+    if(play_mode->encoding & PE_24BIT)
+	Bps = 3 * ch;
+    else if(play_mode->encoding & PE_16BIT)
 	Bps = 2 * ch;
     else
 	Bps = ch;

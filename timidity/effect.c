@@ -284,7 +284,8 @@ void do_effect(int32 *buf, int32 count)
 	/* L/R Delay */
 	effect_left_right_delay(buf, count);
 	/* Noise shaping filter must apply at last */
-	if (! (play_mode->encoding & (PE_16BIT | PE_ULAW | PE_ALAW)))
+	if (play_mode->encoding & PE_24BIT) {}
+	else if (! (play_mode->encoding & (PE_16BIT | PE_ULAW | PE_ALAW)))
 		ns_shaping8(buf, count);
 	else if (play_mode->encoding & PE_16BIT)
 		ns_shaping16(buf, count);

@@ -696,7 +696,9 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
     st->opt_playmode[j++] = play_mode->id_character;
     st->opt_playmode[j++] = ((play_mode->encoding & PE_MONO) ? 'M' : 'S');
     st->opt_playmode[j++] = ((play_mode->encoding & PE_SIGNED) ? 's' : 'u');
-    st->opt_playmode[j++] = ((play_mode->encoding & PE_16BIT) ? '1' : '8');
+	if (play_mode->encoding & PE_24BIT) {st->opt_playmode[j++] = '2';}
+	else if (play_mode->encoding & PE_16BIT) {st->opt_playmode[j++] = '1';}
+	else {st->opt_playmode[j++] = '8';}
     if(play_mode->encoding & PE_ULAW)
 	st->opt_playmode[j++] = 'U';
     else if(play_mode->encoding & PE_ALAW)

@@ -363,9 +363,11 @@ int validate_encoding(int enc, int include_enc, int exclude_enc)
     enc |= include_enc;
     enc &= ~exclude_enc;
     if(enc & (PE_ULAW|PE_ALAW))
-	enc &= ~(PE_16BIT|PE_SIGNED|PE_BYTESWAP);
+	enc &= ~(PE_24BIT|PE_16BIT|PE_SIGNED|PE_BYTESWAP);
     if(!(enc & PE_16BIT))
 	enc &= ~PE_BYTESWAP;
+	if(enc & PE_24BIT)
+	enc &= ~PE_16BIT;	/* 24bit overrides 16bit */
     enc_name = output_encoding_string(enc);
     if(strcmp(orig_enc_name, enc_name) != 0)
 	ctl->cmsg(CMSG_WARNING, VERB_NOISY,
@@ -384,6 +386,13 @@ const char *output_encoding_string(int enc)
 		return "16bit (mono)";
 	    else
 		return "unsigned 16bit (mono)";
+	}
+	else if(enc & PE_24BIT)
+	{
+	    if(enc & PE_SIGNED)
+		return "24bit (mono)";
+	    else
+		return "unsigned 24bit (mono)";
 	}
 	else
 	{
@@ -410,6 +419,13 @@ const char *output_encoding_string(int enc)
 	    return "16bit";
 	else
 	    return "unsigned 16bit";
+    }
+    else if(enc & PE_24BIT)
+    {
+	if(enc & PE_SIGNED)
+	    return "24bit";
+	else
+	    return "unsigned 24bit";
     }
     else
 	if(enc & PE_ULAW)

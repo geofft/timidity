@@ -212,7 +212,6 @@ static int open_output(void)
     int             i;
     int             j;
     int             IsMono;
-    int             Is16bit;
     WAVEFORMATEX    wf;
     WAVEOUTCAPS     woc;
     MMRESULT        Result;
@@ -236,13 +235,12 @@ static int open_output(void)
 
     dpm.encoding &= ~(PE_ULAW | PE_ALAW | PE_BYTESWAP);
 
-    if (dpm.encoding & PE_16BIT)
+    if (dpm.encoding & PE_16BIT || dpm.encoding & PE_24BIT)
         dpm.encoding |= PE_SIGNED;
     else
         dpm.encoding &= ~PE_SIGNED;
 
     IsMono  = (dpm.encoding & PE_MONO);
-    Is16bit = (dpm.encoding & PE_16BIT);
 
     memset(&wf, 0, sizeof(wf));
 
@@ -259,15 +257,23 @@ static int open_output(void)
         j *= 2;
     }
 
-    if (Is16bit)
-    {
+	if (dpm.encoding & PE_24BIT) {
+		i *= 3;
+		j *= 3;
+	} else if (dpm.encoding & PE_16BIT) {
         i *= 2;
         j *= 2;
     }
 
     wf.nAvgBytesPerSec = i;
     wf.nBlockAlign     = j;
-    wf.wBitsPerSample  = Is16bit ? 16 : 8;
+	if (dpm.encoding & PE_24BIT) {
+		wf.wBitsPerSample  = 24;
+	} else if (dpm.encoding & PE_16BIT) {
+		wf.wBitsPerSample  = 16;
+	} else {
+		wf.wBitsPerSample  = 8;
+	}
     wf.cbSize          = sizeof(WAVEFORMAT);
 
 /** Open the device. **/
@@ -315,7 +321,9 @@ static int open_output(void)
     if (NOT (dpm.encoding & PE_MONO))
         BufferDelay *= 2;
 
-    if (dpm.encoding & PE_16BIT)
+	if (dpm.encoding & PE_24BIT)
+		BufferDelay *= 3;
+    else if (dpm.encoding & PE_16BIT)
         BufferDelay *= 2;
 
     BufferDelay = (BufferDelay * 1000) / dpm.rate;
@@ -484,7 +492,9 @@ static int acntl(int request, void *arg)
             if (NOT (dpm.encoding & PE_MONO))
                 *(int *)arg *= 2;
 
-            if (dpm.encoding & PE_16BIT)
+			if (dpm.encoding & PE_24BIT)
+                *(int *)arg *= 3;
+            else if (dpm.encoding & PE_16BIT)
                 *(int *)arg *= 2;
             return 0;
 

@@ -170,6 +170,7 @@ enum {
 	TIM_OPT_OUTPUT_MODE,
 	TIM_OPT_OUTPUT_STEREO,
 	TIM_OPT_OUTPUT_SIGNED,
+	TIM_OPT_OUTPUT_24BIT,
 	TIM_OPT_OUTPUT_16BIT,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
@@ -285,6 +286,7 @@ static const struct option longopts[] = {
 	{ "output-mono",            no_argument,       NULL, TIM_OPT_OUTPUT_STEREO },
 	{ "output-signed",          no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
 	{ "output-unsigned",        no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
+	{ "output-24bit",           no_argument,       NULL, TIM_OPT_OUTPUT_24BIT },
 	{ "output-16bit",           no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
 	{ "output-8bit",            no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
 	{ "output-linear",          no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
@@ -2638,6 +2640,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
 		return parse_opt_output_16bit(arg);
+	case TIM_OPT_OUTPUT_24BIT:
+		return parse_opt_output_24bit(arg);
 	case TIM_OPT_OUTPUT_FORMAT:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
@@ -3694,6 +3698,7 @@ static inline int parse_opt_h(const char *arg)
 "  --output-mono" NLS
 "  --output-signed" NLS
 "  --output-unsigned" NLS
+"  --output-24bit" NLS
 "  --output-16bit" NLS
 "  --output-8bit" NLS
 "  --output-linear" NLS
@@ -4028,6 +4033,10 @@ static inline int parse_opt_O(const char *arg)
 			pmp->encoding |= PE_16BIT;
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
 			break;
+		case '2':	/* 2 for 24-bit */
+			pmp->encoding |= PE_24BIT;
+			pmp->encoding &= ~(PE_16BIT | PE_ULAW | PE_ALAW);
+			break;
 		case '8':
 			pmp->encoding &= ~PE_16BIT;
 			break;
@@ -4084,6 +4093,16 @@ static inline int parse_opt_output_16bit(const char *arg)
 {
 	/* --output-16bit, --output-8bit */
 	if (set_flag(&(play_mode->encoding), PE_16BIT, arg))
+		return 1;
+	if (y_or_n_p(arg))
+		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
+}
+
+static inline int parse_opt_output_24bit(const char *arg)
+{
+	play_mode->encoding &= ~PE_16BIT;	/* 24bit overrides 16bit */
+	if (set_flag(&(play_mode->encoding), PE_24BIT, arg))
 		return 1;
 	if (y_or_n_p(arg))
 		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);

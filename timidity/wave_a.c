@@ -160,18 +160,25 @@ static int wav_output_open(const char *fname)
 
   t = dpm.rate;
   if(!(dpm.encoding & PE_MONO)) t *= 2;
-  if(dpm.encoding & PE_16BIT)   t *= 2;
+  if(dpm.encoding & PE_24BIT)   t *= 3;
+  else if(dpm.encoding & PE_16BIT)   t *= 2;
   *((int *)(RIFFheader+28)) = LE_LONG(t);
 
   /* Bug fixed from Masaaki Koyanagi <koya@k2.t.u-tokyo.ac.jp> */
-  if((dpm.encoding & (PE_MONO | PE_16BIT)) == PE_MONO)
+  if((dpm.encoding & (PE_MONO | PE_24BIT)) == PE_MONO)
+    RIFFheader[32]='\003';
+  else if(!(dpm.encoding & PE_MONO) && (dpm.encoding & PE_24BIT))
+    RIFFheader[32]='\006';
+  else if((dpm.encoding & (PE_MONO | PE_16BIT)) == PE_MONO)
     RIFFheader[32]='\001';
-  else if (!(dpm.encoding & PE_MONO) && (dpm.encoding & PE_16BIT))
+  else if(!(dpm.encoding & PE_MONO) && (dpm.encoding & PE_16BIT))
     RIFFheader[32]='\004';
   else
     RIFFheader[32]='\002';
 
-  if(dpm.encoding & PE_16BIT)
+  if(dpm.encoding & PE_24BIT)
+    RIFFheader[34] = 24;
+  else if(dpm.encoding & PE_16BIT)
     RIFFheader[34] = 16;
   else
     RIFFheader[34] = 8;
@@ -219,7 +226,7 @@ static int open_output(void)
     int include_enc, exclude_enc;
 
     include_enc = exclude_enc = 0;
-    if(dpm.encoding & PE_16BIT)
+    if(dpm.encoding & PE_16BIT || dpm.encoding & PE_24BIT)
     {
 #ifdef LITTLE_ENDIAN
 	exclude_enc = PE_BYTESWAP;
