@@ -572,7 +572,7 @@ User-defined temperament entry
 
 The function of user-defined temperament entry (experimental) is
 implemented in TiMidity++.  This corresponds to (18) of MIDI Tuning
-Standard summary (see the end of this document).  For example, it can
+Standard summary (see the top of this document).  For example, it can
 generate various temperaments by the following SysEx's.
 
 [equal temperament]
