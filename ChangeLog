@@ -1,3 +1,9 @@
+2003-10-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* */Makefile.in, aclocal.m4, configure, configure.in,
+	  utils/getopt.c, utils/tmdy_getopt.h:
+	  Revert fix getopt_long's problem in MINGW environment.
+
 2003-10-08  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c: Fixed crash with --realtime-load
