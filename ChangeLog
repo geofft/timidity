@@ -1,3 +1,9 @@
+2004-02-20  Saito <saito2@digitalme.com>
+
+	* interface/w32g_icon.ico, interface/w32g_res.[rc,h],
+	  interface/w32g_i.c:
+	  Change icons.
+
 2004-02-19  Saito <saito2@digitalme.com>
 
 	* timidity/tables.c:

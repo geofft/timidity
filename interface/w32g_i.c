@@ -461,7 +461,7 @@ static int MainWndInfoApply(void);
 
 static void InitMainWnd(HWND hParentWnd)
 {
-	HICON hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	HICON hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	if ( hMainWnd != NULL )
 		DestroyWindow ( hMainWnd );
 	INILoadMainWnd();
