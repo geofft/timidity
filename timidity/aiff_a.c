@@ -227,7 +227,7 @@ static int aiff_output_open(const char *fname)
   /* file size - 8 (dmy) */
   if(write_u32((uint32)0xffffffff) == -1) return -1;
 
-  /* from type */
+  /* form type */
   compressed = dpm.encoding & (PE_ULAW|PE_ALAW);
   if(write_str(compressed ? "AIFC" : "AIFF") == -1) return -1;
 
@@ -342,7 +342,7 @@ static int open_output(void)
     if(dpm.encoding & (PE_16BIT | PE_24BIT))
     {
 #ifdef LITTLE_ENDIAN
-	include_enc = PE_BYTESWAP;
+	include_enc |= PE_BYTESWAP;
 #else
 	exclude_enc |= PE_BYTESWAP;
 #endif /* LITTLE_ENDIAN */
