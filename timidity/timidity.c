@@ -129,7 +129,6 @@ static const struct option longopts[] = {
 	{ "no-anti-alias",          no_argument,       NULL, 'a' << 8 },
 	{ "anti-alias",             optional_argument, NULL, 'a' << 8 },
 	{ "buffer-fragments",       required_argument, NULL, 'B' << 8 },
-	{ "background",             no_argument,       NULL, 'b' << 8 },
 	{ "control-ratio",          required_argument, NULL, 'C' << 8 },
 	{ "config-file",            required_argument, NULL, 'c' << 8 },
 	{ "drum-channel",           required_argument, NULL, 'D' << 8 },
@@ -179,6 +178,7 @@ static const struct option longopts[] = {
 	{ "random",                 optional_argument, NULL, 222 << 8 },
 	{ "no-sort",                no_argument,       NULL, 223 << 8 },
 	{ "sort",                   optional_argument, NULL, 223 << 8 },
+	{ "background",             no_argument,       NULL, 224 << 8 },
 	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
 	{ "adjust-key",             required_argument, NULL, 'K' << 8 },
@@ -193,24 +193,24 @@ static const struct option longopts[] = {
 	{ "interpolation",          required_argument, NULL, 'N' << 8 },
 #endif
 	{ "output-mode",            required_argument, NULL, 'O' << 8 },
-	{ "output-stereo",          no_argument,       NULL, 224 << 8 },
-	{ "output-mono",            no_argument,       NULL, 224 << 8 },
-	{ "output-signed",          no_argument,       NULL, 225 << 8 },
-	{ "output-unsigned",        no_argument,       NULL, 225 << 8 },
-	{ "output-16bit",           no_argument,       NULL, 226 << 8 },
-	{ "output-8bit",            no_argument,       NULL, 226 << 8 },
-	{ "output-linear",          no_argument,       NULL, 227 << 8 },
-	{ "output-ulaw",            no_argument,       NULL, 227 << 8 },
-	{ "output-alaw",            no_argument,       NULL, 227 << 8 },
-	{ "no-output-swab",         no_argument,       NULL, 228 << 8 },
-	{ "output-swab",            optional_argument, NULL, 228 << 8 },
+	{ "output-stereo",          no_argument,       NULL, 225 << 8 },
+	{ "output-mono",            no_argument,       NULL, 225 << 8 },
+	{ "output-signed",          no_argument,       NULL, 226 << 8 },
+	{ "output-unsigned",        no_argument,       NULL, 226 << 8 },
+	{ "output-16bit",           no_argument,       NULL, 227 << 8 },
+	{ "output-8bit",            no_argument,       NULL, 227 << 8 },
+	{ "output-linear",          no_argument,       NULL, 228 << 8 },
+	{ "output-ulaw",            no_argument,       NULL, 228 << 8 },
+	{ "output-alaw",            no_argument,       NULL, 228 << 8 },
+	{ "no-output-swab",         no_argument,       NULL, 229 << 8 },
+	{ "output-swab",            optional_argument, NULL, 229 << 8 },
 	{ "output-file",            required_argument, NULL, 'o' << 8 },
 	{ "patch",                  required_argument, NULL, 'P' << 8 },
 	{ "polyphony",              required_argument, NULL, 'p' << 8 },
-	{ "no-polyphony-reduction", no_argument,       NULL, 229 << 8 },
-	{ "polyphony-reduction",    optional_argument, NULL, 229 << 8 },
+	{ "no-polyphony-reduction", no_argument,       NULL, 230 << 8 },
+	{ "polyphony-reduction",    optional_argument, NULL, 230 << 8 },
 	{ "mute",                   required_argument, NULL, 'Q' << 8 },
-	{ "temper-mute",            required_argument, NULL, 230 << 8 },
+	{ "temper-mute",            required_argument, NULL, 231 << 8 },
 	{ "audio-buffer",           required_argument, NULL, 'q' << 8 },
 	{ "cache-size",             required_argument, NULL, 'S' << 8 },
 	{ "sampling-freq",          required_argument, NULL, 's' << 8 },
@@ -225,7 +225,7 @@ static const struct option longopts[] = {
 #endif
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",        optional_argument, NULL, 231 << 8 },
+	{ "pure-intonation",        optional_argument, NULL, 232 << 8 },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -260,7 +260,6 @@ static inline int parse_opt_A1(const char *);
 static inline int parse_opt_A2(const char *);
 static inline int parse_opt_a(const char *);
 static inline int parse_opt_B(const char *);
-static inline int parse_opt_b(const char *);
 static inline int parse_opt_C(const char *);
 static inline int parse_opt_c(char *);
 static inline int parse_opt_D(const char *);
@@ -302,6 +301,7 @@ static inline int parse_opt_i3(const char *);
 static inline int parse_opt_i4(const char *);
 static inline int parse_opt_i5(const char *);
 static inline int parse_opt_i6(const char *);
+static inline int parse_opt_i7(const char *);
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
 static inline int parse_opt_k(const char *);
@@ -2254,8 +2254,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_a(arg);
 	case 'B':
 		return parse_opt_B(arg);
-	case 'b':
-		return parse_opt_b(arg);
 	case 'C':
 		return parse_opt_C(arg);
 	case 'c':
@@ -2326,6 +2324,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_i5(arg);
 	case 223:
 		return parse_opt_i6(arg);
+	case 224:
+		return parse_opt_i7(arg);
 	case 'j':
 		return parse_opt_j(arg);
 	case 'K':
@@ -2345,22 +2345,22 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case 'O':
 		return parse_opt_O(arg);
-	case 224:
+	case 225:
 		if (! strcmp(the_option->name, "output-mono"))
 			/* --output-mono == --output-stereo=no */
 			arg = "no";
 		return parse_opt_O1(arg);
-	case 225:
+	case 226:
 		if (! strcmp(the_option->name, "output-unsigned"))
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
 		return parse_opt_O2(arg);
-	case 226:
+	case 227:
 		if (! strcmp(the_option->name, "output-8bit"))
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
 		return parse_opt_O3(arg);
-	case 227:
+	case 228:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
 		else if (! strcmp(the_option->name, "output-ulaw"))
@@ -2368,7 +2368,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		else if (! strcmp(the_option->name, "output-alaw"))
 			arg = "alaw";
 		return parse_opt_O4(arg);
-	case 228:
+	case 229:
 		return parse_opt_O5(arg);
 	case 'o':
 		return parse_opt_o(arg);
@@ -2376,11 +2376,11 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_P(arg);
 	case 'p':
 		return parse_opt_p(arg);
-	case 229:
+	case 230:
 		return parse_opt_p1(arg);
 	case 'Q':
 		return parse_opt_Q(arg);
-	case 230:
+	case 231:
 		return parse_opt_Q1(arg);
 	case 'q':
 		return parse_opt_q(arg);
@@ -2406,7 +2406,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_x(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 231:
+	case 232:
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
@@ -2462,11 +2462,6 @@ static inline int parse_opt_B(const char *arg)
 		audio_buffer_bits = tmpi32;
 	}
 	return 0;
-}
-
-static inline int parse_opt_b(const char *arg)
-{
-	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
 
 static inline int parse_opt_C(const char *arg)
@@ -3470,6 +3465,12 @@ static inline int parse_opt_i6(const char *arg)
 {
 	/* --[no-]sort */
 	return set_flag(&(ctl->flags), CTLF_LIST_SORT, arg);
+}
+
+static inline int parse_opt_i7(const char *arg)
+{
+	/* --background */
+	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
 
 static inline int parse_opt_j(const char *arg)
