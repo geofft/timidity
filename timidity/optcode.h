@@ -220,11 +220,17 @@ static inline int32 d2i(double frb)
 }
 
 #else
-/* generic */
-int32 imuldiv8(int32 a, int32 b);
-int32 imuldiv16(int32 a, int32 b);
-int32 imuldiv24(int32 a, int32 b);
-int32 d2i(double val);
+/* Generic version of imuldiv. */
+#define imuldiv8(a, b) \
+    (int32)(((int64)(a) * (int64)(b)) >> 8)
+
+#define imuldiv16(a, b) \
+    (int32)(((int64)(a) * (int64)(b)) >> 16)
+
+#define imuldiv24(a, b) \
+    (int32)(((int64)(a) * (int64)(b)) >> 24)
+
+#define d2i(val) (int32)(val)
 #endif /* architectures */
 #endif /* OPT_MODE != 0 */
 

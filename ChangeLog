@@ -1,5 +1,11 @@
 2003-10-01  Takashi Iwai <tiwai@suse.de>
 
+	* timidity/optcode.c, timidity/optcode.h:
+	  Use macros instead of functions for imuldiv*() on generic
+	  architectures.
+	
+2003-10-01  Takashi Iwai <tiwai@suse.de>
+
 	* timidity/aRts_a.c, timidity/output.c: Removed arts2 output mode,
 	  which is identical with arts mode, indeed.
 	  Fixed wrong cast of pointer to integer.

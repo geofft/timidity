@@ -30,30 +30,6 @@
 
 #include "timidity.h"
 
-#if OPT_MODE
-/* Generic version of imuldiv. */
-#if !(defined(__GNUC__)&&(defined(__i386__)||defined(__ppc__)))&&!defined(_MSC_VER)
-int32 imuldiv8(int32 a, int32 b)
-{
-    return (int32)(((int64)a * (int64)b) >> 8);
-}
-int32 imuldiv16(int32 a, int32 b)
-{
-    return (int32)(((int64)a * (int64)b) >> 16);
-}
-int32 imuldiv24(int32 a, int32 b)
-{
-    return (int32)(((int64)a * (int64)b) >> 24);
-}
-
-int32 d2i(double val)
-{
-   val = val + _double2fixmagic;
-   return ((int32*)&val)[iman_] >> 16;
-}
-#endif
-#endif /* OPT_MODE */
-
 #if USE_ALTIVEC
 #define sizeof_vector 16
 
