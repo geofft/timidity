@@ -479,6 +479,58 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 								to_offset(tone->modenvofs[i][j]);
 			}
 		}
+	if (tone->envkeyfnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->envkeyfnum == 1) {
+				for (j = 0; j < 6; j++)
+					if (tone->envkeyf[0][j] != -1)
+						sp->envelope_keyf[j] = tone->envkeyf[0][j];
+			} else if (i < tone->envkeyfnum) {
+				for (j = 0; j < 6; j++)
+					if (tone->envkeyf[i][j] != -1)
+						sp->envelope_keyf[j] = tone->envkeyf[i][j];
+			}
+		}
+	if (tone->modenvkeyfnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modenvkeyfnum == 1) {
+				for (j = 0; j < 6; j++)
+					if (tone->modenvkeyf[0][j] != -1)
+						sp->modenv_keyf[j] = tone->modenvkeyf[0][j];
+			} else if (i < tone->modenvkeyfnum) {
+				for (j = 0; j < 6; j++)
+					if (tone->modenvkeyf[i][j] != -1)
+						sp->modenv_keyf[j] = tone->modenvkeyf[i][j];
+			}
+		}
+	if (tone->modenvvelfnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modenvvelfnum == 1) {
+				for (j = 0; j < 6; j++)
+					if (tone->modenvvelf[0][j] != -1)
+						sp->modenv_velf[j] = tone->modenvvelf[0][j];
+			} else if (i < tone->modenvvelfnum) {
+				for (j = 0; j < 6; j++)
+					if (tone->modenvvelf[i][j] != -1)
+						sp->modenv_velf[j] = tone->modenvvelf[i][j];
+			}
+		}
+	if (tone->envvelfnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->envvelfnum == 1) {
+				for (j = 0; j < 6; j++)
+					if (tone->envvelf[0][j] != -1)
+						sp->envelope_velf[j] = tone->envvelf[0][j];
+			} else if (i < tone->envvelfnum) {
+				for (j = 0; j < 6; j++)
+					if (tone->envvelf[i][j] != -1)
+						sp->envelope_velf[j] = tone->envvelf[i][j];
+			}
+		}
 	if (tone->trempitchnum)
 		for (i = 0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
@@ -598,6 +650,8 @@ static Instrument *load_gus_instrument(char *name,
 			&& tone->tremnum == 0 && tone->vibnum == 0
 			&& tone->sclnotenum == 0 && tone->scltunenum == 0
 			&& tone->modenvratenum == 0 && tone->modenvofsnum == 0
+			&& tone->modenvkeyfnum == 0 && tone->modenvvelfnum == 0
+			&& tone->envkeyfnum == 0 && tone->envvelfnum == 0
 			&& tone->trempitchnum == 0 && tone->tremfcnum == 0
 			&& tone->modpitchnum == 0 && tone->modfcnum == 0
 			&& tone->fcnum == 0 && tone->resonum == 0)
@@ -1236,6 +1290,34 @@ void copy_tone_bank_element(ToneBankElement *elm, const ToneBankElement *src)
 			elm->modenvofs[i] = (int *) safe_memdup(elm->modenvofs[i],
 					6 * sizeof(int));
 	}
+	if (elm->envkeyfnum) {
+		elm->envkeyf = (int **) safe_memdup(elm->envkeyf,
+				elm->envkeyfnum * sizeof(int *));
+		for (i = 0; i < elm->envkeyfnum; i++)
+			elm->envkeyf[i] = (int *) safe_memdup(elm->envkeyf[i],
+					6 * sizeof(int));
+	}
+	if (elm->envvelfnum) {
+		elm->envvelf = (int **) safe_memdup(elm->envvelf,
+				elm->envvelfnum * sizeof(int *));
+		for (i = 0; i < elm->envvelfnum; i++)
+			elm->envvelf[i] = (int *) safe_memdup(elm->envvelf[i],
+					6 * sizeof(int));
+	}
+	if (elm->modenvkeyfnum) {
+		elm->modenvkeyf = (int **) safe_memdup(elm->modenvkeyf,
+				elm->modenvkeyfnum * sizeof(int *));
+		for (i = 0; i < elm->modenvkeyfnum; i++)
+			elm->modenvkeyf[i] = (int *) safe_memdup(elm->modenvkeyf[i],
+					6 * sizeof(int));
+	}
+	if (elm->modenvvelfnum) {
+		elm->modenvvelf = (int **) safe_memdup(elm->modenvvelf,
+				elm->modenvvelfnum * sizeof(int *));
+		for (i = 0; i < elm->modenvvelfnum; i++)
+			elm->modenvvelf[i] = (int *) safe_memdup(elm->modenvvelf[i],
+					6 * sizeof(int));
+	}
 	if (elm->trempitchnum)
 		elm->trempitch = (int16 *) safe_memdup(elm->trempitch,
 				elm->trempitchnum * sizeof(int16));
@@ -1322,6 +1404,18 @@ void free_tone_bank_element(ToneBankElement *elm)
 	if (elm->modenvofsnum)
 		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
 	elm->modenvofs = NULL, elm->modenvofsnum = 0;
+	if (elm->envkeyfnum)
+		free_ptr_list(elm->envkeyf, elm->envkeyfnum);
+	elm->envkeyf = NULL, elm->envkeyfnum = 0;
+	if (elm->envvelfnum)
+		free_ptr_list(elm->envvelf, elm->envvelfnum);
+	elm->envvelf = NULL, elm->envvelfnum = 0;
+	if (elm->modenvkeyfnum)
+		free_ptr_list(elm->modenvkeyf, elm->modenvkeyfnum);
+	elm->modenvkeyf = NULL, elm->modenvkeyfnum = 0;
+	if (elm->modenvvelfnum)
+		free_ptr_list(elm->modenvvelf, elm->modenvvelfnum);
+	elm->modenvvelf = NULL, elm->modenvvelfnum = 0;
 	if (elm->trempitch)
 		free(elm->trempitch);
 	elm->trempitch = NULL, elm->trempitchnum = 0;

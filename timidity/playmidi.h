@@ -348,7 +348,7 @@ typedef struct {
 
   int8 soft_pedal;
   int8 sostenuto;
-  int8 redamper;
+  int8 damper_mode;
 
   int8 tone_map0_number;
   FLOAT_T pitch_offset_fine;	/* in Hz */
@@ -474,6 +474,9 @@ typedef struct {
 
 #define ISDRUMCHANNEL(c)  IS_SET_CHANNELMASK(drumchannels, c)
 
+extern Channel channel[];
+extern Voice *voice;
+
 /* --module */
 extern int opt_default_module;
 
@@ -497,22 +500,19 @@ enum {
 	MODULE_TIMIDITY_DEBUG = 0x7f,
 };
 
-static inline int is_gs_module(void)
+static inline int get_module() {return opt_default_module;}
+
+static inline int is_gs_module()
 {
-    return (opt_default_module >= MODULE_SC55
-            && opt_default_module <= MODULE_MU100);
+	int module = get_module();
+    return (module >= MODULE_SC55 && module <= MODULE_MU100);
 }
 
-static inline int is_xg_module(void)
+static inline int is_xg_module()
 {
-    return (opt_default_module >= MODULE_MU50
-            && opt_default_module <= MODULE_MU100);
+	int module = get_module();
+    return (module >= MODULE_MU50 && module <= MODULE_MU100);
 }
-
-static inline int get_module(void) {return opt_default_module;}
-
-extern Channel channel[];
-extern Voice *voice;
 
 extern int32 control_ratio, amp_with_poly, amplification;
 

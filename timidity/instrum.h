@@ -97,7 +97,7 @@ typedef struct {
   char *comment;
   Instrument *instrument;
   int8 note, pan, strip_loop, strip_envelope, strip_tail, loop_timeout,
-	font_preset, font_keynote, legato, tva_level, play_note, redamper;
+	font_preset, font_keynote, legato, tva_level, play_note, damper_mode;
   uint8 font_bank;
   uint8 instype; /* 0: Normal
 		    1: %font
@@ -122,6 +122,10 @@ typedef struct {
 	int **envrate, **envofs;
 	int modenvratenum, modenvofsnum;
 	int **modenvrate, **modenvofs;
+	int envvelfnum, envkeyfnum;
+	int **envvelf, **envkeyf;
+	int modenvvelfnum, modenvkeyfnum;
+	int **modenvvelf, **modenvkeyf;
 	int tremnum, vibnum;
 	struct Quantity_ **trem, **vib;
 	int16 vel_to_fc, key_to_fc, vel_to_resonance;

@@ -831,6 +831,14 @@ static int set_gus_patchconf_opts(char *name,
 		tone->modenvrate = config_parse_envelope(cp, &tone->modenvratenum);
 	else if (! strcmp(opts, "modoffset"))
 		tone->modenvofs = config_parse_envelope(cp, &tone->modenvofsnum);
+	else if (! strcmp(opts, "envkeyf"))
+		tone->envkeyf = config_parse_envelope(cp, &tone->envkeyfnum);
+	else if (! strcmp(opts, "envvelf"))
+		tone->envvelf = config_parse_envelope(cp, &tone->envvelfnum);
+	else if (! strcmp(opts, "modkeyf"))
+		tone->modenvkeyf = config_parse_envelope(cp, &tone->modenvkeyfnum);
+	else if (! strcmp(opts, "modvelf"))
+		tone->modenvvelf = config_parse_envelope(cp, &tone->modenvvelfnum);
 	else if (! strcmp(opts, "trempitch"))
 		tone->trempitch = config_parse_int16(cp, &tone->trempitchnum);
 	else if (! strcmp(opts, "tremfc"))
@@ -866,7 +874,7 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	tone->amp = -1;
 	tone->rnddelay = 0;
 	tone->loop_timeout = 0;
-	tone->legato = tone->redamper = tone->key_to_fc = tone->vel_to_fc = 0;
+	tone->legato = tone->damper_mode = tone->key_to_fc = tone->vel_to_fc = 0;
 	tone->reverb_send = tone->chorus_send = tone->delay_send = -1;
 	tone->tva_level = -1;
 	tone->play_note = -1;
@@ -1544,8 +1552,8 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 	    bank->tone[i].legato = atoi(w[2]);
-	}	/* #extension redamper [program] [0 or 1] */
-	else if(strcmp(w[0], "redamper") == 0)
+	}	/* #extension damper [program] [0 or 1] */
+	else if(strcmp(w[0], "damper") == 0)
 	{
 	    if(words != 3)
 	    {
@@ -1566,12 +1574,12 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    if(i < 0 || i > 127)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: extension redamper "
+			  "%s: line %d: extension damper "
 			  "must be between 0 and 127", name, line);
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    bank->tone[i].redamper = atoi(w[2]);
+	    bank->tone[i].damper_mode = atoi(w[2]);
 	}	/* #extension rnddelay [program] [0 or 1] */
 	else if(strcmp(w[0], "rnddelay") == 0)
 	{

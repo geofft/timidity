@@ -280,6 +280,7 @@ static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
 static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
+void recompute_bank_parameter(int, int);
 
 static void init_voice_filter(int);
 /* XG Part EQ */
@@ -501,7 +502,7 @@ static void reset_drum_controllers(struct DrumParts *d[], int note)
     else
     {
 	d[note]->drum_panning = NO_PANNING;
-	for(j=0;j<6;j++) {d[note]->drum_envelope_rate[j] = -1;}
+	for(j = 0; j < 6; j++) {d[note]->drum_envelope_rate[j] = -1;}
 	d[note]->pan_random = 0;
 	d[note]->drum_level = 1.0f;
 	d[note]->coarse = 0;
@@ -550,6 +551,14 @@ static void reset_module_dependent_controllers(int c)
 		channel[c].mod.lfo1_pitch_depth = 50;
 		break;
 	}
+}
+
+static void reset_instrument_parameters(int c)
+{
+  channel[c].legato = 0;
+  channel[c].damper_mode = 0;
+  channel[c].loop_timeout = 0;
+  recompute_bank_parameter(c, 0);
 }
 
 static void reset_nrpn_controllers(int c)
@@ -603,10 +612,6 @@ static void reset_nrpn_controllers(int c)
 
   free_drum_effect(c);
 
-  channel[c].legato = 0;
-  channel[c].redamper = 0;
-  channel[c].loop_timeout = 0;
-
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
 	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
 	channel[c].sysex_msb_addr = channel[c].sysex_msb_val = 0;
@@ -645,7 +650,7 @@ static void reset_controllers(int c)
   channel[c].porta_control_ratio = 0;
   channel[c].portamento = 0;
   channel[c].last_note_fine = -1;
-  for(j=0;j<6;j++) {channel[c].envelope_rate[j] = -1;}
+  for(j = 0; j < 6; j++) {channel[c].envelope_rate[j] = -1;}
   update_portamento_controls(c);
   set_reverb_level(c, -1);
   if(opt_chorus_control == 1)
@@ -676,9 +681,10 @@ static void reset_midi(int playing)
 	int i, cnt;
 	
 	for (i = 0; i < MAX_CHANNELS; i++) {
+		reset_instrument_parameters(i);
 		reset_controllers(i);
 		reset_nrpn_controllers(i);
-		reset_module_dependent_controllers(i);
+     	reset_module_dependent_controllers(i);
 		/* The rest of these are unaffected
 		 * by the Reset All Controllers event
 		 */
@@ -1293,12 +1299,12 @@ void recompute_bank_parameter(int ch, int note)
 		}
 	} else {
 		nprog = channel[ch].program;
-		if(nprog == SPECIAL_PROGRAM) {return;}
+		if (nprog == SPECIAL_PROGRAM) {return;}
 		instrument_map(channel[ch].mapID, &nbank, &nprog);
 		bank = tonebank[nbank];
-		if(bank == NULL) {bank = tonebank[0];}
+		if (bank == NULL) {bank = tonebank[0];}
 		channel[ch].legato = bank->tone[nprog].legato;
-		channel[ch].redamper = bank->tone[nprog].redamper;
+		channel[ch].damper_mode = bank->tone[nprog].damper_mode;
 		channel[ch].loop_timeout = bank->tone[nprog].loop_timeout;
 	}
 }
@@ -2817,7 +2823,7 @@ static void update_redamper_controls(int ch)
 {
   int uv = upper_voices, i;
 
-  if(ISDRUMCHANNEL(ch) || channel[ch].redamper == 0) {return;}
+  if(ISDRUMCHANNEL(ch) || channel[ch].damper_mode == 0) {return;}
 
   for(i = 0; i < uv; i++)
   {
@@ -3326,6 +3332,7 @@ void midi_program_change(int ch, int prog)
 			instrument_map(channel[ch].mapID, &b, &p);
 			play_midi_load_instrument(0, b, p);
 		}
+		reset_instrument_parameters(ch);
 	}
 }
 
@@ -5049,7 +5056,7 @@ static void seek_forward(int32 until_time)
 
 	  case ME_SUSTAIN:
 		  channel[ch].sustain = current_event->a;
-		  if (channel[ch].redamper == 0) {	/* half-damper is not allowed. */
+		  if (channel[ch].damper_mode == 0) {	/* half-damper is not allowed. */
 			  if (channel[ch].sustain >= 64) {channel[ch].sustain = 127;}
 			  else {channel[ch].sustain = 0;}
 		  }
@@ -6987,7 +6994,7 @@ int play_event(MidiEvent *ev)
 		update_redamper_controls(ch);
 	}
 	channel[ch].sustain = ev->a;
-	if (channel[ch].redamper == 0) {	/* half-damper is not allowed. */
+	if (channel[ch].damper_mode == 0) {	/* half-damper is not allowed. */
 		if (channel[ch].sustain >= 64) {channel[ch].sustain = 127;}
 		else {channel[ch].sustain = 0;}
 	}

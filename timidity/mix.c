@@ -1562,6 +1562,7 @@ static inline int next_stage(int v)
 				? channel[ch].drums[vp->note]->drum_envelope_rate[eg_stage]
 				: -1;
 	else {
+//		ctl->cmsg(CMSG_INFO,VERB_NOISY,"keyf: %ld", vp->sample->envelope_keyf[stage]);
 		if (vp->sample->envelope_keyf[stage])	/* envelope key-follow */
 			rate *= pow(2.0, (double) (voice[v].note - 60)
 					* (double)vp->sample->envelope_keyf[stage] / 1200.0f);
