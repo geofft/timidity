@@ -128,7 +128,7 @@ extern int set_extension_modes(char *flag);
 
 static struct
 {
-    int bank, bank_lsb, bank_msb, prog, vol, exp, pan, sus, pitch, wheel, st;
+    int bank, bank_lsb, bank_msb, prog, tt, vol, exp, pan, sus, pitch, wheel;
     int is_drum;
     int bend_mark;
 
@@ -194,8 +194,8 @@ static const char note_name_char[12] =
 };
 
 static void ctl_note(int status, int ch, int note, int vel);
-static void ctl_temper_keysig(int8 sk, int ko);
-static void ctl_temper_type(int ch, int8 st);
+static void ctl_temper_keysig(int8 tk, int ko);
+static void ctl_temper_type(int ch, int8 tt);
 static void ctl_drumpart(int ch, int is_drum);
 static void ctl_program(int ch, int prog, char *vp, unsigned int banks);
 static void ctl_volume(int channel, int val);
@@ -676,6 +676,7 @@ static void init_chan_status(void)
 	ChannelStatus[ch].bank_msb = 0;
 	ChannelStatus[ch].bank_lsb = 0;
 	ChannelStatus[ch].prog = 0;
+	ChannelStatus[ch].tt = 0;
 	ChannelStatus[ch].is_drum = ISDRUMCHANNEL(ch);
 	ChannelStatus[ch].vol = 0;
 	ChannelStatus[ch].exp = 0;
@@ -1407,7 +1408,7 @@ static void ctl_note(int status, int ch, int note, int vel)
     }
 }
 
-static void ctl_temper_keysig(int8 sk, int ko)
+static void ctl_temper_keysig(int8 tk, int ko)
 {
 	static int8 lastkeysig = CTL_STATUS_UPDATE;
 	static int lastoffset = CTL_STATUS_UPDATE;
@@ -1418,15 +1419,17 @@ static void ctl_temper_keysig(int8 sk, int ko)
 	};
 	int i, j;
 	
-	if (sk == CTL_STATUS_UPDATE)
-		sk = lastkeysig;
+	if (tk == CTL_STATUS_UPDATE)
+		tk = lastkeysig;
 	else
-		lastkeysig = sk;
+		lastkeysig = tk;
 	if (ko == CTL_STATUS_UPDATE)
 		ko = lastoffset;
 	else
 		lastoffset = ko;
-	i = sk + ((sk < 8) ? 7 : -6);
+	if (ctl_ncurs_mode != NCURS_MODE_TRACE)
+		return;
+	i = tk + ((tk < 8) ? 7 : -6);
 	if (ko > 0)
 		for (j = 0; j < ko; j++)
 			i += (i > 10) ? -5 : 7;
@@ -1434,24 +1437,24 @@ static void ctl_temper_keysig(int8 sk, int ko)
 		for (j = 0; j < abs(ko); j++)
 			i += (i < 7) ? 5 : -7;
 	wmove(dftwin, TITLE_LINE, COLS - 24);
-	wprintw(dftwin, "%s%c", keysig_name[i], (sk < 8) ? ' ' : 'm');
+	wprintw(dftwin, "%s%c", keysig_name[i], (tk < 8) ? ' ' : 'm');
 	N_ctl_refresh();
 }
 
-static void ctl_temper_type(int ch, int8 st)
+static void ctl_temper_type(int ch, int8 tt)
 {
 	if (ch >= display_channels)
 		return;
-	if (st != CTL_STATUS_UPDATE) {
-		if (ChannelStatus[ch].st == st)
+	if (tt != CTL_STATUS_UPDATE) {
+		if (ChannelStatus[ch].tt == tt)
 			return;
-		ChannelStatus[ch].st = st;
+		ChannelStatus[ch].tt = tt;
 	} else
-		st = ChannelStatus[ch].st;
+		tt = ChannelStatus[ch].tt;
 	if (ctl_ncurs_mode != NCURS_MODE_TRACE || selected_channel == ch)
 		return;
 	wmove(dftwin, NOTE_LINE + ch, COLS - 23);
-	switch (st) {
+	switch (tt) {
 	case 0:
 		waddch(dftwin, ' ');
 		break;

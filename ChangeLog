@@ -1,3 +1,10 @@
+2003-03-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
+	* interface/ncurs_c.c: Fix around temperament control SysEx.
+
+2003-03-30  Saito <timidity@flashmail.com>
+	* interface/w32g_res.rc:
+	  Fix tab order (W32GUI version)
+	  # thanks to Mr.rc
 
 2003-03-28  Saito <timidity@flashmail.com>
 	* timidity/mix.c:
@@ -104,7 +111,7 @@
 
 	* interface/xaw_i.c:
 	  Support for gradient bar resource
-	  Hack up arround redraw
+	  Hack up around redraw
 
 2003-02-23  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -113,7 +120,7 @@
 
 2003-02-22  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
 
-	* interface/xaw_i.c: Hack up arround color resources
+	* interface/xaw_i.c: Hack up around color resources
 
 2003-02-16  Takaya Nogami <t-nogami@happy.email.ne.jp>
 
@@ -168,7 +175,7 @@
 	  libarc/unlzh.c, timidity/optcode.c, timidity/optcode.h,
 	  timidity/playmidi.c, timidity/smplfile.c:
 	  Add version information (Windows synthesizer GUI version)
-	  Bug fix arround GUI (Windows synthesizer GUI version)
+	  Bug fix around GUI (Windows synthesizer GUI version)
 	  Add max calculate time option (Windows synthesizer GUI version)
 	  Bug fix multi preference dialog opened (W32GUI version)
 	  Hack up playing performance (Windows synthesizer GUI version)
@@ -181,7 +188,7 @@
 
 2003-01-16  s_keishi <s_keishi@mutt.freemail.ne.jp>
 	* interface/winsyn_c.c:
-	  Bug fix arround SysEx. on Windows synthesizer
+	  Bug fix around SysEx. on Windows synthesizer
 	  Hack up playing performance on Windows synthesizer
 
 2003-01-16  mput <root@mput.dip.jp>
@@ -288,7 +295,7 @@
 2002-10-27  Saito <timidity@flashmail.com>
 	* timidity/instrum.h, timidity/mix.c, timidity/playmidi.h,
 	  timidity/sndfont.c:
-	  Bug fix arround SoundFont modification
+	  Bug fix around SoundFont modification
 
 2002-10-26  Saito <timidity@flashmail.com>
 	* libunimod/load_xm.c, libunimod/mlutil.c, timidity/mix.c,
@@ -299,7 +306,7 @@
 2002-10-25  Saito <timidity@flashmail.com>
 	* timidity/instrum.h, timidity/mix.c, timidity/playmidi.c,
 	  timidity/playmidi.h, timidity/readmidi.c, timidity/sndfont.c:
-	  Bug fix arround real time SysEx.
+	  Bug fix around real time SysEx.
 	  Change for envelope calculation on SoundFont
 	  Support for velocity and note envelope change
 
@@ -314,7 +321,7 @@
 
 2002-10-18  Saito <timidity@flashmail.com>
 	* timidity/playmidi.c, timidity/sndfont.c:
-	  Bug fix arround SPECIAL_SAMPLE panning
+	  Bug fix around SPECIAL_SAMPLE panning
 
 2002-10-17  Saito <timidity@flashmail.com>
 	* timidity/mix.c, timidity/playmidi.c, timidity/playmidi.h,
@@ -327,7 +334,7 @@
 	* timidity/playmidi.c, timidity/playmidi.h:
 	  Modify panning as stereo like on multi layer
 	  Support for stereo sampled drumset (maybe)
-	  Bug fixed arround SysEx. chorus and delay (maybe)
+	  Bug fixed around SysEx. chorus and delay (maybe)
 
 2002-10-14  Saito <timidity@flashmail.com>
 	* 
@@ -345,7 +352,7 @@
 
 2002-10-09  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* 
-	  Bug fixed arround tracer window (W32GUI version)
+	  Bug fixed around tracer window (W32GUI version)
 
 2002-10-09  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
@@ -381,7 +388,7 @@
 
 2002-09-25  Saito <timidity@flashmail.com>
 	* 
-	  Bug fixed click noise arround release-time
+	  Bug fixed click noise around release-time
 
 2002-09-22  Saito <timidity@flashmail.com>
 	* 
@@ -390,7 +397,7 @@
 2002-09-22  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
 	  Support for modulation patch option in unit value
-	  Bug fixed arround tremolo_phase_increment
+	  Bug fixed around tremolo_phase_increment
 
 2002-09-19  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
@@ -602,7 +609,7 @@
 2002-05-06  Saito <timidity@flashmail.com>
 	* 
 	  Support for GS SysEx. Pitch Offset Fine
-	  Hacked up GS SysEx. arround tone map
+	  Hacked up GS SysEx. around tone map
 	  Hacked up user drumset behavior
 	  Make table for envelope parameter module
 
