@@ -1,3 +1,14 @@
+2003-08-25  Takashi Iwai <tiwai@suse.de>
+
+	* configure.in, timidity/Makefile.am, timidity/output.c,
+	  timidity/jack_a.c:
+	  JACK output support (jackit.sf.net)
+	  To enable JACK, you'll need pkgconfig installed.
+	* timidity/timidity.c:
+	  Fixed the path of libesd for AMD64 and PPC64 (/usr/lib64)
+	* timidity/playmidi.c:
+	  Added parentheses around the ambiguous conditions.
+
 2003-08-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c (parse_opt_s): -s option works correctly again
