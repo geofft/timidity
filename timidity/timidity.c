@@ -5202,6 +5202,8 @@ MAIN_INTERFACE int timidity_post_load_configuration(void)
 
 MAIN_INTERFACE void timidity_init_player(void)
 {
+    initialize_resampler_coeffs();
+
     /* Allocate voice[] */
     voice = (Voice *) safe_realloc(voice, max_voices * sizeof(Voice));
 	memset(voice, 0, max_voices * sizeof(Voice));
@@ -5437,7 +5439,7 @@ extern int volatile save_playlist_once_before_exit_flag;
 static int CoInitializeOK = 0;
 #endif
 
-#ifndef __MACOS__
+#ifndef ANOTHER_MAIN
 #ifdef __W32__ /* Windows */
 #if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
 /* Cygwin or Console */
@@ -5561,8 +5563,6 @@ int main(int argc, char **argv)
 	if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 	    break;
 
-    initialize_resampler_coeffs();
-
     err += timidity_post_load_configuration();
 
     /* If there were problems, give up now */
@@ -5655,4 +5655,4 @@ int main(int argc, char **argv)
 	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
     return main_ret;
 }
-#endif /* __MACOS__ */
+#endif /* ANOTHER_MAIN */
