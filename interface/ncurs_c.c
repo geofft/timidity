@@ -440,7 +440,7 @@ static void N_ctl_scrinit(void)
     N_ctl_werase(dftwin);
     wmove(dftwin, VERSION_LINE,0);
     waddstr(dftwin, "TiMidity++ v"); waddstr(dftwin, timidity_version);
-    wmove(dftwin, VERSION_LINE,COLS-57);
+    wmove(dftwin, VERSION_LINE,COLS-51);
     waddstr(dftwin, "(C) 1995,1999-2004 Tuukka Toivonen, Masanao Izumo");
     wmove(dftwin, FILE_LINE,0);
     waddstr(dftwin, "File:");
