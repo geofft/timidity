@@ -58,9 +58,6 @@ install.el:
 install.bin:
 	cd timidity; $(MAKE) install
 
-install-data-local: TiMidity.ad
-	install -D -m 444 -o root $(top_builddir)/TiMidity.ad $(tm_cv_ad_dir)/TiMidity
-
 ##
 ## Targets for timidity-tools
 ##

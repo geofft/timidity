@@ -154,11 +154,6 @@ AC_ARG_WITH(module-dir,
 tmplibdir="`eval \"echo ${pkglibdir}\"`"
 AC_DEFINE_UNQUOTED(PKGLIBDIR,"$tmplibdir",place to install modules)
 
-AC_ARG_WITH(ad-dir,
-  [  --with-ad-dir=DIR       Where to install app-defaults(/etc/X11/app-defaults)],
-  [tm_cv_ad_dir=$withval],
-  [tm_cv_ad_dir="/etc/X11/app-defaults"])
-AC_SUBST(tm_cv_ad_dir)
 
 # Checks for programs.
 AM_PATH_LISPDIR

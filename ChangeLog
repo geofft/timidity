@@ -1,11 +1,18 @@
+2004-02-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* aclocal.m4, configure(.in), config.h.in, Makefile.{am,in},
+	  {autoconf,configs,doc(/{C,ja_JP.ujis}),
+	  interface(/bitmaps)}/Makefile.in:
+	  Sorry, revert fix due to make dist problem
+
 2004-02-10  Kouji 'kekyo' Suzuki <k@kekyo.net>
-        * interface/rtsyn_winmm.c, interface/w32g_i.c,
-          interface/w32g_ini.c, interface/w32g_pref.c,
-          interface/w32g_res[ch], interface/w32g_syn.c,
-          interface/w32g_utl.[ch], interface/w32g.h:
-          Add process-priority function to TWSYNG.
-	* configs/msc7-project.zip, timidity/calcnewt.c:
-	  Fix.
+
+	* interface/rtsyn_winmm.c, interface/w32g_i.c,
+	  interface/w32g_ini.c, interface/w32g_pref.c,
+	  interface/w32g_res.[ch], interface/w32g_syn.c,
+	  interface/w32g_utl.[ch], interface/w32g.h:
+	  Add process-priority function to TWSYNG.
+	* configs/msc7-project.zip, timidity/calcnewt.c: Fix.
 
 2004-02-09  mput <root@mput.dip.jp>
 
