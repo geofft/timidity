@@ -5644,7 +5644,7 @@ int main(int argc, char **argv)
 		if(strp = strrchr(config2, '\\'))
 		{
 		    *(++strp)='\0';
-		    strcat(config2,"TIMIDITY.CFG",sizeof(config2)-strlen(config2)-1);
+		    strncat(config2,"TIMIDITY.CFG",sizeof(config2)-strlen(config2)-1);
 		}
 	    }
 

@@ -1,3 +1,8 @@
+2004-10-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* interface/wrdt_wcon.c : Fix double definition of print_ecmd()
+	* timidity/timidity.c (main): s/strcat/strncat/;
+
 2004-09-29  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* NEWS: Add new entry for 2.13.1

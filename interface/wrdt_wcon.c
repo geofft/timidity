@@ -809,35 +809,6 @@ static char *wrd_event2string(int id)
     return "";
 }
 
-static void print_ecmd(char *cmd, int *args, int narg)
-{
-#if 0
-    char *p;
-
-    p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-    sprintf(p, "^%s(", cmd);
-
-    if(*args == WRD_NOARG)
-	strcat(p, "*");
-    else
-	sprintf(p + strlen(p), "%d", *args);
-    args++;
-    narg--;
-    while(narg > 0)
-    {
-	if(*args == WRD_NOARG)
-	    strcat(p, ",*");
-	else
-	    sprintf(p + strlen(p), ",%d", *args);
-	args++;
-	narg--;
-    }
-    strcat(p, ")");
-    ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
-    reuse_mblock(&tmpbuffer);
-#endif
-}
-
 static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 {
     char *p;
