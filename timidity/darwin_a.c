@@ -51,7 +51,7 @@
 
 static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
-static int output_data(char *buf, int32 nbytes);
+static int output_data(char *buf, int32 in_bytes);
 static int acntl(int request, void *arg);
 static int total_bytes;
 float output_volume = 1.0;
@@ -112,6 +112,7 @@ OSStatus appIOProc (AudioDeviceID  inDevice, const AudioTimeStamp*  inNow,
 		    const AudioTimeStamp* inOutputTime, void* dummy )
 {
     int       next_curr;
+    int       trans_len;
         
     if( globals.currBuf==globals.nextBuf ){  //end of play
         outOutputData->mNumberBuffers=0;
@@ -120,23 +121,23 @@ OSStatus appIOProc (AudioDeviceID  inDevice, const AudioTimeStamp*  inNow,
         return 0;
     }
     
+    trans_len = globals.buffer_len[globals.currBuf];
     if( output_volume==1.0 ){
         memcpy(  outOutputData->mBuffers[0].mData,
              &globals.buffer[globals.currBuf][0], 
-             globals.deviceBufferSize);   // move data into output data buffer
+             trans_len);   // move data into output data buffer
     }else{
         float   *src = (float*)&globals.buffer[globals.currBuf][0],
                 *dst = outOutputData->mBuffers[0].mData;
-        int     i, quant = globals.deviceBufferSize/sizeof(float);
+        int     i, quant = trans_len/sizeof(float);
         for(i=0; i<quant; i++){
             *dst++ = (*src++)*output_volume;
         }
     }
-    outOutputData->mBuffers[0].mDataByteSize =
-      globals.buffer_len[globals.currBuf];
+    outOutputData->mBuffers[0].mDataByteSize = trans_len;
     
     outOutputData->mNumberBuffers=1;
-    globals.samples += globals.buffer_len[globals.currBuf]
+    globals.samples += trans_len
                               / globals.deviceFormat.mBytesPerPacket;
     
     next_curr = globals.currBuf+1;
@@ -158,7 +159,7 @@ static void init_variable()
 
 /*********************************************************************/
 /*return value == 0 sucess
-               == -1 fails
+ *             == -1 fails
  */
 static int open_output(void)
 {
@@ -243,60 +244,88 @@ Bail:
 }
 
 /*********************************************************************/
-static int output_data(char *buf, int32 nbytes)
+static int output_data(char *buf, int32 in_bytes)
 {
     OSStatus		err = 0;
-    int         next_nextbuf, outbytes=nbytes;
-    int         inBytesPerQuant, max_quant, max_inbytes, out_quant, i;
+    int         next_nextbuf, out_bytes;
+    int         inBytesPerQuant, max_quant, max_outbytes, out_quant, i;
+    float       maxLevel;
     
+
+    //quant  : 1 value
+    //packet : 1 pair of quant(stereo data)
 
     if (dpm.encoding & PE_16BIT){
             inBytesPerQuant = 2;
+            maxLevel=32768.0;
+    }else if(dpm.encoding & PE_24BIT){
+            inBytesPerQuant = 3;
+            maxLevel=8388608.0;
     }else{
             ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
                 "Sorry, not support 8bit sound.");
             exit(1);
     }
     
-    max_quant = globals.deviceBufferSize 
-                   / (globals.deviceFormat.mBytesPerPacket/2);
-    max_inbytes = max_quant * inBytesPerQuant;
+    max_outbytes = globals.deviceBufferSize;
+    max_quant    = max_outbytes / sizeof(float);
+
         
  redo:
-    outbytes=nbytes;
-    if( outbytes > max_inbytes ){
-        outbytes = max_inbytes;
-        out_quant = outbytes/inBytesPerQuant;
+    out_quant = in_bytes/inBytesPerQuant;
+    out_bytes= out_quant * sizeof(float);
+    if( out_bytes > max_outbytes ){
+        out_bytes = max_outbytes;
     }
-
+    out_quant = out_bytes/sizeof(float);
+    out_quant &=0xfffffffe;  //trunc to eaven number for stereo
+    out_bytes = out_quant*sizeof(float);
+    
     next_nextbuf = globals.nextBuf+1;
     next_nextbuf %= BUFNUM;
     
     while( globals.currBuf==next_nextbuf ){ //queue full
-        usleep(10000); //0.01sec
+        usleep(100000); //0.1sec
     }
     
-    for( i=0; i<out_quant; i++){
-        ((float*)(globals.buffer[globals.nextBuf]))[i] =
-                          ((short*)buf)[i]/32768.0;
-    }
+    switch( inBytesPerQuant ){
+
+      case 2:
+        for( i=0; i<out_quant; i++){
+            ((float*)(globals.buffer[globals.nextBuf]))[i] =
+                              ((short*)buf)[i]/maxLevel;
+        }
+	   break;
+
+      case 3:
+	    for( i=0; i<out_quant; i++ ){
+	              ((float*)(globals.buffer[globals.nextBuf]))[i] =
+                             (*(int32*)&buf[i*3]>>8) / maxLevel;
+	    }
+	    break;
+    }        
     
+    globals.buffer_len[globals.nextBuf] = out_bytes;
     
-    globals.buffer_len[globals.nextBuf] = outbytes;
-    
-    err = AudioDeviceStart(globals.device, appIOProc);
+    if( globals.soundPlaying == 0){
+      err = AudioDeviceStart(globals.device, appIOProc);
+      if (err != 0) goto Bail;
                         // start playing sound through the device
-    if (err != 0) goto Bail;
+      globals.soundPlaying = 1;   // set the playing status global to true         
+
+    }
+
+
 
     globals.nextBuf = next_nextbuf;
-    globals.soundPlaying = 1;	// set the playing status global to true
+
     
-    nbytes -= outbytes;
-    buf += outbytes;
+    in_bytes -= out_quant*inBytesPerQuant;
+    buf += out_quant*inBytesPerQuant;
     mac_buf_using_num++;
-    globals.get_samples += outbytes/globals.deviceFormat.mBytesPerPacket;
+    globals.get_samples += out_bytes/globals.deviceFormat.mBytesPerPacket;
     
-    if( nbytes ){
+    if( in_bytes ){
         goto redo;
     }
     
@@ -327,42 +356,16 @@ static int acntl(int request, void *arg)
 {
     switch (request){
       case PM_REQ_GETFRAGSIZ:
-	*((int *)arg) = BUFLEN;
+	if( dpm.encoding & PE_24BIT ){
+	  *((int *)arg) = 3072;	  
+	}else{
+	  *((int *)arg) = BUFLEN;
+	}
 	return 0;
         
-	//case PM_REQ_GETQSIZ:
-	if (total_bytes == -1)
-	  return -1;
-	*((int *)arg) = sizeof(globals.buffer);
-	return 0;
 
-      /*case PM_REQ_GETFILLABLE:
-	if (total_bytes == -1)
-	  return -1;
-	if(!(dpm.encoding & PE_MONO)) i >>= 1;
-	if(dpm.encoding & PE_16BIT) i >>= 1;
-	*((int *)arg) = i;
-	return 0;*/
-
-      /*case PM_REQ_GETFILLED:
-
-	i = pstatus.queue;
-	if(!(dpm.encoding & PE_MONO)) i >>= 1;
-	if(dpm.encoding & PE_16BIT) i >>= 1;
-	*((int *)arg) = i;
-	return 0;*/
-
-    //case PM_REQ_GETSAMPLES:
-          *((int *)arg) = globals.samples*2;
-        /*{
-            static int c=0;
-            if( c%0x100000==0 ){
-                ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-                        "getsamples = %d", *((int *)arg));
-            
-            }
-        }*/
-
+    case PM_REQ_GETSAMPLES:
+          *((int *)arg) = globals.samples;
           return 0;
 
     case PM_REQ_DISCARD:

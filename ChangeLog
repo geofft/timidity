@@ -1,3 +1,7 @@
+2004-03-20  Takaya Nogami <t-nogami@happy.email.ne.jp>
+
+	* timidity/darwin_a.c: 24bit output support
+
 2004-03-19  Saito <saito@intaa.net>
 
 	* interface/w32g_ut2.[ch], interface/w32g_i.c:
