@@ -910,7 +910,7 @@ if test "x$au_enable_alsa" = xyes; then
     EXTRADEFS="$EXTRADEFS -DAU_ALSA"
     SYSEXTRAS="$SYSEXTRAS alsa_a.c"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$ALSA_CFLAGS)
-    LIBS="$KEEPLIBS $ALSA_LIBS"
+    LIBS="$LIBS $ALSA_LIBS"
     AC_CHECK_FUNCS(snd_seq_port_info_set_timestamping)
   else
     AC_MSG_WARN(Couldn't configure alsa.)
@@ -1059,7 +1059,7 @@ if test "x$au_enable_ao" = xyes; then
     EXTRADEFS="$EXTRADEFS -DAU_AO"
     SYSEXTRAS="$SYSEXTRAS ao_a.c"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$AO_CFLAGS)
-    LIBS="$KEEPLIBS $AO_LIBS"
+    LIBS="$LIBS $AO_LIBS"
   else
     AC_MSG_WARN(Couldn't configure libao.)
   fi
@@ -1104,12 +1104,12 @@ if test "x$au_enable_flac" = xyes; then
   AM_PATH_LIBFLAC([
     EXTRADEFS="$EXTRADEFS -DAU_FLAC"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
-    LIBS="$KEEPLIBS $LIBFLAC_LIBS"
+    LIBS="$LIBS $LIBFLAC_LIBS"
   ])
   AM_PATH_LIBOGGFLAC([
     EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
-    LIBS="$KEEPLIBS $LIBOGGFLAC_LIBS"
+    LIBS="$LIBS $LIBOGGFLAC_LIBS"
   ])
 else
   AC_MSG_RESULT(no)

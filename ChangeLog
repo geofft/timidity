@@ -1,3 +1,7 @@
+2004-04-25  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* configure.in: Bug fix and autoreconf
+
 2004-04-23  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c: Fixed a bug dealing with an empty var.

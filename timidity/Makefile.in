@@ -427,6 +427,7 @@ EXTRA_timidity_SOURCES = \
 	sun_a.c \
 	vorbis_a.c \
 	flac_a.c \
+	speex_a.c \
 	w32_a.c \
 	w32_gogo.c \
 	w32_gogo.h \
@@ -441,9 +442,9 @@ calcnewt_SOURCES = calcnewt.c
 
 CLEANFILES = newton_table.c
 
-@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
-
 @ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+
+@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.o) \
@@ -550,10 +551,11 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/sbkconv.Po ./$(DEPDIR)/sffile.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/sfitem.Po ./$(DEPDIR)/smfconv.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/smplfile.Po ./$(DEPDIR)/sndfont.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sun_a.Po ./$(DEPDIR)/tables.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/timidity.Po ./$(DEPDIR)/version.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/vorbis_a.Po ./$(DEPDIR)/w32_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32_gogo.Po ./$(DEPDIR)/w32g_ogg_dll.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/speex_a.Po ./$(DEPDIR)/sun_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tables.Po ./$(DEPDIR)/timidity.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/version.Po ./$(DEPDIR)/vorbis_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32_a.Po ./$(DEPDIR)/w32_gogo.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32g_ogg_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbis_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbisenc_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/wave_a.Po ./$(DEPDIR)/wrd_read.Po \
@@ -679,6 +681,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smfconv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smplfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sndfont.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/speex_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sun_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tables.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timidity.Po@am__quote@
