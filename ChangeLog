@@ -1,14 +1,19 @@
+2003-10-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Fix around channel layer
+
 2003-10-08  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/timidity.c: Fixed segfault or error with use of
 	  #extension opt.  optind is reset before calling getopt_long()
 	  again.
-	
+
 2003-10-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* */Makefile.in, aclocal.m4, configure, configure.in,
 	  utils/getopt.c, utils/tmdy_getopt.h:
-	  Revert fix getopt_long's problem in MINGW environment.
+	  Revert fix getopt_long problem in MinGW environment
 
 2003-10-08  Kentaro Sato <kentaro@ranvis.com>
 

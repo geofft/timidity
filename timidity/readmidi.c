@@ -4600,7 +4600,7 @@ void add_channel_layer(int to_ch, int from_ch)
 	if (to_ch >= MAX_CHANNELS || from_ch >= MAX_CHANNELS)
 		return;
 	/* add a channel layer */
-	SET_CHANNELMASK(channel[from_ch].channel_layer, to_ch);
+	SET_CHANNELMASK(channel[to_ch].channel_layer, from_ch);
 	UNSET_CHANNELMASK(channel[to_ch].channel_layer, to_ch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 			"Channel Layer (CH:%d -> CH:%d)", from_ch, to_ch);
@@ -4617,5 +4617,6 @@ void remove_channel_layer(int ch)
 	offset = (ch < REDUCE_CHANNELS) ? 0 : REDUCE_CHANNELS;
 	for (i = offset; i < offset + REDUCE_CHANNELS; i++)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
+	SET_CHANNELMASK(channel[ch].channel_layer, ch);
 }
 

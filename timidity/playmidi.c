@@ -1136,7 +1136,8 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 		/* Instrument is not found.
 		 * Retry to load the instrument from bank 0
 		 */
-		if ((ip = bank[0]->tone[prog].instrument) == NULL || ip == MAGIC_LOAD_INSTRUMENT)
+		if ((ip = bank[0]->tone[prog].instrument) == NULL
+				|| ip == MAGIC_LOAD_INSTRUMENT)
 			ip = bank[0]->tone[prog].instrument =
 					load_instrument(dr, 0, prog);
 		if (ip) {
@@ -3365,15 +3366,14 @@ static void play_midi_prescan(MidiEvent *ev)
 		layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			if (layered && channel[port_ch].port_select ^ (orig_ch >= 16))
-				continue;
 			offset = (port_ch < 16) ? 0 : 16;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
 				if (layered) {
 					if (! IS_SET_CHANNELMASK(
-							channel[port_ch].channel_layer, k))
+							channel[k].channel_layer, port_ch)
+							|| channel[k].port_select ^ (orig_ch >= 16))
 						continue;
 					ev->channel = k;
 				}
@@ -3852,15 +3852,14 @@ static void seek_forward(int32 until_time)
 		layered = ! IS_SYSEX_EVENT_TYPE(current_event->type);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			if (layered && channel[port_ch].port_select ^ (orig_ch >=16))
-				continue;
 			offset = (port_ch < 16) ? 0 : 16;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
 				if (layered) {
 					if (! IS_SET_CHANNELMASK(
-							channel[port_ch].channel_layer, k))
+							channel[k].channel_layer, port_ch)
+							|| channel[k].port_select ^ (orig_ch >=16))
 						continue;
 					current_event->channel = k;
 				}
@@ -5634,14 +5633,13 @@ int play_event(MidiEvent *ev)
 	layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
 	for (k = 0; k < MAX_CHANNELS; k += 16) {
 		port_ch = (orig_ch + k) % MAX_CHANNELS;
-		if (layered && channel[port_ch].port_select ^ (orig_ch >= 16))
-			continue;
 		offset = (port_ch < 16) ? 0 : 16;
 		for (l = offset; l < offset + 16; l++) {
 			if (! layered && (k || l != offset))
 				continue;
 			if (layered) {
-				if (! IS_SET_CHANNELMASK(channel[port_ch].channel_layer, l))
+				if (! IS_SET_CHANNELMASK(channel[l].channel_layer, port_ch)
+						|| channel[l].port_select ^ (orig_ch >= 16))
 					continue;
 				ev->channel = l;
 			}
