@@ -1,3 +1,8 @@
+2004-09-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* interface/xaw_i.c: avoid all-black file selector when tracer is
+	  not enabled, thanks to hmh@debian.org
+
 2004-08-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* playmidi.c (new_chorus_voice, new_chorus_voice_alternate):

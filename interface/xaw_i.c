@@ -432,10 +432,8 @@ static XtResource xaw_resources[] ={
    offset(trace_height), XtRImmediate, (XtPointer)TRACE_HEIGHT},
   {"menuWidth", "MenuWidth", XtRShort, sizeof(Dimension),
    offset(menu_width), XtRImmediate, (XtPointer)200},
-#if 1 /* FIXME: this will paint the file-selection list with all blacks.. */
   {"foreground", XtCForeground, XtRPixel, sizeof(Pixel),
    offset(common_fgcolor), XtRString, "black"},
-#endif
   {"background", XtCBackground, XtRPixel, sizeof(Pixel),
    offset(common_bgcolor), XtRString, COMMON_BGCOLOR},
   {"menubutton", "MenuButtonBackground", XtRPixel, sizeof(Pixel),
@@ -2848,7 +2846,7 @@ static void createFlist(void) {
     file_list= XtVaCreateManagedWidget("filelist",listWidgetClass,file_vport,
                                   XtNverticalList,True,
                                   XtNforceColumns,True,XtNdefaultColumns,1,
-                                  XtNbackground,tracecolor,NULL);
+                                  XtNbackground,textbgcolor,NULL);
     flist_cmdbox= XtVaCreateManagedWidget("flist_cmdbox",boxWidgetClass,popup_fbox,
                                   XtNorientation,XtorientHorizontal,
                                   XtNwidth,272,XtNheight,24,
@@ -3493,7 +3491,7 @@ void a_start_interface(int pipe_in) {
             XtNwidth,250, XtNheight,200, NULL);
   load_flist = XtVaCreateManagedWidget("files",listWidgetClass,load_vport,
             XtNverticalList,True, XtNforceColumns,False,
-            XtNbackground,tracecolor, XtNdefaultColumns,3, NULL);
+            XtNbackground,textbgcolor, XtNdefaultColumns,3, NULL);
   load_info = XtVaCreateManagedWidget("cwd_info",labelWidgetClass,popup_load_f,
             XtNborderWidth,0, XtNwidth,250, XtNheight,20, XtNresizable,False,
             XtNbackground,text2bgcolor, XtNfromVert,load_vport, NULL);
