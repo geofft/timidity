@@ -1532,8 +1532,7 @@ void init_reverb(int32 output_rate)
 	/* Old non-freeverb must be initialized for mono reverb not to crash */
 	if (! (play_mode->encoding & PE_MONO)
 			&& (opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))
-			|| opt_effect_quality >= 2) {
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) {
 		if(reverb_status.character == 5) {	/* Plate Reverb */
 			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
 			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
@@ -1582,8 +1581,7 @@ void do_ch_reverb(int32 *buf, int32 count)
 			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
 		do_filter_lowpass1_stereo(reverb_effect_buffer, count, &(reverb_status.lpf));
 	if (opt_reverb_control == 3 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
-			|| opt_effect_quality >= 2) {
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)) {
 		if(reverb_status.character == 5) {	/* Plate Reverb */
 			do_ch_plate_reverb(buf, count, &(reverb_status.info_plate_reverb));
 		} else {	/* Freeverb */

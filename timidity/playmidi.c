@@ -1112,7 +1112,7 @@ void init_voice_filter(int i)
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f - 3.01f;
 	  if (voice[i].fc.orig_reso_dB < 0.0f) {voice[i].fc.orig_reso_dB = 0.0f;}
-	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {
+	  if(opt_lpf_def == 2) {
 		  voice[i].fc.gain = 1.0;
 		  voice[i].fc.type = 2;
 	  } else if(opt_lpf_def == 1) {
@@ -5925,7 +5925,7 @@ static void do_compute_data_midi(int32 count)
 	memset(buffer_pointer, 0, n);
 	memset(insertion_effect_buffer, 0, n);
 
-	if (opt_reverb_control == 3 || opt_effect_quality) {
+	if (opt_reverb_control == 3) {
 		rev_max_delay_out = 0x7fffffff;	/* disable */
 	} else {
 		rev_max_delay_out = REVERB_MAX_DELAY_OUT;

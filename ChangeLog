@@ -3,6 +3,8 @@
 	* interface/w32g_pref.c, interface/w32g_subwin3.c,
 	  interface/w32g_res.h, interface/w32g_res.rc:
 	  Fix Win32GUI preference window.
+	* timidity/playmidi.c, timidity/reverb.c:
+	  Change behaviour of opt_effect_quality.
 
 2004-02-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
