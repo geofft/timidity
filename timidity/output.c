@@ -259,6 +259,23 @@ void s32tou16x(int32 *lp, int32 c)
 #define MAX_24BIT_SIGNED (8388607)
 #define MIN_24BIT_SIGNED (-8388608)
 
+#define STORE_S24_LE(cp, l) *cp++ = l & 0xFF, *cp++ = l >> 8 & 0xFF, *cp++ = l >> 16
+#define STORE_S24_BE(cp, l) *cp++ = l >> 16, *cp++ = l >> 8 & 0xFF, *cp++ = l & 0xFF
+#define STORE_U24_LE(cp, l) *cp++ = l & 0xFF, *cp++ = l >> 8 & 0xFF, *cp++ = l >> 16 ^ 0x80
+#define STORE_U24_BE(cp, l) *cp++ = l >> 16 ^ 0x80, *cp++ = l >> 8 & 0xFF, *cp++ = l & 0xFF
+
+#if LITTLE_ENDIAN
+  #define STORE_S24  STORE_S24_LE
+  #define STORE_S24X STORE_S24_BE
+  #define STORE_U24  STORE_U24_LE
+  #define STORE_U24X STORE_U24_BE
+#else
+  #define STORE_S24  STORE_S24_BE
+  #define STORE_S24X STORE_S24_LE
+  #define STORE_U24  STORE_U24_BE
+  #define STORE_U24X STORE_U24_LE
+#endif
+
 void s32tos24(int32 *lp, int32 c)
 {
 	uint8 *cp = (uint8 *)(lp);
@@ -269,9 +286,7 @@ void s32tos24(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l & 0xFF;
-		*cp++ = l >> 8 & 0xFF;
-		*cp++ = l >> 16;
+		STORE_S24(cp, l);
 	}
 }
 
@@ -285,9 +300,7 @@ void s32tou24(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l & 0xFF;
-		*cp++ = l >> 8 & 0xFF;
-		*cp++ = l >> 16 ^ 0x80;
+		STORE_U24(cp, l);
 	}
 }
 
@@ -301,9 +314,7 @@ void s32tos24x(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l >> 16;
-		*cp++ = l >> 8 & 0xFF;
-		*cp++ = l & 0xFF;
+		STORE_S24X(cp, l);
 	}
 }
 
@@ -317,9 +328,7 @@ void s32tou24x(int32 *lp, int32 c)
 		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
 		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
 				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
-		*cp++ = l >> 16 ^ 0x80;
-		*cp++ = l >> 8 & 0xFF;
-		*cp++ = l & 0xFF;
+		STORE_U24X(cp, l);
 	}
 }
 

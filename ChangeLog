@@ -1,3 +1,7 @@
+2004-02-12  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/output.c: Fixed endian problem of 24-bit output.
+
 2004-02-11  mput <root@mput.dip.jp>
 
 	* configure.in: version to 2.13.0-rc1
