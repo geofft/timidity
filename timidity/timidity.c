@@ -113,118 +113,118 @@
 #define OPTCOMMANDS "4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:n:O:o:P:p:Q:q:R:rS:s:t:T:UW:w:x:Z:"	/* Only GJluVvXz are remain... */
 static const struct option longopts[] = {
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-    { "no-4-point-interpolation",       no_argument, NULL, '4' << 8 },
-    { "4-point-interpolation"   , optional_argument, NULL, '4' << 8 },
+	{ "no-4-point-interpolation", no_argument,       NULL, '4' << 8 },
+	{ "4-point-interpolation",    optional_argument, NULL, '4' << 8 },
 #endif
-    { "volume"                  , required_argument, NULL, 'A' << 8 },
-    { "drum-power"              , required_argument, NULL, 227 << 8 },
-    { "no-volume-compensation"  ,       no_argument, NULL, 228 << 8 },
-    { "volume-compensation"     , optional_argument, NULL, 228 << 8 },
-    { "no-anti-alias"           ,       no_argument, NULL, 'a' << 8 },
-    { "anti-alias"              , optional_argument, NULL, 'a' << 8 },
-    { "buffer-fragments"        , required_argument, NULL, 'B' << 8 },
-    { "background"              ,       no_argument, NULL, 'b' << 8 },
-    { "control-ratio"           , required_argument, NULL, 'C' << 8 },
-    { "config-file"             , required_argument, NULL, 'c' << 8 },
-    { "drums"                   , required_argument, NULL, 'D' << 8 },
-    { "interface-path"          , required_argument, NULL, 'd' << 8 },
-    { "effects"                 , required_argument, NULL, 'E' << 8 },
-    { "no-modulation-wheel"     ,       no_argument, NULL, 216 << 8 },
-    { "modulation-wheel"        , optional_argument, NULL, 216 << 8 },
-    { "no-portamento"           ,       no_argument, NULL, 217 << 8 },
-    { "portamento"              , optional_argument, NULL, 217 << 8 },
-    { "no-vibrato"              ,       no_argument, NULL, 218 << 8 },
-    { "vibrato"                 , optional_argument, NULL, 218 << 8 },
-    { "no-channel-pressure"     ,       no_argument, NULL, 219 << 8 },
-    { "channel-pressure"        , optional_argument, NULL, 219 << 8 },
-    { "no-new-lpf"              ,       no_argument, NULL, 220 << 8 },
-    { "new-lpf"                 , optional_argument, NULL, 220 << 8 },
-    { "no-modulation-envelope"  ,       no_argument, NULL, 236 << 8 },
-    { "modulation-envelope"     , optional_argument, NULL, 236 << 8 },
-    { "no-trace-text-meta"      ,       no_argument, NULL, 214 << 8 },
-    { "trace-text-meta"         , optional_argument, NULL, 214 << 8 },
-    { "no-overlap-voice"        ,       no_argument, NULL, 221 << 8 },
-    { "overlap-voice"           , optional_argument, NULL, 221 << 8 },
-    { "default-mid"             , required_argument, NULL, 213 << 8 },
-    { "system-mid"              , required_argument, NULL, 237 << 8 },
-    { "default-bank"            , required_argument, NULL, 211 << 8 },
-    { "force-bank"              , required_argument, NULL, 212 << 8 },
-    { "delay"                   , required_argument, NULL, 224 << 8 },
-    { "reverb"                  , required_argument, NULL, 222 << 8 },
-    { "chorus"                  , required_argument, NULL, 223 << 8 },
-    { "noise-shaping"           , required_argument, NULL, 225 << 8 },
-    { "evil"                    , required_argument, NULL, 'e' << 8 },
-    { "no-fast-panning"         ,       no_argument, NULL, 'F' << 8 },
-    { "fast-panning"            , optional_argument, NULL, 'F' << 8 },
-    { "no-fast-decay"           ,       no_argument, NULL, 'f' << 8 },
-    { "fast-decay"              , optional_argument, NULL, 'f' << 8 },
-    { "spectrogram"             , required_argument, NULL, 'g' << 8 },
-    { "force-keysig"            , required_argument, NULL, 'H' << 8 },
-    { "help"                    , optional_argument, NULL, 'h' << 8 },
-    { "default-program"         , required_argument, NULL, 'I' << 8 },
-    { "interface"               , required_argument, NULL, 'i' << 8 },
-    { "verbose"                 , optional_argument, NULL, 205 << 8 },
-    { "quiet"                   , optional_argument, NULL, 206 << 8 },
-    { "no-trace"                ,       no_argument, NULL, 207 << 8 },
-    { "trace"                   , optional_argument, NULL, 207 << 8 },
-    { "no-loop"                 ,       no_argument, NULL, 208 << 8 },
-    { "loop"                    , optional_argument, NULL, 208 << 8 },
-    { "no-random"               ,       no_argument, NULL, 209 << 8 },
-    { "random"                  , optional_argument, NULL, 209 << 8 },
-    { "no-sort-list"            ,       no_argument, NULL, 210 << 8 },
-    { "sort-list"               , optional_argument, NULL, 210 << 8 },
-    { "no-auto-start"           ,       no_argument, NULL, 230 << 8 },
-    { "auto-start"              , optional_argument, NULL, 230 << 8 },
-    { "no-auto-exit"            ,       no_argument, NULL, 231 << 8 },
-    { "auto-exit"               , optional_argument, NULL, 231 << 8 },
-    { "no-drag-start"           ,       no_argument, NULL, 232 << 8 },
-    { "drag-start"              , optional_argument, NULL, 232 << 8 },
-    { "no-uniq-list"            ,       no_argument, NULL, 233 << 8 },
-    { "uniq-list"               , optional_argument, NULL, 233 << 8 },
-    { "no-refine-list"          ,       no_argument, NULL, 234 << 8 },
-    { "refine-list"             , optional_argument, NULL, 234 << 8 },
-    { "no-continue"             ,       no_argument, NULL, 235 << 8 },
-    { "continue"                , optional_argument, NULL, 235 << 8 },
-    { "adjust-key"              , required_argument, NULL, 'K' << 8 },
-    { "patch-path"              , required_argument, NULL, 'L' << 8 },
-    { "pcm-file"                , required_argument, NULL, 'M' << 8 },
+	{ "volume",                   required_argument, NULL, 'A' << 8 },
+	{ "drum-power",               required_argument, NULL, 227 << 8 },
+	{ "no-volume-compensation",   no_argument,       NULL, 228 << 8 },
+	{ "volume-compensation",      optional_argument, NULL, 228 << 8 },
+	{ "no-anti-alias",            no_argument,       NULL, 'a' << 8 },
+	{ "anti-alias",               optional_argument, NULL, 'a' << 8 },
+	{ "buffer-fragments",         required_argument, NULL, 'B' << 8 },
+	{ "background",               no_argument,       NULL, 'b' << 8 },
+	{ "control-ratio",            required_argument, NULL, 'C' << 8 },
+	{ "config-file",              required_argument, NULL, 'c' << 8 },
+	{ "drums",                    required_argument, NULL, 'D' << 8 },
+	{ "interface-path",           required_argument, NULL, 'd' << 8 },
+	{ "effects",                  required_argument, NULL, 'E' << 8 },
+	{ "no-modulation-wheel",      no_argument,       NULL, 216 << 8 },
+	{ "modulation-wheel",         optional_argument, NULL, 216 << 8 },
+	{ "no-portamento",            no_argument,       NULL, 217 << 8 },
+	{ "portamento",               optional_argument, NULL, 217 << 8 },
+	{ "no-vibrato",               no_argument,       NULL, 218 << 8 },
+	{ "vibrato",                  optional_argument, NULL, 218 << 8 },
+	{ "no-channel-pressure",      no_argument,       NULL, 219 << 8 },
+	{ "channel-pressure",         optional_argument, NULL, 219 << 8 },
+	{ "no-new-lpf",               no_argument,       NULL, 220 << 8 },
+	{ "new-lpf",                  optional_argument, NULL, 220 << 8 },
+	{ "no-modulation-envelope",   no_argument,       NULL, 236 << 8 },
+	{ "modulation-envelope",      optional_argument, NULL, 236 << 8 },
+	{ "no-trace-text-meta",       no_argument,       NULL, 214 << 8 },
+	{ "trace-text-meta",          optional_argument, NULL, 214 << 8 },
+	{ "no-overlap-voice",         no_argument,       NULL, 221 << 8 },
+	{ "overlap-voice",            optional_argument, NULL, 221 << 8 },
+	{ "default-mid",              required_argument, NULL, 213 << 8 },
+	{ "system-mid",               required_argument, NULL, 237 << 8 },
+	{ "default-bank",             required_argument, NULL, 211 << 8 },
+	{ "force-bank",               required_argument, NULL, 212 << 8 },
+	{ "delay",                    required_argument, NULL, 224 << 8 },
+	{ "reverb",                   required_argument, NULL, 222 << 8 },
+	{ "chorus",                   required_argument, NULL, 223 << 8 },
+	{ "noise-shaping",            required_argument, NULL, 225 << 8 },
+	{ "evil",                     required_argument, NULL, 'e' << 8 },
+	{ "no-fast-panning",          no_argument,       NULL, 'F' << 8 },
+	{ "fast-panning",             optional_argument, NULL, 'F' << 8 },
+	{ "no-fast-decay",            no_argument,       NULL, 'f' << 8 },
+	{ "fast-decay",               optional_argument, NULL, 'f' << 8 },
+	{ "spectrogram",              required_argument, NULL, 'g' << 8 },
+	{ "force-keysig",             required_argument, NULL, 'H' << 8 },
+	{ "help",                     optional_argument, NULL, 'h' << 8 },
+	{ "default-program",          required_argument, NULL, 'I' << 8 },
+	{ "interface",                required_argument, NULL, 'i' << 8 },
+	{ "verbose",                  optional_argument, NULL, 205 << 8 },
+	{ "quiet",                    optional_argument, NULL, 206 << 8 },
+	{ "no-trace",                 no_argument,       NULL, 207 << 8 },
+	{ "trace",                    optional_argument, NULL, 207 << 8 },
+	{ "no-loop",                  no_argument,       NULL, 208 << 8 },
+	{ "loop",                     optional_argument, NULL, 208 << 8 },
+	{ "no-random",                no_argument,       NULL, 209 << 8 },
+	{ "random",                   optional_argument, NULL, 209 << 8 },
+	{ "no-sort-list",             no_argument,       NULL, 210 << 8 },
+	{ "sort-list",                optional_argument, NULL, 210 << 8 },
+	{ "no-auto-start",            no_argument,       NULL, 230 << 8 },
+	{ "auto-start",               optional_argument, NULL, 230 << 8 },
+	{ "no-auto-exit",             no_argument,       NULL, 231 << 8 },
+	{ "auto-exit",                optional_argument, NULL, 231 << 8 },
+	{ "no-drag-start",            no_argument,       NULL, 232 << 8 },
+	{ "drag-start",               optional_argument, NULL, 232 << 8 },
+	{ "no-uniq-list",             no_argument,       NULL, 233 << 8 },
+	{ "uniq-list",                optional_argument, NULL, 233 << 8 },
+	{ "no-refine-list",           no_argument,       NULL, 234 << 8 },
+	{ "refine-list",              optional_argument, NULL, 234 << 8 },
+	{ "no-continue",              no_argument,       NULL, 235 << 8 },
+	{ "continue",                 optional_argument, NULL, 235 << 8 },
+	{ "no-realtime-load",         no_argument,       NULL, 'j' << 8 },
+	{ "realtime-load",            optional_argument, NULL, 'j' << 8 },
+	{ "adjust-key",               required_argument, NULL, 'K' << 8 },
+	{ "voice-queue",              required_argument, NULL, 'k' << 8 },
+	{ "patch-path",               required_argument, NULL, 'L' << 8 },
+	{ "pcm-file",                 required_argument, NULL, 'M' << 8 },
+	{ "decay-time",               required_argument, NULL, 'm' << 8 },
 #if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
-    { "interpolation"           , required_argument, NULL, 'N' << 8 },
+	{ "interpolation",            required_argument, NULL, 'N' << 8 },
 #endif
-    { "mode"                    , required_argument, NULL, 'O' << 8 },
-    { "patch"                   , required_argument, NULL, 'P' << 8 },
-    { "mute"                    , required_argument, NULL, 'Q' << 8 },
-    { "cache-size"              , required_argument, NULL, 'S' << 8 },
-    { "adjust-tempo"            , required_argument, NULL, 'T' << 8 },
-    { "no-unload-instruments"   ,       no_argument, NULL, 'U' << 8 },
-    { "unload-instruments"      , optional_argument, NULL, 'U' << 8 },
-    { "freq-table"              , required_argument, NULL, 'Z' << 8 },
-    { "wrd"                     , required_argument, NULL, 'W' << 8 },
-    { "no-realtime-load"        ,       no_argument, NULL, 'j' << 8 },
-    { "realtime-load"           , optional_argument, NULL, 'j' << 8 },
-    { "voice-queue"             , required_argument, NULL, 'k' << 8 },
-    { "decay-time"              , required_argument, NULL, 'm' << 8 },
-    { "output-file"             , required_argument, NULL, 'o' << 8 },
-    { "polyphony"               , required_argument, NULL, 'p' << 8 },
-    { "audio-buffer"            , required_argument, NULL, 'q' << 8 },
-    { "sampling-freq"           , required_argument, NULL, 's' << 8 },
-    { "output-charset"          , required_argument, NULL, 't' << 8 },
-    { "version"                 ,       no_argument, NULL, 'v' << 8 },
-    { "exec"                    , required_argument, NULL, 'x' << 8 },
-    { "bit-width"               , required_argument, NULL, 200 << 8 },
-    { "encoding"                , required_argument, NULL, 201 << 8 },
-    { "output-signed"           , optional_argument, NULL, 202 << 8 },
-    { "output-unsigned"         ,       no_argument, NULL, 202 << 8 },
-    { "no-output-byte-swap"     ,       no_argument, NULL, 203 << 8 },
-    { "output-byte-swap"        , optional_argument, NULL, 203 << 8 },
-    { "temper-mute"             , required_argument, NULL, 204 << 8 },
-    { "no-polyphony-reduction"  ,       no_argument, NULL, 215 << 8 },
-    { "polyphony-reduction"     , optional_argument, NULL, 215 << 8 },
-    { "temperament"             , required_argument, NULL, 226 << 8 },
-    { "stereo"                  , optional_argument, NULL, 229 << 8 },
-    { "mono"                    , optional_argument, NULL, 229 << 8 },
-    { "wrd-read-opts"           , required_argument, NULL, 238 << 8 },
-    { NULL                      ,       no_argument, NULL, '\0'     }
+	{ "mode",                     required_argument, NULL, 'O' << 8 },
+	{ "stereo",                   optional_argument, NULL, 229 << 8 },
+	{ "mono",                     optional_argument, NULL, 229 << 8 },
+	{ "output-signed",            optional_argument, NULL, 202 << 8 },
+	{ "output-unsigned",          no_argument,       NULL, 202 << 8 },
+	{ "bit-width",                required_argument, NULL, 200 << 8 },
+	{ "encoding",                 required_argument, NULL, 201 << 8 },
+	{ "no-output-byte-swap",      no_argument,       NULL, 203 << 8 },
+	{ "output-byte-swap",         optional_argument, NULL, 203 << 8 },
+	{ "patch",                    required_argument, NULL, 'P' << 8 },
+	{ "mute",                     required_argument, NULL, 'Q' << 8 },
+	{ "cache-size",               required_argument, NULL, 'S' << 8 },
+	{ "adjust-tempo",             required_argument, NULL, 'T' << 8 },
+	{ "no-unload-instruments",    no_argument,       NULL, 'U' << 8 },
+	{ "unload-instruments",       optional_argument, NULL, 'U' << 8 },
+	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
+	{ "wrd",                      required_argument, NULL, 'W' << 8 },
+	{ "output-file",              required_argument, NULL, 'o' << 8 },
+	{ "polyphony",                required_argument, NULL, 'p' << 8 },
+	{ "audio-buffer",             required_argument, NULL, 'q' << 8 },
+	{ "sampling-freq",            required_argument, NULL, 's' << 8 },
+	{ "output-charset",           required_argument, NULL, 't' << 8 },
+	{ "version",                  no_argument,       NULL, 'v' << 8 },
+	{ "exec",                     required_argument, NULL, 'x' << 8 },
+	{ "temper-mute",              required_argument, NULL, 204 << 8 },
+	{ "no-polyphony-reduction",   no_argument,       NULL, 215 << 8 },
+	{ "polyphony-reduction",      optional_argument, NULL, 215 << 8 },
+	{ "temperament",              required_argument, NULL, 226 << 8 },
+	{ "wrd-read-opts",            required_argument, NULL, 238 << 8 },
+	{ NULL,                       no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
 
@@ -248,98 +248,100 @@ void timidity_init_aq_buff(void);
 int opt_control_ratio = 0; /* Save -C option */
 
 MAIN_INTERFACE int set_tim_opt_short(int, char *);
-MAIN_INTERFACE bool set_tim_opt_long(int, char *, int);
+MAIN_INTERFACE int set_tim_opt_long(int, char *, int);
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-static inline bool parse_opt_4(const char *);
+static inline int parse_opt_4(const char *);
 #endif
-static inline bool parse_opt_A(const char *);
-static inline bool parse_opt_A1(const char *);
-static inline bool parse_opt_A2(const char *);
-static inline bool parse_opt_a(const char *);
-static inline bool parse_opt_B(const char *);
-static inline bool parse_opt_b(const char *);
-static inline bool parse_opt_C(const char *);
-static inline bool parse_opt_c(char *);
-static inline bool parse_opt_D(const char *);
-static inline bool parse_opt_d(const char *);
-static inline bool parse_opt_E(char *);
-static inline bool parse_opt_E1(const char *);
-static inline bool parse_opt_E2(const char *);
-static inline bool parse_opt_E3(const char *);
-static inline bool parse_opt_E4(const char *);
-static inline bool parse_opt_E5(const char *);
-static inline bool parse_opt_E6(const char *);
-static inline bool parse_opt_E7(const char *);
-static inline bool parse_opt_E8(const char *);
-static inline bool parse_opt_E9(char *);
-static inline bool parse_opt_EA(char *);
-static inline bool parse_opt_EB(const char *);
-static inline bool parse_opt_EC(const char *);
-static inline bool parse_opt_ED(const char *);
-static inline bool parse_opt_EE(const char *);
-static inline bool parse_opt_EF(const char *);
-static inline bool parse_opt_EG(const char *);
-static inline bool parse_opt_e(const char *);
-static inline bool parse_opt_F(const char *);
-static inline bool parse_opt_f(const char *);
-static inline bool parse_opt_g(const char *);
-static inline bool parse_opt_H(const char *);
+static inline int parse_opt_A(const char *);
+static inline int parse_opt_A1(const char *);
+static inline int parse_opt_A2(const char *);
+static inline int parse_opt_a(const char *);
+static inline int parse_opt_B(const char *);
+static inline int parse_opt_b(const char *);
+static inline int parse_opt_C(const char *);
+static inline int parse_opt_c(char *);
+static inline int parse_opt_D(const char *);
+static inline int parse_opt_d(const char *);
+static inline int parse_opt_E(char *);
+static inline int parse_opt_E1(const char *);
+static inline int parse_opt_E2(const char *);
+static inline int parse_opt_E3(const char *);
+static inline int parse_opt_E4(const char *);
+static inline int parse_opt_E5(const char *);
+static inline int parse_opt_E6(const char *);
+static inline int parse_opt_E7(const char *);
+static inline int parse_opt_E8(const char *);
+static inline int parse_opt_E9(char *);
+static inline int parse_opt_EA(char *);
+static inline int parse_opt_EB(const char *);
+static inline int parse_opt_EC(const char *);
+static inline int parse_opt_ED(const char *);
+static inline int parse_opt_EE(const char *);
+static inline int parse_opt_EF(const char *);
+static inline int parse_opt_EG(const char *);
+static inline int parse_opt_e(const char *);
+static inline int parse_opt_F(const char *);
+static inline int parse_opt_f(const char *);
+static inline int parse_opt_g(const char *);
+static inline int parse_opt_H(const char *);
 __attribute__((noreturn))
-static inline bool parse_opt_h(const char *);
-static inline bool parse_opt_I(char *);
-static inline bool parse_opt_i(const char *);
-static inline bool parse_opt_i1(const char *);
-static inline bool parse_opt_i2(const char *);
-static inline bool parse_opt_i3(const char *);
-static inline bool parse_opt_i4(const char *);
-static inline bool parse_opt_i5(const char *);
-static inline bool parse_opt_i6(const char *);
-static inline bool parse_opt_i7(const char *);
-static inline bool parse_opt_i8(const char *);
-static inline bool parse_opt_i9(const char *);
-static inline bool parse_opt_ia(const char *);
-static inline bool parse_opt_ib(const char *);
-static inline bool parse_opt_ic(const char *);
-static inline bool parse_opt_j(const char *);
-static inline bool parse_opt_K(const char *);
-static inline bool parse_opt_k(const char *);
-static inline bool parse_opt_L(char *);
-static inline bool parse_opt_M(const char *);
-static inline bool parse_opt_m(const char *);
+static inline int parse_opt_h(const char *);
+static inline int parse_opt_I(char *);
+static inline int parse_opt_i(const char *);
+static inline int parse_opt_i1(const char *);
+static inline int parse_opt_i2(const char *);
+static inline int parse_opt_i3(const char *);
+static inline int parse_opt_i4(const char *);
+static inline int parse_opt_i5(const char *);
+static inline int parse_opt_i6(const char *);
+static inline int parse_opt_i7(const char *);
+static inline int parse_opt_i8(const char *);
+static inline int parse_opt_i9(const char *);
+static inline int parse_opt_ia(const char *);
+static inline int parse_opt_ib(const char *);
+static inline int parse_opt_ic(const char *);
+static inline int parse_opt_j(const char *);
+static inline int parse_opt_K(const char *);
+static inline int parse_opt_k(const char *);
+static inline int parse_opt_L(char *);
+static inline int parse_opt_M(const char *);
+static inline int parse_opt_m(const char *);
 #ifdef GAUSS_INTERPOLATION
-static inline bool parse_opt_N(const char *);
+static inline int parse_opt_N(const char *);
 #elif defined(NEWTON_INTERPOLATION)
-static inline bool parse_opt_N(const char *);
+static inline int parse_opt_N(const char *);
 #endif
-static inline bool parse_opt_O(const char *);
-static inline bool parse_opt_200(const char *);	/* --bit-width */
-static inline bool parse_opt_201(const char *);	/* --encoding */
-static inline bool parse_opt_202(const char *);	/* --output-[un]singed */
-static inline bool parse_opt_203(const char *);	/* --[no-]output-byte-swap */
-static inline bool parse_opt_229(const char *);	/* --stereo */
-static inline bool parse_opt_o(char *);
-static inline bool parse_opt_P(const char *);
-static inline bool parse_opt_p(const char *);
-static inline bool parse_opt_215(const char *);	/* --[no-]polyphony-reduction */
-static inline bool parse_opt_Q(const char *);
-static inline bool parse_opt_204(const char *);	/* --temper-mute */
-static inline bool parse_opt_q(const char *);
-static inline bool parse_opt_S(const char *);
-static inline bool parse_opt_s(const char *);
-static inline bool parse_opt_T(const char *);
-static inline bool parse_opt_t(const char *);
-static inline bool parse_opt_U(const char *);
-static inline bool parse_opt_v(const char *);
-static inline bool parse_opt_W(const char *);
-static inline bool parse_opt_238(char *);		/* --wrd-read-opts */
-static inline bool parse_opt_x(char *);
-static inline bool parse_opt_Z(char *);
-static inline bool parse_opt_226(const char *);	/* --temperament */
+static inline int parse_opt_O(const char *);
+static inline int parse_opt_O1(const char *);
+static inline int parse_opt_O2(const char *);
+static inline int parse_opt_O3(const char *);
+static inline int parse_opt_O4(const char *);
+static inline int parse_opt_O5(const char *);
+static inline int parse_opt_o(char *);
+static inline int parse_opt_P(const char *);
+static inline int parse_opt_p(const char *);
+static inline int parse_opt_215(const char *);	/* --[no-]polyphony-reduction */
+static inline int parse_opt_Q(const char *);
+static inline int parse_opt_204(const char *);	/* --temper-mute */
+static inline int parse_opt_q(const char *);
+static inline int parse_opt_S(const char *);
+static inline int parse_opt_s(const char *);
+static inline int parse_opt_T(const char *);
+static inline int parse_opt_t(const char *);
+static inline int parse_opt_U(const char *);
+static inline int parse_opt_v(const char *);
+static inline int parse_opt_W(const char *);
+static inline int parse_opt_238(char *);		/* --wrd-read-opts */
+static inline int parse_opt_x(char *);
+static inline int parse_opt_Z(char *);
+static inline int parse_opt_226(const char *);	/* --temperament */
 __attribute__((noreturn))
-static inline bool parse_opt_666(const char *);	/* getopt_long failed to recognize any options */
+static inline int parse_opt_666(const char *);	/* getopt_long failed to recognize any options */
+static inline int set_value(int32 *, int32, int32, int32, char *);
+static inline int set_channel_flag(ChannelBitMask *, int32, char *);
 __attribute__((pure))
-static inline bool y_or_n_p(const char *);
-static inline bool set_flag(int32 *, int32, const char *);
+static inline int y_or_n_p(const char *);
+static inline int set_flag(int32 *, int32, const char *);
 
 #ifdef IA_DYNAMIC
 MAIN_INTERFACE char dynamic_interface_id;
@@ -884,40 +886,6 @@ timidity_version
 );
 }
 
-static int set_channel_flag(ChannelBitMask *flags, int32 i, char *name)
-{
-    if(i == 0)
-	FILL_CHANNELMASK(*flags);
-    else if((i < 1 || i > MAX_CHANNELS) && (i < -MAX_CHANNELS || i > -1))
-    {
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		"%s must be between 1 and %d, or between -1 and -%d, or 0"
-		NLS, name, MAX_CHANNELS, MAX_CHANNELS);
-	return -1;
-    }
-    else
-    {
-	if(i > 0)
-	    SET_CHANNELMASK(*flags, i - 1);
-	else
-	    UNSET_CHANNELMASK(*flags, -i - 1);
-    }
-    return 0;
-}
-
-static int set_value(int32 *param, int32 i, int32 low, int32 high, char *name)
-{
-  if (i<low || i > high)
-    {
-      	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "%s must be between %ld and %ld",
-		  name, low, high);
-	return -1;
-    }
-  else *param=i;
-  return 0;
-}
-
 MAIN_INTERFACE int set_default_prog(char *opt)
 {
 	int prog, ch;
@@ -948,63 +916,66 @@ MAIN_INTERFACE int set_default_prog(char *opt)
 
 int set_play_mode(char *cp)
 {
-    PlayMode *pmp, **pmpp=play_mode_list;
-
-    while((pmp=*pmpp++))
-    {
-	if(pmp->id_character == *cp)
-	{
-	    play_mode=pmp;
-	    while(*(++cp))
-		switch(*cp)
-		{
-		  case 'U': /* uLaw */
-		    pmp->encoding |= PE_ULAW;
-		    pmp->encoding &= ~(PE_ALAW|PE_16BIT|PE_SIGNED|PE_BYTESWAP);
-		    break;
-		  case 'A': /* aLaw */
-		    pmp->encoding |= PE_ALAW;
-		    pmp->encoding &= ~(PE_ULAW|PE_16BIT|PE_SIGNED|PE_BYTESWAP);
-		    break;
-		  case 'l': /* linear */
-		    pmp->encoding &= ~(PE_ULAW|PE_ALAW);
-		    break;
-		  case '1': /* 1 for 16-bit */
-		    pmp->encoding |= PE_16BIT;
-		    pmp->encoding &= ~(PE_ULAW|PE_ALAW);
-		    break;
-		  case '8': pmp->encoding &= ~PE_16BIT; break;
-
-		  case 'M': pmp->encoding |= PE_MONO; break;
-		  case 'S': pmp->encoding &= ~PE_MONO; break; /* stereo */
-
-		  case 's':
-		    pmp->encoding |= PE_SIGNED;
-		    pmp->encoding &= ~(PE_ULAW|PE_ALAW);
-		    break;
-
-		  case 'u':
-		    pmp->encoding &= ~PE_SIGNED;
-		    pmp->encoding &= ~(PE_ULAW|PE_ALAW);
-		    break;
-
-		  case 'x':
-		    pmp->encoding ^= PE_BYTESWAP; /* toggle */
-		    pmp->encoding &= ~(PE_ULAW|PE_ALAW);
-		    break; 
-
-		  default:
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "Unknown format modifier `%c'", *cp);
-		    return 1;
+	PlayMode *pmp, **pmpp;
+	int found = 0;
+	
+	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
+		if (pmp->id_character == *cp) {
+			found = 1;
+			play_mode = pmp;
+			break;
 		}
-	    return 0;
+	if (! found) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"Playmode `%c' is not compiled in.", *cp);
+		return 1;
 	}
-    }
-
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	      "Playmode `%c' is not compiled in.", *cp);
-    return 1;
+	while (*(++cp))
+		switch (*cp) {
+		case 'S':	/* stereo */
+			pmp->encoding &= ~PE_MONO;
+			break;
+		case 'M':
+			pmp->encoding |= PE_MONO;
+			break;
+		case 's':
+			pmp->encoding |= PE_SIGNED;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case 'u':
+			pmp->encoding &= ~PE_SIGNED;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case '1':	/* 1 for 16-bit */
+			pmp->encoding |= PE_16BIT;
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case '8':
+			pmp->encoding &= ~PE_16BIT;
+			break;
+		case 'l':	/* linear */
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		case 'U':	/* uLaw */
+			pmp->encoding |= PE_ULAW;
+			pmp->encoding &=
+					~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+			break;
+		case 'A':	/* aLaw */
+			pmp->encoding |= PE_ALAW;
+			pmp->encoding &=
+					~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+			break;
+		case 'x':
+			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
+			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
+			break;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Unknown format modifier `%c'", *cp);
+			return 1;
+		}
+	return 0;
 }
 
 int set_ctl(char *cp)
@@ -3389,19 +3360,20 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 }
 
 /* -------- getopt_long -------- */
-MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
+MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 {
 	const struct option *the_option = &(longopts[index]);
 	char *arg;
 	
 	if (c == '?')	/* getopt_long failed parsing */
 		parse_opt_666(optarg);
-	else if (isalnum((uint8) c))
+	else if (c <= 0xff)
 		return set_tim_opt_short(c, optarg);
 	if (! strncmp(the_option->name, "no-", 3))
 		arg = "no";		/* `reverse' switch */
 	else if (! strncmp(the_option->name, "output-un", 9))
-		arg = "no";		/* --output-unsigned == --output-signed=no */
+		/* --output-unsigned == --output-signed=no */
+		arg = "no";
 	else if (! strcmp(the_option->name, "mono"))
 		/* --mono == --stereo=no */
 		arg = (y_or_n_p(optarg)) ? "no" : "yes";
@@ -3506,18 +3478,34 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_ib(arg);
 	case 235:
 		return parse_opt_ic(arg);
+	case 'j':
+		return parse_opt_j(arg);
 	case 'K':
 		return parse_opt_K(arg);
+	case 'k':
+		return parse_opt_k(arg);
 	case 'L':
 		return parse_opt_L(arg);
 	case 'M':
 		return parse_opt_M(arg);
+	case 'm':
+		return parse_opt_m(arg);
 #if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
 	case 'N':
 		return parse_opt_N(arg);
 #endif
 	case 'O':
 		return parse_opt_O(arg);
+	case 229:
+		return parse_opt_O1(arg);
+	case 202:
+		return parse_opt_O2(arg);
+	case 200:
+		return parse_opt_O3(arg);
+	case 201:
+		return parse_opt_O4(arg);
+	case 203:
+		return parse_opt_O5(arg);
 	case 'P':
 		return parse_opt_P(arg);
 	case 'S':
@@ -3530,12 +3518,6 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_W(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 'j':
-		return parse_opt_j(arg);
-	case 'k':
-		return parse_opt_k(arg);
-	case 'm':
-		return parse_opt_m(arg);
 	case 'o':
 		return parse_opt_o(arg);
 	case 'p':
@@ -3548,22 +3530,12 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_v(arg);
 	case 'x':
 		return parse_opt_x(arg);
-	case 200:
-		return parse_opt_200(arg);
-	case 201:
-		return parse_opt_201(arg);
-	case 202:
-		return parse_opt_202(arg);
-	case 203:
-		return parse_opt_203(arg);
 	case 204:
 		return parse_opt_204(arg);
 	case 215:
 		return parse_opt_215(arg);
 	case 226:
 		return parse_opt_226(arg);
-	case 229:
-		return parse_opt_229(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -3572,14 +3544,14 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 }
 
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-static inline bool parse_opt_4(const char *arg)
+static inline int parse_opt_4(const char *arg)
 {
 	no_4point_interpolation = y_or_n_p(arg);
 	return 0;
 }
 #endif
 
-static inline bool parse_opt_A(const char *arg)
+static inline int parse_opt_A(const char *arg)
 {
 	/* --volume */
 	int32 tmpi32;
@@ -3590,7 +3562,7 @@ static inline bool parse_opt_A(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_A1(const char *arg)
+static inline int parse_opt_A1(const char *arg)
 {
 	/* --drum-power */
 	int32 tmpi32;
@@ -3601,20 +3573,20 @@ static inline bool parse_opt_A1(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_A2(const char *arg)
+static inline int parse_opt_A2(const char *arg)
 {
 	/* --[no-]volume-compensation */
 	opt_amp_compensation = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_a(const char *arg)
+static inline int parse_opt_a(const char *arg)
 {
 	antialiasing_allowed = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_B(const char *arg)
+static inline int parse_opt_B(const char *arg)
 {
 	/* --buffer-fragments */
 	int32 tmpi32;
@@ -3636,12 +3608,12 @@ static inline bool parse_opt_B(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_b(const char *arg)
+static inline int parse_opt_b(const char *arg)
 {
 	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
 
-static inline bool parse_opt_C(const char *arg)
+static inline int parse_opt_C(const char *arg)
 {
 	if (set_value(&control_ratio, atoi(arg), 0, MAX_CONTROL_RATIO,
 			"Control ratio"))
@@ -3650,7 +3622,7 @@ static inline bool parse_opt_C(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_c(char *arg)
+static inline int parse_opt_c(char *arg)
 {
 	if (read_config_file(arg, 0))
 		return 1;
@@ -3658,7 +3630,7 @@ static inline bool parse_opt_c(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_D(const char *arg)
+static inline int parse_opt_D(const char *arg)
 {
 	int val = atoi(arg);
 	
@@ -3670,7 +3642,7 @@ static inline bool parse_opt_D(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_d(const char *arg)
+static inline int parse_opt_d(const char *arg)
 {
 	/* dynamic lib root */
 #ifdef IA_DYNAMIC
@@ -3684,69 +3656,69 @@ static inline bool parse_opt_d(const char *arg)
 #endif	/* IA_DYNAMIC */
 }
 
-static inline bool parse_opt_E(char *arg)
+static inline int parse_opt_E(char *arg)
 {
 	/* undocumented option --effects */
 	return set_extension_modes(arg);
 }
 
-static inline bool parse_opt_E1(const char *arg)
+static inline int parse_opt_E1(const char *arg)
 {
 	/* --[no-]modulation-wheel */
 	opt_modulation_wheel = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E2(const char *arg)
+static inline int parse_opt_E2(const char *arg)
 {
 	/* --[no-]portamento */
 	opt_portamento = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E3(const char *arg)
+static inline int parse_opt_E3(const char *arg)
 {
 	/* --[no-]vibrato */
 	opt_nrpn_vibrato = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E4(const char *arg)
+static inline int parse_opt_E4(const char *arg)
 {
 	/* --[no-]channel-pressure */
 	opt_channel_pressure = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E5(const char *arg)
+static inline int parse_opt_E5(const char *arg)
 {
 	/* --[no-]new-lpf */
 	opt_lpf_def = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E6(const char *arg)
+static inline int parse_opt_E6(const char *arg)
 {
 	/* --[no-]modulation-envelope */
 	opt_modulation_envelope = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E7(const char *arg)
+static inline int parse_opt_E7(const char *arg)
 {
 	/* --[no-]trace-text-meta */
 	opt_trace_text_meta_event = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E8(const char *arg)
+static inline int parse_opt_E8(const char *arg)
 {
 	/* --[no-]overlap-voice */
 	opt_overlap_voice_allow = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_E9(char *arg)
+static inline int parse_opt_E9(char *arg)
 {
 	/* --default-mid */
 	int val = str2mID(arg);
@@ -3759,7 +3731,7 @@ static inline bool parse_opt_E9(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_EA(char *arg)
+static inline int parse_opt_EA(char *arg)
 {
 	/* --system-mid */
 	int val = str2mID(arg);
@@ -3772,7 +3744,7 @@ static inline bool parse_opt_EA(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_EB(const char *arg)
+static inline int parse_opt_EB(const char *arg)
 {
 	/* --default-bank */
 	int32 tmpi32;
@@ -3783,7 +3755,7 @@ static inline bool parse_opt_EB(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_EC(const char *arg)
+static inline int parse_opt_EC(const char *arg)
 {
 	/* --force-bank */
 	int32 tmpi32;
@@ -3794,7 +3766,7 @@ static inline bool parse_opt_EC(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_ED(const char *arg)
+static inline int parse_opt_ED(const char *arg)
 {
 	/* --delay */
 	const char *p;
@@ -3824,7 +3796,7 @@ static inline bool parse_opt_ED(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_EE(const char *arg)
+static inline int parse_opt_EE(const char *arg)
 {
 	/* --reverb */
 	int32 tmpi32;
@@ -3871,7 +3843,7 @@ static inline bool parse_opt_EE(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_EF(const char *arg)
+static inline int parse_opt_EF(const char *arg)
 {
 	/* --chorus */
 	int32 tmpi32;
@@ -3905,7 +3877,7 @@ static inline bool parse_opt_EF(const char *arg)
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  */
-static inline bool parse_opt_EG(const char *arg)
+static inline int parse_opt_EG(const char *arg)
 {
 	/* --noise-shaping */
 	int32 tmpi32;
@@ -3916,7 +3888,7 @@ static inline bool parse_opt_EG(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_e(const char *arg)
+static inline int parse_opt_e(const char *arg)
 {
 	/* evil */
 #ifdef __W32__
@@ -3928,19 +3900,19 @@ static inline bool parse_opt_e(const char *arg)
 #endif /* __W32__ */
 }
 
-static inline bool parse_opt_F(const char *arg)
+static inline int parse_opt_F(const char *arg)
 {
 	adjust_panning_immediately = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_f(const char *arg)
+static inline int parse_opt_f(const char *arg)
 {
 	fast_decay = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_g(const char *arg)
+static inline int parse_opt_g(const char *arg)
 {
 #ifdef SUPPORT_SOUNDSPEC
 	spectrogram_update_sec = atof(arg);
@@ -3957,7 +3929,7 @@ static inline bool parse_opt_g(const char *arg)
 #endif	/* SUPPORT_SOUNDSPEC */
 }
 
-static inline bool parse_opt_H(const char *arg)
+static inline int parse_opt_H(const char *arg)
 {
 	/* force keysig (number of sharp/flat) */
 	int32 tmpi32;
@@ -3970,13 +3942,13 @@ static inline bool parse_opt_H(const char *arg)
 }
 
 __attribute__((noreturn))
-static inline bool parse_opt_h(const char *arg)
+static inline int parse_opt_h(const char *arg)
 {
 	help();
 	exit(EXIT_SUCCESS);
 }
 
-static inline bool parse_opt_I(char *arg)
+static inline int parse_opt_I(char *arg)
 {
 	int32 tmpi32;
 	int prog, i;
@@ -3996,7 +3968,7 @@ static inline bool parse_opt_I(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_i(const char *arg)
+static inline int parse_opt_i(const char *arg)
 {
 	static const struct Name2ID {
 		const char *name;
@@ -4019,7 +3991,7 @@ static inline bool parse_opt_i(const char *arg)
 		{ "server", 'r' },
 		{ "alsaseq", 'A' },
 		{ "portmidisyn", 'P' },
-		{ "dynamic", '\0' }
+		{ "dynamic", '\0' }		/* terminator */
 	};
 	int i, id, found = 0;
 	ControlMode *cmp, **cmpp;
@@ -4066,76 +4038,76 @@ static inline bool parse_opt_i(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_i1(const char *arg)
+static inline int parse_opt_i1(const char *arg)
 {
 	/* --verbose */
 	ctl->verbosity += (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline bool parse_opt_i2(const char *arg)
+static inline int parse_opt_i2(const char *arg)
 {
 	/* --quiet */
 	ctl->verbosity -= (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline bool parse_opt_i3(const char *arg)
+static inline int parse_opt_i3(const char *arg)
 {
 	/* --[no-]trace */
 	ctl->trace_playing = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_i4(const char *arg)
+static inline int parse_opt_i4(const char *arg)
 {
 	/* --[no-]loop */
 	return set_flag(&(ctl->flags), CTLF_LIST_LOOP, arg);
 }
 
-static inline bool parse_opt_i5(const char *arg)
+static inline int parse_opt_i5(const char *arg)
 {
 	/* --[no-]random */
 	return set_flag(&(ctl->flags), CTLF_LIST_RANDOM, arg);
 }
 
-static inline bool parse_opt_i6(const char *arg)
+static inline int parse_opt_i6(const char *arg)
 {
 	/* --[no-]sort */
 	return set_flag(&(ctl->flags), CTLF_LIST_SORT, arg);
 }
 
-static inline bool parse_opt_i7(const char *arg)
+static inline int parse_opt_i7(const char *arg)
 {
 	/* --[no-]auto-start */
 	return set_flag(&(ctl->flags), CTLF_AUTOSTART, arg);
 }
 
-static inline bool parse_opt_i8(const char *arg)
+static inline int parse_opt_i8(const char *arg)
 {
 	/* --[no-]auto-exit */
 	return set_flag(&(ctl->flags), CTLF_AUTOEXIT, arg);
 }
 
-static inline bool parse_opt_i9(const char *arg)
+static inline int parse_opt_i9(const char *arg)
 {
 	/* --[no-]drag-start */
 	return set_flag(&(ctl->flags), CTLF_DRAG_START, arg);
 }
 
-static inline bool parse_opt_ia(const char *arg)
+static inline int parse_opt_ia(const char *arg)
 {
 	/* --[no-]uniq */
 	return set_flag(&(ctl->flags), CTLF_AUTOUNIQ, arg);
 }
 
-static inline bool parse_opt_ib(const char *arg)
+static inline int parse_opt_ib(const char *arg)
 {
 	/* --[no-]refine */
 	return set_flag(&(ctl->flags), CTLF_AUTOREFINE, arg);
 }
 
-static inline bool parse_opt_ic(const char *arg)
+static inline int parse_opt_ic(const char *arg)
 {
 	/* --[no-]continue */
 	if (y_or_n_p(arg))
@@ -4145,12 +4117,12 @@ static inline bool parse_opt_ic(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_j(const char *arg)
+static inline int parse_opt_j(const char *arg)
 {
 	opt_realtime_playing = y_or_n_p(arg);
 }
 
-static inline bool parse_opt_K(const char *arg)
+static inline int parse_opt_K(const char *arg)
 {
 	/* key adjust */
 	int32 tmpi32;
@@ -4161,20 +4133,20 @@ static inline bool parse_opt_K(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_k(const char *arg)
+static inline int parse_opt_k(const char *arg)
 {
 	reduce_voice_threshold = atoi(arg);
 	return 0;
 }
 
-static inline bool parse_opt_L(char *arg)
+static inline int parse_opt_L(char *arg)
 {
 	add_to_pathlist(arg);
 	try_config_again = 1;
 	return 0;
 }
 
-static inline bool parse_opt_M(const char *arg)
+static inline int parse_opt_M(const char *arg)
 {
 	if (pcm_alternate_file)
 		free(pcm_alternate_file);
@@ -4182,7 +4154,7 @@ static inline bool parse_opt_M(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_m(const char *arg)
+static inline int parse_opt_m(const char *arg)
 {
 	min_sustain_time = atoi(arg);
 	if (min_sustain_time < 0)
@@ -4191,7 +4163,7 @@ static inline bool parse_opt_m(const char *arg)
 }
 
 #ifdef GAUSS_INTERPOLATION
-static inline bool parse_opt_N(const char *arg)
+static inline int parse_opt_N(const char *arg)
 {
 	int32 tmpi32;
 	
@@ -4208,7 +4180,7 @@ static inline bool parse_opt_N(const char *arg)
 	return 0;
 }
 #elif defined(NEWTON_INTERPOLATION)
-static inline bool parse_opt_N(const char *arg)
+static inline int parse_opt_N(const char *arg)
 {
 	int32 tmpi32;
 	
@@ -4237,117 +4209,64 @@ static inline bool parse_opt_N(const char *arg)
 }
 #endif
 
-static inline bool parse_opt_O(const char *arg)
+static inline int parse_opt_O(const char *arg)
 {
 	static const struct Name2ID {
 		const char *name;
 		const int id;
 	} name2id[] = {
 		{ "default", 'd' },
-		{ "ALSA", 's' },
-		{ "ALib", 'A' },
-		{ "NAS", 's' },
-		{ "aRts", 'R' },
-		{ "ESD", 'e' },
-		{ "PortAudio", 'p' },
-		{ "wav", 'w' },
+		{ "audriv", 'd' },
+		{ "bsd", 'd' },
+		{ "darwin", 'd' },
+		{ "hpux", 'd' },
+		{ "oss", 'd' },
+		{ "sun", 'd' },
+		{ "w32", 'd' },
+		{ "alsa", 's' },
+		{ "alib", 'A' },
+		{ "arts", 'R' },
+		{ "esd", 'e' },
+		{ "portaudio", 'p' },
+		{ "nas", 's' },
+		{ "wave", 'w' },
+		{ "raw", 'r' },
 		{ "au", 'u' },
-		{ "AIFF", 'a' },
-		{ "list", 'l' },
+		{ "aiff", 'a' },
 		{ "vorbis", 'v' },
 		{ "gogo", 'g' },
+		{ "list", 'l' },
+		{ "modmidi", 'M' },
+		{ "mac", 'm' },
+		{ "quicktime", 'q' },
 		{ NULL, '\0' }		/* terminator */
 	};
-	int id;
-	PlayMode *pp;
-	PlayMode **ppp = play_mode_list;
+	int i, id, found = 0;
+	PlayMode *pmp, **pmpp;
 	
 	if (strlen(arg) == 1)
 		id = arg[0];
-	else {
-		int i;
+	else
 		for (i = 0; name2id[i].name; i++)
 			if (! strcasecmp(name2id[i].name, arg)) {
 				id = name2id[i].id;
 				break;
 			}
-	}
-	while (pp = *ppp++)
-		if (pp->id_character == arg[0]) {
-			play_mode = pp;
-			return 0;
+	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
+		if (pmp->id_character == id) {
+			found = 1;
+			play_mode = pmp;
+			break;
 		}
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Output mode `%s' not found.", arg);
-	return 1;
-}
-
-static inline bool parse_opt_200(const char *arg)
-{
-	/* --bit-width */
-	int val = atoi(arg);
-	
-	if ((val == 1) || (val == 16)) {
-		play_mode->encoding |= PE_16BIT;
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return 0;
-	} else if (val == 8) {
-		play_mode->encoding &= ~PE_16BIT;
-		return 0;
-	} else {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "bit width must be 8 or 16");
-		return 1;
-	}
-}
-
-static inline bool parse_opt_201(const char *arg)
-{
-	/* --encoding */
-	switch (arg[0]) {
-	case 'u':
-	case 'U':
-		/* uLaw */
-		play_mode->encoding |= PE_ULAW;
-		play_mode->encoding &=
-				~(PE_ALAW | PE_16BIT | PE_SIGNED | PE_BYTESWAP);
-		return 0;
-	case 'a':
-	case 'A':
-		/* aLaw */
-		play_mode->encoding |= PE_ALAW;
-		play_mode->encoding &=
-				~(PE_ULAW | PE_16BIT | PE_SIGNED | PE_BYTESWAP);
-		return 0;
-	case 'l':
-	case 'L':
-		/* linear */
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return 0;
-	default:
+	if (! found) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"unknown output enciding `%s'",arg);
+				"Output mode `%s' not found.", arg);
 		return 1;
 	}
-}
-
-static inline bool parse_opt_202(const char *arg)
-{
-	/* --output-[un]singed */
-	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg))
-		return 1;
-	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
 	return 0;
 }
 
-static inline bool parse_opt_203(const char *arg)
-{
-	/* --[no-]output-byte-swap */
-	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg))
-		return 1;
-	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-	return 0;
-}
-
-static inline bool parse_opt_229(const char *arg)
+static inline int parse_opt_O1(const char *arg)
 {
 	/* --stereo */
 	if (y_or_n_p(arg))
@@ -4362,7 +4281,67 @@ static inline bool parse_opt_229(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_o(char *arg)
+static inline int parse_opt_O2(const char *arg)
+{
+	/* --output-[un]singed */
+	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg))
+		return 1;
+	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
+}
+
+static inline int parse_opt_O3(const char *arg)
+{
+	/* --bit-width */
+	int val = atoi(arg);
+	
+	if (val == 1 || val == 16) {
+		play_mode->encoding |= PE_16BIT;
+		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+		return 0;
+	} else if (val == 8) {
+		play_mode->encoding &= ~PE_16BIT;
+		return 0;
+	} else {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "bit width must be 8 or 16");
+		return 1;
+	}
+}
+
+static inline int parse_opt_O4(const char *arg)
+{
+	/* --encoding */
+	switch (*arg) {
+	case 'l':	/* linear */
+		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+		return 0;
+	case 'u':	/* uLaw */
+		play_mode->encoding |= PE_ULAW;
+		play_mode->encoding &=
+				~(PE_SIGNED | PE_16BIT | PE_ALAW | PE_BYTESWAP);
+		return 0;
+	case 'a':	/* aLaw */
+		play_mode->encoding |= PE_ALAW;
+		play_mode->encoding &=
+				~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
+		return 0;
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"unknown output encoding `%s'", arg);
+		return 1;
+	}
+}
+
+static inline int parse_opt_O5(const char *arg)
+{
+	/* --[no-]output-byte-swap */
+	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg))
+		return 1;
+	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
+}
+
+static inline int parse_opt_o(char *arg)
 {
 	if (opt_output_name)
 		free(opt_output_name);
@@ -4370,7 +4349,7 @@ static inline bool parse_opt_o(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_P(const char *arg)
+static inline int parse_opt_P(const char *arg)
 {
 	/* set overriding instrument */
 	strncpy(def_instr_name, arg, sizeof(def_instr_name));
@@ -4378,7 +4357,7 @@ static inline bool parse_opt_P(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_p(const char *arg)
+static inline int parse_opt_p(const char *arg)
 {
 	int32 tmpi32;
 	
@@ -4388,14 +4367,14 @@ static inline bool parse_opt_p(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_215(const char *arg)
+static inline int parse_opt_215(const char *arg)
 {
 	/* --[no-]polyphony-reduction */
 	auto_reduce_polyphony = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_Q(const char *arg)
+static inline int parse_opt_Q(const char *arg)
 {
 	if (strchr(arg, 't'))
 		/* backward compatibility */
@@ -4403,7 +4382,7 @@ static inline bool parse_opt_Q(const char *arg)
 	return set_channel_flag(&quietchannels, atoi(arg), "Quiet channel");
 }
 
-static inline bool parse_opt_204(const char *arg)
+static inline int parse_opt_204(const char *arg)
 {
 	/* --temper-mute */
 	int32 tmpi32;
@@ -4414,7 +4393,7 @@ static inline bool parse_opt_204(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_q(const char *arg)
+static inline int parse_opt_q(const char *arg)
 {
 	char *m = safe_strdup(arg);
 	char *f = strchr(m, '/');
@@ -4433,7 +4412,7 @@ static inline bool parse_opt_q(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_S(const char *arg)
+static inline int parse_opt_S(const char *arg)
 {
 	double val = atof(arg);
 	int figure;
@@ -4453,7 +4432,7 @@ static inline bool parse_opt_S(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_s(const char *arg)
+static inline int parse_opt_s(const char *arg)
 {
 	/* sampling rate */
 	int32 tmpi32;
@@ -4472,7 +4451,7 @@ static inline bool parse_opt_s(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_T(const char *arg)
+static inline int parse_opt_T(const char *arg)
 {
 	/* tempo adjust */
 	int32 tmpi32;
@@ -4483,7 +4462,7 @@ static inline bool parse_opt_T(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_t(const char *arg)
+static inline int parse_opt_t(const char *arg)
 {
 	if (output_text_code)
 		free(output_text_code);
@@ -4491,20 +4470,20 @@ static inline bool parse_opt_t(const char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_U(const char *arg)
+static inline int parse_opt_U(const char *arg)
 {
 	free_instruments_afterwards = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_v(const char *arg)
+static inline int parse_opt_v(const char *arg)
 {
 	/* I think --version should not die immediately. */
 	version();
 	return 0;
 }
 
-static inline bool parse_opt_W(const char *arg)
+static inline int parse_opt_W(const char *arg)
 {
 	int id_character = tolower(arg[0]);
 	WRDTracer **wpp = wrdt_list;
@@ -4522,14 +4501,14 @@ static inline bool parse_opt_W(const char *arg)
 	}
 }
 
-static inline bool parse_opt_238(char *arg)
+static inline int parse_opt_238(char *arg)
 {
 	/* --wrd-read-opts */
 	put_string_table(&wrd_read_opts, arg, strlen(arg));
 	return 0;
 }
 
-static inline bool parse_opt_x(char *arg)
+static inline int parse_opt_x(char *arg)
 {
 	StringTableNode *st;
 	
@@ -4539,12 +4518,12 @@ static inline bool parse_opt_x(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_Z(char *arg)
+static inline int parse_opt_Z(char *arg)
 {
 	return load_table(arg);
 }
 
-static inline bool parse_opt_226(const char *arg)
+static inline int parse_opt_226(const char *arg)
 {
 	/* --temperament */
 	int32 tmpi32;
@@ -4564,7 +4543,7 @@ static inline bool parse_opt_226(const char *arg)
 }
 
 __attribute__((noreturn))
-static inline bool parse_opt_666(const char *arg)
+static inline int parse_opt_666(const char *arg)
 {
 	/* getopt_long failed to recognize any options */
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -4572,8 +4551,39 @@ static inline bool parse_opt_666(const char *arg)
 	exit(1);
 }
 
+static inline int set_value(
+		int32 *param, int32 i, int32 low, int32 high, char *name)
+{
+	if (i < low || i > high) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"%s must be between %ld and %ld", name, low, high);
+		return -1;
+	} else
+		*param = i;
+	return 0;
+}
+
+static inline int set_channel_flag(
+		ChannelBitMask *flags, int32 i, char *name)
+{
+	if (i == 0)
+		FILL_CHANNELMASK(*flags);
+	else if ((i < 1 || i > MAX_CHANNELS) && (i < -MAX_CHANNELS || i > -1)) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"%s must be between 1 and %d, or between -1 and -%d, or 0",
+				name, MAX_CHANNELS, MAX_CHANNELS);
+		return -1;
+	} else {
+		if (i > 0)
+			SET_CHANNELMASK(*flags, i - 1);
+		else
+			UNSET_CHANNELMASK(*flags, -i - 1);
+	}
+	return 0;
+}
+
 __attribute__((pure))
-static inline bool y_or_n_p(const char *arg)
+static inline int y_or_n_p(const char *arg)
 {
 	if (arg) {
 		switch (arg[0]) {
@@ -4593,9 +4603,9 @@ static inline bool y_or_n_p(const char *arg)
 		return 1;
 }
 
-static inline bool set_flag(int32 *fields, int32 bitmask, const char *arg)
+static inline int set_flag(int32 *fields, int32 bitmask, const char *arg)
 {
-	bool set = y_or_n_p(arg);
+	int set = y_or_n_p(arg);
 	
 	if (set)
 		*fields |= bitmask;

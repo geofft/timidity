@@ -1,5 +1,10 @@
 2003-08-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* timidity/timidity.c: Fix around long options
+	  Hack up around output option parser
+
+2003-08-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* timidity/timidity.c:
 	  Fix wrong branch between set_tim_opt_{long,short}
 	  Fix typo around long options
