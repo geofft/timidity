@@ -110,6 +110,91 @@
 #define __attribute__(x) /* ignore */
 #endif
 
+/* option enums */
+enum {
+	TIM_OPT_FIRST = 256,
+	/* first entry */
+	TIM_OPT_VOLUME = TIM_OPT_FIRST,
+	TIM_OPT_DRUM_POWER,
+	TIM_OPT_VOLUME_COMP,
+	TIM_OPT_ANTI_ALIAS,
+	TIM_OPT_BUFFER_FRAGS,
+	TIM_OPT_CONTROL_RATIO,
+	TIM_OPT_CONFIG_FILE,
+	TIM_OPT_DRUM_CHANNEL,
+	TIM_OPT_IFACE_PATH,
+	TIM_OPT_EXT,
+	TIM_OPT_MOD_WHEEL,
+	TIM_OPT_PORTAMENTO,
+	TIM_OPT_VIBRATO,
+	TIM_OPT_CH_PRESS,
+	TIM_OPT_VOICE_LPF,
+	TIM_OPT_MOD_ENV,
+	TIM_OPT_TRACE_TEXT,
+	TIM_OPT_OVERLAP,
+	TIM_OPT_TEMPER_CTRL,
+	TIM_OPT_DEFAULT_MID,
+	TIM_OPT_SYSTEM_MID,
+	TIM_OPT_DEFAULT_BANK,
+	TIM_OPT_FORCE_BANK,
+	TIM_OPT_DEFAULT_PGM,
+	TIM_OPT_FORCE_PGM,
+	TIM_OPT_DELAY,
+	TIM_OPT_CHORUS,
+	TIM_OPT_REVERB,
+	TIM_OPT_NS,
+	TIM_OPT_RESAMPLE,
+	TIM_OPT_EVIL,
+	TIM_OPT_FAST_PAN,
+	TIM_OPT_FAST_DECAY,
+	TIM_OPT_SPECTROGRAM,
+	TIM_OPT_KEYSIG,
+	TIM_OPT_HELP,
+	TIM_OPT_INTERFACE,
+	TIM_OPT_VERBOSE,
+	TIM_OPT_QUIET,
+	TIM_OPT_TRACE,
+	TIM_OPT_LOOP,
+	TIM_OPT_RANDOM,
+	TIM_OPT_SORT,
+	TIM_OPT_BACKGROUND,
+	TIM_OPT_RT_PRIO,
+	TIM_OPT_SEQ_PORTS,
+	TIM_OPT_REALTIME_LOAD,
+	TIM_OPT_ADJUST_KEY,
+	TIM_OPT_VOICE_QUEUE,
+	TIM_OPT_PATCH_PATH,
+	TIM_OPT_PCM_FILE,
+	TIM_OPT_DECAY_TIME,
+	TIM_OPT_INTERPOLATION,
+	TIM_OPT_OUTPUT_MODE,
+	TIM_OPT_OUTPUT_STEREO,
+	TIM_OPT_OUTPUT_SIGNED,
+	TIM_OPT_OUTPUT_16BIT,
+	TIM_OPT_OUTPUT_FORMAT,
+	TIM_OPT_OUTPUT_SWAB,
+	TIM_OPT_OUTPUT_FILE,
+	TIM_OPT_PATCH_FILE,
+	TIM_OPT_POLYPHONY,
+	TIM_OPT_POLY_REDUCE,
+	TIM_OPT_MUTE,
+	TIM_OPT_TEMPER_MUTE,
+	TIM_OPT_AUDIO_BUFFER,
+	TIM_OPT_CACHE_SIZE,
+	TIM_OPT_SAMPLE_FREQ,
+	TIM_OPT_ADJUST_TEMPO,
+	TIM_OPT_CHARSET,
+	TIM_OPT_UNLOAD_INST,
+	TIM_OPT_VERSION,
+	TIM_OPT_WRD,
+	TIM_OPT_RCPCV_DLL,
+	TIM_OPT_CONFIG_STR,
+	TIM_OPT_FREQ_TABLE,
+	TIM_OPT_PURE_INT,
+	/* last entry */
+	TIM_OPT_LAST = TIM_OPT_PURE_INT
+};
+
 static const char *optcommands =
 		"4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:"
 		"O:o:P:p:Q:q:R:S:s:T:t:UvW:"
@@ -118,116 +203,116 @@ static const char *optcommands =
 #endif
 		"x:Z:";		/* Only GJlnruVXYyz are remain... */
 static const struct option longopts[] = {
-	{ "volume",                 required_argument, NULL, 'A' << 8 },
-	{ "drum-power",             required_argument, NULL, 200 << 8 },
-	{ "no-volume-compensation", no_argument,       NULL, 201 << 8 },
-	{ "volume-compensation",    optional_argument, NULL, 201 << 8 },
-	{ "no-anti-alias",          no_argument,       NULL, 'a' << 8 },
-	{ "anti-alias",             optional_argument, NULL, 'a' << 8 },
-	{ "buffer-fragments",       required_argument, NULL, 'B' << 8 },
-	{ "control-ratio",          required_argument, NULL, 'C' << 8 },
-	{ "config-file",            required_argument, NULL, 'c' << 8 },
-	{ "drum-channel",           required_argument, NULL, 'D' << 8 },
-	{ "interface-path",         required_argument, NULL, 'd' << 8 },
-	{ "ext",                    required_argument, NULL, 'E' << 8 },
-	{ "no-mod-wheel",           no_argument,       NULL, 202 << 8 },
-	{ "mod-wheel",              optional_argument, NULL, 202 << 8 },
-	{ "no-portamento",          no_argument,       NULL, 203 << 8 },
-	{ "portamento",             optional_argument, NULL, 203 << 8 },
-	{ "no-vibrato",             no_argument,       NULL, 204 << 8 },
-	{ "vibrato",                optional_argument, NULL, 204 << 8 },
-	{ "no-ch-pressure",         no_argument,       NULL, 205 << 8 },
-	{ "ch-pressure",            optional_argument, NULL, 205 << 8 },
-	{ "no-voice-lpf",           no_argument,       NULL, 206 << 8 },
-	{ "voice-lpf",              optional_argument, NULL, 206 << 8 },
-	{ "no-mod-envelope",        no_argument,       NULL, 207 << 8 },
-	{ "mod-envelope",           optional_argument, NULL, 207 << 8 },
-	{ "no-trace-text-meta",     no_argument,       NULL, 208 << 8 },
-	{ "trace-text-meta",        optional_argument, NULL, 208 << 8 },
-	{ "no-overlap-voice",       no_argument,       NULL, 209 << 8 },
-	{ "overlap-voice",          optional_argument, NULL, 209 << 8 },
-	{ "no-temper-control",      no_argument,       NULL, 210 << 8 },
-	{ "temper-control",         optional_argument, NULL, 210 << 8 },
-	{ "default-mid",            required_argument, NULL, 211 << 8 },
-	{ "system-mid",             required_argument, NULL, 212 << 8 },
-	{ "default-bank",           required_argument, NULL, 213 << 8 },
-	{ "force-bank",             required_argument, NULL, 214 << 8 },
-	{ "default-program",        required_argument, NULL, 215 << 8 },
-	{ "force-program",          required_argument, NULL, 216 << 8 },
-	{ "delay",                  required_argument, NULL, 217 << 8 },
-	{ "chorus",                 required_argument, NULL, 218 << 8 },
-	{ "reverb",                 required_argument, NULL, 219 << 8 },
-	{ "noise-shaping",          required_argument, NULL, 220 << 8 },
+	{ "volume",                 required_argument, NULL, TIM_OPT_VOLUME },
+	{ "drum-power",             required_argument, NULL, TIM_OPT_DRUM_POWER },
+	{ "no-volume-compensation", no_argument,       NULL, TIM_OPT_DRUM_POWER },
+	{ "volume-compensation",    optional_argument, NULL, TIM_OPT_VOLUME_COMP },
+	{ "no-anti-alias",          no_argument,       NULL, TIM_OPT_ANTI_ALIAS },
+	{ "anti-alias",             optional_argument, NULL, TIM_OPT_ANTI_ALIAS },
+	{ "buffer-fragments",       required_argument, NULL, TIM_OPT_BUFFER_FRAGS },
+	{ "control-ratio",          required_argument, NULL, TIM_OPT_CONTROL_RATIO },
+	{ "config-file",            required_argument, NULL, TIM_OPT_CONFIG_FILE },
+	{ "drum-channel",           required_argument, NULL, TIM_OPT_DRUM_CHANNEL },
+	{ "interface-path",         required_argument, NULL, TIM_OPT_IFACE_PATH },
+	{ "ext",                    required_argument, NULL, TIM_OPT_EXT },
+	{ "no-mod-wheel",           no_argument,       NULL, TIM_OPT_MOD_WHEEL },
+	{ "mod-wheel",              optional_argument, NULL, TIM_OPT_MOD_WHEEL },
+	{ "no-portamento",          no_argument,       NULL, TIM_OPT_PORTAMENTO },
+	{ "portamento",             optional_argument, NULL, TIM_OPT_PORTAMENTO },
+	{ "no-vibrato",             no_argument,       NULL, TIM_OPT_VIBRATO },
+	{ "vibrato",                optional_argument, NULL, TIM_OPT_VIBRATO },
+	{ "no-ch-pressure",         no_argument,       NULL, TIM_OPT_CH_PRESS },
+	{ "ch-pressure",            optional_argument, NULL, TIM_OPT_CH_PRESS },
+	{ "no-voice-lpf",           no_argument,       NULL, TIM_OPT_VOICE_LPF },
+	{ "voice-lpf",              optional_argument, NULL, TIM_OPT_VOICE_LPF },
+	{ "no-mod-envelope",        no_argument,       NULL, TIM_OPT_MOD_ENV },
+	{ "mod-envelope",           optional_argument, NULL, TIM_OPT_MOD_ENV },
+	{ "no-trace-text-meta",     no_argument,       NULL, TIM_OPT_TRACE_TEXT },
+	{ "trace-text-meta",        optional_argument, NULL, TIM_OPT_TRACE_TEXT },
+	{ "no-overlap-voice",       no_argument,       NULL, TIM_OPT_OVERLAP },
+	{ "overlap-voice",          optional_argument, NULL, TIM_OPT_OVERLAP },
+	{ "no-temper-control",      no_argument,       NULL, TIM_OPT_TEMPER_CTRL },
+	{ "temper-control",         optional_argument, NULL, TIM_OPT_TEMPER_CTRL },
+	{ "default-mid",            required_argument, NULL, TIM_OPT_DEFAULT_MID },
+	{ "system-mid",             required_argument, NULL, TIM_OPT_SYSTEM_MID },
+	{ "default-bank",           required_argument, NULL, TIM_OPT_DEFAULT_BANK },
+	{ "force-bank",             required_argument, NULL, TIM_OPT_FORCE_BANK },
+	{ "default-program",        required_argument, NULL, TIM_OPT_DEFAULT_PGM },
+	{ "force-program",          required_argument, NULL, TIM_OPT_FORCE_PGM },
+	{ "delay",                  required_argument, NULL, TIM_OPT_DELAY },
+	{ "chorus",                 required_argument, NULL, TIM_OPT_CHORUS },
+	{ "reverb",                 required_argument, NULL, TIM_OPT_REVERB },
+	{ "noise-shaping",          required_argument, NULL, TIM_OPT_NS },
 #ifndef FIXED_RESAMPLATION
-	{ "resample",               required_argument, NULL, 221 << 8 },
+	{ "resample",               required_argument, NULL, TIM_OPT_RESAMPLE },
 #endif
-	{ "evil",                   required_argument, NULL, 'e' << 8 },
-	{ "no-fast-panning",        no_argument,       NULL, 'F' << 8 },
-	{ "fast-panning",           optional_argument, NULL, 'F' << 8 },
-	{ "no-fast-decay",          no_argument,       NULL, 'f' << 8 },
-	{ "fast-decay",             optional_argument, NULL, 'f' << 8 },
-	{ "spectrogram",            required_argument, NULL, 'g' << 8 },
-	{ "force-keysig",           required_argument, NULL, 'H' << 8 },
-	{ "help",                   optional_argument, NULL, 'h' << 8 },
-	{ "interface",              required_argument, NULL, 'i' << 8 },
-	{ "verbose",                optional_argument, NULL, 222 << 8 },
-	{ "quiet",                  optional_argument, NULL, 223 << 8 },
-	{ "no-trace",               no_argument,       NULL, 224 << 8 },
-	{ "trace",                  optional_argument, NULL, 224 << 8 },
-	{ "no-loop",                no_argument,       NULL, 225 << 8 },
-	{ "loop",                   optional_argument, NULL, 225 << 8 },
-	{ "no-random",              no_argument,       NULL, 226 << 8 },
-	{ "random",                 optional_argument, NULL, 226 << 8 },
-	{ "no-sort",                no_argument,       NULL, 227 << 8 },
-	{ "sort",                   optional_argument, NULL, 227 << 8 },
+	{ "evil",                   required_argument, NULL, TIM_OPT_EVIL },
+	{ "no-fast-panning",        no_argument,       NULL, TIM_OPT_FAST_PAN },
+	{ "fast-panning",           optional_argument, NULL, TIM_OPT_FAST_PAN },
+	{ "no-fast-decay",          no_argument,       NULL, TIM_OPT_FAST_DECAY },
+	{ "fast-decay",             optional_argument, NULL, TIM_OPT_FAST_DECAY },
+	{ "spectrogram",            required_argument, NULL, TIM_OPT_SPECTROGRAM },
+	{ "force-keysig",           required_argument, NULL, TIM_OPT_KEYSIG },
+	{ "help",                   optional_argument, NULL, TIM_OPT_HELP },
+	{ "interface",              required_argument, NULL, TIM_OPT_INTERFACE },
+	{ "verbose",                optional_argument, NULL, TIM_OPT_VERBOSE },
+	{ "quiet",                  optional_argument, NULL, TIM_OPT_QUIET },
+	{ "no-trace",               no_argument,       NULL, TIM_OPT_TRACE },
+	{ "trace",                  optional_argument, NULL, TIM_OPT_TRACE },
+	{ "no-loop",                no_argument,       NULL, TIM_OPT_LOOP },
+	{ "loop",                   optional_argument, NULL, TIM_OPT_LOOP },
+	{ "no-random",              no_argument,       NULL, TIM_OPT_RANDOM },
+	{ "random",                 optional_argument, NULL, TIM_OPT_RANDOM },
+	{ "no-sort",                no_argument,       NULL, TIM_OPT_SORT },
+	{ "sort",                   optional_argument, NULL, TIM_OPT_SORT },
 #ifdef IA_ALSASEQ
-	{ "no-background",          no_argument,       NULL, 228 << 8 },
-	{ "background",             optional_argument, NULL, 228 << 8 },
-	{ "realtime-priority",      required_argument, NULL, 229 << 8 },
-	{ "sequencer-ports",        required_argument, NULL, 230 << 8 },
+	{ "no-background",          no_argument,       NULL, TIM_OPT_BACKGROUND },
+	{ "background",             optional_argument, NULL, TIM_OPT_BACKGROUND },
+	{ "realtime-priority",      required_argument, NULL, TIM_OPT_RT_PRIO },
+	{ "sequencer-ports",        required_argument, NULL, TIM_OPT_SEQ_PORTS },
 #endif
-	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
-	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
-	{ "adjust-key",             required_argument, NULL, 'K' << 8 },
-	{ "voice-queue",            required_argument, NULL, 'k' << 8 },
-	{ "patch-path",             required_argument, NULL, 'L' << 8 },
-	{ "pcm-file",               required_argument, NULL, 'M' << 8 },
-	{ "decay-time",             required_argument, NULL, 'm' << 8 },
-	{ "interpolation",          required_argument, NULL, 'N' << 8 },
-	{ "output-mode",            required_argument, NULL, 'O' << 8 },
-	{ "output-stereo",          no_argument,       NULL, 231 << 8 },
-	{ "output-mono",            no_argument,       NULL, 231 << 8 },
-	{ "output-signed",          no_argument,       NULL, 232 << 8 },
-	{ "output-unsigned",        no_argument,       NULL, 232 << 8 },
-	{ "output-16bit",           no_argument,       NULL, 233 << 8 },
-	{ "output-8bit",            no_argument,       NULL, 233 << 8 },
-	{ "output-linear",          no_argument,       NULL, 234 << 8 },
-	{ "output-ulaw",            no_argument,       NULL, 234 << 8 },
-	{ "output-alaw",            no_argument,       NULL, 234 << 8 },
-	{ "no-output-swab",         no_argument,       NULL, 235 << 8 },
-	{ "output-swab",            optional_argument, NULL, 235 << 8 },
-	{ "output-file",            required_argument, NULL, 'o' << 8 },
-	{ "patch-file",             required_argument, NULL, 'P' << 8 },
-	{ "polyphony",              required_argument, NULL, 'p' << 8 },
-	{ "no-polyphony-reduction", no_argument,       NULL, 236 << 8 },
-	{ "polyphony-reduction",    optional_argument, NULL, 236 << 8 },
-	{ "mute",                   required_argument, NULL, 'Q' << 8 },
-	{ "temper-mute",            required_argument, NULL, 237 << 8 },
-	{ "audio-buffer",           required_argument, NULL, 'q' << 8 },
-	{ "cache-size",             required_argument, NULL, 'S' << 8 },
-	{ "sampling-freq",          required_argument, NULL, 's' << 8 },
-	{ "adjust-tempo",           required_argument, NULL, 'T' << 8 },
-	{ "output-charset",         required_argument, NULL, 't' << 8 },
-	{ "no-unload-instruments",  no_argument,       NULL, 'U' << 8 },
-	{ "unload-instruments",     optional_argument, NULL, 'U' << 8 },
-	{ "version",                no_argument,       NULL, 'v' << 8 },
-	{ "wrd",                    required_argument, NULL, 'W' << 8 },
+	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
+	{ "realtime-load",          optional_argument, NULL, TIM_OPT_REALTIME_LOAD },
+	{ "adjust-key",             required_argument, NULL, TIM_OPT_ADJUST_KEY },
+	{ "voice-queue",            required_argument, NULL, TIM_OPT_VOICE_QUEUE },
+	{ "patch-path",             required_argument, NULL, TIM_OPT_PATCH_PATH },
+	{ "pcm-file",               required_argument, NULL, TIM_OPT_PCM_FILE },
+	{ "decay-time",             required_argument, NULL, TIM_OPT_DECAY_TIME },
+	{ "interpolation",          required_argument, NULL, TIM_OPT_INTERPOLATION },
+	{ "output-mode",            required_argument, NULL, TIM_OPT_OUTPUT_MODE },
+	{ "output-stereo",          no_argument,       NULL, TIM_OPT_OUTPUT_STEREO },
+	{ "output-mono",            no_argument,       NULL, TIM_OPT_OUTPUT_STEREO },
+	{ "output-signed",          no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
+	{ "output-unsigned",        no_argument,       NULL, TIM_OPT_OUTPUT_SIGNED },
+	{ "output-16bit",           no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
+	{ "output-8bit",            no_argument,       NULL, TIM_OPT_OUTPUT_16BIT },
+	{ "output-linear",          no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
+	{ "output-ulaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
+	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
+	{ "no-output-swab",         no_argument,       NULL, TIM_OPT_OUTPUT_SWAB },
+	{ "output-swab",            optional_argument, NULL, TIM_OPT_OUTPUT_SWAB },
+	{ "output-file",            required_argument, NULL, TIM_OPT_OUTPUT_FILE },
+	{ "patch-file",             required_argument, NULL, TIM_OPT_PATCH_FILE },
+	{ "polyphony",              required_argument, NULL, TIM_OPT_POLYPHONY },
+	{ "no-polyphony-reduction", no_argument,       NULL, TIM_OPT_POLY_REDUCE },
+	{ "polyphony-reduction",    optional_argument, NULL, TIM_OPT_POLY_REDUCE },
+	{ "mute",                   required_argument, NULL, TIM_OPT_MUTE },
+	{ "temper-mute",            required_argument, NULL, TIM_OPT_TEMPER_MUTE },
+	{ "audio-buffer",           required_argument, NULL, TIM_OPT_AUDIO_BUFFER },
+	{ "cache-size",             required_argument, NULL, TIM_OPT_CACHE_SIZE },
+	{ "sampling-freq",          required_argument, NULL, TIM_OPT_SAMPLE_FREQ },
+	{ "adjust-tempo",           required_argument, NULL, TIM_OPT_ADJUST_TEMPO },
+	{ "output-charset",         required_argument, NULL, TIM_OPT_CHARSET },
+	{ "no-unload-instruments",  no_argument,       NULL, TIM_OPT_UNLOAD_INST },
+	{ "unload-instruments",     optional_argument, NULL, TIM_OPT_UNLOAD_INST },
+	{ "version",                no_argument,       NULL, TIM_OPT_VERSION },
+	{ "wrd",                    required_argument, NULL, TIM_OPT_WRD },
 #ifdef __W32__
-	{ "rcpcv-dll",              required_argument, NULL, 'w' << 8 },
+	{ "rcpcv-dll",              required_argument, NULL, TIM_OPT_RCPCV_DLL },
 #endif
-	{ "config-string",          required_argument, NULL, 'x' << 8 },
-	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",        optional_argument, NULL, 238 << 8 },
+	{ "config-string",          required_argument, NULL, TIM_OPT_CONFIG_STR },
+	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
+	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -258,8 +343,8 @@ int set_wrd(char *);
 MAIN_INTERFACE int set_tim_opt_short(int, char *);
 MAIN_INTERFACE int set_tim_opt_long(int, char *, int);
 static inline int parse_opt_A(const char *);
-static inline int parse_opt_A1(const char *);
-static inline int parse_opt_A2(const char *);
+static inline int parse_opt_drum_power(const char *);
+static inline int parse_opt_volume_comp(const char *);
 static inline int parse_opt_a(const char *);
 static inline int parse_opt_B(const char *);
 static inline int parse_opt_C(const char *);
@@ -267,27 +352,27 @@ static inline int parse_opt_c(char *);
 static inline int parse_opt_D(const char *);
 static inline int parse_opt_d(const char *);
 static inline int parse_opt_E(char *);
-static inline int parse_opt_E1(const char *);
-static inline int parse_opt_E2(const char *);
-static inline int parse_opt_E3(const char *);
-static inline int parse_opt_E4(const char *);
-static inline int parse_opt_E5(const char *);
-static inline int parse_opt_E6(const char *);
-static inline int parse_opt_E7(const char *);
-static inline int parse_opt_E8(const char *);
-static inline int parse_opt_E9(const char *);
-static inline int parse_opt_EA(char *);
-static inline int parse_opt_EB(char *);
-static inline int parse_opt_EC(const char *);
-static inline int parse_opt_ED(const char *);
-static inline int parse_opt_EE(const char *);
-static inline int parse_opt_EF(const char *);
+static inline int parse_opt_mod_wheel(const char *);
+static inline int parse_opt_portamento(const char *);
+static inline int parse_opt_vibrato(const char *);
+static inline int parse_opt_ch_pressure(const char *);
+static inline int parse_opt_voice_lpf(const char *);
+static inline int parse_opt_mod_env(const char *);
+static inline int parse_opt_trace_text(const char *);
+static inline int parse_opt_overlap_voice(const char *);
+static inline int parse_opt_temper_control(const char *);
+static inline int parse_opt_default_mid(char *);
+static inline int parse_opt_system_mid(char *);
+static inline int parse_opt_default_bank(const char *);
+static inline int parse_opt_force_bank(const char *);
+static inline int parse_opt_default_program(const char *);
+static inline int parse_opt_force_program(const char *);
 static inline int set_default_program(int);
-static inline int parse_opt_EG(const char *);
-static inline int parse_opt_EH(const char *);
-static inline int parse_opt_EI(const char *);
-static inline int parse_opt_EJ(const char *);
-static inline int parse_opt_EK(const char *);
+static inline int parse_opt_delay(const char *);
+static inline int parse_opt_chorus(const char *);
+static inline int parse_opt_reverb(const char *);
+static inline int parse_opt_noise_shaping(const char *);
+static inline int parse_opt_resample(const char *);
 static inline int parse_opt_e(const char *);
 static inline int parse_opt_F(const char *);
 static inline int parse_opt_f(const char *);
@@ -301,16 +386,16 @@ static inline char *dynamic_interface_info(int);
 char *dynamic_interface_module(int);
 #endif
 static inline int parse_opt_i(const char *);
-static inline int parse_opt_i1(const char *);
-static inline int parse_opt_i2(const char *);
-static inline int parse_opt_i3(const char *);
-static inline int parse_opt_i4(const char *);
-static inline int parse_opt_i5(const char *);
-static inline int parse_opt_i6(const char *);
+static inline int parse_opt_verbose(const char *);
+static inline int parse_opt_quiet(const char *);
+static inline int parse_opt_trace(const char *);
+static inline int parse_opt_loop(const char *);
+static inline int parse_opt_random(const char *);
+static inline int parse_opt_sort(const char *);
 #ifdef IA_ALSASEQ
-static inline int parse_opt_i7(const char *);
-static inline int parse_opt_i8(const char *);
-static inline int parse_opt_i9(const char *);
+static inline int parse_opt_background(const char *);
+static inline int parse_opt_rt_prio(const char *);
+static inline int parse_opt_seq_ports(const char *);
 #endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
@@ -320,11 +405,11 @@ static inline int parse_opt_M(const char *);
 static inline int parse_opt_m(const char *);
 static inline int parse_opt_N(const char *);
 static inline int parse_opt_O(const char *);
-static inline int parse_opt_O1(const char *);
-static inline int parse_opt_O2(const char *);
-static inline int parse_opt_O3(const char *);
-static inline int parse_opt_O4(const char *);
-static inline int parse_opt_O5(const char *);
+static inline int parse_opt_output_stereo(const char *);
+static inline int parse_opt_output_signed(const char *);
+static inline int parse_opt_output_16bit(const char *);
+static inline int parse_opt_output_format(const char *);
+static inline int parse_opt_output_swab(const char *);
 static inline int parse_opt_o(char *);
 static inline int parse_opt_P(const char *);
 static inline int parse_opt_p(const char *);
@@ -2109,7 +2194,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		if (*optarg != ',' && *optarg != 'a')
 			err += parse_opt_A(optarg);
 		if (strchr(optarg, ','))
-			err += parse_opt_A1(strchr(optarg, ',') + 1);
+			err += parse_opt_drum_power(strchr(optarg, ',') + 1);
 		if (strchr(optarg, 'a'))
 			opt_amp_compensation = 1;
 		return err;
@@ -2221,187 +2306,187 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	
 	if (c == '?')	/* getopt_long failed parsing */
 		parse_opt_fail(optarg);
-	else if (c <= 0xff)
+	else if (c < TIM_OPT_FIRST)
 		return set_tim_opt_short(c, optarg);
 	if (! strncmp(the_option->name, "no-", 3))
 		arg = "no";		/* `reverse' switch */
 	else
 		arg = optarg;
-	switch (c >> 8) {
-	case 'A':
+	switch (c) {
+	case TIM_OPT_VOLUME:
 		return parse_opt_A(arg);
-	case 200:
-		return parse_opt_A1(arg);
-	case 201:
-		return parse_opt_A2(arg);
-	case 'a':
+	case TIM_OPT_DRUM_POWER:
+		return parse_opt_drum_power(arg);
+	case TIM_OPT_VOLUME_COMP:
+		return parse_opt_volume_comp(arg);
+	case TIM_OPT_ANTI_ALIAS:
 		return parse_opt_a(arg);
-	case 'B':
+	case TIM_OPT_BUFFER_FRAGS:
 		return parse_opt_B(arg);
-	case 'C':
+	case TIM_OPT_CONTROL_RATIO:
 		return parse_opt_C(arg);
-	case 'c':
+	case TIM_OPT_CONFIG_FILE:
 		return parse_opt_c(arg);
-	case 'D':
+	case TIM_OPT_DRUM_CHANNEL:
 		return parse_opt_D(arg);
-	case 'd':
+	case TIM_OPT_IFACE_PATH:
 		return parse_opt_d(arg);
-	case 'E':
+	case TIM_OPT_EXT:
 		return parse_opt_E(arg);
-	case 202:
-		return parse_opt_E1(arg);
-	case 203:
-		return parse_opt_E2(arg);
-	case 204:
-		return parse_opt_E3(arg);
-	case 205:
-		return parse_opt_E4(arg);
-	case 206:
-		return parse_opt_E5(arg);
-	case 207:
-		return parse_opt_E6(arg);
-	case 208:
-		return parse_opt_E7(arg);
-	case 209:
-		return parse_opt_E8(arg);
-	case 210:
-		return parse_opt_E9(arg);
-	case 211:
-		return parse_opt_EA(arg);
-	case 212:
-		return parse_opt_EB(arg);
-	case 213:
-		return parse_opt_EC(arg);
-	case 214:
-		return parse_opt_ED(arg);
-	case 215:
-		return parse_opt_EE(arg);
-	case 216:
-		return parse_opt_EF(arg);
-	case 217:
-		return parse_opt_EG(arg);
-	case 218:
-		return parse_opt_EH(arg);
-	case 219:
-		return parse_opt_EI(arg);
-	case 220:
-		return parse_opt_EJ(arg);
+	case TIM_OPT_MOD_WHEEL:
+		return parse_opt_mod_wheel(arg);
+	case TIM_OPT_PORTAMENTO:
+		return parse_opt_portamento(arg);
+	case TIM_OPT_VIBRATO:
+		return parse_opt_vibrato(arg);
+	case TIM_OPT_CH_PRESS:
+		return parse_opt_ch_pressure(arg);
+	case TIM_OPT_VOICE_LPF:
+		return parse_opt_voice_lpf(arg);
+	case TIM_OPT_MOD_ENV:
+		return parse_opt_mod_env(arg);
+	case TIM_OPT_TRACE_TEXT:
+		return parse_opt_trace_text(arg);
+	case TIM_OPT_OVERLAP:
+		return parse_opt_overlap_voice(arg);
+	case TIM_OPT_TEMPER_CTRL:
+		return parse_opt_temper_control(arg);
+	case TIM_OPT_DEFAULT_MID:
+		return parse_opt_default_mid(arg);
+	case TIM_OPT_SYSTEM_MID:
+		return parse_opt_system_mid(arg);
+	case TIM_OPT_DEFAULT_BANK:
+		return parse_opt_default_bank(arg);
+	case TIM_OPT_FORCE_BANK:
+		return parse_opt_force_bank(arg);
+	case TIM_OPT_DEFAULT_PGM:
+		return parse_opt_default_program(arg);
+	case TIM_OPT_FORCE_PGM:
+		return parse_opt_force_program(arg);
+	case TIM_OPT_DELAY:
+		return parse_opt_delay(arg);
+	case TIM_OPT_CHORUS:
+		return parse_opt_chorus(arg);
+	case TIM_OPT_REVERB:
+		return parse_opt_reverb(arg);
+	case TIM_OPT_NS:
+		return parse_opt_noise_shaping(arg);
 #ifndef FIXED_RESAMPLATION
-	case 221:
-		return parse_opt_EK(arg);
+	case TIM_OPT_RESAMPLE:
+		return parse_opt_resample(arg);
 #endif
-	case 'e':
+	case TIM_OPT_EVIL:
 		return parse_opt_e(arg);
-	case 'F':
+	case TIM_OPT_FAST_PAN:
 		return parse_opt_F(arg);
-	case 'f':
+	case TIM_OPT_FAST_DECAY:
 		return parse_opt_f(arg);
-	case 'g':
+	case TIM_OPT_SPECTROGRAM:
 		return parse_opt_g(arg);
-	case 'H':
+	case TIM_OPT_KEYSIG:
 		return parse_opt_H(arg);
-	case 'h':
+	case TIM_OPT_HELP:
 		return parse_opt_h(arg);
-	case 'i':
+	case TIM_OPT_INTERFACE:
 		return parse_opt_i(arg);
-	case 222:
-		return parse_opt_i1(arg);
-	case 223:
-		return parse_opt_i2(arg);
-	case 224:
-		return parse_opt_i3(arg);
-	case 225:
-		return parse_opt_i4(arg);
-	case 226:
-		return parse_opt_i5(arg);
-	case 227:
-		return parse_opt_i6(arg);
+	case TIM_OPT_VERBOSE:
+		return parse_opt_verbose(arg);
+	case TIM_OPT_QUIET:
+		return parse_opt_quiet(arg);
+	case TIM_OPT_TRACE:
+		return parse_opt_trace(arg);
+	case TIM_OPT_LOOP:
+		return parse_opt_loop(arg);
+	case TIM_OPT_RANDOM:
+		return parse_opt_random(arg);
+	case TIM_OPT_SORT:
+		return parse_opt_sort(arg);
 #ifdef IA_ALSASEQ
-	case 228:
-		return parse_opt_i7(arg);
-	case 229:
-		return parse_opt_i8(arg);
-	case 230:
-		return parse_opt_i9(arg);
+	case TIM_OPT_BACKGROUND:
+		return parse_opt_background(arg);
+	case TIM_OPT_RT_PRIO:
+		return parse_opt_rt_prio(arg);
+	case TIM_OPT_SEQ_PORTS:
+		return parse_opt_seq_ports(arg);
 #endif
-	case 'j':
+	case TIM_OPT_REALTIME_LOAD:
 		return parse_opt_j(arg);
-	case 'K':
+	case TIM_OPT_ADJUST_KEY:
 		return parse_opt_K(arg);
-	case 'k':
+	case TIM_OPT_VOICE_QUEUE:
 		return parse_opt_k(arg);
-	case 'L':
+	case TIM_OPT_PATCH_PATH:
 		return parse_opt_L(arg);
-	case 'M':
+	case TIM_OPT_PCM_FILE:
 		return parse_opt_M(arg);
-	case 'm':
+	case TIM_OPT_DECAY_TIME:
 		return parse_opt_m(arg);
-	case 'N':
+	case TIM_OPT_INTERPOLATION:
 		return parse_opt_N(arg);
-	case 'O':
+	case TIM_OPT_OUTPUT_MODE:
 		return parse_opt_O(arg);
-	case 231:
+	case TIM_OPT_OUTPUT_STEREO:
 		if (! strcmp(the_option->name, "output-mono"))
 			/* --output-mono == --output-stereo=no */
 			arg = "no";
-		return parse_opt_O1(arg);
-	case 232:
+		return parse_opt_output_stereo(arg);
+	case TIM_OPT_OUTPUT_SIGNED:
 		if (! strcmp(the_option->name, "output-unsigned"))
 			/* --output-unsigned == --output-signed=no */
 			arg = "no";
-		return parse_opt_O2(arg);
-	case 233:
+		return parse_opt_output_signed(arg);
+	case TIM_OPT_OUTPUT_16BIT:
 		if (! strcmp(the_option->name, "output-8bit"))
 			/* --output-8bit == --output-16bit=no */
 			arg = "no";
-		return parse_opt_O3(arg);
-	case 234:
+		return parse_opt_output_16bit(arg);
+	case TIM_OPT_OUTPUT_FORMAT:
 		if (! strcmp(the_option->name, "output-linear"))
 			arg = "linear";
 		else if (! strcmp(the_option->name, "output-ulaw"))
 			arg = "ulaw";
 		else if (! strcmp(the_option->name, "output-alaw"))
 			arg = "alaw";
-		return parse_opt_O4(arg);
-	case 235:
-		return parse_opt_O5(arg);
-	case 'o':
+		return parse_opt_output_format(arg);
+	case TIM_OPT_OUTPUT_SWAB:
+		return parse_opt_output_swab(arg);
+	case TIM_OPT_OUTPUT_FILE:
 		return parse_opt_o(arg);
-	case 'P':
+	case TIM_OPT_PATCH_FILE:
 		return parse_opt_P(arg);
-	case 'p':
+	case TIM_OPT_POLYPHONY:
 		return parse_opt_p(arg);
-	case 236:
+	case TIM_OPT_POLY_REDUCE:
 		return parse_opt_p1(arg);
-	case 'Q':
+	case TIM_OPT_MUTE:
 		return parse_opt_Q(arg);
-	case 237:
+	case TIM_OPT_TEMPER_MUTE:
 		return parse_opt_Q1(arg);
-	case 'q':
+	case TIM_OPT_AUDIO_BUFFER:
 		return parse_opt_q(arg);
-	case 'S':
+	case TIM_OPT_CACHE_SIZE:
 		return parse_opt_S(arg);
-	case 's':
+	case TIM_OPT_SAMPLE_FREQ:
 		return parse_opt_s(arg);
-	case 'T':
+	case TIM_OPT_ADJUST_TEMPO:
 		return parse_opt_T(arg);
-	case 't':
+	case TIM_OPT_CHARSET:
 		return parse_opt_t(arg);
-	case 'U':
+	case TIM_OPT_UNLOAD_INST:
 		return parse_opt_U(arg);
-	case 'v':
+	case TIM_OPT_VERSION:
 		return parse_opt_v(arg);
-	case 'W':
+	case TIM_OPT_WRD:
 		return parse_opt_W(arg);
 #ifdef __W32__
-	case 'w':
+	case TIM_OPT_RCPCV_DLL:
 		return parse_opt_w(arg);
 #endif
-	case 'x':
+	case TIM_OPT_CONFIG_STR:
 		return parse_opt_x(arg);
-	case 'Z':
+	case TIM_OPT_FREQ_TABLE:
 		return parse_opt_Z(arg);
-	case 238:
+	case TIM_OPT_PURE_INT:
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
@@ -2417,14 +2502,14 @@ static inline int parse_opt_A(const char *arg)
 			"Amplification");
 }
 
-static inline int parse_opt_A1(const char *arg)
+static inline int parse_opt_drum_power(const char *arg)
 {
 	/* --drum-power */
 	return set_val_i32(&opt_drum_power, atoi(arg), 0, MAX_AMPLIFICATION,
 			"Drum power");
 }
 
-static inline int parse_opt_A2(const char *arg)
+static inline int parse_opt_volume_comp(const char *arg)
 {
 	/* --[no-]volume-compensation */
 	opt_amp_compensation = y_or_n_p(arg);
@@ -2555,55 +2640,55 @@ static inline int parse_opt_E(char *arg)
 			opt_temper_control = 0;
 			break;
 		case 'm':
-			if (parse_opt_EA(arg + 1))
+			if (parse_opt_default_mid(arg + 1))
 				err++;
 			arg += 2;
 			break;
 		case 'M':
-			if (parse_opt_EB(arg + 1))
+			if (parse_opt_system_mid(arg + 1))
 				err++;
 			arg += 2;
 			break;
 		case 'b':
-			if (parse_opt_EC(arg + 1))
+			if (parse_opt_default_bank(arg + 1))
 				err++;
 			while (isdigit(*(arg + 1)))
 				arg++;
 			break;
 		case 'B':
-			if (parse_opt_ED(arg + 1))
+			if (parse_opt_force_bank(arg + 1))
 				err++;
 			while (isdigit(*(arg + 1)))
 				arg++;
 			break;
 		case 'i':
-			if (parse_opt_EE(arg + 1))
+			if (parse_opt_default_program(arg + 1))
 				err++;
 			while (isdigit(*(arg + 1)) || *(arg + 1) == '/')
 				arg++;
 			break;
 		case 'I':
-			if (parse_opt_EF(arg + 1))
+			if (parse_opt_force_program(arg + 1))
 				err++;
 			while (isdigit(*(arg + 1)) || *(arg + 1) == '/')
 				arg++;
 			break;
 		case 'F':
 			if (strncmp(arg + 1, "delay=", 6) == 0) {
-				if (parse_opt_EG(arg + 7))
+				if (parse_opt_delay(arg + 7))
 					err++;
 			} else if (strncmp(arg + 1, "chorus=", 7) == 0) {
-				if (parse_opt_EH(arg + 8))
+				if (parse_opt_chorus(arg + 8))
 					err++;
 			} else if (strncmp(arg + 1, "reverb=", 7) == 0) {
-				if (parse_opt_EI(arg + 8))
+				if (parse_opt_reverb(arg + 8))
 					err++;
 			} else if (strncmp(arg + 1, "ns=", 3) == 0) {
-				if (parse_opt_EJ(arg + 4))
+				if (parse_opt_noise_shaping(arg + 4))
 					err++;
 #ifndef FIXED_RESAMPLATION
 			} else if (strncmp(arg + 1, "resamp=", 7) == 0) {
-				if (parse_opt_EK(arg + 8))
+				if (parse_opt_resample(arg + 8))
 					err++;
 #endif
 			}
@@ -2624,70 +2709,70 @@ static inline int parse_opt_E(char *arg)
 	return err;
 }
 
-static inline int parse_opt_E1(const char *arg)
+static inline int parse_opt_mod_wheel(const char *arg)
 {
 	/* --[no-]mod-wheel */
 	opt_modulation_wheel = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E2(const char *arg)
+static inline int parse_opt_portamento(const char *arg)
 {
 	/* --[no-]portamento */
 	opt_portamento = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E3(const char *arg)
+static inline int parse_opt_vibrato(const char *arg)
 {
 	/* --[no-]vibrato */
 	opt_nrpn_vibrato = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E4(const char *arg)
+static inline int parse_opt_ch_pressure(const char *arg)
 {
 	/* --[no-]ch-pressure */
 	opt_channel_pressure = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E5(const char *arg)
+static inline int parse_opt_voice_lpf(const char *arg)
 {
 	/* --[no-]voice-lpf */
 	opt_lpf_def = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E6(const char *arg)
+static inline int parse_opt_mod_env(const char *arg)
 {
 	/* --[no-]mod-envelope */
 	opt_modulation_envelope = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E7(const char *arg)
+static inline int parse_opt_trace_text(const char *arg)
 {
 	/* --[no-]trace-text-meta */
 	opt_trace_text_meta_event = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E8(const char *arg)
+static inline int parse_opt_overlap_voice(const char *arg)
 {
 	/* --[no-]overlap-voice */
 	opt_overlap_voice_allow = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_E9(const char *arg)
+static inline int parse_opt_temper_control(const char *arg)
 {
 	/* --[no-]temper-control */
 	opt_temper_control = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_EA(char *arg)
+static inline int parse_opt_default_mid(char *arg)
 {
 	/* --default-mid */
 	int val = str2mID(arg);
@@ -2700,7 +2785,7 @@ static inline int parse_opt_EA(char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EB(char *arg)
+static inline int parse_opt_system_mid(char *arg)
 {
 	/* --system-mid */
 	int val = str2mID(arg);
@@ -2713,7 +2798,7 @@ static inline int parse_opt_EB(char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EC(const char *arg)
+static inline int parse_opt_default_bank(const char *arg)
 {
 	/* --default-bank */
 	if (set_value(&default_tonebank, atoi(arg), 0, 0x7f, "Bank number"))
@@ -2722,7 +2807,7 @@ static inline int parse_opt_EC(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_ED(const char *arg)
+static inline int parse_opt_force_bank(const char *arg)
 {
 	/* --force-bank */
 	if (set_value(&special_tonebank, atoi(arg), 0, 0x7f, "Bank number"))
@@ -2730,7 +2815,7 @@ static inline int parse_opt_ED(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EE(const char *arg)
+static inline int parse_opt_default_program(const char *arg)
 {
 	/* --default-program */
 	int prog, i;
@@ -2748,7 +2833,7 @@ static inline int parse_opt_EE(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EF(const char *arg)
+static inline int parse_opt_force_program(const char *arg)
 {
 	/* --force-program */
 	const char *p;
@@ -2780,7 +2865,7 @@ static inline int set_default_program(int prog)
 	return 0;
 }
 
-static inline int parse_opt_EG(const char *arg)
+static inline int parse_opt_delay(const char *arg)
 {
 	/* --delay */
 	const char *p;
@@ -2810,7 +2895,7 @@ static inline int parse_opt_EG(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EH(const char *arg)
+static inline int parse_opt_chorus(const char *arg)
 {
 	/* --chorus */
 	const char *p;
@@ -2841,7 +2926,7 @@ static inline int parse_opt_EH(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EI(const char *arg)
+static inline int parse_opt_reverb(const char *arg)
 {
 	/* --reverb */
 	const char *p;
@@ -2879,7 +2964,7 @@ static inline int parse_opt_EI(const char *arg)
 /* Noise Shaping filter from
  * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
  */
-static inline int parse_opt_EJ(const char *arg)
+static inline int parse_opt_noise_shaping(const char *arg)
 {
 	/* --noise-shaping */
 	if (set_value(&noise_sharp_type, atoi(arg), 0, 4, "Noise shaping type"))
@@ -2887,7 +2972,7 @@ static inline int parse_opt_EJ(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_EK(const char *arg)
+static inline int parse_opt_resample(const char *arg)
 {
 	/* --resample */
 	switch (*arg) {
@@ -3508,53 +3593,53 @@ static inline int parse_opt_i(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_i1(const char *arg)
+static inline int parse_opt_verbose(const char *arg)
 {
 	/* --verbose */
 	ctl->verbosity += (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline int parse_opt_i2(const char *arg)
+static inline int parse_opt_quiet(const char *arg)
 {
 	/* --quiet */
 	ctl->verbosity -= (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline int parse_opt_i3(const char *arg)
+static inline int parse_opt_trace(const char *arg)
 {
 	/* --[no-]trace */
 	ctl->trace_playing = y_or_n_p(arg);
 	return 0;
 }
 
-static inline int parse_opt_i4(const char *arg)
+static inline int parse_opt_loop(const char *arg)
 {
 	/* --[no-]loop */
 	return set_flag(&(ctl->flags), CTLF_LIST_LOOP, arg);
 }
 
-static inline int parse_opt_i5(const char *arg)
+static inline int parse_opt_random(const char *arg)
 {
 	/* --[no-]random */
 	return set_flag(&(ctl->flags), CTLF_LIST_RANDOM, arg);
 }
 
-static inline int parse_opt_i6(const char *arg)
+static inline int parse_opt_sort(const char *arg)
 {
 	/* --[no-]sort */
 	return set_flag(&(ctl->flags), CTLF_LIST_SORT, arg);
 }
 
 #ifdef IA_ALSASEQ
-static inline int parse_opt_i7(const char *arg)
+static inline int parse_opt_background(const char *arg)
 {
 	/* --[no-]background */
 	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
 
-static inline int parse_opt_i8(const char *arg)
+static inline int parse_opt_rt_prio(const char *arg)
 {
 	/* --realtime-priority */
 	if (set_value(&opt_realtime_priority, atoi(arg), 0, 100,
@@ -3563,7 +3648,7 @@ static inline int parse_opt_i8(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_i9(const char *arg)
+static inline int parse_opt_seq_ports(const char *arg)
 {
 	/* --sequencer-ports */
 	if (set_value(&opt_sequencer_ports, atoi(arg), 1, 16,
@@ -3703,7 +3788,7 @@ static inline int parse_opt_O(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_O1(const char *arg)
+static inline int parse_opt_output_stereo(const char *arg)
 {
 	/* --output-stereo, --output-mono */
 	if (y_or_n_p(arg))
@@ -3718,7 +3803,7 @@ static inline int parse_opt_O1(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_O2(const char *arg)
+static inline int parse_opt_output_signed(const char *arg)
 {
 	/* --output-singed, --output-unsigned */
 	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg))
@@ -3727,7 +3812,7 @@ static inline int parse_opt_O2(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_O3(const char *arg)
+static inline int parse_opt_output_16bit(const char *arg)
 {
 	/* --output-16bit, --output-8bit */
 	if (set_flag(&(play_mode->encoding), PE_16BIT, arg))
@@ -3737,7 +3822,7 @@ static inline int parse_opt_O3(const char *arg)
 	return 0;
 }
 
-static inline int parse_opt_O4(const char *arg)
+static inline int parse_opt_output_format(const char *arg)
 {
 	/* --output-linear, --output-ulaw, --output-alaw */
 	switch (*arg) {
@@ -3757,7 +3842,7 @@ static inline int parse_opt_O4(const char *arg)
 	}
 }
 
-static inline int parse_opt_O5(const char *arg)
+static inline int parse_opt_output_swab(const char *arg)
 {
 	/* --[no-]output-swab */
 	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg))
