@@ -1042,6 +1042,34 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			      note_name[ent - 0x41], p, *body - 64);
 		    break;
 
+		case 0x72:	/* EQ BASS */
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, 0);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			num_events += 3;
+			break;
+
+		case 0x73:	/* EQ TREBLE */
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, 0);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			num_events += 3;
+			break;
+
+		case 0x76:	/* EQ BASS frequency */
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, 0);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			num_events += 3;
+			break;
+
+		case 0x77:	/* EQ TREBLE frequency */
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, 0);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			num_events += 3;
+			break;
+
 		default:
 		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],ent,*body);
 		    continue;
@@ -1279,6 +1307,34 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					ctl->cmsg(CMSG_INFO, VERB_NOISY,
 							"Scale Tuning %s (CH:%d %d cent)",
 							note_name[ent - 0x41], p, val[6] - 64);
+					break;
+
+				case 0x72:	/* EQ BASS */
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, 0);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					num_events += 3;
+					break;
+
+				case 0x73:	/* EQ TREBLE */
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, 0);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					num_events += 3;
+					break;
+
+				case 0x76:	/* EQ BASS frequency */
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, 0);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					num_events += 3;
+					break;
+
+				case 0x77:	/* EQ TREBLE frequency */
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, 0);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					num_events += 3;
 					break;
 
 				default:
@@ -4742,7 +4798,6 @@ void set_multi_eq_type_xg(int type)
 	p->q5 = multi_eq_block_table_xg[type + 18];
 	p->shape5 = multi_eq_block_table_xg[type + 19];
 }
-
 
 /*! recompute Multi EQ (XG) */
 void recompute_multi_eq_xg(void)

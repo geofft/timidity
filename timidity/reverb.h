@@ -106,12 +106,21 @@ typedef struct {
 
 extern void init_filter_lowpass1(filter_lowpass1 *);
 
+#ifndef PART_EQ_XG
+#define PART_EQ_XG
 /*! shelving filter */
 typedef struct {
 	double freq, gain, q;
 	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
 	int32 a1, a2, b0, b1, b2;
 } filter_shelving;
+
+struct part_eq_xg {
+	int8 bass, treble, bass_freq, treble_freq;
+	filter_shelving basss, trebles;
+	int8 valid;
+};
+#endif /* PART_EQ_XG */
 
 extern void calc_filter_shelving_high(filter_shelving *);
 extern void calc_filter_shelving_low(filter_shelving *);
@@ -264,13 +273,14 @@ extern void init_ch_delay(void);
 extern void init_eq_gs(void);
 extern void set_ch_eq_gs(register int32 *, int32);
 extern void do_ch_eq_gs(int32 *, int32);
+extern void do_ch_eq_xg(int32 *, int32, struct part_eq_xg *); 
 extern void do_multi_eq_xg(int32 *, int32);
 
 /* GS parameters of reverb effect */
 struct reverb_status_t
 {
 	/* GS parameters */
-	uint8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
+	int8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
 
 	/* for pre-calculation */
 	double level_ratio, time_ratio;
@@ -284,7 +294,7 @@ struct reverb_status_t
 struct chorus_param_t
 {
 	/* GS parameters */
-	uint8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
+	int8 chorus_macro, chorus_pre_lpf, chorus_level, chorus_feedback,
 		chorus_delay, chorus_rate, chorus_depth, chorus_send_level_to_reverb,
 		chorus_send_level_to_delay;
 
@@ -307,7 +317,7 @@ struct chorus_status_t
 struct delay_status_t
 {
 	/* GS parameters */
-	uint8 type, level, level_center, level_left, level_right,
+	int8 type, level, level_center, level_left, level_right,
 		feedback, pre_lpf, send_reverb;
     double time_center;			/* in ms */
     double time_ratio_left, time_ratio_right;		/* in pct */
@@ -324,7 +334,7 @@ struct delay_status_t
 struct eq_status_gs_t
 {
 	/* GS parameters */
-    uint8 low_freq, high_freq, low_gain, high_gain;
+    int8 low_freq, high_freq, low_gain, high_gain;
 
 	filter_shelving hsf, lsf;
 } eq_status_gs;
@@ -333,7 +343,7 @@ struct eq_status_gs_t
 struct multi_eq_xg_t
 {
 	/* XG parameters */
-	uint8 type, gain1, gain2, gain3, gain4, gain5,
+	int8 type, gain1, gain2, gain3, gain4, gain5,
 		freq1, freq2, freq3, freq4, freq5,
 		q1, q2, q3, q4, q5, shape1, shape5;
 

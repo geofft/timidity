@@ -275,6 +275,8 @@ static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
 
 static void init_voice_filter(int);
+void init_part_eq_xg(struct part_eq_xg *p);
+void recompute_part_eq_xg(struct part_eq_xg *p);
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -516,6 +518,7 @@ static void reset_nrpn_controllers(int c)
 	channel[c].temper_type = 0;
 
   init_channel_layer(c);
+  init_part_eq_xg(&(channel[c].eq_xg));
 
   /* channel pressure & polyphonic key pressure control */
   channel[c].caf_lfo1_rate_ctl = 0;
@@ -3482,12 +3485,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_multi_eq_xg();
 			break;
 		case 0x51:	/* EQ gain1 */
+			if(val > 0x4C) {val = 0x4C;}
+			else if(val < 0x34) {val = 0x34;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain1 (%d dB)", val - 0x40);
 			multi_eq_xg.gain1 = val;
 			recompute_multi_eq_xg();
 			break;
 		case 0x52:	/* EQ frequency1 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d)", (int32)eq_freq_table_xg[val]);
+			if(val > 60) {val = 60;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency1 (%d Hz)", (int32)eq_freq_table_xg[val]);
 			multi_eq_xg.freq1 = val;
 			recompute_multi_eq_xg();
 			break;
@@ -3502,12 +3508,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_multi_eq_xg();
 			break;
 		case 0x55:	/* EQ gain2 */
+			if(val > 0x4C) {val = 0x4C;}
+			else if(val < 0x34) {val = 0x34;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain2 (%d dB)", val - 0x40);
 			multi_eq_xg.gain2 = val;
 			recompute_multi_eq_xg();
 			break;
 		case 0x56:	/* EQ frequency2 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d)", (int32)eq_freq_table_xg[val]);
+			if(val > 60) {val = 60;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency2 (%d Hz)", (int32)eq_freq_table_xg[val]);
 			multi_eq_xg.freq2 = val;
 			recompute_multi_eq_xg();
 			break;
@@ -3517,12 +3526,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_multi_eq_xg();
 			break;
 		case 0x59:	/* EQ gain3 */
+			if(val > 0x4C) {val = 0x4C;}
+			else if(val < 0x34) {val = 0x34;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain3 (%d dB)", val - 0x40);
 			multi_eq_xg.gain3 = val;
 			recompute_multi_eq_xg();
 			break;
 		case 0x5A:	/* EQ frequency3 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d)", (int32)eq_freq_table_xg[val]);
+			if(val > 60) {val = 60;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency3 (%d Hz)", (int32)eq_freq_table_xg[val]);
 			multi_eq_xg.freq3 = val;
 			recompute_multi_eq_xg();
 			break;
@@ -3532,12 +3544,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_multi_eq_xg();
 			break;
 		case 0x5D:	/* EQ gain4 */
+			if(val > 0x4C) {val = 0x4C;}
+			else if(val < 0x34) {val = 0x34;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain4 (%d dB)", val - 0x40);
 			multi_eq_xg.gain4 = val;
 			recompute_multi_eq_xg();
 			break;
 		case 0x5E:	/* EQ frequency4 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d)", (int32)eq_freq_table_xg[val]);
+			if(val > 60) {val = 60;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency4 (%d Hz)", (int32)eq_freq_table_xg[val]);
 			multi_eq_xg.freq4 = val;
 			recompute_multi_eq_xg();
 			break;
@@ -3547,12 +3562,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_multi_eq_xg();
 			break;
 		case 0x61:	/* EQ gain5 */
+			if(val > 0x4C) {val = 0x4C;}
+			else if(val < 0x34) {val = 0x34;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ gain5 (%d dB)", val - 0x40);
 			multi_eq_xg.gain5 = val;
 			recompute_multi_eq_xg();
 			break;
 		case 0x62:	/* EQ frequency5 */
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d)", (int32)eq_freq_table_xg[val]);
+			if(val > 60) {val = 60;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ frequency5 (%d Hz)", (int32)eq_freq_table_xg[val]);
 			multi_eq_xg.freq5 = val;
 			recompute_multi_eq_xg();
 			break;
@@ -3797,6 +3815,10 @@ static int last_rpn_addr(int ch)
 		{0x010a, 0xffff, NRPN_ADDR_010A},
 		{0x0120, 0xffff, NRPN_ADDR_0120},
 		{0x0121, 0xffff, NRPN_ADDR_0121},
+		{0x0130, 0xffff, NRPN_ADDR_0130},
+		{0x0131, 0xffff, NRPN_ADDR_0131},
+		{0x0134, 0xffff, NRPN_ADDR_0134},
+		{0x0135, 0xffff, NRPN_ADDR_0135},
 		{0x0163, 0xffff, NRPN_ADDR_0163},
 		{0x0164, 0xffff, NRPN_ADDR_0164},
 		{0x0166, 0xffff, NRPN_ADDR_0166},
@@ -3811,6 +3833,10 @@ static int last_rpn_addr(int ch)
 		{0x1d00, 0xff00, NRPN_ADDR_1D00},
 		{0x1e00, 0xff00, NRPN_ADDR_1E00},
 		{0x1f00, 0xff00, NRPN_ADDR_1F00},
+		{0x3000, 0xff00, NRPN_ADDR_3000},
+		{0x3100, 0xff00, NRPN_ADDR_3100},
+		{0x3400, 0xff00, NRPN_ADDR_3400},
+		{0x3500, 0xff00, NRPN_ADDR_3500},
 		{-1, -1, 0}
 	};
 	static struct rpn_tag_map_t rpn_addr_map[] = {
@@ -3895,6 +3921,38 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 					"Filter Resonance (CH:%d VAL:%d)", ch, val - 64);
 			channel[ch].param_resonance = val - 64;
+		}
+		break;
+	case NRPN_ADDR_0130:	/* EQ BASS */
+		if (opt_eq_control) {
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ BASS (CH:%d %.2f dB)", ch, 0.19 * (double)(val - 0x40));
+			channel[ch].eq_xg.bass = val;
+			recompute_part_eq_xg(&(channel[ch].eq_xg));
+		}
+		break;
+	case NRPN_ADDR_0131:	/* EQ TREBLE */
+		if (opt_eq_control) {
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ TREBLE (CH:%d %.2f dB)", ch, 0.19 * (double)(val - 0x40));
+			channel[ch].eq_xg.treble = val;
+			recompute_part_eq_xg(&(channel[ch].eq_xg));
+		}
+		break;
+	case NRPN_ADDR_0134:	/* EQ BASS frequency */
+		if (opt_eq_control) {
+			if(val < 4) {val = 4;}
+			else if(val > 40) {val = 40;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ BASS frequency (CH:%d %d Hz)", ch, (int32)eq_freq_table_xg[val]);
+			channel[ch].eq_xg.bass_freq = val;
+			recompute_part_eq_xg(&(channel[ch].eq_xg));
+		}
+		break;
+	case NRPN_ADDR_0135:	/* EQ TREBLE frequency */
+		if (opt_eq_control) {
+			if(val < 28) {val = 28;}
+			else if(val > 58) {val = 58;}
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ TREBLE frequency (CH:%d %d Hz)", ch, (int32)eq_freq_table_xg[val]);
+			channel[ch].eq_xg.treble_freq = val;
+			recompute_part_eq_xg(&(channel[ch].eq_xg));
 		}
 		break;
 	case NRPN_ADDR_0163:	/* Attack Time */
@@ -4050,6 +4108,30 @@ static void update_rpn_map(int ch, int addr, int update_now)
 				"Delay Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",
 				ch, note, val);
 		channel[ch].drums[note]->delay_level = val;
+		break;
+	case NRPN_ADDR_3000:	/* Drum EQ BASS */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		break;
+	case NRPN_ADDR_3100:	/* Drum EQ TREBLE */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		break;
+	case NRPN_ADDR_3400:	/* Drum EQ BASS frequency */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		break;
+	case NRPN_ADDR_3500:	/* Drum EQ TREBLE frequency */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
 		break;
 	case RPN_ADDR_0000:		/* Pitch bend sensitivity */
 		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
@@ -5108,7 +5190,7 @@ static void do_compute_data_midi(int32 count)
 
 	/* is EQ valid? */
 	channel_eq = opt_eq_control && (eq_status_gs.low_gain != 0x40 || eq_status_gs.high_gain != 0x40 ||
-		multi_eq_xg.valid);
+		play_system_mode == XG_SYSTEM_MODE);
 
 	channel_effect = (stereo && (channel_reverb || channel_chorus
 			|| channel_delay || channel_eq || opt_insertion_effect));
@@ -5134,7 +5216,8 @@ static void do_compute_data_midi(int32 count)
 				vpblist[i] = insertion_effect_buffer;
 			} else if(channel[i].eq_on || (channel[i].reverb_level >= 0
 					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT)
-					|| channel[i].chorus_level > 0 || channel[i].delay_level > 0) {
+					|| channel[i].chorus_level > 0 || channel[i].delay_level > 0
+					|| channel[i].eq_xg.valid) {
 				vpblist[i] = (int32*)(reverb_buffer + buf_index);
 				buf_index += n;
 			} else {
@@ -5183,6 +5266,9 @@ static void do_compute_data_midi(int32 count)
 			int32 *p;	
 			p = vpblist[i];
 			if(p != buffer_pointer) {
+				if(channel_eq && channel[i].eq_xg.valid) {
+					do_ch_eq_xg(p, cnt, &(channel[i].eq_xg));
+				}
 				if(channel_chorus && channel[i].chorus_level > 0) {
 					set_ch_chorus(p, cnt, channel[i].chorus_level);
 				}
@@ -5207,7 +5293,7 @@ static void do_compute_data_midi(int32 count)
 		if(channel_chorus) {do_ch_chorus(buffer_pointer, cnt);}
 		if(channel_delay) {do_ch_delay(buffer_pointer, cnt);}
 		if(channel_reverb) {do_ch_reverb(buffer_pointer, cnt);}
-		if(channel_eq) {do_multi_eq_xg(buffer_pointer, cnt);}
+		if(multi_eq_xg.valid) {do_multi_eq_xg(buffer_pointer, cnt);}
 	} else if(channel_effect) {	/* GM & GS */
 		if(opt_insertion_effect) { 	/* insertion effect */
 			/* applying insertion effect */
@@ -7193,4 +7279,38 @@ void playmidi_tmr_reset(void)
     for(i = 0; i < MAX_CHANNELS; i++)
 	channel[i].lasttime = 0;
     play_mode->acntl(PM_REQ_PLAY_START, NULL);
+}
+
+/*! initialize Part EQ (XG) */
+void init_part_eq_xg(struct part_eq_xg *p)
+{
+	p->bass = 0x40;
+	p->treble = 0x40;
+	p->bass_freq = 0x0C;
+	p->treble_freq = 0x36;
+	p->valid = 0;
+}
+
+/*! recompute Part EQ (XG) */
+void recompute_part_eq_xg(struct part_eq_xg *p)
+{
+	int8 vbass, vtreble;
+
+	if(p->bass_freq >= 4 && p->bass_freq <= 40 && p->bass != 0x40) {
+		vbass = 1;
+		p->basss.q = 0.7;
+		p->basss.freq = eq_freq_table_xg[p->bass_freq];
+		if(p->bass == 0) {p->basss.gain = -12.0;}
+		else {p->basss.gain = 0.19 * (double)(p->bass - 0x40);}
+		calc_filter_shelving_low(&(p->basss));
+	} else {vbass = 0;}
+	if(p->treble_freq >= 28 && p->treble_freq <= 58 && p->treble != 0x40) {
+		vtreble = 1;
+		p->trebles.q = 0.7;
+		p->trebles.freq = eq_freq_table_xg[p->treble_freq];
+		if(p->treble == 0) {p->trebles.gain = -12.0;}
+		else {p->trebles.gain = 0.19 * (double)(p->treble - 0x40);}
+		calc_filter_shelving_low(&(p->trebles));
+	} else {vtreble = 0;}
+	p->valid = vbass || vtreble;
 }

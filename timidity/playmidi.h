@@ -155,6 +155,10 @@ enum rpn_data_address_t /* NRPN/RPN */
     NRPN_ADDR_010A,
     NRPN_ADDR_0120,
     NRPN_ADDR_0121,
+	NRPN_ADDR_0130,
+	NRPN_ADDR_0131,
+	NRPN_ADDR_0134,
+	NRPN_ADDR_0135,
     NRPN_ADDR_0163,
     NRPN_ADDR_0164,
     NRPN_ADDR_0166,
@@ -169,6 +173,10 @@ enum rpn_data_address_t /* NRPN/RPN */
     NRPN_ADDR_1D00,
     NRPN_ADDR_1E00,
     NRPN_ADDR_1F00,
+    NRPN_ADDR_3000,
+    NRPN_ADDR_3100,
+    NRPN_ADDR_3400,
+    NRPN_ADDR_3500,
     RPN_ADDR_0000,
     RPN_ADDR_0001,
     RPN_ADDR_0002,
@@ -178,6 +186,23 @@ enum rpn_data_address_t /* NRPN/RPN */
     RPN_ADDR_FFFF,
     RPN_MAX_DATA_ADDR
 };
+
+#ifndef PART_EQ_XG
+#define PART_EQ_XG
+/*! shelving filter */
+typedef struct {
+	double freq, gain, q;
+	int32 x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
+	int32 a1, a2, b0, b1, b2;
+} filter_shelving;
+
+/*! Part EQ (XG) */
+struct part_eq_xg {
+	int8 bass, treble, bass_freq, treble_freq;
+	filter_shelving basss, trebles;
+	int8 valid;
+};
+#endif /* PART_EQ_XG */
 
 struct DrumParts
 {
@@ -283,6 +308,8 @@ typedef struct {
 
   ChannelBitMask channel_layer;
   int port_select;
+
+  struct part_eq_xg eq_xg;
 
   int8 sysex_gs_msb_addr, sysex_gs_msb_val,
 		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;

@@ -2030,6 +2030,16 @@ void do_ch_eq_gs(int32* buf, int32 count)
 	}
 }
 
+void do_ch_eq_xg(int32* buf, int32 count, struct part_eq_xg *p)
+{
+	if(p->bass - 0x40 != 0) {
+		do_shelving_filter_stereo(buf, count, &(p->basss));
+	}
+	if(p->treble - 0x40 != 0) {
+		do_shelving_filter_stereo(buf, count, &(p->trebles));
+	}
+}
+
 void do_multi_eq_xg(int32* buf, int32 count)
 {
 	if(multi_eq_xg.valid1) {
