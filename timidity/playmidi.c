@@ -3285,10 +3285,56 @@ void midi_program_change(int ch, int prog)
 	case XG_SYSTEM_MODE:	/* XG */
 		switch (channel[ch].bank_msb) {
 		case 0:		/* Normal */
+#if 0
 			if (ch == 9 && channel[ch].bank_lsb == 127
 					&& channel[ch].mapID == XG_DRUM_MAP)
 				/* FIXME: Why this part is drum?  Is this correct? */
 				break;
+#endif
+/* Eric's explanation for the FIXME (March 2004):
+ *
+ * I don't have the original email from my archived inbox, but I found a
+ * reply I made in my archived sent-mail from 1999.  A September 5th message
+ * to Masanao Izumo is discussing a problem with a "reapxg.mid", a file which
+ * I still have, and how it issues an MSB=0 with a program change on ch 9, 
+ * thus turning it into a melodic channel.  The strange thing is, this doesn't
+ * happen on XG hardware, nor on the XG softsynth.  It continues to play as a
+ * normal drum.  The author of the midi file obviously intended it to be
+ * drumset 16 too.  The original fix was to detect LSB == -1, then break so
+ * as to not set it to a melodic channel.  I'm guessing that this somehow got
+ * mutated into checking for 127 instead, and the current FIXME is related to
+ * the original hack from Sept 1999.  The Sept 5th email discusses patches
+ * being applied to version 2.5.1 to get XG drums to work properly, and a
+ * Sept 7th email to someone else discusses the fixes being part of the
+ * latest 2.6.0-beta3.  A September 23rd email to Masanao Izumo specifically
+ * mentions the LSB == -1 hack (and reapxg.mid not playing "correctly"
+ * anymore), as well as new changes in 2.6.0 that broke a lot of other XG
+ * files (XG drum support was extremely buggy in 1999 and we were still trying
+ * to figure out how to initialize things to reproduce hardware behavior).  An
+ * October 5th email says that 2.5.1 was correct, 2.6.0 had very broken XG
+ * drum changes, and 2.6.1 still has problems.  Further discussions ensued
+ * over what was "correct": to follow the XG spec, or to reproduce
+ * "features" / bugs in the hardware.  I can't find the rest of the
+ * discussions, but I think it ended with us agreeing to just follow the spec
+ * and not try to reproduce the hardware strangeness.  I don't know how the
+ * current FIXME wound up the way it is now.  I'm still going to guess it is
+ * related to the old reapxg.mid hack.
+ *
+ * Now that reset_midi() initializes channel[ch].bank_lsb to 0 instead of -1,
+ * checking for LSB == -1 won't do anything anymore, so changing the above
+ * FIXME to the original == -1 won't do any good.  It is best to just #if 0
+ * it out and leave it here as a reminder that there is at least one XG
+ * hardware / softsynth "bug" that is not reproduced by timidity at the
+ * moment.
+ *
+ * If the current FIXME actually reproduces some other XG hadware bug that
+ * I don't know about, then it may have a valid purpose.  I just don't know
+ * what that purpose is at the moment.  Perhaps someone else does?  I still
+ * have src going back to 2.10.4, and the FIXME comment was already there by
+ * then.  I don't see any entries in the Changelog that could explain it
+ * either.  If someone has src from 2.5.1 through 2.10.3 and wants to
+ * investigate this further, go for it :)
+ */
 			midi_drumpart_change(ch, 0);
 			channel[ch].mapID = XG_NORMAL_MAP;
 			dr = ISDRUMCHANNEL(ch);

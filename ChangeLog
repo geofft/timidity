@@ -1,3 +1,8 @@
+2004-03-08  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (midi_program_change): #if 0 out the useless
+	  -1 check, formally was a kluge for XG emulation.
+
 2004-03-07  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c: Fixed GM2 drumch on program change.
