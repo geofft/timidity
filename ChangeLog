@@ -14,6 +14,7 @@
 	  Fix some initializations.
 	  Fix some free() functions.
 	  Implement opt_default_module.
+	  Fix timidity_pre_load_configuration().
 
 2004-02-02  Kentaro Sato <kentaro@ranvis.com>
 

@@ -4764,8 +4764,10 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     if((check = open(local, 0)) >= 0)
     {
 	close(check);
-	if(!read_config_file(local, 0))
+	if(!read_config_file(local, 0)) {
 	    got_a_configuration = 1;
+		return 0;
+	}
     }
 
     /* Next, try read configuration file which is in the
@@ -4781,16 +4783,20 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 	    if((check = open(local, 0)) >= 0)
 	    {
 		close(check);
-		if(!read_config_file(local, 0))
+		if(!read_config_file(local, 0)) {
 		    got_a_configuration = 1;
+			return 0;
+		}
 	    }
 	}
     }
 
 #else
     /* UNIX */
-    if(!read_config_file(CONFIG_FILE, 0))
-	got_a_configuration = 1;
+    if(!read_config_file(CONFIG_FILE, 0)) {
+		got_a_configuration = 1;
+		return 0;
+	}
 #endif
 
     /* Try read configuration file which is in the
