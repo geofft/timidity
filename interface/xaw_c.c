@@ -652,7 +652,11 @@ int a_pipe_read(char *buf,int bufsize) {
 
   bufsize--;
   for (i=0;i<bufsize;i++) {
-    read(pipe_in_fd,buf+i,1);
+    ssize_t len = read(pipe_in_fd,buf+i,1);
+    if (len != 1) {
+      perror("CONNECTION PROBLEM WITH XAW PROCESS");
+      exit(1);
+    }
     if (buf[i]=='\n') break;
   }
   buf[i]=0;
