@@ -1,3 +1,11 @@
+2003-09-03  URABE Shyouhei <root@mput.dip.jp>
+
+	* configure: autoreconf
+
+2003-09-02  Takashi Iwai <tiwai@suse.de>
+
+	* TiMidity.ad.in, TiMidity-uj.ad.in: Move.
+
 2003-08-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c:
