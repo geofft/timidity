@@ -1,3 +1,17 @@
+2004-10-21  Henrique de Moraes Holschuh <hmh@debian.org>
+
+	* timidity/mod2midi.c (Voice_Play,Voice_SetPeriod):
+	  improve the code path when period2note returns -1
+
+2004-10-21  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/mod2midi.c (period2note):
+	  initialize *finetune when returning a bad period
+	* timidity/mod2midi.c (load_module_samples):
+	  samples without names were causing NULL pointer reads
+	* timidity/mod2midi.c (period2note):
+	  delete extra \n
+
 2004-10-18  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* libunimod/mlutil.c (getAmigaPeriod): Avoid division by zero

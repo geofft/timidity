@@ -195,7 +195,8 @@ period2note (int period, int *finetune)
 
   if (period < 14 || period > 13696)
   {
-    ctl->cmsg(CMSG_WARNING, VERB_NOISY, "BAD period %d\n", period);
+    ctl->cmsg(CMSG_WARNING, VERB_NOISY, "BAD period %d", period);
+    *finetune = 0;
     return -1;
   }
 
@@ -266,11 +267,13 @@ Voice_SetPeriod (UBYTE v, ULONG period)
     return;
 
   new_noteon = period2note (ModV[v].period, &bend);
-#ifndef TRACE_SLIDE_NOTES
-  bend += (new_noteon - ModV[v].noteon) << 13;
-  new_noteon = ModV[v].noteon;
-#endif
-  bend = WHEEL_VALUE(bend);
+  if (new_noteon >= 0) {
+ #ifndef TRACE_SLIDE_NOTES
+    bend += (new_noteon - ModV[v].noteon) << 13;
+    new_noteon = ModV[v].noteon;
+ #endif
+    bend = WHEEL_VALUE(bend);
+  }
 
   if (ModV[v].noteon != new_noteon)
     {
@@ -330,13 +333,13 @@ Voice_Play (UBYTE v, SAMPLE * s, ULONG start)
     Voice_Stop (v);
 
   new_noteon = period2note (ModV[v].period, &bend);
-  bend = WHEEL_VALUE(bend);
   if (new_noteon < 0) {
     ctl->cmsg(CMSG_WARNING, VERB_NOISY,
 			  "Strange period %d",
 			  ModV[v].period);
     return;
   }
+  bend = WHEEL_VALUE(bend);
 
   ModV[v].noteon = new_noteon;
   ModV[v].time = at;
@@ -590,9 +593,13 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	special_patch[i]->sample = sp =
 	    (Sample *)safe_malloc(sizeof(Sample));
 	memset(sp, 0, sizeof(Sample));
-	strncpy(name, s->samplename, 22);
-	name[22] = '\0';
-	code_convert(name, NULL, 23, NULL, "ASCII");
+	memset(name, 0, 23 * sizeof(char));
+	if (s->samplename != NULL)
+	{
+	    strncpy(name, s->samplename, 22);
+	    name[22] = '\0';
+	    code_convert(name, NULL, 23, NULL, "ASCII");
+	}
 	if(name[0] == '\0')
 	    special_patch[i]->name = NULL;
 	else
