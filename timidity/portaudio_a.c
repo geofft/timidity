@@ -72,7 +72,7 @@ static unsigned int bytesPerInBuffer=0;
 static int pa_active=0;
 static int first=1;
 PaDeviceID DeviceID;
-PaDeviceInfo *DeviceInfo;
+const PaDeviceInfo *DeviceInfo;
 PortAudioStream *stream;
 PaError  err;
 typedef struct {
@@ -149,6 +149,8 @@ static int open_output(void)
 {
 	double rate;
 	int n, nrates;
+	PaSampleFormat SampleFormat,nativeSampleFormats;
+	
 	if(pa_active==0){
 		err = Pa_Initialize();
 		if( err != paNoError ) goto error;
@@ -159,14 +161,41 @@ static int open_output(void)
 		first=0;
 	}
 
-	dpm.encoding = dpm.encoding  & !((int32)PE_ULAW) & !((int32)PE_ALAW) & !((int32)PE_BYTESWAP);
+	DeviceID=Pa_GetDefaultOutputDeviceID();
+	DeviceInfo=Pa_GetDeviceInfo( DeviceID);	
+	nativeSampleFormats=DeviceInfo->nativeSampleFormats;
+
+	SampleFormat=paInt8;
+	if(dpm.encoding & PE_16BIT){
+		if(nativeSampleFormats & paInt16){ 
+			SampleFormat=paInt16;
+		}else{
+			SampleFormat=paInt8;
+			dpm.encoding &= ~((int32)PE_16BIT);
+		}
+	}
+	if(dpm.encoding & PE_24BIT){
+		if(nativeSampleFormats & paInt24){
+			SampleFormat=paInt24;
+		}else{
+			dpm.encoding &= ~((int32)PE_24BIT);
+			if(nativeSampleFormats & paInt16){
+				SampleFormat=paInt16;
+				dpm.encoding |= ((int32)PE_16BIT);
+			}else{
+				SampleFormat=paInt8;
+			}
+		}
+	}
+
+	dpm.encoding = dpm.encoding  & ~((int32)PE_ULAW) & ~((int32)PE_ALAW) & ~((int32)PE_BYTESWAP);
 	dpm.encoding = dpm.encoding|PE_SIGNED;
 	stereo=(dpm.encoding & PE_MONO)?1:2;
-	data_nbyte=(dpm.encoding & PE_16BIT)?sizeof(int16):sizeof(int8);
+	data_nbyte=(dpm.encoding & PE_16BIT)?2:1;
+	data_nbyte=(dpm.encoding & PE_24BIT)?3:data_nbyte;
 
-	DeviceID=Pa_GetDefaultOutputDeviceID();
-	DeviceInfo=Pa_GetDeviceInfo( DeviceID);
 	nrates=DeviceInfo->numSampleRates;
+
 	if(nrates!=-1){
 		rate=DeviceInfo->sampleRates[nrates-1];
 		for(n=nrates-1;n>=0;n--){
@@ -177,8 +206,10 @@ static int open_output(void)
 		if(dpm.rate < DeviceInfo->sampleRates[0]) rate=DeviceInfo->sampleRates[0];
 		if(dpm.rate > DeviceInfo->sampleRates[1]) rate=DeviceInfo->sampleRates[1];
 	}
+
 	dpm.rate=(int32)rate;
 
+	
 	pa_data.samplesToGo=0;
 	pa_data.bufpoint=pa_data.buf;
 	pa_data.bufepoint=pa_data.buf;
@@ -193,7 +224,7 @@ static int open_output(void)
     	&stream,        /* passes back stream pointer */
     	0,              /* no input channels */
     	stereo,              /* 2:stereo 1:mono output */
-    	(dpm.encoding & PE_16BIT)?paInt16:paInt8,      /* 16 bit 8bit output */
+    	SampleFormat,      /* 24bit 16bit 8bit output */
 		(double)dpm.rate,          /* sample rate */
     	framesPerBuffer,            /* frames per buffer */
     	numBuffers,              /* number of buffers, if zero then use default minimum */
