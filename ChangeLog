@@ -1,3 +1,7 @@
+2004-02-15  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/aiff_a.c: Fixed AIFC sample size field.
+
 2004-02-15  Saito <saito2@digitalme.com>
 
 	* timidity/portaudio_a.c:

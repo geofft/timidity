@@ -260,10 +260,10 @@ static int aiff_output_open(const char *fname)
   /* number of frames (dmy) */
   if(write_u32((uint32)0xffffffff) == -1) return -1;
 
-  /* bits per sample */
+  /* bits per sample (decompressed size) */
   if(dpm.encoding & PE_24BIT)
     t = 24;
-  else if(dpm.encoding & PE_16BIT)
+  else if(dpm.encoding & (PE_16BIT | PE_ULAW | PE_ALAW))
     t = 16;
   else
     t = 8;
