@@ -2292,8 +2292,9 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
     lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
-#define HEXA_CHORUS_DEPTH_DEV 1
-#define HEXA_CHORUS_DELAY_DEV 1
+#define HEXA_CHORUS_WET_LEVEL 0.3
+#define HEXA_CHORUS_DEPTH_DEV (1.0 / (20.0 + 1.0))
+#define HEXA_CHORUS_DELAY_DEV (1.0 / (20.0 * 3.0))
 
 /*! GS 0x0140: HEXA-CHORUS */
 void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
@@ -2320,19 +2321,21 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 		set_delay(buf0, 9600);
 		init_lfo(lfo, lfo->cycle, LFO_SINE);
 		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
-		info->weti = TIM_FSCALE(info->level * info->wet, 24);
-		info->depth0 = info->depth + info->depth_dev * 3 * HEXA_CHORUS_DEPTH_DEV;
-		info->depth1 = info->depth + info->depth_dev * 2 * HEXA_CHORUS_DEPTH_DEV;
-		info->depth2 = info->depth + info->depth_dev * HEXA_CHORUS_DEPTH_DEV;
-		info->depth3 = info->depth + info->depth_dev * HEXA_CHORUS_DEPTH_DEV;
-		info->depth4 = info->depth + info->depth_dev * 2 * HEXA_CHORUS_DEPTH_DEV;
-		info->depth5 = info->depth + info->depth_dev * 3 * HEXA_CHORUS_DEPTH_DEV;
-		info->pdelay0 = info->pdelay + info->pdelay_dev * 3 * HEXA_CHORUS_DELAY_DEV;
-		info->pdelay1 = info->pdelay + info->pdelay_dev * 2 * HEXA_CHORUS_DELAY_DEV;
-		info->pdelay2 = info->pdelay + info->pdelay_dev * HEXA_CHORUS_DELAY_DEV;
-		info->pdelay3 = info->pdelay + info->pdelay_dev * HEXA_CHORUS_DELAY_DEV;
-		info->pdelay4 = info->pdelay + info->pdelay_dev * 2 * HEXA_CHORUS_DELAY_DEV;
-		info->pdelay5 = info->pdelay + info->pdelay_dev * 3 * HEXA_CHORUS_DELAY_DEV;
+		info->weti = TIM_FSCALE(info->level * info->wet * HEXA_CHORUS_WET_LEVEL, 24);
+		v0 = info->depth * ((double)info->depth_dev * HEXA_CHORUS_DEPTH_DEV);
+		info->depth0 = info->depth + v0;
+		info->depth1 = info->depth;
+		info->depth2 = info->depth - v0;
+		info->depth3 = info->depth - v0;
+		info->depth4 = info->depth;
+		info->depth5 = info->depth + v0;
+		v0 = info->pdelay * ((double)info->pdelay_dev * HEXA_CHORUS_DELAY_DEV);
+		info->pdelay0 = info->pdelay + v0 * 3;
+		info->pdelay1 = info->pdelay + v0 * 2;
+		info->pdelay2 = info->pdelay + v0;
+		info->pdelay3 = info->pdelay + v0;
+		info->pdelay4 = info->pdelay + v0 * 2;
+		info->pdelay5 = info->pdelay + v0 * 3;
 		/* in this part, validation check may be necessary. */
 		info->pan0 = 64 - info->pan_dev * 3;
 		info->pan1 = 64 - info->pan_dev * 2;

@@ -1,3 +1,8 @@
+2003-12-07  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.c, timidity/readmidi.c:
+	  Fix parameters of HEXA-CHORUS.
+
 2003-12-06  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/readmidi.c, timidity/playmidi.c:

@@ -4725,7 +4725,7 @@ void set_insertion_effect_default_parameter()
 		param[1] = 0x08;
 		param[2] = 127;
 		param[3] = 5;
-		param[4] = 2;
+		param[4] = 66;
 		param[5] = 16;
 		param[15] = 64;
 		param[16] = 0x40;
@@ -4820,7 +4820,7 @@ static void *conv_gs_ie_to_hexa_chorus(struct GSInsertionEffect *ieffect, Effect
 	info->depth *= 2;
 	info->lfo0.cycle = (double)play_mode->rate / rate1_table[ieffect->parameter[1]];
 	info->pdelay_dev = ieffect->parameter[3];
-	info->depth_dev = ieffect->parameter[4];
+	info->depth_dev = ieffect->parameter[4] - 64;
 	info->pan_dev = ieffect->parameter[5];
 	info->dry = (double)(127 - ieffect->parameter[19]) / 63.0;
 	if(info->dry > 1.0) {info->dry = 1.0;}
