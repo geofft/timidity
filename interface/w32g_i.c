@@ -582,7 +582,18 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, IDM_PLAY, "Play");
 			DrawMenuBar(hwnd);
     	}
-		SetWindowPosSize(GetDesktopWindow(),hwnd,MainWndInfo.PosX, MainWndInfo.PosY );
+			{
+				RECT d_rc, w_rc;
+				GetClientRect ( GetDesktopWindow (), &d_rc );
+				GetWindowRect ( hwnd, &w_rc );
+				d_rc.right -= w_rc.right - w_rc.left;
+				d_rc.bottom -= w_rc.bottom - w_rc.top;
+				if ( MainWndInfo.PosX < d_rc.left ) MainWndInfo.PosX = d_rc.left; 
+				if ( MainWndInfo.PosX > d_rc.right ) MainWndInfo.PosX = d_rc.right; 
+				if ( MainWndInfo.PosY < d_rc.top ) MainWndInfo.PosY = d_rc.top; 
+				if ( MainWndInfo.PosY > d_rc.bottom ) MainWndInfo.PosY = d_rc.bottom; 
+				SetWindowPosSize(GetDesktopWindow(),hwnd,MainWndInfo.PosX, MainWndInfo.PosY );
+			}
 		return FALSE;
 	  HANDLE_MSG(hwnd,WM_COMMAND,MainCmdProc);
 
@@ -617,9 +628,7 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		}
 		return FALSE;
 	  case WM_MOVE:
-//		MainWndInfo.PosX = (int) LOWORD(lParam);
-//		MainWndInfo.PosY = (int) HIWORD(lParam);
-		{
+		if ( ! IsIconic(hwnd) ) {
 			RECT rc;
 			GetWindowRect(hwnd,&rc);
 			MainWndInfo.PosX = rc.left;

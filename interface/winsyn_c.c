@@ -763,31 +763,28 @@ void winplaymidi(void){
 	}else{
 		exbuse=0;
 	}
-	if(exlen!=0){
-		midi_port_number=port;
-		if(parse_sysex_event(exlbuf,exlen,&ev)){
-			if(ev.type==ME_RESET && system_mode!=DEFAULT_SYSTEM_MODE)
-				ev.a=system_mode;
+	if (exlen != 0) {
+		midi_port_number = port;
+		if (parse_sysex_event(exlbuf + 1, exlen - 1, &ev)) {
+			if (ev.type == ME_RESET && system_mode != DEFAULT_SYSTEM_MODE)
+				ev.a = system_mode;
 			change_system_mode(system_mode);
 			seq_set_time(&ev);
 			seq_play_event(&ev);
-		
 			ev.type = ME_NONE;
 			seq_set_time2(&ev);
 			seq_play_event(&ev);
 		}
-		if(ne=parse_sysex_event_multi(exlbuf,exlen, &ev)){
-			for (i = 0; i < ne; i++){
-				seq_set_time(&ev);
-				seq_play_event(&ev);
-				
-				ev.type = ME_NONE;
-				seq_set_time2(&ev);
-				seq_play_event(&ev);
+		if (ne = parse_sysex_event_multi(exlbuf + 1, exlen - 1, evm))
+			for (i = 0; i < ne; i++) {
+				seq_set_time(&evm[i]);
+				seq_play_event(&evm[i]);
+				evm[i].type = ME_NONE;
+				seq_set_time2(&evm[i]);
+				seq_play_event(&evm[i]);
 			}
-		}
-	}	
-	exlen=0;
+	}
+	exlen = 0;
 		
 	winplayevents();
 	

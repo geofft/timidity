@@ -242,14 +242,14 @@ void InitWrdWnd(HWND hParentWnd)
 	w32g_wrd_wnd.col = 25;
 	w32g_wrd_wnd.width = w32g_wrd_wnd.font_width * w32g_wrd_wnd.row; 
 	w32g_wrd_wnd.height = w32g_wrd_wnd.font_height * w32g_wrd_wnd.col; 
-	w32g_wrd_wnd.pals[W32G_WRDWND_BLACK] = 0x000000;
-	w32g_wrd_wnd.pals[W32G_WRDWND_RED] = 0xFF0000;
-	w32g_wrd_wnd.pals[W32G_WRDWND_BLUE] = 0x0000FF;
-	w32g_wrd_wnd.pals[W32G_WRDWND_PURPLE] = 0xFF00FF;
-	w32g_wrd_wnd.pals[W32G_WRDWND_GREEN] = 0x00FF00;
-	w32g_wrd_wnd.pals[W32G_WRDWND_YELLOW] = 0xFFFF00;
-	w32g_wrd_wnd.pals[W32G_WRDWND_LIGHTBLUE] = 0x00FFFF;
-	w32g_wrd_wnd.pals[W32G_WRDWND_WHITE] = 0xFFFFFF;
+	w32g_wrd_wnd.pals[W32G_WRDWND_BLACK] = RGB ( 0x00, 0x00, 0x00 );
+	w32g_wrd_wnd.pals[W32G_WRDWND_RED] = RGB ( 0xFF, 0x00, 0x00 );
+	w32g_wrd_wnd.pals[W32G_WRDWND_BLUE] = RGB ( 0x00, 0x00, 0xFF );
+	w32g_wrd_wnd.pals[W32G_WRDWND_PURPLE] = RGB ( 0xFF, 0x00, 0xFF );
+	w32g_wrd_wnd.pals[W32G_WRDWND_GREEN] = RGB ( 0x00, 0xFF, 0x00 );
+	w32g_wrd_wnd.pals[W32G_WRDWND_LIGHTBLUE] = RGB ( 0x00, 0xFF, 0xFF );
+	w32g_wrd_wnd.pals[W32G_WRDWND_YELLOW] = RGB ( 0xFF, 0xFF, 0xFF );
+	w32g_wrd_wnd.pals[W32G_WRDWND_WHITE] = RGB ( 0xFF, 0xFF, 0xFF );
 	w32g_wrd_wnd.flag = WRD_FLAG_DEFAULT;
 
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS | CS_CLASSDC;
@@ -342,12 +342,14 @@ static void wrd_graphic_terminate ( void )
 }
 
 // プレーン index のグラフィックの初期化
+static int wrd_graphic_pal_init_flag = 0;
 static void wrd_graphic_init ( HDC hdc )
 {
 	int index;
 
 	wrd_wnd_lock();
 	wrd_graphic_terminate ();
+	wrd_graphic_pal_init_flag = 0;
 	for ( index = 0; index < W32G_WRDWND_GRAPHIC_PLANE_MAX; index++ ) {
 		w32g_wrd_wnd.graphic_dib[index] = dib_create ( w32g_wrd_wnd.width, w32g_wrd_wnd.height );
 		w32g_wrd_wnd.modified_graphic[index] = TRUE;
@@ -1102,6 +1104,10 @@ void wrd_graphic_mag ( char *path, int x, int y, int s, int p )
 		return;
 	wrd_wnd_lock();
 	GdiFlush ();
+	if ( wrd_graphic_pal_init_flag == 0 ) { /* MIMPI BUG ? */
+		if ( p == 1 ) p = 0;
+		wrd_graphic_pal_init_flag = 1;
+	}
 	if ( p == 0 || p == 1 ) {
 		if ( s == 1 && x_orig == 0 && y_orig == 0 && width <= w32g_wrd_wnd.width && height <= w32g_wrd_wnd.height ) {
 			mag_load_pixel ( w32g_wrd_wnd.graphic_dib[w32g_wrd_wnd.index_active]->bits,
@@ -1800,16 +1806,16 @@ void WrdWndSetAttr98(int attr)
 		w32g_wrd_wnd.curbackcolor = W32G_WRDWND_BLACK;
 		w32g_wrd_wnd.curattr = 0;
 		break;
-	case 19:		// 緑
-		w32g_wrd_wnd.curforecolor = W32G_WRDWND_GREEN;
-		w32g_wrd_wnd.curbackcolor = W32G_WRDWND_BLACK;
-		w32g_wrd_wnd.curattr = 0;
-		break;
-	case 20:	// 紫
+	case 19:	// 紫
 		w32g_wrd_wnd.curforecolor = W32G_WRDWND_PURPLE;
 		w32g_wrd_wnd.curbackcolor = W32G_WRDWND_BLACK;
 		w32g_wrd_wnd.curattr = 0;
 		break;	
+	case 20:		// 緑
+		w32g_wrd_wnd.curforecolor = W32G_WRDWND_GREEN;
+		w32g_wrd_wnd.curbackcolor = W32G_WRDWND_BLACK;
+		w32g_wrd_wnd.curattr = 0;
+		break;
 	case 21:	// 黄色
 		w32g_wrd_wnd.curforecolor = W32G_WRDWND_YELLOW;
 		w32g_wrd_wnd.curbackcolor = W32G_WRDWND_BLACK;
@@ -1955,7 +1961,7 @@ void WrdWndPaintDo(int flag)
 	if ( flag ) InvalidateRect( w32g_wrd_wnd.hwnd,NULL, FALSE );
 	if ( GetUpdateRect(w32g_wrd_wnd.hwnd, &rc, FALSE) ) {
 		PAINTSTRUCT ps;
-		if ( wrd_wnd_lock ( 0 ) == TRUE ) {
+		if ( wrd_wnd_lock_ex ( 0 ) == TRUE ) {
 			if ( GDI_LOCK_EX(0) == 0 ) {
 				w32g_wrd_wnd.hdc = BeginPaint(w32g_wrd_wnd.hwnd, &ps);
 				BitBlt(w32g_wrd_wnd.hdc,rc.left,rc.top,rc.right,rc.bottom,w32g_wrd_wnd.hmdc,rc.left,rc.top,SRCCOPY);
