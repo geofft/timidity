@@ -1799,10 +1799,7 @@ int apply_modulation_envelope(int v)
 	if(!opt_modulation_envelope) {return 0;}
 
 	if (vp->sample->modes & MODES_ENVELOPE) {
-		if (vp->modenv_stage > 1)
-			vp->last_modenv_volume = modenv_decay_vol_table[vp->modenv_volume >> 20];
-		else
-			vp->last_modenv_volume = modenv_attack_vol_table[vp->modenv_volume >> 20];
+		vp->last_modenv_volume = modenv_vol_table[vp->modenv_volume >> 20];
 	}
 
 	recompute_voice_filter(v);

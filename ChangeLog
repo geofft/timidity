@@ -4,6 +4,8 @@
 	  Fix "force cfg reload".
 	* timidity/sndfont.c:
 	  Fix.
+	* timidity/tables.[ch], timidity/mix.c:
+	  Put together modulation envelope tables.
 
 2004-02-20  Saito <saito2@digitalme.com>
 
