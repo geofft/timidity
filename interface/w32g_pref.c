@@ -84,7 +84,7 @@ volatile int PrefWndDoing = 0;
 static void PrefSettingApply(void);
 
 static volatile int PrefWndSetOK = 0;
-static HPROPSHEETPAGE hPrefWnd;
+static HWND hPrefWnd = NULL;
 static BOOL APIENTRY CALLBACK PrefWndDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static BOOL APIENTRY PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static BOOL APIENTRY PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
@@ -218,7 +218,7 @@ void PrefWndCreate(HWND hwnd)
 			DialogBox ( hInst, MAKEINTRESOURCE(IDD_DIALOG_PREF_EN), hwnd, PrefWndDialogProc );
 			break;
 	}
-
+	hPrefWnd = NULL;
 	PrefWndSetOK = 0;
 	PrefWndDoing = 0;
 	return;
@@ -231,12 +231,12 @@ static BOOL APIENTRY CALLBACK PrefWndDialogProc(HWND hwnd, UINT uMess, WPARAM wP
 	switch (uMess){
 	case WM_INITDIALOG:
 	{
+		hPrefWnd = hwnd;
 		PrefWndCreatePage ( hwnd );
 		SendDlgItemMessage ( hwnd, IDC_TAB_MAIN, TCM_SETCURSEL, (WPARAM)0, (LPARAM)0 );
 		ShowWindow ( pref_pages[0].hwnd, TRUE );
 		return TRUE;
 	}
-
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDOK:
@@ -455,6 +455,25 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				if(filename[0]!='\0')
 						SetDlgItemText(hwnd,IDC_EDIT_CONFIG_FILE,TEXT(filename));
 	   }
+			break;
+		case IDC_BUTTON_CFG_RELOAD:
+		{
+			int i;
+			for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+				SendMessage ( pref_pages[i].hwnd, WM_MYSAVE, (WPARAM)0, (LPARAM)0 );
+			}
+			free_instrument_map();
+			clean_up_pathlist();
+//	    free_instruments(0);  // error
+			tmdy_free_config();
+			timidity_start_initialize();
+			read_config_file ( sp_temp->ConfigFile, 0 );
+			PrefSettingApply();
+#ifndef IA_W32G_SYN
+			TracerWndApplyQuietChannel(st_temp->quietchannels);
+#endif
+			SetWindowLong(hwnd,	DWL_MSGRESULT, TRUE);
+		}
 			break;
 		case IDC_RADIOBUTTON_JAPANESE:
 		case IDC_RADIOBUTTON_ENGLISH:

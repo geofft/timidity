@@ -1,4 +1,17 @@
 
+2003-05-05  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Fix in modify-release (pseudo-reverb).
+
+2003-05-04  Daisuke Aoki <dai@sweetparty.ne.jp>
+
+	* timidity/instrum.c, timidity/playmidi.c, timidity/playmidi.c,
+	  interface/w32g_ut2.[ch], interface/w32g_subwin.c,
+	  interface/w32g_subwin3.c, interface/w32g_pref.c, interface/w32g_res.[h,rc]:
+	  Fix around Win32 GUI.
+	  Support for dynamic cfg changing experimentally.
+	  
 2003-05-03  Saito <timidity@flashmail.com>
 
 	* timidity/mix.c, timidity/playmidi.[ch],

@@ -1043,19 +1043,24 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	if (elm->envratenum) {
 		free_ptr_list(elm->envrate, elm->envratenum);
 		elm->envrate = NULL;
+		elm->envratenum = 0;
 	}
 	if (elm->envofsnum) {
 		free_ptr_list(elm->envofs, elm->envofsnum);
 		elm->envofs = NULL;
+		elm->envofsnum = 0;
 	}
 	if (elm->tremnum) {
 		free_ptr_list(elm->trem, elm->tremnum);
 		elm->trem = NULL;
+		elm->tremnum = 0;
 	}
 	if (elm->vibnum) {
 		free_ptr_list(elm->vib, elm->vibnum);
 		elm->vib = NULL;
+		elm->vibnum = 0;
 	}
+	elm->instype = 0;
 }
 
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)

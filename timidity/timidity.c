@@ -905,8 +905,10 @@ static void copybank(ToneBank *to, ToneBank *from)
 
 	if(toelm->name)
 	    free(toelm->name);
+	toelm->name = NULL;
 	if(toelm->comment)
 	    free(toelm->comment);
+	toelm->comment = NULL;
 	memcpy(toelm, fromelm, sizeof(ToneBankElement));
 	if(toelm->name)
 	    toelm->name = safe_strdup(toelm->name);
@@ -919,6 +921,7 @@ static void copybank(ToneBank *to, ToneBank *from)
 	toelm->envratenum = toelm->envofsnum = 0;
 	toelm->trem = toelm->vib = NULL;
 	toelm->tremnum = toelm->vibnum = 0;
+	toelm->instype = 0;
     }
 }
 
@@ -1016,6 +1019,7 @@ static Quantity **config_parse_modulation(const char *name, int line, const char
 				ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: %s: parameter %d of item %d: %s (%s)",
 						name, line, qtypestr[mod_type], j+1, i+1, err, buf);
 				free_ptr_list(mod_list, *num);
+				mod_list = NULL;
 				*num = 0;
 				return NULL;
 			}
@@ -1205,11 +1209,17 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
     tone->tva_level = -1;
 }
 
+#define SET_GUS_PATCHCONF_COMMENT
 static int set_gus_patchconf(char *name, int line,
 			     ToneBankElement *tone, char *pat, char **opts)
 {
     int j;
+#ifdef SET_GUS_PATCHCONF_COMMENT
+		char *old_name = NULL;
 
+		if(tone != NULL && tone->name != NULL)
+			old_name = safe_strdup(tone->name);
+#endif
     reinit_tone_bank_element(tone);
 
     if(strcmp(pat, "%font") == 0) /* Font extention */
@@ -1277,8 +1287,20 @@ static int set_gus_patchconf(char *name, int line,
 	if((err = set_gus_patchconf_opts(name, line, opts[j], tone)) != 0)
 	    return err;
     }
+#ifdef SET_GUS_PATCHCONF_COMMENT
+		if(tone->comment == NULL ||
+			(old_name != NULL && strcmp(old_name,tone->comment) == 0))
+		{
+			if(tone->comment != NULL )
+				free(tone->comment);
+			tone->comment = safe_strdup(tone->name);
+		}
+		if(old_name != NULL)
+			free(old_name);
+#else
     if(tone->comment == NULL)
 	tone->comment = safe_strdup(tone->name);
+#endif
     return 0;
 }
 
@@ -1758,6 +1780,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		free(bank->tone[i].comment);
 		bank->tone[i].comment = NULL;
 	    }
+			bank->tone[i].instype = 0;
 	}
 	/* #extension altassign numbers... */
 	else if(strcmp(w[0], "altassign") == 0)
@@ -2400,18 +2423,30 @@ MAIN_INTERFACE void tmdy_free_config(void)
       elm = &bank->tone[j];
       if (elm->name)
 	free(elm->name);
+	elm->name = NULL;
       if (elm->comment)
 	free(elm->comment);
+	elm->comment = NULL;
 	if (elm->tune)
 		free(elm->tune);
+	elm->tune = NULL;
 	if (elm->envrate)
 		free_ptr_list(elm->envrate, elm->envratenum);
+	elm->envrate = NULL;
+	elm->envratenum = 0;
 	if (elm->envofs)
 		free_ptr_list(elm->envofs, elm->envofsnum);
+	elm->envofs = NULL;
+	elm->envofsnum = 0;
 	if (elm->trem)
 		free_ptr_list(elm->trem, elm->tremnum);
+	elm->trem = NULL;
+	elm->tremnum = 0;
 	if (elm->vib)
 		free_ptr_list(elm->vib, elm->vibnum);
+	elm->vib = NULL;
+	elm->vibnum = 0;
+	elm->instype = 0;
     }
     if (i > 0) {
       free(bank);
@@ -2427,18 +2462,30 @@ MAIN_INTERFACE void tmdy_free_config(void)
       elm = &bank->tone[j];
       if (elm->name)
 	free(elm->name);
+	elm->name = NULL;
       if (elm->comment)
 	free(elm->comment);
+	elm->comment = NULL;
 	if (elm->tune)
 		free(elm->tune);
+	elm->tune = NULL;
 	if (elm->envrate)
 		free_ptr_list(elm->envrate, elm->envratenum);
+	elm->envrate = NULL;
+	elm->envratenum = 0;
 	if (elm->envofs)
 		free_ptr_list(elm->envofs, elm->envofsnum);
+	elm->envofs = NULL;
+	elm->envofsnum = 0;
 	if (elm->trem)
 		free_ptr_list(elm->trem, elm->tremnum);
+	elm->trem = NULL;
+	elm->tremnum = 0;
 	if (elm->vib)
 		free_ptr_list(elm->vib, elm->vibnum);
+	elm->vib = NULL;
+	elm->vibnum = 0;
+	elm->instype = 0;
     }
     if (i > 0) {
       free(bank);

@@ -194,6 +194,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl);
 static void set_rootfreq(SampleList *vp);
 static int32 to_offset(int32 offset);
 static int32 to_rate(int32 diff, int timecent);
+static int32 calc_rate(int32 diff, double msec);
 static double to_msec(int timecent);
 static int32 calc_sustain(int sust_cB);
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl);
@@ -497,6 +498,23 @@ static int32 to_offset(int32 offset)
 
 #define SF_ENVRATE_MAX (double)(0x40000000)
 #define SF_ENVRATE_MIN (double)(1L)
+
+/* calculate ramp rate in fractional unit;
+ * diff = 16bit, time = msec
+ */
+static int32 calc_rate(int32 diff, double msec)
+{
+    double rate;
+
+    if(msec == 0) {return (int32)SF_ENVRATE_MAX + 1;}
+    if(diff <= 0) {diff = 1;}
+    diff <<= 14;
+    rate = ((double)diff / play_mode->rate) * control_ratio * 1000.0 / msec;
+    if(fast_decay) {rate *= 2;}
+	if(rate > SF_ENVRATE_MAX) {rate = SF_ENVRATE_MAX;}
+	else if(rate < SF_ENVRATE_MIN) {rate = SF_ENVRATE_MIN;}
+    return (int32)rate;
+}
 
 /* calculate ramp rate in fractional unit;
  * diff = 16bit, timecent
@@ -1518,7 +1536,7 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
     vp->decay   = to_rate(65533 - vp->sustain, tbl->val[SF_decayEnv2]);
     if(modify_release) /* Pseudo Reverb */
-	vp->release = modify_release;
+	vp->release = calc_rate(65535, modify_release);
     else
 	vp->release = to_rate(65535, tbl->val[SF_releaseEnv2]);
 	vp->v.envelope_delay = play_mode->rate * 
@@ -1529,7 +1547,7 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
     vp->modsustain = calc_sustain(tbl->val[SF_sustainEnv1]);
     vp->moddecay   = to_rate(65533 - vp->modsustain, tbl->val[SF_decayEnv1]);
     if(modify_release) /* Pseudo Reverb */
-	vp->modrelease = modify_release;
+	vp->modrelease = calc_rate(65535, modify_release);
     else
 	vp->modrelease = to_rate(65535, tbl->val[SF_releaseEnv1]);
 	vp->v.modenv_delay = play_mode->rate * 

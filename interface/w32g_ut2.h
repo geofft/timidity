@@ -62,7 +62,9 @@ typedef struct LISTWNDINFO_ {
 	HMENU hPopupMenu;
 	HWND hwndListBox;
 	HFONT hFontListBox;
-	char fontName[64];			// save parameter
+	char *fontName;
+	char fontNameJA[64];			// save parameter
+	char fontNameEN[64];			// save parameter
 	int fontWidth;				// save parameter
 	int fontHeight;				// save parameter
 	int fontFlags;			// save parameter
@@ -94,7 +96,9 @@ typedef struct DOCWNDINFO_ {
 	HMENU hPopupMenu;
 	HWND hwndEdit;
 	HFONT hFontEdit;
-	char fontName[64];			// save parameter
+	char *fontName;
+	char fontNameJA[64];			// save parameter
+	char fontNameEN[64];			// save parameter
 	int fontWidth;				// save parameter
 	int fontHeight;				// save parameter
 	int fontFlags;			// save parameter

@@ -1001,10 +1001,17 @@ static int tracer_ch_program_draw ( int ch, int bank, int program, char *instrum
 
 	if ( instrument == NULL )
 		instrument = " ----";
-	if ( w32g_tracer_wnd.instrument[ch] != instrument ) { 
-		w32g_tracer_wnd.instrument[ch][0] = ' ';
-		strncpy ( w32g_tracer_wnd.instrument[ch] + 1, (char *)instrument, 250 );
+	if ( w32g_tracer_wnd.instrument[ch] != instrument ) {
+		strncpy ( w32g_tracer_wnd.instrument[ch], (char *)instrument, 250 );
 		w32g_tracer_wnd.instrument[ch][250] = '\0';
+	}
+	if ( w32g_tracer_wnd.instrument[ch][0] != ' ' ) {
+		char buff[255];
+		strncpy ( buff, w32g_tracer_wnd.instrument[ch], 250 );
+		buff[250] = '\0';
+		w32g_tracer_wnd.instrument[ch][0] = ' ';
+		w32g_tracer_wnd.instrument[ch][1] = '\0';
+		strcat ( w32g_tracer_wnd.instrument[ch], buff );
 	}
 	if ( get_ch_rc ( ch, &rc, &w32g_tracer_wnd.rc_instrument ) == 0 )
 		cheap_string_view_draw ( &rc, w32g_tracer_wnd.instrument[ch], C_TEXT_FORE, C_TEXT_BACK, CSV_LEFT, lockflag );

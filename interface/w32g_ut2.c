@@ -225,7 +225,8 @@ int INISaveListWnd(void)
 		sprintf(buffer,"%d",ListWndInfo.Height);
 		WritePrivateProfileString(section,"Height",buffer,inifile);
 	}
-	WritePrivateProfileString(section,"fontName",ListWndInfo.fontName,inifile);
+	WritePrivateProfileString(section,"fontNameEN",ListWndInfo.fontNameEN,inifile);
+	WritePrivateProfileString(section,"fontNameJA",ListWndInfo.fontNameJA,inifile);
 	sprintf(buffer,"%d",ListWndInfo.fontWidth);
 	WritePrivateProfileString(section,"fontWidth",buffer,inifile);
 	sprintf(buffer,"%d",ListWndInfo.fontHeight);
@@ -250,8 +251,10 @@ int INILoadListWnd(void)
 	if(num!=-1) ListWndInfo.Width = num;
 	num = GetPrivateProfileInt(section,"Height",-1,inifile);
 	if(num!=-1) ListWndInfo.Height = num;
-	GetPrivateProfileString(section,"fontName","",buffer,32,inifile);
-	if(buffer[0]!=0) strcpy(ListWndInfo.fontName,buffer);
+	GetPrivateProfileString(section,"fontNameEN","",buffer,32,inifile);
+	if(buffer[0]!=0) strcpy(ListWndInfo.fontNameEN,buffer);
+	GetPrivateProfileString(section,"fontNameJA","",buffer,32,inifile);
+	if(buffer[0]!=0) strcpy(ListWndInfo.fontNameJA,buffer);
 	num = GetPrivateProfileInt(section,"fontWidth",-1,inifile);
 	if(num!=-1) ListWndInfo.fontWidth = num;
 	num = GetPrivateProfileInt(section,"fontHeight",-1,inifile);
@@ -285,7 +288,8 @@ int INISaveDocWnd(void)
 		sprintf(buffer,"%d",DocWndInfo.Height);
 		WritePrivateProfileString(section,"Height",buffer,inifile);
 	}
-	WritePrivateProfileString(section,"fontName",DocWndInfo.fontName,inifile);
+	WritePrivateProfileString(section,"fontNameEN",DocWndInfo.fontNameEN,inifile);
+	WritePrivateProfileString(section,"fontNameJA",DocWndInfo.fontNameJA,inifile);
 	sprintf(buffer,"%d",DocWndInfo.fontWidth);
 	WritePrivateProfileString(section,"fontWidth",buffer,inifile);
 	sprintf(buffer,"%d",DocWndInfo.fontHeight);
@@ -310,8 +314,10 @@ int INILoadDocWnd(void)
 	if(num!=-1) DocWndInfo.Width = num;
 	num = GetPrivateProfileInt(section,"Height",-1,inifile);
 	if(num!=-1) DocWndInfo.Height = num;
-	GetPrivateProfileString(section,"fontName","",buffer,32,inifile);
-	if(buffer[0]!=0) strcpy(DocWndInfo.fontName,buffer);
+	GetPrivateProfileString(section,"fontNameEN","",buffer,32,inifile);
+	if(buffer[0]!=0) strcpy(DocWndInfo.fontNameEN,buffer);
+	GetPrivateProfileString(section,"fontNameJA","",buffer,32,inifile);
+	if(buffer[0]!=0) strcpy(DocWndInfo.fontNameJA,buffer);
 	num = GetPrivateProfileInt(section,"fontWidth",-1,inifile);
 	if(num!=-1) DocWndInfo.fontWidth = num;
 	num = GetPrivateProfileInt(section,"fontHeight",-1,inifile);

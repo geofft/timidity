@@ -1227,6 +1227,7 @@ void free_special_patch(int id)
 
 	    if(special_patch[i]->name != NULL)
 		free(special_patch[i]->name);
+			special_patch[i]->name = NULL;
 	    n = special_patch[i]->samples;
 	    sp = special_patch[i]->sample;
 	    if(sp)

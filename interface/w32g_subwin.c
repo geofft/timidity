@@ -838,19 +838,18 @@ static int ListWndInfoReset(HWND hwnd)
 	ListWndInfo.hwnd = hwnd;
 	if ( hwnd != NULL )
 		ListWndInfo.hwndListBox = GetDlgItem(hwnd,IDC_LISTBOX_PLAYLIST);
+	strcpy(ListWndInfo.fontNameEN,"Times New Roman");
+	strcpy(ListWndInfo.fontNameJA,"‚l‚r –¾’©");
+	ListWndInfo.fontHeight = 12;
+	ListWndInfo.fontWidth = 6;
+	ListWndInfo.fontFlags = FONT_FLAGS_FIXED;
 	switch(PlayerLanguage){
 	case LANGUAGE_ENGLISH:
-		strcpy(ListWndInfo.fontName,"Times New Roman");
-		ListWndInfo.fontHeight = 12;
-		ListWndInfo.fontWidth = 6;
-		ListWndInfo.fontFlags = FONT_FLAGS_NONE;
+		ListWndInfo.fontName = ListWndInfo.fontNameEN;
 		break;
 	default:
 	case LANGUAGE_JAPANESE:
-		strcpy(ListWndInfo.fontName,"‚l‚r –¾’©");
-		ListWndInfo.fontHeight = 12;
-		ListWndInfo.fontWidth = 6;
-		ListWndInfo.fontFlags = FONT_FLAGS_FIXED;
+		ListWndInfo.fontName = ListWndInfo.fontNameJA;
 		break;
 	}
 	return 0;
@@ -1196,20 +1195,19 @@ static int DocWndInfoReset2(HWND hwnd)
 	DocWndInfo.hPopupMenu = NULL;
 	DocWndInfo.hwnd = hwnd;
 	if ( hwnd != NULL )
-		DocWndInfo.hwndEdit = GetDlgItem(hwnd,IDC_EDIT);
+	DocWndInfo.hwndEdit = GetDlgItem(hwnd,IDC_EDIT);
+	strcpy(DocWndInfo.fontNameEN,"Times New Roman");
+	strcpy(DocWndInfo.fontNameJA,"‚l‚r –¾’©");
+	DocWndInfo.fontHeight = 12;
+	DocWndInfo.fontWidth = 6;
+	DocWndInfo.fontFlags = FONT_FLAGS_FIXED;
 	switch(PlayerLanguage){
 	case LANGUAGE_ENGLISH:
-		strcpy(DocWndInfo.fontName,"Times New Roman");
-		DocWndInfo.fontHeight = 12;
-		DocWndInfo.fontWidth = 6;
-		DocWndInfo.fontFlags = FONT_FLAGS_NONE;
+		DocWndInfo.fontName = DocWndInfo.fontNameEN; 
 		break;
 	default:
 	case LANGUAGE_JAPANESE:
-		strcpy(DocWndInfo.fontName,"‚l‚r –¾’©");
-		DocWndInfo.fontHeight = 12;
-		DocWndInfo.fontWidth = 6;
-		DocWndInfo.fontFlags = FONT_FLAGS_FIXED;
+		DocWndInfo.fontName = DocWndInfo.fontNameJA; 
 		break;
 	}
 	return 0;
