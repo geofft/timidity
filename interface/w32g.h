@@ -205,10 +205,12 @@ extern PanelInfo *Panel;
 #define PANELRESET_EFFECT		0x0010
 
 
-#define CANVAS_MODE_SLEEP		0x0001
-#define CANVAS_MODE_MAP			0x0002
-#define CANVAS_MODE_KEYBOARD	0x0003
-#define CANVAS_MODE_GSLCD		0x0004
+#define CANVAS_MODE_GSLCD		0x0000
+#define CANVAS_MODE_MAP16		0x0001
+#define CANVAS_MODE_MAP32		0x0002
+#define CANVAS_MODE_KBD_A		0x0003
+#define CANVAS_MODE_KBD_B		0x0004
+#define CANVAS_MODE_SLEEP		0x0005
 
 #if 0
 #define TMCCC_BLACK	RGB(0x00,0x00,0x00)
@@ -243,17 +245,6 @@ typedef struct _TmColors {
     HPEN pen;
     HBRUSH brush;
 } TmColors;
-
-// Canvas Modes
-enum {
-    TMCM_SLEEP,
-    TMCM_CHANNEL,
-    TMCM_TRACER
-// TMCM_32CHANNEL
-// TMCM_FREQUENCY
-};
-#endif
-
 
 /* w32g_i.c */
 extern int w32g_open(void);

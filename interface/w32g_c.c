@@ -221,22 +221,20 @@ static void ctl_gslcd_update(void)
 
 static void CanvasUpdateInterval(void)
 {
-    static double lasttime;
-    double t;
-
-    if(CanvasGetMode() == CANVAS_MODE_MAP)
-    {
-	t = get_current_calender_time();
-	if(t - lasttime > 0.05)
-	{
-	    CanvasReadPanelInfo(0);
-	    CanvasUpdate(0);
-	    CanvasPaint();
-	    lasttime = t;
-	} 
-	} else if (CanvasGetMode() == CANVAS_MODE_GSLCD) {
+	static double lasttime;
+	double t;
+	
+	if (CanvasGetMode() == CANVAS_MODE_MAP16
+			|| CanvasGetMode() == CANVAS_MODE_MAP32) {
+		t = get_current_calender_time();
+		if (t - lasttime > 0.05) {
+			CanvasReadPanelInfo(0);
+			CanvasUpdate(0);
+			CanvasPaint();
+			lasttime = t;
+		}
+	} else if (CanvasGetMode() == CANVAS_MODE_GSLCD)
 		ctl_gslcd_update();
-	}
 }
 
 static int ctl_drop_file(HDROP hDrop)
@@ -1246,15 +1244,14 @@ static void ctl_event(CtlEvent *e)
 	default_ctl_lyric((uint16)e->v1);
 #endif
 	break;
-      case CTLE_REFRESH:
-      	if(CanvasGetMode() == CANVAS_MODE_KEYBOARD)
-	{
-	    CanvasReadPanelInfo(0);
-	    CanvasUpdate(0);
-	    CanvasPaint();
-      	}
-
-	break;
+	case CTLE_REFRESH:
+		if (CanvasGetMode() == CANVAS_MODE_KBD_A
+				|| CanvasGetMode() == CANVAS_MODE_KBD_B) {
+			CanvasReadPanelInfo(0);
+			CanvasUpdate(0);
+			CanvasPaint();
+		}
+		break;
       case CTLE_RESET:
 	ctl_reset();
 	break;

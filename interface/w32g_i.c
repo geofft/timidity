@@ -1457,40 +1457,40 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
       }
 			break;
 		case WM_COMMAND:
- 	    	switch (LOWORD(wParam)) {
-         case IDM_CANVAS_SLEEP:
-         	CanvasChange(CANVAS_MODE_SLEEP);
-            break;
-         case IDM_CANVAS_MAP16:
+			switch (LOWORD(wParam)) {
+			case IDM_CANVAS_GSLCD:
+				CanvasChange(CANVAS_MODE_GSLCD);
+				break;
+			case IDM_CANVAS_MAP16:
 				Canvas.MapMode = CMAP_MODE_16;
-         	CanvasChange(CANVAS_MODE_MAP);
-            break;
-         case IDM_CANVAS_MAP32:
+				CanvasChange(CANVAS_MODE_MAP16);
+				break;
+			case IDM_CANVAS_MAP32:
 				Canvas.MapMode = CMAP_MODE_32;
-         	CanvasChange(CANVAS_MODE_MAP);
-            break;
-         case IDM_CANVAS_KEYBOARD:
-         	CanvasChange(CANVAS_MODE_KEYBOARD);
-            break;
-         case IDM_CANVAS_KEYBOARD_A:
+				CanvasChange(CANVAS_MODE_MAP32);
+				break;
+			case IDM_CANVAS_KEYBOARD:
+				CanvasChange(CANVAS_MODE_KBD_A);
+				break;
+			case IDM_CANVAS_KEYBOARD_A:
 				Canvas.CKPart = 1;
-         	CanvasChange(CANVAS_MODE_KEYBOARD);
-            break;
-         case IDM_CANVAS_KEYBOARD_B:
+				CanvasChange(CANVAS_MODE_KBD_A);
+				break;
+			case IDM_CANVAS_KEYBOARD_B:
 				Canvas.CKPart = 2;
-         	CanvasChange(CANVAS_MODE_KEYBOARD);
-            break;
-         case IDM_CANVAS_GSLCD:
-         	CanvasChange(CANVAS_MODE_GSLCD);
-            break;
-         case IDM_CANVAS_REDRAW:
+				CanvasChange(CANVAS_MODE_KBD_B);
+				break;
+			case IDM_CANVAS_SLEEP:
+				CanvasChange(CANVAS_MODE_SLEEP);
+				break;
+			case IDM_CANVAS_REDRAW:
 //				PanelResetPart(PANELRESET_CHANNEL);
 				CanvasReset();
-			  	CanvasClear();
+				CanvasClear();
 				CanvasReadPanelInfo(1);
 				CanvasUpdate(1);
 				CanvasPaintAll();
-            break;
+				break;
 			}
 			break;
 		default:
@@ -1612,7 +1612,7 @@ static void CanvasInit(HWND hwnd)
 	Canvas.CKCh = 16;
 	Canvas.CKPart = 1;
 	Canvas.UpdateAll = 0;
-	Canvas.Mode = MainWndInfo.CanvasMode/*CANVAS_MODE_GSLCD*/;
+	Canvas.Mode = MainWndInfo.CanvasMode;
 	Canvas.PaintDone = 0;
 	GDI_UNLOCK(); // gdi_lock
 	CanvasReset();
@@ -2437,103 +2437,113 @@ void CanvasPaintAll(void)
 
 void CanvasReset(void)
 {
-	if(!CanvasOK)
-   	return;
-	switch(Canvas.Mode){
-		case CANVAS_MODE_MAP:
-			CanvasMapReset();
-			break;
-		case CANVAS_MODE_KEYBOARD:
-			CanvasKeyboardReset();
-			break;
-		case CANVAS_MODE_GSLCD:
-			CanvasGSLCDReset();
-			break;
-		case CANVAS_MODE_SLEEP:
-		default:
-			CanvasSleepReset();
-      break;
-  }
+	if(! CanvasOK)
+		return;
+	switch (Canvas.Mode) {
+	case CANVAS_MODE_GSLCD:
+		CanvasGSLCDReset();
+		break;
+	case CANVAS_MODE_MAP16:
+	case CANVAS_MODE_MAP32:
+		CanvasMapReset();
+		break;
+	case CANVAS_MODE_KBD_A:
+	case CANVAS_MODE_KBD_B:
+		CanvasKeyboardReset();
+		break;
+	case CANVAS_MODE_SLEEP:
+	default:
+		CanvasSleepReset();
+		break;
+	}
 }
 
 void CanvasClear(void)
 {
-	if(!CanvasOK)
-   	return;
-	switch(Canvas.Mode){
-		case CANVAS_MODE_MAP:
-			CanvasMapClear();
-			break;
-		case CANVAS_MODE_KEYBOARD:
-			CanvasKeyboardClear();
-			break;
-		case CANVAS_MODE_GSLCD:
-			CanvasGSLCDClear();
-			break;
-		default:
-		case CANVAS_MODE_SLEEP:
-			CanvasSleepClear();
-      break;
-  }
+	if (! CanvasOK)
+		return;
+	switch (Canvas.Mode) {
+	case CANVAS_MODE_GSLCD:
+		CanvasGSLCDClear();
+		break;
+	case CANVAS_MODE_MAP16:
+	case CANVAS_MODE_MAP32:
+		CanvasMapClear();
+		break;
+	case CANVAS_MODE_KBD_A:
+	case CANVAS_MODE_KBD_B:
+		CanvasKeyboardClear();
+		break;
+	default:
+	case CANVAS_MODE_SLEEP:
+		CanvasSleepClear();
+		break;
+	}
 }
 
 void CanvasUpdate(int flag)
 {
-	if(!CanvasOK)
-   	return;
-	switch(Canvas.Mode){
-		case CANVAS_MODE_MAP:
-			CanvasMapUpdate(flag);
-			break;
-		case CANVAS_MODE_KEYBOARD:
-			CanvasKeyboardUpdate(flag);
-			break;
-		case CANVAS_MODE_GSLCD:
-			CanvasGSLCDUpdate(flag);
-			break;
-		default:
-		case CANVAS_MODE_SLEEP:
-			CanvasSleepUpdate(flag);
-			break;
-  }
+	if (! CanvasOK)
+		return;
+	switch (Canvas.Mode) {
+	case CANVAS_MODE_GSLCD:
+		CanvasGSLCDUpdate(flag);
+		break;
+	case CANVAS_MODE_MAP16:
+	case CANVAS_MODE_MAP32:
+		CanvasMapUpdate(flag);
+		break;
+	case CANVAS_MODE_KBD_A:
+	case CANVAS_MODE_KBD_B:
+		CanvasKeyboardUpdate(flag);
+		break;
+	default:
+	case CANVAS_MODE_SLEEP:
+		CanvasSleepUpdate(flag);
+		break;
+	}
 }
 
 void CanvasReadPanelInfo(int flag)
 {
-	if(!CanvasOK)
-   	return;
-	switch(Canvas.Mode){
-		case CANVAS_MODE_MAP:
-			CanvasMapReadPanelInfo(flag);
-			break;
-		case CANVAS_MODE_KEYBOARD:
-			CanvasKeyboardReadPanelInfo(flag);
-			break;
-		case CANVAS_MODE_GSLCD:
-			CanvasGSLCDReadPanelInfo(flag);
-			break;
-		default:
-		case CANVAS_MODE_SLEEP:
-//			CanvasSleepReadPanelInfo(flag);
-      break;
-  }
+	if (! CanvasOK)
+		return;
+	switch (Canvas.Mode) {
+	case CANVAS_MODE_GSLCD:
+		CanvasGSLCDReadPanelInfo(flag);
+		break;
+	case CANVAS_MODE_MAP16:
+	case CANVAS_MODE_MAP32:
+		CanvasMapReadPanelInfo(flag);
+		break;
+	case CANVAS_MODE_KBD_A:
+	case CANVAS_MODE_KBD_B:
+		CanvasKeyboardReadPanelInfo(flag);
+		break;
+	default:
+	case CANVAS_MODE_SLEEP:
+//		CanvasSleepReadPanelInfo(flag);
+		break;
+	}
 }
 
 void CanvasChange(int mode)
 {
-	if(mode!=0)
-   	Canvas.Mode = mode;
+	if (mode != 0)
+		Canvas.Mode = mode;
 	else {
-		if(Canvas.Mode==CANVAS_MODE_SLEEP)
-   		Canvas.Mode = CANVAS_MODE_GSLCD;
-		else if(Canvas.Mode==CANVAS_MODE_GSLCD)
-   		Canvas.Mode = CANVAS_MODE_MAP;
-		else if(Canvas.Mode==CANVAS_MODE_MAP)
-   		Canvas.Mode = CANVAS_MODE_KEYBOARD;
-		else if(Canvas.Mode==CANVAS_MODE_KEYBOARD)
-   		Canvas.Mode = CANVAS_MODE_SLEEP;
-		else
-   		Canvas.Mode = CANVAS_MODE_SLEEP;
+		if (Canvas.Mode == CANVAS_MODE_SLEEP)
+			Canvas.Mode = CANVAS_MODE_GSLCD;
+		else if (Canvas.Mode == CANVAS_MODE_GSLCD)
+			Canvas.Mode = CANVAS_MODE_MAP16;
+		else if (Canvas.Mode == CANVAS_MODE_MAP16)
+			Canvas.Mode = CANVAS_MODE_MAP32;
+		else if (Canvas.Mode == CANVAS_MODE_MAP32)
+			Canvas.Mode = CANVAS_MODE_KBD_A;
+		else if (Canvas.Mode == CANVAS_MODE_KBD_A)
+			Canvas.Mode = CANVAS_MODE_KBD_B;
+		else if (Canvas.Mode == CANVAS_MODE_KBD_B)
+			Canvas.Mode = CANVAS_MODE_SLEEP;
 	}
 	MainWndInfo.CanvasMode = Canvas.Mode;
 	CanvasReset();
