@@ -3,6 +3,8 @@
 	* timidity/sndfont.c, timidity/reverb.c:
 	  Fix delay modulation.
 	  Fix about SoundFont.
+	* timidity/playmidi.c:
+	  Improve compatibility of opt_drum_power.
 
 2003-12-30  Saito <saito2@digitalme.com>
 

@@ -749,7 +749,6 @@ void recompute_freq(int v)
 				vp->vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
 			}
 			vp->vibrato_delay = 0;
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth: %d %d",vp->vibrato_depth,depth_range); 
 		}
 
 		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
@@ -975,7 +974,12 @@ static void recompute_amp(int v)
 		if(channel[ch].drums[voice[v].note] != NULL) {
 			tempamp *= channel[ch].drums[voice[v].note]->drum_level;
 		}
-		tempamp *= (double)opt_drum_power * 0.01f;	/* global drum power */
+		if(opt_drum_power == 0) {
+			opt_drum_power = 100;
+			tempamp *= (double)opt_drum_power * 0.01f;	/* global drum power */
+		} else {
+			tempamp *= (double)opt_drum_power * 0.01f;	/* global drum power */
+		}
 	}
 
 	/* MIDI controllers amplitude control */
