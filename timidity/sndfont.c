@@ -69,7 +69,7 @@
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
-#define CUTOFF_AMPTUNING 0.6
+#define SF_EMULATE_SBLIVE
 
 /* return value */
 #define AWE_RET_OK		0	/* successfully loaded */
@@ -673,8 +673,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		    }
 		}
 
-		sample->data = (sample_t *)safe_malloc(sp->len + 2);
-		sample->data[sp->len>>1] = 0;
+		sample->data = (sample_t *)safe_malloc(sp->len + 2 * 3);
 		sample->data_alloced = 1;
 
 		ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
@@ -693,7 +692,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 
 #ifndef LITTLE_ENDIAN
 		tmp = (int16*)sample->data;
-		k = sp->len/2;
+		k = sp->len / 2;
 		for (j = 0; j < k; j++) {
 			s = LE_SHORT(*tmp);
 			*tmp++ = s;
@@ -701,7 +700,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 #endif
 		/* set a small blank loop at the tail for avoiding abnormal loop. */
 		len = sp->len / 2;
-		sample->data[len] = sample->data[len + 1] = 0;
+		sample->data[len] = sample->data[len + 1] = sample->data[len + 2] = 0;
 
 		if(sp->cutoff_freq > 0) {sample->cutoff_freq = sp->cutoff_freq;}
 		if(sp->resonance > 0) {sample->resonance = sp->resonance;}
@@ -1237,9 +1236,9 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	+ sp->endloop - vp->start;
 
     /* set data length */
-    vp->v.data_length = vp->len;
-    if(vp->v.loop_end > vp->len)
-	vp->v.loop_end = vp->len;
+    vp->v.data_length = vp->len + 1;
+    if(vp->v.loop_end > vp->len + 1)
+	vp->v.loop_end = vp->len + 1;
 
     /* Sample rate */
 	if(sp->samplerate > 50000) {sp->samplerate = 50000;}
@@ -1268,7 +1267,6 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		/* set a small blank loop at the tail for avoiding abnormal loop. */
 		vp->v.loop_start = vp->len;
 		vp->v.loop_end = vp->len + 1;
-		vp->v.data_length = vp->len + 1;
     }
 
     /* convert to fractional samples */
@@ -1420,7 +1418,11 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	int val;
 
     /* scale tuning */
+#ifdef SF_EMULATE_SBLIVE
+	vp->v.scale_tuning = 100;
+#else
 	vp->v.scale_tuning = tbl->val[SF_scaleTuning];
+#endif
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
@@ -1470,12 +1472,8 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
 	if(tbl->set[SF_lfo1ToFilterFc])
 		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
-	if(tbl->set[SF_env1ToPitch]) {
-		val = (int)tbl->val[SF_env1ToPitch];
-		if(val > 1200) {val = 1200;}
-		else if(val < -1200) {val = -1200;}
+	if(tbl->set[SF_env1ToPitch])
 		vp->v.modenv_to_pitch = val;
-	}
 	if(tbl->set[SF_env1ToFilterFc])
 		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }
@@ -1536,8 +1534,14 @@ extern int32 modify_release;
 /* volume envelope parameters */
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 {
-	double attack, hold, to_fc;
+	double attack, hold, delay, to_fc;
+#ifdef SF_EMULATE_SBLIVE
+	attack = to_msec(tbl->val[SF_attackEnv2]);
+	if(attack < 6) {attack = 6;}
+	vp->attack  = calc_rate(65535, attack);
+#else
     vp->attack  = to_rate(65535, tbl->val[SF_attackEnv2]);
+#endif
     vp->hold    = to_rate(1, tbl->val[SF_holdEnv2]);
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
     vp->decay   = to_rate(65533 - vp->sustain, tbl->val[SF_decayEnv2]);
@@ -1551,10 +1555,16 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 	/* convert modulation envelope */
 	attack = to_msec(tbl->val[SF_attackEnv1]);
 	hold = to_msec(tbl->val[SF_holdEnv1]);
+	delay = play_mode->rate * 
+		to_msec(tbl->val[SF_delayEnv1]) * 0.001;
 	to_fc = tbl->val[SF_env1ToFilterFc];
 	if(attack != 0 && to_fc / attack > 300) {
 		hold += attack;
 		attack = 0;
+	}
+	if(delay != 0 && to_fc > 1200) {
+		hold += delay;
+		delay = 0;
 	}
     vp->modattack  = calc_rate(65535, attack);
     vp->modhold    = calc_rate(1, hold);
@@ -1564,8 +1574,7 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 	vp->modrelease = calc_rate(65535, modify_release);
     else
 	vp->modrelease = to_rate(65535, tbl->val[SF_releaseEnv1]);
-	vp->v.modenv_delay = play_mode->rate * 
-		to_msec(tbl->val[SF_delayEnv1]) * 0.001;
+	vp->v.modenv_delay = delay;
 
     vp->v.modes |= MODES_ENVELOPE;
 }

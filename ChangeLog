@@ -1,3 +1,12 @@
+
+2003-05-27  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c:
+	  Bug fix in opt_realtime_playing != 2.
+	  Fix aborting with Cherry sequencer. (TWSynth version)
+	* timidity/sndfont.c:
+	  Adapt some parameters to specifications for SoundBlaster Live!.
+
 2003-05-27 Eric A. Welsh<ewelsh@ccb.wustl.edu>
 
 	* timidity/readmidi.c (parse_sysex_event_multi):

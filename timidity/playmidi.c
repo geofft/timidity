@@ -1088,8 +1088,7 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	{
 	    /* Instrument is not found.
 	       Retry to load the instrument from bank 0 */
-
-	    if((ip = bank[0]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT)
+	    if((ip = bank[0]->tone[prog].instrument) == NULL)
 		ip = bank[0]->tone[prog].instrument =
 		    load_instrument(dr, 0, prog);
 	    if(ip != NULL)
@@ -1794,7 +1793,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 	bk = channel[ch].bank;
 	if(ISDRUMCHANNEL(ch))
 	{
-	    note = e->a;
+	    note = e->a & 0x7F;
 	    instrument_map(channel[ch].mapID, &bk, &note);
 	    if(!(ip = play_midi_load_instrument(1, bk, note)))
 		return 0;	/* No instrument? Then we can't play. */
