@@ -84,8 +84,6 @@ int usleep(unsigned int useconds);
 #define DEFAULT_CHORUS_DELAY1		0.02
 #define DEFAULT_CHORUS_DELAY2		0.003
 #define CHORUS_OPPOSITE_THRESHOLD	32
-#define CHORUS_VELOCITY_TUNING1		0.7
-#define CHORUS_VELOCITY_TUNING2		0.6
 #define EOT_PRESEARCH_LEN		32
 #define SPEED_CHANGE_RATE		1.0594630943592953  /* 2^(1/12) */
 
@@ -1012,6 +1010,27 @@ static void recompute_amp(int v)
 	else
 		tempamp *= 1.35f;
 
+	/* Reduce amplitude for chorus partners.
+	 * 2x voices -> 2x power -> sqrt(2)x amplitude.
+	 * 1 / sqrt(2) = ~0.7071, which is very close to the old
+	 * CHORUS_VELOCITY_TUNING1 value of 0.7.
+	 *
+	 * The previous amp scaling for the various digital effects should
+	 * really be redone to split them into separate scalings for each
+	 * effect, rather than a single scaling if any one of them is used
+	 * (which is NOT correct).  As it is now, if partner chorus is the
+	 * only effect in use, then it is reduced in volume twice and winds
+	 * up too quiet.  Compare the output of "-EFreverb=0 -EFchorus=0",
+	 * "-EFreverb=0 -EFchorus=2", "-EFreverb=4 -EFchorus=2", and
+	 * "-EFreverb=4 -EFchorus=0" to see how the digital effect volumes
+	 * are not scaled properly.  Idealy, all the resulting output should
+	 * have the same volume, regardless of effects used.  This will
+	 * require empirically determining the amount to scale for each
+	 * individual effect.
+	 */
+    	if (voice[v].chorus_link != v)
+    	    tempamp *= 0.7071067811865f;
+
 	/* NRPN - drum instrument tva level */
 	if(ISDRUMCHANNEL(ch)) {
 		if(channel[ch].drums[voice[v].note] != NULL) {
@@ -1514,9 +1533,8 @@ static int reduce_voice_CPU(void)
     {
 	cut_notes++;
 
-	/* hack - double volume of chorus partner, fix pan */
+	/* fix pan */
 	j = voice[lowest].chorus_link;
-	voice[j].velocity <<= 1;
     	voice[j].panning = channel[voice[lowest].channel].panning;
     	recompute_amp(j);
     	apply_envelope_to_amp(j);
@@ -1715,9 +1733,8 @@ static int reduce_voice(void)
     {
 	cut_notes++;
 
-	/* hack - double volume of chorus partner, fix pan */
+	/* fix pan */
 	j = voice[lowest].chorus_link;
-	voice[j].velocity <<= 1;
     	voice[j].panning = channel[voice[lowest].channel].panning;
     	recompute_amp(j);
     	apply_envelope_to_amp(j);
@@ -2471,18 +2488,16 @@ static void new_delay_voice(int v1, int level)
 static void new_chorus_voice(int v1, int level)
 {
     int v2, ch;
-    uint8 vol;
 
     if((v2 = find_free_voice()) == -1)
 	return;
     ch = voice[v1].channel;
-    vol = voice[v1].velocity;
     voice[v2] = voice[v1];	/* copy all parameters */
 
-	/* NRPN Chorus Send Level of Drum */
-	if(ISDRUMCHANNEL(ch) && channel[ch].drums[voice[v1].note] != NULL) {
-		level *= (FLOAT_T)channel[ch].drums[voice[v1].note]->chorus_level / 127.0;
-	}
+    /* NRPN Chorus Send Level of Drum */
+    if(ISDRUMCHANNEL(ch) && channel[ch].drums[voice[v1].note] != NULL) {
+	level *= (FLOAT_T)channel[ch].drums[voice[v1].note]->chorus_level / 127.0;
+    }
 
     /* Choose lower voice index for base voice (v1) */
     if(v1 > v2)
@@ -2495,9 +2510,6 @@ static void new_chorus_voice(int v1, int level)
     /* v1: Base churos voice
      * v2: Sub chorus voice (detuned)
      */
-
-    voice[v1].velocity = (uint8)(vol * CHORUS_VELOCITY_TUNING1);
-    voice[v2].velocity = (uint8)(vol * CHORUS_VELOCITY_TUNING2);
 
     /* Make doubled link v1 and v2 */
     voice[v1].chorus_link = v2;
@@ -2546,8 +2558,8 @@ static void new_chorus_voice(int v1, int level)
 	voice[v2].delay += (int)(play_mode->rate * delay);
     }
 
-	init_voice_pan_delay(v1);
-	init_voice_pan_delay(v2);
+    init_voice_pan_delay(v1);
+    init_voice_pan_delay(v2);
 
     recompute_amp(v1);
     apply_envelope_to_amp(v1);
@@ -2568,7 +2580,7 @@ static void new_chorus_voice(int v1, int level)
 static void new_chorus_voice_alternate(int v1, int level)
 {
     int v2, ch, panlevel;
-    uint8 vol, pan;
+    uint8 pan;
     double delay;
     double freq, frac;
     int note_adjusted;
@@ -2594,11 +2606,6 @@ static void new_chorus_voice_alternate(int v1, int level)
     	v2 ^= v1;
     	v1 ^= v2;
     }
-
-    /* lower the volumes so that the two notes add to roughly the orig. vol */
-    vol = voice[v1].velocity;
-    voice[v1].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING1);
-    voice[v2].velocity  = (uint8)(vol * CHORUS_VELOCITY_TUNING1);
 
     /* Make doubled link v1 and v2 */
     voice[v1].chorus_link = v2;
