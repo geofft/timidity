@@ -3813,14 +3813,14 @@ static void VersionWnd(HWND hParentWnd)
 {
 	char VersionText[2024];
   sprintf(VersionText,
-"TiMidity++ version %s" NLS NLS
+"TiMidity++ %s" NLS NLS
 "TiMidity-0.2i by Tuukka Toivonen <tt@cgs.fi>." NLS
 "TiMidity Win32 version by Davide Moretti <dave@rimini.com>." NLS
 "TiMidity Windows 95 port by Nicolas Witczak." NLS
 "TiMidity Win32 GUI by Daisuke Aoki <dai@y7.net>." NLS
 " Japanese menu, dialog, etc by Saito <timidity@flashmail.com>." NLS
 "TiMidity++ by Masanao Izumo <mo@goice.co.jp>." NLS
-,timidity_version);
+,(strcmp(timidity_version, "current")) ? "version " : "" timidity_version);
 	MessageBox(hParentWnd, VersionText, "Version", MB_OK);
 }
 
@@ -3828,7 +3828,7 @@ static void TiMidityWnd(HWND hParentWnd)
 {
 	char TiMidityText[2024];
   sprintf(TiMidityText,
-" TiMidity++ version %s -- MIDI to WAVE converter and player" NLS
+" TiMidity++ %s -- MIDI to WAVE converter and player" NLS
 " Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>" NLS
 " Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>" NLS
 NLS
@@ -3850,7 +3850,7 @@ NLS
 " along with this program; if not, write to the Free Software" NLS
 " Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA" NLS
 ,
-timidity_version
+(strcmp(timidity_version, "current")) ? "version " : "" timidity_version
 	);
 	MessageBox(hParentWnd, TiMidityText, "TiMidity++", MB_OK);
 }

@@ -603,7 +603,9 @@ static void doit(void)
     memset(&control_fd_buffer, 0, sizeof(control_fd_buffer));
     control_fd_buffer.fd = control_fd;
 
-    send_status(220, "TiMidity++ v%s ready", timidity_version);
+    send_status(220, "TiMidity++ %s ready",
+    		(strcmp(timidity_version, "current")) ? "v" : ""
+    		timidity_version);
 
 /*    while(data_fd != -1 && control_fd != -1) */
     while(control_fd != -1)

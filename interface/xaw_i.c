@@ -675,7 +675,7 @@ static void aboutCB(Widget w,XtPointer data,XtPointer dummy) {
   char s[12],*p;
   int i;
 
-  static char *info[]= {"TiMidity++ version %s - Xaw interface",
+  static char *info[]= {"TiMidity++ %s%s - Xaw interface",
                       "- MIDI to WAVE converter and player -",
                       "by Masanao Izumo and Tomokazu Harada",
                       "modified by Yoshishige Arai"," ",NULL};
@@ -689,7 +689,9 @@ static void aboutCB(Widget w,XtPointer data,XtPointer dummy) {
                                   XtNbackground,bgcolor,NULL);
     for(i=0,p=info[0]; p!=NULL; p=info[++i]) {
       snprintf(s,sizeof(s),"about_lbl%d",i);
-      snprintf(local_buf,sizeof(local_buf),p,timidity_version);
+      snprintf(local_buf, sizeof(local_buf), p,
+      		(strcmp(timidity_version, "current")) ? "version " : "",
+      		timidity_version);
       about_lbl[i]= XtVaCreateManagedWidget(s,labelWidgetClass,popup_abox,
                                   XtNlabel,local_buf,XtNfont,((i)? labelfont:labelfont),
                                   XtNforeground,textcolor, XtNbackground,bgcolor,

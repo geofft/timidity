@@ -3481,7 +3481,7 @@ __attribute__((noreturn))
 static inline int parse_opt_h(const char *arg)
 {
 	static char *help_list[] = {
-"TiMidity++ version %s (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>",
+"TiMidity++ %s (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>",
 "The original version (C) 1995 Tuukka Toivonen <tt@cgs.fi>",
 "TiMidity is free software and comes with ABSOLUTELY NO WARRANTY.",
 "",
@@ -3727,8 +3727,8 @@ static inline int parse_opt_h(const char *arg)
 "                   112-127 : TiMidity++ specification purposes",
 		NULL
 	};
-	static char *help_args[3];
 	FILE *fp;
+	char version[16], *help_args[3];
 	int i, j;
 	char *h;
 	ControlMode *cmp, **cmpp;
@@ -3737,7 +3737,9 @@ static inline int parse_opt_h(const char *arg)
 	WRDTracer *wlp, **wlpp;
 	
 	fp = open_pager();
-	help_args[0] = timidity_version;
+	strcpy(version, (strcmp(timidity_version, "current")) ? "version " : "");
+	strcat(version, timidity_version);
+	help_args[0] = version;
 	help_args[1] = program_name;
 	help_args[2] = NULL;
 	for (i = 0, j = 0; (h = help_list[i]) != NULL; i++) {
@@ -3782,21 +3784,37 @@ static inline int parse_opt_h(const char *arg)
 "                 n:[0..4] (for 16-bit linear encoding, default is 4)" NLS, fp);
 #ifndef FIXED_RESAMPLATION
 	fputs(
-"  -EFresamp=d  Disable resamplation" NLS
-"  -EFresamp=l  Enable Linear resample algorithm" NLS
-"  -EFresamp=c  Enable C-spline resample algorithm" NLS
-"  -EFresamp=L  Enable Lagrange resample algorithm" NLS
-"  -EFresamp=n  Enable Newton resample algorithm" NLS
-"  -EFresamp=g  Enable Gauss-like resample algorithm" NLS
-"                 -EFresamp affects the behavior of -N option" NLS, fp);
-#ifdef HAVE_STRINGIZE
-#define tim_str_internal(x) #x
-#define tim_str(x) tim_str_internal(x)
-#else
-#define tim_str(x) "x"
+"  -EFresamp=d  Disable resamplation"
+#if DEFAULT_RESAMPLATION == resample_none
+			" (default)"
 #endif
-        fputs(
-            "                 default: " tim_str(DEFAULT_RESAMPLATION) NLS, fp);
+			NLS
+"  -EFresamp=l  Enable Linear resample algorithm"
+#if DEFAULT_RESAMPLATION == resample_linear
+			" (default)"
+#endif
+			NLS
+"  -EFresamp=c  Enable C-spline resample algorithm"
+#if DEFAULT_RESAMPLATION == resample_cspline
+			" (default)"
+#endif
+			NLS
+"  -EFresamp=L  Enable Lagrange resample algorithm"
+#if DEFAULT_RESAMPLATION == resample_lagrange
+			" (default)"
+#endif
+			NLS
+"  -EFresamp=n  Enable Newton resample algorithm"
+#if DEFAULT_RESAMPLATION == resample_newton
+			" (default)"
+#endif
+			NLS
+"  -EFresamp=g  Enable Gauss-like resample algorithm"
+#if DEFAULT_RESAMPLATION == resample_gauss
+			" (default)"
+#endif
+			NLS
+"                 -EFresamp affects the behavior of -N option" NLS, fp);
 #endif
 	fputs(NLS, fp);
 	fputs("Alternative TiMidity sequencer extensional mode long options:" NLS
@@ -4599,7 +4617,9 @@ __attribute__((noreturn))
 static inline int parse_opt_v(const char *arg)
 {
 	const char *version_list[] = {
-		"TiMidity++ version ", timidity_version, NLS,
+		"TiMidity++ ",
+				(strcmp(timidity_version, "current")) ? "version " : "",
+				timidity_version, NLS,
 		NLS,
 		"Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>", NLS,
 		"Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>", NLS,
@@ -4855,7 +4875,7 @@ static inline void close_pager(FILE *fp)
 static void interesting_message(void)
 {
 	printf(
-"TiMidity++ version %s -- MIDI to WAVE converter and player" NLS
+"TiMidity++ %s%s -- MIDI to WAVE converter and player" NLS
 "Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>" NLS
 "Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>" NLS
 			NLS
@@ -4877,7 +4897,8 @@ static void interesting_message(void)
 "You should have received a copy of the GNU General Public License" NLS
 "along with this program; if not, write to the Free Software" NLS
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA" NLS
-			NLS, timidity_version);
+			NLS, (strcmp(timidity_version, "current")) ? "version " : "",
+			timidity_version);
 }
 
 /* -------- functions for getopt_long ends here --------- */

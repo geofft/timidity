@@ -1,3 +1,9 @@
+2004-04-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/ncurs_c.c, interface/server_c.c, interface/slang_c.c,
+	  interface/vt100_c.c, interface/w32g_{i,syn}.c, interface/xaw_i.c,
+	  timidity/timidity.c: Fix to fit with case of "current" version
+
 2004-05-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (parse_opt_h): ditto.

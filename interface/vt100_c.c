@@ -510,7 +510,9 @@ static int ctl_open(int using_stdin, int using_stdout)
     ctl.opened=1;
 
     vt100_move(0, 0);
-    fprintf(stdout, "TiMidity++ v%s" NLS, timidity_version);
+    fprintf(stdout, "TiMidity++ %s%s" NLS,
+    		(strcmp(timidity_version, "current")) ? "v" : "",
+    		timidity_version);
     vt100_move(0, VT100_COLS-45);
     fputs("(C) 1995 Tuukka Toivonen <tt@cgs.fi>", stdout);
     vt100_move(1,0);
