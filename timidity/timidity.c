@@ -111,11 +111,7 @@
 #endif
 
 static const char *optcommands =
-		"4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:"
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) \
-		|| defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
-		"N:"
-#endif
+		"4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:"
 		"O:o:P:p:Q:q:R:S:s:T:t:UvW:"
 #ifdef __W32__
 		"w:"
@@ -194,12 +190,7 @@ static const struct option longopts[] = {
 	{ "patch-path",             required_argument, NULL, 'L' << 8 },
 	{ "pcm-file",               required_argument, NULL, 'M' << 8 },
 	{ "decay-time",             required_argument, NULL, 'm' << 8 },
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-	{ "interpolation",          no_argument,       NULL, 'N' << 8 },
-	{ "interpolation",          optional_argument, NULL, 'N' << 8 },
-#elif defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 	{ "interpolation",          required_argument, NULL, 'N' << 8 },
-#endif
 	{ "output-mode",            required_argument, NULL, 'O' << 8 },
 	{ "output-stereo",          no_argument,       NULL, 230 << 8 },
 	{ "output-mono",            no_argument,       NULL, 230 << 8 },
@@ -234,6 +225,9 @@ static const struct option longopts[] = {
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
 	{ "pure-intonation",        optional_argument, NULL, 237 << 8 },
+#ifndef FIXED_RESAMPLATION
+	{ "resample",               required_argument, NULL, 238 << 8 },
+#endif
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -323,10 +317,8 @@ static inline int parse_opt_k(const char *);
 static inline int parse_opt_L(char *);
 static inline int parse_opt_M(const char *);
 static inline int parse_opt_m(const char *);
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) \
-		|| defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+static inline int parse_opt_resample(const char *);
 static inline int parse_opt_N(const char *);
-#endif
 static inline int parse_opt_O(const char *);
 static inline int parse_opt_O1(const char *);
 static inline int parse_opt_O2(const char *);
@@ -388,18 +380,6 @@ extern struct URL_module URL_module_newsgroup;
 #ifdef HAVE_POPEN
 extern struct URL_module URL_module_pipe;
 #endif /* HAVE_POPEN */
-
-#if defined(NEWTON_INTERPOLATION)
-extern double newt_coeffs[58][58];
-extern void initialize_newton_coeffs(void);
-extern int newt_n, newt_max;
-#elif defined(GAUSS_INTERPOLATION)
-extern double newt_coeffs[58][58];
-extern void initialize_newton_coeffs(void);
-extern void initialize_gauss_table(int32 gauss_n);
-extern int gauss_n;
-extern float *gauss_table[(1<<FRACTION_BITS)];
-#endif
 
 MAIN_INTERFACE struct URL_module *url_module_list[] =
 {
@@ -2181,16 +2161,8 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		return parse_opt_M(optarg);
 	case 'm':
 		return parse_opt_m(optarg);
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) \
-		|| defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 	case 'N':
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-		no_4point_interpolation = (no_4point_interpolation) ? 0 : 1;
-		break;
-#else
 		return parse_opt_N(optarg);
-#endif
-#endif
 	case 'O':
 		return parse_opt_O(optarg);
 	case 'o':
@@ -2360,11 +2332,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_M(arg);
 	case 'm':
 		return parse_opt_m(arg);
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) \
-		|| defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 	case 'N':
 		return parse_opt_N(arg);
-#endif
 	case 'O':
 		return parse_opt_O(arg);
 	case 230:
@@ -2430,6 +2399,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z(arg);
 	case 237:
 		return parse_opt_Z1(arg);
+	case 238:
+		return parse_opt_resample(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -2627,6 +2598,9 @@ static inline int parse_opt_E(char *arg)
 					err++;
 			} else if (strncmp(arg + 1, "ns=", 3) == 0) {
 				if (parse_opt_EJ(arg + 4))
+					err++;
+			} else if (strncmp(arg + 1, "resample=", 9) == 0) {
+				if (parse_opt_resample(arg + 10))
 					err++;
 			}
 			if (err) {
@@ -3112,21 +3086,18 @@ static inline int parse_opt_h(const char *arg)
 "  -m msec    --decay-time=msec",
 "               Minimum time for a full volume sustained note to decay,",
 "                 0 disables",
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-"  -N         --interpolation",
-"                 Toggle 4-point interpolation (default on),",
-"                 Linear interpolation is used if audio queue < 99%%",
-#elif defined(NEWTON_INTERPOLATION)
-"  -N n       --interpolation=n",
-"               n'th order Newton polynomial interpolation, n=1-57 odd,",
-"                 0 disables",
-"                 Linear interpolation is used if audio queue < 99%%",
-#elif defined(GAUSS_INTERPOLATION)
-"  -N n       --interpolation=n",
-"               n+1 point Gauss-like interpolation, n=1-34 (default 25),",
-"                 0 disables",
-"                 Linear interpolation is used if audio queue < 99%%",
+#ifndef FIXED_RESAMPLATION
+"  --resample=type",
+"               Resample algorithm: none, linear, cspline, lagrange,",
+"                                   newton, gauss",
+"               Affects the behavior of -N option below",
 #endif
+"  -N n       --interpolation=n",
+"               cspline, lagrange: Toggle 4-point interpolation (default on)",
+"               newton: n'th order Newton polynomial interpolation, n=1-57 odd",
+"                       Linear interpolation is used if audio queue < 99%%",
+"               gauss:  n+1 point Gauss-like interpolation, n=1-34 (default 25)",
+"                       Linear interpolation is used if audio queue < 99%%",
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
 "  -o file    --output-file=file",
@@ -3595,50 +3566,53 @@ static inline int parse_opt_m(const char *arg)
 	return 0;
 }
 
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-static inline int parse_opt_N(const char *arg)
+static inline int parse_opt_resample(const char *arg)
 {
-	no_4point_interpolation = y_or_n_p(arg);
-	return 0;
+	static char *types[] = {
+		"c",  /* cspline */
+		"la", /* lagrange */
+		"g",  /* gauss */
+		"ne", /* newton */
+		"li", /* linear */
+		"no", /* none */
+	};
+	int i;
+
+	for (i = 0; i < (int)(sizeof(types)/sizeof(types[0])); i++) {
+		if (strncmp(arg, types[i], strlen(types[i])) == 0) {
+			set_current_resampler(i);
+			return 0;
+		}
+	}
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		  "invalid resample type %s", arg);
+	return 1;
 }
-#elif defined(NEWTON_INTERPOLATION)
+
 static inline int parse_opt_N(const char *arg)
 {
-	if (atoi(arg)) {
-		if (set_value(&newt_n, atoi(arg), 1, 56,
-				"Newton interpolation -N value"))
-			return 1;
-		if (newt_n % 2) {
+	int val;
+
+	switch (get_current_resampler()) {
+	case RESAMPLE_CSPLINE:
+	case RESAMPLE_LAGRANGE:
+		no_4point_interpolation = y_or_n_p(arg);
+		return 0;
+	case RESAMPLE_NEWTON:
+	case RESAMPLE_GAUSS:
+		val = atoi(arg);
+		if (! val) {
+			/* set to linear interpolation for compatibility */
+			set_current_resampler(RESAMPLE_LINEAR);
+		} else if (set_resampler_parm(val)) {
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"Newton -N value must be even");
+				  "invalid -N value");
 			return 1;
 		}
-	} else {
-		newt_n = 5;
-		no_4point_interpolation = 1;
-	}
-	/* set optimal value for newt_max */
-	newt_max = newt_n * 1.57730263158 - 1.875328947;
-	if (newt_max < newt_n)
-		newt_max = newt_n;
-	if (newt_max > 57)
-		newt_max = 57;
-	return 0;
-}
-#elif defined(GAUSS_INTERPOLATION)
-static inline int parse_opt_N(const char *arg)
-{
-	if (atoi(arg)) {
-		if (set_value(&gauss_n, atoi(arg), 1, 34,
-				"Gauss interpolation -N value"))
-			return 1;
-	} else {
-		gauss_n = 5;
-		no_4point_interpolation = 1;
+		return 0;
 	}
 	return 0;
 }
-#endif
 
 static inline int parse_opt_O(const char *arg)
 {
@@ -4833,14 +4807,7 @@ int main(int argc, char **argv)
 		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 			break;
 
-#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
-    initialize_newton_coeffs();
-#endif
-#ifdef GAUSS_INTERPOLATION
-    ctl->cmsg(CMSG_INFO, VERB_NORMAL, "Initializing Gauss table...");
-    initialize_gauss_table(gauss_n);
-    ctl->cmsg(CMSG_INFO, VERB_NORMAL, "Done");
-#endif
+    initialize_resampler_coeffs();
 
     err += timidity_post_load_configuration();
 

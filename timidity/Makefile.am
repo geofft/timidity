@@ -28,6 +28,8 @@ INCLUDES = \
 
 bin_PROGRAMS = timidity
 
+noinst_PROGRAMS = calcnewt
+
 timidity_SOURCES = \
 	aenc.h \
 	aiff_a.c \
@@ -147,6 +149,10 @@ EXTRA_timidity_SOURCES = \
 	w32g_vorbis_dll.c \
 	w32g_ogg_dll.c
 
+calcnewt_SOURCES = calcnewt.c
+
+CLEANFILES = newton_table.c
+
 if ENABLE_W32GUI
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 else
@@ -179,6 +185,11 @@ timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
 
 version.o: version.c ../configure
 	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
+
+resample.c: newton_table.c
+
+newton_table.c: calcnewt
+	./calcnewt > $@
 
 $(top_builddir)/interface/libinterface.a $(W32GUI_RES):
 	cd $(top_builddir)/interface; $(MAKE)

@@ -27,9 +27,28 @@
 #include "config.h"
 #endif
 
-#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
-extern double newt_coeffs[58][58];
-#endif
+enum {
+	RESAMPLE_CSPLINE,
+	RESAMPLE_LAGRANGE,
+	RESAMPLE_GAUSS,
+	RESAMPLE_NEWTON,
+	RESAMPLE_LINEAR,
+	RESAMPLE_NONE
+};
+
+extern int get_current_resampler(void);
+extern int set_current_resampler(int type);
+extern void initialize_resampler_coeffs(void);
+extern int set_resampler_parm(int val);
+
+typedef struct resample_rec {
+	splen_t loop_start;
+	splen_t loop_end;
+	splen_t data_length;
+} resample_rec_t;
+
+extern sample_t do_resamplation(sample_t *src, splen_t ofs, resample_rec_t *rec);
+
 extern sample_t *resample_voice(int v, int32 *countptr);
 extern void pre_resample(Sample *sp);
 

@@ -61,189 +61,7 @@ static MBlockList hash_entry_pool;
 #define CACHE_RESAMPLING_OK	0
 #define CACHE_RESAMPLING_NOTOK	1
 
-#if defined(CSPLINE_INTERPOLATION)
-# define INTERPVARS_CACHE      int32 ofsi, ofsf, v0, v1, v2, v3, temp;
-# define RESAMPLATION_CACHE \
-	ofsi = ofs >> FRACTION_BITS;	\
-	v1 = src[ofsi]; \
-	v2 = src[ofsi + 1]; \
-	if(reduce_quality_flag || (ofs<ls+(1L<<FRACTION_BITS)) || \
-	   ((ofs+(2L<<FRACTION_BITS))>le)){ \
-	        dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
-	}else{ \
-	        v0 = src[ofsi - 1]; \
-	        v3 = src[ofsi + 2]; \
-	        ofsf = ofs & FRACTION_MASK; \
-	        temp=v2; \
-		v2 = (6*v2+((((5*v3 - 11*v2 + 7*v1 - v0)>>2)* \
-		     (ofsf+(1L<<FRACTION_BITS))>>FRACTION_BITS)* \
-		     (ofsf-(1L<<FRACTION_BITS))>>FRACTION_BITS)) \
-		     *ofsf; \
-		v1 = (((6*v1+((((5*v0 - 11*v1 + 7*temp - v3)>>2)* \
-		     ofsf>>FRACTION_BITS)*(ofsf-(2L<<FRACTION_BITS)) \
-		     >>FRACTION_BITS))*((1L<<FRACTION_BITS)-ofsf))+v2) \
-		     /(6L<<FRACTION_BITS); \
-		dest[i] = (v1 > 32767)? 32767: ((v1 < -32768)? -32768: v1); \
-	}
-#elif defined(LAGRANGE_INTERPOLATION)
-# define INTERPVARS_CACHE      int32 ofsi, ofsf, v0, v1, v2, v3;
-# define RESAMPLATION_CACHE \
-	ofsi = ofs >> FRACTION_BITS; \
-	v1 = (int32)src[ofsi]; \
-	v2 = (int32)src[ofsi+1]; \
-	if(reduce_quality_flag || (ofs<ls+(1L<<FRACTION_BITS)) || \
-	   ((ofs+(2L<<FRACTION_BITS))>le)){ \
-	        dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
-	}else{ \
-	    v0 = (int32)src[ofsi-1]; \
-	    v3 = (int32)src[ofsi+2]; \
-	    ofsf = ofs & FRACTION_MASK; \
-	    v3 += -3*v2 + 3*v1 - v0; \
-	    v3 *= (ofsf - (2<<FRACTION_BITS)) / 6; \
-	    v3 >>= FRACTION_BITS; \
-	    v3 += v2 - v1 - v1 + v0; \
-	    v3 *= (ofsf - (1<<FRACTION_BITS)) >> 1; \
-	    v3 >>= FRACTION_BITS; \
-	    v3 += v1 - v0; \
-	    v3 *= ofsf; \
-	    v3 >>= FRACTION_BITS; \
-	    v3 += v0; \
-	    dest[i] = (v3 > 32767)? 32767: ((v3 < -32768)? -32768: v3); \
-	}
-#elif defined(GAUSS_INTERPOLATION)
-extern float *gauss_table[(1<<FRACTION_BITS)];
-extern int gauss_n;
-# define INTERPVARS_CACHE	int32 v1, v2; \
-				sample_t *sptr; \
-				double y, xd; \
-				float *gptr, *gend; \
-				int32 left, right, temp_n; \
-				int ii, jj;
-# define RESAMPLATION_CACHE \
-	v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-	v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
-	if (reduce_quality_flag) { \
-	    dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
-	}else{ \
-	    left = (ofs>>FRACTION_BITS); \
-	    right = (sp->data_length>>FRACTION_BITS)-(ofs>>FRACTION_BITS)-1; \
-	    temp_n = (right<<1)-1; \
-	    if (temp_n <= 0) \
-		temp_n = 1; \
-	    if (temp_n > (left<<1)+1) \
-		temp_n = (left<<1)+1; \
-	    if (temp_n < gauss_n) { \
-		xd = ofs & FRACTION_MASK; \
-		xd /= (1L<<FRACTION_BITS); \
-		xd += temp_n>>1; \
-		y = 0; \
-		sptr = src + (ofs>>FRACTION_BITS) - (temp_n>>1); \
-		for (ii = temp_n; ii;) { \
-		    for (jj = 0; jj <= ii; jj++) \
-			y += sptr[jj] * newt_coeffs[ii][jj]; \
-		    y *= xd - --ii; \
-		} y += *sptr; \
-	    }else{ \
-		y = 0; \
-		gptr = gauss_table[ofs&FRACTION_MASK]; \
-		gend = gptr + gauss_n; \
-		sptr = src + (ofs>>FRACTION_BITS) - (gauss_n>>1); \
-		do { \
-		    y += *(sptr++) * *(gptr++); \
-		} while (gptr <= gend); \
-	    } \
-	    dest[i] = (y > 32767)? 32767: ((y < -32768)? -32768: y); \
-	}
-#elif defined(NEWTON_INTERPOLATION)
-extern int32 newt_n, newt_old_trunc_x;
-extern int newt_grow, newt_max;
-extern double newt_divd[60][60];
-extern double newt_recip[60];
-extern sample_t *newt_old_src;
-# define INTERPVARS_CACHE	int n_new, n_old; \
-				int32 v1, v2, diff; \
-				sample_t *sptr; \
-				double y, xd; \
-				int32 left, right, temp_n; \
-				int ii, jj;
-# define RESAMPLATION_CACHE \
-	v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-	v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
-	if (reduce_quality_flag) { \
-	    dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
-	}else{ \
-	    left = (ofs>>FRACTION_BITS); \
-	    right = (sp->data_length>>FRACTION_BITS)-(ofs>>FRACTION_BITS)-1; \
-	    temp_n = (right<<1)-1; \
-	    if (temp_n <= 0) \
-		temp_n = 1; \
-	    if (temp_n > (left<<1)+1) \
-		temp_n = (left<<1)+1; \
-	    if (temp_n < newt_n) { \
-		xd = ofs & FRACTION_MASK; \
-		xd /= (1L<<FRACTION_BITS); \
-		xd += temp_n>>1; \
-		y = 0; \
-		sptr = src + (ofs>>FRACTION_BITS) - (temp_n>>1); \
-		for (ii = temp_n; ii;) { \
-		    for (jj = 0; jj <= ii; jj++) \
-			y += sptr[jj] * newt_coeffs[ii][jj]; \
-		    y *= xd - --ii; \
-		} y += *sptr; \
-	    }else{ \
-		if (newt_grow >= 0 && src == newt_old_src && \
-		   (diff = (ofs>>FRACTION_BITS) - newt_old_trunc_x) > 0){ \
-		    n_new = newt_n + ((newt_grow + diff)<<1); \
-		    if (n_new <= newt_max){ \
-			n_old = newt_n + (newt_grow<<1); \
-			newt_grow += diff; \
-			for (v1=(ofs>>FRACTION_BITS)+(n_new>>1)+1,v2=n_new; \
-			     v2 > n_old; --v1, --v2){ \
-				newt_divd[0][v2] = src[v1]; \
-			}for (v1 = 1; v1 <= n_new; v1++) \
-			    for (v2 = n_new; v2 > n_old; --v2) \
-				newt_divd[v1][v2] = (newt_divd[v1-1][v2] - \
-						     newt_divd[v1-1][v2-1]) * \
-						     newt_recip[v1]; \
-		    }else newt_grow = -1; \
-		} \
-		if (newt_grow < 0 || src != newt_old_src || diff < 0){ \
-		    newt_grow = 0; \
-		    for (v1=(ofs>>FRACTION_BITS)-(newt_n>>1),v2=0; \
-			 v2 <= newt_n; v1++, v2++){ \
-			    newt_divd[0][v2] = src[v1]; \
-		    }for (v1 = 1; v1 <= newt_n; v1++) \
-			for (v2 = newt_n; v2 >= v1; --v2) \
-			     newt_divd[v1][v2] = (newt_divd[v1-1][v2] - \
-						  newt_divd[v1-1][v2-1]) * \
-						  newt_recip[v1]; \
-		} \
-		n_new = newt_n + (newt_grow<<1); \
-		v2 = n_new; \
-		y = newt_divd[v2][v2]; \
-		xd = (double)(ofs&FRACTION_MASK) / (1L<<FRACTION_BITS) + \
-		             (newt_n>>1) + newt_grow; \
-		for (--v2; v2; --v2){ \
-		    y *= xd - v2; \
-		    y += newt_divd[v2][v2]; \
-		}y = y*xd + **newt_divd; \
-		newt_old_src = src; \
-		newt_old_trunc_x = (ofs>>FRACTION_BITS); \
-	    } \
-	    dest[i] = (y > 32767)? 32767: ((y < -32768)? -32768: y); \
-     }
-#elif defined(LINEAR_INTERPOLATION)
-#   define RESAMPLATION_CACHE \
-	  ofsi = ofs >> FRACTION_BITS;	\
-      v1 = src[ofsi];\
-      v2 = src[ofsi + 1];\
-      dest[i] = (sample_t)(v1 + (((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
-#  define INTERPVARS_CACHE int32 ofsi, v1, v2;
-#else
-/* Earplugs recommended for maximum listening enjoyment */
-#  define RESAMPLATION_CACHE dest[i] = src[ofsi];
-#  define INTERPVARS_CACHE int32 ofsi;
-#endif
+#define RESAMPLATION_CACHE dest[i] = do_resamplation(src, ofs, &resrc)
 
 static struct
 {
@@ -500,7 +318,8 @@ static int cache_resampling(struct cache_hash *p)
     Sample *sp, *newsp;
     sample_t *src, *dest;
     splen_t newlen, ofs, le, ls, ll, xls, xle;
-	int32 i, incr;
+    int32 i, incr;
+    resample_rec_t resrc;
     double a;
 
     sp = p->sp;
@@ -513,10 +332,11 @@ static int cache_resampling(struct cache_hash *p)
     if(cache_data_len + newlen + 1 > CACHE_DATA_LEN)
 	return CACHE_RESAMPLING_NOTOK;
 
-    ls = sp->loop_start;
-    le = sp->loop_end;
+    resrc.loop_start = ls = sp->loop_start;
+    resrc.loop_end = le = sp->loop_end;
+    resrc.data_length = sp->data_length;
 
-    ll = (le - ls);
+    ll = (sp->loop_end - sp->loop_start);
     dest = cache_data + cache_data_len;
     src = sp->data;
 
@@ -530,12 +350,10 @@ static int cache_resampling(struct cache_hash *p)
     {
 	for(i = 0; i < newlen; i++)
 	{
-	    INTERPVARS_CACHE
-
 	    if(ofs >= le)
 		ofs -= ll;
 
-	    RESAMPLATION_CACHE
+	    RESAMPLATION_CACHE;
 	    ofs += incr;
 	}
     }
@@ -543,8 +361,7 @@ static int cache_resampling(struct cache_hash *p)
     {
 	for(i = 0; i < newlen; i++)
 	{
-	    INTERPVARS_CACHE
-	    RESAMPLATION_CACHE
+	    RESAMPLATION_CACHE;
 	    ofs += incr;
 	}
     }

@@ -421,10 +421,8 @@ extern int effect_lr_mode;
 extern int effect_lr_delay_msec;
 extern int auto_reduce_polyphony;
 extern int play_pause_flag;
-#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 extern int reduce_quality_flag;
 extern int no_4point_interpolation;
-#endif
 extern ChannelBitMask channel_mute;
 extern int temper_type_mute;
 extern int8 current_keysig;

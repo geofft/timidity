@@ -152,65 +152,13 @@ typedef double FLOAT_T;
 #define CONTROLS_PER_SECOND 1000
 
 
-#if !defined(LINEAR_INTERPOLATION) && \
-    !defined(CSPLINE_INTERPOLATION) && \
-    !defined(LAGRANGE_INTERPOLATION) && \
-    !defined(NEWTON_INTERPOLATION) && \
-    !defined(GAUSS_INTERPOLATION) && \
-    !defined(NO_INTERPOLATION)
-/* Strongly recommended. This option increases CPU usage by half, but
-   without it sound quality is very poor. */
-/* #define LINEAR_INTERPOLATION */
+/* Default resamplation algorighm.  Define as resample_XXX, where XXX is
+   the algorithm name.  The following algorighms are available:
+   cspline, gauss, newton, linear, none. */
+#define DEFAULT_RESAMPLATION resample_gauss
 
-/* These option enable a multi-point interpolation in resampling.
-   Defining CSPLINE_INTERPOLATION cause 4-point interpolation by cubic
-   spline curve.  Defining LAGRANGE_INTERPOLATION cause 4-point
-   interpolation by Lagrange method. */
-/* #define CSPLINE_INTERPOLATION */
-
-/* Lagrange is now faster than C-spline.  Both have about the same accuracy,
-   so choose Lagrange over C-spline, since it is faster.  Technically, it is
-   really a 3rd order Newton polynomial (whereas the old Lagrange truely was
-   the Lagrange form of the polynomial).  Both Newton and Lagrange forms
-   yield the same numerical results, but the Newton form is faster.  Since
-   n'th order Newton interpolaiton is NEWTON_INTERPOLATION, it made sense to
-   just keep this labeled as LAGRANGE_INTERPOLATION, even if it really is the
-   Newton form of the polynomial. */
-/* #define LAGRANGE_INTERPOLATION */
-
-/* Defining NEWTON_INTERPOLATION causes (at least) n+1 point interpolation
-   using Newton polynomials.  n can be set with a command line option, and
-   must be an odd number from 1 to 57 (57 is as high as double precision
-   can go without precision errors).  Default n = 11 is good for a 1.533 MHz
-   Athlon.  Larger values for n require very fast processors for real time
-   playback.  Some points will be interpolated at orders > n to both increase
-   accuracy and save CPU. */
-/* #define NEWTON_INTERPOLATION */
-
-/* Very fast and accurate table based interpolation.  Better speed and higher
-   accuracy than Newton.  This isn't *quite* true Gauss interpolation; it's
-   more a slightly modified Gauss interpolation that I accidently stumbled
-   upon.  Rather than normalize all x values in the window to be in the range
-   [0 to 2*PI], it simply divides them all by 2*PI instead.  I don't know why
-   this works, but it does.  Gauss should only work on periodic data with the
-   window spanning exactly one period, so it is no surprise that regular Gauss
-   interpolation doesn't work too well on general audio data.  But dividing
-   the x values by 2*PI magically does.  Any other scaling produces degraded
-   results or total garbage.  If anyone can work out the theory behind why
-   this works so well (at first glance, it shouldn't ??), please contact me
-   (Eric A. Welsh, ewelsh@ccb.wustl.edu), as I would really like to have some
-   mathematical justification for doing this.  Despite the lack of any sound
-   theoretical basis, this method DOES result in highly accurate interpolation
-   (or possibly approximaton, not sure yet if it truly interpolates, but it
-   looks like it does).  -N 34 is as high as it can go before errors start
-   appearing.  But even at -N 34, it is more accurate than Newton at -N 57.
-   -N 34 has no problem running in realtime on my system, but -N 25 is the
-   default, since that is the optimal compromise between speed and accuracy.
-   I strongly recommend defining GAUSS_INTERPOLATION.  It is the highest
-   quality interpolation option available, and is much faster than using
-   Newton polynomials. */
-#define GAUSS_INTERPOLATION
-#endif
+/* Don't allow users to choose the resamplation algorithm. */
+/* #define FIXED_RESAMPLATION */
 
 
 /* Defining USE_DSP_EFFECT to refine chorus, delay, EQ and insertion effect.

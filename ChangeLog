@@ -1,3 +1,25 @@
+2003-10-02  Takashi Iwai <tiwai@suse.de>
+	
+	* configure.in, timidity/Makefile.am, timidity/resample.c,
+	  timidity/resample.h, timidity/recache.c, timidity/timidity.c,
+	  timidity/timidity.h, timidity/playmidi.c, timidity/playmidi.h,
+	  timidity/calcnewt.c:
+	  Use functions instead of macros for resamplation.  This doesn't
+	  make the operation slower (even somtimes faster!).
+	  The algorithm can be switched either by option --resample or
+	  -EFresample (i.e. dynamically changable on ncurses interface).
+	  The default algorighm is kept to gauss (defined in timidity.h).
+
+	  The behavior of -N option is now dependent on which algorithm
+	  is being chosen.  -N0 for gauss and newton will switch to linear
+	  interpolation for keeping compatibility.
+
+	  The gauss interpolation is optimized a bit for the default case.
+	  It will give more chance for the compiler to make its job better.
+
+	  The newton coeff. table is included statically in the source
+	  code, which was calculated formerly by calcnewt.c.
+
 2003-10-01  mput <root@mput.dip.jp>
 
 	* configure: autoreconf

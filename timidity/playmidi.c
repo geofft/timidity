@@ -223,10 +223,8 @@ ChannelBitMask drumchannels;
 int adjust_panning_immediately=1;
 int auto_reduce_polyphony=1;
 double envelope_modify_rate = 1.0;
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 int reduce_quality_flag=0;
 int no_4point_interpolation=0;
-#endif
 char* pcm_alternate_file = NULL; /* NULL or "none": Nothing (default)
 				  * "auto": Auto select
 				  * filename: Use it
@@ -5259,7 +5257,6 @@ static int compute_data(int32 count)
       soundspec_update_wave(common_buffer, audio_buffer_size);
 #endif /* SUPPORT_SOUNDSPEC */
 
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
       /* fall back to linear interpolation when queue < 100% */
       if (! opt_realtime_playing && (play_mode->flag & PF_CAN_TRACE)) {
 	  if (!aq_fill_buffer_flag &&
@@ -5269,7 +5266,6 @@ static int compute_data(int32 count)
 	  else
 	      reduce_quality_flag = no_4point_interpolation;
       }
-#endif
 
 #ifdef REDUCE_VOICE_TIME_TUNING
       /* Auto voice reduce implementation by Masanao Izumo */
@@ -6457,9 +6453,7 @@ int play_midi_file(char *fn)
     ok_nv = 32;
     ok_nv_sample = 0;
     old_rate = -1;
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     reduce_quality_flag = no_4point_interpolation;
-#endif
     restore_voices(0);
 #endif
 
