@@ -2,6 +2,8 @@
 
 	* timidity/sysdep.h:
 	  Add some #pragma warning for VC environment.
+	* interface/w32g_tracer.bmp:
+	  Fix.
 
 2004-02-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
