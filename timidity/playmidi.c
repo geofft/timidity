@@ -722,7 +722,7 @@ void recompute_freq(int v)
 				else
 					f = freq_table_user[tt][current_freq_table + 12][note];
 			} else
-				f = freq_table_tuning[0][note];
+				f = freq_table[note];
 			break;
 		}
 		voice[v].orig_frequency = f;
@@ -1734,14 +1734,14 @@ static int find_free_voice(void)
     return lowest;
 }
 
-static int select_play_sample(Sample *splist, int nsp,
-			      int note, int *vlist, MidiEvent *e)
+static int select_play_sample(Sample *splist,
+		int nsp, int note, int *vlist, MidiEvent *e)
 {
-    int32 f, fs, cdiff, diff;
-    int8 tt = channel[e->channel].temper_type;
-    Sample *sp, *closest;
-    int i, j, nv, vel;
-
+	int32 f, fs, cdiff, diff;
+	int8 tt = channel[e->channel].temper_type;
+	Sample *sp, *closest;
+	int i, j, nv, vel;
+	
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
 			f = freq_table_pureint[current_freq_table][note];
@@ -1774,55 +1774,39 @@ static int select_play_sample(Sample *splist, int nsp,
 				else
 					f = freq_table_user[tt][current_freq_table + 12][note];
 			} else
-				f = freq_table_tuning[0][note];
+				f = freq_table[note];
 			break;
 		}
-	fs = freq_table[note];
-    if(nsp == 1)
-    {
-	j = vlist[0] = find_voice(e);
-	voice[j].orig_frequency = f;
-	MYCHECK(voice[j].orig_frequency);
-	voice[j].sample = splist;
-	voice[j].status = VOICE_ON;
-	return 1;
-    }
-
-    vel = e->b;
-
-    nv = 0;
-    for(i = 0, sp = splist; i < nsp; i++, sp++)
-	if(sp->low_vel <= vel && sp->high_vel >= vel &&
-	   sp->low_freq <= fs && sp->high_freq >= fs)
-	{
-	    j = vlist[nv] = find_voice(e);
-	    voice[j].orig_frequency = f;
-	    MYCHECK(voice[j].orig_frequency);
-	    voice[j].sample = sp;
-	    voice[j].status = VOICE_ON;
-	    nv++;
+	fs = (tt) ? freq_table[note] : freq_table_tuning[0][note];
+	vel = e->b;
+	nv = 0;
+	for (i = 0, sp = splist; i < nsp; i++, sp++)
+		if (sp->low_freq <= fs && sp->high_freq >= fs
+				&& sp->low_vel <= vel && sp->high_vel >= vel) {
+			j = vlist[nv] = find_voice(e);
+			voice[j].orig_frequency = f;
+			MYCHECK(voice[j].orig_frequency);
+			voice[j].sample = sp;
+			voice[j].status = VOICE_ON;
+			nv++;
+		}
+	if (nv == 0) {
+		cdiff = 0x7fffffff;
+		for (i = 0, sp = splist; i < nsp; i++, sp++) {
+			diff = abs(sp->root_freq - fs);
+			if (diff < cdiff) {
+				closest = sp;
+				cdiff = diff;
+			}
+		}
+		j = vlist[nv] = find_voice(e);
+		voice[j].orig_frequency = f;
+		MYCHECK(voice[j].orig_frequency);
+		voice[j].sample = closest;
+		voice[j].status = VOICE_ON;
+		nv++;
 	}
-    if(nv == 0)
-    {
-	cdiff = 0x7FFFFFFF;
-	closest = sp = splist;
-	for(i = 0; i < nsp; i++, sp++)
-	{
-	    diff = sp->root_freq - fs;
-	    if(diff < 0) diff = -diff;
-	    if(diff < cdiff)
-	    {
-		cdiff = diff;
-		closest = sp;
-	    }
-	}
-	j = vlist[nv] = find_voice(e);
-	voice[j].orig_frequency = f;
-	voice[j].sample = closest;
-	voice[j].status = VOICE_ON;
-	nv++;
-    }
-    return nv;
+	return nv;
 }
 
 static int find_samples(MidiEvent *e, int *vlist)
@@ -6123,7 +6107,7 @@ static void set_single_note_tuning(int part, int a, int b)
 	static int tp;	/* tuning program number */
 	static int kn;	/* MIDI key number */
 	static int st;	/* the nearest equal-tempered semitone */
-	double f, fst;	/* fraction of seminote */
+	double f, fst;	/* fraction of semitone */
 	
 	switch (part) {
 	case 0:
@@ -6137,7 +6121,7 @@ static void set_single_note_tuning(int part, int a, int b)
 		if (st == 0x7f && a == 0x7f && b == 0x7f)	/* no change */
 			break;
 		f = 440 * pow(2.0, (st - 69) / 12.0);
-		fst = pow(2.0, (a << 7 | b | ((a & 0x40) ? 0xc000 : 0)) / 98304.0);
+		fst = pow(2.0, (a << 7 | b) / 196608.0);
 		freq_table_tuning[tp][kn] = f * fst * 1000 + 0.5;
 		break;
 	}
