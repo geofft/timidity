@@ -1056,18 +1056,21 @@ static inline int next_stage(int v)
 	ch = vp->channel;
 	tmp = vp->sample->envelope_rate[stage];
 	if (vp->sample->modes & MODES_ENVELOPE) {
+		if(vp->sample->inst_type == INST_SF2 && stage == 3) {
+			tmp *= (double)vp->envelope_volume / (double)vp->sample->envelope_offset[0];
+		}
 		if (ISDRUMCHANNEL(ch))
 			val = (channel[ch].drums[vp->note] != NULL)
 					? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
 					: -1;
 		else {
-			if (vp->sample->envelope_keyf[stage]) {
+			if (vp->sample->envelope_keyf[stage]) {	/* envelope key-follow */
 				tmp *= pow(2.0f,((double)voice[v].note - 60.0f) * vp->sample->envelope_keyf[stage]);
 			}
-			if (vp->sample->envelope_velf[stage]) {
-				tmp *= pow(2.0f,((double)voice[v].velocity - 64.0f) * vp->sample->envelope_velf[stage]);
-			}
 			val = channel[ch].envelope_rate[stage];
+		}
+		if (vp->sample->envelope_velf[stage]) {	/* envelope velocity-follow */
+			tmp *= pow(2.0f,((double)voice[v].velocity - 64.0f) * vp->sample->envelope_velf[stage]);
 		}
 		if (val != -1)
 			tmp *= envelope_coef[val & 0x7f];
@@ -1114,6 +1117,7 @@ static inline void update_tremolo(int v)
 int apply_envelope_to_amp(int v)
 {
 	FLOAT_T lamp = voice[v].left_amp, ramp;
+	FLOAT_T *v_table = voice[v].sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
 	int32 la, ra;
 	
 	if (voice[v].panned == PANNED_MYSTERY) {
@@ -1124,10 +1128,8 @@ int apply_envelope_to_amp(int v)
 		}
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
 			if (voice[v].envelope_stage > 1) {
-/*				lamp *= vol_table[voice[v].envelope_volume >> 23];
-				ramp *= vol_table[voice[v].envelope_volume >> 23];*/
-				lamp *= sb_vol_table[voice[v].envelope_volume >> 23];
-				ramp *= sb_vol_table[voice[v].envelope_volume >> 23];
+				lamp *= v_table[voice[v].envelope_volume >> 23];
+				ramp *= v_table[voice[v].envelope_volume >> 23];
 			} else {
 				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
 				ramp *= attack_vol_table[voice[v].envelope_volume >> 23];
@@ -1152,8 +1154,7 @@ int apply_envelope_to_amp(int v)
 			lamp *= voice[v].tremolo_volume;
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
 			if (voice[v].envelope_stage > 1)
-				lamp *= sb_vol_table[voice[v].envelope_volume >> 23];
-/*				lamp *= vol_table[voice[v].envelope_volume >> 23];*/
+				lamp *= v_table[voice[v].envelope_volume >> 23];
 			else
 				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
 		}

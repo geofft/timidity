@@ -480,12 +480,12 @@ static FLOAT_T calc_volume(LayerTable *tbl)
     if(!tbl->set[SF_initAtten] || tbl->val[SF_initAtten] == 0)
 	return (FLOAT_T)1.0;
 
+#if 1
 	v = tbl->val[SF_initAtten];
     if(v < 0) {v = 0;}
     else if(v > 960) {v = 960;}
 	return cb_to_amp_table[v];
-
-#if 0
+#else
     v = tbl->val[SF_initAtten];
     if(v < 0)
 	return (FLOAT_T)1.0;
@@ -494,7 +494,7 @@ static FLOAT_T calc_volume(LayerTable *tbl)
 
     v = v * 127 / 956;		/* 0..127 */
 
-    return vol_table[127 - v];
+    return sb_vol_table[127 - v];
 #endif
 }
 
@@ -1285,6 +1285,8 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     /* point to the file position */
     vp->start = vp->start * 2 + sf->samplepos;
     vp->len *= 2;
+
+	vp->v.inst_type = INST_SF2;
 }
 
 /*----------------------------------------------------------------*/

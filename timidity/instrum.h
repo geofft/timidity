@@ -50,6 +50,7 @@ typedef struct _Sample {
   int32
     mod_envelope_rate[6], mod_envelope_offset[6];
   FLOAT_T envelope_keyf[6], envelope_velf[6];
+  int8 inst_type;
 } Sample;
 
 /* Bits in modes: */
