@@ -1,7 +1,8 @@
 2004-01-05  Saito <saito2@digitalme.com>
 
-	* timidity/playmidi.c, timidity/sndfont.c:
+	* timidity/playmidi.[ch], timidity/sndfont.c, timidity/mix.c:
 	  Fix around SoundFont.
+	  Fix LPF resonance.
 
 2004-01-04  Saito <saito2@digitalme.com>
 

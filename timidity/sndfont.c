@@ -1424,7 +1424,7 @@ static int abscent_to_Hz(int abscents)
 static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
-	int val;
+	int val, temp;
 
     /* scale tuning */
 #ifdef SF_EMULATE_SBLIVE 
@@ -1466,13 +1466,6 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(vp->root >= vp->high + 60)
       vp->root -= 60;
 
-#ifndef CFG_FOR_SF
-    /* correct tune with the sustain level of modulation envelope */
-	if(!opt_modulation_envelope) {
-	    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
-	}
-#endif
-
 	vp->v.tremolo_to_pitch = vp->v.tremolo_to_fc = 
 	vp->v.modenv_to_pitch = vp->v.modenv_to_fc = 0;
 
@@ -1480,8 +1473,13 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
 	if(tbl->set[SF_lfo1ToFilterFc])
 		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
-	if(tbl->set[SF_env1ToPitch])
+	if(tbl->set[SF_env1ToPitch]) {
 		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
+		/* correct tune with the sustain level of modulation envelope */
+		temp = ((int)vp->v.modenv_to_pitch * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
+		vp->tune += temp;
+		vp->v.modenv_to_pitch += temp;
+	}
 	if(tbl->set[SF_env1ToFilterFc])
 		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }
