@@ -90,7 +90,7 @@ PlayMode dpm = {
     PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
     -1,
     {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
-	"Portaudio Dirver", 'p',
+	"Portaudio Driver", 'p',
     NULL,
     open_output,
     close_output,
