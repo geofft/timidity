@@ -1598,9 +1598,9 @@ void do_ch_reverb(int32 *buf, int32 count)
 /*   Delay Effect    */
 /*                   */
 static int32 delay_effect_buffer[AUDIO_BUFFER_SIZE * 2];
-static void do_ch_3tap_delay(int32, int32, InfoDelay3 *);
-static void do_ch_cross_delay(int32, int32, InfoDelay3 *);
-static void do_ch_normal_delay(int32, int32, InfoDelay3 *);
+static void do_ch_3tap_delay(int32 *, int32, InfoDelay3 *);
+static void do_ch_cross_delay(int32 *, int32, InfoDelay3 *);
+static void do_ch_normal_delay(int32 *, int32, InfoDelay3 *);
 
 void init_ch_delay(void)
 {

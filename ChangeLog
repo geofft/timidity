@@ -1,3 +1,10 @@
+2004-02-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* configs/Makefile.{am,in}:
+	  Delete entry for msc-(twsyn-)interface.h
+	* configs/msc-(twsyn-)interface.h: Remove
+	* timidity/reverb.c: Fix typo
+
 2004-02-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Add help message for --module

@@ -245,9 +245,7 @@ timidity_LDFLAGS = @timidity_LDFLAGS@
 w_so_libs = @w_so_libs@
 
 EXTRA_DIST = \
-  msc-interface.h \
   msc-sjis.txt \
-  msc-twsyn-interface.h \
   msc-project.zip
 
 subdir = configs
