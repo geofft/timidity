@@ -1,3 +1,8 @@
+2003-08-07 mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (set_tim_opt_long): Some options was
+	  disabled : re-activate them.
+
 2003-08-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Fix around long options

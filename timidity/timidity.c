@@ -212,6 +212,7 @@ static const struct option longopts[] = {
 	{ "unload-instruments",       optional_argument, NULL, 'U' << 8 },
 	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
 	{ "wrd",                      required_argument, NULL, 'W' << 8 },
+	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
 	{ "output-file",              required_argument, NULL, 'o' << 8 },
 	{ "polyphony",                required_argument, NULL, 'p' << 8 },
 	{ "audio-buffer",             required_argument, NULL, 'q' << 8 },
@@ -3508,6 +3509,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_O5(arg);
 	case 'P':
 		return parse_opt_P(arg);
+	case 'Q':
+		return parse_opt_Q(arg);
 	case 'S':
 		return parse_opt_S(arg);
 	case 'T':
@@ -3526,6 +3529,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_q(arg);
 	case 's':
 		return parse_opt_s(arg);
+	case 't':
+		return parse_opt_t(arg);
 	case 'v':
 		return parse_opt_v(arg);
 	case 'x':
@@ -3535,6 +3540,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case 215:
 		return parse_opt_215(arg);
 	case 226:
+		return parse_opt_226(arg);
+	case 238:
 		return parse_opt_226(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
