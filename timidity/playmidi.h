@@ -496,11 +496,6 @@ enum {
 	MODULE_SBAUDIGY = 0x22,
 };
 
-inline int is_gs_module(void) {return (opt_default_module >= MODULE_GENERIC_GS
-									   && opt_default_module < MODULE_GENERIC_XG);}
-inline int is_xg_module(void) {return (opt_default_module >= MODULE_GENERIC_XG
-									   && opt_default_module < MODULE_GENERIC_GM);}
-
 extern Channel channel[];
 extern Voice *voice;
 
