@@ -961,17 +961,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	    switch(ent) {
 
 		case 0x01:	/* bank select MSB */
-		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x02:	/* bank select LSB */
-		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_LSB, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_LSB, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x03:	/* program number */
-		    SETMIDIEVENT(evm[num_events], 0, ME_PROGRAM, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_PROGRAM, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
@@ -988,39 +988,39 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x08:	/* note shift ? */
-		    SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x0B:	/* volume */
-		    SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x0E:	/* pan */
 		    if(*body == 0) {
-			SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
+			SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, SYSEX_TAG);
 		    }
 		    else {
-			SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, 0);
+			SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, SYSEX_TAG);
 		    }
 		    num_events++;
 		    break;
 
 		case 0x12:	/* chorus send */
-		    SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x13:	/* reverb send */
-		    SETMIDIEVENT(evm[num_events], 0, ME_REVERB_EFFECT, p, *body, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_REVERB_EFFECT, p, *body, SYSEX_TAG);
 		    num_events++;
 		    break;
 
 		case 0x23:	/* bend pitch control */
-		    SETMIDIEVENT(evm[num_events], 0, ME_RPN_MSB, p, 0, 0);
-		    SETMIDIEVENT(evm[num_events + 1], 0, ME_RPN_LSB, p, 0, 0);
-		    SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, (*body - 0x40) & 0x7F, 0);
+		    SETMIDIEVENT(evm[num_events], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
+		    SETMIDIEVENT(evm[num_events + 1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
+		    SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, (*body - 0x40) & 0x7F, SYSEX_TAG);
 		    num_events += 3;
 		    break;
 
@@ -1043,30 +1043,30 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x72:	/* EQ BASS */
-			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, 0);
-			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
 			num_events += 3;
 			break;
 
 		case 0x73:	/* EQ TREBLE */
-			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, 0);
-			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
 			num_events += 3;
 			break;
 
 		case 0x76:	/* EQ BASS frequency */
-			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, 0);
-			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
 			num_events += 3;
 			break;
 
 		case 0x77:	/* EQ TREBLE frequency */
-			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, 0);
-			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, 0);
+			SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, SYSEX_TAG);
+			SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, *body, SYSEX_TAG);
 			num_events += 3;
 			break;
 
@@ -1227,17 +1227,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		} else if(val[3] == 0x08) {	/* Multi Part Data parameter change */
 			switch(ent) {
 				case 0x01:	/* bank select MSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x02:	/* bank select LSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x03:	/* program number */
-				  SETMIDIEVENT(evm[0], 0, ME_PROGRAM, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_PROGRAM, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
@@ -1247,45 +1247,45 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x05:	/* mono/poly mode */
-				  if(val[6] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[6], 0);}
-				  else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[6], 0);}
+				  if(val[6] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[6], SYSEX_TAG);}
+				  else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[6], SYSEX_TAG);}
 				  num_events++;
 				  break;
 
 				case 0x08:	/* note shift ? */
-				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x0B:	/* volume */
-				  SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x0E:	/* pan */
 				  if(val[6] == 0) {
-					SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, 0);
+					SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, SYSEX_TAG);
 				  }
 				  else {
-					SETMIDIEVENT(evm[0], 0, ME_PAN, p, val[6], 0);
+					SETMIDIEVENT(evm[0], 0, ME_PAN, p, val[6], SYSEX_TAG);
 				  }
 				  num_events++;
 				  break;
 
 				case 0x12:	/* chorus send */
-				  SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x13:	/* reverb send */
-				  SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[6], 0);
+				  SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[6], SYSEX_TAG);
 				  num_events++;
 				  break;
 
 				case 0x23:	/* bend pitch control */
-				  SETMIDIEVENT(evm[0], 0,ME_RPN_MSB,p,0,0);
-				  SETMIDIEVENT(evm[1], 0,ME_RPN_LSB,p,0,0);
-				  SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,(val[6] - 0x40) & 0x7F,0);
+				  SETMIDIEVENT(evm[0], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
+				  SETMIDIEVENT(evm[1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
+				  SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, (val[6] - 0x40) & 0x7F, SYSEX_TAG);
 				  num_events += 3;
 				  break;
 
@@ -1310,30 +1310,30 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 
 				case 0x72:	/* EQ BASS */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, 0);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x73:	/* EQ TREBLE */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, 0);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x76:	/* EQ BASS frequency */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, 0);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x77:	/* EQ TREBLE frequency */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, 0);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, 0);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], 0);
+					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
@@ -1398,8 +1398,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			if((addr & 0xFFF000) == 0x401000) {
 				switch(addr & 0xFF) {
 				case 0x00:
-					SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB,p,val[7],0);
-					SETMIDIEVENT(evm[1], 0, ME_PROGRAM,p,val[8],0);
+					SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p,val[7], SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_PROGRAM, p, val[8], SYSEX_TAG);
 					num_events += 2;
 					break;
 				case 0x02:	/* Rx. Channel */
@@ -1417,12 +1417,12 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events++;
 					break;
 				case 0x13:
-					if(val[7] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO,p,val[7],0);}
-					else {SETMIDIEVENT(evm[0], 0, ME_POLY,p,val[7],0);}
+					if(val[7] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[7], SYSEX_TAG);}
+					else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[7], SYSEX_TAG);}
 					num_events++;
 					break;
 				case 0x14:	/* Assign Mode */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x24);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x24);
 					num_events++;
 					break;
 				case 0x15:	/* Use for Rhythm Part */
@@ -1433,94 +1433,94 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				case 0x16:	/* Pitch Key Shift */
 					break;
 				case 0x17:	/* Pitch Offset Fine */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x26);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x26);
 					num_events++;
 					break;
 				case 0x19:
-					SETMIDIEVENT(evm[0], 0,ME_MAINVOLUME,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
 				case 0x1A:	/* Velocity Sense Depth */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x21);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x21);
 					num_events++;
 					break;
 				case 0x1B:	/* Velocity Sense Offset */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x22);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x22);
 					num_events++;
 					break;
 				case 0x1C:
 					if (val[7] == 0) {
-						SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, 0);
+						SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, SYSEX_TAG);
 					} else {
-						SETMIDIEVENT(evm[0], 0,ME_PAN,p,val[7],0);
+						SETMIDIEVENT(evm[0], 0, ME_PAN, p, val[7], SYSEX_TAG);
 					}
 					num_events++;
 					break;
 				case 0x21:
-					SETMIDIEVENT(evm[0], 0,ME_CHORUS_EFFECT,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
 				case 0x22:
-					SETMIDIEVENT(evm[0], 0,ME_REVERB_EFFECT,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
 				case 0x2C:
-					SETMIDIEVENT(evm[0], 0,ME_CELESTE_EFFECT,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_CELESTE_EFFECT, p, val[7], SYSEX_TAG);
 					num_events++;
 					break;
 				case 0x2A:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x00,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x01,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
-					SETMIDIEVENT(evm[3], 0,ME_DATA_ENTRY_LSB,p,val[8],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x00, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
+					SETMIDIEVENT(evm[3], 0, ME_DATA_ENTRY_LSB, p, val[8], SYSEX_TAG);
 					num_events += 4;
 					break;
 				case 0x30:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x08,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x08, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x31:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x09,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x09, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x32:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x20,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x20, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x33:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x21,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x21, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x34:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x63,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x63, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x35:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x64,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x64, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x36:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x66,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x66, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x37:
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,p,0x01,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,p,0x0A,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,val[7],0);
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, p, 0x0A, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x40:	/* Scale Tuning */
@@ -1540,9 +1540,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			} else if((addr & 0xFFF000) == 0x402000) {
 				switch(addr & 0xFF) {
 				case 0x10:	/* Bend Pitch Control */
-					SETMIDIEVENT(evm[0], 0,ME_RPN_MSB,p,0,0);
-					SETMIDIEVENT(evm[1], 0,ME_RPN_LSB,p,0,0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,(val[7] - 0x40) & 0x7F,0);
+					SETMIDIEVENT(evm[0], 0, ME_RPN_MSB, p, 0, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_RPN_LSB, p, 0, SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, p, (val[7] - 0x40) & 0x7F, SYSEX_TAG);
 					num_events += 3;
 					break;
 				default:
@@ -1552,113 +1552,113 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			} else if((addr & 0xFFFF00) == 0x400100) {
 				switch(addr & 0xFF) {
 				case 0x30:	/* Reverb Macro */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x05);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x05);
 					num_events++;
 					break;
 				case 0x31:	/* Reverb Character */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x06);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x06);
 					num_events++;
 					break;
 				case 0x32:	/* Reverb Pre-LPF */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x07);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x07);
 					num_events++;
 					break;
 				case 0x33:	/* Reverb Level */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x08);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x08);
 					num_events++;
 					break;
 				case 0x34:	/* Reverb Time */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x09);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x09);
 					num_events++;
 					break;
 				case 0x35:	/* Reverb Delay Feedback */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x0A);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x0A);
 					num_events++;
 					break;
 				case 0x36:	/* Unknown Reverb Parameter */
 					break;
 				case 0x37:	/* Reverb Predelay Time */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x0C);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x0C);
 					num_events++;
 					break;
 				case 0x38:	/* Chorus Macro */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x0D);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x0D);
 					num_events++;
 					break;
 				case 0x39:	/* Chorus Pre-LPF */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x0E);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x0E);
 					num_events++;
 					break;
 				case 0x3A:	/* Chorus Level */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x0F);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x0F);
 					num_events++;
 					break;
 				case 0x3B:	/* Chorus Feedback */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x10);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x10);
 					num_events++;
 					break;
 				case 0x3C:	/* Chorus Delay */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x11);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x11);
 					num_events++;
 					break;
 				case 0x3D:	/* Chorus Rate */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x12);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x12);
 					num_events++;
 					break;
 				case 0x3E:	/* Chorus Depth */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x13);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x13);
 					num_events++;
 					break;
 				case 0x3F:	/* Chorus Send Level to Reverb */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x14);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x14);
 					num_events++;
 					break;
 				case 0x40:	/* Chorus Send Level to Delay */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x15);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x15);
 					num_events++;
 					break;
 				case 0x50:	/* Delay Macro */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x16);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x16);
 					num_events++;
 					break;
 				case 0x51:	/* Delay Pre-LPF */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x17);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x17);
 					num_events++;
 					break;
 				case 0x52:	/* Delay Time Center */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x18);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x18);
 					num_events++;
 					break;
 				case 0x53:	/* Delay Time Ratio Left */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x19);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x19);
 					num_events++;
 					break;
 				case 0x54:	/* Delay Time Ratio Right */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1A);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1A);
 					num_events++;
 					break;
 				case 0x55:	/* Delay Level Center */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1B);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1B);
 					num_events++;
 					break;
 				case 0x56:	/* Delay Level Left */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1C);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1C);
 					num_events++;
 					break;
 				case 0x57:	/* Delay Level Right */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1D);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1D);
 					num_events++;
 					break;
 				case 0x58:	/* Delay Level */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1E);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1E);
 					num_events++;
 					break;
 				case 0x59:	/* Delay Feedback */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x1F);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x1F);
 					num_events++;
 					break;
 				case 0x5A:	/* Delay Send Level to Reverb */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x20);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x20);
 					num_events++;
 					break;
 				default:
@@ -1668,19 +1668,19 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			} else if((addr & 0xFFFF00) == 0x400200) {
 				switch(addr & 0xFF) {	/* EQ Parameter */
 				case 0x00:	/* EQ LOW FREQ */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x01);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x01);
 					num_events++;
 					break;
 				case 0x01:	/* EQ LOW GAIN */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x02);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x02);
 					num_events++;
 					break;
 				case 0x02:	/* EQ HIGH FREQ */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x03);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x03);
 					num_events++;
 					break;
 				case 0x03:	/* EQ HIGH GAIN */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x04);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x04);
 					num_events++;
 					break;
 				default:
@@ -1690,120 +1690,120 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			} else if((addr & 0xFFFF00) == 0x400300) {
 				switch(addr & 0xFF) {	/* Insertion Effect Parameter */
 				case 0x00:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x27);
-					SETMIDIEVENT(evm[1], 0,ME_SYSEX_GS_LSB,p,val[8],0x28);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x27);
+					SETMIDIEVENT(evm[1], 0, ME_SYSEX_GS_LSB, p, val[8], 0x28);
 					num_events += 2;
 					break;
 				case 0x03:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x29);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x29);
 					num_events++;
 					break;
 				case 0x04:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2A);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2A);
 					num_events++;
 					break;
 				case 0x05:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2B);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2B);
 					num_events++;
 					break;
 				case 0x06:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2C);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2C);
 					num_events++;
 					break;
 				case 0x07:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2D);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2D);
 					num_events++;
 					break;
 				case 0x08:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2E);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2E);
 					num_events++;
 					break;
 				case 0x09:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x2F);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x2F);
 					num_events++;
 					break;
 				case 0x0A:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x30);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x30);
 					num_events++;
 					break;
 				case 0x0B:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x31);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x31);
 					num_events++;
 					break;
 				case 0x0C:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x32);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x32);
 					num_events++;
 					break;
 				case 0x0D:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x33);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x33);
 					num_events++;
 					break;
 				case 0x0E:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x34);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x34);
 					num_events++;
 					break;
 				case 0x0F:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x35);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x35);
 					num_events++;
 					break;
 				case 0x10:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x36);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x36);
 					num_events++;
 					break;
 				case 0x11:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x37);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x37);
 					num_events++;
 					break;
 				case 0x12:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x38);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x38);
 					num_events++;
 					break;
 				case 0x13:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x39);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x39);
 					num_events++;
 					break;
 				case 0x14:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3A);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3A);
 					num_events++;
 					break;
 				case 0x15:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3B);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3B);
 					num_events++;
 					break;
 				case 0x16:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3C);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3C);
 					num_events++;
 					break;
 				case 0x17:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3D);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3D);
 					num_events++;
 					break;
 				case 0x18:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3E);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3E);
 					num_events++;
 					break;
 				case 0x19:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x3F);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x3F);
 					num_events++;
 					break;
 				case 0x1B:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x40);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x40);
 					num_events++;
 					break;
 				case 0x1C:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x41);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x41);
 					num_events++;
 					break;
 				case 0x1D:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x42);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x42);
 					num_events++;
 					break;
 				case 0x1E:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x43);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x43);
 					num_events++;
 					break;
 				case 0x1F:
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x44);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x44);
 					num_events++;
 					break;
 				default:
@@ -1814,22 +1814,22 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				switch(addr & 0xFF) {
 				case 0x00:	/* TONE MAP NUMBER */
 					if(val[7] == 0) {
-						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB,p,channel[p].tone_map0_number,0);
+						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, channel[p].tone_map0_number, SYSEX_TAG);
 					} else {
-						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB,p,val[7],0);
+						SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, val[7], SYSEX_TAG);
 					}
 					num_events++;
 					break;
 				case 0x01:	/* TONE MAP-0 NUMBER */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x25);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x25);
 					num_events++;
 					break;
 				case 0x20:	/* EQ ON/OFF */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x00);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x00);
 					num_events++;
 					break;
 				case 0x22:	/* EFX ON/OFF */
-					SETMIDIEVENT(evm[0], 0,ME_SYSEX_GS_LSB,p,val[7],0x23);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x23);
 					num_events++;
 					break;
 				default:
@@ -1840,45 +1840,44 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 		case 0x41:
 			switch(addr & 0xF00) {
-			case 0x100:	/* Play Note */
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x18,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
-				num_events += 3;
+			case 0x100:	/* Play Note Number */
+				SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_MSB, dp, val[6], 0);
+				SETMIDIEVENT(evm[1], 0, ME_SYSEX_GS_LSB, dp, val[7], 0x47);
+				num_events += 2;
 				break;
 			case 0x200:
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1A,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+				SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
+				SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+				SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
 			case 0x400:
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1C,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0x1);
+				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
+				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
 			case 0x500:
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1D,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+				SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
+				SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+				SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
 			case 0x600:
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1E,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+				SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
+				SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+				SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
-			case 0x700:
+			case 0x700:	/* !!!FIXME!!! Rx. Note Off */
 				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Rx. Note Off (CH:%d NOTE:%d VAL:%d)",dp,val[6],val[7]);
 				if(channel[dp].drums[val[6]] == NULL) {play_midi_setup_drums(dp, val[6]);}
 				channel[dp].drums[val[6]]->rx_note_off = val[7];
 				break;
 			case 0x900:
-				SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1F,0);
-				SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-				SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+				SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
+				SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+				SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
 			default:
@@ -1890,14 +1889,14 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x20:	/* User Instrument */
 			switch(addr & 0xF00) {
 				case 0x000:	/* Source Map */
-					get_userinst(64+udn, val[6])->source_map = val[7];
+					get_userinst(64 + udn, val[6])->source_map = val[7];
 					break;
 				case 0x100:	/* Source Bank */
-					get_userinst(64+udn, val[6])->source_bank = val[7];
+					get_userinst(64 + udn, val[6])->source_bank = val[7];
 					break;
 #if !defined(TIMIDITY_TOOLS)
 				case 0x200:	/* Source Prog */
-					get_userinst(64+udn, val[6])->source_prog = val[7];
+					get_userinst(64 + udn, val[6])->source_prog = val[7];
 					break;
 #endif
 				default:
@@ -1909,69 +1908,68 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x21:	/* User Drumset */
 			switch(addr & 0xF00) {
 				case 0x100:	/* Play Note */
-					get_userdrum(64+udn, val[6])->play_note = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x18,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0x1);
-					num_events += 3;
+					get_userdrum(64 + udn, val[6])->play_note = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_MSB, dp, val[6], 0);
+					SETMIDIEVENT(evm[1], 0, ME_SYSEX_GS_LSB, dp, val[7], 0x47);
+					num_events += 2;
 					break;
 				case 0x200:	/* Level */
-					get_userdrum(64+udn, val[6])->level = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1A,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+					get_userdrum(64 + udn, val[6])->level = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1A, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x300:	/* Assign Group */
-					get_userdrum(64+udn, val[6])->assign_group = val[7];
-					if(val[7] != 0) {recompute_userdrum_altassign(udn+64, val[7]);}
+					get_userdrum(64 + udn, val[6])->assign_group = val[7];
+					if(val[7] != 0) {recompute_userdrum_altassign(udn + 64, val[7]);}
 					break;
 				case 0x400:	/* Panpot */
-					get_userdrum(64+udn, val[6])->pan = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1C,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+					get_userdrum(64 + udn, val[6])->pan = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1C, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x500:	/* Reverb Send Level */
-					get_userdrum(64+udn, val[6])->reverb_send_level = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1D,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+					get_userdrum(64 + udn, val[6])->reverb_send_level = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1D, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0x600:	/* Chorus Send Level */
-					get_userdrum(64+udn, val[6])->chorus_send_level = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1E,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+					get_userdrum(64 + udn, val[6])->chorus_send_level = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1E, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x700:	/* Rx. Note Off */
-					get_userdrum(64+udn, val[6])->rx_note_off = val[7];
+				case 0x700:	/* !!!FIXME!!! Rx. Note Off */
+					get_userdrum(64 + udn, val[6])->rx_note_off = val[7];
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Rx. Note Off (CH:%d NOTE:%d VAL:%d)",dp,val[6],val[7]);
 					if(channel[dp].drums[val[6]] == NULL) {play_midi_setup_drums(dp, val[6]);}
 					channel[dp].drums[val[6]]->rx_note_off = val[7];
 					break;
-				case 0x800:	/* Rx. Note On */
-					get_userdrum(64+udn, val[6])->rx_note_on = val[7];
+				case 0x800:	/* !!!FIXME!!! Rx. Note On */
+					get_userdrum(64 + udn, val[6])->rx_note_on = val[7];
 					break;
 				case 0x900:	/* Delay Send Level */
-					get_userdrum(64+udn, val[6])->delay_send_level = val[7];
-					SETMIDIEVENT(evm[0], 0,ME_NRPN_MSB,dp,0x1F,0);
-					SETMIDIEVENT(evm[1], 0,ME_NRPN_LSB,dp,val[6],0);
-					SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,dp,val[7],0);
+					get_userdrum(64 + udn, val[6])->delay_send_level = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
+					SETMIDIEVENT(evm[1], 0, ME_NRPN_LSB, dp, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
 				case 0xA00:	/* Source Map */
-					get_userdrum(64+udn, val[6])->source_map = val[7];
+					get_userdrum(64 + udn, val[6])->source_map = val[7];
 					break;
 				case 0xB00:	/* Source Prog */
-					get_userdrum(64+udn, val[6])->source_prog = val[7];
+					get_userdrum(64 + udn, val[6])->source_prog = val[7];
 					break;
 #if !defined(TIMIDITY_TOOLS)
 				case 0xC00:	/* Source Note */
-					get_userdrum(64+udn, val[6])->source_note = val[7];
+					get_userdrum(64 + udn, val[6])->source_note = val[7];
 					break;
 #endif
 				default:
@@ -2155,7 +2153,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 #ifdef GS_DRUMPART
 /* GS drum part check from Masaaki Koyanagi's patch (GS_Drum_Part_Check()) */
 /* Modified by Masanao Izumo */
-	    SETMIDIEVENT(*ev, 0, ME_DRUMPART, p, *body, 0);
+	    SETMIDIEVENT(*ev, 0, ME_DRUMPART, p, *body, SYSEX_TAG);
 	    return 1;
 #else
 	    return 0;
@@ -2164,7 +2162,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 
 	if((addr & 0xFFF0FF) == 0x401016) /* Key Shift */
 	{
-	    SETMIDIEVENT(*ev, 0, ME_KEYSHIFT, p, *body, 0);
+	    SETMIDIEVENT(*ev, 0, ME_KEYSHIFT, p, *body, SYSEX_TAG);
 	    return 1;
 	}
 
@@ -2179,7 +2177,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	if((addr & 0xFFF0FF) == 0x401019) /* Volume on/off */
 	{
 #if 0
-	    SETMIDIEVENT(*ev, 0, ME_VOLUME_ONOFF, p, *body >= 64, 0);
+	    SETMIDIEVENT(*ev, 0, ME_VOLUME_ONOFF, p, *body >= 64, SYSEX_TAG);
 #endif
 	    return 0;
 	}
@@ -2187,7 +2185,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	if((addr & 0xFFF0FF) == 0x401002) /* Receive channel on/off */
 	{
 #if 0
-	    SETMIDIEVENT(*ev, 0, ME_RECEIVE_CHANNEL, (uint8)p, *body >= 64, 0);
+	    SETMIDIEVENT(*ev, 0, ME_RECEIVE_CHANNEL, (uint8)p, *body >= 64, SYSEX_TAG);
 #endif
 	    return 0;
 	}
@@ -2247,7 +2245,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	if(addr == 0x40007F ||	/* GS Reset */
 	   addr == 0x00007F)	/* SC-88 Single Module */
 	{
-	    SETMIDIEVENT(*ev, 0, ME_RESET, 0, GS_SYSTEM_MODE, 0);
+	    SETMIDIEVENT(*ev, 0, ME_RESET, 0, GS_SYSTEM_MODE, SYSEX_TAG);
 	    return 1;
 	}
 	return 0;
@@ -2310,7 +2308,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
        val[5] == 0x7E)
     {
 	/* XG SYSTEM ON */
-	SETMIDIEVENT(*ev, 0, ME_RESET, 0, XG_SYSTEM_MODE, 0);
+	SETMIDIEVENT(*ev, 0, ME_RESET, 0, XG_SYSTEM_MODE, SYSEX_TAG);
 	return 1;
     }
 

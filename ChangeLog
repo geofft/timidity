@@ -1,7 +1,9 @@
 2003-12-24  Saito <saito2@digitalme.com>
 
-	* timidity/playmidi.[ch]:
+	* timidity/playmidi.[ch], timidity/readmidi.c:
 	  Fix around channel pressure.
+	  Fix system exclusive message.
+	  Fix channel layer.
 
 2003-12-23  Saito <saito2@digitalme.com>
 

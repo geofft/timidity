@@ -37,6 +37,8 @@ typedef struct {
 
 #define MIDI_EVENT_TIME(ep) ((int32)((ep)->time * midi_time_ratio + 0.5))
 
+#define SYSEX_TAG 0xFF
+
 /* Midi events */
 enum midi_event_t
 {

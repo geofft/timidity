@@ -279,7 +279,7 @@ void init_part_eq_xg(struct part_eq_xg *);
 void recompute_part_eq_xg(struct part_eq_xg *);
 void init_midi_controller(midi_controller *); 
 
-#define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
+#define IS_SYSEX_EVENT_TYPE(event) ((event)->type == ME_NONE || (event)->type >= ME_RANDOM_PAN || (event)->b == SYSEX_TAG)
 
 static char *event_name(int type)
 {
@@ -3070,12 +3070,29 @@ void midi_program_change(int ch, int prog)
 	}
 }
 
+/*! process system exclusive sent from parse_sysex_event_multi(). */
 static void process_sysex_event(int ev, int ch, int val, int b)
 {
-	int temp;
+	int temp, msb, note;
 
-	if(ev == ME_SYSEX_GS_LSB)
-	{
+	if(ev == ME_SYSEX_MSB) {
+		channel[ch].sysex_msb_addr = b;
+		channel[ch].sysex_msb_val = val;
+	} else if(ev == ME_SYSEX_GS_MSB) {
+		channel[ch].sysex_gs_msb_addr = b;
+		channel[ch].sysex_gs_msb_val = val;
+	} else if(ev == ME_SYSEX_XG_MSB) {
+		channel[ch].sysex_xg_msb_addr = b;
+		channel[ch].sysex_xg_msb_val = val;
+	} else if(ev == ME_SYSEX_LSB) {	/* Universal system exclusive message */
+		msb = channel[ch].sysex_msb_addr;
+		note = channel[ch].sysex_msb_val;
+		channel[ch].sysex_msb_addr = channel[ch].sysex_msb_val = 0;
+		return;
+	} else if(ev == ME_SYSEX_GS_LSB) {	/* GS system exclusive message */
+		msb = channel[ch].sysex_gs_msb_addr;
+		note = channel[ch].sysex_gs_msb_val;
+		channel[ch].sysex_gs_msb_addr = channel[ch].sysex_gs_msb_val = 0;
 		switch(b)
 		{
 		case 0x00:	/* EQ ON/OFF */
@@ -3462,13 +3479,26 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			all_notes_off(ch);
 			channel[ch].port_select = val;
 			break;
-			
+		case 0x47:	/* Play Note Number */
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			channel[ch].drums[note]->play_note = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Play Note (CH:%d NOTE:%d VAL:%d)",
+				ch, note, channel[ch].drums[note]->play_note);
+			channel[ch].pitchfactor = 0;
+			break;
+
 			/* MOD PITCH CONTROL */
 			/* 0x45~ MOD, CAF, PAF */
 		default:
 			break;
 		}
-	} else if(ev == ME_SYSEX_XG_LSB) {
+		return;
+	} else if(ev == ME_SYSEX_XG_LSB) {	/* XG system exclusive message */
+		msb = channel[ch].sysex_xg_msb_addr;
+		note = channel[ch].sysex_xg_msb_val;
+		channel[ch].sysex_xg_msb_addr = channel[ch].sysex_xg_msb_val = 0;
 		switch(b)
 		{
 		case 0x00:	/* Reverb Return */
@@ -3637,6 +3667,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		default:
 			break;
 		}
+		return;
 	}
 }
 
@@ -3656,7 +3687,7 @@ static void play_midi_prescan(MidiEvent *ev)
 	while (ev->type != ME_EOT) {
 #ifndef SUPPRESS_CHANNEL_LAYER
 		orig_ch = ev->channel;
-		layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
+		layered = ! IS_SYSEX_EVENT_TYPE(ev);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
 			offset = (port_ch < 16) ? 0 : 16;
@@ -4073,17 +4104,10 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		note = channel[ch].lastlrpn;
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
-		if (current_event->b == 0x01) {
-			channel[ch].drums[note]->play_note = val;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY,
-			"Drum Instrument Play Note (CH:%d NOTE:%d VALUE:%d)",
-			ch, note, channel[ch].drums[note]->play_note);
-		} else {
-			channel[ch].drums[note]->coarse = val - 64;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+		channel[ch].drums[note]->coarse = val - 64;
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
 			"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VALUE:%d)",
 			ch, note, channel[ch].drums[note]->coarse);
-		}
 		channel[ch].pitchfactor = 0;
 		break;
 	case NRPN_ADDR_1900:	/* Fine Pitch of Drum (XG) */
@@ -4246,7 +4270,7 @@ static void seek_forward(int32 until_time)
 	while (MIDI_EVENT_TIME(current_event) < until_time) {
 #ifndef SUPPRESS_CHANNEL_LAYER
 		orig_ch = current_event->channel;
-		layered = ! IS_SYSEX_EVENT_TYPE(current_event->type);
+		layered = ! IS_SYSEX_EVENT_TYPE(current_event);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
 			offset = (port_ch < 16) ? 0 : 16;
@@ -6068,7 +6092,7 @@ int play_event(MidiEvent *ev)
 
 #ifndef SUPPRESS_CHANNEL_LAYER
 	orig_ch = ev->channel;
-	layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
+	layered = ! IS_SYSEX_EVENT_TYPE(ev);
 	for (k = 0; k < MAX_CHANNELS; k += 16) {
 		port_ch = (orig_ch + k) % MAX_CHANNELS;
 		offset = (port_ch < 16) ? 0 : 16;
