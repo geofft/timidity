@@ -6703,7 +6703,7 @@ void init_channel_layer(int ch)
 		return;
 	CLEAR_CHANNELMASK(channel[ch].channel_layer);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
-	channel[ch].port_select = (ch < REDUCE_CHANNELS) ? 0 : 1;
+	channel[ch].port_select = ch >> 4;
 }
 
 /*! add a new layer. */
@@ -6726,7 +6726,7 @@ void remove_channel_layer(int ch)
 	if (ch >= MAX_CHANNELS)
 		return;
 	/* remove channel layers */
-	offset = (ch < REDUCE_CHANNELS) ? 0 : REDUCE_CHANNELS;
+	offset = ch & ~15;
 	for (i = offset; i < offset + REDUCE_CHANNELS; i++)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);

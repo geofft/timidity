@@ -1,3 +1,7 @@
+2004-01-25  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c, timidity/readmidi.c: Fixed channel layer.
+
 2004-01-24  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c: Fixed event filtering.

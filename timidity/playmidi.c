@@ -4578,14 +4578,14 @@ static void play_midi_prescan(MidiEvent *ev)
 		layered = ! IS_SYSEX_EVENT_TYPE(ev);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			offset = (port_ch < 16) ? 0 : 16;
+			offset = port_ch & ~15;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
 				if (layered) {
 					if (! IS_SET_CHANNELMASK(
 							channel[k].channel_layer, port_ch)
-							|| channel[k].port_select ^ (orig_ch >= 16))
+							|| channel[k].port_select != (orig_ch >> 4))
 						continue;
 					ev->channel = k;
 				}
@@ -5126,14 +5126,14 @@ static void seek_forward(int32 until_time)
 		layered = ! IS_SYSEX_EVENT_TYPE(current_event);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			offset = (port_ch < 16) ? 0 : 16;
+			offset = port_ch & ~15;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
 				if (layered) {
 					if (! IS_SET_CHANNELMASK(
 							channel[k].channel_layer, port_ch)
-							|| channel[k].port_select ^ (orig_ch >=16))
+							|| channel[k].port_select != (orig_ch >> 4))
 						continue;
 					current_event->channel = k;
 				}
@@ -7032,13 +7032,13 @@ int play_event(MidiEvent *ev)
 	layered = ! IS_SYSEX_EVENT_TYPE(ev);
 	for (k = 0; k < MAX_CHANNELS; k += 16) {
 		port_ch = (orig_ch + k) % MAX_CHANNELS;
-		offset = (port_ch < 16) ? 0 : 16;
+		offset = port_ch & ~15;
 		for (l = offset; l < offset + 16; l++) {
 			if (! layered && (k || l != offset))
 				continue;
 			if (layered) {
 				if (! IS_SET_CHANNELMASK(channel[l].channel_layer, port_ch)
-						|| channel[l].port_select ^ (orig_ch >= 16))
+						|| channel[l].port_select != (orig_ch >> 4))
 					continue;
 				ev->channel = l;
 			}
