@@ -2,6 +2,8 @@
 
 	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]:
 	  Add --module [n] option.
+	* timidity/output.[ch]:
+	  Add some codes for 24-bit output.
 
 2004-02-04  mput <root@mput.dip.jp>
 

@@ -28,12 +28,14 @@
 /* {PE_16BIT,PE_ULAW,PE_ALAW} is alternative flag */
 /* {PE_SIGNED,PE_ULAW,PE_ALAW} is alternative flag */
 /* {PE_BYTESWAP,PE_ULAW,PE_ALAW} is alternative flag */
+/* {PE_16BIT,PE_24BIT} is alternative flag */
 #define PE_MONO 	(1u<<0)  /* versus stereo */
 #define PE_SIGNED	(1u<<1)  /* versus unsigned */
 #define PE_16BIT 	(1u<<2)  /* versus 8-bit */
 #define PE_ULAW 	(1u<<3)  /* versus linear */
 #define PE_ALAW 	(1u<<4)  /* versus linear */
 #define PE_BYTESWAP	(1u<<5)  /* versus the other way */
+#define PE_24BIT	(1u<<6)  /* versus 8-bit, 16-bit */
 
 /* for play_mode->acntl() */
 enum {

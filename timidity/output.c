@@ -256,6 +256,34 @@ void s32tou16x(int32 *lp, int32 c)
     }
 }
 
+#define MAX_24BIT_SIGNED (8388607)
+#define MIN_24BIT_SIGNED (-8388608)
+
+void s32tos24(int32 *lp, int32 c)
+{
+	int32 l, i;
+
+	for(i = 0; i < c; i++)
+	{
+		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
+		lp[i] = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
+				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
+	}
+}
+
+void s32tou24(int32 *lp, int32 c)
+{
+	int32 l, i;
+
+	for(i = 0; i < c; i++)
+	{
+		l = (lp[i]) >> (32 - 24 - GUARD_BITS);
+		l = (l > MAX_24BIT_SIGNED) ? MAX_24BIT_SIGNED
+				: (l < MIN_24BIT_SIGNED) ? MIN_24BIT_SIGNED : l;
+		lp[i] = 0x800000 ^ (uint32)(l);
+	}
+}
+
 void s32toulaw(int32 *lp, int32 c)
 {
     int8 *up=(int8 *)(lp);
@@ -307,7 +335,14 @@ int32 general_output_convert(int32 *buf, int32 count)
 	else
 	    s32tou16(buf, count);
     }
-    else if(play_mode->encoding & PE_ULAW)
+	else if(play_mode->encoding & PE_24BIT) {
+		bytes *= 3;
+		if(play_mode->encoding & PE_SIGNED)
+			s32tos24(buf, count);
+		else
+			s32tou24(buf, count);
+    }
+	else if(play_mode->encoding & PE_ULAW)
 	s32toulaw(buf, count);
     else if(play_mode->encoding & PE_ALAW)
 	s32toalaw(buf, count);
