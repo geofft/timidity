@@ -211,7 +211,7 @@ int rtsyn_play_some_data(void){
 	
 	played=0;
 	do{
-		sleep(0);
+		Sleep(1);
 		if( !(evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ) played=~0;
 		while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
 

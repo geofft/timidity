@@ -25,9 +25,14 @@
 #ifndef __TMDY_GETOPT_H__
 #define __TMDY_GETOPT_H__
 
+
+#ifdef HAVE_GETOPT
+
 #ifdef HAVE_UNISTD_H
 /* getopt() declaration here */
 #include <unistd.h>
+#endif /* <unistd.h> */
+
 #else
 
 /* For communication from `getopt' to the caller.
@@ -36,7 +41,8 @@
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-extern char *optarg;
+extern char *tmdy_optarg;
+#define optarg tmdy_optarg
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -50,20 +56,25 @@ extern char *optarg;
    Otherwise, `optind' communicates from one call to the next
    how much of ARGV has been scanned so far.  */
 
-extern int optind;
+extern int tmdy_optind;
+#define optind tmdy_optind
 
 /* Callers store zero here to inhibit the error message `getopt' prints
    for unrecognized options.  */
 
-extern int opterr;
+extern int tmdy_opterr;
+#define opterr tmdy_opterr
 
 /* Set to an option character which was unrecognized.  */
 
-extern int optopt;
+extern int tmdy_optopt;
+#define optopt tmdy_optopt
 
-extern int getopt (int __argc, char *const *__argv, const char *__shortopts);
+//extern int tmdy_getopt (int __argc, char *const *__argv, const char *__shortopts);
+extern int tmdy_getopt (int argc, char *const *argv, const char *optstring);
+#define getopt(c,v,s) ({ tmdy_getopt(c,v,s); })
 
-#endif /* <unistd.h> */
+#endif /* HAVE_GETOPT */
 
 #ifdef HAVE_GETOPT_H
 /* gtopt_long() declared here */
@@ -133,13 +144,23 @@ struct option
    If OPTS begins with `--', then non-option arguments are treated as
    arguments to the option '\0'.  This behavior is specific to the GNU
    `getopt'.  */
-
+/*
 extern int getopt_long (int __argc, char *const *__argv,
 			const char *__shortopts,
 		        const struct option *__longopts, int *__longind);
 extern int getopt_long_only (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct option *__longopts, int *__longind);
+*/
+extern int
+tmdy_getopt_long (int argc, char *const *argv, const char *options,
+	     const struct option *long_options, int *opt_index);
+extern int
+tmdy_getopt_long_only (int argc, char *const *argv, const char *options,
+		  const struct option *long_options, int *opt_index);
+
+#define getopt_long(c,v,o,l,i)  ({ tmdy_getopt_long(c,v,o,l,i); } )
+#define getopt_long_only(c,v,o,l,i) ({ tmdy_getopt_long_only(c,v,o,l,i); })
 
 #endif /* <getopt.h> */
 
