@@ -46,8 +46,11 @@
 /* Define if you have Remote MIDI interface. */
 #undef IA_ALSASEQ
 
-/* Define if you have Remote MIDI interface. */
+/* Define if you have Windows synthesizer mode interface. */
 #undef IA_WINSYN
+
+/* Define if you have PortMIDI synthesizer mode interface. */
+#undef IA_PORTMIDISYN
 
 #if defined(IA_W32GUI) || defined(IA_W32G_SYN)
 #define __W32READDIR__
