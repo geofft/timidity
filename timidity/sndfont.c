@@ -604,44 +604,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			  sp->v.panning);
 		memcpy(sample, &sp->v, sizeof(Sample));
 
-		/* convert envelope parameters */
-		sample->envelope_offset[0] = to_offset(65535);
-		sample->envelope_rate[0] = sp->attack;
-
-		sample->envelope_offset[1] = to_offset(65534);
-		sample->envelope_rate[1] = sp->hold;
-
-		sample->envelope_offset[2] = to_offset(sp->sustain);
-		sample->envelope_rate[2] = sp->decay;
-
-		sample->envelope_offset[3] = 0;
-		sample->envelope_rate[3] = sp->release;
-
-		sample->envelope_offset[4] = 0;
-		sample->envelope_rate[4] = sp->release;
-
-		sample->envelope_offset[5] = 0;
-		sample->envelope_rate[5] = sp->release;
-
-		/* convert modulation envelope parameters */
-		sample->modenv_offset[0] = to_offset(65535);
-		sample->modenv_rate[0] = sp->modattack;
-
-		sample->modenv_offset[1] = to_offset(65534);
-		sample->modenv_rate[1] = sp->modhold;
-
-		sample->modenv_offset[2] = to_offset(sp->modsustain);
-		sample->modenv_rate[2] = sp->moddecay;
-
-		sample->modenv_offset[3] = 0;
-		sample->modenv_rate[3] = sp->modrelease;
-
-		sample->modenv_offset[4] = 0;
-		sample->modenv_rate[4] = sp->modrelease;
-
-		sample->modenv_offset[5] = 0;
-		sample->modenv_rate[5] = sp->modrelease;
-
 		if(i > 0 && (!sample->note_to_use ||
 			     (sample->modes & MODES_LOOPING)))
 		{
@@ -656,9 +618,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			    break;
 			if(sp->start == sps->start)
 			{
-			    if(sp->cutoff_freq != sps->cutoff_freq ||
-			       sp->resonance != sps->resonance)
-				continue;
 			    if(antialiasing_allowed)
 			    {
 				 if(sample->data_length != s->data_length ||
@@ -708,9 +667,6 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		/* set a small blank loop at the tail for avoiding abnormal loop. */
 		len = sp->len / 2;
 		sample->data[len] = sample->data[len + 1] = sample->data[len + 2] = 0;
-
-		if(sp->cutoff_freq > 0) {sample->cutoff_freq = sp->cutoff_freq;}
-		if(sp->resonance > 0) {sample->resonance = sp->resonance;}
 
 		if (antialiasing_allowed)
 		    antialiasing((int16 *)sample->data,
@@ -1221,6 +1177,47 @@ static void make_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 #endif /* SF_SUPPRESS_VIBRATO */
 }
 
+static void set_envelope_parameters(SampleList *vp)
+{
+		/* convert envelope parameters */
+		vp->v.envelope_offset[0] = to_offset(65535);
+		vp->v.envelope_rate[0] = vp->attack;
+
+		vp->v.envelope_offset[1] = to_offset(65534);
+		vp->v.envelope_rate[1] = vp->hold;
+
+		vp->v.envelope_offset[2] = to_offset(vp->sustain);
+		vp->v.envelope_rate[2] = vp->decay;
+
+		vp->v.envelope_offset[3] = 0;
+		vp->v.envelope_rate[3] = vp->release;
+
+		vp->v.envelope_offset[4] = 0;
+		vp->v.envelope_rate[4] = vp->release;
+
+		vp->v.envelope_offset[5] = 0;
+		vp->v.envelope_rate[5] = vp->release;
+
+		/* convert modulation envelope parameters */
+		vp->v.modenv_offset[0] = to_offset(65535);
+		vp->v.modenv_rate[0] = vp->modattack;
+
+		vp->v.modenv_offset[1] = to_offset(65534);
+		vp->v.modenv_rate[1] = vp->modhold;
+
+		vp->v.modenv_offset[2] = to_offset(vp->modsustain);
+		vp->v.modenv_rate[2] = vp->moddecay;
+
+		vp->v.modenv_offset[3] = 0;
+		vp->v.modenv_rate[3] = vp->modrelease;
+
+		vp->v.modenv_offset[4] = 0;
+		vp->v.modenv_rate[4] = vp->modrelease;
+
+		vp->v.modenv_offset[5] = 0;
+		vp->v.modenv_rate[5] = vp->modrelease;
+}
+
 /* set sample address */
 static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
@@ -1265,6 +1262,7 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 #ifndef SF_SUPPRESS_ENVELOPE
 	convert_volume_envelope(vp, tbl);
 #endif /* SF_SUPPRESS_ENVELOPE */
+	set_envelope_parameters(vp);
 
     if(tbl->val[SF_sampleFlags] == 1 || tbl->val[SF_sampleFlags] == 3)
     {
@@ -1390,14 +1388,9 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     vp->cutoff_freq = 0;
     if((int)tbl->val[SF_initialFilterFc] < 0)
 	tbl->set[SF_initialFilterFc] = tbl->val[SF_initialFilterFc] = 0;
-    if(current_sfrec->def_cutoff_allowed &&
-       (tbl->set[SF_initialFilterFc] && (int)tbl->val[SF_initialFilterFc] <= 13500 && (int)tbl->val[SF_initialFilterFc] >= 1500))
+    if(current_sfrec->def_cutoff_allowed && tbl->set[SF_initialFilterFc])
     {
-	if(!tbl->set[SF_initialFilterFc])
-	    val = 13500;
-	else
-	    val = (int)tbl->val[SF_initialFilterFc];
-
+    val = (int)tbl->val[SF_initialFilterFc];
 	val = abscent_to_Hz(val);
 
 #ifndef CFG_FOR_SF
@@ -1412,12 +1405,15 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	vp->cutoff_freq = val;
     }
+	vp->v.cutoff_freq = vp->cutoff_freq;
 
+	vp->resonance = 0;
     if(current_sfrec->def_resonance_allowed && tbl->set[SF_initialFilterQ])
     {
 	val = (int)tbl->val[SF_initialFilterQ];
 	vp->resonance = val;
 	}
+	vp->v.resonance = vp->resonance;
 
 #if 0 /* Not supported */
     /* exclusive class key */
