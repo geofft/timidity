@@ -59,12 +59,13 @@
 #define MFI_DEBUG_NOTE_EVENT_S		0
 #define MFI_DEBUG_CTL_DATA			0
 #define MFI_DEBUG_UNKNOWN_CTL_DATA	1
-#define MFI_DRUM_SHIFT				0
 
 #define POS_DS(pos)	((pos) / 48), ((pos) % 48)
 #if MFI_DEBUG_MORE_VERBOSE
 	#undef VERB_DEBUG
+	#undef VERB_NOISY
 	#define VERB_DEBUG	VERB_NORMAL
+	#define VERB_NOISY	VERB_NORMAL
 #endif
 #if MFI_DEBUG_NOTE_EVENT
 	#define NOTE_EVENT_DEBUGSTR(channel, note, octave, velocity, duration)	\
@@ -94,9 +95,9 @@
 #endif
 #if MFI_DEBUG_UNKNOWN_CTL_DATA
 	#define EX_UNKNOWN_DATA_DEBUGSTR()	\
-			ctl->cmsg(CMSG_WARNING, VERB_DEBUG, MFI_DEBUG_PREFIX "%d.%02d %02X(not implemented) : %02X", POS_DS(pos), data[2], data[3])
+			ctl->cmsg(CMSG_WARNING, VERB_NOISY, MFI_DEBUG_PREFIX "%d.%02d %02X (not implemented) : %02X", POS_DS(pos), data[2], data[3])
 	#define EX_UNKNOWN_EXT_DATA_DEBUGSTR(len)	\
-			ctl->cmsg(CMSG_WARNING, VERB_DEBUG, MFI_DEBUG_PREFIX "%d.%02d %02X(not implemented) : length=%d", POS_DS(pos), data[2], len)
+			ctl->cmsg(CMSG_WARNING, VERB_NOISY, MFI_DEBUG_PREFIX "%d.%02d %02X (not implemented) : %04X", POS_DS(pos), data[2], len)
 #else
 	#define EX_UNKNOWN_DATA_DEBUGSTR()								/* empty */
 	#define EX_UNKNOWN_EXT_DATA_DEBUGSTR(len)						/* empty */
@@ -107,11 +108,7 @@ typedef struct timidity_file	timidity_file;
 static int tf_read_beint16(int *, timidity_file *);
 static int tf_read_beint32(int *, timidity_file *);
 static int read_mfi_information(int, int *, int *, int *, timidity_file *);
-#if MFI_DRUM_SHIFT
-static int read_mfi_track(int, int, int, int, ChannelBitMask *, timidity_file *);
-#else
-static int read_mfi_track(int, int, int, int, timidity_file *);
-#endif
+static int read_mfi_track(int, int, int, int, int, timidity_file *);
 
 int read_mfi_file(timidity_file *tf)
 {
@@ -119,9 +116,6 @@ int read_mfi_file(timidity_file *tf)
 	uint32				type;
 	uint8				numTracks;
 	int					i;
-	#if MFI_DRUM_SHIFT
-	ChannelBitMask		drumCh;
-	#endif
 	
 	if (tf_read_beint32(&dataLength, tf) != 1
 			|| tf_read_beint16(&infoLength, tf) != 1
@@ -152,9 +146,6 @@ int read_mfi_file(timidity_file *tf)
 	noteType = extStDLength = 0;
 	if (read_mfi_information(infoLength, &mfiVersion, &noteType, &extStDLength, tf) != 0)
 		return 1;
-	#if MFI_DRUM_SHIFT
-	memcpy(&drumCh, &current_file_info->drumchannels, sizeof(ChannelBitMask));
-	#endif
 	for(i = 0; i < numTracks; i++)
 	{
 		if (tf_read(&type, 4, 1, tf) != 1
@@ -165,11 +156,7 @@ int read_mfi_file(timidity_file *tf)
 			ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Unknown track signature.");
 			return 1;
 		}
-		#if MFI_DRUM_SHIFT
-		if (read_mfi_track(i, length, noteType, extStDLength, &drumCh, tf) != 0)
-		#else
-		if (read_mfi_track(i, length, noteType, extStDLength, tf) != 0)
-		#endif
+		if (read_mfi_track(i, length, mfiVersion, noteType, extStDLength, tf) != 0)
 			return 1;
 	}
 	return 0;
@@ -205,7 +192,7 @@ static int read_mfi_information(int infoLength, int *mfiVersion, int *noteType, 
 		switch(type)
 		{
 			case BE_FCC(0x7469746C /*titl*/): {	/* title */
-				char				*title;
+				char			*title;
 				
 				if (current_file_info->seq_name == NULL)
 					goto skip_info_data;
@@ -219,13 +206,22 @@ static int read_mfi_information(int infoLength, int *mfiVersion, int *noteType, 
 				current_file_info->seq_name = title;
 				ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "Title: %s", title);
 			}	break;
-			case BE_FCC(0x736F7263 /*sorc*/):	/* source */
+			case BE_FCC(0x736F7263 /*sorc*/): {	/* source */
+				const char		*srcInfo;
+				
 				if (length != 1)
 					goto skip_info_data;
 				if (tf_read(&byteData, 1, 1, tf) != 1)
 					return 1;
-				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Source Information: %02X", byteData);
-				break;
+				switch (byteData >> 1)
+				{
+					case 0x00:	srcInfo = "network";	break;
+					case 0x01:	srcInfo = "manual";	break;
+					case 0x02:	srcInfo = "external";	break;
+					default: srcInfo = "unknown";
+				}
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Source: %s%s", srcInfo, (byteData & 1) ? ", copyrighted" : "");
+			}	break;
 			case BE_FCC(0x76657273 /*vers*/):	/* version (unused) */
 				if (tf_read(&type, 4, 1, tf) != 1)
 					return 1;
@@ -233,18 +229,19 @@ static int read_mfi_information(int infoLength, int *mfiVersion, int *noteType, 
 				{
 					case BE_FCC(0x30313030 /*0100*/):	*mfiVersion = 1;	break;
 					case BE_FCC(0x30323030 /*0200*/):	*mfiVersion = 2;	break;
+					case BE_FCC(0x30333030 /*0300*/):	*mfiVersion = 3;	break;
 					default:
 						ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Unknown MFi version.");
 						return 1;
 				}
 				ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "MFi Version: %d", *mfiVersion);
 				/*
-					info/controls which are marked '(MFi*)' are only executable when mfiVersion == *,
-					though the current implementation doesn't check it.
+					info/controls which are marked as '(MFi*)' are only executable when
+					mfiVersion == * or mfiVersion >= *.
 				*/
 				break;
 			case BE_FCC(0x64617465 /*date*/): {	/* created date */
-				char				created[9];
+				char			created[9];
 				
 				if (length != 8)
 					goto skip_info_data;
@@ -370,11 +367,7 @@ inline void SendLastNoteInfo(const LastNoteInfo *info, int channel)
 						}	\
 						length -= readLen;	\
 					} while(0)
-#if MFI_DRUM_SHIFT
-static int read_mfi_track(int trackNo, int length, int noteType, int extStDLength, ChannelBitMask *drumCh, timidity_file *tf)
-#else
-static int read_mfi_track(int trackNo, int length, int noteType, int extStDLength, timidity_file *tf)
-#endif
+static int read_mfi_track(int trackNo, int length, int mfiVersion, int noteType, int extStDLength, timidity_file *tf)
 {
 	uint8				data[5];
 	int					i, pos, note, velocity, dataLength;
@@ -410,10 +403,6 @@ static int read_mfi_track(int trackNo, int length, int noteType, int extStDLengt
 					data[3] &= 0x01;
 				note += ((int8)data[3]) * 12;	/* octave shift */
 			}
-			#if MFI_DRUM_SHIFT
-			if (IS_SET_CHANNELMASK(*drumCh, channel))			/* notes on drum channels should be shifted (N.B. this won't be able to detect all drum channels) */
-				note++;
-			#endif
 			if (LASTNOTEINFO_HAS_DATA(lastNotes[channel]))
 			{
 				if (lastNotes[channel].off <= pos
@@ -467,7 +456,7 @@ static int read_mfi_track(int trackNo, int length, int noteType, int extStDLengt
 			}
 			else if ((data[2] & 0xF0) == 0xF0)	/* extended controls */
 			{
-				int				extLength;
+				int				extLength, channel;
 				uint8			extData[512];
 				
 				CHECK_AND_READ_FROM_FILE(&data[4], 1);
@@ -478,88 +467,99 @@ static int read_mfi_track(int trackNo, int length, int noteType, int extStDLengt
 					switch(data[2] & 0xF)
 					{
 						/* case 0x0:	/-* modify envelope (MFi1) */
-						/* case 0x1:	/-* vibrato (MFi1) */
-						/* case 0xF:	/-* misc (MFi2) */
+						case 0x1:	/* vibrato (MFi1) */
+							if (mfiVersion == 1 && extData[0] == 0x01 && extData[1] & 0x01)
+							{
+								channel = channelMap[extData[1] >> 5];
+								MIDIEVENT(pos, ME_MODULATION_WHEEL, channel, (extData[2] & 0xC0) ? 64 : 0, 0)
+							}
+							break;
+						/*case 0xF:	/-* system exclusive (MFi2 or MFi3) */
 						default:
 							EX_UNKNOWN_EXT_DATA_DEBUGSTR(extLength);
 					}
 				}
-				else if (tf_seek(tf, extLength, SEEK_CUR) == -1)	/* It may never be that long though */
-					return 1;
+				else
+				{
+					if (tf_seek(tf, extLength, SEEK_CUR) == -1)
+						return 1;
+					EX_UNKNOWN_EXT_DATA_DEBUGSTR(extLength);
+					length -= extLength;
+				}
 			}
 			else
 			{
-				#define BEGIN_CONTROL(n)		n: { int part, channel, value;
-					#define GET_PART_AND_CHANNEL(p, c)		(p) = data[3] >> 6; (c) = channelMap[p]
-				#define END_CONTROL()			}	break;
+				int				part, channel, value;
+				#define GET_PART_AND_CHANNEL(p, c)		(p) = data[3] >> 6; (c) = channelMap[p]
 				
 				switch(data[2])
 				{
-					case BEGIN_CONTROL(0xB0)	/* master volume */
+					case 0xB0:	/* master volume */
 						value = MAPBITS2(data[3] & 0x7F, 7, 16);
 						MIDIEVENT(pos, ME_MASTER_VOLUME, 0, value & 0xFF, value >> 8);
 						EX_NCDATA_DEBUGSTR1("Master Volume", "%d", value);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xBA)	/* set drum channel flag */
-						int				flag;
-						
+						break;
+					case 0xBA:	/* set drum channel flag */
 						channel = (data[3] >> 3) & 0xF;
-						flag = data[3] & 0x1;
-						MIDIEVENT(pos, ME_DRUMPART, channel, flag, 0);
-						#if MFI_DRUM_SHIFT
-						if (flag)
-							SET_CHANNELMASK(*drumCh, channel);
-						else
-							UNSET_CHANNELMASK(*drumCh, channel);
-						#endif
-						EX_DATA_DEBUGSTR1("Drum Flag", channel, "%d", flag);
-						END_CONTROL();
-					/* case BEGIN_CONTROL(0xD0)	/-* music begin/end */
-					/* case BEGIN_CONTROL(0xDD)	/-* loop begin/end */
-					case BEGIN_CONTROL(0xDE)	/* nop */
-						END_CONTROL();
-					case BEGIN_CONTROL(0xDF)	/* end-of-track */
+						value = data[3] & 0x1;
+						MIDIEVENT(pos, ME_DRUMPART, channel, value, 0);
+						EX_DATA_DEBUGSTR1("Drum Flag", channel, "%d", value);
+						break;
+					case 0xD0:	/* music begin/end */
+						/* ignored */
+						break;
+					/* case 0xDD:	/-* loop begin/end */
+					case 0xDE:	/* nop */
+						break;
+					case 0xDF:	/* end-of-track */
 						if (length != 0)
-							ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "End-of-track found before the end of the track");
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE0)	/* program change */
+						{
+							ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Premature end-of-track (%d)", length);
+							length = 0;
+						}
+						break;
+					case 0xE0:	/* program change */
 						GET_PART_AND_CHANNEL(part, channel);
 						SEND_AND_CLEAR_LASTNOTEINFO(lastNotes, channel);
-						#if MFI_DRUM_SHIFT
-						if (!IS_SET_CHANNELMASK(*drumCh, channel))	/* probably */
-						#endif
-						{
-							/*MIDIEVENT(pos, ME_DRUMPART, channel, 0, 0);*/
-							instruments[channel] = (instruments[channel] & 0x40) | (data[3] & 0x3F);
-							MIDIEVENT(pos, ME_PROGRAM, channel, instruments[channel], 0);
-						}
+						/*MIDIEVENT(pos, ME_DRUMPART, channel, 0, 0);*/
+						instruments[channel] = (instruments[channel] & 0x40) | (data[3] & 0x3F);
+						MIDIEVENT(pos, ME_PROGRAM, channel, instruments[channel], 0);
 						EX_DATA_DEBUGSTR1("Program Change", channel, "%d", instruments[channel]);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE1)	/* pre program change */
+						break;
+					case 0xE1:	/* pre program change */
 						GET_PART_AND_CHANNEL(part, channel);
 						instruments[channel] = (data[3] & 0x1) << 6;
 						EX_DATA_DEBUGSTR1("Pre Program Change", channel, "%d", instruments[channel]);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE2)	/* volume */
+						break;
+					case 0xE2:	/* volume */
 						GET_PART_AND_CHANNEL(part, channel);
 						value = MAPBITS(data[3] & 0x3F, 6, 7);
 						MIDIEVENT(pos, ME_MAINVOLUME, channel, value, 0);
 						EX_DATA_DEBUGSTR1("Volume", channel, "%d", value);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE3)	/* pan */
+						break;
+					case 0xE3:	/* pan */
 						GET_PART_AND_CHANNEL(part, channel);
 						value = MAPBITS(data[3] & 0x3F, 6, 7);
 						MIDIEVENT(pos, ME_PAN, channel, value, 0);
 						EX_DATA_DEBUGSTR1("Pan", channel, "%d", value);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE5)	/* map part to channel */
+						break;
+					case 0xE4:	/* pitch bend (MFi3) */
+						if (mfiVersion >= 3)
+						{
+							GET_PART_AND_CHANNEL(part, channel);
+							value = MAPBITS2(data[3] & 0x3F, 6, 14);
+							MIDIEVENT(pos, ME_PITCHWHEEL, channel, value & 0x7F, value >> 7);
+							EX_DATA_DEBUGSTR1("Pitch Bend", channel, "%d", value);
+						}
+						break;
+					case 0xE5:	/* map part to channel */
 						part = data[3] >> 6;
 						SEND_AND_CLEAR_LASTNOTEINFO(lastNotes, channelMap[part]);
 						channelMap[part] = data[3] & 0xF;
 						SEND_AND_CLEAR_LASTNOTEINFO(lastNotes, channelMap[part]);
 						EX_DATA_DEBUGSTR1("Map Channel", part, "%d", channelMap[part]);
-						END_CONTROL();
-					case BEGIN_CONTROL(0xE6)	/* expression */
+						break;
+					case 0xE6:	/* expression */
 						GET_PART_AND_CHANNEL(part, channel);
 						value = data[3] & 0x3F;
 						if (value & 0x20)
@@ -570,7 +570,27 @@ static int read_mfi_track(int trackNo, int length, int noteType, int extStDLengt
 							value = 64 + (value << 1);
 						MIDIEVENT(pos, ME_EXPRESSION, channel, value, 0);
 						EX_DATA_DEBUGSTR1("Expression", channel, "%d", value);
-						END_CONTROL();
+						break;
+					case 0xE7:	/* pitch bend range (MFi3) */
+						if (mfiVersion >= 3)
+						{
+							GET_PART_AND_CHANNEL(part, channel);
+							value = data[3] & 0x3F;
+							MIDIEVENT(pos, ME_RPN_MSB, channel, 0, 0);
+							MIDIEVENT(pos, ME_RPN_LSB, channel, 0, 0);
+							MIDIEVENT(pos, ME_DATA_ENTRY_MSB, channel, value, 0);
+							EX_DATA_DEBUGSTR1("Pitch Bend Range", channel, "%d", value);
+						}
+						break;
+					case 0xEA:	/* vibrato (MFi3) */
+						if (mfiVersion >= 3)
+						{
+							GET_PART_AND_CHANNEL(part, channel);
+							value = MAPBITS(data[3] & 0x3F, 6, 7);
+							MIDIEVENT(pos, ME_MODULATION_WHEEL, channel, value, 0);
+							EX_DATA_DEBUGSTR1("Vibrato", channel, "%d", value);
+						}
+						break;
 					default:
 						EX_UNKNOWN_DATA_DEBUGSTR();
 				}
