@@ -1,3 +1,9 @@
+2004-02-13  mput  <root@mput.dip.jp>
+
+	* timidity/optcode.h (d2i): remove
+	* timidity/resample.c (initialize_resampler_coeffs):
+	  remove C++ style '//' comment
+
 2004-02-13  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/m2m.c: new function fill_nonlin_to_lin_table()

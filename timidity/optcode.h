@@ -111,12 +111,6 @@ static inline int32 imuldiv24(int32 a, int32 b)
     return result;
 }
 
-static inline int32 d2i(double val)
-{
-   val = val + _double2fixmagic;
-   return ((int32*)&val)[iman_] >> 16;
-}
-
 #elif _MSC_VER
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
@@ -149,12 +143,6 @@ inline int32 imuldiv24(int32 a, int32 b) {
 		shl edx, 8
 		or  eax, edx
 	}
-}
-
-inline int32 d2i(double val)
-{
-   val = val + _double2fixmagic;
-   return ((int32*)&val)[iman_] >> 16;
 }
 
 #elif defined(__GNUC__) && defined(__ppc__)
@@ -205,19 +193,6 @@ static inline int32 imuldiv24(int32 a, int32 b)
 	     :"5"(a),"6"(b));
     return ret;
 }
-/* static inline int32 d2i(double frb) */
-/* { */
-/*     register int32 ret; */
-/*     register double frt; */
-/*     volatile double temp; */
-/*     __asm__ ("fctiwz %1,%2\n\t" */
-/* 	     "stfd %1,%4\n\t" */
-/* 	     "lwz %0,4+%4" */
-/* 	     :"=r"(ret) */
-/* 	     :"f"(frt),"f"(frb),"r"(ret),"m"(temp) */
-/* 	     :"memory"); */
-/*     return ret; */
-/* } */
 
 #else
 /* Generic version of imuldiv. */
@@ -230,7 +205,6 @@ static inline int32 imuldiv24(int32 a, int32 b)
 #define imuldiv24(a, b) \
     (int32)(((int64)(a) * (int64)(b)) >> 24)
 
-#define d2i(val) (int32)(val)
 #endif /* architectures */
 #endif /* OPT_MODE != 0 */
 

@@ -490,7 +490,7 @@ static void initialize_newton_coeffs(void)
 /* initialize the coefficients of the current resampling algorithm */
 void initialize_resampler_coeffs(void)
 {
-    // initialize_newton_coeffs();
+    /* initialize_newton_coeffs(); */
     initialize_gauss_table(gauss_n);
     /* we don't have to initialize newton table any more */
 }
