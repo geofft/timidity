@@ -1,3 +1,7 @@
+2004-02-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/instrum.c: Beautify and fix typo
+
 2004-02-21  Saito <saito2@digitalme.com>
 
 	* interface/w32g_pref.c:
@@ -9,9 +13,10 @@
 
 2004-02-20  Saito <saito2@digitalme.com>
 
-	* interface/w32g_icon.ico, interface/w32g_res.[rc,h],
-	  interface/w32g_i.c, interface/w32g_subwin.c, interface/w32g_subwin2.c,
-	  interface/w32g_subwin3.c, interface/w32g_syn.c:
+	* interface/w32g_icon.ico, interface/w32g_res.{rc,h},
+	  interface/w32g_i.c, interface/w32g_subwin.c,
+	  interface/w32g_subwin2.c, interface/w32g_subwin3.c,
+	  interface/w32g_syn.c:
 	  Change icons.
 	* interface/w32g_syn_icon.ico:
 	  Add this file.
