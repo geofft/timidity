@@ -5,6 +5,7 @@
 	  Support for SoundFont's Sample Link.
 	  FIx around modulation wheel.
 	  Fix around MoogVCF.
+	  Undo change of opt_drum_power.
 
 2004-01-05  Saito <saito2@digitalme.com>
 
