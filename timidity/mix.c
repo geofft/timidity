@@ -187,7 +187,7 @@ void mix_voice(int32 *buf, int v, int32 c)
 static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
-	int32 i, f, q, p, b0, b1, b2, b3, b4, t1, t2, x, scale;
+	int32 i, f, q, p, b0, b1, b2, b3, b4, t1, t2, x;
 	
 	if(fc->type == 0) {	/* copy without change.	*/
 		/* (FIXME: It's absolutely essential that converting int16 sp[] to int32 lp[],
@@ -199,10 +199,10 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 	} else if(fc->type == 1) {	/* copy with applying Chamberlin's lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
-		f = fc->f, q = fc->q, b0 = fc->b0, b1 = fc->b1, b2 = fc->b2, scale = fc->scale;
+		f = fc->f, q = fc->q, b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
 		for(i = 0; i < count; i++) {
 			b0 = b0 + imuldiv24(b2, f);
-			b1 = imuldiv24(sp[i], scale) - b0 - imuldiv24(b2, q);
+			b1 = sp[i] - b0 - imuldiv24(b2, q);
 			b2 = imuldiv24(b1, f) + b2;
 			lp[i] = b0;
 		}
@@ -212,9 +212,9 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		f = fc->f, q = fc->q, p = fc->p, b0 = fc->b0, b1 = fc->b1,
-			b2 = fc->b2, b3 = fc->b3, b4 = fc->b4, scale = fc->scale;
+			b2 = fc->b2, b3 = fc->b3, b4 = fc->b4;
 		for(i = 0; i < count; i++) {
-			x = imuldiv24(sp[i], scale) - imuldiv24(q, b4);	/* feedback */
+			x = sp[i] - imuldiv24(q, b4);	/* feedback */
 			t1 = b1;  b1 = imuldiv24(x + b0, p) - imuldiv24(b1, f);
 			t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
 			t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);

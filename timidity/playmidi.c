@@ -987,6 +987,10 @@ static void recompute_amp(int v)
 		recompute_voice_tremolo(v);
 	}
 
+	if (voice[v].fc.type != 0) {
+		tempamp *= voice[v].fc.gain;	/* filter gain */
+	}
+
 	/* applying panning to amplitude */
 	if(!(play_mode->encoding & PE_MONO))
     	{
@@ -1078,8 +1082,7 @@ void init_voice_filter(int i)
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
-	  gain = pow(10.0f, -voice[i].fc.orig_reso_dB / 2.0f / 20.0f);
-	  voice[i].fc.scale = TIM_FSCALE(gain, 24);
+	  voice[i].fc.gain = pow(10.0f, -voice[i].fc.orig_reso_dB / 2.0f / 20.0f);
 	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {voice[i].fc.type = 2;}
 	  else if(opt_lpf_def == 1) {voice[i].fc.type = 1;}
   } else {

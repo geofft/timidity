@@ -1,8 +1,10 @@
 2004-01-05  Saito <saito2@digitalme.com>
 
-	* timidity/playmidi.[ch], timidity/sndfont.c, timidity/mix.c:
+	* timidity/playmidi.[ch], timidity/sndfont.c,
+	  timidity/mix.c, timidity/effect.c:
 	  Fix around SoundFont.
 	  Fix LPF resonance.
+	  Add soft clipping function to noise-shaping on 16bit output.
 
 2004-01-04  Saito <saito2@digitalme.com>
 
