@@ -1,3 +1,10 @@
+2003-07-22  Takashi Iwai <tiwai@suse.de>
+	
+	* timidity/timidity.c:
+	  - Fixed the broken fallback-deveice selection.
+	  - Changed the verbosity of gaussian table initialization
+	    messages.
+	
 2003-07-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/darwin_a.c, timidity/effect.c, timidity/playmidi.c,
