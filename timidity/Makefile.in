@@ -280,7 +280,7 @@ PKGLIBDIR = $(pkglibdir)
 SHLIB_DIR = $(pkglibdir)
 
 # Where to install timidity.el
-ELISP_DIR = $(pkgdatadir)
+ELISP_DIR = $(lispdir)
 
 # If you want to change TCL_DIR, please do follows.
 # * Add -DTKPROGPATH=\"$(TCL_DIR)/tkmidity.tcl\" to CPPFLAGS.
@@ -433,9 +433,9 @@ calcnewt_SOURCES = calcnewt.c
 
 CLEANFILES = newton_table.c
 
-@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
-
 @ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+
+@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.o) \

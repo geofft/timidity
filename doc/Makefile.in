@@ -280,7 +280,7 @@ PKGLIBDIR = $(pkglibdir)
 SHLIB_DIR = $(pkglibdir)
 
 # Where to install timidity.el
-ELISP_DIR = $(pkgdatadir)
+ELISP_DIR = $(lispdir)
 
 # If you want to change TCL_DIR, please do follows.
 # * Add -DTKPROGPATH=\"$(TCL_DIR)/tkmidity.tcl\" to CPPFLAGS.

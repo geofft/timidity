@@ -1524,7 +1524,7 @@ CONFIG_INTERFACE(alsaseq,ALSASEQ,A,
                                                           (default is no)],
   ,
   [ INTERFACE_SRCS="$INTERFACE_SRCS alsaseq_c.c"
-    AC_CHECK_HEADERS(sys/asoundlib.h)
+    AM_PATH_ALSA
   ])
 
 dnl TiMidity Windows synthesizer server

@@ -1,3 +1,15 @@
+2004-02-24  Henrique de Moraes Holschuh <hmh@debian.org>
+
+	* interface/Makefile.am (install.dynamics): The Dynamic interfaces
+	  need the .txt files installed too.
+	* doc/C/timidity.cfg.5: Fix English expressions
+	* common.makefile.in (ELISP_DIR): Bug fix
+
+2004-02-24  mput <root@mput.dip.jp>
+
+	* configure.in: ALSA 1.0 support for alsaseq interface, thanks to
+	  <hmh@debian.org>
+
 2004-02-23  Saito <saito2@digitalme.com>
 
 	* interface/w32g_res.[h,rc], interface/w32g_i.c,

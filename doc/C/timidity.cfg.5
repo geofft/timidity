@@ -2,8 +2,8 @@
 .SH NAME
 timidity.cfg \- configure file of TiMidity++
 .SH DESCRIPTION
-The file \fBtimidity.cfg\fP describes the runtime environments of
-timidity(1) that are the path of sound font, instruments
+The file \fItimidity.cfg\fP describes the runtime environments of
+timidity(1): that are the path of sound font, instruments
 configurations or else.
 .br
 \fBTiMidity++\fP looks for the configuration file \fBtimidity.cfg\fP
@@ -17,7 +17,7 @@ Configuration files define the mapping of MIDI programs to instrument
 files.  Multiple files may be specified, and statements in later ones
 will override earlier ones.
 .SH SYNTAX
-Following statements can be used in a configuration file:
+The following statements can be used in a configuration file:
 .TP
 .BI "dir " directory
 Adds \fIdirectory\fP to the search path in the same manner as the
@@ -295,12 +295,12 @@ Note that alternate assign of \fBdrumset 0\fP is used by default.
 .TP
 .BI "#extension comm " "program comment"
 Specifies the comment \fIcomment\fP for the tone number \fIprogram\fP.
-These comments are displayed in the indicator line at the case
+These comments are displayed in the indicator line when
 \fBTiMidity++\fP is booted with option \fB\-int\fP, \fB\-iTt\fP.
 .TP
 .BI "#extension timeout " "program second"
 Specifies the time\-out value of the \fIprogram\fP.  If any notes
-pronounced with the tone number \fIprogram\fP are suspended more than
+played with the tone number \fIprogram\fP are suspended more than
 \fIsecond\fP seconds, \fBTiMidity++\fP kills the notes.
 .TP
 .BI "#extension copydrumset " drumset

@@ -288,7 +288,7 @@ all-am: $(dynamic_targets)
 
 install.dynamics: $(dynamic_targets)
 	test -d $(DESTDIR)$(SHLIB_DIR) || mkdir -p $(DESTDIR)$(SHLIB_DIR)
-	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR);; esac; done
+	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR) ; $(INSTALL_DATA) $${f%%$(so)}txt $(DESTDIR)$(SHLIB_DIR);; esac; done
 
 .c.$(so):
 	$(COMPILE) $(SHCFLAGS) -c $< -o $@

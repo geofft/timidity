@@ -280,7 +280,7 @@ PKGLIBDIR = $(pkglibdir)
 SHLIB_DIR = $(pkglibdir)
 
 # Where to install timidity.el
-ELISP_DIR = $(pkgdatadir)
+ELISP_DIR = $(lispdir)
 
 # If you want to change TCL_DIR, please do follows.
 # * Add -DTKPROGPATH=\"$(TCL_DIR)/tkmidity.tcl\" to CPPFLAGS.
@@ -424,9 +424,9 @@ EXTRA_libinterface_a_SOURCES = \
 @ENABLE_SOUND_SPEC_TRUE@	soundspec.o
 
 
-@ENABLE_W32G_SYN_TRUE@W32GUI_DEPS = w32g_res.res
-
 @ENABLE_W32GUI_TRUE@W32GUI_DEPS = w32g_res.res
+
+@ENABLE_W32G_SYN_TRUE@W32GUI_DEPS = w32g_res.res
 
 INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.o)
 
@@ -1056,7 +1056,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 
 @NEEDDLOPEN_TRUE@install.dynamics: $(dynamic_targets)
 @NEEDDLOPEN_TRUE@	test -d $(DESTDIR)$(SHLIB_DIR) || mkdir -p $(DESTDIR)$(SHLIB_DIR)
-@NEEDDLOPEN_TRUE@	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR);; esac; done
+@NEEDDLOPEN_TRUE@	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR) ; $(INSTALL_DATA) $${f%%$(so)}txt $(DESTDIR)$(SHLIB_DIR);; esac; done
 
 @NEEDDLOPEN_TRUE@.c.$(so):
 @NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -c $< -o $@
