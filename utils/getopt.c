@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "getopt.h"
+#include "tmdy_getopt.h"
 
 #ifndef HAVE_GETOPT
 char *optarg;
