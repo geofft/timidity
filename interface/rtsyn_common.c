@@ -223,8 +223,8 @@ VOID CALLBACK timercalc(UINT uTimerID, UINT uMsg, DWORD dwUser, DWORD dummy1, DW
 	rtsyn_mutex_lock(timerMUTEX);
 	currenttime=get_current_calender_time();
 	time_div=currenttime-starttime;
-	if( time_div > (play_mode->rate)/TICKTIME_HZ){
-		time_div=(play_mode->rate)/TICKTIME_HZ-3;
+	if( time_div > 1.0/TICKTIME_HZ*2.0){
+		time_div= 1.0/TICKTIME_HZ-3/(play_mode->rate);
 	}
 	ev.time= ((double)current_sample
 			+ (play_mode->rate)*time_div+0.5);
