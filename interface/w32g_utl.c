@@ -41,6 +41,7 @@
 #include "instrum.h"
 #include "playmidi.h"
 #include "readmidi.h"
+#include "reverb.h"
 #include "output.h"
 #include "controls.h"
 #include "recache.h"
@@ -516,6 +517,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     opt_chorus_control = st->opt_chorus_control;
 	opt_surround_chorus = st->opt_surround_chorus;
     noise_sharp_type = st->noise_sharp_type;
+	opt_effect_quality = st->opt_effect_quality;
     opt_evil_mode = st->opt_evil_mode;
 	opt_tva_attack = st->opt_tva_attack;
 	opt_tva_decay = st->opt_tva_decay;
@@ -641,6 +643,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_eq_control = opt_eq_control;
 	st->opt_insertion_effect = opt_insertion_effect;
     st->noise_sharp_type = noise_sharp_type;
+	st->opt_effect_quality = opt_effect_quality;
     st->opt_evil_mode = SetFlag(opt_evil_mode);
     st->adjust_panning_immediately = SetFlag(adjust_panning_immediately);
     st->fast_decay = SetFlag(fast_decay);

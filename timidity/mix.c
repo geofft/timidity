@@ -174,26 +174,52 @@ void mix_voice(int32 *buf, int v, int32 c)
 }
 
 #ifdef VOICE_LPF
+#define FILTER_TRANSITION_SAMPLES control_ratio
 static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
-	int32 a1,a2,b0,b1,b2,hist1,hist2,centernode,i;
+	int32 a1, a2, b02, b1, hist1, hist2, centernode, i;
+	int32 filter_coeff_incr_count = fc->filter_coeff_incr_count;
+	int32 a1_incr, a2_incr, b02_incr, b1_incr;
 	
 	if(fc->freq == -1) {
 		for(i=0;i<count;i++) {
 			lp[i] = sp[i];
 		}
 		return;
+	} else if(filter_coeff_incr_count > 0) {
+		recalc_voice_resonance(v);
+		recalc_voice_fc(v);
+		hist1 = fc->hist1, hist2 = fc->hist2, a1 = fc->a1,
+			a2 = fc->a2, b02 = fc->b02, b1 = fc->b1,
+			a1_incr = fc->a1_incr, a2_incr = fc->a2_incr,
+			b02_incr = fc->b02_incr, b1_incr = fc->b1_incr;
+		for(i=0;i<count;i++) {
+			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
+			lp[i] = imuldiv24(b02, centernode + hist2)
+				+ imuldiv24(b1, hist1);
+			hist2 = hist1, hist1 = centernode;
+
+			if(filter_coeff_incr_count-- > 0) {
+				a1 += a1_incr;
+				a2 += a2_incr;
+				b02 += b02_incr;
+				b1 += b1_incr;
+			}
+		}
+		fc->hist1 = hist1, fc->hist2 = hist2;
+		fc->a1 = a1, fc->a2 = a2, fc->b02 = b02, fc->b1 = b1,
+		fc->filter_coeff_incr_count = filter_coeff_incr_count;
+		return;
 	} else {
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
-		hist1 = fc->hist1, hist2 = fc->hist2;
-		a1 = fc->a1, a2 = fc->a2;
-		b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
+		hist1 = fc->hist1, hist2 = fc->hist2, a1 = fc->a1,
+			a2 = fc->a2, b02 = fc->b02, b1 = fc->b1;
 		for(i=0;i<count;i++) {
 			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
-			lp[i] = (imuldiv24(b0, centernode)
-				+ imuldiv24(b1, hist1) + imuldiv24(b2, hist2));
+			lp[i] = imuldiv24(b02, centernode + hist2)
+				+ imuldiv24(b1, hist1);
 			hist2 = hist1, hist1 = centernode;
 		}
 		fc->hist1 = hist1, fc->hist2 = hist2;
@@ -211,13 +237,14 @@ static inline void recalc_voice_resonance(int v)
 		fc->last_reso_dB = reso_dB;
 		fc->reso_lin = pow(10.0, reso_dB / 20);
 		fc->filter_gain = 1 / sqrt(fc->reso_lin);
+		fc->last_freq = -1;
 	}
 }
 
 static inline void recalc_voice_fc(int v)
 {
 	double freq, omega, cos_coef, sin_coef, alpha_coef;
-	double a1, a2, b0, b1, b2;
+	double a1, a2, b02, b1;
 	FilterCoefficients *fc = &(voice[v].fc);
 	
 	freq = fc->freq;
@@ -229,11 +256,19 @@ static inline void recalc_voice_fc(int v)
 		a1 = -2 * cos_coef / (1 + alpha_coef);
 		a2 = (1 - alpha_coef) / (1 + alpha_coef);
 		b1 = (1 - cos_coef) / (1 + alpha_coef) * fc->filter_gain;
-		b0 = b2 = b1 * 0.5f;
-		fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24);
-		fc->b0 = TIM_FSCALE(b0, 24), fc->b1 = TIM_FSCALE(b1, 24),
-		fc->b2 = TIM_FSCALE(b2, 24);
-		fc->hist1 = fc->hist2 = 0;
+		b02 = b1 * 0.5f;
+		if(fc->filter_calculated /* or more optimization: && rapid freq. changing */) {
+			fc->a1_incr = (TIM_FSCALE(a1, 24) - fc->a1) / FILTER_TRANSITION_SAMPLES;
+			fc->a2_incr = (TIM_FSCALE(a2, 24) - fc->a2) / FILTER_TRANSITION_SAMPLES;
+			fc->b1_incr = (TIM_FSCALE(b1, 24) - fc->b1) / FILTER_TRANSITION_SAMPLES;
+			fc->b02_incr = (TIM_FSCALE(b02, 24) - fc->b02) / FILTER_TRANSITION_SAMPLES;
+			fc->filter_coeff_incr_count = FILTER_TRANSITION_SAMPLES;
+		} else {
+			fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24),
+			fc->b02 = TIM_FSCALE(b02, 24), fc->b1 = TIM_FSCALE(b1, 24);
+			fc->filter_calculated = 1;
+			fc->filter_coeff_incr_count = 0;
+		}
 	}
 }
 #endif
@@ -1073,7 +1108,7 @@ static inline int next_stage(int v)
 
 	/* envelope velocity-follow */
 	if (vp->sample->envelope_velf[stage])
-		rate *= pow(2.0, (double) (voice[v].velocity - 64)
+		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->envelope_velf_bpo)
 				* (double)vp->sample->envelope_velf[stage] / 1200.0f);
 
 	/* just before release phase, some modifications are necessary */
@@ -1254,10 +1289,8 @@ static inline int update_modulation_envelope(int v)
 	if ((vp->modenv_increment < 0)
 			^ (vp->modenv_volume > vp->modenv_target)) {
 		vp->modenv_volume = vp->modenv_target;
-		if (recompute_modulation_envelope(v)) {
-			apply_modulation_envelope(v);
+		if (recompute_modulation_envelope(v))
 			return 1;
-		}
 	}
 
 	apply_modulation_envelope(v);
@@ -1322,6 +1355,10 @@ static inline int modenv_next_stage(int v)
 	}
 	if (val != -1)
 		rate *= envelope_coef[val & 0x7f];
+
+	if (vp->sample->modenv_velf[stage])
+		rate *= pow(2.0, (double) (voice[v].velocity - vp->sample->modenv_velf_bpo)
+				* (double)vp->sample->modenv_velf[stage] / 1200.0f);
 
 	/* just before release phase, some modifications are necessary */
 	if (stage > 2) {

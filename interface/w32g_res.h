@@ -231,6 +231,7 @@
 #define IDC_CHECKBOX_CHPRESS            1191
 #define IDC_CHECKBOX_OVOICE             1192
 #define IDC_CHECKBOX_LOADINST_PLAYING   1193
+#define IDC_EDIT_EFFECT_QUALITY         1193
 #define IDC_RADIOBUTTON_GM              1194
 #define IDC_RADIOBUTTON_GS              1195
 #define IDC_RADIOBUTTON_XG              1196

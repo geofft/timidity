@@ -3277,6 +3277,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
 	init_string_table(&opt_config_string);
+	init_freq_table();
 	init_freq_table_pytha();
 	init_freq_table_meantone();
 	init_freq_table_pureint();
@@ -3845,6 +3846,7 @@ int main(int argc, char **argv)
 	free_userdrum();
 	free_userinst();
     tmdy_free_config();
+	free_effect_buffers();
     return main_ret;
 }
 #endif /* __MACOS__ */

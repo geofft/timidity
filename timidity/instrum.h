@@ -31,7 +31,8 @@ typedef struct _Sample {
     sample_rate, low_freq, high_freq, root_freq;
   int8 panning, note_to_use;
   int32
-    envelope_rate[6], envelope_offset[6];
+    envelope_rate[6], envelope_offset[6],
+	modenv_rate[6], modenv_offset[6];
   FLOAT_T
     volume;
   sample_t
@@ -45,14 +46,15 @@ typedef struct _Sample {
     vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
-  int32 cutoff_freq;
-  int16 resonance;	/* in centibels, [-960 ~ 960] */
-  int16 tremolo_to_pitch, tremolo_to_fc,
-	  modenv_to_pitch, modenv_to_fc;
-  int32
-    modenv_rate[6], modenv_offset[6];
-  int16 envelope_keyf[6], envelope_velf[6];
-  int16 modenv_keyf[6];
+  int32 cutoff_freq;	/* in Hz, [1, 20000] */
+  int16 resonance;	/* in centibels, [0, 960] */
+  /* in cents, [-12000, 12000] */
+  int16 tremolo_to_pitch, tremolo_to_fc, modenv_to_pitch, modenv_to_fc,
+	  envelope_keyf[6], envelope_velf[6], modenv_keyf[6], modenv_velf[6],
+	  vel_to_fc, key_to_fc;
+  int16 vel_to_resonance;	/* in centibels, [-960, 960] */
+  int8 envelope_velf_bpo, modenv_velf_bpo,
+	  key_to_fc_bpo, vel_to_fc_threshold;	/* in notes */
   int8 inst_type;
 } Sample;
 

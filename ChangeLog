@@ -1,4 +1,51 @@
 
+2003-04-21  Saito <timidity@flashmail.com>
+
+	* timidity/instrum.[ch], timidity/playmidi.c,
+	  timidity/smplfile.c, timidity/sndfont.c, timidity/mix.c:
+	  Add some internal parameters.
+	  Change LPF behaviour.
+
+2003-04-19  Saito <timidity@flashmail.com>
+
+	* timidity/reverb.c:
+	  Fix about access violation.
+	* timidity/playmidi.[ch], timidity/mix.c:
+	  Support for LPF transition. (the source of this code is "fluidsynth")
+
+2003-04-18  Kentaro Sato <kentaro@ps.catv.ne.jp>
+
+	* timidity/reverb.c:
+	  Fix about LPF for system effects.
+
+2003-04-18  Saito <timidity@flashmail.com>
+
+	* interface/w32g_ini.c, interface/w32g_pref.c,
+	  interface/w32g_utl.[ch], interface/w32g_res.[rc,h]:
+	  Add "Effect Quality" option.
+	* timidity/reverb.c:
+	  Support for new reverberation effect.
+	* timidity/sndfont.c:
+	  Bug fix about initialize.
+	* timidity/mix.c:
+	  Bug fix about lowpass filter with modulation envelope.
+
+2003-04-17  Saito <timidity@flashmail.com>
+
+	* timidity/tables.[ch], timidity/reverb.[ch]:
+	  Replace sine wave with triangular wave in chorus effect.
+	* timidity/playmidi.[ch]:
+	  Fix about NRPN vibrato.
+	* timidity/readmidi.c:
+	  Fix about map behaviour.
+
+2003-04-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/tables.[ch], timidity/timidity.c:
+	  Support for Salinas as mean-tone tuning
+	  in case of minor tonality.
+	  # Be careful of wolf.
+
 2003-04-15  Saito <timidity@flashmail.com>
 
 	* interface/w32g_ini.c, interface/w32g_pref.c,

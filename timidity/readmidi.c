@@ -2688,19 +2688,19 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 		  case 1:
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
 			      "(GS ch=%d SC-55 MAP)", ch);
-		    mapID[ch] = (ISDRUMCHANNEL(ch) ? SC_55_TONE_MAP
+		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_55_TONE_MAP
 				 : SC_55_DRUM_MAP);
 		    break;
 		  case 2:
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
 			      "(GS ch=%d SC-88 MAP)", ch);
-		    mapID[ch] = (ISDRUMCHANNEL(ch) ? SC_88_TONE_MAP
+		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_88_TONE_MAP
 				 : SC_88_DRUM_MAP);
 		    break;
 		  case 3:
 		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
 			      "(GS ch=%d SC-88Pro MAP)", ch);
-		    mapID[ch] = (ISDRUMCHANNEL(ch) ? SC_88PRO_TONE_MAP
+		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_88PRO_TONE_MAP
 				 : SC_88PRO_DRUM_MAP);
 		    break;
 		  default:
@@ -4026,25 +4026,17 @@ void recompute_delay_status()
 	}
 
 	switch(delay_status.pre_lpf) {
-	case 0:	cutoff_freq = 0;
-			break;
-	case 1:	cutoff_freq = 8000;
-			break;
-	case 2:	cutoff_freq = 5000;
-			break;
-	case 3:	cutoff_freq = 3150;
-			break;
-	case 4:	cutoff_freq = 2000;
-			break;
-	case 5:	cutoff_freq = 1250;
-			break;
-	case 6:	cutoff_freq = 800;
-			break;
-	case 7:	cutoff_freq = 500;
-			break;
+	case 0:	cutoff_freq = 0;	break;
+	case 1:	cutoff_freq = 8000;	break;
+	case 2:	cutoff_freq = 5000;	break;
+	case 3:	cutoff_freq = 3150;	break;
+	case 4:	cutoff_freq = 2000;	break;
+	case 5:	cutoff_freq = 1250;	break;
+	case 6:	cutoff_freq = 800;	break;
+	case 7:	cutoff_freq = 500;	break;
 	}
 
-	/* precalc lpf coef */
+	/* pre-calculate LPF coefficients */
 	if(cutoff_freq < play_mode->rate / 2) {
 		calc_lowpass_coefs_24db(delay_status.lpf_coef,cutoff_freq,0,play_mode->rate);
 	}
@@ -4121,26 +4113,17 @@ void recompute_chorus_status()
 	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
 
 	switch(chorus_param.chorus_pre_lpf) {
-	case 0:	cutoff_freq = 0;
-			break;
-	case 1:	cutoff_freq = 8000;
-			break;
-	case 2:	cutoff_freq = 5000;
-			break;
-	case 3:	cutoff_freq = 3150;
-			break;
-	case 4:	cutoff_freq = 2000;
-			break;
-	case 5:	cutoff_freq = 1250;
-			break;
-	case 6:	cutoff_freq = 800;
-			break;
-	case 7:	cutoff_freq = 500;
-			break;
+	case 0:	cutoff_freq = 0;	break;
+	case 1:	cutoff_freq = 8000;	break;
+	case 2:	cutoff_freq = 5000;	break;
+	case 3:	cutoff_freq = 3150;	break;
+	case 4:	cutoff_freq = 2000;	break;
+	case 5:	cutoff_freq = 1250;	break;
+	case 6:	cutoff_freq = 800;	break;
+	case 7:	cutoff_freq = 500;	break;
 	}
 
-	/* precalc lpf coef */
-	if(cutoff_freq < play_mode->rate / 2) {
+	if(cutoff_freq < play_mode->rate / 2) {	/* pre-calculate LPF coefficients */
 		calc_lowpass_coefs_24db(chorus_param.lpf_coef,cutoff_freq,0,play_mode->rate);
 	}
 }
@@ -4173,22 +4156,20 @@ void recompute_eq_status()
 	FLOAT_T dbGain;
 
 	/* Lowpass Shelving Filter */
-	if(eq_status.low_freq == 0) {
-		freq = 200;
-	} else {
-		freq = 400;
-	}
+	if(eq_status.low_freq == 0) {freq = 200;}
+	else {freq = 400;}
 	dbGain = eq_status.low_gain - 0x40;
-	calc_lowshelf_coefs(eq_status.low_coef,freq,dbGain,play_mode->rate);
+	if(freq < play_mode->rate / 2) {
+		calc_lowshelf_coefs(eq_status.low_coef,freq,dbGain,play_mode->rate);
+	}
 
 	/* Highpass Shelving Filter */
-	if(eq_status.high_freq == 0) {
-		freq = 3000;
-	} else {
-		freq = 6000;
-	}
+	if(eq_status.high_freq == 0) {freq = 3000;}
+	else {freq = 6000;}
 	dbGain = eq_status.high_gain - 0x40;
-	calc_highshelf_coefs(eq_status.high_coef,freq,dbGain,play_mode->rate);
+	if(freq < play_mode->rate / 2) {
+		calc_highshelf_coefs(eq_status.high_coef,freq,dbGain,play_mode->rate);
+	}
 }
 
 void recompute_userdrum_altassign(int bank, int group)
@@ -4197,7 +4178,6 @@ void recompute_userdrum_altassign(int bank, int group)
 	char *params[131], param[10];
 	ToneBank *bk;
 	UserDrumset *p;
-
 	
 	for(p = userdrum_first; p != NULL; p = p->next) {
 		if(p->assign_group == group) {
@@ -4346,63 +4326,62 @@ void free_userinst()
 void init_insertion_effect_status()
 {
 	int i;
+	struct insertion_effect_t *st = &insertion_effect;
 
-	for(i=0;i<20;i++) {
-		insertion_effect.parameter[i] = 0;
-	}
+	for(i=0;i<20;i++) {st->parameter[i] = 0;}
 
-	insertion_effect.type = 0;
-	insertion_effect.type_lsb = 0;
-	insertion_effect.type_msb = 0;
-	insertion_effect.send_reverb = 0x28;
-	insertion_effect.send_chorus = 0;
-	insertion_effect.send_delay = 0;
-	insertion_effect.control_source1 = 0;
-	insertion_effect.control_depth1 = 0x40;
-	insertion_effect.control_source2 = 0;
-	insertion_effect.control_depth2 = 0x40;
-	insertion_effect.send_eq_switch = 0x01;
-
-	insertion_effect.eq_low_gain = 0;
-	insertion_effect.eq_high_gain = 0;
-
+	st->type = 0;
+	st->type_lsb = 0;
+	st->type_msb = 0;
+	st->send_reverb = 0x28;
+	st->send_chorus = 0;
+	st->send_delay = 0;
+	st->control_source1 = 0;
+	st->control_depth1 = 0x40;
+	st->control_source2 = 0;
+	st->control_depth2 = 0x40;
+	st->send_eq_switch = 0x01;
+	st->eq_low_gain = 0;
+	st->eq_high_gain = 0;
 }
 
 void set_insertion_effect_default_parameter()
 {
-	switch(insertion_effect.type) {
+	struct insertion_effect_t *st = &insertion_effect;
+
+	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		insertion_effect.parameter[0] = 48;
-		insertion_effect.parameter[1] = 1;
-		insertion_effect.parameter[2] = 1;
-		insertion_effect.parameter[16] = 0x40;
-		insertion_effect.parameter[17] = 0x40;
-		insertion_effect.parameter[18] = 0x40;
-		insertion_effect.parameter[19] = 96;
+		st->parameter[0] = 48;
+		st->parameter[1] = 1;
+		st->parameter[2] = 1;
+		st->parameter[16] = 0x40;
+		st->parameter[17] = 0x40;
+		st->parameter[18] = 0x40;
+		st->parameter[19] = 96;
 		break;
 	case 0x0111: /* Distortion */
-		insertion_effect.parameter[0] = 76;
-		insertion_effect.parameter[1] = 3;
-		insertion_effect.parameter[2] = 1;
-		insertion_effect.parameter[16] = 0x40;
-		insertion_effect.parameter[17] = 0x38;
-		insertion_effect.parameter[18] = 0x40;
-		insertion_effect.parameter[19] = 84;
+		st->parameter[0] = 76;
+		st->parameter[1] = 3;
+		st->parameter[2] = 1;
+		st->parameter[16] = 0x40;
+		st->parameter[17] = 0x38;
+		st->parameter[18] = 0x40;
+		st->parameter[19] = 84;
 		break;
 	case 0x1103: /* OD1 / OD2 */
-		insertion_effect.parameter[0] = 0;
-		insertion_effect.parameter[1] = 48;
-		insertion_effect.parameter[2] = 1;
-		insertion_effect.parameter[3] = 1;
-		insertion_effect.parameter[15] = 0x40;
-		insertion_effect.parameter[16] = 96;
-		insertion_effect.parameter[5] = 1;
-		insertion_effect.parameter[6] = 76;
-		insertion_effect.parameter[7] = 3;
-		insertion_effect.parameter[8] = 1;
-		insertion_effect.parameter[17] = 0x40;
-		insertion_effect.parameter[18] = 84;
-		insertion_effect.parameter[19] = 127;
+		st->parameter[0] = 0;
+		st->parameter[1] = 48;
+		st->parameter[2] = 1;
+		st->parameter[3] = 1;
+		st->parameter[15] = 0x40;
+		st->parameter[16] = 96;
+		st->parameter[5] = 1;
+		st->parameter[6] = 76;
+		st->parameter[7] = 3;
+		st->parameter[8] = 1;
+		st->parameter[17] = 0x40;
+		st->parameter[18] = 84;
+		st->parameter[19] = 127;
 		break;
 	default: break;
 	}
@@ -4412,26 +4391,27 @@ void recompute_insertion_effect()
 {
 	int32 freq;
 	FLOAT_T dbGain;
+	struct insertion_effect_t *st = &insertion_effect;
 
-	switch(insertion_effect.type) {
+	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		insertion_effect.eq_low_gain = insertion_effect.parameter[16] - 0x40;
-		insertion_effect.eq_high_gain = insertion_effect.parameter[17] - 0x40;
+		st->eq_low_gain = st->parameter[16] - 0x40;
+		st->eq_high_gain = st->parameter[17] - 0x40;
 		break;
 	case 0x0111: /* Distortion */
-		insertion_effect.eq_low_gain = insertion_effect.parameter[16] - 0x40;
-		insertion_effect.eq_high_gain = insertion_effect.parameter[17] - 0x40;
+		st->eq_low_gain = st->parameter[16] - 0x40;
+		st->eq_high_gain = st->parameter[17] - 0x40;
 		break;
 	default: break;
 	}
 
-	/* calculate EQ coef */
-	if(insertion_effect.eq_low_gain != 0 || insertion_effect.eq_high_gain != 0) {
-		freq = insertion_effect.eq_low_freq = 400;
-		dbGain = insertion_effect.eq_low_gain;
-		calc_lowshelf_coefs(insertion_effect.eq_low_coef,freq,dbGain,play_mode->rate);
-		freq = insertion_effect.eq_high_freq = 4000;
-		dbGain = insertion_effect.eq_high_gain;
-		calc_highshelf_coefs(insertion_effect.eq_high_coef,freq,dbGain,play_mode->rate);
+	/* calculate EQ coefficients */
+	if(st->eq_low_gain != 0 || st->eq_high_gain != 0) {
+		freq = st->eq_low_freq = 400;
+		dbGain = st->eq_low_gain;
+		calc_lowshelf_coefs(st->eq_low_coef,freq,dbGain,play_mode->rate);
+		freq = st->eq_high_freq = 4000;
+		dbGain = st->eq_high_gain;
+		calc_highshelf_coefs(st->eq_high_coef,freq,dbGain,play_mode->rate);
 	}
 }

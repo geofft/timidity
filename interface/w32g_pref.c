@@ -600,7 +600,8 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_DELAY,0);
 		// NOISESHARPING
 	 SetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,st_temp->noise_sharp_type,TRUE);
-		// Misc
+	 SetDlgItemInt(hwnd,IDC_EDIT_EFFECT_QUALITY,st_temp->opt_effect_quality,TRUE);
+	 // Misc
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);
@@ -732,7 +733,8 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		}
 		// NOISESHARPING
 	 st_temp->noise_sharp_type = GetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,NULL,FALSE);
-		// Misc
+	 st_temp->opt_effect_quality = GetDlgItemInt(hwnd,IDC_EDIT_EFFECT_QUALITY,NULL,FALSE);
+	 // Misc
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);

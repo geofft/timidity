@@ -873,7 +873,10 @@ static Instrument *load_gus_instrument(char *name,
     }
 
 	sp->cutoff_freq = sp->resonance = sp->tremolo_to_pitch = 
-		sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc = 0;
+		sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc =
+		sp->vel_to_fc = sp->key_to_fc = sp->vel_to_resonance = 0;
+	sp->envelope_velf_bpo = sp->modenv_velf_bpo = sp->vel_to_fc_threshold = 64;
+	sp->key_to_fc_bpo = 60;
 	sp->inst_type = INST_GUS;
 
   close_file(tf);

@@ -457,8 +457,8 @@ static void reset_nrpn_controllers(int c)
 
   /* NRPN */
   reset_drum_controllers(channel[c].drums, -1);
-  channel[c].vibrato_ratio = 1.0;
-  channel[c].vibrato_depth = 1.0;
+  channel[c].vibrato_ratio = 0;
+  channel[c].vibrato_depth = 0;
   channel[c].vibrato_delay = 0;
   channel[c].param_cutoff_freq = 0;
   channel[c].param_resonance = 0;
@@ -679,7 +679,10 @@ void recompute_freq(int v)
 			f = freq_table_pytha[current_freq_table][note];
 			break;
 		case 2:
-			f = freq_table_meantone[current_freq_table][note];
+			if (current_temper_keysig < 8)
+				f = freq_table_meantone[current_freq_table][note];
+			else
+				f = freq_table_meantone[current_freq_table + 12][note];
 			break;
 		case 3:
 			if (current_temper_keysig < 8)
@@ -828,29 +831,16 @@ static void recompute_amp(int v)
 
 void recompute_channel_filter(MidiEvent *e)
 {
-	int ch = e->channel, note, prog, bk, vel;
-	double coef = 1.0f, reso, keyf;
+	int ch = e->channel, note, prog, bk;
+	double coef = 1.0f, reso = 0;
 	ToneBankElement *elm;
 
-	if(channel[ch].special_sample > 0 || ISDRUMCHANNEL(ch)) {return;}
+	if(channel[ch].special_sample > 0) {return;}
 
 	note = MIDI_EVENT_NOTE(e);
 	prog = channel[ch].program;
 	bk = channel[ch].bank;
 	elm = &tonebank[bk]->tone[prog];
-
-	/* Velocity to Filter Cutoff */
-	vel = e->b;
-	coef *= pow(2.0, -2.0f * (double)(127 - vel) / 127.0f);
-
-#if 0
-	/* reserved. it's waiting for patch option. */
-	/* Filter Keyfollow */
-	if(note > 60) {
-		keyf = (double)(note & 0x7F) / 60.0f * 0.5f + 0.5f;
-		coef *= keyf;
-	}
-#endif
 
 	/* Soft Pedal */
 	if(channel[ch].soft_pedal > 63) {
@@ -861,8 +851,17 @@ void recompute_channel_filter(MidiEvent *e)
 		}
 	}
 
-	/* NRPN Resonance */
-	reso = (double)channel[ch].param_resonance * 0.5f;
+	if(!ISDRUMCHANNEL(ch)) {
+		/* NRPN Filter Cutoff */
+		coef *= pow(1.26, (double)(channel[ch].param_cutoff_freq) / 8.0f);
+		/* NRPN Resonance */
+		reso = (double)channel[ch].param_resonance * 0.5f;
+	} else if(channel[ch].drums[note] != NULL) {
+		/* NRPN Drum Instrument Filter Cutoff */
+		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
+		/* NRPN Drum Instrument Filter Resonance */
+		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+	}
 
 	channel[ch].cutoff_freq_coef = coef;
 	channel[ch].resonance_dB = reso;
@@ -874,23 +873,25 @@ void recompute_channel_filter(MidiEvent *e)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, reso;
+	double coef = 1.0, reso = 0;
 	int32 freq;
 	FilterCoefficients *fc = &(voice[v].fc);
+	Sample *sp = &voice[v].sample;
 
 	if(fc->freq == -1) {return;}
 
 	coef = channel[ch].cutoff_freq_coef;
-	if(!ISDRUMCHANNEL(ch)) {
-		/* NRPN Filter Cutoff */
-		coef *= pow(1.26, (double)(channel[ch].param_cutoff_freq) / 8.0f);
-		reso = 0;
-	} else if(channel[ch].drums[note] != NULL) {
-		/* NRPN Drum Instrument Filter Cutoff */
-		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
-		/* NRPN Drum Instrument Filter Resonance */
-		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+
+	if(sp->vel_to_fc && voice[v].velocity < sp->vel_to_fc_threshold) {	/* velocity to filter cutoff frequency */
+		coef *= pow(2.0, sp->vel_to_fc * (double)(127 - voice[v].velocity) / 1200.0f / 127.0f);
 	}
+	if(sp->vel_to_resonance) {	/* velocity to filter resonance */
+		reso += (double)voice[v].velocity * sp->vel_to_resonance / 127.0f / 10.0f;
+	}
+	if(sp->key_to_fc) {	/* filter cutoff key-follow */
+		coef *= pow(2.0, sp->vel_to_fc * (double)(voice[v].note - sp->key_to_fc_bpo) / 1200.0f);
+	}
+
 	if(opt_modulation_envelope) {
 		if(voice[v].sample->tremolo_to_fc) {
 			coef += coef * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
@@ -904,12 +905,11 @@ void recompute_voice_filter(int v)
 
 	freq = (double)fc->orig_freq * coef;
 
-	/* in this case, it's not necessary to do lowpass filter */
 	if (freq > play_mode->rate / 2) {
 		fc->freq = -1;
 		return;
 	}
-	else if(freq < 20) {freq = 20;}
+	else if(freq < 5) {freq = 5;}
 	else if(freq > 20000) {freq = 20000;}
 	fc->freq = freq;
 
@@ -1688,7 +1688,10 @@ static int select_play_sample(Sample *splist, int nsp,
 			f = freq_table_pytha[current_freq_table][note];
 			break;
 		case 2:
-			f = freq_table_meantone[current_freq_table][note];
+			if (current_temper_keysig < 8)
+				f = freq_table_meantone[current_freq_table][note];
+			else
+				f = freq_table_meantone[current_freq_table + 12][note];
 			break;
 		case 3:
 			if (current_temper_keysig < 8)
@@ -1920,12 +1923,6 @@ static void calc_sample_panning_average(int nv,int *vlist)
 	}
 }
 
-static inline FLOAT_T saturate_f(FLOAT_T val, FLOAT_T max)
-{
-	if(val > max) {val = max;}
-	return val;
-}
-
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
 {
   int j, ch, note, pan;
@@ -1983,8 +1980,15 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
   if(opt_nrpn_vibrato)
   {
-      voice[i].vibrato_control_ratio = saturate_f((FLOAT_T)voice[i].sample->vibrato_control_ratio * channel[ch].vibrato_ratio, (FLOAT_T)2147483648.0);
-      voice[i].vibrato_depth = saturate_f(voice[i].sample->vibrato_depth * channel[ch].vibrato_depth, (FLOAT_T)255);
+	  if(channel[ch].vibrato_ratio) {
+	      voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio + channel[ch].vibrato_ratio;
+		  if(voice[i].vibrato_control_ratio < 0) {voice[i].vibrato_control_ratio = 0;}
+	  }
+	  if(channel[ch].vibrato_depth) {
+	      voice[i].vibrato_depth = voice[i].sample->vibrato_depth + channel[ch].vibrato_depth;
+		  if(voice[i].vibrato_depth > 255) {voice[i].vibrato_depth = 255;}
+		  else if(voice[i].vibrato_depth < 0) {voice[i].vibrato_depth = 0;}
+	  }
       voice[i].vibrato_delay = channel[ch].vibrato_delay;
   }
   else
@@ -3471,30 +3475,32 @@ static void update_rpn_map(int ch, int addr, int update_now)
     switch(addr)
     {
       case NRPN_ADDR_0108: /* Vibrato Rate */
-    if(opt_nrpn_vibrato) {
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Rate (CH:%d VAL:%d)",ch,val);
-		channel[ch].vibrato_ratio = pow(2.0, ((FLOAT_T)val - 64) / 16);
+    if(opt_nrpn_vibrato) {	/* from -10.72 Hz to +10.72 Hz. */
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Rate (CH:%d VAL:%d)", ch, val - 64);
+		channel[ch].vibrato_ratio = 168 * (val - 64) *
+		    (VIBRATO_RATE_TUNING * play_mode->rate) /
+			(2 * VIBRATO_SAMPLE_INCREMENTS);
 	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_0109: /* Vibrato Depth */
-    if(opt_nrpn_vibrato) {
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth (CH:%d VAL:%d)",ch,val);
-		channel[ch].vibrato_depth = pow(2.0, ((FLOAT_T)val - 64) / 16);
+    if(opt_nrpn_vibrato) {	/* from -25cents to +25cents. */
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth (CH:%d VAL:%d)", ch, val - 64);
+		channel[ch].vibrato_depth =  (double)(val - 64) * 0.39 * 256 / 400;
 	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_010A: /* Vibrato Delay */
     if(opt_nrpn_vibrato) {
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Delay (CH:%d VAL:%d)",ch,val);
-		channel[ch].vibrato_delay = play_mode->rate * pre_delay_time_table[val] * 0.001;
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Delay (CH:%d VAL:%d)", ch, val);
+		channel[ch].vibrato_delay = play_mode->rate * delay_time_center_table[val] * 0.001;
 	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
-      case NRPN_ADDR_0120:	/* Filter cutoff frequency */
+      case NRPN_ADDR_0120:	/* Filter Cutoff Frequency */
 	if(opt_lpf_def) {
 		channel[ch].param_cutoff_freq = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Filter Cutoff (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);

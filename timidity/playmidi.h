@@ -217,8 +217,7 @@ typedef struct {
   struct DrumParts *drums[128];
 
   /* For vibrato */
-  FLOAT_T vibrato_ratio,vibrato_depth;
-  int32 vibrato_delay;
+  int32 vibrato_ratio, vibrato_depth, vibrato_delay;
 
   /* For RPN */
   uint8 rpnmap[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
@@ -241,11 +240,11 @@ typedef struct {
   int pan_random;
 
   /* for Voice LPF / Resonance */
-  int8 param_resonance,param_cutoff_freq;	/* -64 ~ 63 */
+  int8 param_resonance, param_cutoff_freq;	/* -64 ~ 63 */
   double cutoff_freq_coef;
   double resonance_dB;
 
-  int8 velocity_sense_depth,velocity_sense_offset;
+  int8 velocity_sense_depth, velocity_sense_offset;
   
   int8 scale_tuning[12], prev_scale_tuning;
   int8 temper_type;
@@ -256,8 +255,8 @@ typedef struct {
   FLOAT_T pitch_offset_fine;	/* in Hz */
   int8 assign_mode;
 
-  int8 legato;	/* Legato: 0 or 1 */
-  int8 note_on;	/* for Legato */
+  int8 legato;	/* legato */
+  int8 note_on;	/* note on flag for legato */
 
   FLOAT_T caf_rate_ctl1, caf_pitch_depth1, caf_cutoff_ctl, caf_amp_ctl;
 } Channel;
@@ -268,7 +267,10 @@ typedef struct {
 typedef struct {
 	int16 freq, last_freq, orig_freq;
 	double reso_dB, last_reso_dB, orig_reso_dB, reso_lin, filter_gain; 
-	int32 a1, a2, b0, b1, b2, hist1, hist2;
+	int32 a1, a2, b02, b1, hist1, hist2;
+	int32 a1_incr, a2_incr, b02_incr, b1_incr;
+	int8 filter_calculated;
+	int32 filter_coeff_incr_count;
 } FilterCoefficients;
 
 typedef struct {

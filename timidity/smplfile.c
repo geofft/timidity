@@ -1089,7 +1089,11 @@ static void initialize_sample(Instrument *inst, int frames, int sample_bits, int
 			sample->tremolo_phase_increment = sample->tremolo_depth =
 			sample->vibrato_sweep_increment = sample->vibrato_control_ratio = sample->vibrato_depth = 0;
 		sample->cutoff_freq = sample->resonance = sample->tremolo_to_pitch = 
-			sample->tremolo_to_fc = sample->modenv_to_pitch = sample->modenv_to_fc = 0;
+			sample->tremolo_to_fc = sample->modenv_to_pitch = sample->modenv_to_fc =
+			sample->vel_to_fc = sample->key_to_fc = sample->vel_to_resonance = 0;
+		sample->envelope_velf_bpo = sample->modenv_velf_bpo =
+			sample->vel_to_fc_threshold = 64;
+		sample->key_to_fc_bpo = 60;
 		sample->inst_type = INST_PCM;
 	}
 	if (samples <= 6 && (panning = gen_pan_list[samples - 1]) != NULL)

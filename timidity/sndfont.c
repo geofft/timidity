@@ -1257,6 +1257,12 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     vp->start = vp->start * 2 + sf->samplepos;
     vp->len *= 2;
 
+	vp->v.vel_to_fc = -2400;	/* SF2 default value */
+	vp->v.key_to_fc = vp->v.vel_to_resonance = 0;
+	vp->v.envelope_velf_bpo = vp->v.modenv_velf_bpo =
+		vp->v.vel_to_fc_threshold = 64;
+	vp->v.key_to_fc_bpo = 60;
+
 	vp->v.inst_type = INST_SF2;
 }
 
@@ -1359,7 +1365,6 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	}
 
 	vp->cutoff_freq = val;
-
     }
 
     if(current_sfrec->def_resonance_allowed && tbl->set[SF_initialFilterQ])
@@ -1424,14 +1429,18 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
       vp->root -= 60;
 
     /* correct tune with the sustain level of modulation envelope */
-	if(!opt_modulation_envelope) {
+	if(!opt_modulation_envelope && tbl->set[SF_env1ToPitch] && tbl->set[SF_sustainEnv1]) {
 	    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
 	}
 
-	vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
-	vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
-	vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
-	vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
+	if(tbl->set[SF_lfo1ToPitch])
+		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
+	if(tbl->set[SF_lfo1ToFilterFc])
+		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
+	if(tbl->set[SF_env1ToPitch])
+		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
+	if(tbl->set[SF_env1ToFilterFc])
+		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }
 
 static void set_rootfreq(SampleList *vp)
