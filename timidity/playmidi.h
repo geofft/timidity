@@ -276,9 +276,9 @@ typedef struct {
     status, channel, note, velocity;
   int vid, temper_instant;
   Sample *sample;
+  splen_t sample_offset, sample_increment;
   int32
     orig_frequency, frequency,
-    sample_offset, sample_increment,
     envelope_volume, envelope_target, envelope_increment,
     tremolo_sweep, tremolo_sweep_position,
     tremolo_phase, tremolo_phase_increment,

@@ -1,4 +1,23 @@
-2003-04-04  mput  <root@mput.dip.jp>
+2003-04-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/w32g_subwin3.c:
+	  Fix around temperament display (W32GUI version)
+
+2003-04-06  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.h, timidity/resample.c,
+	  timidity/recache.c, timidity/instrum.h:
+	  Change Sample struct (loop_end,loop_start,data_length)
+	  to splen_t(int64).
+	  Change Voice struct (sample_offset, sample_increment)
+	  to splen_t(int64).
+
+2003-04-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/w32g_subwin3.c, interface/w32g_tracer.{bmp,h}:
+	  Support for temperament display (W32GUI version)
+
+2003-04-04  mput <root@mput.dip.jp>
 
 	* timidity/playmidi.c (recompute_freq): Fixed fprintf() arg
 	* timidity/playmidi.c (start_note): Fixed cast to fit prototypes
@@ -10,6 +29,11 @@
 	  Real-Time SysEx.
 	  - Temperament keysig control (F0 7F id 08 0A sf mi F7)
 	  - Temperament type control (F0 7F id 08 0B ff gg hh tt F7)
+
+2003-04-03  Saito <timidity@flashmail.com>
+
+	* timidity/effect.c:
+	  Fix noise shaping filter for 16bit output mode.
 
 2003-04-02  Saito <timidity@flashmail.com>
 

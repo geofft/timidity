@@ -42,6 +42,8 @@ typedef struct w32g_tracer_wnd_t_ {
 	RECT rc_mod_wheel;
 	RECT rc_chorus_effect;
 	RECT rc_reverb_effect;
+	RECT rc_temper_keysig;
+	RECT rc_temper_type;
 	RECT rc_notes;
 	RECT rc_gm;
 	RECT rc_gs;
@@ -65,6 +67,7 @@ typedef struct w32g_tracer_wnd_t_ {
 	short mod_wheel[TRACER_CHANNELS];
 	short chorus_effect[TRACER_CHANNELS];
 	short reverb_effect[TRACER_CHANNELS];
+	int8 tt[TRACER_CHANNELS];
 	char notes[TRACER_CHANNELS][256];
 	char filename[1024];
 	char titlename[1024];

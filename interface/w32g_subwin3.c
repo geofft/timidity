@@ -121,6 +121,8 @@ extern void ClearEditCtlWnd(HWND hwnd);
 #define TWI_MODE_1_16CH		2
 #define TWI_MODE_17_32CH	3
 
+#define CTL_STATUS_UPDATE -98
+
 extern ControlMode *ctl;
 
 #define CSV_LEFT	0
@@ -152,19 +154,8 @@ static struct tracer_bmp_ {
 	RECT rc_gs_off;
 	RECT rc_xg_on;
 	RECT rc_xg_off;
-	int volume_max;
-	int expression_max;
-	int pan_max;
-	int sustain_max;
-	int pitch_bend_max;
-	int mod_wheel_max;
-	int chorus_effect_max;
-	int reverb_effect_max;
-	int velocity_max;
-	int notes_max;
-	int gm_max;
-	int gs_max;
-	int xg_max;
+	RECT rc_temper_keysig[32];
+	RECT rc_temper_type[4];
 } tracer_bmp;
 
 static int get_head_rc ( RECT *rc, RECT *rc_base );
@@ -191,6 +182,8 @@ static int tracer_pitch_bend_draw ( RECT *lprc, int vol, int max, int lockflag )
 static int tracer_mod_wheel_draw ( RECT *lprc, int vol, int max, int lockflag );
 static int tracer_chorus_effect_draw ( RECT *lprc, int vol, int max, int lockflag );
 static int tracer_reverb_effect_draw ( RECT *lprc, int vol, int max, int lockflag );
+static int tracer_temper_keysig_draw(RECT *lprc, int8 tk, int ko, int lockflag);
+static int tracer_temper_type_draw(RECT *lprc, int ch, int8 tt, int lockflag);
 static int tracer_gm_draw ( RECT *lprc, int flag, int lockflag );
 static int tracer_gs_draw ( RECT *lprc, int flag, int lockflag );
 static int tracer_xg_draw ( RECT *lprc, int flag, int lockflag );
@@ -303,7 +296,7 @@ void InitTracerWnd(HWND hParentWnd)
 	w32g_tracer_wnd.font_common_width = 0;
 	SetRect ( &w32g_tracer_wnd.rc_head, 1, 2,  0, 0 );
 	SetRect ( &w32g_tracer_wnd.rc_all_channels, 1,  20 + 2,  0, 0 );
-	w32g_tracer_wnd.width = 2 + 860 + 2; 
+	w32g_tracer_wnd.width = 2 + 880 + 2; 
 	w32g_tracer_wnd.height = 1 + 19 + 1 + (19 + 1) * 32 + 1; 
 
 	w32g_tracer_wnd.ch_height = 19;
@@ -329,7 +322,7 @@ void InitTracerWnd(HWND hParentWnd)
 	wndclass.lpszMenuName  = NULL;
 	wndclass.lpszClassName = "tracer canvas wnd";
 	RegisterClass(&wndclass);
-  	w32g_tracer_wnd.hwnd = CreateWindowEx(0,"tracer canvas wnd",0,WS_CHILD,
+	w32g_tracer_wnd.hwnd = CreateWindowEx(0,"tracer canvas wnd",0,WS_CHILD,
 		CW_USEDEFAULT,0,w32g_tracer_wnd.width,w32g_tracer_wnd.height,
 		hTracerWnd,0,hInst,0);
 
@@ -360,32 +353,34 @@ void InitTracerWnd(HWND hParentWnd)
 		}
 		w32g_tracer_wnd.hFontCommon = CreateFont(w32g_tracer_wnd.font_common_height,w32g_tracer_wnd.font_common_width,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,
-	      	DEFAULT_PITCH | FF_MODERN ,fontname);
+			DEFAULT_PITCH | FF_MODERN ,fontname);
 		w32g_tracer_wnd.hFontHalf = CreateFont(-10,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,
-	      	DEFAULT_PITCH | FF_MODERN ,"Courier");
+			DEFAULT_PITCH | FF_MODERN ,"Courier");
 	}
 	TracerWndReset();
 
-	SetRect ( &w32g_tracer_wnd.rc_channel_top, 1, 0, 20, height );
-	SetRect ( &w32g_tracer_wnd.rc_instrument, 21, 0, 179, height );	
-	SetRect ( &w32g_tracer_wnd.rc_inst_map, 180, 0, 233, height );	
-	SetRect ( &w32g_tracer_wnd.rc_bank, 234, 0, 264, height );
-	SetRect ( &w32g_tracer_wnd.rc_program, 265, 0, 295, height );
-	SetRect ( &w32g_tracer_wnd.rc_velocity, 296, 0, 326, height );
-	SetRect ( &w32g_tracer_wnd.rc_volume, 327, 0, 347, height / 2 - 0 );
-	SetRect ( &w32g_tracer_wnd.rc_expression, 327, height / 2 + 1, 347, height );
-	SetRect ( &w32g_tracer_wnd.rc_panning, 348, 0, 368, height / 2 - 0 );
-	SetRect ( &w32g_tracer_wnd.rc_sustain, 348, height / 2 + 1, 368, height );
-	SetRect ( &w32g_tracer_wnd.rc_pitch_bend, 369, 0, 389, height / 2 - 0 );
-	SetRect ( &w32g_tracer_wnd.rc_mod_wheel, 369, height / 2 + 1, 389, height );
-	SetRect ( &w32g_tracer_wnd.rc_chorus_effect, 390, 0, 410, height / 2 - 0 );
-	SetRect ( &w32g_tracer_wnd.rc_reverb_effect, 390, height / 2 + 1, 410, height );
-	SetRect ( &w32g_tracer_wnd.rc_notes, 411, 0, 860 + 10, height + 0 );
-	SetRect ( &w32g_tracer_wnd.rc_gm, 411, 0, 411 + tracer_bmp.rc_gm_on.right - tracer_bmp.rc_gm_on.left, height );
-	SetRect ( &w32g_tracer_wnd.rc_gs, w32g_tracer_wnd.rc_gm.right + 1, 0, w32g_tracer_wnd.rc_gm.right + 1 +  tracer_bmp.rc_gs_on.right - tracer_bmp.rc_gs_on.left, height );
-	SetRect ( &w32g_tracer_wnd.rc_xg, w32g_tracer_wnd.rc_gs.right + 1, 0, w32g_tracer_wnd.rc_gs.right + 1 +  tracer_bmp.rc_xg_on.right - tracer_bmp.rc_xg_on.left, height );
-	SetRect ( &w32g_tracer_wnd.rc_head_rest, w32g_tracer_wnd.rc_xg.right + 1, 0, 860 + 10, height );
+	SetRect(&w32g_tracer_wnd.rc_channel_top, 1, 0, 20, height);
+	SetRect(&w32g_tracer_wnd.rc_instrument, 21, 0, 179, height);
+	SetRect(&w32g_tracer_wnd.rc_inst_map, 180, 0, 233, height);
+	SetRect(&w32g_tracer_wnd.rc_bank, 234, 0, 264, height);
+	SetRect(&w32g_tracer_wnd.rc_program, 265, 0, 295, height);
+	SetRect(&w32g_tracer_wnd.rc_velocity, 296, 0, 326, height);
+	SetRect(&w32g_tracer_wnd.rc_volume, 327, 0, 347, height / 2);
+	SetRect(&w32g_tracer_wnd.rc_expression, 327, height / 2 + 1, 347, height);
+	SetRect(&w32g_tracer_wnd.rc_panning, 348, 0, 368, height / 2);
+	SetRect(&w32g_tracer_wnd.rc_sustain, 348, height / 2 + 1, 368, height);
+	SetRect(&w32g_tracer_wnd.rc_pitch_bend, 369, 0, 389, height / 2);
+	SetRect(&w32g_tracer_wnd.rc_mod_wheel, 369, height / 2 + 1, 389, height);
+	SetRect(&w32g_tracer_wnd.rc_chorus_effect, 390, 0, 410, height / 2);
+	SetRect(&w32g_tracer_wnd.rc_reverb_effect, 390, height / 2 + 1, 410, height);
+	SetRect(&w32g_tracer_wnd.rc_temper_keysig, 411, 0, 444, height);
+	SetRect(&w32g_tracer_wnd.rc_gm, 445, 0, 469, height);
+	SetRect(&w32g_tracer_wnd.rc_gs, 470, 0, 494, height);
+	SetRect(&w32g_tracer_wnd.rc_xg, 495, 0, 519, height);
+	SetRect(&w32g_tracer_wnd.rc_head_rest, 520, 0, 890, height);
+	SetRect(&w32g_tracer_wnd.rc_temper_type, 411, 0, 430, height);
+	SetRect(&w32g_tracer_wnd.rc_notes, 431, 0, 890, height);
 
 	GetWindowRect ( hTracerWnd, &rc );
 	GetClientRect ( hTracerWnd, &rc2 );
@@ -427,14 +422,14 @@ static int notes_view_generate ( int lockflag )
 	return 0;
 }
 
-#define TRACER_BMP_SIZE_X 290
-#define TRACER_BMP_SIZE_Y 153
-#define TRACER_CANVAS_SIZE_X 290
-#define TRACER_CANVAS_SIZE_Y 335
+#define TRACER_BMP_SIZE_X 316
+#define TRACER_BMP_SIZE_Y 269
+#define TRACER_CANVAS_SIZE_X 316
+#define TRACER_CANVAS_SIZE_Y 451
 
 static int init_tracer_bmp ( HDC hdc )
 {
-	int i;
+	int i, j;
 	static int init = 1;
 	HBITMAP hbmp;
 	HDC hmdc;
@@ -480,44 +475,31 @@ static int init_tracer_bmp ( HDC hdc )
 	SetRect ( &tracer_bmp.rc_notes_on, 156, 59, 198, 78 );
 	for(i=0;i<6;i++) {
 		SetRect ( &tracer_bmp.rc_notes_mask[i], 16 + i * 46, 107, 58 + i * 46, 126);
-		SetRect ( &tracer_bmp.rc_note[i], 16 + i * 46, 155, 58 + i * 46, 174);
-		SetRect ( &tracer_bmp.rc_note_on[i], 16 + i * 46, 203, 58 + i * 46, 222);
-		SetRect ( &tracer_bmp.rc_note_sustain[i], 16 + i * 46, 251, 58 + i * 46, 270);
+		SetRect ( &tracer_bmp.rc_note[i], 16 + i * 46, 271, 58 + i * 46, 290);
+		SetRect ( &tracer_bmp.rc_note_on[i], 16 + i * 46, 319, 58 + i * 46, 338);
+		SetRect ( &tracer_bmp.rc_note_sustain[i], 16 + i * 46, 367, 58 + i * 46, 386);
 	}
 	for(i=0;i<6;i++) {
 		SetRect ( &tracer_bmp.rc_notes_mask[i + 6], 16 + i * 46, 131, 58 + i * 46, 150);
-		SetRect ( &tracer_bmp.rc_note[i + 6], 16 + i * 46, 179, 58 + i * 46, 198);
-		SetRect ( &tracer_bmp.rc_note_on[i + 6], 16 + i * 46, 227, 58 + i * 46, 246);
-		SetRect ( &tracer_bmp.rc_note_sustain[i + 6], 16 + i * 46, 275, 58 + i * 46, 294);
+		SetRect ( &tracer_bmp.rc_note[i + 6], 16 + i * 46, 295, 58 + i * 46, 314);
+		SetRect ( &tracer_bmp.rc_note_on[i + 6], 16 + i * 46, 343, 58 + i * 46, 362);
+		SetRect ( &tracer_bmp.rc_note_sustain[i + 6], 16 + i * 46, 391, 58 + i * 46, 410);
 	}
 	notes_view_generate(TRUE);
-#if 0
-	SetRect ( &tracer_bmp.rc_gm_on, 64, 59, 88, 78 );
-	SetRect ( &tracer_bmp.rc_gm_off, 64, 83, 88, 102 );
-	SetRect ( &tracer_bmp.rc_gs_on, 96, 59, 122, 78 );
-	SetRect ( &tracer_bmp.rc_gs_off, 96, 83, 122, 102 );
-	SetRect ( &tracer_bmp.rc_xg_on, 128, 59, 160, 78 );
-	SetRect ( &tracer_bmp.rc_xg_off, 128, 83, 160, 102 );
-#else
 	SetRect ( &tracer_bmp.rc_gm_on, 64, 59, 88, 78 );
 	SetRect ( &tracer_bmp.rc_gm_off, 64, 83, 88, 102 );
 	SetRect ( &tracer_bmp.rc_gs_on, 96, 59, 120, 78 );
 	SetRect ( &tracer_bmp.rc_gs_off, 96, 83, 120, 102 );
 	SetRect ( &tracer_bmp.rc_xg_on, 128, 59, 152, 78 );
 	SetRect ( &tracer_bmp.rc_xg_off, 128, 83, 152, 102 );
-#endif
+	for (i = 0; i < 4; i++)
+		for (j = 0; j < 8; j++)
+			SetRect(&tracer_bmp.rc_temper_keysig[i * 8 + j],
+					16 + j * 37, 155 + i * 23, 49 + j * 37, 174 + i * 23);
+	for (i = 0; i < 4; i++)
+		SetRect(&tracer_bmp.rc_temper_type[i],
+				16 + i * 23, 247, 35 + i * 23, 266);
 
-	tracer_bmp.volume_max = 20;
-	tracer_bmp.expression_max = 20;
-	tracer_bmp.pan_max = 20;
-	tracer_bmp.sustain_max = 20;
-	tracer_bmp.pitch_bend_max = 20;
-	tracer_bmp.mod_wheel_max = 20;
-	tracer_bmp.chorus_effect_max = 20;
-	tracer_bmp.reverb_effect_max = 20;
-	tracer_bmp.velocity_max = 20;
-	tracer_bmp.notes_max = 20;
-	
 	return 0;
 }
 
@@ -547,6 +529,7 @@ void TracerWndReset(void)
 		w32g_tracer_wnd.mod_wheel[i] = 0;
 		w32g_tracer_wnd.chorus_effect[i] = 0;
 		w32g_tracer_wnd.reverb_effect[i] = 0;
+		w32g_tracer_wnd.tt[i] = 0;
 		for ( j = 0; j < 256; j ++ ) {
 			w32g_tracer_wnd.notes[i][j] = -1;
 		}
@@ -779,6 +762,18 @@ void w32_tracer_ctl_event(CtlEvent *e)
 			if ( get_ch_rc ( v1, &rc, &w32g_tracer_wnd.rc_reverb_effect ) == 0 )
 				tracer_reverb_effect_draw ( &rc, v2, 128, TRUE );
 		w32g_tracer_wnd.reverb_effect[v1] = v2;
+		break;
+	case CTLE_KEY_OFFSET:
+		get_head_rc(&rc, &w32g_tracer_wnd.rc_temper_keysig);
+		tracer_temper_keysig_draw(&rc, CTL_STATUS_UPDATE, (int) e->v1, TRUE);
+		break;
+	case CTLE_TEMPER_KEYSIG:
+		get_head_rc(&rc, &w32g_tracer_wnd.rc_temper_keysig);
+		tracer_temper_keysig_draw(&rc, (int8) e->v1, CTL_STATUS_UPDATE, TRUE);
+		break;
+	case CTLE_TEMPER_TYPE:
+		if (! get_ch_rc((int) e->v1, &rc, &w32g_tracer_wnd.rc_temper_type))
+			tracer_temper_type_draw(&rc, (int) e->v1, (int8) e->v2, TRUE);
 		break;
 	case CTLE_LYRIC:
 		break;
@@ -1262,6 +1257,69 @@ static int tracer_reverb_effect_draw ( RECT *lprc, int vol, int max, int lockfla
 	return 0;
 }
 
+static int tracer_temper_keysig_draw(RECT *lprc, int8 tk, int ko, int lockflag)
+{
+	static int8 lastkeysig = CTL_STATUS_UPDATE;
+	static int lastoffset = CTL_STATUS_UPDATE;
+	int i, j;
+	HDC hdc;
+	
+	if (tk == CTL_STATUS_UPDATE)
+		tk = lastkeysig;
+	else
+		lastkeysig = tk;
+	if (ko == CTL_STATUS_UPDATE)
+		ko = lastoffset;
+	else
+		lastoffset = ko;
+	i = tk + ((tk < 8) ? 7 : -9);
+	if (ko > 0)
+		for (j = 0; j < ko; j++)
+			i += (i > 7) ? -5 : 7;
+	else
+		for (j = 0; j < abs(ko); j++)
+			i += (i < 7) ? 5 : -7;
+	i += (tk < 8) ? 1 : 17;
+	if (! w32g_tracer_wnd.active)
+		return 0;
+	hdc = w32g_tracer_wnd.hmdc;
+	if (lockflag)
+		TRACER_LOCK();
+	BitBlt(hdc, lprc->left, lprc->top,
+			lprc->right - lprc->left, lprc->bottom - lprc->top,
+			tracer_bmp.hmdc, tracer_bmp.rc_temper_keysig[i].left,
+			tracer_bmp.rc_temper_keysig[i].top, SRCCOPY);
+	if (lockflag)
+		TRACER_UNLOCK();
+	InvalidateRect(w32g_tracer_wnd.hwnd, lprc, FALSE);
+	return 0;
+}
+
+static int tracer_temper_type_draw(RECT *lprc, int ch, int8 tt, int lockflag)
+{
+	HDC hdc;
+	
+	if (tt != CTL_STATUS_UPDATE) {
+		if (w32g_tracer_wnd.tt[ch] == tt)
+			return 0;
+		w32g_tracer_wnd.tt[ch] = tt;
+	} else
+		tt = w32g_tracer_wnd.tt[ch];
+	if (! w32g_tracer_wnd.active)
+		return 0;
+	hdc = w32g_tracer_wnd.hmdc;
+	if (lockflag)
+		TRACER_LOCK();
+	BitBlt(hdc, lprc->left, lprc->top,
+			lprc->right - lprc->left, lprc->bottom - lprc->top,
+			tracer_bmp.hmdc, tracer_bmp.rc_temper_type[tt].left,
+			tracer_bmp.rc_temper_type[tt].top, SRCCOPY);
+	if (lockflag)
+		TRACER_UNLOCK();
+	InvalidateRect(w32g_tracer_wnd.hwnd, lprc, FALSE);
+	return 0;
+}
+
 static int tracer_gm_draw ( RECT *lprc, int flag, int lockflag )
 {
 	HDC hdc;
@@ -1606,6 +1664,8 @@ void TracerWndPaintAll(int lockflag)
 	strcpy ( buff, "re" );
 	get_head_rc ( &rc, &w32g_tracer_wnd.rc_reverb_effect );
 	cheap_half_string_view_draw ( &rc, buff, C_TEXT_FORE, C_TEXT_BACK, CSV_CENTER, FALSE );
+	get_head_rc(&rc, &w32g_tracer_wnd.rc_temper_keysig);
+	tracer_temper_keysig_draw(&rc, CTL_STATUS_UPDATE, CTL_STATUS_UPDATE, FALSE);
 	get_head_rc ( &rc, &w32g_tracer_wnd.rc_gm );
 	tracer_gm_draw ( &rc, w32g_tracer_wnd.play_system_mode == GM_SYSTEM_MODE ? 1 : 0, FALSE );
 	get_head_rc ( &rc, &w32g_tracer_wnd.rc_gs );
@@ -1658,6 +1718,9 @@ void TracerWndPaintAll(int lockflag)
 
 		if ( get_ch_rc ( i, &rc, &w32g_tracer_wnd.rc_reverb_effect ) == 0 )
 			tracer_reverb_effect_draw ( &rc, w32g_tracer_wnd.reverb_effect[i], 128, FALSE );
+
+		if (! get_ch_rc(i, &rc, &w32g_tracer_wnd.rc_temper_type))
+			tracer_temper_type_draw(&rc, i, CTL_STATUS_UPDATE, FALSE);
 
 		for ( j = 0; j < 128; j ++ ) {
 			if ( get_ch_rc ( i, &rc, &w32g_tracer_wnd.rc_notes ) == 0 )

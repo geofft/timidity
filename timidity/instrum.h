@@ -25,7 +25,7 @@
 #define ___INSTRUM_H_
 
 typedef struct _Sample {
-  uint32
+  splen_t
     loop_start, loop_end, data_length;
   int32
     sample_rate, low_freq, high_freq, root_freq;

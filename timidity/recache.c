@@ -53,16 +53,22 @@
 
 static sample_t *cache_data = NULL;
 int32 allocate_cache_size = DEFAULT_CACHE_DATA_SIZE;
-static int32  cache_data_len;
+static splen_t cache_data_len;
 static struct cache_hash *cache_hash_table[HASH_TABLE_SIZE];
 static MBlockList hash_entry_pool;
 
 #define CACHE_RESAMPLING_OK	0
 #define CACHE_RESAMPLING_NOTOK	1
+
+#define INT64_SAMPLE_LENGTH
+#ifdef INT64_SAMPLE_LENGTH
+#define INT32MAX (splen_t)((1 << 63) - 1)
+#else
 #define INT32MAX 2147483647L /* (1LU<<31)-1 */
+#endif
 
 #if defined(CSPLINE_INTERPOLATION)
-# define INTERPVARS_CACHE      int32   ofsd, v0, v1, v2, v3, temp;
+# define INTERPVARS_CACHE      splen_t ofsd; int32 v0, v1, v2, v3, temp;
 # define RESAMPLATION_CACHE \
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
@@ -86,7 +92,7 @@ static MBlockList hash_entry_pool;
 		ofs = ofsd; \
  	}
 #elif defined(LAGRANGE_INTERPOLATION)
-# define INTERPVARS_CACHE      int32   ofsd, v0, v1, v2, v3;
+# define INTERPVARS_CACHE      splen_t ofsd; int32 v0, v1, v2, v3;
 # define RESAMPLATION_CACHE \
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
@@ -115,13 +121,13 @@ static MBlockList hash_entry_pool;
 	}
 #elif defined(LINEAR_INTERPOLATION)
 #   define RESAMPLATION_CACHE \
-      v1=src[ofs>>FRACTION_BITS];\
-      v2=src[(ofs>>FRACTION_BITS)+1];\
-      dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+      v1 = src[ofsi];\
+      v2 = src[ofsi + 1];\
+      dest[i] = (sample_t)(v1 + (((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 #  define INTERPVARS_CACHE int32 v1, v2;
 #else
 /* Earplugs recommended for maximum listening enjoyment */
-#  define RESAMPLATION_CACHE dest[i]=src[ofs>>FRACTION_BITS];
+#  define RESAMPLATION_CACHE dest[i] = src[ofsi];
 #  define INTERPVARS_CACHE
 #endif
 
@@ -293,10 +299,10 @@ static void loop_connect(sample_t *data, int32 start, int32 end)
 }
 
 static double sample_resamp_info(Sample *sp, int note,
-				 uint32 *loop_start, uint32 *loop_end,
-				 uint32 *data_length)
+				 splen_t *loop_start, splen_t *loop_end,
+				 splen_t *data_length)
 {
-    uint32 xls, xle, ls, le, ll, newlen;
+    splen_t xls, xle, ls, le, ll, newlen;
     double a, xxls, xxle, xn;
 
     a = ((double)sp->sample_rate * freq_table[note]) /
@@ -311,7 +317,7 @@ static double sample_resamp_info(Sample *sp, int note,
 	*data_length = 0;
 	return 0.0;
     }
-    newlen = (int32)(TIM_FSCALENEG(xn, FRACTION_BITS) + 0.5);
+    newlen = (splen_t)(TIM_FSCALENEG(xn, FRACTION_BITS) + 0.5);
 
     ls = sp->loop_start;
     le = sp->loop_end;
@@ -324,7 +330,7 @@ static double sample_resamp_info(Sample *sp, int note,
 	*data_length = 0;
 	return 0.0;
     }
-    xls = (int32)xxls;
+    xls = (splen_t)xxls;
 
     xxle = le / a + 0.5;
     if(xxle >= INT32MAX)
@@ -333,13 +339,13 @@ static double sample_resamp_info(Sample *sp, int note,
 	*data_length = 0;
 	return 0.0;
     }
-    xle = (int32)xxle;
+    xle = (splen_t)xxle;
 
     if((sp->modes & MODES_LOOPING) &&
        ((xle - xls) >> FRACTION_BITS) < MIN_LOOPLEN)
     {
-	int32 n;
-	int32 newxle;
+	splen_t n;
+	splen_t newxle;
 	double xl; /* Resampled new loop length */
 	double xnewxle;
 
@@ -351,7 +357,7 @@ static double sample_resamp_info(Sample *sp, int note,
 	    return 0.0;
 	}
 
-	n = (int32)(0.0001 + MIN_LOOPLEN /
+	n = (splen_t)(0.0001 + MIN_LOOPLEN /
 		    TIM_FSCALENEG(xl, FRACTION_BITS)) + 1;
 	xnewxle = le / a + n * xl + 0.5;
 	if(xnewxle >= INT32MAX)
@@ -361,15 +367,15 @@ static double sample_resamp_info(Sample *sp, int note,
 	    return 0.0;
 	}
 
-	newxle = (int32)xnewxle;
+	newxle = (splen_t)xnewxle;
 	newlen += (newxle - xle)>>FRACTION_BITS;
 	xle = newxle;
     }
 
     if(loop_start)
-	*loop_start = (uint32)(xls & ~FRACTION_MASK);
+	*loop_start = (splen_t)(xls & ~FRACTION_MASK);
     if(loop_end)
-	*loop_end = (uint32)(xle & ~FRACTION_MASK);
+	*loop_end = (splen_t)(xle & ~FRACTION_MASK);
     *data_length = newlen << FRACTION_BITS;
     return a;
 }
@@ -378,9 +384,8 @@ static int cache_resampling(struct cache_hash *p)
 {
     Sample *sp, *newsp;
     sample_t *src, *dest;
-    uint32 newlen;
-    int32 i, ofs, incr;
-	uint32 le, ls, ll, xls, xle;
+    splen_t newlen, ofs, incr, le, ls, ll, xls, xle;
+	int32 i;
     double a;
 
     sp = p->sp;
@@ -405,19 +410,19 @@ static int cache_resampling(struct cache_hash *p)
     newsp->data = dest;
 
     ofs = 0;
-    incr = (int32)(TIM_FSCALE(a, FRACTION_BITS) + 0.5);
+    incr = (splen_t)(TIM_FSCALE(a, FRACTION_BITS) + 0.5);
     if(sp->modes & MODES_LOOPING)
     {
 	for(i = 0; i < newlen; i++)
 	{
-	    int32 j;
+	    int32 ofsi;	/* integral part of ofs */
 	    INTERPVARS_CACHE
 
 	    if(ofs >= le)
 		ofs -= ll;
-	    j = ofs>>FRACTION_BITS;
-	    v1 = src[j];
-	    v2 = src[j + 1];
+	    ofsi = (int32)(ofs >> FRACTION_BITS);
+	    v1 = src[ofsi];
+	    v2 = src[ofsi + 1];
 	    RESAMPLATION_CACHE
 	    ofs += incr;
 	}
@@ -426,12 +431,12 @@ static int cache_resampling(struct cache_hash *p)
     {
 	for(i = 0; i < newlen; i++)
 	{
-	    int32 j;
+	    int32 ofsi;	/* integral part of ofs */
 	    INTERPVARS_CACHE
 	    
-	    j = ofs>>FRACTION_BITS;
-	    v1 = src[j];
-	    v2 = src[j + 1];
+	    ofsi = (int32)(ofs >> FRACTION_BITS);
+	    v1 = src[ofsi];
+	    v2 = src[ofsi + 1];
 	    RESAMPLATION_CACHE
 	    ofs += incr;
 	}
@@ -440,10 +445,9 @@ static int cache_resampling(struct cache_hash *p)
     newsp->loop_end = xle;
     newsp->data_length = (newlen << FRACTION_BITS);
     if(sp->modes & MODES_LOOPING)
-	loop_connect(dest, xls>>FRACTION_BITS, xle>>FRACTION_BITS);
-    dest[xle>>FRACTION_BITS] = dest[xls>>FRACTION_BITS];
+	loop_connect(dest, (int32)(xls >> FRACTION_BITS), (int32)(xle >> FRACTION_BITS));
+    dest[xle >> FRACTION_BITS] = dest[xls >> FRACTION_BITS];
 
-/* sample_rate * freq_table[p->note]) == root_freq * play_mode->rate */
     newsp->root_freq = freq_table[p->note];
     newsp->sample_rate = play_mode->rate;
 
@@ -533,7 +537,7 @@ void resamp_cache_create(void)
 	    if(tmp->cnt > 0)
 	    {
 		Sample *sp;
-		uint32 newlen;
+		splen_t newlen;
 
 		sp = tmp->sp;
 		sample_resamp_info(sp, tmp->note, NULL, NULL, &newlen);

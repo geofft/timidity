@@ -207,6 +207,8 @@ typedef struct _ChannelBitMask
 #endif
 #define MIN_AMP_VALUE (MAX_AMP_VALUE >> 9)
 
+typedef int64 splen_t;
+
 #ifdef USE_LDEXP
 #  define TIM_FSCALE(a,b) ldexp((double)(a),(b))
 #  define TIM_FSCALENEG(a,b) ldexp((double)(a),-(b))
