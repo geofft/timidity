@@ -360,7 +360,6 @@ AC_CHECK_HEADERS( \
   inttypes.h \
   limits.h \
   machine/endian.h \
-  malloc.h \
   memory.h \
   netdb.h \
   netinet/in.h \
@@ -1276,19 +1275,9 @@ dnl configure must check ncurses header with -I/usr/include/ncurses option.
       ])
   ],
   [ LIBS="$LIBS $lib_curses_opt"
-    case "$target" in
-      *-*-freebsd*)
-	EXTRALIBS="$EXTRALIBS -lmytinfo"
-	;;
-    esac
     INTERFACE_SRCS="$INTERFACE_SRCS ncurs_c.c"
   ],
-  [ n_so_libs="$lib_curses_opt"
-    case "$target" in
-      *-*-freebsd*)
-	n_so_libs="$n_so_libs -lmytinfo"
-	;;
-    esac ])
+  [ n_so_libs="$lib_curses_opt"])
 
 dnl slang
 AM_CONDITIONAL(ENABLE_SLANG, false)

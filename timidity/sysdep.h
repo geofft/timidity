@@ -155,8 +155,19 @@ typedef UInt64 uint64;
 # define LE_SHORT(x) (x)
 # define LE_LONG(x) (x)
 # ifdef __FreeBSD__
-#  define BE_SHORT(x) __byte_swap_word(x)
-#  define BE_LONG(x) __byte_swap_long(x)
+#  include <osreldate.h>
+#  if __FreeBSD_version <= 500000
+#    define BE_SHORT(x) __byte_swap_word(x)
+#    define BE_LONG(x) __byte_swap_long(x)
+#  else
+#    if __FreeBSD_version <= 500028
+#      define BE_SHORT(x) __uint8_swap_uint16(x)
+#      define BE_LONG(x) __uint8_swap_uint32(x)
+#    else
+#      define BE_SHORT(x) __bswap16(x)
+#      define BE_LONG(x) __bswap32(x)
+#    endif
+#  endif
 # else
 #  define BE_SHORT(x) XCHG_SHORT(x)
 #  define BE_LONG(x) XCHG_LONG(x)
@@ -165,8 +176,19 @@ typedef UInt64 uint64;
 # define BE_SHORT(x) (x)
 # define BE_LONG(x) (x)
 # ifdef __FreeBSD__
-#  define LE_SHORT(x) __byte_swap_word(x)
-#  define LE_LONG(x) __byte_swap_long(x)
+#  include <osreldate.h>
+#  if __FreeBSD_version <= 500000
+#    define LE_SHORT(x) __byte_swap_word(x)
+#    define LE_LONG(x) __byte_swap_long(x)
+#  else
+#    if __FreeBSD_version <= 500028
+#      define LE_SHORT(x) __uint8_swap_uint16(x)
+#      define LE_LONG(x) __uint8_swap_uint32(x)
+#    else
+#      define LE_SHORT(x) __bswap16(x)
+#      define LE_LONG(x) __bswap32(x)
+#    endif
+#  endif
 # else
 #  define LE_SHORT(x) XCHG_SHORT(x)
 #  define LE_LONG(x) XCHG_LONG(x)

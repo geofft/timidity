@@ -7014,7 +7014,6 @@ fi
 
 
 
-
 for ac_header in \
   arpa/inet.h \
   errno.h \
@@ -7025,7 +7024,6 @@ for ac_header in \
   inttypes.h \
   limits.h \
   machine/endian.h \
-  malloc.h \
   memory.h \
   netdb.h \
   netinet/in.h \
@@ -15445,22 +15443,12 @@ else
 fi
 
    LIBS="$LIBS $lib_curses_opt"
-    case "$target" in
-      *-*-freebsd*)
-	EXTRALIBS="$EXTRALIBS -lmytinfo"
-	;;
-    esac
     INTERFACE_SRCS="$INTERFACE_SRCS ncurs_c.c"
 
   ;;
 xdynamic)
   dynamic_targets="$dynamic_targets interface_n.\$(so)"
    n_so_libs="$lib_curses_opt"
-    case "$target" in
-      *-*-freebsd*)
-	n_so_libs="$n_so_libs -lmytinfo"
-	;;
-    esac
   ;;
 *)
 

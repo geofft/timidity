@@ -129,7 +129,11 @@ static sample_t *vib_resample_voice(int, int32 *, int);
 static sample_t *normal_resample_voice(int, int32 *, int);
 
 #ifdef PRECALC_LOOPS
+#if SAMPLE_LENGTH_BITS == 32 && TIMIDITY_HAVE_INT64
+#define PRECALC_LOOP_COUNT(start, end, incr) (int32)(((int64)((end) - (start) + (incr) - 1)) / (incr))
+#else
 #define PRECALC_LOOP_COUNT(start, end, incr) (int32)(((splen_t)((end) - (start) + (incr) - 1)) / (incr))
+#endif
 #endif /* PRECALC_LOOPS */
 
 /*************** resampling with fixed increment *****************/
@@ -314,7 +318,11 @@ static sample_t *rs_loop(Voice *vp, int32 count)
 static sample_t *rs_bidir(Voice *vp, int32 count)
 {
   INTERPVARS
+#if SAMPLE_LENGTH_BITS == 32
+  int32
+#else
   splen_t
+#endif
     ofs = vp->sample_offset,
     le = vp->sample->loop_end,
     ls = vp->sample->loop_start;
@@ -324,7 +332,11 @@ static sample_t *rs_bidir(Voice *vp, int32 count)
   int32 incr = vp->sample_increment;
 
 #ifdef PRECALC_LOOPS
+#if SAMPLE_LENGTH_BITS == 32
+  int32
+#else
   splen_t
+#endif
     le2 = le << 1,
     ls2 = ls << 1;
   int32 i, j;
@@ -631,7 +643,11 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
 static sample_t *rs_vib_bidir(Voice *vp, int32 count)
 {
   INTERPVARS
+#if SAMPLE_LENGTH_BITS == 32
+  int32
+#else
   splen_t
+#endif
     ofs = vp->sample_offset,
     le = vp->sample->loop_end,
     ls = vp->sample->loop_start;
@@ -642,7 +658,11 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
   int32 incr = vp->sample_increment;
 
 #ifdef PRECALC_LOOPS
+#if SAMPLE_LENGTH_BITS == 32
+  int32
+#else
   splen_t
+#endif
     le2 = le << 1,
     ls2 = ls << 1;
   int32 i, j;
@@ -902,13 +922,8 @@ sample_t *resample_voice(int v, int32 *countptr)
     {
 	if(mode & MODES_PINGPONG)
 	{
-#if SAMPLE_LENGTH_BITS == 32
-		/* if sample_offset is unsigned, bidir loop doesn't get along. */
-		mode = 0;
-#else
 	    vp->cache = NULL;
 	    mode = 2;	/* Bidir loop */
-#endif
 	}
 	else
 	    mode = 0;	/* loop */

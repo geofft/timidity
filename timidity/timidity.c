@@ -44,7 +44,7 @@
 #endif /* BORLANDC_EXCEPTION */
 #include <signal.h>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) && !defined(__alpha__)
 #include <floatingpoint.h> /* For FP exceptions */
 #endif
 #if defined(__NetBSD__) || defined(__OpenBSD__)
@@ -3186,7 +3186,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
     int i;
     static int drums[] = DEFAULT_DRUMCHANNELS;
     static int is_first = 1;
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) && !defined(__alpha__)
     fp_except_t fpexp;
 #elif defined(__NetBSD__) || defined(__OpenBSD__)
     fp_except fpexp;

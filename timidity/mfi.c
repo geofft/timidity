@@ -40,7 +40,11 @@
     { MidiEvent event; SETMIDIEVENT(event, at, t, ch, pa, pb); \
       readmidi_add_event(&event); }
 
+#ifdef LITTLE_ENDIAN
+#define BE_FCC(type)		((uint32)XCHG_LONG(type))
+#else /* BIG ENDIAN */
 #define BE_FCC(type)		((uint32)BE_LONG(type))
+#endif
 	/*
 		Note: Comparing MFi FCC (Four Character Code)
 		In MFi, FCC has the same bit length as 4-byte-integer such as dataLength,

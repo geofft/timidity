@@ -276,7 +276,11 @@ typedef struct {
     status, channel, note, velocity;
   int vid, temper_instant;
   Sample *sample;
+#if SAMPLE_LENGTH_BITS == 32 && TIMIDITY_HAVE_INT64
+  int64 sample_offset;	/* sample_offset must be signed */
+#else
   splen_t sample_offset;
+#endif
   int32
     orig_frequency, frequency, sample_increment,
     envelope_volume, envelope_target, envelope_increment,
