@@ -258,10 +258,10 @@ static MidiEvent *current_event;
 static int32 sample_count;	/* Length of event_list */
 int32 current_sample;		/* Number of calclated samples */
 
-int note_key_offset = 0;	/* For key up/down */
+int note_key_offset = 0;		/* For key up/down */
 FLOAT_T midi_time_ratio = 1.0;	/* For speed up/down */
 ChannelBitMask channel_mute;	/* For channel mute */
-int temper_type_mute;		/* For temperament type mute */
+int temper_type_mute;			/* For temperament type mute */
 
 /* for auto amplitude compensation */
 static int mainvolume_max; /* maximum value of mainvolume */
@@ -7921,6 +7921,8 @@ int play_event(MidiEvent *ev)
 				i += (i > 0) ? -5 : 7, j++;
 			while (abs(j - note_key_offset) > 7)
 				j += (j > note_key_offset) ? -12 : 12;
+			if (abs(j - key_adjust) > 12)
+				j += (j > key_adjust) ? -12 : 12;
 			note_key_offset = j;
 			kill_all_voices();
 			ctl_mode_event(CTLE_KEY_OFFSET, 1, note_key_offset, 0);
@@ -8489,6 +8491,8 @@ int play_midi_file(char *fn)
 			i += (i > 0) ? -5 : 7, j++;
 		while (abs(j - note_key_offset) > 7)
 			j += (j > note_key_offset) ? -12 : 12;
+		if (abs(j - key_adjust) > 12)
+			j += (j > key_adjust) ? -12 : 12;
 		note_key_offset = j;
 	}
 	ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);

@@ -388,6 +388,8 @@ static void ctl_pass_playing_list(int n, char *args[])
 			i += (i > 0) ? -5 : 7, j++;
 		while (abs(j - note_key_offset) > 7)
 			j += (j > note_key_offset) ? -12 : 12;
+		if (abs(j - key_adjust) > 12)
+			j += (j > key_adjust) ? -12 : 12;
 		note_key_offset = j;
 	}
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;

@@ -2,7 +2,7 @@
 
 	* interface/alsaseq_c.c, interface/rtsyn_common.c,
 	  timidity/playmidi.c:
-	  Adjust force keysig modulation so that performance may
+	  Adjust force keysig transpose so that performance may
 	  feel it natural
 
 2004-06-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
