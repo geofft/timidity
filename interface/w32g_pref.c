@@ -702,7 +702,7 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hwnd, IDC_COMBO_REVERB, CB_SETCURSEL,
 					(WPARAM) ((-st_temp->opt_reverb_control) / 128 + 1), (LPARAM) 0);
 			SendDlgItemMessage(hwnd, IDC_CHECKBOX_REVERB_LEVEL, BM_SETCHECK, 1, 0);
-			SetDlgItemInt(hwnd, IDC_EDIT_REVERB, -st_temp->opt_reverb_control, TRUE);
+			SetDlgItemInt(hwnd, IDC_EDIT_REVERB, (-st_temp->opt_reverb_control) % 128, TRUE);
 		}
 		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_REVERB_LEVEL, 0);
 		// DELAY
