@@ -35,8 +35,6 @@ EXTRA_DIST = \
 	ChangeLog.1 \
 	INSTALL.ja \
 	README.ja \
-	timidity.ide \
-	timidity.mak \
 	TiMidity-uj.ad.in \
 	TiMidity.ad.in
 

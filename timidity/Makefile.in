@@ -545,8 +545,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/sun_a.Po ./$(DEPDIR)/tables.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/timidity.Po ./$(DEPDIR)/version.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/vorbis_a.Po ./$(DEPDIR)/w32_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32_gogo.Po ./$(DEPDIR)/w32g_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32g_ogg_dll.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32_gogo.Po ./$(DEPDIR)/w32g_ogg_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbis_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32g_vorbisenc_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/wave_a.Po ./$(DEPDIR)/wrd_read.Po \
@@ -677,7 +676,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vorbis_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32_gogo.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32g_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32g_ogg_dll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32g_vorbis_dll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32g_vorbisenc_dll.Po@am__quote@
