@@ -60,7 +60,7 @@ static resample_t resample_cspline(sample_t *src, splen_t ofs, resample_rec_t *r
     v2 = src[ofsi + 1];
     if((ofs<rec->loop_start+(1L<<FRACTION_BITS))||
        ((ofs+(2L<<FRACTION_BITS))>rec->loop_end)){
-	return (v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	return (v1 + ((resample_t)((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
     } else {
 	v0 = src[ofsi - 1];
 	v3 = src[ofsi + 2];
@@ -98,7 +98,7 @@ static resample_t resample_lagrange(sample_t *src, splen_t ofs, resample_rec_t *
     v2 = (int32)src[ofsi + 1];
     if((ofs<rec->loop_start+(1L<<FRACTION_BITS))||
        ((ofs+(2L<<FRACTION_BITS))>rec->loop_end)) {
-	return (v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	return (v1 + ((resample_t)((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
     } else {
 	v0 = (int32)src[ofsi - 1];
 	v3 = (int32)src[ofsi + 2];
@@ -330,7 +330,7 @@ static resample_t resample_linear(sample_t *src, splen_t ofs, resample_rec_t *re
     return (sample_t)(v1 + (iplookup[(((v2 - v1) << 5) & 0x03FE0) |
 				     ((ofs & FRACTION_MASK) >> (FRACTION_BITS-5))]));
 #else
-    return (sample_t)(int32)(v1 + (((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+    return (v1 + ((resample_t)((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 #endif
 }
 

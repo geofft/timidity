@@ -1,3 +1,7 @@
+2004-02-18 Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/resample.c: Fixed noise of c-spline/lagrange/linear.
+
 2004-02-18  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/playmidi.c, timidity/readmidi.c:
