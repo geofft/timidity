@@ -43,6 +43,11 @@
 #include "resample.h"
 #include "recache.h"
 
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+double newt_coeffs[58][58];		/* for start/end of samples */
+#endif
+
+
 #if defined(CSPLINE_INTERPOLATION)
 # define INTERPVARS      int32 ofsi, ofsf, v0, v1, v2, v3, temp;
 # define RESAMPLATION \
@@ -67,34 +72,163 @@
  		     / (6L << FRACTION_BITS); \
  		*dest++ = (v1 > 32767) ? 32767: ((v1 < -32768)? -32768: v1); \
 	}
-#elif defined(LAGRANGE_INTERPOLATION)
+#elif defined(LAGRANGE_INTERPOLATION)	/* must be fixed for uint32 */
 # define INTERPVARS      splen_t ofsd; int32 v0, v1, v2, v3;
 # define RESAMPLATION \
-        v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
-        v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
+	v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
+	v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
 	if(reduce_quality_flag || \
 	   (ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
-                *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
+		*dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
-                v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
-                v3 = (int32)src[(ofs>>FRACTION_BITS)+2]; \
-                ofsd = (ofs & FRACTION_MASK) + (1L << FRACTION_BITS); \
-                v1 = v1*ofsd>>FRACTION_BITS; \
-                v2 = v2*ofsd>>FRACTION_BITS; \
-                v3 = v3*ofsd>>FRACTION_BITS; \
-                ofsd -= (1L << FRACTION_BITS); \
-                v0 = v0*ofsd>>FRACTION_BITS; \
-                v2 = v2*ofsd>>FRACTION_BITS; \
-                v3 = v3*ofsd>>FRACTION_BITS; \
-                ofsd -= (1L << FRACTION_BITS); \
-                v0 = v0*ofsd>>FRACTION_BITS; \
-                v1 = v1*ofsd>>FRACTION_BITS; \
-                v3 = v3*ofsd; \
-                ofsd -= (1L << FRACTION_BITS); \
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS); \
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1); \
-		v1 += v0; \
-		*dest++ = (v1 > 32767)? 32767: ((v1 < -32768)? -32768: v1); \
+	    v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
+	    v3 = (int32)src[(ofs>>FRACTION_BITS)+2]; \
+	    ofsd = ofs; \
+	    ofs &= FRACTION_MASK; \
+	    v3 += -3*v2 + 3*v1 - v0; \
+	    v3 *= (ofs - (2<<FRACTION_BITS)) / 6; \
+	    v3 >>= FRACTION_BITS; \
+	    v3 += v2 - v1 - v1 + v0; \
+	    v3 *= (ofs - (1<<FRACTION_BITS)) >> 1; \
+	    v3 >>= FRACTION_BITS; \
+	    v3 += v1 - v0; \
+	    v3 *= ofs; \
+	    v3 >>= FRACTION_BITS; \
+	    v3 += v0; \
+	    *dest++ = (v3 > 32767)? 32767: ((v3 < -32768)? -32768: v3); \
+	    ofs = ofsd; \
+	}
+#elif defined(GAUSS_INTERPOLATION)
+float *gauss_table[(1<<FRACTION_BITS)] = {0};	/* don't need doubles */
+int gauss_n = 25;
+# define INTERPVARS	int32 v1, v2; \
+			sample_t *sptr; \
+			double y, xd; \
+			float *gptr, *gend; \
+			int32 left, right, temp_n; \
+			int ii, jj;
+# define RESAMPLATION \
+	v1 = src[(ofs>>FRACTION_BITS)]; \
+	v2 = src[(ofs>>FRACTION_BITS) +1]; \
+	if (reduce_quality_flag) { \
+	    *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
+	}else{ \
+	    left = (ofs>>FRACTION_BITS); \
+	    right = (vp->sample->data_length>>FRACTION_BITS)-(ofs>>FRACTION_BITS)-1; \
+	    temp_n = (right<<1)-1; \
+	    if (temp_n <= 0) \
+		temp_n = 1; \
+	    if (temp_n > (left<<1)+1) \
+		temp_n = (left<<1)+1; \
+	    if (temp_n < gauss_n) { \
+		xd = ofs & FRACTION_MASK; \
+		xd /= (1L<<FRACTION_BITS); \
+		xd += temp_n>>1; \
+		y = 0; \
+		sptr = src + (ofs>>FRACTION_BITS) - (temp_n>>1); \
+		for (ii = temp_n; ii;) { \
+		    for (jj = 0; jj <= ii; jj++) \
+			y += sptr[jj] * newt_coeffs[ii][jj]; \
+		    y *= xd - --ii; \
+		} y += *sptr; \
+	    }else{ \
+		y = 0; \
+		gptr = gauss_table[ofs&FRACTION_MASK]; \
+		gend = gptr + gauss_n; \
+		sptr = src + (ofs>>FRACTION_BITS) - (gauss_n>>1); \
+		do { \
+		    y += *(sptr++) * *(gptr++); \
+		} while (gptr <= gend); \
+	    } \
+	    *dest++ = (y > 32767)? 32767: ((y < -32768)? -32768: y); \
+	}
+#elif defined(NEWTON_INTERPOLATION)
+int newt_n = 11;
+int32 newt_old_trunc_x = -1;
+int newt_grow = -1;
+int newt_max = 13;
+double newt_divd[60][60] = {0};
+double newt_recip[60] = { 0, 1, 1.0/2, 1.0/3, 1.0/4, 1.0/5, 1.0/6, 1.0/7,
+			1.0/8, 1.0/9, 1.0/10, 1.0/11, 1.0/12, 1.0/13, 1.0/14,
+			1.0/15, 1.0/16, 1.0/17, 1.0/18, 1.0/19, 1.0/20, 1.0/21,
+			1.0/22, 1.0/23, 1.0/24, 1.0/25, 1.0/26, 1.0/27, 1.0/28,
+			1.0/29, 1.0/30, 1.0/31, 1.0/32, 1.0/33, 1.0/34, 1.0/35,
+			1.0/36, 1.0/37, 1.0/38, 1.0/39, 1.0/40, 1.0/41, 1.0/42,
+			1.0/43, 1.0/44, 1.0/45, 1.0/46, 1.0/47, 1.0/48, 1.0/49,
+			1.0/50, 1.0/51, 1.0/52, 1.0/53, 1.0/54, 1.0/55, 1.0/56,
+			1.0/57, 1.0/58, 1.0/59 };
+sample_t *newt_old_src = NULL;
+# define INTERPVARS	int n_new, n_old; \
+			int32 v1, v2, diff; \
+			sample_t *sptr; \
+			double y, xd; \
+			int32 left, right, temp_n; \
+			int ii, jj;
+# define RESAMPLATION \
+	v1 = src[(ofs>>FRACTION_BITS)]; \
+	v2 = src[(ofs>>FRACTION_BITS)+1]; \
+	if (reduce_quality_flag) { \
+	    *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
+	}else{ \
+	    left = (ofs>>FRACTION_BITS); \
+	    right = (vp->sample->data_length>>FRACTION_BITS)-(ofs>>FRACTION_BITS)-1; \
+	    temp_n = (right<<1)-1; \
+	    if (temp_n <= 0) \
+		temp_n = 1; \
+	    if (temp_n > (left<<1)+1) \
+		temp_n = (left<<1)+1; \
+	    if (temp_n < newt_n) { \
+		xd = ofs & FRACTION_MASK; \
+		xd /= (1L<<FRACTION_BITS); \
+		xd += temp_n>>1; \
+		y = 0; \
+		sptr = src + (ofs>>FRACTION_BITS) - (temp_n>>1); \
+		for (ii = temp_n; ii;) { \
+		    for (jj = 0; jj <= ii; jj++) \
+			y += sptr[jj] * newt_coeffs[ii][jj]; \
+		    y *= xd - --ii; \
+		} y += *sptr; \
+	    }else{ \
+		if (newt_grow >= 0 && src == newt_old_src && \
+		   (diff = (ofs>>FRACTION_BITS) - newt_old_trunc_x) > 0){ \
+		    n_new = newt_n + ((newt_grow + diff)<<1); \
+		    if (n_new <= newt_max){ \
+			n_old = newt_n + (newt_grow<<1); \
+			newt_grow += diff; \
+			for (v1=(ofs>>FRACTION_BITS)+(n_new>>1)+1,v2=n_new; \
+			     v2 > n_old; --v1, --v2){ \
+				newt_divd[0][v2] = src[v1]; \
+			}for (v1 = 1; v1 <= n_new; v1++) \
+			    for (v2 = n_new; v2 > n_old; --v2) \
+				newt_divd[v1][v2] = (newt_divd[v1-1][v2] - \
+						     newt_divd[v1-1][v2-1]) * \
+						     newt_recip[v1]; \
+		    }else newt_grow = -1; \
+		} \
+		if (newt_grow < 0 || src != newt_old_src || diff < 0){ \
+		    newt_grow = 0; \
+		    for (v1=(ofs>>FRACTION_BITS)-(newt_n>>1),v2=0; \
+			 v2 <= newt_n; v1++, v2++){ \
+			    newt_divd[0][v2] = src[v1]; \
+		    }for (v1 = 1; v1 <= newt_n; v1++) \
+			for (v2 = newt_n; v2 >= v1; --v2) \
+			     newt_divd[v1][v2] = (newt_divd[v1-1][v2] - \
+						  newt_divd[v1-1][v2-1]) * \
+						  newt_recip[v1]; \
+		} \
+		n_new = newt_n + (newt_grow<<1); \
+		v2 = n_new; \
+		y = newt_divd[v2][v2]; \
+		xd = (double)(ofs&FRACTION_MASK) / (1L<<FRACTION_BITS) + \
+			     (newt_n>>1) + newt_grow; \
+		for (--v2; v2; --v2){ \
+		    y *= xd - v2; \
+		    y += newt_divd[v2][v2]; \
+		}y = y*xd + **newt_divd; \
+		newt_old_src = src; \
+		newt_old_trunc_x = (ofs>>FRACTION_BITS); \
+	    } \
+	    *dest++ = (y > 32767)? 32767: ((y < -32768)? -32768: y); \
 	}
 #elif defined(LINEAR_INTERPOLATION)
 # if defined(LOOKUP_HACK) && defined(LOOKUP_INTERPOLATION)
@@ -135,6 +269,74 @@ static sample_t *normal_resample_voice(int, int32 *, int);
 #endif
 #endif /* PRECALC_LOOPS */
 
+#ifdef GAUSS_INTERPOLATION
+void initialize_gauss_table(int n)
+{
+    int m, i, k, n_half = (n>>1);
+    double ck;
+    double x, x_inc, xz;
+    double z[35];
+    float *gptr;
+
+    for (i = 0; i <= n; i++)
+    	z[i] = i / (4*M_PI);
+
+    x_inc = 1.0 / (1<<FRACTION_BITS);
+    for (m = 0, x = 0.0; m < (1<<FRACTION_BITS); m++, x += x_inc)
+    {
+    	xz = (x + n_half) / (4*M_PI);
+    	gptr = gauss_table[m] = realloc(gauss_table[m], (n+1)*sizeof(float));
+
+    	for (k = 0; k <= n; k++)
+    	{
+    	    ck = 1.0;
+
+    	    for (i = 0; i <= n; i++)
+    	    {
+    	    	if (i == k)
+    	    	    continue;
+    	
+    	    	ck *= (sin(xz - z[i])) / (sin(z[k] - z[i]));
+    	    }
+    	    
+    	    *gptr++ = ck;
+    	}
+    }
+}
+#endif
+
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+void initialize_newton_coeffs(void)
+{
+    int i, j, n = 57;
+    int sign;
+
+    newt_coeffs[0][0] = 1;
+    for (i = 0; i <= n; i++)
+    {
+    	newt_coeffs[i][0] = 1;
+    	newt_coeffs[i][i] = 1;
+
+	if (i > 1)
+	{
+	    newt_coeffs[i][0] = newt_coeffs[i-1][0] / i;
+	    newt_coeffs[i][i] = newt_coeffs[i-1][0] / i;
+	}
+
+    	for (j = 1; j < i; j++)
+    	{
+    	    newt_coeffs[i][j] = newt_coeffs[i-1][j-1] + newt_coeffs[i-1][j];
+
+	    if (i > 1)
+	    	newt_coeffs[i][j] /= i;
+	}
+    }
+    for (i = 0; i <= n; i++)
+    	for (j = 0, sign = pow(-1, i); j <= i; j++, sign *= -1)
+    	    newt_coeffs[i][j] *= sign;
+}
+#endif
+
 /*************** resampling with fixed increment *****************/
 
 static sample_t *rs_plain_c(int v, int32 *countptr)
@@ -174,7 +376,7 @@ static sample_t *rs_plain(int v, int32 *countptr)
     *src = vp->sample->data;
   splen_t
     ofs = vp->sample_offset,
-#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
+#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     ls = 0,
 #endif /* LAGRANGE_INTERPOLATION */
     le = vp->sample->data_length;
@@ -266,7 +468,7 @@ static sample_t *rs_loop(Voice *vp, int32 count)
   splen_t
     ofs = vp->sample_offset,
     le = vp->sample->loop_end,
-#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
+#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     ls = vp->sample->loop_start,
 #endif /* LAGRANGE_INTERPOLATION */
     ll = le - vp->sample->loop_start;
@@ -532,7 +734,7 @@ static sample_t *rs_vib_plain(int v, int32 *countptr)
     *dest = resample_buffer + resample_buffer_offset,
     *src = vp->sample->data;
   splen_t
-#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
+#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     ls = 0,
 #endif /* LAGRANGE_INTERPOLATION */
     le = vp->sample->data_length,
@@ -575,7 +777,7 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
   INTERPVARS
   splen_t
     ofs = vp->sample_offset,
-#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
+#if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     ls = vp->sample->loop_start,
 #endif /* LAGRANGE_INTERPOLATION */
     le = vp->sample->loop_end,
@@ -942,7 +1144,7 @@ sample_t *resample_voice(int v, int32 *countptr)
 
 void pre_resample(Sample * sp)
 {
-  double a, xdiff;
+  double a, b, xdiff;
   splen_t ofs, newlen;
   sample_t *newdata, *dest, *src = (sample_t *)sp->data, *vptr;
   int32 v, v1, v2, v3, v4, v5, i, count, incr;
@@ -951,9 +1153,9 @@ void pre_resample(Sample * sp)
 	    sp->note_to_use,
 	    note_name[sp->note_to_use % 12], (sp->note_to_use & 0x7F) / 12);
 
-  a = ((double) (sp->root_freq) * play_mode->rate) /
+  a = b = ((double) (sp->root_freq) * play_mode->rate) /
       ((double) (sp->sample_rate) * freq_table[(int) (sp->note_to_use)]);
-  if(sp->data_length * a >= 0x7fffffffL)
+  if((int64)sp->data_length * a >= 0x7fffffffL)
   {
       /* Too large to compute */
       ctl->cmsg(CMSG_INFO, VERB_DEBUG, " *** Can't pre-resampling for note %d",
@@ -961,8 +1163,8 @@ void pre_resample(Sample * sp)
       return;
   }
   newlen = (splen_t)(sp->data_length * a);
-  count = (int32)(newlen >> FRACTION_BITS) - 1;
-  ofs = incr = (sp->data_length - (1 << FRACTION_BITS)) / count;
+  count = (newlen >> FRACTION_BITS);
+  ofs = incr = (sp->data_length - 1) / (count - 1);
 
   if((double)newlen + incr >= 0x7fffffffL)
   {
@@ -973,47 +1175,156 @@ void pre_resample(Sample * sp)
   }
 
   dest = newdata = (sample_t *)safe_malloc((int32)(newlen >> (FRACTION_BITS - 1)) + 2);
+  dest[newlen >> FRACTION_BITS] = 0;
 
-  if (--count)
-    *dest++ = src[0];
+  *dest++ = src[0];
 
   /* Since we're pre-processing and this doesn't have to be done in
      real-time, we go ahead and do the full sliding cubic interpolation. */
-  count--;
-  for(i = 0; i < count; i++)
-    {
-      vptr = src + (int32)(ofs >> FRACTION_BITS);
-      v1 = ((vptr >= src+1) ? *(vptr - 1) : 0);
-      v2 = *vptr;
-      v3 = *(vptr + 1);
-      v4 = *(vptr + 2);
-      v5 = v2 - v3;
-      xdiff = TIM_FSCALENEG(ofs & FRACTION_MASK, FRACTION_BITS);
-      v = (int32)(v2 + xdiff * (1.0/6.0) * (3 * (v3 - v5) - 2 * v1 - v4 +
-       xdiff * (3 * (v1 - v2 - v5) + xdiff * (3 * v5 + v4 - v1))));
-      if(v < -32768)
-	  *dest++ = -32768;
-      else if(v > 32767)
-	  *dest++ = 32767;
-      else
-	  *dest++ = (sample_t)v;
-      ofs += incr;
-    }
+  for(i = 1; i < count; i++)
+  {
+/* use lesser order interpolation if we run out of samples */
+#if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
+    int32 left, right, temp_n;
+    sample_t *sptr;
+    int ii, jj;
 
-  if (ofs & FRACTION_MASK)
-    {
-      v1 = src[ofs >> FRACTION_BITS];
-      v2 = src[(ofs >> FRACTION_BITS) + 1];
-      *dest++ = (sample_t)(v1 + (((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
-    }
-  else
-    *dest++ = src[ofs >> FRACTION_BITS];
-  *dest++ = *(dest - 1) / 2;
-  *dest++ = *(dest - 1) / 2;
+    left = (ofs>>FRACTION_BITS);
+    right = (sp->data_length>>FRACTION_BITS) - (ofs>>FRACTION_BITS) - 1;
+    temp_n = (right<<1)-1;
+    if (temp_n <= 0)
+    	temp_n = 1;
+    if (temp_n > (left<<1)+1)
+    	temp_n = (left<<1)+1;
+
+#ifdef GAUSS_INTERPOLATION
+    if (temp_n < gauss_n)
+#else
+    if (temp_n < newt_n)
+#endif
+      {
+    	xdiff = ofs & FRACTION_MASK;
+    	xdiff /= (1L<<FRACTION_BITS);
+    	xdiff += temp_n>>1;
+	a = 0;
+	sptr = src + (ofs>>FRACTION_BITS) - (temp_n>>1);
+    	for (ii = temp_n; ii;)
+    	{
+    	    for (jj = 0; jj <= ii; jj++)
+    	    	a += sptr[jj] * newt_coeffs[ii][jj];
+    	    a *= xdiff - --ii;
+    	}
+	v = (sample_t) a + *sptr;
+      }
+#else
+    /* I don't think it is worth the trouble of interpolating a few points
+       with cubic instead of linear if the window can support a cubic, so if
+       the pentic window can't be filled, just use linear instead.
+     */
+    if ((((ofs>>FRACTION_BITS)-2) < 0) ||
+        (((ofs>>FRACTION_BITS)+3) > (sp->data_length>>FRACTION_BITS)))
+            v = (sample_t)((int32)src[(ofs>>FRACTION_BITS)] + ((((int32)src[(ofs>>FRACTION_BITS)+1]-(int32)src[(ofs>>FRACTION_BITS)]) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+#endif
+    else
+      {
+#ifdef GAUSS_INTERPOLATION
+	sample_t *sptr;
+	float *gptr, *gend;
+
+	a = 0;
+    	gptr = gauss_table[ofs&FRACTION_MASK];
+    	gend = gptr + gauss_n;
+	sptr = src + (ofs>>FRACTION_BITS) - (gauss_n>>1);
+	do {
+	    a += *(sptr++) * *(gptr++);
+	} while (gptr <= gend);
+	v = (int32) a;
+#elif defined(NEWTON_INTERPOLATION)
+	int n_new, n_old;
+	int32 diff;
+
+	if (newt_grow >= 0 && src == newt_old_src &&
+	    (diff = (ofs>>FRACTION_BITS) - newt_old_trunc_x) > 0)
+	{
+	    n_new = newt_n + ((newt_grow + diff)<<1);
+	    if (n_new <= newt_max)
+	    {
+	    	n_old = newt_n + (newt_grow<<1);
+	    	newt_grow += diff;
+	    	for (v1=(ofs>>FRACTION_BITS)+(n_new>>1)+1,v2=n_new;
+		     v2 > n_old; --v1, --v2)
+		{
+		    newt_divd[0][v2] = src[v1];
+	    	}
+	    	for (v1 = 1; v1 <= n_new; v1++)
+	    	    for (v2 = n_new; v2 > n_old; --v2)
+		    	newt_divd[v1][v2] = (newt_divd[v1-1][v2] -
+					     newt_divd[v1-1][v2-1]) *
+					     newt_recip[v1];
+	    }
+	    else
+	    	newt_grow = -1;
+	}
+	if (newt_grow < 0 || src != newt_old_src || diff < 0){
+	    newt_grow = 0;
+	    for (v1=(ofs>>FRACTION_BITS)-(newt_n>>1),v2=0;
+		 v2 <= newt_n; v1++, v2++)
+	    {
+		newt_divd[0][v2] = src[v1];
+	    }
+	    for (v1 = 1; v1 <= newt_n; v1++)
+	    	for (v2 = newt_n; v2 >= v1; --v2)
+		    newt_divd[v1][v2] = (newt_divd[v1-1][v2] -
+					 newt_divd[v1-1][v2-1]) *
+					 newt_recip[v1];
+	}
+	n_new = newt_n + (newt_grow<<1);
+	v2 = n_new;
+	a = newt_divd[v2][v2];
+	xdiff = (double)(ofs&FRACTION_MASK) / (1L<<FRACTION_BITS) +
+	        	(newt_n>>1) + newt_grow;
+	for (--v2; v2; --v2)
+	{
+	    a *= xdiff - v2;
+	    a += newt_divd[v2][v2];
+	}
+	a = a*xdiff + **newt_divd;
+	v = (int32) a;
+
+	newt_old_src = src;
+	newt_old_trunc_x = (ofs>>FRACTION_BITS);
+#else
+    	/* pentic B-spline 6-point interpolation */
+    	vptr = src + (ofs>>FRACTION_BITS);
+    	v = *(vptr - 2);
+    	v1 = *(vptr - 1);
+    	v2 = *vptr;
+    	v3 = *(vptr + 1);
+    	v4 = *(vptr + 2);
+    	v5 = *(vptr + 3);
+
+    	xdiff = TIM_FSCALENEG(ofs & FRACTION_MASK, FRACTION_BITS);
+    	xdiff = (double) xdiff / (1L<<FRACTION_BITS);
+    	v  = v2 + 0.04166666666*xdiff*((v3-v1)*16+(v-v4)*2+
+             xdiff*((v3+v1)*16-v-v2*30-v4+
+             xdiff*(v3*66-v2*70-v4*33+v1*39+v5*7-v*9+
+             xdiff*(v2*126-v3*124+v4*61-v1*64-v5*12+v*13+
+             xdiff*((v3-v2)*50+(v1-v4)*25+(v5-v)*5)))));
+#endif
+      }
+
+    if(v < -32768)
+	*dest++ = -32768;
+    else if(v > 32767)
+	*dest++ = 32767;
+    else
+	*dest++ = (int16)v;
+    ofs += incr;
+  }
 
   sp->data_length = newlen;
-  sp->loop_start = (splen_t)(sp->loop_start * a);
-  sp->loop_end = (splen_t)(sp->loop_end * a);
+  sp->loop_start = (splen_t)(sp->loop_start * b);
+  sp->loop_end = (splen_t)(sp->loop_end * b);
   free(sp->data);
   sp->data = (sample_t *) newdata;
   sp->root_freq = freq_table[(int) (sp->note_to_use)];

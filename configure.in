@@ -1575,17 +1575,24 @@ AM_CONDITIONAL(ENABLE_SOUND_SPEC, test "x$enable_spectrogram" = "xyes")
 
 dnl Wave Spline Interpolations
 AC_ARG_ENABLE(spline,
-  [  --enable-spline=[method]  Specify spline method: no|linear|cubic|lagrange
+  [  --enable-spline=[method]  Specify spline method.
+                                  one of no,linear,cubic,lagrange,newton,gauss
                                                           (default is linear)],
   [ case "x$enableval" in
       xlinear)
-	AC_DEFINE(LINEAR_INTERPOLATION,1,Define to 1 if you use linear complemention.)
+	AC_DEFINE(LINEAR_INTERPOLATION,1,Define to 1 if you use linear interpolation.)
 	;;
       xcubic)
-	AC_DEFINE(CSPLINE_INTERPOLATION,1,Define to 1 if you use cubic-spline complemention.)
+	AC_DEFINE(CSPLINE_INTERPOLATION,1,Define to 1 if you use cubic-spline interpolation.)
 	;;
       xlagrange)
-	AC_DEFINE(LAGRANGE_INTERPOLATION,1,Define to 1 if you use lagrange complemention.)
+	AC_DEFINE(LAGRANGE_INTERPOLATION,1,Define to 1 if you use Lagrange-polynomial interpolation.)
+	;;
+      xnewton)
+	AC_DEFINE(NEWTON_INTERPOLATION,1,Define to 1 if you use Newton-polynomial interpolation.)
+	;;
+      xgauss)
+	AC_DEFINE(GAUSS_INTERPOLATION,1,Define to 1 if you use Gauss interpolation.)
 	;;
       xno)
 	AC_DEFINE(NO_INTERPOLATION,1,Define to 1 if you do not use complemention.)

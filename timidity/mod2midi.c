@@ -519,7 +519,7 @@ void shrink_huge_sample (Sample *sp)
         data_length, new_data_length);
     
     orig_data = sp->data;
-    new_data = calloc(new_data_length + 2, sizeof(sample_t));
+    new_data = calloc(new_data_length + 1, sizeof(sample_t));
 
     new_data[0] = orig_data[0];
     for (i = 1; i < new_data_length; i++)
@@ -603,6 +603,14 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	sp->data_length = s->length;
 	sp->loop_start = s->loopstart;
 	sp->loop_end   = s->loopend;
+
+        /* The sample must be padded out by 1 extra sample, so that
+           the interpolation routines won't cause a "pop" by reading
+           random data beyond data_length */
+	sp->data = (sample_t *) realloc(sp->data,
+					(sp->data_length + 1) *
+					sizeof(sample_t));
+        sp->data[sp->data_length] = 0;
 
 	/* Stereo instruments (SF_STEREO) are dithered by libunimod into mono */
 	sp->modes = MODES_UNSIGNED;

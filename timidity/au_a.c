@@ -171,6 +171,10 @@ static int au_output_open(const char *fname, const char *comment)
   /* comment */
   if(write_str(comment) == -1) return -1;
 
+  bytes_output = 0;
+  next_bytes = bytes_output + UPDATE_HEADER_STEP;
+  already_warning_lseek = 0;
+
   return 0;
 }
 
@@ -241,10 +245,6 @@ static int open_output(void)
       if(au_output_open(dpm.name, NULL) == -1)
 	return -1;
     }
-
-    bytes_output = 0;
-    next_bytes = bytes_output + UPDATE_HEADER_STEP;
-    already_warning_lseek = 0;
 
     return 0;
 }

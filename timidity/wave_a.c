@@ -184,6 +184,11 @@ static int wav_output_open(const char *fname)
     return -1;
   }
 
+  /* Reset the length counter */
+  bytes_output = 0;
+  next_bytes = bytes_output + UPDATE_HEADER_STEP;
+  already_warning_lseek = 0;
+
   return fd;
 }
 
@@ -250,11 +255,6 @@ static int open_output(void)
 		return -1;
     }
 #endif
-
-    /* Reset the length counter */
-    bytes_output = 0;
-    next_bytes = bytes_output + UPDATE_HEADER_STEP;
-    already_warning_lseek = 0;
 
     return 0;
 }

@@ -673,7 +673,8 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		    }
 		}
 
-		sample->data = (sample_t *)safe_malloc(sp->len + 2 * 2);
+		sample->data = (sample_t *)safe_malloc(sp->len + 2);
+		sample->data[sp->len>>1] = 0;
 		sample->data_alloced = 1;
 
 		ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,

@@ -88,7 +88,7 @@ extern char *optarg;
 #include "w32g_utl.h"
 #endif
 
-#define OPTCOMMANDS "4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:n:O:o:P:p:Q:q:R:rS:s:t:T:UW:w:x:Z:"	/* Only GJlNuVvXz are remain... */
+#define OPTCOMMANDS "4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:n:O:o:P:p:Q:q:R:rS:s:t:T:UW:w:x:Z:"	/* Only GJluVvXz are remain... */
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAW"
 
 /* main interfaces (To be used another main) */
@@ -131,6 +131,19 @@ extern struct URL_module URL_module_newsgroup;
 #ifdef HAVE_POPEN
 extern struct URL_module URL_module_pipe;
 #endif /* HAVE_POPEN */
+
+#ifdef GAUSS_INTERPOLATION
+extern double newt_coeffs[58][58];
+extern void initialize_newton_coeffs(void);
+extern void initialize_gauss_table(int32 gauss_n);
+extern int gauss_n;
+extern float *gauss_table[(1<<FRACTION_BITS)];
+#endif
+#ifdef NEWTON_INTERPOLATION
+extern double newt_coeffs[58][58];
+extern void initialize_newton_coeffs(void);
+extern int newt_n, newt_max;
+#endif
 
 MAIN_INTERFACE struct URL_module *url_module_list[] =
 {
@@ -334,6 +347,7 @@ static void help(void)
 "Options:",
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
 "  -4      Toggle 4-point interpolation (default on)",
+"          Linear interpolation is used if audio queue < 99%%",
 #endif
 "  -A n    Amplify volume by n percent (may cause clipping)",
 "  -a      Enable the antialiasing filter",
@@ -426,6 +440,14 @@ static void help(void)
 "          \"auto\": Play *.mid.wav or *.mid.aiff",
 "          \"none\": Disable this feature (default)",
 "  -m msec Minimum time for a full volume sustained note to decay, 0 disables",
+#ifdef GAUSS_INTERPOLATION
+"  -N n    n+1 point Gauss-like interpolation, n=1-34 (default 25), 0 disables",
+"          Linear interpolation is used if audio queue < 99%%",
+#endif
+#ifdef NEWTON_INTERPOLATION
+"  -N n    n'th order Newton polynomial interpolation, n=1-57 odd, 0 disables",
+"          Linear interpolation is used if audio queue < 99%%",
+#endif
 "  -O mode Select output mode and format (see below for list)",
 "  -o file Output to another file (or device/server)  (Use \"-\" for stdout)",
 "  -P file Use patch file for all programs",
@@ -3036,6 +3058,46 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
         if(min_sustain_time < 0) min_sustain_time = 0;
         break;
 
+#ifdef GAUSS_INTERPOLATION
+      case 'N':
+        gauss_n = atoi(optarg);
+        if (gauss_n < 0 || gauss_n > 34)
+        {
+	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		  "Gauss interpolation: -N value must be from 1 to 34.");
+	    return 1;
+	}
+	if (gauss_n == 0)
+	{
+	    gauss_n = 5;
+	    no_4point_interpolation = 1;
+	    reduce_quality_flag = 1;
+	}
+	break;
+#endif
+#ifdef NEWTON_INTERPOLATION
+      case 'N':
+        newt_n = atoi(optarg);
+        if ((newt_n > 0 && newt_n % 2 == 0) || newt_n < 0 || newt_n > 57)
+        {
+	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		  "Newton interpolation: -N value must be an odd number from 1 to 57.");
+	    return 1;
+	}
+	if (newt_n == 0)
+	{
+	    newt_n = 5;
+	    no_4point_interpolation = 1;
+	    reduce_quality_flag = 1;
+	}
+
+	/* set optimal value for newt_max */
+	newt_max = -1.875328947 + 1.57730263158 * newt_n;
+	if (newt_max < newt_n) newt_max = newt_n;
+	if (newt_max > 57) newt_max = 57;
+	break;
+#endif
+
       case 'n': 
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		  "-n option is obsoleted.  Please use -EFns=<n>");
@@ -3868,6 +3930,15 @@ int main(int argc, char **argv)
 	return 1; /* problems with command line */
 #endif
     }
+
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+    initialize_newton_coeffs();
+#endif
+#ifdef GAUSS_INTERPOLATION
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Initializing Gauss table...");
+    initialize_gauss_table(gauss_n);
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Done");
+#endif
 
     timidity_init_player();
 

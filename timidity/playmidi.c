@@ -206,7 +206,7 @@ ChannelBitMask drumchannels;
 int adjust_panning_immediately=1;
 int auto_reduce_polyphony=1;
 double envelope_modify_rate = 1.0;
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
+#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
 int reduce_quality_flag=0;
 int no_4point_interpolation=0;
 #endif
@@ -2385,6 +2385,7 @@ static void note_on(MidiEvent *e)
 
     if((nv = find_samples(e, vlist)) == 0)
 	return;
+
     note = MIDI_EVENT_NOTE(e);
     vid = new_vidq(e->channel, note);
     ch = e->channel;
@@ -2425,9 +2426,9 @@ static void note_on(MidiEvent *e)
 		new_delay_voice(v, channel[ch].delay_level);
 	}
 #endif /* NEW_CHORUS */
-	}
+    }
 
-	channel[ch].legato_flag = 1;
+    channel[ch].legato_flag = 1;
 }
 
 static void set_voice_timeout(Voice *vp, int ch, int note)
@@ -5112,7 +5113,7 @@ static int compute_data(int32 count)
       soundspec_update_wave(common_buffer, audio_buffer_size);
 #endif /* SUPPORT_SOUNDSPEC */
 
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
+#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
       /* fall back to linear interpolation when queue < 100% */
       if (opt_realtime_playing != 2 && (play_mode->flag & PF_CAN_TRACE)) {
 	  if (!aq_fill_buffer_flag &&
@@ -5156,7 +5157,15 @@ static int compute_data(int32 count)
 	      }
 	  }
 
-	  rate = 100 * filled / aq_get_dev_queuesize();
+	  /* Calculate rate as it is displayed in ncurs_c.c */
+	  /* The old method of calculating rate resulted in very low values
+	     when using the new high order interplation methods on "slow"
+	     CPUs when the queue was being drained WAY too quickly.  This
+	     caused premature voice reduction under Linux, even if the queue
+	     was over 2000%, leading to major voice lossage. */
+	  rate = (int)(((double)(aq_filled() + aq_soft_filled()) /
+                  	aq_get_dev_queuesize()) * 100 + 0.5);
+
           for(i = nv = 0; i < upper_voices; i++)
 	      if(voice[i].status != VOICE_FREE)
 	          nv++;
@@ -6246,7 +6255,7 @@ int play_midi_file(char *fn)
     ok_nv = 32;
     ok_nv_sample = 0;
     old_rate = -1;
-#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
+#if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION) || defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     reduce_quality_flag = no_4point_interpolation;
 #endif
     restore_voices(0);

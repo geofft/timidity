@@ -1,4 +1,50 @@
 
+2003-05-26  Saito <timidity@flashmail.com>
+
+	* timidity/recache.c, timidity/resample.c,
+	  timidity/timidity.h, timidity/instrum.c:
+	  Fix some codes to fit with EAW's commit.
+
+2003-05-25  mput <root@mput.dip.jp>
+	* configure.in
+	  Fix --enable-spline optoin to fit with EAW's commit.
+	
+2003-05-25  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+	* au_a.c, wave_a.c:
+	  Fix the file headers when > 1 audio file was output per timidity
+	  session; the data length was not being reset between midi before
+
+	* recache.c, resample.c, timidity.c, timidity.h, playmidi.c,
+	  playmidi.h:	
+	  Add Newton interpolation (slower and less accurate than Gauss).
+	  Add Gauss interpolation (recommended, but takes up to 560kb
+	  extra mem); defaults to -N 25 (best compromise between speed and
+	  accuracy), -N 34 is maximum quality and should run in realtime
+	  on many systems.
+
+	* recache.c, resample.c:
+	  Speed up cubic Lagrange interpolation.  Fix some loop and sample
+	  start/end related bugs in all interpolation methods.
+
+	* resample.c:
+	  Rewrite most of pre_resample(), so that it can properly handle
+	  higher order interpolation methods.  pre-resample with pentic
+	  B-splines, instead of cubic spline, if Gauss or Newton is not
+	  compiled in.
+
+	* sndfont.c, instrum.c, mod2midi.c, recache.c:
+	  Allocate an extra sample at the end of all sample data, in order
+	  for all interpolation methods to not read beyond the bounds of
+	  the arrays.  Initialize the extra sample to zero, so that there
+	  will be no reads from unintialized memory.  Initialize the
+	  entire recache buffer to zero, for the same reason.
+
+	* playmidi.c:	
+	  Fix a problem with voice reduction under Linux, maybe other
+	  systems as well; rate is now calculated as it is displayed in
+	  ncurs_c.c.  No more premature mass voice killings /
+	  auto-polyphony capping.
+	
 2003-05-25  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
 	* timidity/timidity.c:

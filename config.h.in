@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define to 1 if you use cubic-spline complemention. */
+/* Define to 1 if you use cubic-spline interpolation. */
 #undef CSPLINE_INTERPOLATION
 
 /* Define to 1 if you are in debug mode */
@@ -14,6 +14,9 @@
 
 /* Define to 1 if you enable Sherry WRD */
 #undef ENABLE_SHERRY
+
+/* Define to 1 if you use Gauss interpolation. */
+#undef GAUSS_INTERPOLATION
 
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
@@ -333,14 +336,17 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
-/* Define to 1 if you use lagrange complemention. */
+/* Define to 1 if you use Lagrange-polynomial interpolation. */
 #undef LAGRANGE_INTERPOLATION
 
-/* Define to 1 if you use linear complemention. */
+/* Define to 1 if you use linear interpolation. */
 #undef LINEAR_INTERPOLATION
 
 /* Define to 1 if you are NOT in debug mode */
 #undef NDEBUG
+
+/* Define to 1 if you use Newton-polynomial interpolation. */
+#undef NEWTON_INTERPOLATION
 
 /* Define to 1 if you do not use complemention. */
 #undef NO_INTERPOLATION
