@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by w32g_res.rc
 //
 #define IDD_DIALOG_SEARCHBOX            102
@@ -308,6 +308,7 @@
 #define IDC_COMBO_SYN_THREAD_PRIORITY   2089
 #define IDC_COMBO_PORT_NUM              2090
 #define IDC_EDIT_SYN_SH_TIME            2091
+#define IDC_COMBO_PROCESS_PRIORITY      2092
 #define IDC_TAB_MAIN                    2093
 #define IDC_CHECKBOX_TEMPER_EQUAL       2094
 #define IDC_CHECKBOX_TEMPER_PYTHA       2095

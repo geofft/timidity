@@ -176,7 +176,8 @@ typedef struct SETTING_TIMIDITY_ {
 //??    int waveout_data_block_size;
 #ifdef IA_W32G_SYN
 		int SynIDPort[MAX_PORT];
-		int syn_ThreadPriority;
+		DWORD processPriority;
+		DWORD syn_ThreadPriority;
 		int SynPortNum;
 		int SynShTime;
 #endif

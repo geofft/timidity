@@ -190,6 +190,7 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniGetKeyInt(INI_SEC_TIMIDITY,"data_block_num",&(st->data_block_num));
 #ifdef IA_W32G_SYN
     IniGetKeyIntArray(INI_SEC_TIMIDITY,"SynIDPort",st->SynIDPort,MAX_PORT);
+    IniGetKeyInt(INI_SEC_TIMIDITY,"processPriority",&(st->processPriority));
     IniGetKeyInt(INI_SEC_TIMIDITY,"syn_ThreadPriority",&(st->syn_ThreadPriority));
     IniGetKeyInt(INI_SEC_TIMIDITY,"SynPortNum",&(st->SynPortNum));
     IniGetKeyInt(INI_SEC_TIMIDITY,"SynShTime",&(st->SynShTime));
@@ -326,6 +327,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniPutKeyInt(INI_SEC_TIMIDITY,"data_block_num",&(st->data_block_num));
 #ifdef IA_W32G_SYN
     IniPutKeyIntArray(INI_SEC_TIMIDITY,"SynIDPort",st->SynIDPort,MAX_PORT);
+    IniPutKeyInt(INI_SEC_TIMIDITY,"processPriority",&(st->processPriority));
     IniPutKeyInt(INI_SEC_TIMIDITY,"syn_ThreadPriority",&(st->syn_ThreadPriority));
     IniPutKeyInt(INI_SEC_TIMIDITY,"SynPortNum",&(st->SynPortNum));
     IniPutKeyInt(INI_SEC_TIMIDITY,"SynShTime",&(st->SynShTime));

@@ -1884,6 +1884,19 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		if (PlayerLanguage == LANGUAGE_JAPANESE) {
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "低い" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "少し低い" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "普通" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "少し高い" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "高い" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "リアルタイム" );
+
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "低い" );
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
@@ -1894,7 +1907,22 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "少し高い" );
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "高い" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "タイムクリティカル" );
 		} else {
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Lowest" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Below normal" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Normal" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Above nomal" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Highest" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Realtime" );
+
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Lowest" );
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
@@ -1905,6 +1933,8 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Above nomal" );
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Highest" );
+			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
+				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Time critical" );
 		}
 		SendDlgItemMessage(hwnd, IDC_COMBO_PORT_NUM,
 			CB_SETCURSEL, (WPARAM) st_temp->SynPortNum, (LPARAM) 0 );
@@ -1918,6 +1948,24 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[3], (LPARAM) 0 );
 		{
 			int index;
+
+			// Select process priority
+			if ( st_temp->processPriority == IDLE_PRIORITY_CLASS )
+				index = 0;
+			else if ( st_temp->processPriority == BELOW_NORMAL_PRIORITY_CLASS )
+				index = 1;
+			else if ( st_temp->processPriority == NORMAL_PRIORITY_CLASS )
+				index = 2;
+			else if ( st_temp->processPriority == ABOVE_NORMAL_PRIORITY_CLASS )
+				index = 3;
+			else if ( st_temp->processPriority == HIGH_PRIORITY_CLASS )
+				index = 4;
+			else if ( st_temp->processPriority == REALTIME_PRIORITY_CLASS )
+				index = 5;
+			SendDlgItemMessage(hwnd, IDC_COMBO_PROCESS_PRIORITY,
+				CB_SETCURSEL, (WPARAM) index, (LPARAM) 0 );
+
+			// Select thread priority
 			if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_LOWEST )
 				index = 0;
 			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_BELOW_NORMAL )
@@ -1928,6 +1976,8 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				index = 3;
 			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_HIGHEST )
 				index = 4;
+			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_TIME_CRITICAL )
+				index = 5;
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_SETCURSEL, (WPARAM) index, (LPARAM) 0 );
 		}
@@ -1960,6 +2010,34 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT3, CB_GETCURSEL, 0, 0 );
 		if ( res != CB_ERR ) st_temp->SynIDPort[3] = res;
 		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+
+		// Set process priority
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_PROCESS_PRIORITY, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) {
+			switch ( res ) {
+			case 0:
+				st_temp->processPriority = IDLE_PRIORITY_CLASS;
+				break;
+			case 1:
+				st_temp->processPriority = BELOW_NORMAL_PRIORITY_CLASS;
+				break;
+			default:
+			case 2:
+				st_temp->processPriority = NORMAL_PRIORITY_CLASS;
+				break;
+			case 3:
+				st_temp->processPriority = ABOVE_NORMAL_PRIORITY_CLASS;
+				break;
+			case 4:
+				st_temp->processPriority = HIGH_PRIORITY_CLASS;
+				break;
+			case 5:
+				st_temp->processPriority = REALTIME_PRIORITY_CLASS;
+				break;
+			}
+		}
+
+		// Set thread priority
 		res = SendDlgItemMessage ( hwnd, IDC_COMBO_SYN_THREAD_PRIORITY, CB_GETCURSEL, 0, 0 );
 		if ( res != CB_ERR ) {
 			switch ( res ) {
@@ -1979,8 +2057,12 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			case 4:
 				st_temp->syn_ThreadPriority = THREAD_PRIORITY_HIGHEST;
 				break;
+			case 5:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_TIME_CRITICAL;
+				break;
 			}
 		}
+
 		st_temp->SynShTime = GetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,NULL,FALSE);
 		if ( st_temp->SynShTime < 0 ) st_temp->SynShTime = 0;
 	}

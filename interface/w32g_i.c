@@ -215,7 +215,6 @@ char *ConfigFileOpenDir;
 char *PlaylistFileOpenDir;
 
 // Priority
-int ProcessPriority;
 int PlayerThreadPriority;
 int MidiPlayerThreadPriority;
 int MainThreadPriority;

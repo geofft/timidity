@@ -119,6 +119,10 @@ int rtsyn_synth_start(){
 	int i;
 	UINT port;
 	MidiEvent ev;
+#ifdef __W32__
+	DWORD processPriority;
+	processPriority = GetPriorityClass(GetCurrentProcess());
+#endif
 
 	rtsyn_reset();
 	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
@@ -151,6 +155,12 @@ int rtsyn_synth_start(){
 			midiInAddBuffer(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 		}
 	}
+
+#ifdef __W32__
+	// HACK:midiInOpen()でリセットされてしまうため、再設定
+	SetPriorityClass(GetCurrentProcess(), processPriority);
+#endif
+
 	for(port=0;port<rtsyn_portnumber;port++){
 		if(MMSYSERR_NOERROR !=midiInStart(hMidiIn[port])){
 			int i;

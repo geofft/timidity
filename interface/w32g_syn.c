@@ -112,7 +112,6 @@ int SeachDirRecursive = 0;
 int DocWndIndependent = 0;
 int DocWndAutoPopup = 0;
 int TraceGraphicFlag;
-int ProcessPriority;
 int PlayerThreadPriority;
 int MidiPlayerThreadPriority;
 int MainThreadPriority;
@@ -161,11 +160,18 @@ static void WINAPI syn_thread ( void );
 #define	IDM_CHANGE_DEFAULT_SYSTEM	111
 #define IDM_PREFERENCE	112
 #define IDM_CONSOLE_WND 113
+#define IDM_PROCESS_PRIORITY_LOWEST		131
+#define IDM_PROCESS_PRIORITY_BELOW_NORMAL	132
+#define IDM_PROCESS_PRIORITY_NORMAL	133
+#define IDM_PROCESS_PRIORITY_ABOVE_NORMAL 134
+#define IDM_PROCESS_PRIORITY_HIGHEST 135
+#define IDM_PROCESS_PRIORITY_REALTIME 136
 #define IDM_SYN_THREAD_PRIORITY_LOWEST		121
 #define IDM_SYN_THREAD_PRIORITY_BELOW_NORMAL	122
 #define IDM_SYN_THREAD_PRIORITY_NORMAL	123
 #define IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL 124
 #define IDM_SYN_THREAD_PRIORITY_HIGHEST 125
+#define IDM_SYN_THREAD_PRIORITY_TIMECRITICAL 137
 #define IDM_VERSION 126
 #define IDM_TIMIDITY 127
 
@@ -200,7 +206,8 @@ int msg_loopbuf_start = -1;
 int msg_loopbuf_end = -1;
 extern int rtsyn_system_mode;
 HANDLE msg_loopbuf_hMutex = NULL; // 排他処理用
-int syn_ThreadPriority;	// シンセスレッドのプライオリティ
+DWORD processPriority;	// プロセスのプライオリティ
+DWORD syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
 extern int volatile stream_max_compute;	// play_event() の compute_data() で計算を許す最大時間。
 
@@ -296,6 +303,7 @@ static int w32g_syn_main ( void )
 	w32g_syn.nid_uID = W32G_SYN_NID_UID;
 	w32g_syn.nid_hWnd = NULL;
 	w32g_syn.hIcon = LoadIcon(hInst,MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	processPriority = NORMAL_PRIORITY_CLASS;
 	syn_ThreadPriority = THREAD_PRIORITY_NORMAL;
 	for ( i = 0; i <= MAX_PORT; i ++ ) {
 		w32g_syn_id_port[i] = i + 1;
@@ -385,35 +393,80 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	{
 		if ( (UINT)wParam == w32g_syn.nid_uID ) {
 	    if ( (UINT)lParam == WM_RBUTTONDOWN || (UINT)lParam == WM_LBUTTONDOWN) { 
-				int priority_flag[10];
+				int priority_flag[2][6];
 				POINT point;
-				HMENU hMenu, hMenuReset, hMenuChange, hMenuSynPriority;
+				HMENU hMenu, hMenuReset, hMenuChange, hMenuProcessPriority, hMenuSynPriority;
+
 				if ( have_popupmenu )
 					break;
 				have_popupmenu = 1;
+
+				// Process priority check
+				if ( processPriority == IDLE_PRIORITY_CLASS )
+					priority_flag[0][0] = MF_CHECKED;
+				else
+					priority_flag[0][0] = 0;
+				
+				if ( processPriority == BELOW_NORMAL_PRIORITY_CLASS )
+					priority_flag[0][1] = MF_CHECKED;
+				else
+					priority_flag[0][1] = 0;
+
+				if ( processPriority == NORMAL_PRIORITY_CLASS )
+					priority_flag[0][2] = MF_CHECKED;
+				else
+					priority_flag[0][2] = 0;
+
+				if ( processPriority == ABOVE_NORMAL_PRIORITY_CLASS )
+					priority_flag[0][3] = MF_CHECKED;
+				else
+					priority_flag[0][3] = 0;
+
+				if ( processPriority == HIGH_PRIORITY_CLASS )
+					priority_flag[0][4] = MF_CHECKED;
+				else
+					priority_flag[0][4] = 0;
+
+				if ( processPriority == REALTIME_PRIORITY_CLASS )
+					priority_flag[0][5] = MF_CHECKED;
+				else
+					priority_flag[0][5] = 0;
+
+				// Thread priority check
 				if ( syn_ThreadPriority == THREAD_PRIORITY_LOWEST )
-					priority_flag[0] = MF_CHECKED;
+					priority_flag[1][0] = MF_CHECKED;
 				else
-					priority_flag[0] = 0;
+					priority_flag[1][0] = 0;
+
 				if ( syn_ThreadPriority == THREAD_PRIORITY_BELOW_NORMAL )
-					priority_flag[1] = MF_CHECKED;
+					priority_flag[1][1] = MF_CHECKED;
 				else
-					priority_flag[1] = 0;
+					priority_flag[1][1] = 0;
+				
 				if ( syn_ThreadPriority == THREAD_PRIORITY_NORMAL )
-					priority_flag[2] = MF_CHECKED;
+					priority_flag[1][2] = MF_CHECKED;
 				else
-					priority_flag[2] = 0;
+					priority_flag[1][2] = 0;
+				
 				if ( syn_ThreadPriority == THREAD_PRIORITY_ABOVE_NORMAL )
-					priority_flag[3] = MF_CHECKED;
+					priority_flag[1][3] = MF_CHECKED;
 				else
-					priority_flag[3] = 0;
+					priority_flag[1][3] = 0;
+				
 				if ( syn_ThreadPriority == THREAD_PRIORITY_HIGHEST )
-					priority_flag[4] = MF_CHECKED;
+					priority_flag[1][4] = MF_CHECKED;
 				else
-					priority_flag[4] = 0;
+					priority_flag[1][4] = 0;
+				
+				if ( syn_ThreadPriority == THREAD_PRIORITY_TIME_CRITICAL )
+					priority_flag[1][5] = MF_CHECKED;
+				else
+					priority_flag[1][5] = 0;
+
 				hMenu = CreatePopupMenu ();
 				hMenuReset = CreateMenu ();
 				hMenuChange = CreateMenu ();
+				hMenuProcessPriority = CreateMenu ();
 				hMenuSynPriority = CreateMenu ();
 				if (PlayerLanguage == LANGUAGE_JAPANESE) {
 					if ( w32g_syn_status == run ) {
@@ -463,14 +516,25 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 						AppendMenu ( hMenuChange, MF_STRING | MF_CHECKED, IDM_CHANGE_DEFAULT_SYSTEM, "デフォルトのシステムへ変更");
 						break;
 					}
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[0], IDM_SYN_THREAD_PRIORITY_LOWEST, "低い");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1], IDM_SYN_THREAD_PRIORITY_BELOW_NORMAL, "少し低い");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[2], IDM_SYN_THREAD_PRIORITY_NORMAL, "普通");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[3], IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL, "少し高い");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[4], IDM_SYN_THREAD_PRIORITY_HIGHEST, "高い");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][0], IDM_PROCESS_PRIORITY_LOWEST, "低い");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][1], IDM_PROCESS_PRIORITY_BELOW_NORMAL, "少し低い");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][2], IDM_PROCESS_PRIORITY_NORMAL, "普通");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][3], IDM_PROCESS_PRIORITY_ABOVE_NORMAL, "少し高い");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][4], IDM_PROCESS_PRIORITY_HIGHEST, "高い");
+					AppendMenu ( hMenuProcessPriority, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][5], IDM_PROCESS_PRIORITY_REALTIME, "リアルタイム");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][0], IDM_SYN_THREAD_PRIORITY_LOWEST, "低い");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][1], IDM_SYN_THREAD_PRIORITY_BELOW_NORMAL, "少し低い");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][2], IDM_SYN_THREAD_PRIORITY_NORMAL, "普通");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][3], IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL, "少し高い");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][4], IDM_SYN_THREAD_PRIORITY_HIGHEST, "高い");
+					AppendMenu ( hMenuSynPriority, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][5], IDM_SYN_THREAD_PRIORITY_TIMECRITICAL, "タイムクリティカル");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuReset, "各種システムリセット" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuChange, "特定のシステムへ変更" );
+					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuProcessPriority, "プロセスプライオリティ設定" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuSynPriority, "シンセスレッドプライオリティ設定" );
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "設定");
@@ -528,14 +592,25 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 						AppendMenu ( hMenuChange, MF_STRING | MF_CHECKED, IDM_CHANGE_DEFAULT_SYSTEM, "Change default system");
 						break;
 					}
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[0], IDM_SYN_THREAD_PRIORITY_LOWEST, "lowest");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1], IDM_SYN_THREAD_PRIORITY_BELOW_NORMAL, "below normal");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[2], IDM_SYN_THREAD_PRIORITY_NORMAL, "normal");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[3], IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL, "above normal");
-					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[4], IDM_SYN_THREAD_PRIORITY_HIGHEST, "highest");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][0], IDM_PROCESS_PRIORITY_LOWEST, "lowest");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][1], IDM_PROCESS_PRIORITY_BELOW_NORMAL, "below normal");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][2], IDM_PROCESS_PRIORITY_NORMAL, "normal");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][3], IDM_PROCESS_PRIORITY_ABOVE_NORMAL, "above normal");
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][4], IDM_PROCESS_PRIORITY_HIGHEST, "highest");
+					AppendMenu ( hMenuProcessPriority, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenuProcessPriority, MF_STRING | priority_flag[0][5], IDM_PROCESS_PRIORITY_REALTIME, "realtime");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][0], IDM_SYN_THREAD_PRIORITY_LOWEST, "lowest");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][1], IDM_SYN_THREAD_PRIORITY_BELOW_NORMAL, "below normal");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][2], IDM_SYN_THREAD_PRIORITY_NORMAL, "normal");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][3], IDM_SYN_THREAD_PRIORITY_ABOVE_NORMAL, "above normal");
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][4], IDM_SYN_THREAD_PRIORITY_HIGHEST, "highest");
+					AppendMenu ( hMenuSynPriority, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenuSynPriority, MF_STRING | priority_flag[1][5], IDM_SYN_THREAD_PRIORITY_TIMECRITICAL, "time critical");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuReset, "Specific system reset" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuChange, "Change Specific system" );
+					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
+					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuProcessPriority, "Change process priority" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuSynPriority, "Change synthesizer thread priority" );
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "Preference");
@@ -620,6 +695,42 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		case IDM_TIMIDITY:
 			TiMidityWnd ( w32g_syn.nid_hWnd );
 			break;
+		case IDM_PROCESS_PRIORITY_LOWEST:
+			processPriority = IDLE_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
+		case IDM_PROCESS_PRIORITY_BELOW_NORMAL:
+			processPriority = BELOW_NORMAL_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
+		case IDM_PROCESS_PRIORITY_NORMAL:
+			processPriority = NORMAL_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
+		case IDM_PROCESS_PRIORITY_ABOVE_NORMAL:
+			processPriority = ABOVE_NORMAL_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
+		case IDM_PROCESS_PRIORITY_HIGHEST:
+			processPriority = HIGH_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
+		case IDM_PROCESS_PRIORITY_REALTIME:
+			processPriority = REALTIME_PRIORITY_CLASS;
+			if ( w32g_syn_status == run ) {
+				SetPriorityClass(GetCurrentProcess(), processPriority);
+			}
+			break;
 		case IDM_SYN_THREAD_PRIORITY_LOWEST:
 			syn_ThreadPriority = THREAD_PRIORITY_LOWEST;
 			if ( w32g_syn_status == run ) {
@@ -646,6 +757,12 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			break;
 		case IDM_SYN_THREAD_PRIORITY_HIGHEST:
 			syn_ThreadPriority = THREAD_PRIORITY_HIGHEST;
+			if ( w32g_syn_status == run ) {
+				SetThreadPriority ( w32g_syn.syn_hThread, syn_ThreadPriority );
+			}
+			break;
+		case IDM_SYN_THREAD_PRIORITY_TIMECRITICAL:
+			syn_ThreadPriority = THREAD_PRIORITY_TIME_CRITICAL;
 			if ( w32g_syn_status == run ) {
 				SetThreadPriority ( w32g_syn.syn_hThread, syn_ThreadPriority );
 			}
@@ -909,8 +1026,10 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 					args[i] = args_[i];
 					sprintf ( args[i], "%d", w32g_syn_id_port[i] );
 				}
+				SetPriorityClass ( GetCurrentProcess(), processPriority );
 				SetThreadPriority ( w32g_syn.syn_hThread, syn_ThreadPriority );
 				result = ctl_pass_playing_list2 ( w32g_syn_port_num, args );
+				SetPriorityClass ( GetCurrentProcess(), NORMAL_PRIORITY_CLASS );
 				SetThreadPriority ( w32g_syn.syn_hThread, THREAD_PRIORITY_NORMAL );
 				if ( result == 2 ) {
 					w32g_syn_status = stop;
