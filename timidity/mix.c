@@ -1098,7 +1098,7 @@ static inline int next_stage(int v)
 static inline void update_tremolo(int v)
 {
 	Voice *vp = &voice[v];
-	uint32 depth = vp->sample->tremolo_depth << 7;
+	uint32 depth = vp->tremolo_depth << 7;
 	
 	if (vp->tremolo_sweep) {
 		/* Update sweep position */
@@ -1123,6 +1123,9 @@ static inline void update_tremolo(int v)
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
 	 */
+	vp->tremolo_volume_right = 1.0 - TIM_FSCALENEG(
+			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
+			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
 }
 
 int apply_envelope_to_amp(int v)
@@ -1136,7 +1139,7 @@ int apply_envelope_to_amp(int v)
 		ramp = vp->right_amp;
 		if (vp->tremolo_phase_increment) {
 			lamp *= vp->tremolo_volume;
-			ramp *= vp->tremolo_volume;
+			ramp *= vp->tremolo_volume_right;
 		}
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)

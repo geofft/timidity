@@ -1054,8 +1054,8 @@ static int tracer_velocity_draw_ex ( RECT *lprc, int vol, int vol_old, int max, 
 	if ( lockflag ) TRACER_LOCK ();
 	// 必要なだけベロシティバーの背景を描画
 //	BitBlt ( hdc, lprc->left +  vol, lprc->top, lprc->right - lprc->left -  vol, lprc->bottom - lprc->top,
-	BitBlt ( hdc, lprc->left +  vol, lprc->top, vol_old, lprc->bottom - lprc->top,
-		tracer_bmp.hmdc, tracer_bmp.rc_velocity[0].left, tracer_bmp.rc_velocity[0].top, SRCCOPY );
+	BitBlt ( hdc, lprc->left +  vol, lprc->top, vol_old - vol, lprc->bottom - lprc->top,
+		tracer_bmp.hmdc, tracer_bmp.rc_velocity[0].left + vol, tracer_bmp.rc_velocity[0].top, SRCCOPY );
 
 	// 必要なだけベロシティバーを描画
 	BitBlt ( hdc, lprc->left, lprc->top, vol, lprc->bottom - lprc->top,

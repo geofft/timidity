@@ -293,13 +293,14 @@ typedef struct {
 #endif
 
   FLOAT_T
-    left_amp, right_amp, tremolo_volume;
+    left_amp, right_amp, tremolo_volume, tremolo_volume_right;
   int32
     vibrato_sample_increment[VIBRATO_SAMPLE_INCREMENTS], vibrato_delay;
   int
     vibrato_phase, orig_vibrato_control_ratio, vibrato_control_ratio,
     vibrato_depth, vibrato_control_counter,
     envelope_stage, control_counter, panning, panned, modulation_wheel;
+  uint16 tremolo_depth;
 
   /* for portamento */
   int porta_control_ratio, porta_control_counter, porta_dpb;

@@ -1,3 +1,12 @@
+
+2003-03-31  Saito <timidity@flashmail.com>
+	* interface/w32g_subwin3.c:
+	  Fix tracer window (W32GUI version)
+	* timidity/playmidi.[ch]:
+	  Fix NRPN vibrato control.
+	* timidity/mix.c:
+	  Fix up tremolo.
+
 2003-03-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* interface/ncurs_c.c: Fix around temperament control SysEx.
 

@@ -484,7 +484,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].caf_rate_ctl1 = 0.25;
   channel[c].caf_pitch_depth1 = 0.5;
   channel[c].caf_cutoff_ctl = 1.0;
-  channel[c].caf_amp_ctl = 0.125;
+  channel[c].caf_amp_ctl = 1.0;
 
 }
 
@@ -805,9 +805,10 @@ void recompute_channel_filter(MidiEvent *e)
 
 	/* Soft Pedal */
 	if(channel[ch].soft_pedal > 63) {
-		coef *= 0.5f;
-		if(note > 60) {
-			coef *= pow(2.0, (double)(note - 60) / 68.0);
+		if(note > 49) {	/* tre corde */
+			coef *= 1.0 - 0.20 * ((double)channel[ch].soft_pedal - 64) / 63.0f;
+		} else {	/* una corda (due corde) */
+			coef *= 1.0 - 0.25 * ((double)channel[ch].soft_pedal - 64) / 63.0f;
 		}
 	}
 
@@ -1858,6 +1859,12 @@ static void calc_sample_panning_average(int nv,int *vlist)
 	}
 }
 
+static inline FLOAT_T saturate_f(FLOAT_T val, FLOAT_T max)
+{
+	if(val > max) {val = max;}
+	return val;
+}
+
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
 {
   int j, ch, note, pan;
@@ -1899,6 +1906,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].tremolo_phase_increment=voice[i].sample->tremolo_phase_increment;
   voice[i].tremolo_sweep=voice[i].sample->tremolo_sweep_increment;
   voice[i].tremolo_sweep_position=0;
+  voice[i].tremolo_depth = voice[i].sample->tremolo_depth;
 
   voice[i].vibrato_sweep=voice[i].sample->vibrato_sweep_increment;
   voice[i].vibrato_sweep_position=0;
@@ -1914,8 +1922,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
   if(opt_nrpn_vibrato)
   {
-      voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio * channel[ch].vibrato_ratio;
-      voice[i].vibrato_depth = voice[i].sample->vibrato_depth * channel[ch].vibrato_depth;
+      voice[i].vibrato_control_ratio = saturate_f((double)voice[i].sample->vibrato_control_ratio * channel[ch].vibrato_ratio, 2147483648);
+      voice[i].vibrato_depth = saturate_f(voice[i].sample->vibrato_depth * channel[ch].vibrato_depth, 255);
       voice[i].vibrato_delay = channel[ch].vibrato_delay;
   }
   else
@@ -2019,16 +2027,6 @@ static void finish_note(int i)
 static void set_envelope_time(int ch,int val,int stage)
 {
 	val = val & 0x7F;
-	if(play_system_mode != GS_SYSTEM_MODE) {
-		val = val / 2 + 32;
-	}
-	if(channel[ch].mapID == SC_55_TONE_MAP) {
-		val -= 64;
-		val *= 1.23;
-		if(val > 63) {val = 63;}
-		else if(val < -64) {val = -64;}
-		val += 64;
-	}
 	switch(stage) {
 	case 0:	/* Attack */
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Time (CH:%d VALUE:%d)",ch,val);
@@ -2467,7 +2465,7 @@ static void adjust_channel_pressure(MidiEvent *e)
 
 	ch = e->channel;
 	pressure = (FLOAT_T)e->a / 127.0f;
-	amp_ctl = 1.0 / (channel[ch].caf_amp_ctl * pressure + 1.0f);
+	amp_ctl = channel[ch].caf_amp_ctl * pressure;
 	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
 	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
 	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
@@ -2477,8 +2475,7 @@ static void adjust_channel_pressure(MidiEvent *e)
 	    if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	    {
 		recompute_amp(i);
-		voice[i].left_amp *= amp_ctl;
-		voice[i].right_amp *= amp_ctl;
+		voice[i].tremolo_depth = amp_ctl * 255;
 		apply_envelope_to_amp(i);
 		voice[i].vibrato_control_ratio *= rate_ctl1;
 		voice[i].vibrato_depth *= pitch_depth1;
@@ -3390,19 +3387,26 @@ static void update_rpn_map(int ch, int addr, int update_now)
     switch(addr)
     {
       case NRPN_ADDR_0108: /* Vibrato Rate */
-/*	channel[ch].vibrato_ratio = midi_cnv_vib_rate(val);*/
-	channel[ch].vibrato_ratio =  1.0 / midi_time_table[val];
+    if(opt_nrpn_vibrato) {
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Rate (CH:%d VAL:%d)",ch,val);
+		channel[ch].vibrato_ratio = pow(2.0, ((FLOAT_T)val - 64) / 16);
+	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_0109: /* Vibrato Depth */
-/*	channel[ch].vibrato_depth = midi_cnv_vib_depth(val);*/
-	channel[ch].vibrato_depth =  midi_time_table[val];
+    if(opt_nrpn_vibrato) {
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth (CH:%d VAL:%d)",ch,val);
+		channel[ch].vibrato_depth = pow(2.0, ((FLOAT_T)val - 64) / 16);
+	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_010A: /* Vibrato Delay */
-	channel[ch].vibrato_delay = midi_cnv_vib_delay(val);
+    if(opt_nrpn_vibrato) {
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Delay (CH:%d VAL:%d)",ch,val);
+		channel[ch].vibrato_delay = play_mode->rate * pre_delay_time_table[val] * 0.001;
+	}
 	if(update_now)
 	    update_channel_freq(ch);
 	break;
