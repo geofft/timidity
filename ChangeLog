@@ -1,5 +1,14 @@
 2003-08-10 TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* timidity/timidity.c (help): rewrite to fit with long options
+	  Some option renamed
+	  --[no-]modulation-wheel    -> --[no-]mod-wheel
+	  --[no-]channel-pressure    -> --[no-]ch-pressure
+	  --[no-]modulation-envelope -> --[no-]mod-envelope
+	  --[no-]sort-list           -> --[no-]sort
+
+2003-08-10 TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* timidity/timidity.c:
 	  Commonize functions between short and long options
 
