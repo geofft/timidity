@@ -1,3 +1,8 @@
+2004-02-17  skeishi <s_keishi@mutt.freemail.ne.jp>
+
+	* interface/winsyn_c.c:
+	  Fix timer of TWSYNTH.
+
 2004-02-17  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/resample.c (resample_lagrange): Bug fix.
