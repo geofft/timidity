@@ -101,7 +101,7 @@ typedef struct _SampleList {
 	int16 resonance;
 	int16 root, tune;
 	char low, high;		/* key note range */
-	int8 reverb_send,chorus_send;
+	int8 reverb_send, chorus_send;
 
 	/* Depend on play_mode->rate */
 	int32 vibrato_freq;
@@ -1087,9 +1087,9 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
     sample = &sf->sample[tbl->val[SF_sampleId]];
 #ifdef CFG_FOR_SF
 	cfg_for_sf_scan(sample->name,sf->preset[pridx].bank,sf->preset[pridx].preset,LOWNUM(tbl->val[SF_keyRange]),
-		HIGHNUM(tbl->val[SF_keyRange]),sample->sampletype & 0x8000);
+		HIGHNUM(tbl->val[SF_keyRange]),sample->sampletype & SF_SAMPLETYPE_ROM);
 #endif
-    if(sample->sampletype & 0x8000) /* is ROM sample? */
+    if(sample->sampletype & SF_SAMPLETYPE_ROM) /* is ROM sample? */
     {
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "preset %d is ROM sample: 0x%x",
 		  pridx, sample->sampletype);
@@ -1335,20 +1335,28 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		ctl->cmsg(CMSG_INFO,VERB_DEBUG,"error: fixed-velocity is not supported.");
 	}
 
+	vp->v.sample_type = sample->sampletype;
+	vp->v.sf_sample_index = tbl->val[SF_sampleId];
+	if (sample->sampletype == SF_SAMPLETYPE_MONO) {
+		vp->v.sf_sample_link = -1;
+	} else {
+		vp->v.sf_sample_link = sample->samplelink;
+	}
+
 	/* panning position: 0 to 127 */
 	val = (int)tbl->val[SF_panEffectsSend];
-    if(sample->sampletype == 1 || val != 0) {	/* monoSample = 1 */
+    if(sample->sampletype == SF_SAMPLETYPE_MONO || val != 0) {	/* monoSample = 1 */
 		if(val < -500)
 		vp->v.panning = 0;
 		else if(val > 500)
 		vp->v.panning = 127;
 		else
 		vp->v.panning = (int8)((val + 500) * 127 / 1000);
-	} else if(sample->sampletype == 2) {	/* rightSample = 2 */
+	} else if(sample->sampletype == SF_SAMPLETYPE_RIGHT) {	/* rightSample = 2 */
 		vp->v.panning = 127;
-	} else if(sample->sampletype == 4) {	/* leftSample = 4 */
+	} else if(sample->sampletype == SF_SAMPLETYPE_LEFT) {	/* leftSample = 4 */
 		vp->v.panning = 0;
-	} else if(sample->sampletype == 8) {	/* linkedSample = 8 */
+	} else if(sample->sampletype == SF_SAMPLETYPE_LINKED) {	/* linkedSample = 8 */
 		ctl->cmsg(CMSG_ERROR,VERB_NOISY,"error: linkedSample is not supported.");
 	}
 

@@ -58,6 +58,8 @@ typedef struct _Sample {
   int32 vibrato_delay, tremolo_delay, envelope_delay, modenv_delay;	/* in samples */
   int16 scale_tuning;	/* in cents/key */
   int8 inst_type;
+  uint16 sample_type;	/* 1 = Mono, 2 = Right, 4 = Left, 8 = Linked, $8000 = ROM */
+  int32 sf_sample_index, sf_sample_link;	/* for stereo SoundFont */
 } Sample;
 
 /* Bits in modes: */
@@ -74,6 +76,13 @@ typedef struct _Sample {
 #define INST_SF2	1
 #define INST_MOD	2
 #define INST_PCM	3	/* %sample */
+
+/* sfSampleType */
+#define SF_SAMPLETYPE_MONO 1
+#define SF_SAMPLETYPE_RIGHT 2
+#define SF_SAMPLETYPE_LEFT 4
+#define SF_SAMPLETYPE_LINKED 8
+#define SF_SAMPLETYPE_ROM 0x8000
 
 typedef struct {
   int type;

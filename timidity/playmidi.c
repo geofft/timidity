@@ -249,6 +249,8 @@ static char *reverb_buffer = NULL; /* MAX_CHANNELS*AUDIO_BUFFER_SIZE*8 */
 static int32 insertion_effect_buffer[AUDIO_BUFFER_SIZE*2];
 #endif /* USE_DSP_EFFECT */
 
+#define VIBRATO_DEPTH_MAX 384	/* 600 cent */
+
 static MidiEvent *event_list;
 static MidiEvent *current_event;
 static int32 sample_count;	/* Length of event_list */
@@ -548,7 +550,7 @@ static void reset_nrpn_controllers(int c)
   init_midi_controller(&(channel[c].cc1)); 
   init_midi_controller(&(channel[c].cc2)); 
   channel[c].bend.pitch = 2;
-  channel[c].mod.lfo1_pitch_depth = 10;
+  channel[c].mod.lfo1_pitch_depth = 50;
 
   init_rx(c);
   channel[c].note_limit_high = 127;
@@ -705,7 +707,6 @@ void recompute_freq(int v)
 	FLOAT_T pf, root_freq;
 	int32 a;
 	Voice *vp = &(voice[v]);
-	int16 depth_range;
 
 	if (! voice[v].sample->sample_rate)
 		return;
@@ -721,7 +722,7 @@ void recompute_freq(int v)
 
 		/* MIDI controllers LFO pitch depth */
 		if (opt_channel_pressure || opt_modulation_wheel) {
-			depth_range = ((channel[ch].rpnmap[RPN_ADDR_0005] << 8) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) / 4;
+			
 			if (vp->sample->vibrato_depth < 0) {
 				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
 				vp->vibrato_depth -= get_midi_controller_pitch_depth(&(channel[ch].mod))
@@ -730,7 +731,7 @@ void recompute_freq(int v)
 					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth < -depth_range) {vp->vibrato_depth = -depth_range;}
+				if (vp->vibrato_depth < -VIBRATO_DEPTH_MAX) {vp->vibrato_depth = -VIBRATO_DEPTH_MAX;}
 			} else {
 				vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 				vp->vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
@@ -739,7 +740,7 @@ void recompute_freq(int v)
 					+ get_midi_controller_pitch_depth(&(channel[ch].paf))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
 					+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
-				if (vp->vibrato_depth > depth_range) {vp->vibrato_depth = depth_range;}
+				if (vp->vibrato_depth > VIBRATO_DEPTH_MAX) {vp->vibrato_depth = VIBRATO_DEPTH_MAX;}
 			}
 		}
 		
@@ -1888,17 +1889,22 @@ static int find_free_voice(void)
     return lowest;
 }
 
+#define MAX_SAMPLES 256
+static int32 fst_table[MAX_SAMPLES];
+static int32 ft_table[MAX_SAMPLES];
+static int32 diff_table[MAX_SAMPLES];
+
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
 	int ch = e->channel, keynote = e->a & 0x7F;
-	int32 f, fs, ft, fst, fc, cdiff, diff;
+	int32 f, fs, ft, fst, fc, cdiff, diff, mindiff,	sample_link;
 	int8 tt = channel[ch].temper_type;
 	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *spc;
 	int16 st;
 	double ratio;
-	int i, j, nv, vel;
+	int i, j, k, nv, nvc, vel;
 	
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
@@ -1964,8 +1970,11 @@ static int select_play_sample(Sample *splist,
 				/ (double)sp->root_freq;
 			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 		}
+		ft_table[i] = ft;
+		fst_table[i] = fst;
 		if (sp->low_freq <= fst && sp->high_freq >= fst
-				&& sp->low_vel <= vel && sp->high_vel >= vel) {
+				&& sp->low_vel <= vel && sp->high_vel >= vel
+				&& !(sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT)) {
 			j = vlist[nv] = find_voice(e);
 			voice[j].orig_frequency = ft;
 			MYCHECK(voice[j].orig_frequency);
@@ -1974,34 +1983,56 @@ static int select_play_sample(Sample *splist,
 			nv++;
 		}
 	}
-	if (nv == 0) {
-		cdiff = 0x7fffffff;
+
+	if (nv == 0) {	/* we must select at least one sample. */
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-			ratio = (double)st / 100.0f;
-			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
-			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
-			} else {ft = f, fst = fs;}
-			if(channel[ch].drums[keynote] != NULL
-				&& channel[ch].drums[keynote]->play_note != -1) {
-				ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
-					/ (double)sp->root_freq;
-				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
-			}
-			diff = abs(sp->root_freq - fst);
-			if (diff < cdiff) {
-				fc = ft;
+			diff = abs(sp->root_freq - fst_table[i]);
+			diff_table[i] = diff;
+		}
+		mindiff = 0x7fffffff;
+		k = 0;
+		spc = NULL;
+		for (i = 0, sp = splist; i < nsp; i++, sp++) {
+			diff = diff_table[i];
+			if (mindiff > diff) {
+				mindiff = diff;
+				k = i;
 				spc = sp;
-				cdiff = diff;
 			}
 		}
 		j = vlist[nv] = find_voice(e);
-		voice[j].orig_frequency = fc;
+		voice[j].orig_frequency = ft_table[k];
 		MYCHECK(voice[j].orig_frequency);
 		voice[j].sample = spc;
 		voice[j].status = VOICE_ON;
 		nv++;
 	}
+
+	nvc = nv;
+	for (i = 0; i < nvc; i++)
+	{
+		spc = voice[vlist[i]].sample;
+		if (spc->inst_type == INST_SF2 &&
+			spc->sample_type == SF_SAMPLETYPE_LEFT) {
+			/* If it's left sample, there must be right sample. */
+			sample_link = spc->sf_sample_link;
+			for (j = 0, sp = splist; j < nsp; j++, sp++) {
+				if (sp->inst_type == INST_SF2 &&
+					sp->sample_type == SF_SAMPLETYPE_RIGHT &&
+					sp->sf_sample_index == sample_link) {
+					/* right sample is found. */
+					k = vlist[nv] = find_voice(e);
+					voice[k].orig_frequency = ft_table[j];
+					MYCHECK(voice[k].orig_frequency);
+					voice[k].sample = sp;
+					voice[k].status = VOICE_ON;
+					nv++;
+					break;
+				}
+			}
+		}
+	}
+
 	return nv;
 }
 
@@ -2185,7 +2216,6 @@ static void init_voice_vibrato(int v)
 	Voice *vp = &(voice[v]);
 	int ch = vp->channel, j, flag;
 	double ratio;
-	int32 depth_range;
 
 	flag = opt_nrpn_vibrato
 		&& (channel[ch].vibrato_ratio != 1.0 || channel[ch].vibrato_depth);
@@ -2215,9 +2245,8 @@ static void init_voice_vibrato(int v)
 			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
 		}
 		if (vp->vibrato_depth == 0) {vp->vibrato_depth = 1;}
-		depth_range = ((channel[ch].rpnmap[RPN_ADDR_0005] << 8) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) / 4;
-		if (vp->vibrato_depth > depth_range) {vp->vibrato_depth = depth_range;}
-		else if (vp->vibrato_depth < -depth_range) {vp->vibrato_depth = -depth_range;}
+		if (vp->vibrato_depth > VIBRATO_DEPTH_MAX) {vp->vibrato_depth = VIBRATO_DEPTH_MAX;}
+		else if (vp->vibrato_depth < -VIBRATO_DEPTH_MAX) {vp->vibrato_depth = -VIBRATO_DEPTH_MAX;}
 	} else {
 		vp->vibrato_depth = vp->sample->vibrato_depth;
 	}
@@ -4810,6 +4839,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			}
 		break;
 	case RPN_ADDR_0005:		/* GM2: Modulation Depth Range */
+		channel[ch].mod.lfo1_pitch_depth = (((int32)channel[ch].rpnmap[RPN_ADDR_0005] << 7) | channel[ch].rpnmap_lsb[RPN_ADDR_0005]) * 100 / 128;
 		ctl->cmsg(CMSG_INFO, VERB_NOISY,
 				"Modulation Depth Range (CH:%d VALUE:%d)", ch, channel[ch].rpnmap[RPN_ADDR_0005]);
 		break;
@@ -4825,13 +4855,8 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		channel[ch].rpnmap[RPN_ADDR_0000] = 2;
 		channel[ch].rpnmap[RPN_ADDR_0001] = 0x40;
 		channel[ch].rpnmap[RPN_ADDR_0002] = 0x40;
-		if(play_system_mode == GM2_SYSTEM_MODE) {
-			channel[ch].rpnmap_lsb[RPN_ADDR_0005] = 0x40;
-			channel[ch].rpnmap[RPN_ADDR_0005] = 0;	/* +- 50 cents */
-		} else {
-			channel[ch].rpnmap_lsb[RPN_ADDR_0005] = 0;
-			channel[ch].rpnmap[RPN_ADDR_0005] = 0x4;	/* +- 400 cents */
-		}
+		channel[ch].rpnmap_lsb[RPN_ADDR_0005] = 0x40;
+		channel[ch].rpnmap[RPN_ADDR_0005] = 0;	/* +- 50 cents */
 		channel[ch].pitchfactor = 0;
 		break;
 	}
