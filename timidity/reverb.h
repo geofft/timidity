@@ -158,6 +158,14 @@ typedef struct _comb {
 /*                                  */
 /*  Insertion and Variation Effect  */
 /*                                  */
+struct effect_xg_t {
+	int8 use_msb, type_msb, type_lsb, param_lsb[16], param_msb[10],
+		ret, pan, send_reverb, send_chorus, connection, part,
+		mw_depth, bend_depth, cat_depth, ac1_depth, ac2_depth, cbc1_depth,
+		cbc2_depth;
+	struct _EffectList *ef;
+};
+
 extern void do_insertion_effect_gs(int32*, int32);
 extern void do_insertion_effect_xg(int32*, int32, struct effect_xg_t *);
 extern void do_variation_effect1_xg(int32*, int32);
@@ -189,14 +197,6 @@ struct insertion_effect_gs_t {
 		control_source2, control_depth2, send_eq_switch;
 	struct _EffectList *ef;
 } insertion_effect_gs;
-
-struct effect_xg_t {
-	int8 use_msb, type_msb, type_lsb, param_lsb[16], param_msb[10],
-		ret, pan, send_reverb, send_chorus, connection, part,
-		mw_depth, bend_depth, cat_depth, ac1_depth, ac2_depth, cbc1_depth,
-		cbc2_depth;
-	struct _EffectList *ef;
-};
 
 enum {
 	XG_CONN_INSERTION = 0,
