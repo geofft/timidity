@@ -227,8 +227,9 @@ static inline void recalc_voice_fc(int v)
 		a2 = (1 - alpha_coef) / (1 + alpha_coef);
 		b1 = (1 - cos_coef) / (1 + alpha_coef) * fc->filter_gain;
 		b0 = b2 = b1 * 0.5f;
-		fc->a1 = a1 * 0x1000000, fc->a2 = a2 * 0x1000000;
-		fc->b0 = b0 * 0x1000000, fc->b1 = b1 * 0x1000000, fc->b2 = b2 * 0x1000000;
+		fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24);
+		fc->b0 = TIM_FSCALE(b0, 24), fc->b1 = TIM_FSCALE(b1, 24),
+		fc->b2 = TIM_FSCALE(b2, 24);
 	}
 }
 #endif
@@ -1072,8 +1073,8 @@ static inline int next_stage(int v)
 				/ vp->sample->envelope_offset[0];
 		/* calculate current envelope scale and a value for optimization */
 		vp->envelope_scale = vp->last_envelope_volume;
-		vp->inv_envelope_scale = OFFSET_MAX
-				/ (double) vp->envelope_volume * 0x10000;
+		vp->inv_envelope_scale
+			= TIM_FSCALE(OFFSET_MAX	/ (double)vp->envelope_volume, 16);
 	}
 
 	/* avoid too fast envelope speed */

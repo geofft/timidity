@@ -276,7 +276,7 @@ static void init_ns_tap16(void)
 #endif
 	ns9_order = 9;
 	for(i=0;i<ns9_order;i++) {
-		ns9_c[i] = ns9_coef[i] * 0x1000000;
+		ns9_c[i] = TIM_FSCALE(ns9_coef[i], 24);
 	}
 	memset(ns9_ehl, 0, sizeof(ns9_ehl));
 	memset(ns9_ehr, 0, sizeof(ns9_ehr));

@@ -229,7 +229,7 @@ typedef double FLOAT_T;
 /* On some machines (especially PCs without math coprocessors),
    looking up sine values in a table will be significantly faster than
    computing them on the fly. Uncomment this to use lookups. */
-/* #define LOOKUP_SINE */
+#define LOOKUP_SINE
 
 
 /* Shawn McHorse's resampling optimizations. These may not in fact be
@@ -242,7 +242,7 @@ typedef double FLOAT_T;
    on your machine/compiler/libm, uncomment this. It doesn't make much
    difference either way, but hey -- it was on the TODO list, so it
    got done. */
-/* #define USE_LDEXP 1 */
+/* #define USE_LDEXP */
 
 
 /* Define the pre-resampling cache size.

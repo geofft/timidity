@@ -56,19 +56,19 @@
 FLOAT_T REV_INP_LEV = 0.55;
 
 #if OPT_MODE != 0
-#define REV_FBK_LEV      (int32)(0.12 * 0x1000000)
+#define REV_FBK_LEV      TIM_FSCALE(0.12, 24)
 
 #define REV_NMIX_LEV     0.7
-#define REV_CMIX_LEV     (int32)(0.9 * 0x1000000)
+#define REV_CMIX_LEV     TIM_FSCALE(0.9, 24)
 #define REV_MONO_LEV     0.7
 
-#define REV_HPF_LEV      (int32)(0.5 * 0x1000000)
-#define REV_LPF_LEV      (int32)(0.45 * 0x1000000)
-#define REV_LPF_INP      (int32)(0.55 * 0x1000000)
-#define REV_EPF_LEV      (int32)(0.4 * 0x1000000)
-#define REV_EPF_INP      (int32)(0.48 * 0x1000000)
+#define REV_HPF_LEV      TIM_FSCALE(0.5, 24)
+#define REV_LPF_LEV      TIM_FSCALE(0.45, 24)
+#define REV_LPF_INP      TIM_FSCALE(0.55, 24)
+#define REV_EPF_LEV      TIM_FSCALE(0.4, 24)
+#define REV_EPF_INP      TIM_FSCALE(0.48, 24)
 
-#define REV_WIDTH        (int32)(0.125 * 0x1000000)
+#define REV_WIDTH        TIM_FSCALE(0.125, 24)
 #else
 #define REV_FBK_LEV      0.12
 
@@ -599,9 +599,9 @@ void do_basic_delay(int32* buf, int32 count)
 	register int32 n = count;
 	int32 level,feedback,output,send_reverb;
 
-	level = delay_status.level_ratio_c * 0x10000;
-	feedback = delay_status.feedback_ratio * 0x10000;
-	send_reverb = delay_status.send_reverb_ratio * 0x10000;
+	level = TIM_FSCALE(delay_status.level_ratio_c, 16);
+	feedback = TIM_FSCALE(delay_status.feedback_ratio, 16);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 16);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -658,11 +658,11 @@ void do_cross_delay(int32* buf, int32 count)
 	register int32 n = count;
 	int32 feedback,level_c,level_l,level_r,send_reverb,output;
 
-	feedback = delay_status.feedback_ratio * 0x10000;
-	level_c = delay_status.level_ratio_c * 0x10000;
-	level_l = delay_status.level_ratio_l * 0x10000;
-	level_r = delay_status.level_ratio_r * 0x10000;
-	send_reverb = delay_status.send_reverb_ratio * 0x10000;
+	feedback = TIM_FSCALE(delay_status.feedback_ratio, 16);
+	level_c = TIM_FSCALE(delay_status.level_ratio_c, 16);
+	level_l = TIM_FSCALE(delay_status.level_ratio_l, 16);
+	level_r = TIM_FSCALE(delay_status.level_ratio_r, 16);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 16);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -733,11 +733,11 @@ void do_3tap_delay(int32* buf, int32 count)
 	register int32 n = count;
 	int32 feedback,level_c,level_l,level_r,output,send_reverb;
 
-	feedback = delay_status.feedback_ratio * 0x10000;
-	level_c = delay_status.level_ratio_c * 0x10000;
-	level_l = delay_status.level_ratio_l * 0x10000;
-	level_r = delay_status.level_ratio_r * 0x10000;
-	send_reverb = delay_status.send_reverb_ratio * 0x10000;
+	feedback = TIM_FSCALE(delay_status.feedback_ratio, 16);
+	level_c = TIM_FSCALE(delay_status.level_ratio_c, 16);
+	level_l = TIM_FSCALE(delay_status.level_ratio_l, 16);
+	level_r = TIM_FSCALE(delay_status.level_ratio_r, 16);
+	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio, 16);
 
 	delay_spt0 = delay_wpt0 - delay_status.sample_c;
 	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
@@ -876,11 +876,11 @@ void do_stereo_chorus(int32* buf,int32 count)
 	register int32 n = count;
 	int32 lfo_cnt,lfo_div,level,feedback,send_reverb,send_delay,output;
 
-	level = chorus_param.level_ratio * 0x10000;
-	feedback = chorus_param.feedback_ratio * 0x10000;
-	lfo_div = chorus_div0 * 0x10000;
-	send_reverb = chorus_param.send_reverb_ratio * 0x10000;
-	send_delay = chorus_param.send_delay_ratio * 0x10000;
+	level = TIM_FSCALE(chorus_param.level_ratio, 16);
+	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 16);
+	lfo_div = TIM_FSCALE(chorus_div0, 16);
+	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio, 16);
+	send_delay = TIM_FSCALE(chorus_param.send_delay_ratio, 16);
 
 	lfo_cnt = imuldiv16(chorus_cnt0,lfo_div);
 	chorus_spt0 = chorus_wpt0 - chorus_lfo0[lfo_cnt];
@@ -1059,11 +1059,11 @@ void calc_lowshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rate
 	b2 *= a0;
 	b0 *= a0;
 
-	coef[0] = a1 * 0x1000000;
-	coef[1] = a2 * 0x1000000;
-	coef[2] = b0 * 0x1000000;
-	coef[3] = b1 * 0x1000000;
-	coef[4] = b2 * 0x1000000;
+	coef[0] = TIM_FSCALE(a1, 24);
+	coef[1] = TIM_FSCALE(a2, 24);
+	coef[2] = TIM_FSCALE(b0, 24);
+	coef[3] = TIM_FSCALE(b1, 24);
+	coef[4] = TIM_FSCALE(b2, 24);
 }
 
 void calc_highshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rate)
@@ -1093,11 +1093,11 @@ void calc_highshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rat
 	b2 *= a0;
 	b0 *= a0;
 
-	coef[0] = a1 * 0x1000000;
-	coef[1] = a2 * 0x1000000;
-	coef[2] = b0 * 0x1000000;
-	coef[3] = b1 * 0x1000000;
-	coef[4] = b2 * 0x1000000;
+	coef[0] = TIM_FSCALE(a1, 24);
+	coef[1] = TIM_FSCALE(a2, 24);
+	coef[2] = TIM_FSCALE(b0, 24);
+	coef[3] = TIM_FSCALE(b1, 24);
+	coef[4] = TIM_FSCALE(b2, 24);
 }
 
 
@@ -1231,11 +1231,11 @@ void calc_lowpass_coefs_24db(int32* lpf_coef,int32 cutoff_freq,int16 resonance,i
 	b1 = -(2.0 * (1.0 - c * c) * a1); 
 	b2 = -(1.0 - q * c + c * c) * a1; 
 
-	lpf_coef[0] = a1 * 0x1000000;
-	lpf_coef[1] = a2 * 0x1000000;
-	lpf_coef[2] = a3 * 0x1000000;
-	lpf_coef[3] = b1 * 0x1000000;
-	lpf_coef[4] = b2 * 0x1000000;
+	lpf_coef[0] = TIM_FSCALE(a1, 24);
+	lpf_coef[1] = TIM_FSCALE(a2, 24);
+	lpf_coef[2] = TIM_FSCALE(a3, 24);
+	lpf_coef[3] = TIM_FSCALE(b1, 24);
+	lpf_coef[4] = TIM_FSCALE(b2, 24);
 }
 
 void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_val)

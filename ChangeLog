@@ -1,14 +1,24 @@
 2003-04-11  mput <root@mput.dip.jp>
 
-	* configure.in: merge FreeBSD port's patch
-	  thanks to Norikatsu Shigemura <nork@ninth-nine.com>
+	* configure.in: removed bit width checks
+
+2003-04-11  Saito <timidity@flashmail.com>
+
+	* timidity/reverb.c, timidity/effect.c, timidity/mix.c:
+	  Fix conversion to fixed-point number.
+
+2003-04-11  Norikatsu Shigemura <nork@ninth-nine.com>
+
+	* timidity/timidity.c, timidity/mfi.c, timidity/sysdep.h,
+	configure, configure.in
+	  Fix about FreeBSD port.
 
 2003-04-11  Saito <timidity@flashmail.com>
 
 	* timidity/resample.c, timidity/playmidi.h:
 	  Fix about bidir loop.
 
-2003-04-10  mput <root@mput.dip.jp>
+2003-04-10  mput  <root@mput.dip.jp>
 
 	* timidity/optcode.h, timidity/optcode.c:
 	  delete repeated #define's
