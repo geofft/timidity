@@ -56,6 +56,7 @@
 #include "playmidi.h"
 #include "miditrace.h"
 
+static int arts_init_state = 0; /* 0=no init, 1=arts_init, 2=arts_free */
 static arts_stream_t stream = 0;
 static int server_buffer = 0;
 static int output_count = 0;
@@ -64,9 +65,11 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
-static int detect(void);
 
-/* export the playback mode */
+/* export the playback mode. aRts cannot support auto-detection properly
+ * see TiMidity bug report #35 on Kagemai.  Do not add any functionality
+ * that would require TiMidity to call arts_init() again after an 
+ * arts_free(), it will blow up */
 
 #define dpm arts_play_mode
 
@@ -83,17 +86,7 @@ PlayMode dpm = {
     close_output,
     output_data,
     acntl,
-    detect
 };
-
-static int detect(void)
-{
-    if (arts_init() == 0) {
-	arts_free();
-	return 1; /* ok, found */
-    }
-    return 0;
-}
 
 /*************************************************************************/
 /* We currently only honor the PE_MONO bit, and the sample rate. */
@@ -114,11 +107,21 @@ static int open_output(void)
     channels = (dpm.encoding & PE_MONO) ? 1 : 2;
 
     /* Open the audio device */
-    if((i = arts_init()) != 0)
-    {
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: %s",
-		  dpm.name, arts_error_text(i));
+    switch (arts_init_state) {
+    case 0:
+	if((i = arts_init()) != 0)
+	{
+	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: %s",
+		      dpm.name, arts_error_text(i));
+	    return -1;
+	}
+	arts_init_state = 1;
+	break;
+    case 2:
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
+	    "TiMidity aRts bug: open_output() after close_output() not supported");
 	return -1;
+    default:
     }
     stream = arts_play_stream(dpm.rate,
 			      LE_LONG(sample_width),
@@ -187,6 +190,7 @@ static void close_output(void)
 	return;
     arts_close_stream(stream);
     arts_free();
+    arts_init_state = 2;
     stream = 0;
 }
 
@@ -197,7 +201,6 @@ static int acntl(int request, void *arg)
     {
       case PM_REQ_DISCARD: /* Discard stream */
 	arts_close_stream(stream);
-	arts_free();
 	stream=NULL;
 	return 0;
       case PM_REQ_RATE: /* Change sample rate */
