@@ -3728,7 +3728,7 @@ static inline int parse_opt_h(const char *arg)
 		NULL
 	};
 	FILE *fp;
-	char version[16], *help_args[3];
+	char version[32], *help_args[3];
 	int i, j;
 	char *h;
 	ControlMode *cmp, **cmpp;

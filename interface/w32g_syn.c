@@ -222,11 +222,6 @@ void InitConsoleWnd(HWND hParentWnd);
 static SERVICE_STATUS_HANDLE serviceStatusHandle;
 static DWORD currentServiceStatus;
 static const char *serviceName = "Timidity";
-#ifdef TIMID_VERSION
-static const char *serviceLongName = "Timidity version " TIMID_VERSION;
-#else
-static const char *serviceLongName = "Timidity version " PACKAGE_VERSION;
-#endif
 static const char *serviceDescription = "Realtime synthesize midi message";
 static const char *regKeyTwSynSrv = "SYSTEM\\CurrentControlSet\\Services\\Timidity";
 
@@ -1151,7 +1146,7 @@ static int w32g_syn_main ( void )
 // Service installer
 static BOOL InstallService()
 {
-	char twSynSrvPath[_MAX_PATH];
+	char twSynSrvPath[_MAX_PATH], serviceLongName[40];
 	SC_HANDLE scm, sv;
 	HKEY srvKey;
 
@@ -1165,6 +1160,10 @@ static BOOL InstallService()
 		return FALSE;
 	}
 
+	strcpy(serviceLongName, serviceName);
+	strcat(serviceLongName, (strcmp(timidity_version, "current"))
+			? " version " : " ");
+	strcat(serviceLongName, timidity_version);
 	sv = CreateService(scm, serviceName, serviceLongName,
 		0, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START,
 		SERVICE_ERROR_IGNORE, twSynSrvPath, NULL, NULL, NULL, NULL, NULL);
@@ -1199,6 +1198,7 @@ static BOOL InstallService()
 // Service uninstaller
 static BOOL UninstallService()
 {
+	char serviceLongName[40];
 	SC_HANDLE scm, sv;
 	
 	scm = OpenSCManager(
@@ -1228,6 +1228,10 @@ static BOOL UninstallService()
 	CloseServiceHandle(sv);
 	CloseServiceHandle(scm);
 
+	strcpy(serviceLongName, serviceName);
+	strcat(serviceLongName, (strcmp(timidity_version, "current"))
+			? " version " : " ");
+	strcat(serviceLongName, timidity_version);
 	OutputWindow("%s : Service uninstall successful.", serviceLongName);
 
 	return TRUE;
