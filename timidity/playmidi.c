@@ -3627,7 +3627,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x46:	/* Rx. Note Off */
 			if (channel[ch].drums[note] == NULL)
 				play_midi_setup_drums(ch, note);
-			set_rx(channel[ch].drums[note], RX_NOTE_OFF, val);
+			set_rx_drum(channel[ch].drums[note], RX_NOTE_OFF, val);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 				"Drum Instrument Rx. Note Off (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
@@ -3635,7 +3635,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x47:	/* Rx. Note On */
 			if (channel[ch].drums[note] == NULL)
 				play_midi_setup_drums(ch, note);
-			set_rx(channel[ch].drums[note], RX_NOTE_ON, val);
+			set_rx_drum(channel[ch].drums[note], RX_NOTE_ON, val);
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 				"Drum Instrument Rx. Note On (CH:%d NOTE:%d VAL:%d)",
 				ch, note, val);
