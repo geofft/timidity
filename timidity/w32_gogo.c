@@ -57,7 +57,7 @@
 #include <fcntl.h>
 
 /* #include <musenc.h>		/* for gogo */
-#include <gogo.h>		/* for gogo */
+#include <gogo/gogo.h>		/* for gogo */
 
 #include "w32_gogo.h"
 

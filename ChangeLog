@@ -1,3 +1,11 @@
+2004-02-10  Saito <saito2@digitalme.com>
+
+	* interface/w32g_pref.c, timidity/w32_gogo.c,
+	  timidity/gogo_a.c:
+	  Change <gogo.h> to <gogo/gogo.h>.
+	* configs/msc-project[67].zip:
+	  Add header files of Ogg Vorbis and gogo.
+
 2004-02-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* aclocal.m4, configure(.in), config.h.in, Makefile.{am,in},

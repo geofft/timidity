@@ -64,7 +64,7 @@
 
 #ifdef AU_GOGO
 /* #include <musenc.h>		/* for gogo */
-#include <gogo.h>		/* for gogo */
+#include <gogo/gogo.h>		/* for gogo */
 #include "gogo_a.h"
 #endif
 
