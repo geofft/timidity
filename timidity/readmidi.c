@@ -6660,6 +6660,17 @@ void realloc_effect_xg(struct effect_xg_t *st)
 	case 0x4D:
 		st->ef = push_effect(st->ef, EFFECT_EQ2);
 		break;
+	case 0x4E:
+		if (type_lsb == 0x01 || type_lsb == 0x02) {
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH);
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH_OD);
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH_OD_EQ3);
+		} else {
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH);
+			st->ef = push_effect(st->ef, EFFECT_XG_AUTO_WAH_EQ2);
+		}
+		break;
 	case 0x5E:
 		st->ef = push_effect(st->ef, EFFECT_LOFI);
 		break;

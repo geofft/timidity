@@ -387,6 +387,9 @@ void calc_filter_moog(filter_moog *svf)
 {
 	double res, fr, p, q, f;
 
+	if (svf->freq > play_mode->rate / 2) {svf->freq = play_mode->rate / 2;}
+	else if(svf->freq < 20) {svf->freq = 20;}
+
 	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB) {
 		if(svf->last_freq == 0) {	/* clear delay-line */
 			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
@@ -425,6 +428,9 @@ void calc_filter_moog_dist(filter_moog_dist *svf)
 {
 	double res, fr, p, q, f;
 
+	if (svf->freq > play_mode->rate / 2) {svf->freq = play_mode->rate / 2;}
+	else if(svf->freq < 20) {svf->freq = 20;}
+
 	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB
 		 || svf->dist != svf->last_dist) {
 		if(svf->last_freq == 0) {	/* clear delay-line */
@@ -462,6 +468,23 @@ static inline void do_filter_moog_dist(double *stream, double *high, double *ban
 	*stream = tb4;
 	*high = in - tb4;
 	*band = 3.0f * (tb3 - tb4);
+	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
+}
+
+static inline void do_filter_moog_dist_low(double *stream, double f, double p, double q, double d,
+								   double *b0, double *b1, double *b2, double *b3, double *b4)
+{
+	double t1, t2, in, tb0 = *b0, tb1 = *b1, tb2 = *b2, tb3 = *b3, tb4 = *b4;
+	in = *stream;
+	in -= q * tb4;
+	t1 = tb1;  tb1 = (in + tb0) * p - tb1 * f;
+	t2 = tb2;  tb2 = (tb1 + t1) * p - tb2 * f;
+	t1 = tb3;  tb3 = (tb2 + t2) * p - tb3 * f;
+	tb4 = (tb3 + t1) * p - tb4 * f;
+	tb4 *= d;
+	tb4 = tb4 - tb4 * tb4 * tb4 * 0.166667f;
+	tb0 = in;
+	*stream = tb4;
 	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
 }
 
@@ -2587,7 +2610,8 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		lpf->res = OVERDRIVE_RES;
 		lpf->dist = OVERDRIVE_DIST * sqrt((double)info->drive / 127.0) + OVERDRIVE_OFFSET;
 		calc_filter_lpf18(lpf);
-		info->leveli = TIM_FSCALE(info->level * OVERDRIVE_LEVEL, 24);
+		info->leveli = TIM_FSCALE(info
+			->level * OVERDRIVE_LEVEL, 24);
 		info->leveldi = TIM_FSCALE(info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
@@ -3905,6 +3929,151 @@ static void do_lofi(int32 *buf, int32 count, EffectList *ef)
 	}
 }
 
+static void conv_xg_auto_wah_od(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoXGAutoWahOD *info = (InfoXGAutoWahOD *)ef->info;
+
+	info->lpf.freq = eq_freq_table_xg[clip_int(st->param_lsb[13], 34, 80)];
+	info->level = (double)st->param_lsb[14] / 127.0f;
+}
+
+static void conv_xg_auto_wah_od_eq3(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ3 *info = (InfoEQ3 *)ef->info;
+
+	info->low_freq = eq_freq_table_xg[24];
+	info->low_gain = clip_int(st->param_lsb[11] - 64, -12, 12);
+	info->mid_freq = eq_freq_table_xg[41];
+	info->mid_gain = clip_int(st->param_lsb[12] - 64, -12, 12);
+	info->mid_width = 1.0f;
+	info->high_freq = 0;
+	info->high_gain = 0;
+}
+
+static void conv_xg_auto_wah_eq2(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ2 *info = (InfoEQ2 *)ef->info;
+
+	info->low_freq = eq_freq_table_xg[clip_int(st->param_lsb[5], 4, 40)];
+	info->low_gain = clip_int(st->param_lsb[6] - 64, -12, 12);
+	info->high_freq = eq_freq_table_xg[clip_int(st->param_lsb[7], 28, 58)];
+	info->high_gain = clip_int(st->param_lsb[8] - 64, -12, 12);
+}
+
+static void conv_xg_auto_wah(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoXGAutoWah *info = (InfoXGAutoWah *)ef->info;
+
+	info->lfo_freq = lfo_freq_table_xg[st->param_lsb[0]];
+	info->lfo_depth = st->param_lsb[1];
+	info->offset_freq = (double)(st->param_lsb[2] + 1) * 3900.0f / 128.0f + 100.0f;
+	info->resonance = (double)clip_int(st->param_lsb[3], 10, 120) / 10.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+	info->drive = st->param_lsb[10];
+}
+
+static inline double calc_xg_auto_wah_freq(int32 lfo_val, double offset_freq, int8 depth)
+{
+	double freq;
+	int32 fine;
+	fine = ((lfo_val - (1L << 15)) * depth) >> 7;	/* max: +-2^8 fine */
+	if (fine >= 0) {
+		freq = offset_freq * bend_fine[fine & 0xff]
+			* bend_coarse[fine >> 8 & 0x7f];
+	} else {
+		freq = offset_freq / (bend_fine[(-fine) & 0xff]
+			* bend_coarse[(-fine) >> 8 & 0x7f]);
+	}
+	return freq;
+}
+
+#define XG_AUTO_WAH_BITS (32 - GUARD_BITS)
+#define XG_AUTO_WAH_MAX_NEG (1.0 / (double)(1L << XG_AUTO_WAH_BITS))
+
+static void do_xg_auto_wah(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x, y, val;
+	InfoXGAutoWah *info = (InfoXGAutoWah *)ef->info;
+	filter_moog_dist *fil0 = &(info->fil0), *fil1 = &(info->fil1);
+	lfo *lfo = &(info->lfo);
+	int32 dryi = info->dryi, weti = info->weti, fil_cycle = info->fil_cycle;
+	int8 lfo_depth = info->lfo_depth;
+	double yf, offset_freq = info->offset_freq;
+	int32 fil_count = info->fil_count;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_lfo(lfo, info->lfo_freq, LFO_TRIANGULAR, 0);
+		fil0->res_dB = fil1->res_dB = (info->resonance - 1.0) * 12.0f / 11.0f;
+		fil0->dist = fil1->dist = 4.0f * sqrt((double)info->drive / 127.0);
+		val = do_lfo(lfo);
+		fil0->freq = fil1->freq = calc_xg_auto_wah_freq(val, info->offset_freq, info->lfo_depth);
+		calc_filter_moog_dist(fil0);
+		calc_filter_moog_dist(fil1);
+		info->fil_count = 0;
+		info->fil_cycle = (int32)(44.0f * play_mode->rate / 44100.0f);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = y = buf[i];
+		yf = (double)y * XG_AUTO_WAH_MAX_NEG;
+		do_filter_moog_dist_low(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
+								   &fil0->b0, &fil0->b1, &fil0->b2, &fil0->b3, &fil0->b4);
+		y = TIM_FSCALE(yf, XG_AUTO_WAH_BITS);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+
+		x = y = buf[++i];
+		yf = (double)y * XG_AUTO_WAH_MAX_NEG;
+		do_filter_moog_dist_low(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
+								   &fil1->b0, &fil1->b1, &fil1->b2, &fil1->b3, &fil1->b4);
+		y = TIM_FSCALE(yf, XG_AUTO_WAH_BITS);
+		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
+
+		val = do_lfo(lfo);
+
+		if (++fil_count == fil_cycle) {
+			fil_count = 0;
+			fil0->freq = calc_xg_auto_wah_freq(val, offset_freq, lfo_depth);
+			calc_filter_moog_dist(fil0);
+		}
+	}
+	info->fil_count = fil_count;
+}
+
+static void do_xg_auto_wah_od(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x;
+	InfoXGAutoWahOD *info = (InfoXGAutoWahOD *)ef->info;
+	filter_biquad *lpf = &(info->lpf);
+	int32 leveli = info->leveli;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		lpf->q = 1.0f;
+		calc_filter_biquad_low(lpf);
+		info->leveli = TIM_FSCALE(info->level, 24);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = buf[i];
+		do_filter_biquad(&x, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1l, &lpf->x2l, &lpf->y1l, &lpf->y2l);
+		buf[i] = imuldiv24(x, leveli);
+
+		x = buf[++i];
+		do_filter_biquad(&x, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1r, &lpf->x2r, &lpf->y1r, &lpf->y2r);
+		buf[i] = imuldiv24(x, leveli);
+	}
+}
+
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
 	EFFECT_STEREO_EQ, "Stereo-EQ", do_stereo_eq, conv_gs_stereo_eq, NULL, sizeof(InfoStereoEQ),
@@ -3929,6 +4098,10 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_LOFI, "Lo-Fi", do_lofi, NULL, conv_xg_lofi, sizeof(InfoLoFi),
 	EFFECT_LOFI1, "Lo-Fi 1", do_lofi1, conv_gs_lofi1, NULL, sizeof(InfoLoFi1),
 	EFFECT_LOFI2, "Lo-Fi 2", do_lofi2, conv_gs_lofi2, NULL, sizeof(InfoLoFi2),
+	EFFECT_XG_AUTO_WAH, "Auto Wah", do_xg_auto_wah, NULL, conv_xg_auto_wah, sizeof(InfoXGAutoWah),
+	EFFECT_XG_AUTO_WAH_EQ2, "2-Band EQ (Auto Wah built-in)", do_eq2, NULL, conv_xg_auto_wah_eq2, sizeof(InfoEQ2),
+	EFFECT_XG_AUTO_WAH_OD, "OD (Auto Wah built-in)", do_xg_auto_wah_od, NULL, conv_xg_auto_wah_od, sizeof(InfoXGAutoWahOD),
+	EFFECT_XG_AUTO_WAH_OD_EQ3, "2-Band EQ (Auto Wah OD built-in)", do_eq3, NULL, conv_xg_auto_wah_od_eq3, sizeof(InfoEQ3),
 	-1, "EOF", NULL, NULL, NULL, 0, 
 };
 
@@ -3991,6 +4164,12 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	70, 34, 60, 10, 70, 28, 46, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
 	0x4D, 0, "2-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	28, 70, 46, 70, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
+	0x4E, 0, "AUTO WAH", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	70, 56, 39, 25, 0, 28, 66, 46, 64, 127, 0, 0, 0, 0, 0, 0, 2, 
+	0x4E, 0x01, "AUTO WAH+DISTORTION", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	40, 73, 26, 29, 0, 28, 66, 46, 64, 127, 30, 72, 74, 53, 48, 0, 2, 
+	0x4E, 0x02, "AUTO WAH+OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	48, 64, 32, 23, 0, 28, 66, 46, 64, 127, 29, 68, 72, 45, 55, 0, 2, 
 	0x5E, 0, "LO-FI", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	2, 60, 6, 54, 5, 10, 1, 1, 0, 127, 0, 0, 0, 0, 1, 0, 9, 
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

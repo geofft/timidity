@@ -209,6 +209,10 @@ enum {
 	EFFECT_LOFI,
 	EFFECT_LOFI1,
 	EFFECT_LOFI2,
+	EFFECT_XG_AUTO_WAH,
+	EFFECT_XG_AUTO_WAH_EQ2,
+	EFFECT_XG_AUTO_WAH_OD,
+	EFFECT_XG_AUTO_WAH_OD_EQ3,
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
@@ -470,6 +474,21 @@ typedef struct {
 	int32 bit_mask, dryi, weti;
 	filter_biquad lpf, srf;
 } InfoLoFi;
+
+/*! XG: Auto Wah */
+typedef struct {
+	int8 lfo_depth, drive;
+	double resonance, lfo_freq, offset_freq, dry, wet;
+	int32 dryi, weti, fil_count, fil_cycle;
+	lfo lfo;
+	filter_moog_dist fil0, fil1;
+} InfoXGAutoWah;
+
+typedef struct {
+	double level;
+	int32 leveli;
+	filter_biquad lpf;
+} InfoXGAutoWahOD;
 
 /*                             */
 /*        System Effect        */
