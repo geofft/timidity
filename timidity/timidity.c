@@ -982,6 +982,7 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
 	tone->strip_loop = tone->strip_envelope =
 	tone->strip_tail = -1;
     tone->amp = -1;
+    tone->rnddelay = 0;
     tone->legato = tone->redamper = tone->key_to_fc = tone->vel_to_fc = 0;
 	tone->reverb_send = tone->chorus_send = tone->delay_send = -1;
     tone->tva_level = -1;
