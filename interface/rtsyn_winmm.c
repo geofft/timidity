@@ -210,7 +210,7 @@ int rtsyn_play_some_data(void){
 	int ne,i,j,chk,played;
 	
 	played=0;
-#ifndef USE_WINTIMER_I
+#ifndef USE_WINSYN_TIMER_I
 	do{
 		Sleep(1);
 #endif
@@ -248,7 +248,7 @@ int rtsyn_play_some_data(void){
 				break;
 			}
 		}	
-#ifndef USE_WINTIMER_I
+#ifndef USE_WINSYN_TIMER_I
 	}while(rtsyn_reachtime>get_current_calender_time());
 #endif 
 	return played;

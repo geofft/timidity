@@ -85,9 +85,16 @@ static int active_sensing_flag=0;
 static double active_sensing_time=0;
 
 //timer interrupt
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
 rtsyn_mutex_t timerMUTEX;
+
+#ifdef __W32__
 MMRESULT timerID;
+#else 
+pthread_t timer_thread;
+int thread_on_f=0;
+#endif
+
 #endif
 
 #define EX_RESET_NO 7
@@ -207,7 +214,8 @@ void rtsyn_normal_modeset(){
 
 
 
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
+#ifdef __W32__
 VOID CALLBACK timercalc(UINT uTimerID, UINT uMsg, DWORD dwUser, DWORD dummy1, DWORD dummy2){
 		MidiEvent ev;
 	
@@ -219,6 +227,27 @@ VOID CALLBACK timercalc(UINT uTimerID, UINT uMsg, DWORD dwUser, DWORD dummy1, DW
 		rtsyn_mutex_unlock(timerMUTEX);
 	return;
 }
+#else
+void *timercalc(void *arg){
+ 	MidiEvent ev;
+	unsigned int slt;
+	double reachtime,delay;
+	delay=(double)(1.0/TICKTIME_HZ);
+	while(thread_on_f==1){		
+		rtsyn_mutex_lock(timerMUTEX);
+		reachtime=get_current_calender_time()+delay;
+		ev.type = ME_NONE;
+		seq_set_time(&ev);
+		play_event(&ev);
+		aq_fill_nonblocking();
+		rtsyn_mutex_unlock(timerMUTEX);
+		do{
+			sleep(0);
+		}while(get_current_calender_time()<reachtime);
+	}
+	return NULL;
+}
+#endif
 #endif
 void rtsyn_init(void){
 	int i,j;
@@ -249,8 +278,10 @@ void rtsyn_init(void){
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
 	
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
+
 	rtsyn_mutex_init(timerMUTEX);
+#ifdef __W32__
 	timeBeginPeriod(1);
 	{
 		DWORD data;
@@ -261,16 +292,28 @@ void rtsyn_init(void){
 		timerID = timeSetEvent( delay, 0, timercalc, data,
 			TIME_PERIODIC | TIME_CALLBACK_FUNCTION );
         if( !timerID ){
-                printf("Fail to setup Timer Interrupt (winsyn) \n");
+        	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"Fail to setup Timer Interrupt (winsyn) \n");
         }
 	}
+#else
+	thread_on_f=1;
+	if(0!=pthread_create(&timer_thread,NULL,timercalc,NULL)){
+        	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"Fail to setup Timer Interrupt (winsyn) \n");
+	}
+#endif
+
 #endif
 }
 
 void rtsyn_close(void){
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
+#ifdef __W32__
 	timeKillEvent( timerID );
 	timeEndPeriod(1);
+#else
+	thread_on_f=0;
+	pthread_join(timer_thread, NULL);
+#endif
 	rtsyn_mutex_destroy(timerMUTEX);
 #endif 
 }
@@ -279,7 +322,7 @@ void rtsyn_play_event(MidiEvent *ev)
 {
   int gch;
   int32 cet;
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
 	rtsyn_mutex_lock(timerMUTEX);
 #endif 
 
@@ -290,28 +333,30 @@ void rtsyn_play_event(MidiEvent *ev)
 			play_event(ev);
 //		}
 	}
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
 	rtsyn_mutex_unlock(timerMUTEX);
 #endif 
 
 }
 
 void rtsyn_reset(void){
-#ifdef USE_WINTIMER_I
-	rtsyn_mutex_lock(timerMUTEX);
-#endif 
 		rtsyn_stop_playing();
+#ifdef USE_WINSYN_TIMER_I
+	        rtsyn_mutex_lock(timerMUTEX);
+#endif
+
 		free_instruments(0);        //also in rtsyn_server_reset
 		free_global_mblock();
+#ifdef USE_WINSYN_TIMER_I
+	        rtsyn_mutex_unlock(timerMUTEX);
+#endif
+
 		rtsyn_server_reset();
 //		printf("system reseted\n");
-#ifdef USE_WINTIMER_I
-	rtsyn_mutex_unlock(timerMUTEX);
-#endif 
 }
 
 void rtsyn_server_reset(void){
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
 	rtsyn_mutex_lock(timerMUTEX);
 #endif 
 	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
@@ -322,27 +367,27 @@ void rtsyn_server_reset(void){
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
 	auto_reduce_polyphony = 0;
 	event_time_offset = 0;
-#ifdef USE_WINTIMER_I
+#ifdef USE_WINSYN_TIMER_I
 	rtsyn_mutex_unlock(timerMUTEX);
 #endif 
 }
 
 void rtsyn_stop_playing(void)
 {
-#ifdef USE_WINTIMER_I
-	rtsyn_mutex_lock(timerMUTEX);
-#endif 
 	if(upper_voices) {
 		MidiEvent ev;
 		ev.type = ME_EOT;
 		ev.a = 0;
 		ev.b = 0;
 		rtsyn_play_event(&ev);
+#ifdef USE_WINSYN_TIMER_I
+	        rtsyn_mutex_lock(timerMUTEX);
+#endif
 		aq_flush(1);
+#ifdef USE_WINSYN_TIMER_I
+		        rtsyn_mutex_unlock(timerMUTEX);
+#endif
 	}
-#ifdef USE_WINTIMER_I
-	rtsyn_mutex_unlock(timerMUTEX);
-#endif 
 }
 extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
@@ -384,7 +429,7 @@ static void seq_set_time(MidiEvent *ev)
 void rtsyn_play_calculate(){
 	MidiEvent ev;
 
-#ifndef USE_WINTIMER_I	
+#ifndef USE_WINSYN_TIMER_I	
 	ev.type = ME_NONE;
 	seq_set_time(&ev);
 	play_event(&ev);

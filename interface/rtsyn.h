@@ -53,6 +53,19 @@
 #include <mmsystem.h>
 #endif
 
+#if !defined(__MACOS__)
+#define USE_WINSYN_TIMER_I 1
+
+#ifndef __W32__
+#include <pthread.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#endif
+
+#endif
+
+
 #include "timidity.h"
 #include "common.h"
 #include "controls.h"
@@ -129,13 +142,20 @@ int rtsyn_buf_check(void);
 #endif
 
 
-#ifdef __W32__
-#define USE_WINTIMER_I 1
+#ifdef USE_WINSYN_TIMER_I
 
+#if defined(__W32__)
 typedef HANDLE rtsyn_mutex_t;
 #define rtsyn_mutex_init(_m)      { (_m) = CreateMutex(NULL, 0, NULL); }
 #define rtsyn_mutex_destroy(_m)   if (_m) { CloseHandle(_m); }
 #define rtsyn_mutex_lock(_m)      WaitForSingleObject(_m, INFINITE)
 #define rtsyn_mutex_unlock(_m)    ReleaseMutex(_m)
+#else
+typedef pthread_mutex_t rtsyn_mutex_t;
+#define rtsyn_mutex_init(_m)      pthread_mutex_init(&(_m), NULL)
+#define rtsyn_mutex_destroy(_m)   pthread_mutex_destroy(&(_m))
+#define rtsyn_mutex_lock(_m)      pthread_mutex_lock(&(_m))
+#define rtsyn_mutex_unlock(_m)    pthread_mutex_unlock(&(_m))
+#endif
 
 #endif
