@@ -541,7 +541,7 @@ static void redraw_controllers(int c)
 
 static void reset_midi(int playing)
 {
-    int i;
+    int i, cnt;
     for(i = 0; i < MAX_CHANNELS; i++)
     {
 	
@@ -575,14 +575,20 @@ static void reset_midi(int playing)
 	channel[i].mapID = get_default_mapID(i);
 	channel[i].lasttime = 0;
     }
-    if(playing)
-    {
-	kill_all_voices();
-	for(i = 0; i < MAX_CHANNELS; i++)
-	    redraw_controllers(i);
-    }
-    else
-	reset_voices();
+	if (playing) {
+		kill_all_voices();
+		for (i = 0; i < MAX_CHANNELS; i++)
+			redraw_controllers(i);
+		if (midi_streaming && free_instruments_afterwards) {
+			free_instruments(0);
+			/* free unused memory */
+			cnt = free_global_mblock();
+			if (cnt > 0)
+				ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+						"%d memory blocks are free", cnt);
+		}
+	} else
+		reset_voices();
 
     master_volume_ratio = 0xFFFF;
     adjust_amplification();

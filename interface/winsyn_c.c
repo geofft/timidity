@@ -24,7 +24,7 @@
     I referenced following sources.
         alsaseq_c.c - ALSA sequencer server interface
             Copyright (c) 2000  Takashi Iwai <tiwai@suse.de>
-        readmidi.c 
+        readmidi.c
 
 
     DESCRIPTION
@@ -78,7 +78,7 @@
 
 #include "server_defs.h"
 
-#include "windows.h" 
+#include "windows.h"
 #include "mmsystem.h"
 
 #include "timidity.h"
@@ -132,7 +132,7 @@ UINT  evbwpoint=0;
 UINT  evbrpoint=0;
 UINT evbsysexpoint;
 UINT  mvbuse=0;
-		
+
 enum{B_OK, B_WORK, B_END};
 
 
@@ -169,7 +169,7 @@ static char sysex_resets[EX_RESET_NO][11]={
 	'\xf0','\x43','\x10','\x4c','\x00','\x00','\x7E','\x00','\xf7','\x00','\x00'  //XG on
 	};
 */
-#define TICKTIME_HZ 200
+#define TICKTIME_HZ 50
 
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
@@ -288,7 +288,7 @@ static void server_reset(void);
 void play_one_data (void);
 void winplaymidi(void);
 void CALLBACK MidiInProc(HMIDIIN,UINT,DWORD,DWORD,DWORD);
-  
+
 #ifdef IA_W32G_SYN
 extern void w32g_syn_doit(void);
 extern void w32g_syn_ctl_pass_playing_list(int n_, char *args_[]);
@@ -314,15 +314,15 @@ int ctl_pass_playing_list2(int n, char *args[])
 	if(n > MAX_PORT ){
 		printf( "Usage: timidity -iW [Midi interface No s]\n");
 		return;
-    }	
+	}
 #endif
-	
+
 	if(n>0){
 		port=0;
 		while(port<n && n!=0){
 			if( (ID[port] = atoi(args[port]))==0 ){
 				n=0;
-			}else{			
+			}else{
 				if(MMSYSERR_NOERROR==midiInOpen(&hMidiIn[port],ID[port]-1,(DWORD)NULL,(DWORD)0L,CALLBACK_NULL)){
 					midiInReset(hMidiIn[port]);
 					midiInClose(hMidiIn[port]);
@@ -352,7 +352,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 		InNum = midiInGetNumDevs();
 		printf("Available Midi Input devices:\n");
 		for (ID[port]=1;ID[port] <=InNum;ID[port]++){
-   			midiInGetDevCaps(ID[port]-1,(LPMIDIINCAPSA) &InCaps,sizeof(InCaps));
+			midiInGetDevCaps(ID[port]-1,(LPMIDIINCAPSA) &InCaps,sizeof(InCaps));
 			printf("%d:%s\n",ID[port],(LPSTR)InCaps.szPname);
 		}
 
@@ -361,13 +361,13 @@ int ctl_pass_playing_list2(int n, char *args[])
 			if (0==scanf("%u",&portnumber)) scanf("%s",cbuf);
 		}while(portnumber == 0 ||portnumber > MAX_PORT);
 		printf("\n");
-	
+
 		for(port=0;port<portnumber;port++){
 			printf("Keyin Input Device Number of port%d\n",port);
 			do{
 				if (0==scanf("%u",&ID[port])) scanf("%s",cbuf);
 			}while(ID[port] == 0 ||(ID[port] > InNum));
-			printf("\n");		
+			printf("\n");
 		}
 	}
 #endif
@@ -375,7 +375,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 	for(port=0;port<portnumber;port++){
 		wInID[port]=ID[port]-1;
 	}
-	
+
 #ifndef IA_W32G_SYN
 	printf("TiMidity starting in Windows Synthesizer mode\n");
 	printf("Usage: timidity -iW [Midi interface No]\n");
@@ -393,14 +393,14 @@ int ctl_pass_playing_list2(int n, char *args[])
 		midiInOpen(&hMidiIn[port],wInID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
 		midiInStart(hMidiIn[port]);
 		midiOutOpen(&hMidiOut[port],wInID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
-		midiOutShortMsg(hMidiOut[port], 0x007f3c90); 
+		midiOutShortMsg(hMidiOut[port], 0x007f3c90);
 		midiOutShortMsg(hMidiOut[port], 0x00003c80);
 		midiOutReset(hMidiOut[port]);
-    	midiOutClose(hMidiOut[port]);
+		midiOutClose(hMidiOut[port]);
 		midiInReset(hMidiIn[port]);
 		midiInClose(hMidiIn[port]);
 	}
-*/	
+*/
 	opt_realtime_playing = 2; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
 	auto_reduce_polyphony = 0;
@@ -427,16 +427,16 @@ int ctl_pass_playing_list2(int n, char *args[])
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
 
- 	seq_reset();
+	seq_reset();
 
 /*
 	for(port=0;port<portnumber;port++){
 		for (i=0;i<MAX_EXBUF;i++){
 			IMidiHdr[port][i] = (MIDIHDR*)safe_malloc(sizeof(MIDIHDR));
 			memset(IMidiHdr[port][i],0,sizeof(MIDIHDR));
-    		IMidiHdr[port][i]->lpData = (char*)safe_malloc(BUFF_SIZE);
+			IMidiHdr[port][i]->lpData = (char*)safe_malloc(BUFF_SIZE);
 			memset((IMidiHdr[port][i]->lpData),0,BUFF_SIZE);
-    		IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
+			IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
 		}
 	}
 */
@@ -444,19 +444,18 @@ int ctl_pass_playing_list2(int n, char *args[])
 		for (i=0;i<MAX_EXBUF;i++){
 			IMidiHdr[port][i] = sIMidiHdr[port][i];
 			memset(IMidiHdr[port][i],0,sizeof(MIDIHDR));
-    		IMidiHdr[port][i]->lpData = sImidiHdr_data[port][i];
+			IMidiHdr[port][i]->lpData = sImidiHdr_data[port][i];
 			memset((IMidiHdr[port][i]->lpData),0,BUFF_SIZE);
-    		IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
+			IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
 		}
 	}
-	
+
 	evbuf[0].status=B_END;
 	evbwpoint=0;
 	evbrpoint=0;
 	mvbuse=0;
-	
-	seq_quit=0;
 
+	seq_quit=0;
 
 	for(port=0;port<portnumber;port++){
 		midiInOpen(&hMidiIn[port],wInID[port],(DWORD)MidiInProc,(DWORD)port,CALLBACK_FUNCTION);
@@ -464,14 +463,14 @@ int ctl_pass_playing_list2(int n, char *args[])
 			midiInPrepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 			midiInAddBuffer(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 		}
-	}	
+	}
 		for(port=0;port<portnumber;port++){
 	if(MMSYSERR_NOERROR !=midiInStart(hMidiIn[port]))
 		printf("midiInStarterror\n");
 	}
 
 //	seq_reset();
-	
+
 	system_mode=DEFAULT_SYSTEM_MODE;
 	change_system_mode(system_mode);
 
@@ -485,7 +484,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 	ev.b=0x7f;
 	ev.type = ME_NOTEON;
 	seq_play_event(&ev);
-    ev.type = ME_NOTEOFF;
+	ev.type = ME_NOTEOFF;
 	seq_play_event(&ev);
 
 	for(i=0;i<0.4*TICKTIME_HZ;i++){
@@ -506,16 +505,16 @@ int ctl_pass_playing_list2(int n, char *args[])
 #endif
 	}
 	midiInStop(hMidiIn[port]);
-	
+
 	stop_playing();
 	play_mode->close_output();
-	
+
 	for(port=0;port<portnumber;port++){
 		midiInReset(hMidiIn[port]);
 		for (i=0;i<MAX_EXBUF;i++){
-   			midiInUnprepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
+			midiInUnprepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 		}
-    	midiInClose(hMidiIn[port]);
+		midiInClose(hMidiIn[port]);
 /*
 		for (i=0;i<MAX_EXBUF;i++){
 			free(IMidiHdr[port][i]->lpData);
@@ -528,11 +527,11 @@ int ctl_pass_playing_list2(int n, char *args[])
 	return 0;
 #endif
 }
-static void seq_reset(void){								
+static void seq_reset(void){
 		stop_playing();
 		play_mode->close_output();  //also in server_reset
 		free_instruments(0);        //also in server_reset
-		free_global_mblock();       		
+		free_global_mblock();
 		server_reset();
 //		printf("system reseted\n");
 }
@@ -556,7 +555,7 @@ void seq_set_time(MidiEvent *ev)
 	event_time_offset = (int32)time_advance;
 	past_time = get_current_calender_time() - starttime;
 	ev->time = (int32)((past_time) * play_mode->rate);
-	ev->time += (int32)event_time_offset; 
+	ev->time += (int32)event_time_offset;
 
 #if 0
 	btime = (double)((ev->time-current_sample/midi_time_ratio)/play_mode->rate);
@@ -581,8 +580,6 @@ static void stop_playing(void)
 static void doit(void)
 {
 	MidiEvent ev;
-
-	
 	
 	playdone=0;
 
@@ -593,7 +590,7 @@ static void doit(void)
 				case 'q':
 					seq_quit=~0;
 				break;
-				
+
 				case 'm':
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
@@ -612,7 +609,7 @@ static void doit(void)
 					ev.time=0;
 					seq_play_event(&ev);
 				break;
-				
+
 				case 'c':
 					ev.type=ME_RESET;
 					ev.a=system_mode;
@@ -625,7 +622,6 @@ static void doit(void)
 					ev.a=GM_SYSTEM_MODE;
 					seq_play_event(&ev);
 					change_system_mode(system_mode);
-					
 				break;
 
 				case 'S':
@@ -642,9 +638,8 @@ static void doit(void)
 					ev.a=XG_SYSTEM_MODE;
 					seq_play_event(&ev);
 					change_system_mode(system_mode);
-					
 				break;
-				
+
 				case 'N':
 					system_mode=DEFAULT_SYSTEM_MODE;
 					ev.type=ME_RESET;
@@ -757,7 +752,7 @@ void play_one_data (void){
 	char *exlbuf;
 	int ne,i,j,chk;
 	
-	evbpoint=evbrpoint;	
+	evbpoint=evbrpoint;
 	if (++evbrpoint >= EVBUFF_SIZE)
 			evbrpoint -= EVBUFF_SIZE;
 
@@ -765,7 +760,7 @@ void play_one_data (void){
 	dwInstance=evbuf[evbpoint].dwInstance;
 	dwParam1=evbuf[evbpoint].dwParam1;
 	dwParam2=evbuf[evbpoint].dwParam2;
-		
+
 	port=(UINT)dwInstance;
 	switch (wMsg) {
 	case MIM_DATA:
@@ -831,7 +826,7 @@ void play_one_data (void){
 			}
 #endif
 			if ((dwParam1 & 0x000000ff) == 0xfe) {
-				//Active Sensing 
+				//Active Sensing
 //				printf("Active Sensing\n");
 				active_sensing_flag = ~0;
 				active_sensing_time = get_current_calender_time();
@@ -851,7 +846,7 @@ void play_one_data (void){
 			seq_playing=~0;
 		}
 		break;
-	case MIM_LONGDATA:		
+	case MIM_LONGDATA:
 		IIMidiHdr = (MIDIHDR *) dwParam1;
 		exlen=(int)IIMidiHdr->dwBytesRecorded;
 		exlbuf=IIMidiHdr->lpData;
@@ -867,13 +862,13 @@ void play_one_data (void){
 					 server_reset();
 				}
 			}
-/*			
+/*
 			printf("SyeEx length=%x bytes \n", exlen);
 			for(i=0;i<exlen;i++){
 			printf("%x ",exlbuf[i]);
 			}
 			printf("\n");
-*/			
+*/
 			if(parse_sysex_event(exlbuf+1,exlen-1,&ev)){
 				if(ev.type==ME_RESET && system_mode!=DEFAULT_SYSTEM_MODE)
 					ev.a=system_mode;
@@ -883,7 +878,7 @@ void play_one_data (void){
 			if(ne=parse_sysex_event_multi(exlbuf+1,exlen-1, evm)){
 				for (i = 0; i < ne; i++){
 					seq_play_event(&evm[i]);
-				}				
+				}
 			}
 		}
 		if (MMSYSERR_NOERROR != midiInUnprepareHeader(
@@ -899,7 +894,7 @@ void play_one_data (void){
 
 	}
 }
-	
+
 void CALLBACK MidiInProc(HMIDIIN hMidiInL, UINT wMsg, DWORD dwInstance,
 		DWORD dwParam1, DWORD dwParam2)
 {
@@ -913,17 +908,15 @@ void CALLBACK MidiInProc(HMIDIIN hMidiInL, UINT wMsg, DWORD dwInstance,
 	case MIM_LONGDATA:
 		evbpoint = evbwpoint;
 		if (++evbwpoint >= EVBUFF_SIZE)
-			evbwpoint -= EVBUFF_SIZE;		
+			evbwpoint -= EVBUFF_SIZE;
 		evbuf[evbwpoint].status = B_END;
 		evbuf[evbpoint].status = B_WORK;
-		
 		evbuf[evbpoint].wMsg = wMsg;
 		evbuf[evbpoint].dwInstance = dwInstance;
 		evbuf[evbpoint].dwParam1 = dwParam1;
 		evbuf[evbpoint].dwParam2 = dwParam2;
 		evbuf[evbpoint].status = B_OK;
 		break;
-		
 	case MIM_OPEN:
 //		printf("MIM_OPEN\n");
 		break;

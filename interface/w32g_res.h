@@ -20,6 +20,7 @@
 #define IDB_BITMAP_TRACER               125
 #define IDD_PREF_SYN1                   127
 #define IDD_PREF_SYN1_EN                128
+#define IDD_DIALOG_PREF                 132
 #define IDC_CHECK_SEACHDIRRECURSIVE     1001
 #define IDC_CHECK_DOCWNDINDEPENDENT     1002
 #define IDC_CHECK_INIFILE_AUTOSAVE      1003
@@ -178,6 +179,7 @@
 #define IDD_DIALOG_WRD                  1141
 #define IDD_DIALOG_SOUNDSPEC            1142
 #define IDFLUSH                         1143
+#define IDD_DIALOG_PREF_EN              1143
 #define IDCLEAR                         1144
 #define IDC_BUTTON_PREV                 1145
 #define IDC_BUTTON_NEXT                 1146
@@ -304,6 +306,7 @@
 #define IDC_COMBO_SYN_THREAD_PRIORITY   2089
 #define IDC_COMBO_PORT_NUM              2090
 #define IDC_EDIT_SYN_SH_TIME            2091
+#define IDC_TAB_MAIN                    2093
 #define IDM_MHSUPPLEMENT                40002
 #define IDC_STATIC                      -1
 
@@ -311,9 +314,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         40003
-#define _APS_NEXT_CONTROL_VALUE         2092
+#define _APS_NEXT_CONTROL_VALUE         2094
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

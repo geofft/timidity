@@ -30,26 +30,12 @@
 #include <stddef.h>
 #include <windows.h>
 #undef RC_NONE
-// #include <prsht.h>
-
-#if defined(__CYGWIN32__) || defined(__MINGW32__)
-#include <commdlg.h>
-#else
-#include <commctrl.h>
-#endif /* __CYGWIN32__ */
-
-
 
 #include <commctrl.h>
 #ifndef NO_STRING_H
 #include <string.h>
 #else
 #include <strings.h>
-#endif
-//#include <dir.h>
-#ifdef AU_GOGO
-/* #include <musenc.h>		/* for gogo */
-#include <gogo.h>		/* for gogo */
 #endif
 
 #include "timidity.h"
@@ -75,7 +61,10 @@
 #include "w32g_res.h"
 #include "w32g_utl.h"
 #include "w32g_pref.h"
+
 #ifdef AU_GOGO
+/* #include <musenc.h>		/* for gogo */
+#include <gogo.h>		/* for gogo */
 #include "gogo_a.h"
 #endif
 
@@ -88,11 +77,15 @@ extern void set_gogo_opts_use_commandline_options(char *commandline);
 
 extern void restore_voices(int save_voices);
 
+extern void TracerWndApplyQuietChannel( ChannelBitMask quietchannels_ );
+
 volatile int PrefWndDoing = 0;
+
+static void PrefSettingApply(void);
 
 static volatile int PrefWndSetOK = 0;
 static HPROPSHEETPAGE hPrefWnd;
-static int CALLBACK PrefWndPropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam);
+static BOOL APIENTRY CALLBACK PrefWndDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static BOOL APIENTRY PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static BOOL APIENTRY PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static BOOL APIENTRY PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
@@ -125,313 +118,198 @@ static int gogoCofigDialog(void);
 #endif
 #endif
 
-#ifndef IA_W32G_SYN 
-#define PREFWND_NPAGES 5
-#else
-#define PREFWND_NPAGES 6
+#ifdef IA_W32G_SYN 
 static char **GetMidiINDrivers ( void );
 #endif
+
+#define WM_MYSAVE (WM_USER + 100)
+#define WM_MYRESTORE (WM_USER + 101)
+
+typedef struct pref_page_t_ {
+	int index;
+	char *title;
+	HWND hwnd;
+	UINT control;
+	DLGPROC dlgproc;
+	int opt;
+} pref_page_t;
+
+static pref_page_t pref_pages_ja[] = {
+	{ 0, "プレイヤ", (HWND)NULL, IDD_PREF_PLAYER, (DLGPROC) PrefPlayerDialogProc, 0 },
+	{ 1, "エフェクト", (HWND)NULL, IDD_PREF_TIMIDITY1, (DLGPROC) PrefTiMidity1DialogProc, 0 },
+	{ 2, "その他", (HWND)NULL, IDD_PREF_TIMIDITY2, (DLGPROC) PrefTiMidity2DialogProc, 0 },
+	{ 3, "出力", (HWND)NULL, IDD_PREF_TIMIDITY3, (DLGPROC) PrefTiMidity3DialogProc, 0 },
+	{ 4, "チャンネル", (HWND)NULL, IDD_PREF_TIMIDITY4, (DLGPROC) PrefTiMidity4DialogProc, 0 },
+#ifdef IA_W32G_SYN
+	{ 5, "シンセサイザ", (HWND)NULL, IDD_PREF_SYN1, (DLGPROC) PrefSyn1DialogProc, 0 },
+#endif
+};
+
+static pref_page_t pref_pages_en[] = {
+	{ 0, "Player", (HWND)NULL, IDD_PREF_PLAYER_EN, (DLGPROC) PrefPlayerDialogProc, 0 },
+	{ 1, "Effect", (HWND)NULL, IDD_PREF_TIMIDITY1_EN, (DLGPROC) PrefTiMidity1DialogProc, 0 },
+	{ 2, "Misc", (HWND)NULL, IDD_PREF_TIMIDITY2_EN, (DLGPROC) PrefTiMidity2DialogProc, 0 },
+	{ 3, "Output", (HWND)NULL, IDD_PREF_TIMIDITY3_EN, (DLGPROC) PrefTiMidity3DialogProc, 0 },
+	{ 4, "Channle", (HWND)NULL, IDD_PREF_TIMIDITY4_EN, (DLGPROC) PrefTiMidity4DialogProc, 0 },
+#ifdef IA_W32G_SYN
+	{ 5, "Synthesizer", (HWND)NULL, IDD_PREF_SYN1_EN, (DLGPROC) PrefSyn1DialogProc, 0 },
+#endif
+};
+
+#ifndef IA_W32G_SYN
+#define PREF_PAGE_MAX 5
+#else
+#define PREF_PAGE_MAX 6
+#endif
+
+static pref_page_t *pref_pages;
+static void PrefWndCreatePage ( HWND hwnd )
+{
+	int i;
+	RECT rc;
+	HWND hwnd_tab;
+
+#ifdef IA_W32G_SYN
+	GetMidiINDrivers ();
+#endif
+
+	switch(PlayerLanguage) {
+		case LANGUAGE_JAPANESE:
+			pref_pages = pref_pages_ja;
+			break;
+		default:
+		case LANGUAGE_ENGLISH:
+			pref_pages = pref_pages_en;
+			break;
+	}
+
+	hwnd_tab = GetDlgItem ( hwnd, IDC_TAB_MAIN );
+	for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+		TC_ITEM tci;
+    tci.mask = TCIF_TEXT;
+    tci.pszText = pref_pages[i].title;
+		tci.cchTextMax = strlen ( pref_pages[i].title );
+		SendMessage ( hwnd_tab, TCM_INSERTITEM, (WPARAM)i, (LPARAM)&tci );
+	}
+	GetClientRect ( hwnd_tab, &rc );
+	SendDlgItemMessage ( hwnd, IDC_TAB_MAIN, TCM_ADJUSTRECT, (WPARAM)0, (LPARAM)&rc );
+	for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+		pref_pages[i].hwnd = CreateDialog ( hInst, MAKEINTRESOURCE(pref_pages[i].control),
+			hwnd, pref_pages[i].dlgproc );
+    ShowWindow ( pref_pages[i].hwnd, SW_HIDE );
+		MoveWindow ( pref_pages[i].hwnd, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE );
+	}
+}
+
 void PrefWndCreate(HWND hwnd)
 {
-	int res;
-	PROPSHEETPAGE psp[PREFWND_NPAGES];
-	PROPSHEETHEADER psh;
-
 	VOLATILE_TOUCH(PrefWndDoing);
 	if(PrefWndDoing)
 		return;
 	PrefWndDoing = 1;
 	PrefWndSetOK = 1;
-//	Player page.
-	psp[0].dwSize = sizeof(PROPSHEETPAGE);
-	psp[0].dwFlags = PSP_USETITLE;
-	psp[0].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[0].pszTemplate = MAKEINTRESOURCE(IDD_PREF_PLAYER);
-	psp[0].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[0].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_PLAYER);
-	psp[0].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[0].pszTemplate = MAKEINTRESOURCE(IDD_PREF_PLAYER);
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[0].pszTemplate = MAKEINTRESOURCE(IDD_PREF_PLAYER_EN);
-			break;
-	}
-	psp[0].pszIcon = NULL;
-#endif
-#endif
-	psp[0].pfnDlgProc = PrefPlayerDialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[0].pszTitle = (LPSTR)TEXT("プレイヤー");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[0].pszTitle = (LPSTR)TEXT("Player");
-			break;
-	}
-	psp[0].lParam = 0;
-	psp[0].pfnCallback = NULL;
 
-// TiMidity page1.
-	psp[1].dwSize = sizeof(PROPSHEETPAGE);
-	psp[1].dwFlags = PSP_USETITLE;
-	psp[1].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[1].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY1);
-	psp[1].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[1].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY1);
-	psp[1].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
+	switch(PlayerLanguage) {
 		case LANGUAGE_JAPANESE:
-			psp[1].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY1);
+			DialogBox ( hInst, MAKEINTRESOURCE(IDD_DIALOG_PREF), hwnd, PrefWndDialogProc );
 			break;
 		default:
 		case LANGUAGE_ENGLISH:
-			psp[1].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY1_EN);
+			DialogBox ( hInst, MAKEINTRESOURCE(IDD_DIALOG_PREF_EN), hwnd, PrefWndDialogProc );
 			break;
 	}
-	psp[1].pszIcon = NULL;
-#endif
-#endif
-	psp[1].pfnDlgProc = PrefTiMidity1DialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[1].pszTitle = (LPSTR)TEXT("エフェクト");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[1].pszTitle = (LPSTR)TEXT("Effect");
-			break;
-	}
-	psp[1].lParam = 0;
-	psp[1].pfnCallback = NULL;
-// TiMidity page2.
-	psp[2].dwSize = sizeof(PROPSHEETPAGE);
-	psp[2].dwFlags = PSP_USETITLE;
-	psp[2].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[2].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY2);
-	psp[2].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[2].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY2);
-	psp[2].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[2].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY2);
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[2].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY2_EN);
-			break;
-	}
-	psp[2].pszIcon = NULL;
-#endif
-#endif
-	psp[2].pfnDlgProc = PrefTiMidity2DialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[2].pszTitle = (LPSTR)TEXT("その他");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[2].pszTitle = (LPSTR)TEXT("Misc");
-			break;
-	}
-	psp[2].lParam = 0;
-	psp[2].pfnCallback = NULL;
-// TiMidity page3.
-	psp[3].dwSize = sizeof(PROPSHEETPAGE);
-	psp[3].dwFlags = PSP_USETITLE;
-	psp[3].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY3);
-	psp[3].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[3].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY3);
-	psp[3].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY3);
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY3_EN);
-			break;
-	}
-	psp[3].pszIcon = NULL;
-#endif
-#endif
-	psp[3].pfnDlgProc = PrefTiMidity3DialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[3].pszTitle = (LPSTR)TEXT("出力");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[3].pszTitle = (LPSTR)TEXT("Output");
-			break;
-	}
-	psp[3].lParam = 0;
-	psp[3].pfnCallback = NULL;
-// TiMidity page4.
-	psp[4].dwSize = sizeof(PROPSHEETPAGE);
-	psp[4].dwFlags = PSP_USETITLE;
-	psp[4].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[4].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY4);
-	psp[4].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[4].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY4);
-	psp[4].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[4].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY4);
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[4].pszTemplate = MAKEINTRESOURCE(IDD_PREF_TIMIDITY4_EN);
-			break;
-	}
-	psp[4].pszIcon = NULL;
-#endif
-#endif
-	psp[4].pfnDlgProc = PrefTiMidity4DialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[4].pszTitle = (LPSTR)TEXT("チャンネル");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[4].pszTitle = (LPSTR)TEXT("Channel");
-			break;
-	}
-	psp[4].lParam = 0;
-	psp[4].pfnCallback = NULL;
-#ifdef IA_W32G_SYN
-	GetMidiINDrivers ();
-// Syn page1.
-	psp[5].dwSize = sizeof(PROPSHEETPAGE);
-	psp[5].dwFlags = PSP_USETITLE;
-	psp[5].hInstance = hInst;
-#if defined (__cplusplus)
-	psp[5].pszTemplate = MAKEINTRESOURCE(IDD_PREF_SYN1);
-	psp[5].pszIcon = NULL;
-#else
-#ifdef NONAMELESSUNION
-	psp[5].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PREF_SYN1);
-	psp[5].DUMMYUNIONNAME2.pszIcon = NULL;
-#else
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[5].pszTemplate = MAKEINTRESOURCE(IDD_PREF_SYN1);
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[5].pszTemplate = MAKEINTRESOURCE(IDD_PREF_SYN1_EN);
-			break;
-	}
-	psp[5].pszIcon = NULL;
-#endif
-#endif
-	psp[5].pfnDlgProc = PrefSyn1DialogProc;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psp[5].pszTitle = (LPSTR)TEXT("シンセサイザ");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psp[5].pszTitle = (LPSTR)TEXT("Synthesizer");
-			break;
-	}
-	psp[5].lParam = 0;
-	psp[5].pfnCallback = NULL;
-#endif
-// Propsheetheader
-	psh.dwSize = sizeof(PROPSHEETHEADER);
-//	  psh.dwFlags = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW;
-//	psh.dwFlags = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_USEPAGELANG;
-	psh.dwFlags = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK;
-	psh.hwndParent = hwnd;
-	psh.hInstance = hInst;
-	switch(PlayerLanguage) {	// 言語切替
-		case LANGUAGE_JAPANESE:
-			psh.pszCaption = (LPSTR)TEXT("TiMidity++ Win32GUI - 詳細設定");
-			break;
-		default:
-		case LANGUAGE_ENGLISH:
-			psh.pszCaption = (LPSTR)TEXT("TiMidity++ Win32GUI - Preference");
-			break;
-	}
-	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-#if defined (__cplusplus)
-	psh.nStartPage = 0;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-#else
-#ifdef NONAMELESSUNION
-	psh.DUMMYUNIONNAME.hIcon = NULL;
-	psh.DUMMYUNIONNAME2.nStartPage = 0;
-	psh.DUMMYUNIONNAME3.ppsp = (LPCPROPSHEETPAGE)&psp;
-#else
-	psh.hIcon = NULL;
-	psh.nStartPage = 0;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-#endif
-#endif
-	psh.pfnCallback = PrefWndPropSheetProc;
-
-	res = PropertySheet(&psh);
 
 	PrefWndSetOK = 0;
 	PrefWndDoing = 0;
 	return;
 }
 
-static HFONT hFontPrefWnd = NULL;
-#define PREFWND_XSIZE	240*3
-#define PREFWND_YSIZE	180*4
-static int CALLBACK PrefWndPropSheetProc(HWND hwnd, UINT uMsg, LPARAM lParam)
+static BOOL APIENTRY CALLBACK PrefWndDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
-	if(uMsg==PSCB_INITIALIZED){
-		PrefWndSetOK = 1;
-		hPrefWnd = (HPROPSHEETPAGE)hwnd;
-		PropSheet_Changed(hwnd,0);
-		if(hFontPrefWnd==NULL){
-			char FontLang[256];
-			switch(PlayerLanguage){
-			  case LANGUAGE_ENGLISH:
-				strcpy(FontLang,"Times New Roman");
-				break;
-			  default:
-			  case LANGUAGE_JAPANESE:
-				strcpy(FontLang,"ＭＳ Ｐ明朝");
-				break;
-			}
-			hFontPrefWnd = CreateFont(18,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,
-									  DEFAULT_CHARSET,
-									  OUT_DEFAULT_PRECIS,
-									  CLIP_DEFAULT_PRECIS,
-									  DEFAULT_QUALITY,
-									  DEFAULT_PITCH | FF_DONTCARE,FontLang);
-		}
+	int i;
+
+	switch (uMess){
+	case WM_INITDIALOG:
+	{
+		PrefWndCreatePage ( hwnd );
+		SendDlgItemMessage ( hwnd, IDC_TAB_MAIN, TCM_SETCURSEL, (WPARAM)0, (LPARAM)0 );
+		ShowWindow ( pref_pages[0].hwnd, TRUE );
+		return TRUE;
 	}
-	return 0;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+			for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+				SendMessage ( pref_pages[i].hwnd, WM_MYSAVE, (WPARAM)0, (LPARAM)0 );
+			}
+			PrefSettingApply();
+			SetWindowLong(hwnd,	DWL_MSGRESULT, TRUE);
+			EndDialog ( hwnd, TRUE );
+			return TRUE;
+		case IDCANCEL:
+			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
+			EndDialog ( hwnd, FALSE );
+			return TRUE;
+		case IDC_BUTTON_APPLY:
+			for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+				SendMessage ( pref_pages[i].hwnd, WM_MYSAVE, (WPARAM)0, (LPARAM)0 );
+			}
+			PrefSettingApply();
+#ifndef IA_W32G_SYN
+			TracerWndApplyQuietChannel(st_temp->quietchannels);
+#endif
+			SetWindowLong(hwnd,	DWL_MSGRESULT, TRUE);
+			return TRUE;
+		}
+		break;
+
+	case WM_NOTIFY:
+	{
+		int idCtrl = (int) wParam; 
+    LPNMHDR pnmh = (LPNMHDR) lParam; 
+		if ( pnmh->idFrom == IDC_TAB_MAIN ) {
+			switch ( pnmh->code ) {
+			case TCN_SELCHANGE:
+			{
+				int nIndex = SendDlgItemMessage ( hwnd, IDC_TAB_MAIN, TCM_GETCURSEL, (WPARAM)0, (LPARAM)0);
+				for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+					if ( nIndex == i ) {
+						ShowWindow ( pref_pages[i].hwnd, TRUE );
+					} else {
+						ShowWindow ( pref_pages[i].hwnd, FALSE );
+					}
+				}
+			}
+				return TRUE;
+			}
+		}
+		break;
+	}
+
+	case WM_SIZE:
+	{
+		RECT rc;
+		HWND hwnd_tab = GetDlgItem ( hwnd, IDC_TAB_MAIN );
+		GetClientRect ( hwnd_tab, &rc );
+		SendDlgItemMessage ( hwnd, IDC_TAB_MAIN, TCM_ADJUSTRECT, (WPARAM)TRUE, (LPARAM)&rc );
+		for ( i = 0; i < PREF_PAGE_MAX; i++ ) {
+			MoveWindow ( pref_pages[i].hwnd, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE );
+		}
+		return TRUE;
+	}
+
+	case WM_CLOSE:
+		break;
+
+	default:
+	  break;
+	}
+
+	return FALSE;
 }
+
+//			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
 
 #define DLG_CHECKBUTTON_TO_FLAG(hwnd,ctlid,x)	\
 	((SendDlgItemMessage((hwnd),(ctlid),BM_GETCHECK,0,0))?((x)=1):((x)=0))
@@ -441,18 +319,6 @@ static int CALLBACK PrefWndPropSheetProc(HWND hwnd, UINT uMsg, LPARAM lParam)
 
 
 extern void TracerWndApplyQuietChannel( ChannelBitMask quietchannels_ );
-
-/*
-	プロパティシート
-	WM_NOTIFY の PSN_KILLACTIVE
-		ページが非アクティブになる時
-		カレントページでプロパティシートが OK or CLOSE される時
-	WM_NOTIFY の PSN_SETACTIVE
-		ページがアクティブになる時
-	WM_NOTIFY の PSN_RESET
-		キャンセルされたとき
-		PrefWndSetOK = 0 とする
-*/
 
 #ifndef IA_W32G_SYN
 /* st_temp, sp_temp を適用する
@@ -487,12 +353,6 @@ void PrefSettingApplyReally(void)
 	   MessageBox(hListWnd,"Restart TiMidity?", "TiMidity",
 				  MB_YESNO)==IDYES)
 	{
-		if(hFontPrefWnd)
-		{
-			DeleteObject(hFontPrefWnd);
-			hFontPrefWnd = 0;
-		}
-
 		w32g_restart();
 //		PrefWndDoing = 0;
 	}
@@ -507,10 +367,10 @@ extern int w32g_syn_do_after_pref_apply ( void );
 extern int IniFileAutoSave;
 static void PrefSettingApply(void)
 {
-	int before_pref_apply_ok;
 #ifndef IA_W32G_SYN
 	 w32g_send_rc(RC_EXT_APPLY_SETTING, 0);
 #else
+	int before_pref_apply_ok;
 	before_pref_apply_ok = ( w32g_syn_do_before_pref_apply () == 0 );
 	ApplySettingPlayer(sp_temp);
 	ApplySettingTiMidity(st_temp);
@@ -530,11 +390,58 @@ static void PrefSettingApply(void)
 static BOOL APIENTRY
 PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
+	static int initflag = 1; 
 	switch (uMess){
-   case WM_INITDIALOG:
-//		SendMessage(hwnd,WM_SETFONT,(WPARAM)hFontPrefWnd,MAKELPARAM(TRUE,0));
-		SendDlgItemMessage(hwnd,IDC_EDIT_CONFIG_FILE,
-		WM_SETFONT,(WPARAM)hFontPrefWnd,MAKELPARAM(TRUE,0));
+	case WM_INITDIALOG:
+		SetDlgItemText(hwnd,IDC_EDIT_CONFIG_FILE,TEXT(sp_temp->ConfigFile));
+		{
+		char buff[64];
+		sprintf(buff,"%d",sp_temp->SubWindowMax);
+		SetDlgItemText(hwnd,IDC_EDIT_SUBWINDOW_MAX,TEXT(buff));
+		}
+		switch(sp_temp->PlayerLanguage){
+		case LANGUAGE_ENGLISH:
+			CheckRadioButton(hwnd,IDC_RADIOBUTTON_JAPANESE,IDC_RADIOBUTTON_ENGLISH,
+			IDC_RADIOBUTTON_ENGLISH);
+			break;
+		default:
+		case LANGUAGE_JAPANESE:
+			CheckRadioButton(hwnd,IDC_RADIOBUTTON_JAPANESE,IDC_RADIOBUTTON_ENGLISH,
+			IDC_RADIOBUTTON_JAPANESE);
+			break;
+		}
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOQUIT,
+								strchr(st_temp->opt_ctl + 1, 'x'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOUNIQ,
+								strchr(st_temp->opt_ctl + 1, 'u'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOREFINE,
+								strchr(st_temp->opt_ctl + 1, 'R'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOSTART,
+								strchr(st_temp->opt_ctl + 1, 'a'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_CONTINUE,
+								strchr(st_temp->opt_ctl + 1, 'C'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_DRAG_START,
+								!strchr(st_temp->opt_ctl + 1, 'd'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_LOOPING,
+								!strchr(st_temp->opt_ctl + 1, 'l'));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_RANDOM,
+								strchr(st_temp->opt_ctl + 1, 'r'));
+
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_SEACHDIRRECURSIVE,
+								sp_temp->SeachDirRecursive);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_DOCWNDINDEPENDENT,
+								sp_temp->DocWndIndependent);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_DOCWNDAUTOPOPUP,
+								sp_temp->DocWndAutoPopup);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_INIFILE_AUTOSAVE,
+								sp_temp->IniFileAutoSave);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_AUTOLOAD_PLAYLIST,
+								sp_temp->AutoloadPlaylist);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_AUTOSAVE_PLAYLIST,
+								sp_temp->AutosavePlaylist);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_POS_SIZE_SAVE,
+								sp_temp->PosSizeSave);
+		initflag = 0;
 		break;
 	case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -556,126 +463,66 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		break;
 	  }
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND)hPrefWnd,hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE:
-			SendDlgItemMessage(hwnd,IDC_EDIT_CONFIG_FILE,WM_GETTEXT,
-				(WPARAM)MAX_PATH,(LPARAM)TEXT(sp_temp->ConfigFile));
-			{
-			char buff[64];
-			SendDlgItemMessage(hwnd,IDC_EDIT_SUBWINDOW_MAX,WM_GETTEXT,
-				(WPARAM)60,(LPARAM)TEXT(buff));
-			sp_temp->SubWindowMax = atoi(buff);
-			if ( sp_temp->SubWindowMax < 1 )
-				sp_temp->SubWindowMax = 1;
-			if ( sp_temp->SubWindowMax > 10 )
-				sp_temp->SubWindowMax = 10;
-			}
-			if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_ENGLISH,BM_GETCHECK,0,0)){
-				sp_temp->PlayerLanguage = LANGUAGE_ENGLISH;
-			} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_JAPANESE,BM_GETCHECK,0,0)){
-				sp_temp->PlayerLanguage = LANGUAGE_JAPANESE;
-			}
-		 {
-		 int flag;
 
-			SettingCtlFlag(st_temp, 'x',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOQUIT,flag));
-			SettingCtlFlag(st_temp, 'u',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOUNIQ,flag));
-			SettingCtlFlag(st_temp, 'R',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOREFINE,flag));
-			SettingCtlFlag(st_temp, 'a',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOSTART,flag));
-			SettingCtlFlag(st_temp, 'C',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_CONTINUE,flag));
-			SettingCtlFlag(st_temp, 'd',
-								!DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_DRAG_START,flag));
-			SettingCtlFlag(st_temp, 'l',
-								!DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_LOOPING,flag));
-			SettingCtlFlag(st_temp, 'r',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_RANDOM,flag));
-			}
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_SEACHDIRRECURSIVE,
-				sp_temp->SeachDirRecursive);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_DOCWNDINDEPENDENT,
-				sp_temp->DocWndIndependent);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_DOCWNDAUTOPOPUP,
-				sp_temp->DocWndAutoPopup);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_INIFILE_AUTOSAVE,
-				sp_temp->IniFileAutoSave);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_AUTOLOAD_PLAYLIST,
-				sp_temp->AutoloadPlaylist);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_AUTOSAVE_PLAYLIST,
-				sp_temp->AutosavePlaylist);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_POS_SIZE_SAVE,
-				sp_temp->PosSizeSave);
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
-			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-			PropSheet_UnChanged((HWND)hPrefWnd,hwnd);
-			break;
-		case PSN_SETACTIVE:
-			SetDlgItemText(hwnd,IDC_EDIT_CONFIG_FILE,TEXT(sp_temp->ConfigFile));
-			{
-			char buff[64];
-			sprintf(buff,"%d",sp_temp->SubWindowMax);
-			SetDlgItemText(hwnd,IDC_EDIT_SUBWINDOW_MAX,TEXT(buff));
-			}
-			switch(sp_temp->PlayerLanguage){
-		 case LANGUAGE_ENGLISH:
-				CheckRadioButton(hwnd,IDC_RADIOBUTTON_JAPANESE,IDC_RADIOBUTTON_ENGLISH,
-				IDC_RADIOBUTTON_ENGLISH);
-				break;
-			default:
-		 case LANGUAGE_JAPANESE:
-				CheckRadioButton(hwnd,IDC_RADIOBUTTON_JAPANESE,IDC_RADIOBUTTON_ENGLISH,
-				IDC_RADIOBUTTON_JAPANESE);
-				break;
-			}
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOQUIT,
-									strchr(st_temp->opt_ctl + 1, 'x'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOUNIQ,
-									strchr(st_temp->opt_ctl + 1, 'u'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOREFINE,
-									strchr(st_temp->opt_ctl + 1, 'R'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AUTOSTART,
-									strchr(st_temp->opt_ctl + 1, 'a'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_CONTINUE,
-									strchr(st_temp->opt_ctl + 1, 'C'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_DRAG_START,
-									!strchr(st_temp->opt_ctl + 1, 'd'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NOT_LOOPING,
-									!strchr(st_temp->opt_ctl + 1, 'l'));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_RANDOM,
-									strchr(st_temp->opt_ctl + 1, 'r'));
-
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_SEACHDIRRECURSIVE,
-									sp_temp->SeachDirRecursive);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_DOCWNDINDEPENDENT,
-									sp_temp->DocWndIndependent);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_DOCWNDAUTOPOPUP,
-									sp_temp->DocWndAutoPopup);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_INIFILE_AUTOSAVE,
-									sp_temp->IniFileAutoSave);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_AUTOLOAD_PLAYLIST,
-									sp_temp->AutoloadPlaylist);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_AUTOSAVE_PLAYLIST,
-									sp_temp->AutosavePlaylist);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECK_POS_SIZE_SAVE,
-									sp_temp->PosSizeSave);
-			break;
-		default:
-			return FALSE;
+	case WM_MYSAVE:
+	{
+		if ( initflag ) break;
+		SendDlgItemMessage(hwnd,IDC_EDIT_CONFIG_FILE,WM_GETTEXT,
+			(WPARAM)MAX_PATH,(LPARAM)TEXT(sp_temp->ConfigFile));
+		{
+		char buff[64];
+		SendDlgItemMessage(hwnd,IDC_EDIT_SUBWINDOW_MAX,WM_GETTEXT,
+			(WPARAM)60,(LPARAM)TEXT(buff));
+		sp_temp->SubWindowMax = atoi(buff);
+		if ( sp_temp->SubWindowMax < 1 )
+			sp_temp->SubWindowMax = 1;
+		if ( sp_temp->SubWindowMax > 10 )
+			sp_temp->SubWindowMax = 10;
 		}
-   case WM_SIZE:
+		if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_ENGLISH,BM_GETCHECK,0,0)){
+			sp_temp->PlayerLanguage = LANGUAGE_ENGLISH;
+		} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_JAPANESE,BM_GETCHECK,0,0)){
+			sp_temp->PlayerLanguage = LANGUAGE_JAPANESE;
+		}
+	 {
+	 int flag;
+
+		SettingCtlFlag(st_temp, 'x',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOQUIT,flag));
+		SettingCtlFlag(st_temp, 'u',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOUNIQ,flag));
+		SettingCtlFlag(st_temp, 'R',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOREFINE,flag));
+		SettingCtlFlag(st_temp, 'a',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AUTOSTART,flag));
+		SettingCtlFlag(st_temp, 'C',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_CONTINUE,flag));
+		SettingCtlFlag(st_temp, 'd',
+							!DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_DRAG_START,flag));
+		SettingCtlFlag(st_temp, 'l',
+							!DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NOT_LOOPING,flag));
+		SettingCtlFlag(st_temp, 'r',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_RANDOM,flag));
+		}
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_SEACHDIRRECURSIVE,
+			sp_temp->SeachDirRecursive);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_DOCWNDINDEPENDENT,
+			sp_temp->DocWndIndependent);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_DOCWNDAUTOPOPUP,
+			sp_temp->DocWndAutoPopup);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_INIFILE_AUTOSAVE,
+			sp_temp->IniFileAutoSave);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_AUTOLOAD_PLAYLIST,
+			sp_temp->AutoloadPlaylist);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_AUTOSAVE_PLAYLIST,
+			sp_temp->AutosavePlaylist);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECK_POS_SIZE_SAVE,
+			sp_temp->PosSizeSave);
+		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+	}
+		break;
+	case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
@@ -688,8 +535,89 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 static BOOL APIENTRY
 PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
+	static int initflag = 1; 
 	switch (uMess){
 	case WM_INITDIALOG:
+		// CHORUS
+		if(GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,FALSE)==0)
+			SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,1,TRUE);
+		if(st_temp->opt_chorus_control==0){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
+		} else if(st_temp->opt_chorus_control>0){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,1,0);
+			SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,-st_temp->opt_chorus_control,TRUE);
+		}
+		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_CHORUS,0);
+		// REVERB
+		if(GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,FALSE)==0)
+			SetDlgItemInt(hwnd,IDC_EDIT_REVERB,1,TRUE);
+		if(st_temp->opt_reverb_control==0){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
+		} else if(st_temp->opt_reverb_control==1){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
+		} else if(st_temp->opt_reverb_control>=2){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,1,0);
+			SetDlgItemInt(hwnd,IDC_EDIT_REVERB,-st_temp->opt_reverb_control,TRUE);
+	 }
+		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_REVERB,0);
+		// DELAY
+		SetDlgItemInt(hwnd,IDC_EDIT_DELAY,st_temp->effect_lr_delay_msec,TRUE);
+		if(st_temp->effect_lr_mode<0){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_SETCHECK,0,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_SETCHECK,1,0);
+			switch(st_temp->effect_lr_mode){
+		case 0:
+				CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
+			IDC_RADIOBUTTON_DELAY_LEFT);
+				break;
+			case 1:
+				CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
+			IDC_RADIOBUTTON_DELAY_RIGHT);
+				break;
+			case 2:
+		default:
+				CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
+			IDC_RADIOBUTTON_DELAY_CENTER);
+				break;
+		 }
+	 }
+		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_DELAY,0);
+		// NOISESHARPING
+	 SetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,st_temp->noise_sharp_type,TRUE);
+		// Misc
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CHPRESS,st_temp->opt_channel_pressure);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_OVOICE,st_temp->opt_overlap_voice_allow);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TRACETEXT,st_temp->opt_trace_text_meta_event);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
+		SetDlgItemInt(hwnd,IDC_EDIT_MODIFY_RELEASE,st_temp->modify_release,TRUE);
+		initflag = 0;
 		break;
 	case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -762,160 +690,68 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		break;
 	  }
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND)hPrefWnd,hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE:
-			// CHORUS
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_GETCHECK,0,0)){
-				if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_GETCHECK,0,0)){
-					st_temp->opt_chorus_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,TRUE);
-				} else {
-					st_temp->opt_chorus_control = 1;
-				}
+	case WM_MYSAVE:
+	{
+		if ( initflag ) break;
+		// CHORUS
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_GETCHECK,0,0)){
+			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_GETCHECK,0,0)){
+				st_temp->opt_chorus_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,TRUE);
 			} else {
-				st_temp->opt_chorus_control = 0;
+				st_temp->opt_chorus_control = 1;
 			}
-		 // REVERB
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_GETCHECK,0,0)){
-				if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_GETCHECK,0,0)){
-					st_temp->opt_reverb_control = 2;
-				} else if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_GETCHECK,0,0)){
-					st_temp->opt_reverb_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,TRUE);
-				} else {
-					st_temp->opt_reverb_control = 1;
-				}
-			} else {
-				st_temp->opt_reverb_control = 0;
-			}
-		 // DELAY
-			st_temp->effect_lr_delay_msec = GetDlgItemInt(hwnd,IDC_EDIT_DELAY,NULL,FALSE);
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_GETCHECK,0,0)){
-				if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,BM_GETCHECK,0,0)){
-					st_temp->effect_lr_mode = 0;
-				} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_DELAY_RIGHT,BM_GETCHECK,0,0)){
-					st_temp->effect_lr_mode = 1;
-				} else {
-					st_temp->effect_lr_mode = 2;
-			}
-			} else {
-				st_temp->effect_lr_mode = -1;
-		 }
-			// NOISESHARPING
-		 st_temp->noise_sharp_type = GetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,NULL,FALSE);
-			// Misc
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_CHPRESS,st_temp->opt_channel_pressure);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_OVOICE,st_temp->opt_overlap_voice_allow);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TRACETEXT,st_temp->opt_trace_text_meta_event);
-		 st_temp->modify_release = GetDlgItemInt(hwnd,IDC_EDIT_MODIFY_RELEASE,NULL,FALSE);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
-			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-			break;
-		case PSN_SETACTIVE:
-			// CHORUS
-			if(GetDlgItemInt(hwnd,IDC_EDIT_CHORUS,NULL,FALSE)==0)
-				SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,1,TRUE);
-			if(st_temp->opt_chorus_control==0){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
-			} else if(st_temp->opt_chorus_control>0){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,0,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_CHORUS_LEVEL,BM_SETCHECK,1,0);
-				SetDlgItemInt(hwnd,IDC_EDIT_CHORUS,-st_temp->opt_chorus_control,TRUE);
-			}
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_CHORUS,0);
-			// REVERB
-			if(GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,FALSE)==0)
-				SetDlgItemInt(hwnd,IDC_EDIT_REVERB,1,TRUE);
-			if(st_temp->opt_reverb_control==0){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-			} else if(st_temp->opt_reverb_control==1){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-			} else if(st_temp->opt_reverb_control>=2){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,0,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_SETCHECK,1,0);
-				SetDlgItemInt(hwnd,IDC_EDIT_REVERB,-st_temp->opt_reverb_control,TRUE);
-		 }
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_REVERB,0);
-			// DELAY
-			SetDlgItemInt(hwnd,IDC_EDIT_DELAY,st_temp->effect_lr_delay_msec,TRUE);
-			if(st_temp->effect_lr_mode<0){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_SETCHECK,0,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_SETCHECK,1,0);
-				switch(st_temp->effect_lr_mode){
-			case 0:
-					CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
-				IDC_RADIOBUTTON_DELAY_LEFT);
-					break;
-				case 1:
-					CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
-				IDC_RADIOBUTTON_DELAY_RIGHT);
-					break;
-				case 2:
-			default:
-					CheckRadioButton(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,IDC_RADIOBUTTON_DELAY_CENTER,
-				IDC_RADIOBUTTON_DELAY_CENTER);
-					break;
-			 }
-		 }
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_DELAY,0);
-			// NOISESHARPING
-		 SetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,st_temp->noise_sharp_type,TRUE);
-			// Misc
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CHPRESS,st_temp->opt_channel_pressure);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_OVOICE,st_temp->opt_overlap_voice_allow);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TRACETEXT,st_temp->opt_trace_text_meta_event);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
-			SetDlgItemInt(hwnd,IDC_EDIT_MODIFY_RELEASE,st_temp->modify_release,TRUE);
-			break;
-		default:
-			return FALSE;
+		} else {
+			st_temp->opt_chorus_control = 0;
 		}
+	 // REVERB
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB,BM_GETCHECK,0,0)){
+			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_GLOBAL_REVERB,BM_GETCHECK,0,0)){
+				st_temp->opt_reverb_control = 2;
+			} else if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REVERB_LEVEL,BM_GETCHECK,0,0)){
+				st_temp->opt_reverb_control = -(int)GetDlgItemInt(hwnd,IDC_EDIT_REVERB,NULL,TRUE);
+			} else {
+				st_temp->opt_reverb_control = 1;
+			}
+		} else {
+			st_temp->opt_reverb_control = 0;
+		}
+	 // DELAY
+		st_temp->effect_lr_delay_msec = GetDlgItemInt(hwnd,IDC_EDIT_DELAY,NULL,FALSE);
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_DELAY,BM_GETCHECK,0,0)){
+			if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_DELAY_LEFT,BM_GETCHECK,0,0)){
+				st_temp->effect_lr_mode = 0;
+			} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_DELAY_RIGHT,BM_GETCHECK,0,0)){
+				st_temp->effect_lr_mode = 1;
+			} else {
+				st_temp->effect_lr_mode = 2;
+			}
+		} else {
+			st_temp->effect_lr_mode = -1;
+		}
+		// NOISESHARPING
+	 st_temp->noise_sharp_type = GetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,NULL,FALSE);
+		// Misc
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_NRPNVIB,st_temp->opt_nrpn_vibrato);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_CHPRESS,st_temp->opt_channel_pressure);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_OVOICE,st_temp->opt_overlap_voice_allow);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TRACETEXT,st_temp->opt_trace_text_meta_event);
+	 st_temp->modify_release = GetDlgItemInt(hwnd,IDC_EDIT_MODIFY_RELEASE,NULL,FALSE);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAA,st_temp->opt_tva_attack);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
+		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+	}
 		break;
-   case WM_SIZE:
+	case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
@@ -975,7 +811,7 @@ static BOOL APIENTRY
 PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
 	int i;
-	char tmp[50];
+	static int initflag = 1; 
 
 	switch (uMess){
 	case WM_INITDIALOG:
@@ -1005,6 +841,53 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		else
 			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG, CB_SETCURSEL,
 					(WPARAM) st_temp->opt_force_keysig + 7, (LPARAM) 0);
+		SetDlgItemInt(hwnd,IDC_EDIT_VOICES,st_temp->voices,FALSE);
+		SetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,st_temp->amplification,FALSE);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
+		SetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,st_temp->allocate_cache_size,FALSE);
+		SetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,st_temp->key_adjust,TRUE);
+
+		SetDlgItemInt(hwnd,IDC_EDIT_REDUCE_VOICE,st_temp->reduce_voice_threshold,TRUE);
+		SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_SETCHECK,st_temp->reduce_voice_threshold,0);
+		SetDlgItemInt(hwnd,IDC_EDIT_DEFAULT_TONEBANK,st_temp->default_tonebank,FALSE);
+		SetDlgItemInt(hwnd,IDC_EDIT_SPECIAL_TONEBANK,st_temp->special_tonebank,TRUE);
+		if(st_temp->special_tonebank<0){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_SETCHECK,0,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_SETCHECK,1,0);
+		}
+		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_SPECIAL_TONEBANK,0);
+		if (st_temp->opt_force_keysig == 8)
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
+					BM_SETCHECK, 0, 0);
+		else
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
+					BM_SETCHECK, 1, 0);
+		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_FORCE_KEYSIG, 0);
+		switch(st_temp->opt_default_mid){
+	 case 0x41:
+			CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_GS);
+			break;
+	 case 0x43:
+			CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_XG);
+			break;
+		default:
+	 case 0x7e:
+			CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_GM);
+			break;
+		}
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CTL_TRACE_PLAYING,
+										strchr(st_temp->opt_ctl + 1, 't'));
+		SetDlgItemInt(hwnd,IDC_EDIT_CTL_VEBOSITY,
+							char_count(st_temp->opt_ctl + 1, 'v') -
+							char_count(st_temp->opt_ctl + 1, 'q') + 1, TRUE);
+		SetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,st_temp->control_ratio,FALSE);
+		SetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,st_temp->opt_drum_power,FALSE);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
+		initflag = 0;
 		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
@@ -1057,145 +940,84 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND) hPrefWnd, hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE: {
-			int i;
-			char *p;
-			st_temp->voices = GetDlgItemInt(hwnd,IDC_EDIT_VOICES,NULL,FALSE);
-			st_temp->amplification = GetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,NULL,FALSE);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
-			st_temp->allocate_cache_size = GetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,NULL,FALSE);
-			st_temp->key_adjust = GetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,NULL,TRUE);
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_GETCHECK,0,0))
-			{
-				st_temp->reduce_voice_threshold = -1;
-				st_temp->auto_reduce_polyphony = 1;
-			}
-			else
-			{
-				st_temp->reduce_voice_threshold = 0;
-				st_temp->auto_reduce_polyphony = 0;
-			}
-
-			st_temp->default_tonebank = GetDlgItemInt(hwnd,IDC_EDIT_DEFAULT_TONEBANK,NULL,FALSE);
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_GETCHECK,0,0)){
-				st_temp->special_tonebank = GetDlgItemInt(hwnd,IDC_EDIT_SPECIAL_TONEBANK,NULL,TRUE);
-		 } else {
-				st_temp->special_tonebank = -1;
-		 }
-			if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_PURE_INTONATION,
-					BM_GETCHECK, 0, 0))
-				st_temp->opt_init_keysig = SendDlgItemMessage(hwnd,
-						IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
-						(WPARAM) 0, (LPARAM) 0) + ((SendDlgItemMessage(hwnd,
-						IDC_CHECKBOX_INIT_MI, BM_GETCHECK,
-						0, 0)) ? 16 : 0) - 7;
-			else
-				st_temp->opt_init_keysig = 0;
-			if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-					BM_GETCHECK, 0, 0))
-				st_temp->opt_force_keysig = SendDlgItemMessage(hwnd,
-						IDC_COMBO_FORCE_KEYSIG, CB_GETCURSEL,
-						(WPARAM) 0, (LPARAM) 0) - 7;
-			else
-				st_temp->opt_force_keysig = 8;
-			if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_GS,BM_GETCHECK,0,0)){
-			st_temp->opt_default_mid = 0x41;
-			} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_XG,BM_GETCHECK,0,0)){
-			st_temp->opt_default_mid = 0x43;
-		 } else
-			st_temp->opt_default_mid = 0x7e;
-
-			SettingCtlFlag(st_temp, 't',
-								DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_CTL_TRACE_PLAYING,i));
-
-			/* remove 'v' and 'q' from st_temp->opt_ctl */
-			while(strchr(st_temp->opt_ctl + 1, 'v'))
-				 SettingCtlFlag(st_temp, 'v', 0);
-			while(strchr(st_temp->opt_ctl + 1, 'q'))
-				 SettingCtlFlag(st_temp, 'q', 0);
-
-			/* append 'v' or 'q' */
-			p = st_temp->opt_ctl + strlen(st_temp->opt_ctl);
-			i = GetDlgItemInt(hwnd,IDC_EDIT_CTL_VEBOSITY,NULL,TRUE);
-			while(i > 1) { *p++ = 'v'; i--; }
-			while(i < 1) { *p++ = 'q'; i++; }
-
-			st_temp->control_ratio = GetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,NULL,FALSE);
-			st_temp->opt_drum_power = GetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,NULL,FALSE);
-
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
-
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			}
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
-			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-			break;
-		case PSN_SETACTIVE:
-			SetDlgItemInt(hwnd,IDC_EDIT_VOICES,st_temp->voices,FALSE);
-			SetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,st_temp->amplification,FALSE);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
-			SetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,st_temp->allocate_cache_size,FALSE);
-			SetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,st_temp->key_adjust,TRUE);
-
-			SetDlgItemInt(hwnd,IDC_EDIT_REDUCE_VOICE,st_temp->reduce_voice_threshold,TRUE);
-			SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_SETCHECK,st_temp->reduce_voice_threshold,0);
-			SetDlgItemInt(hwnd,IDC_EDIT_DEFAULT_TONEBANK,st_temp->default_tonebank,FALSE);
-			SetDlgItemInt(hwnd,IDC_EDIT_SPECIAL_TONEBANK,st_temp->special_tonebank,TRUE);
-			if(st_temp->special_tonebank<0){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_SETCHECK,0,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_SETCHECK,1,0);
-			}
-			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_SPECIAL_TONEBANK,0);
-			if (st_temp->opt_force_keysig == 8)
-				SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-						BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-						BM_SETCHECK, 1, 0);
-			SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_FORCE_KEYSIG, 0);
-			switch(st_temp->opt_default_mid){
-		 case 0x41:
-				CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_GS);
-				break;
-		 case 0x43:
-				CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_XG);
-				break;
-			default:
-		 case 0x7e:
-				CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_GM);
-				break;
-			}
-
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CTL_TRACE_PLAYING,
-											strchr(st_temp->opt_ctl + 1, 't'));
-			SetDlgItemInt(hwnd,IDC_EDIT_CTL_VEBOSITY,
-							  char_count(st_temp->opt_ctl + 1, 'v') -
-							  char_count(st_temp->opt_ctl + 1, 'q') + 1, TRUE);
-			SetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,st_temp->control_ratio,FALSE);
-			SetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,st_temp->opt_drum_power,FALSE);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
-			break;
-		default:
-			return FALSE;
+	case WM_MYSAVE:
+		if ( initflag ) break;
+	{
+		int i;
+		char *p;
+		st_temp->voices = GetDlgItemInt(hwnd,IDC_EDIT_VOICES,NULL,FALSE);
+		st_temp->amplification = GetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,NULL,FALSE);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
+		st_temp->allocate_cache_size = GetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,NULL,FALSE);
+		st_temp->key_adjust = GetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,NULL,TRUE);
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_GETCHECK,0,0))
+		{
+			st_temp->reduce_voice_threshold = -1;
+			st_temp->auto_reduce_polyphony = 1;
 		}
+		else
+		{
+			st_temp->reduce_voice_threshold = 0;
+			st_temp->auto_reduce_polyphony = 0;
+		}
+
+		st_temp->default_tonebank = GetDlgItemInt(hwnd,IDC_EDIT_DEFAULT_TONEBANK,NULL,FALSE);
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_GETCHECK,0,0)){
+			st_temp->special_tonebank = GetDlgItemInt(hwnd,IDC_EDIT_SPECIAL_TONEBANK,NULL,TRUE);
+	 } else {
+			st_temp->special_tonebank = -1;
+	 }
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_PURE_INTONATION,
+				BM_GETCHECK, 0, 0))
+			st_temp->opt_init_keysig = SendDlgItemMessage(hwnd,
+					IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
+					(WPARAM) 0, (LPARAM) 0) + ((SendDlgItemMessage(hwnd,
+					IDC_CHECKBOX_INIT_MI, BM_GETCHECK,
+					0, 0)) ? 16 : 0) - 7;
+		else
+			st_temp->opt_init_keysig = 0;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
+				BM_GETCHECK, 0, 0))
+			st_temp->opt_force_keysig = SendDlgItemMessage(hwnd,
+					IDC_COMBO_FORCE_KEYSIG, CB_GETCURSEL,
+					(WPARAM) 0, (LPARAM) 0) - 7;
+		else
+			st_temp->opt_force_keysig = 8;
+		if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_GS,BM_GETCHECK,0,0)){
+		st_temp->opt_default_mid = 0x41;
+		} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_XG,BM_GETCHECK,0,0)){
+		st_temp->opt_default_mid = 0x43;
+	 } else
+		st_temp->opt_default_mid = 0x7e;
+
+		SettingCtlFlag(st_temp, 't',
+							DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_CTL_TRACE_PLAYING,i));
+
+		/* remove 'v' and 'q' from st_temp->opt_ctl */
+		while(strchr(st_temp->opt_ctl + 1, 'v'))
+			 SettingCtlFlag(st_temp, 'v', 0);
+		while(strchr(st_temp->opt_ctl + 1, 'q'))
+			 SettingCtlFlag(st_temp, 'q', 0);
+
+		/* append 'v' or 'q' */
+		p = st_temp->opt_ctl + strlen(st_temp->opt_ctl);
+		i = GetDlgItemInt(hwnd,IDC_EDIT_CTL_VEBOSITY,NULL,TRUE);
+		while(i > 1) { *p++ = 'v'; i--; }
+		while(i < 1) { *p++ = 'q'; i++; }
+
+		st_temp->control_ratio = GetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,NULL,FALSE);
+		st_temp->opt_drum_power = GetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,NULL,FALSE);
+
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
+
+		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+	}
 		break;
-   case WM_SIZE:
+  case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
@@ -1230,11 +1052,11 @@ static char **cb_info_IDC_COMBO_OUTPUT_MODE;
 static BOOL APIENTRY
 PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
+	static int initflag = 1; 
 	switch (uMess){
    case WM_INITDIALOG:
 		{
 			int i;
-			SendDlgItemMessage(hwnd,IDC_EDIT_OUTPUT_FILE,WM_SETFONT,(WPARAM)hFontPrefWnd,MAKELPARAM(TRUE,0));
 			SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_RESETCONTENT,(WPARAM)0,(LPARAM)0);
 			for(i=0;play_mode_list[i]!=0;i++){
 				SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_INSERTSTRING,(WPARAM)-1,(LPARAM)play_mode_list[i]->id_name);
@@ -1257,6 +1079,71 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				}
 			}
 		}
+		{
+		char *opt;
+		int num = 0;
+		int i;
+		for(i=0;play_mode_list[i]!=0;i++){
+			if(st_temp->opt_playmode[0]==play_mode_list[i]->id_character){
+				num = i;
+			break;
+		}
+		}
+		SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_SETCURSEL,(WPARAM)num,(LPARAM)0);
+		if(st_temp->auto_output_mode==0){
+		if(st_temp->OutputName[0]=='\0')
+			SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,TEXT("output.wav"));
+		else
+			SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,TEXT(st_temp->OutputName));
+		} else
+			SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputDirName);
+
+		opt = st_temp->opt_playmode + 1;
+		if(strchr(opt, 'U')){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
+	 } else if(strchr(opt, 'A')){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
+	 } else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
+	 }
+		if(strchr(opt, '1')){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,1,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
+	 }
+		if(strchr(opt, 's')){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,0,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
+	 }
+		if(strchr(opt, 'x')){
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,1,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
+	 }
+		if(strchr(opt, 'M')){
+			SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,1,0);
+		} else {
+			SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,0,0);
+	 }
+		SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,st_temp->output_rate,FALSE);
+#if 0		// Buggy
+		EnableWindow(GetDlgItem(hwnd,IDC_RADIOBUTTON_LIST_MIDI_EVENT),FALSE);
+#endif
+		}
+		initflag = 0;
 		break;
 	case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -1504,127 +1391,52 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		break;
 	  }
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND)hPrefWnd,hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE: {
-			int i = 0;
-			int num;
-			num = SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_GETCURSEL,(WPARAM)0,(LPARAM)0);
-			if(num>=0){
-				st_temp->opt_playmode[i]=play_mode_list[num]->id_character;
-			} else {
-				st_temp->opt_playmode[i]='d';
-			}
-			i++;
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'U';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'A';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'l';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = '8';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = '1';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 's';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'u';
-			if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'x';
-			if(SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'S';
-			if(SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_GETCHECK,0,0))
-				st_temp->opt_playmode[i++] = 'M';
-			st_temp->opt_playmode[i] = '\0';
-			st_temp->output_rate = GetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,NULL,FALSE);
- 			if(st_temp->auto_output_mode==0)
-				GetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputName,(WPARAM)sizeof(st_temp->OutputName));
-			else
-				GetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputDirName,(WPARAM)sizeof(st_temp->OutputDirName));
-
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			}
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
-			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-			break;
-		case PSN_SETACTIVE: {
-			char *opt;
-			int num = 0;
-			int i;
-			for(i=0;play_mode_list[i]!=0;i++){
-				if(st_temp->opt_playmode[0]==play_mode_list[i]->id_character){
-					num = i;
-				break;
-			}
-			}
-			SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_SETCURSEL,(WPARAM)num,(LPARAM)0);
-			if(st_temp->auto_output_mode==0){
-			if(st_temp->OutputName[0]=='\0')
-				SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,TEXT("output.wav"));
-			else
-				SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,TEXT(st_temp->OutputName));
-			} else
-				SetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputDirName);
-
-			opt = st_temp->opt_playmode + 1;
-			if(strchr(opt, 'U')){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-		 } else if(strchr(opt, 'A')){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,0,0);
-		 } else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_SETCHECK,1,0);
-		 }
-			if(strchr(opt, '1')){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,1,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_SETCHECK,0,0);
-		 }
-			if(strchr(opt, 's')){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,0,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_SETCHECK,1,0);
-		 }
-			if(strchr(opt, 'x')){
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,1,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_SETCHECK,0,0);
-		 }
-			if(strchr(opt, 'M')){
-				SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,1,0);
-			} else {
-				SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_SETCHECK,0,0);
-		 }
-			SetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,st_temp->output_rate,FALSE);
-#if 0		// Buggy
-			EnableWindow(GetDlgItem(hwnd,IDC_RADIOBUTTON_LIST_MIDI_EVENT),FALSE);
-#endif
-			break;
-			}
-		default:
-			return FALSE;
+	case WM_MYSAVE:
+		if ( initflag ) break;
+	{
+		int i = 0;
+		int num;
+		num = SendDlgItemMessage(hwnd,IDC_COMBO_OUTPUT,CB_GETCURSEL,(WPARAM)0,(LPARAM)0);
+		if(num>=0){
+			st_temp->opt_playmode[i]=play_mode_list[num]->id_character;
+		} else {
+			st_temp->opt_playmode[i]='d';
 		}
+		i++;
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ULAW,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'U';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_ALAW,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'A';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_LINEAR,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'l';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_8BITS,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = '8';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_16BITS,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = '1';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_SIGNED,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 's';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_UNSIGNED,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'u';
+		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_BYTESWAP,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'x';
+		if(SendDlgItemMessage(hwnd,IDC_RADIO_STEREO,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'S';
+		if(SendDlgItemMessage(hwnd,IDC_RADIO_MONO,BM_GETCHECK,0,0))
+			st_temp->opt_playmode[i++] = 'M';
+		st_temp->opt_playmode[i] = '\0';
+		st_temp->output_rate = GetDlgItemInt(hwnd,IDC_EDIT_SAMPLE_RATE,NULL,FALSE);
+ 		if(st_temp->auto_output_mode==0)
+			GetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputName,(WPARAM)sizeof(st_temp->OutputName));
+		else
+			GetDlgItemText(hwnd,IDC_EDIT_OUTPUT_FILE,st_temp->OutputDirName,(WPARAM)sizeof(st_temp->OutputDirName));
+
+		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+	}
 		break;
-   case WM_SIZE:
+
+		break;
+  case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
@@ -1640,10 +1452,71 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 static BOOL APIENTRY
 PrefTiMidity4DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
+	static int initflag = 1; 
 	static int pref_channel_mode;
 	switch (uMess){
-   case WM_INITDIALOG:
+  case WM_INITDIALOG:
 		pref_channel_mode = PREF_CHANNEL_MODE_DRUM_CHANNEL;
+		SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
+		initflag = 0;
+		break;
+	case WM_MYRESTORE:
+	{
+		ChannelBitMask channelbitmask;
+		switch(pref_channel_mode){
+		case PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK:
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
+			channelbitmask = st_temp->default_drumchannel_mask;
+			break;
+		case PREF_CHANNEL_MODE_QUIET_CHANNEL:
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,1,0);
+			channelbitmask = st_temp->quietchannels;
+			break;
+		default:
+		case PREF_CHANNEL_MODE_DRUM_CHANNEL:
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,1,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
+			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
+			channelbitmask = st_temp->default_drumchannels;
+			break;
+		}
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH01,IS_SET_CHANNELMASK(channelbitmask,0));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH02,IS_SET_CHANNELMASK(channelbitmask,1));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH03,IS_SET_CHANNELMASK(channelbitmask,2));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH04,IS_SET_CHANNELMASK(channelbitmask,3));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH05,IS_SET_CHANNELMASK(channelbitmask,4));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH06,IS_SET_CHANNELMASK(channelbitmask,5));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH07,IS_SET_CHANNELMASK(channelbitmask,6));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH08,IS_SET_CHANNELMASK(channelbitmask,7));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH09,IS_SET_CHANNELMASK(channelbitmask,8));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH10,IS_SET_CHANNELMASK(channelbitmask,9));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH11,IS_SET_CHANNELMASK(channelbitmask,10));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH12,IS_SET_CHANNELMASK(channelbitmask,11));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH13,IS_SET_CHANNELMASK(channelbitmask,12));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH14,IS_SET_CHANNELMASK(channelbitmask,13));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH15,IS_SET_CHANNELMASK(channelbitmask,14));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH16,IS_SET_CHANNELMASK(channelbitmask,15));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH17,IS_SET_CHANNELMASK(channelbitmask,16));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH18,IS_SET_CHANNELMASK(channelbitmask,17));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH19,IS_SET_CHANNELMASK(channelbitmask,18));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH20,IS_SET_CHANNELMASK(channelbitmask,19));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH21,IS_SET_CHANNELMASK(channelbitmask,20));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH22,IS_SET_CHANNELMASK(channelbitmask,21));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH23,IS_SET_CHANNELMASK(channelbitmask,22));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH24,IS_SET_CHANNELMASK(channelbitmask,23));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH25,IS_SET_CHANNELMASK(channelbitmask,24));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH26,IS_SET_CHANNELMASK(channelbitmask,25));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH27,IS_SET_CHANNELMASK(channelbitmask,26));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH28,IS_SET_CHANNELMASK(channelbitmask,27));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH29,IS_SET_CHANNELMASK(channelbitmask,28));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH30,IS_SET_CHANNELMASK(channelbitmask,29));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH31,IS_SET_CHANNELMASK(channelbitmask,30));
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH32,IS_SET_CHANNELMASK(channelbitmask,31));
+	}
 		break;
 	case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -1651,48 +1524,37 @@ PrefTiMidity4DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		break;
 		case IDC_CHECKBOX_DRUM_CHANNEL:
 			{
-			NMHDR nmhdr;
-		 nmhdr.code = PSN_KILLACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYSAVE,(WPARAM)0,(LPARAM)0);
 			pref_channel_mode = PREF_CHANNEL_MODE_DRUM_CHANNEL;
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
-		 nmhdr.code = PSN_SETACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
 			}
 		break;
 		case IDC_CHECKBOX_DRUM_CHANNEL_MASK:
 			{
-			NMHDR nmhdr;
-		 nmhdr.code = PSN_KILLACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYSAVE,(WPARAM)0,(LPARAM)0);
 			pref_channel_mode = PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK;
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,1,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
-		 nmhdr.code = PSN_SETACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
 			}
 		break;
 		case IDC_CHECKBOX_QUIET_CHANNEL:
 			{
-			NMHDR nmhdr;
-		 nmhdr.code = PSN_KILLACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYSAVE,(WPARAM)0,(LPARAM)0);
 			pref_channel_mode = PREF_CHANNEL_MODE_QUIET_CHANNEL;
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,1,0);
-		 nmhdr.code = PSN_SETACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
 			}
 		break;
 		case IDC_BUTTON_REVERSE:
 			{
-			NMHDR nmhdr;
-			nmhdr.code = PSN_KILLACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYSAVE,(WPARAM)0,(LPARAM)0);
 			switch(pref_channel_mode){
 			case PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK:
 				REVERSE_CHANNELMASK(st_temp->default_drumchannel_mask);
@@ -1705,145 +1567,70 @@ PrefTiMidity4DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				REVERSE_CHANNELMASK(st_temp->default_drumchannels);
 				break;
 			}
-			nmhdr.code = PSN_SETACTIVE;
-			SendMessage(hwnd,WM_NOTIFY,0,(LPARAM)&nmhdr);
+			SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
 			}
 			break;
 		default:
 		break;
 	  }
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND)hPrefWnd,hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE:
-			{
-			ChannelBitMask channelbitmask;
-			int tmp;
+	case WM_MYSAVE:
+		if ( initflag ) break;
+	{
+		ChannelBitMask channelbitmask;
+		int tmp;
 #define PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,ctlid,channelbitmask,ch,tmp) \
 {	if(DLG_CHECKBUTTON_TO_FLAG((hwnd),(ctlid),(tmp))) SET_CHANNELMASK((channelbitmask),(ch)); \
-	else UNSET_CHANNELMASK((channelbitmask),(ch)); }
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH01,channelbitmask,0,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH02,channelbitmask,1,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH03,channelbitmask,2,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH04,channelbitmask,3,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH05,channelbitmask,4,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH06,channelbitmask,5,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH07,channelbitmask,6,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH08,channelbitmask,7,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH09,channelbitmask,8,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH10,channelbitmask,9,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH11,channelbitmask,10,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH12,channelbitmask,11,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH13,channelbitmask,12,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH14,channelbitmask,13,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH15,channelbitmask,14,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH16,channelbitmask,15,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH17,channelbitmask,16,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH18,channelbitmask,17,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH19,channelbitmask,18,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH20,channelbitmask,19,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH21,channelbitmask,20,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH22,channelbitmask,21,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH23,channelbitmask,22,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH24,channelbitmask,23,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH25,channelbitmask,24,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH26,channelbitmask,25,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH27,channelbitmask,26,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH28,channelbitmask,27,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH29,channelbitmask,28,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH30,channelbitmask,29,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH31,channelbitmask,30,tmp);
-			PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH32,channelbitmask,31,tmp);
-			switch(pref_channel_mode){
-			case PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK:
-				st_temp->default_drumchannel_mask = channelbitmask;
-				break;
-			case PREF_CHANNEL_MODE_QUIET_CHANNEL:
-				st_temp->quietchannels = channelbitmask;
-				break;
-			default:
-			case PREF_CHANNEL_MODE_DRUM_CHANNEL:
-				st_temp->default_drumchannels = channelbitmask;
-				break;
-			}
-			}
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
+else UNSET_CHANNELMASK((channelbitmask),(ch)); }
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH01,channelbitmask,0,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH02,channelbitmask,1,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH03,channelbitmask,2,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH04,channelbitmask,3,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH05,channelbitmask,4,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH06,channelbitmask,5,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH07,channelbitmask,6,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH08,channelbitmask,7,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH09,channelbitmask,8,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH10,channelbitmask,9,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH11,channelbitmask,10,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH12,channelbitmask,11,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH13,channelbitmask,12,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH14,channelbitmask,13,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH15,channelbitmask,14,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH16,channelbitmask,15,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH17,channelbitmask,16,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH18,channelbitmask,17,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH19,channelbitmask,18,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH20,channelbitmask,19,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH21,channelbitmask,20,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH22,channelbitmask,21,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH23,channelbitmask,22,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH24,channelbitmask,23,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH25,channelbitmask,24,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH26,channelbitmask,25,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH27,channelbitmask,26,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH28,channelbitmask,27,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH29,channelbitmask,28,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH30,channelbitmask,29,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH31,channelbitmask,30,tmp);
+		PREF_CHECKBUTTON_SET_CHANNELMASK(hwnd,IDC_CHECKBOX_CH32,channelbitmask,31,tmp);
+		switch(pref_channel_mode){
+		case PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK:
+			st_temp->default_drumchannel_mask = channelbitmask;
 			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-#ifndef IA_W32G_SYN
-			TracerWndApplyQuietChannel(st_temp->quietchannels);
-#endif
+		case PREF_CHANNEL_MODE_QUIET_CHANNEL:
+			st_temp->quietchannels = channelbitmask;
 			break;
-		case PSN_SETACTIVE:
-			{
-			ChannelBitMask channelbitmask;
-			switch(pref_channel_mode){
-			case PREF_CHANNEL_MODE_DRUM_CHANNEL_MASK:
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
-				channelbitmask = st_temp->default_drumchannel_mask;
-				break;
-			case PREF_CHANNEL_MODE_QUIET_CHANNEL:
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,1,0);
-				channelbitmask = st_temp->quietchannels;
-				break;
-			default:
-			case PREF_CHANNEL_MODE_DRUM_CHANNEL:
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL,BM_SETCHECK,1,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_DRUM_CHANNEL_MASK,BM_SETCHECK,0,0);
-				SendDlgItemMessage(hwnd,IDC_CHECKBOX_QUIET_CHANNEL,BM_SETCHECK,0,0);
-				channelbitmask = st_temp->default_drumchannels;
-				break;
-			}
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH01,IS_SET_CHANNELMASK(channelbitmask,0));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH02,IS_SET_CHANNELMASK(channelbitmask,1));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH03,IS_SET_CHANNELMASK(channelbitmask,2));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH04,IS_SET_CHANNELMASK(channelbitmask,3));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH05,IS_SET_CHANNELMASK(channelbitmask,4));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH06,IS_SET_CHANNELMASK(channelbitmask,5));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH07,IS_SET_CHANNELMASK(channelbitmask,6));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH08,IS_SET_CHANNELMASK(channelbitmask,7));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH09,IS_SET_CHANNELMASK(channelbitmask,8));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH10,IS_SET_CHANNELMASK(channelbitmask,9));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH11,IS_SET_CHANNELMASK(channelbitmask,10));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH12,IS_SET_CHANNELMASK(channelbitmask,11));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH13,IS_SET_CHANNELMASK(channelbitmask,12));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH14,IS_SET_CHANNELMASK(channelbitmask,13));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH15,IS_SET_CHANNELMASK(channelbitmask,14));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH16,IS_SET_CHANNELMASK(channelbitmask,15));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH17,IS_SET_CHANNELMASK(channelbitmask,16));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH18,IS_SET_CHANNELMASK(channelbitmask,17));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH19,IS_SET_CHANNELMASK(channelbitmask,18));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH20,IS_SET_CHANNELMASK(channelbitmask,19));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH21,IS_SET_CHANNELMASK(channelbitmask,20));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH22,IS_SET_CHANNELMASK(channelbitmask,21));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH23,IS_SET_CHANNELMASK(channelbitmask,22));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH24,IS_SET_CHANNELMASK(channelbitmask,23));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH25,IS_SET_CHANNELMASK(channelbitmask,24));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH26,IS_SET_CHANNELMASK(channelbitmask,25));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH27,IS_SET_CHANNELMASK(channelbitmask,26));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH28,IS_SET_CHANNELMASK(channelbitmask,27));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH29,IS_SET_CHANNELMASK(channelbitmask,28));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH30,IS_SET_CHANNELMASK(channelbitmask,29));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH31,IS_SET_CHANNELMASK(channelbitmask,30));
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_CH32,IS_SET_CHANNELMASK(channelbitmask,31));
-			}
-		 break;
 		default:
-			return FALSE;
+		case PREF_CHANNEL_MODE_DRUM_CHANNEL:
+			st_temp->default_drumchannels = channelbitmask;
+			break;
 		}
-		break;
-   case WM_SIZE:
+	}
+	SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+	break;
+  case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
@@ -1892,8 +1679,9 @@ static BOOL APIENTRY
 PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
 	int i;
+	static int initflag = 1; 
 	switch (uMess){
-   case WM_INITDIALOG:
+  case WM_INITDIALOG:
 		for ( i = 0; i <= MAX_PORT; i ++ ) {
 			char buff[32];
 			sprintf ( buff, "%d", i );
@@ -1935,6 +1723,33 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
 				CB_INSERTSTRING, (WPARAM) -1, (LPARAM) "Highest" );
 		}
+		SendDlgItemMessage(hwnd, IDC_COMBO_PORT_NUM,
+			CB_SETCURSEL, (WPARAM) st_temp->SynPortNum, (LPARAM) 0 );
+		SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT0,
+			CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[0], (LPARAM) 0 );
+		SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT1,
+			CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[1], (LPARAM) 0 );
+		SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT2,
+			CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[2], (LPARAM) 0 );
+		SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT3,
+			CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[3], (LPARAM) 0 );
+		{
+			int index;
+			if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_LOWEST )
+				index = 0;
+			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_BELOW_NORMAL )
+				index = 1;
+			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_NORMAL )
+				index = 2;
+			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_ABOVE_NORMAL )
+				index = 3;
+			else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_HIGHEST )
+				index = 4;
+			SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
+				CB_SETCURSEL, (WPARAM) index, (LPARAM) 0 );
+		}
+		SetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,st_temp->SynShTime,FALSE);
+		initflag = 0;
 		break;
 	case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -1945,91 +1760,49 @@ PrefSyn1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		break;
 	  }
 		PrefWndSetOK = 1;
-		PropSheet_Changed((HWND)hPrefWnd,hwnd);
 		break;
-	case WM_NOTIFY:
-		switch (((NMHDR FAR *) lParam)->code){
-		case PSN_KILLACTIVE:
-			{
-			int res;
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_PORT_NUM, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) st_temp->SynPortNum = res;
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT0, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) st_temp->SynIDPort[0] = res;
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT1, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) st_temp->SynIDPort[1] = res;
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT2, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) st_temp->SynIDPort[2] = res;
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT3, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) st_temp->SynIDPort[3] = res;
-			SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
-			res = SendDlgItemMessage ( hwnd, IDC_COMBO_SYN_THREAD_PRIORITY, CB_GETCURSEL, 0, 0 );
-			if ( res != CB_ERR ) {
-				switch ( res ) {
-				case 0:
-					st_temp->syn_ThreadPriority = THREAD_PRIORITY_LOWEST;
-					break;
-				case 1:
-					st_temp->syn_ThreadPriority = THREAD_PRIORITY_BELOW_NORMAL;
-					break;
-				default:
-				case 2:
-					st_temp->syn_ThreadPriority = THREAD_PRIORITY_NORMAL;
-					break;
-				case 3:
-					st_temp->syn_ThreadPriority = THREAD_PRIORITY_ABOVE_NORMAL;
-					break;
-				case 4:
-					st_temp->syn_ThreadPriority = THREAD_PRIORITY_HIGHEST;
-					break;
-				}
+
+	case WM_MYSAVE:
+		if ( initflag ) break;
+	{
+		int res;
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_PORT_NUM, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) st_temp->SynPortNum = res;
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT0, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) st_temp->SynIDPort[0] = res;
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT1, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) st_temp->SynIDPort[1] = res;
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT2, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) st_temp->SynIDPort[2] = res;
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_IDPORT3, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) st_temp->SynIDPort[3] = res;
+		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
+		res = SendDlgItemMessage ( hwnd, IDC_COMBO_SYN_THREAD_PRIORITY, CB_GETCURSEL, 0, 0 );
+		if ( res != CB_ERR ) {
+			switch ( res ) {
+			case 0:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_LOWEST;
+				break;
+			case 1:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_BELOW_NORMAL;
+				break;
+			default:
+			case 2:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_NORMAL;
+				break;
+			case 3:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_ABOVE_NORMAL;
+				break;
+			case 4:
+				st_temp->syn_ThreadPriority = THREAD_PRIORITY_HIGHEST;
+				break;
 			}
-			st_temp->SynShTime = GetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,NULL,FALSE);
-			if ( st_temp->SynShTime < 0 ) st_temp->SynShTime = 0;
-			}
-			return TRUE;
-		case PSN_RESET:
-			PrefWndSetOK = 0;
-			SetWindowLong(hwnd,	DWL_MSGRESULT, FALSE);
-			break;
-		case PSN_APPLY:
-			PrefSettingApply();
-			PropSheet_UnChanged((HWND)hPrefWnd,hwnd);
-			break;
-		case PSN_SETACTIVE:
-			{
-			SendDlgItemMessage(hwnd, IDC_COMBO_PORT_NUM,
-				CB_SETCURSEL, (WPARAM) st_temp->SynPortNum, (LPARAM) 0 );
-			SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT0,
-				CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[0], (LPARAM) 0 );
-			SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT1,
-				CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[1], (LPARAM) 0 );
-			SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT2,
-				CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[2], (LPARAM) 0 );
-			SendDlgItemMessage(hwnd, IDC_COMBO_IDPORT3,
-				CB_SETCURSEL, (WPARAM) st_temp->SynIDPort[3], (LPARAM) 0 );
-			{
-				int index;
-				if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_LOWEST )
-					index = 0;
-				else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_BELOW_NORMAL )
-					index = 1;
-				else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_NORMAL )
-					index = 2;
-				else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_ABOVE_NORMAL )
-					index = 3;
-				else if ( st_temp->syn_ThreadPriority == THREAD_PRIORITY_HIGHEST )
-					index = 4;
-				SendDlgItemMessage(hwnd, IDC_COMBO_SYN_THREAD_PRIORITY,
-					CB_SETCURSEL, (WPARAM) index, (LPARAM) 0 );
-			}
-			SetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,st_temp->SynShTime,FALSE);
-			}
-			break;
-		default:
-			return FALSE;
 		}
-   case WM_SIZE:
+		st_temp->SynShTime = GetDlgItemInt(hwnd,IDC_EDIT_SYN_SH_TIME,NULL,FALSE);
+		if ( st_temp->SynShTime < 0 ) st_temp->SynShTime = 0;
+	}
+		break;
+  case WM_SIZE:
 		return FALSE;
 	case WM_CLOSE:
 		break;
