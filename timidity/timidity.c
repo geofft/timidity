@@ -118,8 +118,9 @@ static const struct option longopts[] = {
 #endif
     { "volume"                  , required_argument, NULL, 'A' << 8 },
     { "drum-power"              , required_argument, NULL, 227 << 8 },
-    { "auto-volume-conpansation", required_argument, NULL, 228 << 8 },
-    { "buffer-size"             , required_argument, NULL, 'B' << 8 },
+    { "no-auto-volume-conpensation",    no_argument, NULL, 228 << 8 },
+    { "auto-volume-conpensation", optional_argument, NULL, 228 << 8 },
+    { "buffer-fragments"        , required_argument, NULL, 'B' << 8 },
     { "control-ratio"           , required_argument, NULL, 'C' << 8 },
     { "drums"                   , required_argument, NULL, 'D' << 8 },
     { "effects"                 , required_argument, NULL, 'E' << 8 },
@@ -2806,43 +2807,38 @@ static void expand_escape_string(char *s)
 
 static int parse_effect_option(char *effect_opts)
 {
-    int i;
-
-    if(strncmp(effect_opts, "delay=", 6) == 0)
-    {
-	switch(effect_opts[6])
-	{
-	  case 'l':
-	    effect_lr_mode = 0;
-	    break;
-	  case 'r':
-	    effect_lr_mode = 1;
-	    break;
-	  case 'b':
-	    effect_lr_mode = 2;
-	    break;
-	  case '0':
-	    effect_lr_mode = -1;
-	    return 0;
+	int i;
+	
+	if (strncmp(effect_opts, "delay=", 6) == 0) {
+		switch (effect_opts[6]) {
+		case 'l':
+			effect_lr_mode = 0;
+			break;
+		case 'r':
+			effect_lr_mode = 1;
+			break;
+		case 'b':
+			effect_lr_mode = 2;
+			break;
+		case '0':
+			effect_lr_mode = -1;
+			return 0;
+		}
+		if (effect_opts[7] == ',') {
+			effect_lr_delay_msec = atoi(effect_opts + 8);
+			if (effect_lr_delay_msec < 0) {
+				effect_lr_delay_msec = 0;
+				effect_lr_mode = -1;
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+						"Invalid -EFdelay parameter.");
+				return 1;
+			}
+		}
+		return 0;
 	}
-	if(effect_opts[7] == ',')
-	{
-	    effect_lr_delay_msec = atoi(effect_opts + 8);
-	    if(effect_lr_delay_msec < 0)
-	    {
-		effect_lr_delay_msec = 0;
-		effect_lr_mode = -1;
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "Invalid -EFdelay parameter.");
-		return 1;
-	    }
-	}
-	return 0;
-    }
-
 	if (strncmp(effect_opts, "reverb=", 7) == 0) {
 		effect_opts += 7;
-		switch(*effect_opts) {
+		switch (*effect_opts) {
 		case '0':
 			opt_reverb_control = 0;
 			break;
@@ -2865,210 +2861,188 @@ static int parse_effect_option(char *effect_opts)
 		}
 		return 0;
 	}
-
-    if(strncmp(effect_opts, "chorus=", 7) == 0)
-    {
-	effect_opts += 7;
-	switch(*effect_opts)
-	{
-	  case '0':
-	    opt_chorus_control = 0;
-	    opt_surround_chorus = 0;
-	    break;
-
-	  case '1':
-	  case '2':
-	    opt_surround_chorus = (*effect_opts == '2');
-	    if(*(effect_opts + 1) == ',')
-		opt_chorus_control = -(atoi(effect_opts + 2) & 0x7f);
-	    else
-		opt_chorus_control = 1;
-	    break;
-	  default:
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "Invalid -EFchorus parameter.");
-	    return 1;
+	if (strncmp(effect_opts, "chorus=", 7) == 0) {
+		effect_opts += 7;
+		switch (*effect_opts) {
+		case '0':
+			opt_chorus_control = 0;
+			opt_surround_chorus = 0;
+			break;
+		case '1':
+		case '2':
+			opt_surround_chorus = (*effect_opts == '2');
+			if (*(effect_opts + 1) == ',')
+				opt_chorus_control = -(atoi(effect_opts + 2) & 0x7f);
+			else
+				opt_chorus_control = 1;
+			break;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Invalid -EFchorus parameter.");
+			return 1;
+		}
+		return 0;
 	}
-	return 0;
-    }
-
-    if(strncmp(effect_opts, "ns=", 3) == 0)
-    {
-	/* Noise Shaping filter from
-	 * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
-	 */
-
-	i = atoi(effect_opts + 3);
-	if(i < 0 || i > 4)
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "-EFns argument range is 0 to 4" );
-	    return 1;
+	if (strncmp(effect_opts, "ns=", 3) == 0) {
+		/* Noise Shaping filter from
+		 * Kunihiko IMAI <imai@leo.ec.t.kanazawa-u.ac.jp>
+		 */
+		i = atoi(effect_opts + 3);
+		if (i < 0 || i > 4) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-EFns argument range is 0 to 4");
+			return 1;
+		}
+		noise_sharp_type = i;
+		return 0;
 	}
-	noise_sharp_type = i;
-	return 0;
-    }
-
-    return 1;
+	return 1;
 }
 
 int set_extension_modes(char *flag)
 {
-    int err;
-
-    err = 0;
-    while(*flag)
-    {
-	switch(*flag)
-	{
-	  case 'w':
-	    opt_modulation_wheel = 1;
-	    break;
-	  case 'W':
-	    opt_modulation_wheel = 0;
-	    break;
-	  case 'p':
-	    opt_portamento = 1;
-	    break;
-	  case 'P':
-	    opt_portamento = 0;
-	    break;
-	  case 'v':
-	    opt_nrpn_vibrato = 1;
-	    break;
-	  case 'V':
-	    opt_nrpn_vibrato = 0;
-	    break;
-
-	  case 'R':
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "-ER option is obsoleted.  Please use -EFreverb=0");
-	    err++;
-	    break;
-
-	  case 'r':
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "-Er option is obsoleted.  Please use -EFreverb=2");
-	    err++;
-	    break;
-
-	  case 'C':
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "-EC option is obsoleted.  Please use -EFchorus=0");
-	    err++;
-	    break;
-
-	  case 'c':
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "-Ec option is obsoleted.  "
-		      "Please use -EFchorus (toggle on/off)");
-	    err++;
-	    break;
-
-	  case 's':
-	    opt_channel_pressure = 1;
-	    break;
-	  case 'S':
-	    opt_channel_pressure = 0;
-	    break;
-	  case 'l':
-	    opt_lpf_def = 1;
-	    break;
-	  case 'L':
-	    opt_lpf_def = 0;
-	  case 'e':
-	    opt_modulation_envelope = 1;
-	    break;
-	  case 'E':
-	    opt_modulation_envelope = 0;
-	    break;
-	  case 't':
-	    opt_trace_text_meta_event = 1;
-	    break;
-	  case 'T':
-	    opt_trace_text_meta_event = 0;
-	    break;
-	  case 'o':
-	    opt_overlap_voice_allow = 1;
-	    break;
-	  case 'O':
-	    opt_overlap_voice_allow = 0;
-	    break;
-	  case 'm':
-	    {
-		int val;
-		val = str2mID(flag + 1);
-		if(val == 0)
-		{
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "-Em: Illegal value");
-		    err++;
+	int err;
+	
+	err = 0;
+	while (*flag) {
+		switch(*flag) {
+		case 'w':
+			opt_modulation_wheel = 1;
+			break;
+		case 'W':
+			opt_modulation_wheel = 0;
+			break;
+		case 'p':
+			opt_portamento = 1;
+			break;
+		case 'P':
+			opt_portamento = 0;
+			break;
+		case 'v':
+			opt_nrpn_vibrato = 1;
+			break;
+		case 'V':
+			opt_nrpn_vibrato = 0;
+			break;
+		case 'R':
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-ER option is obsoleted.  Please use -EFreverb=0");
+			err++;
+			break;
+		case 'r':
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-Er option is obsoleted.  Please use -EFreverb=2");
+			err++;
+			break;
+		case 'C':
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-EC option is obsoleted.  Please use -EFchorus=0");
+			err++;
+			break;
+		case 'c':
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-Ec option is obsoleted.  "
+					"Please use -EFchorus (toggle on/off)");
+			err++;
+			break;
+		case 's':
+			opt_channel_pressure = 1;
+			break;
+		case 'S':
+			opt_channel_pressure = 0;
+			break;
+		case 'l':
+			opt_lpf_def = 1;
+			break;
+		case 'L':
+			opt_lpf_def = 0;
+			break;
+		case 'e':
+			opt_modulation_envelope = 1;
+			break;
+		case 'E':
+			opt_modulation_envelope = 0;
+			break;
+		case 't':
+			opt_trace_text_meta_event = 1;
+			break;
+		case 'T':
+			opt_trace_text_meta_event = 0;
+			break;
+		case 'o':
+			opt_overlap_voice_allow = 1;
+			break;
+		case 'O':
+			opt_overlap_voice_allow = 0;
+			break;
+		case 'm':
+			{
+			int val;
+			
+			val = str2mID(flag + 1);
+			if (val == 0) {
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+						"-Em: Illegal value");
+				err++;
+			} else
+				opt_default_mid = val;
+			flag += 2;
+			}
+			break;
+		case 'M':
+			{
+			int val;
+			
+			val = str2mID(flag + 1);
+			if (val == 0) {
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+						"-EM: Illegal value");
+				err++;
+			} else
+				opt_system_mid = val;
+			flag += 2;
+			}
+			break;
+		case 'b':
+			if (flag[1] < '0' || flag[1] > '9')
+				default_tonebank = 0;
+			else {
+				flag++;
+				default_tonebank = 0;
+				while (*flag >= '0' && *flag <= '9')
+					default_tonebank = default_tonebank * 10 + *flag++ - '0';
+				default_tonebank &= 0x7f;
+				flag--;		/* to be inc. */
+			}
+			break;
+		case 'B':
+			if (flag[1] < '0' || flag[1] > '9')
+				special_tonebank = -1;
+			else {
+				flag++;
+				special_tonebank = 0;
+				while (*flag >= '0' && *flag <= '9')
+					special_tonebank = special_tonebank * 10 + *flag++ - '0';
+				special_tonebank &= 0x7f;
+				flag--;		/* to be inc. */
+			}
+			break;
+		case 'F':
+			if (parse_effect_option(flag + 1)) {
+				ctl->cmsg(CMSG_ERROR,
+						VERB_NORMAL, "-E%s: unsupported effect", flag);
+				return err + 1;
+			}
+			return err;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"-E: Illegal mode `%c'", *flag);
+			err++;
+			break;
 		}
-		else
-		    opt_default_mid = val;
-		flag += 2;
-	    }
-	    break;
-	  case 'M':
-	    {
-		int val;
-		val = str2mID(flag + 1);
-		if(val == 0)
-		{
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "-EM: Illegal value");
-		    err++;
-		}
-		else
-		    opt_system_mid = val;
-		flag += 2;
-	    }
-	    break;
-	  case 'b':
-	    if(flag[1] < '0' || flag[1] > '9')
-		default_tonebank = 0;
-	    else
-	    {
 		flag++;
-		default_tonebank = 0;
-		while('0' <= *flag && *flag <= '9')
-		    default_tonebank = default_tonebank * 10 + *flag++ - '0';
-		default_tonebank &= 0x7f;
-		flag--; /* to be inc. */
-	    }
-	    break;
-
-	  case 'B':
-	    if(flag[1] < '0' || flag[1] > '9')
-		special_tonebank = -1;
-	    else
-	    {
-		flag++;
-		special_tonebank = 0;
-		while('0' <= *flag && *flag <= '9')
-		    special_tonebank = special_tonebank * 10 + *flag++ - '0';
-		special_tonebank &= 0x7f;
-		flag--; /* to be inc. */
-	    }
-	    break;
-
-	  case 'F':
-	    if(parse_effect_option(flag + 1))
-	    {
-		ctl->cmsg(CMSG_ERROR,
-			  VERB_NORMAL, "-E%s: unsupported effect", flag);
-		return 1+err;
-	    }
-	    return err;
-
-	  default:
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-E: Illegal mode `%c'", *flag);
-	    err++;
-	    break;
 	}
-	flag++;
-    }
-    return err;
+	return err;
 }
 
 #ifdef __W32__
@@ -3681,6 +3655,7 @@ static inline bool parse_opt_a(const char *arg)
 
 static inline bool parse_opt_B(const char *arg)
 {
+	/* --buffer-fragments */
 	int32 tmpi32;
 	const char *p;
 	
@@ -3815,13 +3790,12 @@ static inline bool parse_opt_213(char *arg)
 	/* --mid */
 	int val = str2mID(arg);
 	
-	if (val) {
-		opt_default_mid = val;
-		return 0;
-	} else {
+	if (! val) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Manufacture ID: Illegal value");
 		return 1;
 	}
+	opt_default_mid = val;
+	return 0;
 }
 
 static inline bool parse_opt_237(char *arg)
@@ -3829,13 +3803,12 @@ static inline bool parse_opt_237(char *arg)
 	/* --system-mid */
 	int val = str2mID(arg);
 	
-	if (val) {
-		opt_system_mid = val;
-		return 0;
-	} else {
+	if (! val) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Manufacture ID: Illegal value");
 		return 1;
 	}
+	opt_system_mid = val;
+	return 0;
 }
 
 static inline bool parse_opt_211(const char *arg)
@@ -3866,6 +3839,10 @@ static inline bool parse_opt_224(const char *arg)
 	const char *type = arg;
 	
 	switch (type[0]) {
+	case '0':
+	case 'n':
+		effect_lr_mode = -1;
+		return 0;
 	case 'l':
 		effect_lr_mode = 0;
 		break;
@@ -3875,12 +3852,6 @@ static inline bool parse_opt_224(const char *arg)
 	case 'b':
 		effect_lr_mode = 2;
 		break;
-	case '0':
-		effect_lr_mode = -1;
-		return 0;
-	case 'n':
-		effect_lr_mode = -1;
-		return 0;
 	}
 	if (type = strchr(type, ',')) {
 		int val = atoi(type + 1);
@@ -3890,8 +3861,8 @@ static inline bool parse_opt_224(const char *arg)
 			effect_lr_mode = -1;
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid delay parameter.");
 			return 1;
-		} else
-			effect_lr_delay_msec = val;
+		}
+		effect_lr_delay_msec = val;
 	}
 	return 0;
 }
