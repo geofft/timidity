@@ -2071,7 +2071,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    if (words != 2 && !isdigit(w[1]))
+	    if (words != 2 && !isdigit(atoi(w[1])))
 	    {
 		if ((newmapid = mapname2id(w[1], &isdrum)) == -1 || !isdrum)
 		{
@@ -2144,7 +2144,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    if (words != 2 && !isdigit(w[1]))
+	    if (words != 2 && !isdigit(atoi(w[1])))
 	    {
 		if ((newmapid = mapname2id(w[1], &isdrum)) == -1 || isdrum)
 		{
