@@ -140,7 +140,6 @@ EXTRA_timidity_SOURCES = \
 	sun_a.c \
 	vorbis_a.c \
 	w32_a.c \
-	w32g_a.c \
 	w32_gogo.c \
 	w32_gogo.h \
 	gogo_a.h \
