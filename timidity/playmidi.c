@@ -3495,7 +3495,8 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 {
 	int temp, msb, note;
 
-	if(ev == ME_SYSEX_MSB) {
+	if (ch > MAX_CHANNELS) {return;}
+	if (ev == ME_SYSEX_MSB) {
 		channel[ch].sysex_msb_addr = b;
 		channel[ch].sysex_msb_val = val;
 	} else if(ev == ME_SYSEX_GS_MSB) {
