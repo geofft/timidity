@@ -54,11 +54,7 @@
 #define VOICE_LPF
 #endif
 
-#ifdef VOICE_LPF
 typedef int32 mix_t;
-#else
-typedef sample_t mix_t;
-#endif
 
 #ifdef LOOKUP_HACK
 #define MIXATION(a) *lp++ += mixup[(a << 8) | (uint8) s]
@@ -72,11 +68,9 @@ typedef sample_t mix_t;
 	if (++pan_delay_wpt == PAN_DELAY_BUF_MAX) {pan_delay_wpt = 0;}
 
 void mix_voice(int32 *, int, int32);
-#ifdef VOICE_LPF
-static inline void do_voice_filter(int, sample_t*, mix_t*, int32);
+static inline int do_voice_filter(int, resample_t*, mix_t*, int32);
 static inline void recalc_voice_resonance(int);
 static inline void recalc_voice_fc(int);
-#endif
 static inline void ramp_out(mix_t *, int32 *, int, int32);
 static inline void mix_mono_signal(mix_t *, int32 *, int, int);
 static inline void mix_mono(mix_t *, int32 *, int, int);
@@ -103,28 +97,21 @@ static inline void compute_mix_smoothing(Voice *);
 
 int min_sustain_time = 5000;
 
+static mix_t filter_buffer[AUDIO_BUFFER_SIZE];
+
 /**************** interface function ****************/
 void mix_voice(int32 *buf, int v, int32 c)
 {
 	Voice *vp = voice + v;
-	sample_t *sp;
-#ifdef VOICE_LPF
-	static mix_t lp[AUDIO_BUFFER_SIZE];
-#else
-	mix_t *lp;
-#endif
+	resample_t *sp;
 
 	if (vp->status == VOICE_DIE) {
 		if (c >= MAX_DIE_TIME)
 			c = MAX_DIE_TIME;
 		sp = resample_voice(v, &c);
-#ifdef VOICE_LPF
-		do_voice_filter(v, sp, lp, c);
-#else
-		lp = sp;
-#endif
+		if (do_voice_filter(v, sp, filter_buffer, c)) {sp = filter_buffer;}
 		if (c > 0)
-			ramp_out(lp, buf, v, c);
+			ramp_out(sp, buf, v, c);
 		free_voice(v);
 	} else {
 		vp->delay_counter = c;
@@ -145,30 +132,25 @@ void mix_voice(int32 *buf, int v, int32 c)
 			vp->delay = 0;
 		}
 		sp = resample_voice(v, &c);
-
-#ifdef VOICE_LPF
-		do_voice_filter(v, sp, lp, c);
-#else
-		lp = sp;
-#endif
+		if (do_voice_filter(v, sp, filter_buffer, c)) {sp = filter_buffer;}
 
 		if (play_mode->encoding & PE_MONO) {
 			/* Mono output. */
 			if (vp->envelope_increment || vp->tremolo_phase_increment)
-				mix_mono_signal(lp, buf, v, c);
+				mix_mono_signal(sp, buf, v, c);
 			else
-				mix_mono(lp, buf, v, c);
+				mix_mono(sp, buf, v, c);
 		} else {
 			if (vp->panned == PANNED_MYSTERY) {
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_mystery_signal(lp, buf, v, c);
+					mix_mystery_signal(sp, buf, v, c);
 				else
-					mix_mystery(lp, buf, v, c);
+					mix_mystery(sp, buf, v, c);
 			} else if (vp->panned == PANNED_CENTER) {
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_center_signal(lp, buf, v, c);
+					mix_center_signal(sp, buf, v, c);
 				else
-					mix_center(lp, buf, v, c);
+					mix_center(sp, buf, v, c);
 			} else {
 				/* It's either full left or full right. In either case,
 				 * every other sample is 0. Just get the offset right:
@@ -176,28 +158,21 @@ void mix_voice(int32 *buf, int v, int32 c)
 				if (vp->panned == PANNED_RIGHT)
 					buf++;
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_single_signal(lp, buf, v, c);
+					mix_single_signal(sp, buf, v, c);
 				else
-					mix_single(lp, buf, v, c);
+					mix_single(sp, buf, v, c);
 			}
 		}
 	}
 }
 
-#ifdef VOICE_LPF
-static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
+/* return 1 if filter is enabled. */
+static inline int do_voice_filter(int v, resample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
 	int32 i, f, q, p, b0, b1, b2, b3, b4, t1, t2, x;
 	
-	if(fc->type == 0) {	/* copy without change.	*/
-		/* (FIXME: It's absolutely essential that converting int16 sp[] to int32 lp[],
-			but it might not be only way.) */
-		for(i = 0; i <count; i++) {
-			lp[i] = sp[i];
-		}
-		return;
-	} else if(fc->type == 1) {	/* copy with applying Chamberlin's lowpass filter. */
+	if (fc->type == 1) {	/* copy with applying Chamberlin's lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		f = fc->f, q = fc->q, b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
@@ -208,7 +183,7 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 			lp[i] = b0;
 		}
 		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2;
-		return;
+		return 1;
 	} else if(fc->type == 2) {	/* copy with applying Moog lowpass VCF. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
@@ -223,7 +198,9 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 			b0 = x;
 		}
 		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2, fc->b3 = b3, fc->b4 = b4;
-		return;
+		return 1;
+	} else {
+		return 0;
 	}
 }
 
@@ -271,7 +248,6 @@ static inline void recalc_voice_fc(int v)
 		fc->last_freq = fc->freq;
 	}
 }
-#endif
 
 /* Ramp a note out in c samples */
 static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)

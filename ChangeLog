@@ -2,6 +2,8 @@
 
 	* timidity/reverb.[ch]:
 	  Implement new reverberation algorithm: Delay and Panning Delay.
+	* timidity/resample.[ch], timidity/recache.c, timidity/mix.c:
+	  Fasten.
 
 2004-02-15  Kentaro Sato <kentaro@ranvis.com>
 
