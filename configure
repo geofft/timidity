@@ -3886,7 +3886,7 @@ case "$target" in
     case "x${CC} " in
       "xbcc32 "*) test -n "$SHLD" || SHLD="tlink32 -Tpd" ;;
       "xcl "*) test -n "$SHLD" || SHLD="link -dll" ;;
-      "xgcc "*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
+      "xgcc"*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
@@ -3899,7 +3899,7 @@ case "$target" in
     case "x${CC} " in
       "xbcc32 "*) test -n "$SHLD" || SHLD="tlink32 -Tpd" ;;
       "xcl "*) test -n "$SHLD" || SHLD="link -dll" ;;
-      "xgcc "*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
+      "xgcc"*) test -n "$SHLD" || SHLD="gcc -mdll" ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
@@ -9093,7 +9093,7 @@ _ACEOF
 fi
 
 
-case "x${CC} ${CFLAGS}" in
+case "x${CC}${CFLAGS}" in
 *-mno-cygwin*)
 		msnative_struct=''
 	    echo "$as_me:$LINENO: checking how to get MSVC-compatible struct packing" >&5
@@ -9127,7 +9127,7 @@ echo "$as_me: WARNING: produced binary will be incompatible with windows' GUI " 
 echo "${ECHO_T}${msnative_struct}" >&6
 		fi
 	;;
-"xgcc "*)
+"xgcc"*)
 	if test "x$MINGW" = xyes; then
 		msnative_struct=''
 	    echo "$as_me:$LINENO: checking how to get MSVC-compatible struct packing" >&5
