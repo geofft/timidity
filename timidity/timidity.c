@@ -5456,7 +5456,7 @@ static inline bool directory_p(const char* path)
 static inline void canonicalize_path(char* path)
 {
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-    directory_from(path);
+    directory_form(path);
 #else
     int len = strlen(path);
     if(!len || path[len-1]==PATH_SEP) return;
