@@ -1,5 +1,6 @@
 2004-01-31  mput <root@mput.dip.jp>
 
+	* Makefile.am (EXTRA_DIST): Fix to fit below
 	* INSTALL.jp: Move to INSTALL.ja
 	* README.jp: Move to README.ja
 	* INSTALL: update.

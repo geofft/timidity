@@ -33,8 +33,8 @@ SUBDIRS = \
 
 EXTRA_DIST = \
 	ChangeLog.1 \
-	INSTALL.jp \
-	README.jp \
+	INSTALL.ja \
+	README.ja \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad.in \
