@@ -1,3 +1,10 @@
+2003-09-21  Saito <timidity@flashmail.com>
+
+	* timidity/w32g_a.c, timidity/w32_a.c:
+	  Add detect() functions.
+	* interface/rtsyn_winmm.c:
+	  Fix around sleep().
+
 2003-09-21  Kentaro Sato <kentaro@a02.itscom.net>
 
 	* timidity/readmidi.c (add_channel_layer, remove_channel_layer):
