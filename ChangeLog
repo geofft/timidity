@@ -2,7 +2,7 @@
         * interface/rtsyn_winmm.c, interface/w32g_i.c,
           interface/w32g_ini.c, interface/w32g_pref.c,
           interface/w32g_res[ch], interface/w32g_syn.c,
-          interface/w32g_utl.[ch]:
+          interface/w32g_utl.[ch], interface/w32g.h:
           Add process-priority function to TWSYNG.
 	* configs/msc7-project.zip, timidity/calcnewt.c:
 	  Fix.

@@ -387,4 +387,9 @@ extern int gdi_unlock(void);
 
 #define W32G_RANDOM_IS_SHUFFLE
 
+#ifndef BELOW_NORMAL_PRIORITY_CLASS	/* VC6.0 doesn't support them. */
+#define BELOW_NORMAL_PRIORITY_CLASS 2
+#define ABOVE_NORMAL_PRIORITY_CLASS 4
+#endif /* BELOW_NORMAL_PRIORITY_CLASS */
+
 #endif
