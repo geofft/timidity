@@ -29,4 +29,5 @@ EXTRA_DIST = \
 	README.xskin \
 	README.xaw \
 	README.alsaseq \
-	README.m2m
+	README.m2m \
+	README.mts

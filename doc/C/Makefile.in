@@ -254,7 +254,8 @@ EXTRA_DIST = \
 	README.xskin \
 	README.xaw \
 	README.alsaseq \
-	README.m2m
+	README.m2m \
+	README.mts
 
 subdir = doc/C
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

@@ -1,3 +1,11 @@
+2004-02-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/ja_JP.ujis/README.dl:
+	  Was written in iso-2022-jp, convert to eucJP
+	* doc/C/README.mts, doc/ja_JP.ujis/README.mts: Add
+	* doc/C/Makefile.{am,in}, doc/ja_JP.ujis/Makefile.{am,in}:
+	  Fix to fit with change above
+
 2004-02-29  Saito <saito@intaa.net>
 
 	* interface/w32g_tracer.bmp:

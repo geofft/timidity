@@ -251,7 +251,8 @@ EXTRA_DIST = \
 	README.tk \
 	README.xskin \
 	README.xaw \
-	README.m2m
+	README.m2m \
+	README.mts
 
 subdir = doc/ja_JP.ujis
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
