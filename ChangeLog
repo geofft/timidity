@@ -1,3 +1,8 @@
+2004-12-22  Ed Catmur  <ed@catmur.co.uk>
+
+	* interface/gtk_i.c (Launch_Gtk_Process): Fix assertion error in
+	  GTK-2.6.0
+
 2004-12-08  Kentaro Sato <kentaro@ranvis.com>
 
 	* libarc/arc.c:
