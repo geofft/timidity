@@ -5,6 +5,8 @@
 	  Fix modulation envelope of SoundFont.
 	  Fix bahaviour of filter.
 	  Hack up around load_instrument().
+	* interface/w32g_subwin3.c:
+	  Fix.
 
 2004-02-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
