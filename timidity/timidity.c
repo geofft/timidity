@@ -220,14 +220,12 @@ static const struct option longopts[] = {
 	{ "unload-instruments",       optional_argument, NULL, 'U' << 8 },
 	{ "version",                  no_argument,       NULL, 'v' << 8 },
 	{ "wrd",                      required_argument, NULL, 'W' << 8 },
-	{ "wrd-read-opts",            required_argument, NULL, 231 << 8 },
 #ifdef __W32__
-	{ "no-rcpcv-dll",             no_argument,       NULL, 'w' << 8 },
-	{ "rcpcv-dll",                optional_argument, NULL, 'w' << 8 },
+	{ "rcpcv-dll",                required_argument, NULL, 'w' << 8 },
 #endif
 	{ "config-string",            required_argument, NULL, 'x' << 8 },
 	{ "freq-table",               required_argument, NULL, 'Z' << 8 },
-	{ "pure-intonation",          optional_argument, NULL, 232 << 8 },
+	{ "pure-intonation",          optional_argument, NULL, 231 << 8 },
 	{ NULL,                       no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -331,7 +329,6 @@ static inline int parse_opt_U(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_v(const char *);
 static inline int parse_opt_W(char *);
-static inline int parse_opt_W1(char *);
 #ifdef __W32__
 static inline int parse_opt_w(const char *);
 #endif
@@ -2517,45 +2514,11 @@ int set_wrd(char *w)
 }
 
 #ifdef __W32__
+int opt_evil_mode = 0;
 #ifdef SMFCONV
 int opt_rcpcv_dll = 0;
 #endif	/* SMFCONV */
-static int set_win_modes(char *flag)
-{
-	int err = 0;
-	
-	while (*flag) {
-		switch (*flag) {
-#ifdef SMFCONV
-		case 'r':
-			opt_rcpcv_dll = 1;
-			break;
-		case 'R':
-			opt_rcpcv_dll = 0;
-			break;
-#else
-		case 'r':
-		case 'R':
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"-w%c option is not supported", *flag);
-			err++;
-			break;
-#endif	/* SMFCONV */
-		default:
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"-w: Illegal mode `%c'", *flag);
-			err++;
-			break;
-		}
-		flag++;
-	}
-	return err;
-}
 #endif	/* __W32__ */
-
-#ifdef __W32__
-int opt_evil_mode = 0;
-#endif /* __W32__ */
 static int   try_config_again = 0;
 int32 opt_output_rate = 0;
 static char *opt_output_name = NULL;
@@ -2673,7 +2636,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		return parse_opt_W(optarg);
 #ifdef __W32__
 	case 'w':
-		return set_win_modes(optarg);
+		return parse_opt_w(optarg);
 #endif
 	case 'x':
 		return parse_opt_x(optarg);
@@ -2857,8 +2820,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_v(arg);
 	case 'W':
 		return parse_opt_W(arg);
-	case 231:
-		return parse_opt_W1(arg);
 #ifdef __W32__
 	case 'w':
 		return parse_opt_w(arg);
@@ -2867,7 +2828,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_x(arg);
 	case 'Z':
 		return parse_opt_Z(arg);
-	case 232:
+	case 231:
 		return parse_opt_Z1(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
@@ -3892,9 +3853,10 @@ static inline int parse_opt_W(char *arg)
 {
 	WRDTracer *wlp, **wlpp;
 	
-	if (*arg == 'R')	/* for WRD reader options */
-		/* backward compatibility */
-		return parse_opt_W1(arg + 1);
+	if (*arg == 'R') {	/* for WRD reader options */
+		put_string_table(&wrd_read_opts, arg + 1, strlen(arg + 1));
+		return 0;
+	}
 	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)
 		if (wlp->id == *arg) {
 			wrdt = wlp;
@@ -3908,24 +3870,28 @@ static inline int parse_opt_W(char *arg)
 	return 1;
 }
 
-static inline int parse_opt_W1(char *arg)
-{
-	/* --wrd-read-opts */
-	put_string_table(&wrd_read_opts, arg, strlen(arg));
-	return 0;
-}
-
 #ifdef __W32__
 static inline int parse_opt_w(const char *arg)
 {
+	switch (*arg) {
 #ifdef SMFCONV
-	opt_rcpcv_dll = y_or_n_p(arg);
-	return 0;
+	case 'r':
+		opt_rcpcv_dll = 1;
+		return 0:
+	case 'R':
+		opt_rcpcv_dll = 0;
+		return 0;
 #else
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			"--rcpcv-dll option is not supported");
-	return 1;
+	case 'r':
+	case 'R':
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"-w%c option is not supported", *arg);
+		return 1;
 #endif	/* SMFCONV */
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-w: Illegal mode `%c'", *arg);
+		return 1;
+	}
 }
 #endif	/* __W32__ */
 
