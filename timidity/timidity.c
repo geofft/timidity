@@ -283,6 +283,7 @@ static inline int parse_opt_EC(const char *);
 static inline int parse_opt_ED(const char *);
 static inline int parse_opt_EE(const char *);
 static inline int parse_opt_EF(const char *);
+static inline int set_default_program(int);
 static inline int parse_opt_EG(const char *);
 static inline int parse_opt_EH(const char *);
 static inline int parse_opt_EI(const char *);
@@ -355,7 +356,6 @@ static inline int set_flag(int32 *, int32, const char *);
 static inline FILE *open_pager(void);
 static inline void close_pager(FILE *);
 static void interesting_message(void);
-static int set_default_program(int);
 
 #ifdef IA_DYNAMIC
 MAIN_INTERFACE char dynamic_interface_id;
@@ -2756,7 +2756,7 @@ static inline int parse_opt_EE(const char *arg)
 	prog = tmpi32;
 	if (p = strchr(arg, '/')) {
 		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
-				"Default program channel"))
+				"Program channel"))
 			return 1;
 		default_program[tmpi32 - 1] = prog;
 	} else
@@ -2775,14 +2775,28 @@ static inline int parse_opt_EF(const char *arg)
 	if (set_value(&tmpi32, atoi(arg), -1, 0x7f, "Program number"))
 		return 1;
 	def_prog = tmpi32;
+	if (ctl->trace_playing)
+		set_default_program(def_prog);
 	if (p = strchr(arg, '/')) {
 		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
-				"Special program channel"))
+				"Program channel"))
 			return 1;
 		default_program[tmpi32 - 1] = SPECIAL_PROGRAM;
 	} else
 		for (i = 0; i < MAX_CHANNELS; i++)
 			default_program[i] = SPECIAL_PROGRAM;
+	return 0;
+}
+
+static inline int set_default_program(int prog)
+{
+	int bank;
+	Instrument *ip;
+	
+	bank = (special_tonebank >= 0) ? special_tonebank : default_tonebank;
+	if ((ip = play_midi_load_instrument(0, bank, prog)) == NULL)
+		return 1;
+	default_instrument = ip;
 	return 0;
 }
 
@@ -3858,9 +3872,9 @@ static inline int parse_opt_S(const char *arg)
 static inline int parse_opt_s(const char *arg)
 {
 	/* sampling rate */
-	int32 tmpi32 = atoi(arg);
+	int32 tmpi32;
 
-	if (tmpi32 < 100)
+	if (atoi(arg) < 100)
 		tmpi32 = atof(arg) * 1000 + 0.5;
 	return set_value(&opt_output_rate, tmpi32,
 			MIN_OUTPUT_RATE, MAX_OUTPUT_RATE, "Resampling frequency");
@@ -4156,20 +4170,6 @@ static void interesting_message(void)
 "along with this program; if not, write to the Free Software" NLS
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA" NLS
 			NLS, timidity_version);
-}
-
-static int set_default_program(int prog)
-{
-	int bank;
-	Instrument *ip;
-	
-	bank = (special_tonebank >= 0) ? special_tonebank : default_tonebank;
-	if ((ip = load_instrument(0, bank, prog)) == NULL)
-		return 1;
-	if (default_instrument)
-		free_instrument(default_instrument);
-	default_instrument = ip;
-	return 0;
 }
 
 /* -------- functions for getopt_long ends here --------- */

@@ -1112,84 +1112,48 @@ void free_tone_bank_element(int dr, int bk, int prog)
 
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
-    ToneBank **bank = ((dr) ? drumset : tonebank);
+	ToneBank **bank = (dr) ? drumset : tonebank;
+	Instrument *ip;
 	ToneBankElement *elm;
-    Instrument *ip;
-    int load_success;
-
-    if(bank[bk] == NULL)
-	bk = 0;
-
-    load_success = 0;
-    if(! opt_realtime_playing)
-    {
-	ip = bank[bk]->tone[prog].instrument;
+	int load_success = 0;
+	
+	if (bank[bk] == NULL)
+		bk = 0;
+	if ((ip = bank[bk]->tone[prog].instrument) ==
+			((opt_realtime_playing) ? NULL : MAGIC_LOAD_INSTRUMENT)) {
+		if (ip = bank[bk]->tone[prog].instrument =
+				load_instrument(dr, bk, prog))
+			load_success = 1;
 #ifndef SUPPRESS_CHANNEL_LAYER
-	if(ip == MAGIC_LOAD_INSTRUMENT || ip == NULL)
-#else
-	if(ip == MAGIC_LOAD_INSTRUMENT)
+	} else if (ip == NULL) {
+		if (ip = bank[bk]->tone[prog].instrument =
+				load_instrument(dr, bk, prog))
+			load_success = 1;
 #endif
-	{
-	    ip = bank[bk]->tone[prog].instrument =
-		load_instrument(dr, bk, prog);
-	    if(ip != NULL)
-		load_success = 1;
 	}
-	if(ip == NULL && bk != 0)
-	{
-	    /* Instrument is not found.
-	       Retry to load the instrument from bank 0 */
-	    if((ip = bank[0]->tone[prog].instrument) == NULL)
-		ip = bank[0]->tone[prog].instrument =
-		    load_instrument(dr, 0, prog);
-	    if(ip != NULL)
-	    {
+	if (ip == NULL && bk) {
+		/* Instrument is not found.
+		 * Retry to load the instrument from bank 0
+		 */
+		if ((ip = bank[0]->tone[prog].instrument) == NULL)
+			ip = bank[0]->tone[prog].instrument =
+					load_instrument(dr, 0, prog);
+		if (ip) {
 			/* duplicate tone bank parameter */
 			elm = &bank[bk]->tone[prog];
 			memcpy(elm, &bank[0]->tone[prog], sizeof(ToneBankElement));
 			elm->instrument = ip;
 			dup_tone_bank_element(dr, bk, prog);
 			load_success = 1;
-	    }
+		}
 	}
-    }
-    else
-    {
-	if((ip = bank[bk]->tone[prog].instrument) == NULL)
-	{
-	    ip = bank[bk]->tone[prog].instrument =
-		load_instrument(dr, bk, prog);
-	    if(ip != NULL)
-		load_success = 1;
-	}
-	if(ip == NULL && bk != 0)
-	{
-	    /* Instrument is not found.
-	       Retry to load the instrument from bank 0 */
-	    if((ip = bank[0]->tone[prog].instrument) == NULL)
-		ip = bank[0]->tone[prog].instrument =
-		    load_instrument(dr, 0, prog);
-	    if(ip != NULL)
-	    {
-			/* duplicate tone bank parameter */
-			elm = &bank[bk]->tone[prog];
-			memcpy(elm, &bank[0]->tone[prog], sizeof(ToneBankElement));
-			elm->instrument = ip;
-			dup_tone_bank_element(dr, bk, prog);
-			load_success = 1;
-	    }
-	}
-    }
-
-    if(load_success)
-	aq_add(NULL, 0); /* Update software buffer */
-
-    if(ip == MAGIC_ERROR_INSTRUMENT)
-	return NULL;
-    if(ip == NULL)
-	bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
-
-    return ip;
+	if (load_success)
+		aq_add(NULL, 0);	/* Update software buffer */
+	if (ip == MAGIC_ERROR_INSTRUMENT)
+		return NULL;
+	if (ip == NULL)
+		bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+	return ip;
 }
 
 #if 0
@@ -2893,106 +2857,79 @@ int midi_drumpart_change(int ch, int isdrum)
 
 void midi_program_change(int ch, int prog)
 {
-    int newbank, dr;
-
-    dr = (int)ISDRUMCHANNEL(ch);
-    if(dr)
-	newbank = channel[ch].program;
-    else
-	newbank = channel[ch].bank;
-
-    switch(play_system_mode)
-    {
-      case GS_SYSTEM_MODE: /* GS */
-	switch(channel[ch].bank_lsb)
-	{
-	  case 0:	/* No change */
-	    break;
-	  case 1:
-	    channel[ch].mapID = (!ISDRUMCHANNEL(ch) ? SC_55_TONE_MAP
-				 : SC_55_DRUM_MAP);
-	    break;
-	  case 2:
-	    channel[ch].mapID = (!ISDRUMCHANNEL(ch) ? SC_88_TONE_MAP
-				 : SC_88_DRUM_MAP);
-	    break;
-	  case 3:
-	    channel[ch].mapID = (!ISDRUMCHANNEL(ch) ? SC_88PRO_TONE_MAP
-				 : SC_88PRO_DRUM_MAP);
-	    break;
-	  default:
-	    break;
+	int dr = ISDRUMCHANNEL(ch);
+	int newbank, b, p;
+	
+	switch (play_system_mode) {
+	case GS_SYSTEM_MODE:	/* GS */
+		switch (channel[ch].bank_lsb) {
+		case 0:		/* No change */
+			break;
+		case 1:
+			channel[ch].mapID = (dr) ? SC_55_DRUM_MAP : SC_55_TONE_MAP;
+			break;
+		case 2:
+			channel[ch].mapID = (dr) ? SC_88_DRUM_MAP : SC_88_TONE_MAP;
+			break;
+		case 3:
+			channel[ch].mapID = (dr) ? SC_88PRO_DRUM_MAP : SC_88PRO_TONE_MAP;
+			break;
+		default:
+			break;
+		}
+		newbank = channel[ch].bank_msb;
+		break;
+	case XG_SYSTEM_MODE:	/* XG */
+		switch (channel[ch].bank_msb) {
+		case 0:		/* Normal */
+			if (ch == 9 && channel[ch].bank_lsb == 127
+					&& channel[ch].mapID == XG_DRUM_MAP)
+				/* FIXME: Why this part is drum?  Is this correct? */
+				break;
+			midi_drumpart_change(ch, 0);
+			channel[ch].mapID = XG_NORMAL_MAP;
+			break;
+		case 64:	/* SFX voice */
+			midi_drumpart_change(ch, 0);
+			channel[ch].mapID = XG_SFX64_MAP;
+			break;
+		case 126:	/* SFX kit */
+			midi_drumpart_change(ch, 1);
+			channel[ch].mapID = XG_SFX126_MAP;
+			break;
+		case 127:	/* Drumset */
+			midi_drumpart_change(ch, 1);
+			channel[ch].mapID = XG_DRUM_MAP;
+			break;
+		default:
+			break;
+		}
+		newbank = channel[ch].bank_lsb;
+		break;
+	default:
+		newbank = channel[ch].bank_msb;
+		break;
 	}
-	newbank = channel[ch].bank_msb;
-	break;
-
-      case XG_SYSTEM_MODE: /* XG */
-	switch(channel[ch].bank_msb)
-	{
-	  case 0: /* Normal */
-	    if(ch == 9  && channel[ch].bank_lsb == 127 && channel[ch].mapID == XG_DRUM_MAP) {
-	      /* FIXME: Why this part is drum?  Is this correct? */
-	      ;
-	    } else {
-	      midi_drumpart_change(ch, 0);
-	      channel[ch].mapID = XG_NORMAL_MAP;
-	    }
-	    break;
-	  case 64: /* SFX voice */
-	    midi_drumpart_change(ch, 0);
-	    channel[ch].mapID = XG_SFX64_MAP;
-	    break;
-	  case 126: /* SFX kit */
-	    midi_drumpart_change(ch, 1);
-	    channel[ch].mapID = XG_SFX126_MAP;
-	    break;
-	  case 127: /* Drumset */
-	    midi_drumpart_change(ch, 1);
-	    channel[ch].mapID = XG_DRUM_MAP;
-	    break;
-	  default:
-	    break;
-	}
-	dr = ISDRUMCHANNEL(ch);
-	newbank = channel[ch].bank_lsb;
-	break;
-
-      default:
-	newbank = channel[ch].bank_msb;
-	break;
-    }
-
-    if(dr)
-    {
-	channel[ch].bank = prog; /* newbank is ignored */
-	if(drumset[prog] == NULL || drumset[prog]->alt == NULL)
-	    channel[ch].altassign = drumset[0]->alt;
-	else
-	    channel[ch].altassign = drumset[prog]->alt;
-	ctl_mode_event(CTLE_DRUMPART, 1, ch, 1);
-    }
-    else
-    {
-	if(special_tonebank >= 0)
-	    newbank = special_tonebank;
-	channel[ch].bank = newbank;
-	channel[ch].altassign = NULL;
-	ctl_mode_event(CTLE_DRUMPART, 1, ch, 0);
-    }
-
-    if(!dr && default_program[ch] == SPECIAL_PROGRAM)
-      channel[ch].program = SPECIAL_PROGRAM;
-    else
-      channel[ch].program = prog;
-
-    if(opt_realtime_playing && !dr && (play_mode->flag & PF_PCM_STREAM))
-    {
-	int b, p;
-
-	p = prog;
-	b = channel[ch].bank;
-	instrument_map(channel[ch].mapID, &b, &p);
-	play_midi_load_instrument(0, b, p);
+	if (dr) {
+		channel[ch].bank = prog;	/* newbank is ignored */
+		channel[ch].program = prog;
+		if (drumset[prog] == NULL || drumset[prog]->alt == NULL)
+			channel[ch].altassign = drumset[0]->alt;
+		else
+			channel[ch].altassign = drumset[prog]->alt;
+		ctl_mode_event(CTLE_DRUMPART, 1, ch, 1);
+	} else {
+		channel[ch].bank = (special_tonebank >= 0)
+				? special_tonebank : newbank;
+		channel[ch].program = (default_program[ch] == SPECIAL_PROGRAM)
+				? SPECIAL_PROGRAM : prog;
+		channel[ch].altassign = NULL;
+		ctl_mode_event(CTLE_DRUMPART, 1, ch, 0);
+		if (opt_realtime_playing && play_mode->flag & PF_PCM_STREAM) {
+			b = channel[ch].bank, p = prog;
+			instrument_map(channel[ch].mapID, &b, &p);
+			play_midi_load_instrument(0, b, p);
+		}
 	}
 }
 

@@ -1,12 +1,17 @@
+2003-08-17  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/timidity.c:
+	  Bug fix --force-program
+
 2003-08-17  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (parse_opt_h): Bug Fix
 
 2003-08-17 Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* timidity/timidity.c (parse_opt_s): -s option works correctly aain
-	* timidity/reverb.c (init_reverb): -EFchorus=3 was cousing mono
-	  output to crash.
+	* timidity/timidity.c (parse_opt_s): -s option works correctly again
+	* timidity/reverb.c (init_reverb):
+	  -EFchorus=3 was cousing mono output to crash.
 
 2003-08-15  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
