@@ -2461,6 +2461,8 @@ static inline int32 do_right_panning(int32 sample, int32 pan)
 
 #define OD_BITS 28
 #define OD_MAX_NEG (1.0 / (double)(1L << OD_BITS))
+#define STEREO_OD_BITS 27
+#define STEREO_OD_MAX_NEG (1.0 / (double)(1L << STEREO_OD_BITS))
 #define OVERDRIVE_DIST 4.0
 #define OVERDRIVE_RES 0.1
 #define OVERDRIVE_LEVEL 1.0
@@ -2665,7 +2667,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		b0l = inputl;
 		high = inputl - b4l;
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
+		sig = (double)high * STEREO_OD_MAX_NEG;
 		ax1l = lastinl;
 		ay11l = ay1l;
 		ay31l = ay2l;
@@ -2674,7 +2676,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
 		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
 		sig = tanh(aoutl * valuel);
-		high = TIM_FSCALE(sig, OD_BITS);
+		high = TIM_FSCALE(sig, STEREO_OD_BITS);
 		inputl = imuldiv24(high, levelli) + imuldiv24(low, leveldli);
 
 		/* right */
@@ -2688,7 +2690,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		b0r = inputr;
 		high = inputr - b4r;
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
+		sig = (double)high * STEREO_OD_MAX_NEG;
 		ax1r = lastinr;
 		ay11r = ay1r;
 		ay31r = ay2r;
@@ -2697,7 +2699,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
 		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
 		sig = tanh(aoutr * valuer);
-		high = TIM_FSCALE(sig, OD_BITS);
+		high = TIM_FSCALE(sig, STEREO_OD_BITS);
 		inputr = imuldiv24(high, levelri) + imuldiv24(low, leveldri);
 
 		/* mixing */
@@ -3245,7 +3247,7 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		b0l = inputl;
 		high = inputl - b4l;
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
+		sig = (double)high * STEREO_OD_MAX_NEG;
 		ax1l = lastinl;
 		ay11l = ay1l;
 		ay31l = ay2l;
@@ -3254,7 +3256,7 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
 		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
 		sig = tanh(aoutl * valuel);
-		high = TIM_FSCALE(sig, OD_BITS);
+		high = TIM_FSCALE(sig, STEREO_OD_BITS);
 		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
 
 		/* right */
@@ -3268,7 +3270,7 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		b0r = inputr;
 		high = inputr - b4r;
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
+		sig = (double)high * STEREO_OD_MAX_NEG;
 		ax1r = lastinr;
 		ay11r = ay1r;
 		ay31r = ay2r;
@@ -3277,7 +3279,7 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
 		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
 		sig = tanh(aoutr * valuer);
-		high = TIM_FSCALE(sig, OD_BITS);
+		high = TIM_FSCALE(sig, STEREO_OD_BITS);
 		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
 	}
 	svfl->b0 = b0l, svfl->b1 = b1l, svfl->b2 = b2l, svfl->b3 = b3l, svfl->b4 = b4l;
