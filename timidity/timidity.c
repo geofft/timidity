@@ -3299,6 +3299,7 @@ static inline int parse_opt_h(const char *arg)
 #ifdef IA_ALSASEQ
 	fputs("  --[no-]background" NLS, fp);
 #endif
+	fputs(NLS, fp);
 	fputs("Available output modes (-O, --output-mode option):" NLS, fp);
 	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
 		fprintf(fp, "  -O%c          %s" NLS,
