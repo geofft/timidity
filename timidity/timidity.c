@@ -349,7 +349,8 @@ static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
-static inline int set_value(int32 *, int32, int32, int32, char *);
+static inline int set_value_int32(int32 *, int32, int32, int32, char *);
+static inline int set_value(int *, int, int, int32, char *);
 static inline int set_channel_flag(ChannelBitMask *, int32, char *);
 static inline int y_or_n_p(const char *);
 static inline int set_flag(int32 *, int32, const char *);
@@ -2424,15 +2425,15 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 static inline int parse_opt_A(const char *arg)
 {
 	/* amplify volume by n percent */
-	return set_value(&amplification, atoi(arg), 0, MAX_AMPLIFICATION,
-			"Amplification");
+	return set_value_int32(&amplification, atoi(arg), 0, MAX_AMPLIFICATION,
+			       "Amplification");
 }
 
 static inline int parse_opt_A1(const char *arg)
 {
 	/* --drum-power */
-	return set_value(&opt_drum_power, atoi(arg), 0, MAX_AMPLIFICATION,
-			"Drum power");
+	return set_value_int32(&opt_drum_power, atoi(arg), 0, MAX_AMPLIFICATION,
+			       "Drum power");
 }
 
 static inline int parse_opt_A2(const char *arg)
@@ -2451,29 +2452,26 @@ static inline int parse_opt_a(const char *arg)
 static inline int parse_opt_B(const char *arg)
 {
 	/* --buffer-fragments */
-	int32 tmpi32;
 	const char *p;
 	
 	/* num */
 	if (*arg != ',') {
-		if (set_value(&tmpi32, atoi(arg), 0, 1000, "Buffer Fragments (num)"))
+		if (set_value(&opt_buffer_fragments, atoi(arg), 0, 1000, "Buffer Fragments (num)"))
 			return 1;
-		opt_buffer_fragments = tmpi32;
 	}
 	/* bits */
 	if (p = strchr(arg, ',')) {
-		if (set_value(&tmpi32, atoi(++p), 1, AUDIO_BUFFER_BITS,
+		if (set_value(&audio_buffer_bits, atoi(++p), 1, AUDIO_BUFFER_BITS,
 				"Buffer Fragments (bit)"))
 			return 1;
-		audio_buffer_bits = tmpi32;
 	}
 	return 0;
 }
 
 static inline int parse_opt_C(const char *arg)
 {
-	if (set_value(&control_ratio, atoi(arg), 0, MAX_CONTROL_RATIO,
-			"Control ratio"))
+	if (set_value_int32(&control_ratio, atoi(arg), 0, MAX_CONTROL_RATIO,
+			    "Control ratio"))
 		return 1;
 	opt_control_ratio = control_ratio;
 	return 0;
@@ -2724,11 +2722,8 @@ static inline int parse_opt_EB(char *arg)
 static inline int parse_opt_EC(const char *arg)
 {
 	/* --default-bank */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
+	if (set_value(&default_tonebank, atoi(arg), 0, 0x7f, "Bank number"))
 		return 1;
-	default_tonebank = tmpi32;
 	special_tonebank = -1;
 	return 0;
 }
@@ -2736,29 +2731,24 @@ static inline int parse_opt_EC(const char *arg)
 static inline int parse_opt_ED(const char *arg)
 {
 	/* --force-bank */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
+	if (set_value(&special_tonebank, atoi(arg), 0, 0x7f, "Bank number"))
 		return 1;
-	special_tonebank = tmpi32;
 	return 0;
 }
 
 static inline int parse_opt_EE(const char *arg)
 {
 	/* --default-program */
-	int32 tmpi32;
 	int prog, i;
 	const char *p;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Program number"))
+	if (set_value(&prog, atoi(arg), 0, 0x7f, "Program number"))
 		return 1;
-	prog = tmpi32;
 	if (p = strchr(arg, '/')) {
-		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
+		if (set_value(&i, atoi(++p), 1, MAX_CHANNELS,
 				"Program channel"))
 			return 1;
-		default_program[tmpi32 - 1] = prog;
+		default_program[i - 1] = prog;
 	} else
 		for (i = 0; i < MAX_CHANNELS; i++)
 			default_program[i] = prog;
@@ -2768,20 +2758,18 @@ static inline int parse_opt_EE(const char *arg)
 static inline int parse_opt_EF(const char *arg)
 {
 	/* --force-program */
-	int32 tmpi32;
 	const char *p;
 	int i;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Program number"))
+	if (set_value(&def_prog, atoi(arg), 0, 0x7f, "Program number"))
 		return 1;
-	def_prog = tmpi32;
 	if (ctl->opened)
 		set_default_program(def_prog);
 	if (p = strchr(arg, '/')) {
-		if (set_value(&tmpi32, atoi(++p), 1, MAX_CHANNELS,
+		if (set_value(&i, atoi(++p), 1, MAX_CHANNELS,
 				"Program channel"))
 			return 1;
-		default_program[tmpi32 - 1] = SPECIAL_PROGRAM;
+		default_program[i - 1] = SPECIAL_PROGRAM;
 	} else
 		for (i = 0; i < MAX_CHANNELS; i++)
 			default_program[i] = SPECIAL_PROGRAM;
@@ -2833,7 +2821,6 @@ static inline int parse_opt_EG(const char *arg)
 static inline int parse_opt_EH(const char *arg)
 {
 	/* --chorus */
-	int32 tmpi32;
 	const char *p;
 	
 	switch (*arg) {
@@ -2848,9 +2835,10 @@ static inline int parse_opt_EH(const char *arg)
 	case 's':	/* surround */
 		opt_surround_chorus = (*arg == '2' || *arg == 's') ? 1 : 0;
 		if (p = strchr(arg, ',')) {
-			if (set_value(&tmpi32, atoi(++p), 0, 0x7f, "Chorus level"))
+			int val;
+			if (set_value(&opt_chorus_control, atoi(++p), 0, 0x7f, "Chorus level"))
 				return 1;
-			opt_chorus_control = -tmpi32;
+			opt_chorus_control = -opt_chorus_control;
 		} else
 			opt_chorus_control = 1;
 		break;
@@ -2875,9 +2863,9 @@ static inline int parse_opt_EI(const char *arg)
 	case '1':
 	case 'n':	/* normal */
 		if (p = strchr(arg, ',')) {
-			if (set_value(&tmpi32, atoi(++p), 0, 0x7f, "Reverb level"))
+			if (set_value(&opt_reverb_control, atoi(++p), 0, 0x7f, "Reverb level"))
 				return 1;
-			opt_reverb_control = -tmpi32;
+			opt_reverb_control = -opt_reverb_control;
 		} else
 			opt_reverb_control = 1;
 		break;
@@ -2902,11 +2890,8 @@ static inline int parse_opt_EI(const char *arg)
 static inline int parse_opt_EJ(const char *arg)
 {
 	/* --noise-shaping */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), 0, 4, "Noise shaping type"))
+	if (set_value(&noise_sharp_type, atoi(arg), 0, 4, "Noise shaping type"))
 		return 1;
-	noise_sharp_type = tmpi32;
 	return 0;
 }
 
@@ -2953,13 +2938,13 @@ static inline int parse_opt_g(const char *arg)
 
 static inline int parse_opt_H(const char *arg)
 {
+	int keysig;
+
 	/* force keysig (number of sharp/flat) */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), -7, 7,
-			"Force keysig (number of sHarp(+)/flat(-))"))
+	if (set_value(&keysig, atoi(arg), -7, 7,
+		      "Force keysig (number of sHarp(+)/flat(-))"))
 		return 1;
-	opt_force_keysig = tmpi32;
+	opt_force_keysig = keysig;
 	return 0;
 }
 
@@ -3529,11 +3514,8 @@ static inline int parse_opt_j(const char *arg)
 static inline int parse_opt_K(const char *arg)
 {
 	/* key adjust */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), -24, 24, "Key adjust"))
+	if (set_value(&key_adjust, atoi(arg), -24, 24, "Key adjust"))
 		return 1;
-	key_adjust = tmpi32;
 	return 0;
 }
 
@@ -3575,18 +3557,15 @@ static inline int parse_opt_N(const char *arg)
 #elif defined(NEWTON_INTERPOLATION)
 static inline int parse_opt_N(const char *arg)
 {
-	int32 tmpi32;
-	
 	if (atoi(arg)) {
-		if (set_value(&tmpi32, atoi(arg), 1, 56,
+		if (set_value(&newt_n, atoi(arg), 1, 56,
 				"Newton interpolation -N value"))
 			return 1;
-		if (tmpi32 % 2) {
+		if (newt_n % 2) {
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Newton -N value must be even");
 			return 1;
 		}
-		newt_n = tmpi32;
 	} else {
 		newt_n = 5;
 		no_4point_interpolation = 1;
@@ -3602,13 +3581,10 @@ static inline int parse_opt_N(const char *arg)
 #elif defined(GAUSS_INTERPOLATION)
 static inline int parse_opt_N(const char *arg)
 {
-	int32 tmpi32;
-	
 	if (atoi(arg)) {
-		if (set_value(&tmpi32, atoi(arg), 1, 34,
+		if (set_value(&gauss_n, atoi(arg), 1, 34,
 				"Gauss interpolation -N value"))
 			return 1;
-		gauss_n = tmpi32;
 	} else {
 		gauss_n = 5;
 		no_4point_interpolation = 1;
@@ -3763,11 +3739,8 @@ static inline int parse_opt_P(const char *arg)
 
 static inline int parse_opt_p(const char *arg)
 {
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), 1, MAX_VOICES, "Polyphony"))
+	if (set_value(&voices, atoi(arg), 1, MAX_VOICES, "Polyphony"))
 		return 1;
-	voices = tmpi32;
 	return 0;
 }
 
@@ -3796,16 +3769,16 @@ static inline int parse_opt_Q(const char *arg)
 static inline int parse_opt_Q1(const char *arg)
 {
 	/* --temper-mute */
-	int32 tmpi32;
+	int prog;
 	const char *p = arg;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 7, "Temperament program number"))
+	if (set_value(&prog, atoi(arg), 0, 7, "Temperament program number"))
 		return 1;
-	temper_type_mute |= 1 << tmpi32;
+	temper_type_mute |= 1 << prog;
 	while (p = strchr(p, ',')) {
-		if (set_value(&tmpi32, atoi(++p), 0, 7, "Temperament program number"))
+		if (set_value(&prog, atoi(++p), 0, 7, "Temperament program number"))
 			return 1;
-		temper_type_mute |= 1 << tmpi32;
+		temper_type_mute |= 1 << prog;
 	}
 	return 0;
 }
@@ -3834,14 +3807,12 @@ static inline int parse_opt_R(const char *arg)
 	/* I think pseudo reverb can now be retired... Computers are
 	 * enough fast to do a full reverb, don't they?
 	 */
-	int32 tmpi32;
-	
 	if (atoi(arg) == -1)	/* reset */
 		modify_release = 0;
 	else {
-		if (set_value(&tmpi32, atoi(arg), 0, MAX_MREL, "Modify Release"))
+		if (set_value(&modify_release, atoi(arg), 0, MAX_MREL, "Modify Release"))
 			return 1;
-		if ((modify_release = tmpi32) == 0)
+		if (modify_release == 0)
 			modify_release = DEFAULT_MREL;
 	}
 	return 0;
@@ -3883,11 +3854,11 @@ static inline int parse_opt_s(const char *arg)
 static inline int parse_opt_T(const char *arg)
 {
 	/* tempo adjust */
-	int32 tmpi32;
+	int adjust;
 	
-	if (set_value(&tmpi32, atoi(arg), 10, 400, "Tempo adjust"))
+	if (set_value(&adjust, atoi(arg), 10, 400, "Tempo adjust"))
 		return 1;
-	tempo_adjust = 100.0 / tmpi32;
+	tempo_adjust = 100.0 / adjust;
 	return 0;
 }
 
@@ -4041,17 +4012,15 @@ static inline int parse_opt_Z(char *arg)
 static inline int parse_opt_Z1(const char *arg)
 {
 	/* --pure-intonation */
-	int32 tmpi32;
-	
 	opt_pure_intonation = 1;
 	if (*arg) {
-		if (set_value(&tmpi32, atoi(arg), -7, -7,
+		int keysig;
+		if (set_value(&keysig, atoi(arg), -7, -7,
 				"Initial keysig (number of #(+)/b(-)[m(minor)])"))
 			return 1;
+		opt_init_keysig = keysig;
 		if (strchr(arg, 'm'))
-			opt_init_keysig = tmpi32 + 16;
-		else
-			opt_init_keysig = tmpi32;
+			opt_init_keysig += 16;
 	}
 }
 
@@ -4064,8 +4033,8 @@ static inline int parse_opt_fail(const char *arg)
 	exit(1);
 }
 
-static inline int set_value(int32 *param,
-		int32 i, int32 low, int32 high, char *name)
+static inline int set_value_int32(int32 *param,
+				  int32 i, int32 low, int32 high, char *name)
 {
 	if (i < low || i > high) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -4073,6 +4042,15 @@ static inline int set_value(int32 *param,
 		return 1;
 	} else
 		*param = i;
+	return 0;
+}
+
+static inline int set_value(int *param, int i, int low, int high, char *name)
+{
+	int32 val;
+	if (set_value_int32(&val, i, low, high, name))
+		return 1;
+	*param = val;
 	return 0;
 }
 
