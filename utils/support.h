@@ -30,14 +30,6 @@ extern void vsnprintf(char *buff, size_t bufsiz, const char *fmt, va_list ap);
 extern void snprintf(char *buff, size_t bufsiz, const char *fmt, ...);
 #endif /* HAVE_SNPRINTF */
 
-#ifndef HAVE_GETOPT
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#else
-extern int getopt(int argc, char *argv[], char *optionS);
-#endif
-#endif /* HAVE_GETOPT */
-
 #ifndef HAVE_STRERROR
 extern char *strerror(int errnum);
 #endif /* HAVE_STRERROR */

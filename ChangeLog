@@ -1,3 +1,12 @@
+2003-07-29  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (help): rewrite to fit with long optoins.
+	(set_tim_opt_short): Rename from set_tim_opt().
+	(set_tim_opt_long): Add.
+	(version): Add.
+	* utils/getopt.[ch]: Add.
+	* utils/support.[ch]: Delete getopt()
+
 2003-07-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.c:

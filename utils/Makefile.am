@@ -29,6 +29,7 @@ libutils_a_SOURCES = \
 	bitset.h \
 	fft4g.c \
 	fft4g.h \
+	getopt.h \
 	mblock.c \
 	mblock.h \
 	memb.c \
@@ -45,6 +46,7 @@ libutils_a_SOURCES = \
 EXTRA_libutils_a_SOURCES = \
 	fft.c \
 	fft.h \
+	getopt.c \
 	support.c \
 	net.c \
 	net.h \
@@ -54,6 +56,10 @@ EXTRA_libutils_a_SOURCES = \
 	mac_readdir.h \
 	readdir.h \
 	readdir_win.c
+
+if NEEDGETOPT
+GETOPT_OBJS = getopt.o
+endif
 
 if ENABLE_NETWORK
 NET_OBJS = net.o
@@ -70,4 +76,5 @@ endif
 libutils_a_LIBADD = \
 	$(NET_OBJS) \
 	$(W32READDIR_OBJS) \
-	$(SOUND_SPEC_OBJS)
+	$(SOUND_SPEC_OBJS) \
+	$(GETOPT_OBJS)
