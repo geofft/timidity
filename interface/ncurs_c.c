@@ -246,6 +246,7 @@ static void ctl_reset(void);
 ControlMode ctl=
 {
     "ncurses interface", 'n',
+    "ncurses",
     1,0,0,
     0,
     ctl_open,

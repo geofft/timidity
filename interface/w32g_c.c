@@ -1,7 +1,7 @@
 /*
-    TiMidity -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
-    Copyright (C) 1995 Tuukka Toivonen <toivonen@clinet.fi>
+    TiMidity++ -- MIDI to WAVE converter and player
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     w32g_c.c: written by Daisuke Aoki <dai@y7.net>
                          Masanao Izumo <mo@goice.co.jp>
@@ -98,6 +98,7 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...);
 ControlMode ctl=
 {
     "Win32 GUI interface", 'w',
+    "w32gui",
     1,1,0,
     CTLF_AUTOSTART | CTLF_DRAG_START,
     ctl_open,

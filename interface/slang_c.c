@@ -142,6 +142,7 @@ static void ctl_event(CtlEvent *e);
 ControlMode ctl=
 {
     "slang interface", 's',
+    "slang",
     1,0,0,
     0,
     ctl_open,

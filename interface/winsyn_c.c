@@ -1,7 +1,6 @@
-
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -16,8 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     winsyn_c.c - Windows synthesizer interface
         Copyright (c) 2002 2003 Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
@@ -26,7 +24,6 @@
         alsaseq_c.c - ALSA sequencer server interface
             Copyright (c) 2000  Takashi Iwai <tiwai@suse.de>
         readmidi.c
-
 
     DESCRIPTION
     ===========
@@ -43,7 +40,7 @@
     TiMidity loads instruments dynamically at each time a PRM_CHANGE
     event is received.  It sometimes causes a noise.
     If you are using a low power machine, invoke timidity as follows:
-      % timidity -s 11025 -iW        (set sampling freq. to 11025Hz)
+      % timidity -s 11025 -iW       (set sampling freq. to 11025Hz)
     or
       % timidity -EFreverb=0 -iW    (disable MIDI reverb effect control)
 
@@ -53,6 +50,7 @@
     I use MIDI Yoke. It can freely be obtained MIDI-OX site
     (http://www.midiox.com).
 */
+
 //#define  USE_PORTMIDI 1
 //#define USE_GTK_GUI 1
 
@@ -105,6 +103,7 @@ static char readch(void);
 ControlMode ctl=
 {
     "Windows Synthesizer interface", 'W',
+    "winsyn",
     1,0,0,
     0,
     ctl_open,

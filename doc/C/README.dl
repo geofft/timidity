@@ -4,12 +4,12 @@
 loadable modules by using dynamic link module.
  Place the shared library 
 
- interface_<ID>.so
+ if_<NAME>.so
 
-on the SHARED_LIB_PATH directory. In this case <ID> is the interface's
-ID that are specified at `-i' option.
+on the SHARED_LIB_PATH directory. In this case <NAME> is the interface's
+short name to be identified.
  TiMidity++ requires to this shared library the following function:
- (the <ID> is the same as above)
+ (In this case <ID> is the interface's ID that are specified at `-i' option.)
 
 ControlMode* interface_<ID>_loader(void)
 {
@@ -20,13 +20,13 @@ ControlMode* interface_<ID>_loader(void)
 }
 
  If the dynamic interface that are specified at -i<ID>, TiMidity++
-loads interface_<ID>.so at the SHARED_LIB_PATH (this is the macro specified
+loads if_<NAME>.so at the SHARED_LIB_PATH (this is the macro specified
 in the Makefile) and calls a function in the shared library
 interface_<ID>_loader().
 
  If a file
 
- interface_<ID>.txt
+ if_<NAME>.txt
 
 describing the information about the interface by 1 line is in the
 SHARED_LIB_PATH, TiMidity++ displays this information when `-h'

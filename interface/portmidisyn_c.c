@@ -1,7 +1,6 @@
-
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -13,11 +12,10 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     portmidisyn_c.c - PortMIDI synthesizer interface
         Copyright (c) 2003 Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
@@ -26,7 +24,6 @@
         alsaseq_c.c - ALSA sequencer server interface
             Copyright (c) 2000  Takashi Iwai <tiwai@suse.de>
         readmidi.c
-
 
     DESCRIPTION
     ===========
@@ -43,23 +40,21 @@
     TiMidity loads instruments dynamically at each time a PRM_CHANGE
     event is received.  It sometimes causes a noise.
     If you are using a low power machine, invoke timidity as follows:
-      % timidity -s 11025 -iP        (set sampling freq. to 11025Hz)
+      % timidity -s 11025 -iP       (set sampling freq. to 11025Hz)
     or
       % timidity -EFreverb=0 -iP    (disable MIDI reverb effect control)
 
     TiMidity keeps all loaded instruments during executing.
 
     To use TiMidity as output device, you need a MIDI loopback device.
-	(for windows)
-      I use MIDI Yoke. It can freely be obtained MIDI-OX site
+    (for windows)
+      I use MIDI Yoke.  It can freely be obtained MIDI-OX site
       (http://www.midiox.com).
-	(for ALSA)
-      You can easily meke it. See MIDI router section 
+    (for ALSA)
+      You can easily meke it.  See MIDI router section
       of Alsa 0.9.0 howto
-	  (http://www.suse.de/~mana/alsa090_howto.html#sect05 ).
-
+      (http://www.suse.de/~mana/alsa090_howto.html#sect05 ).
 */
-
 
 //#define  USE_PORTMIDI 1
 //#define USE_GTK_GUI 1
@@ -113,6 +108,7 @@ static char readch(void);
 ControlMode ctl=
 {
     "PortMIDI Synthesizer interface", 'P',
+    "portmidisyn",
     1,0,0,
     0,
     ctl_open,

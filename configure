@@ -16054,7 +16054,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_n.\$(so)"
+  dynamic_targets="$dynamic_targets if_ncurses.\$(so)"
    n_so_libs="$lib_curses_opt"
     case "$target" in
        *-*-freebsd123*)
@@ -16329,7 +16329,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_s.\$(so)"
+  dynamic_targets="$dynamic_targets if_slang.\$(so)"
    s_so_libs="-lslang"
     echo "$as_me:$LINENO: checking for initscr in -ltermcap" >&5
 echo $ECHO_N "checking for initscr in -ltermcap... $ECHO_C" >&6
@@ -16459,7 +16459,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_m.\$(so)"
+  dynamic_targets="$dynamic_targets if_motif.\$(so)"
    if test x$have_xprelibs = xyes; then
       m_so_libs="-lXext -lSM -lICE"
     fi
@@ -16684,7 +16684,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_k.\$(so)"
+  dynamic_targets="$dynamic_targets if_tcltk.\$(so)"
    k_so_libs="$tcl_libdir $tk_libdir $tcl_lib $tk_lib $lib_dl_opt"
     case "$target" in
       *-*-bsdi*)
@@ -16747,7 +16747,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_e.\$(so)"
+  dynamic_targets="$dynamic_targets if_emacs.\$(so)"
    ELFILES="$ELFILES timidity.el"
   ;;
 *)
@@ -16791,7 +16791,7 @@ fi
    INTERFACE_SRCS="$INTERFACE_SRCS vt100_c.c vt100.c"
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_T.\$(so)"
+  dynamic_targets="$dynamic_targets if_vt100.\$(so)"
 
   ;;
 *)
@@ -16863,7 +16863,7 @@ _ACEOF
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_a.\$(so)"
+  dynamic_targets="$dynamic_targets if_xaw.\$(so)"
    if test "x$have_xext" = xyes; then
       a_so_libs="-lXext -lX11"
     else
@@ -16946,7 +16946,7 @@ fi
    INTERFACE_SRCS="$INTERFACE_SRCS xskin_c.c xskin_i.c xskin_loadBMP.c xskin_spectrum.c"
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_i.\$(so)"
+  dynamic_targets="$dynamic_targets if_xskin.\$(so)"
    i_so_libs="$ldflags_x_opt -lX11"
   ;;
 *)
@@ -17618,7 +17618,7 @@ done
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_g.\$(so)"
+  dynamic_targets="$dynamic_targets if_gtk.\$(so)"
    if test "x$GCC" = xyes; then
 		for i in $GTK_LIBS; do
 	    case "x$i" in
@@ -17829,7 +17829,7 @@ done
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_r.\$(so)"
+  dynamic_targets="$dynamic_targets if_server.\$(so)"
 
   ;;
 *)
@@ -18220,7 +18220,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_A.\$(so)"
+  dynamic_targets="$dynamic_targets if_alsaseq.\$(so)"
 
   ;;
 *)
@@ -18264,7 +18264,7 @@ fi
    INTERFACE_SRCS="$INTERFACE_SRCS winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_W.\$(so)"
+  dynamic_targets="$dynamic_targets if_winsyn.\$(so)"
 
   ;;
 *)
@@ -18308,7 +18308,7 @@ fi
    INTERFACE_SRCS="$INTERFACE_SRCS portmidisyn_c.c rtsyn_common.c rtsyn_portmidi.c"
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_P.\$(so)"
+  dynamic_targets="$dynamic_targets if_portmidisyn.\$(so)"
 
   ;;
 *)
@@ -18375,7 +18375,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_W.\$(so)"
+  dynamic_targets="$dynamic_targets if_winsyng.\$(so)"
 
   ;;
 *)
@@ -18443,7 +18443,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_w.\$(so)"
+  dynamic_targets="$dynamic_targets if_w32gui.\$(so)"
 
   ;;
 *)
@@ -18718,7 +18718,7 @@ fi
 
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_p.\$(so)"
+  dynamic_targets="$dynamic_targets if_ump.\$(so)"
 
   ;;
 *)

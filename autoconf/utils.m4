@@ -39,7 +39,7 @@ xyes)
   $6
   ;;
 xdynamic)
-  dynamic_targets="$dynamic_targets interface_$3.\$(so)"
+  dynamic_targets="$dynamic_targets if_$1.\$(so)"
   $7
   ;;
 *)

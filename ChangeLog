@@ -1,6 +1,17 @@
+2004-10-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* configure, autoconf/utils.m4, doc/{C,ja_JP.eucJP}/readme.dl,
+	  interface/Makefile.{am,in},interface/{dumb,ncurs,slang,motif,tk,
+	  emacs,vt100,xaw,xskin,dynamic,mac,gtk,server,alsaseq,w32g,winsyn,
+	  portmidisyn}_c.c, timidity/controls.h, timidity/timiidty.c:
+	  Fix to fit with case-insensitive file system
+	* interface/interface_[nsmkeTaigA].txt: remove
+	* interface/if_{ncurses,slang,motif,tcltk,emacs,vt100,xaw,xskin,
+	  gtk,alsaseq}.txt: add
+
 2004-10-21  Henrique de Moraes Holschuh <hmh@debian.org>
 
-	* timidity/mod2midi.c (Voice_Play,Voice_SetPeriod):
+	* timidity/mod2midi.c (Voice_Play, Voice_SetPeriod):
 	  improve the code path when period2note returns -1
 
 2004-10-21  Eric A. Welsh <ewelsh@ccb.wustl.edu>
@@ -18,7 +29,7 @@
 	* timidity/mod2midi.c: Change all VERB_NORMAL and VERB_VERBOSE
 	  messages to VERB_NOISY.
 
-2004-10-17  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-10-17  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* libunimod/mloader.c (SL_LoadSamples): too many arguments to
 	  function `FreeSampleList'
@@ -26,10 +37,10 @@
 	  time.h and sys/time.h
 	* timidity/aq.c: fix wrong prototype (int -> void)
 	* timidity/wrd_read.c: #ifdef-out unknown pragma
-	* configure.in, timidity/timidity.c : no need of <stdbool.h>
-	* timidity/Makefile.am : bug fix
+	* configure.in, timidity/timidity.c: no need of <stdbool.h>
+	* timidity/Makefile.am: bug fix
 
-2004-10-14  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-10-14  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* interface/w32g_i.c (MPanelMessageHaveMesssage): fix typo
 	* autoconf/alsa.m4, autoconf/ao.m4, autoconf/arts.m4,
@@ -43,29 +54,28 @@
 	* interface/mac_c.c, interface/wrdt_mac.c, timidity/wrd.h,
 	  utils/support.c: Fixes to compile on Mac OS.
 
-2004-10-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-10-03  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* NEWS: Add new entry for 2.13.2
 	* configure.in: Change version to 2.13.2
 
-2004-10-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-10-02  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
-	* interface/wrdt_wcon.c : Fix double definition of print_ecmd()
+	* interface/wrdt_wcon.c: Fix double definition of print_ecmd()
 	* timidity/timidity.c (main): s/strcat/strncat/;
 
-2004-09-29  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-29  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* NEWS: Add new entry for 2.13.1
 
-2004-09-28  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-28  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: Change version to 2.13.1
 
-2004-09-27  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-27  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* utils/support.c (vsnprintf): ensure snpritnf() to return a
 	  \0-terminated string
-
 	* interface/mac_c.c, interface/server_c.c, interface/w32g_c.c,
 	  interface/w32g_i.c, interface/wrdt_dumb.c, interface/wrdt_mac.c,
 	  interface/wrdt_tty.c, interface/wrdt_w32g.c, interface/xaw_i.c,
@@ -74,7 +84,7 @@
 	  timidity/sun_a.c, timidity/timidity.c, timidity/wrdt_read.c:
 	  Fix to use strn* functinos.
 
-2004-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-23  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* utils/support.h: ditto
 	* utils/support.c: ditto
@@ -84,7 +94,7 @@
 
 	* timidity/resample.c: Reimplement bounds cheking
 
-2004-09-09  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-09  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* interface/gtk_c.c (ctl_total_time): ditto.
 	* interface/gtk_i.c (handle_input): Fix counter overflow

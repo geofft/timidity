@@ -133,6 +133,7 @@ static void ctl_event(CtlEvent *e);
 ControlMode ctl=
 {
     "vt100 interface", 'T',
+    "vt100",
     1,0,0,
     0,
     ctl_open,

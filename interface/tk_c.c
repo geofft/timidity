@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,22 +15,18 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+    The Tcl/Tk interface for Timidity
+    written by Takashi Iwai (iwai@dragon.mm.t.u-tokyo.ac.jp)
+
+    Most of the following codes are derived from both motif_ctl.c
+    and motif_pipe.c.  The communication between Tk program and
+    timidity is established by a pipe stream as in Motif interface.
+    On the contrast to motif, the stdin and stdout are assigned
+    as pipe i/o in Tk interface.
 */
 
-/*================================================================
- *
- * The Tcl/Tk interface for Timidity
- * written by Takashi Iwai (iwai@dragon.mm.t.u-tokyo.ac.jp)
- *
- * Most of the following codes are derived from both motif_ctl.c
- * and motif_pipe.c.  The communication between Tk program and
- * timidity is established by a pipe stream as in Motif interface.
- * On the contrast to motif, the stdin and stdout are assigned
- * as pipe i/o in Tk interface.
- *
- *================================================================*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -146,6 +142,7 @@ typedef struct {
 ControlMode ctl=
 {
     "Tcl/Tk interface", 'k',
+    "tcltk",
     1,0,0,
     0,
     ctl_open,

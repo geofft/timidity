@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 #ifdef HAVE_CONFIG_H
@@ -43,7 +43,7 @@
 
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
-extern char *dynamic_interface_module(int id);
+extern char *dynamic_interface_module(char *name);
 static void ctl_event(){} /* Do nothing */
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void *libhandle;
@@ -52,6 +52,7 @@ static void (* ctl_close_hook)(void);
 ControlMode dynamic_control_mode =
 {
     "Dynamic interface", 0,
+    "\0",
     1,0,0,0,
     ctl_open, ctl_close, NULL, NULL, cmsg, ctl_event,
 };
@@ -85,13 +86,15 @@ static int ctl_open(int using_stdin, int using_stdout)
     char *path;
     char buff[256];
     int id;
+    char name[16];
 
     if(dynamic_control_mode.opened)
 	return 0;
     dynamic_control_mode.opened = 1;
 
     id = dynamic_control_mode.id_character;
-    path = dynamic_interface_module(id);
+    name = dynamic_control_mode.id_short_name;
+    path = dynamic_interface_module(name);
     if(path == NULL)
     {
 	fprintf(stderr, "FATAL ERROR: dynamic_c.c: ctl_open()\n");

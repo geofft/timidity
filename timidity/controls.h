@@ -128,6 +128,7 @@ typedef struct _CtlEvent {
 
 typedef struct {
   char *id_name, id_character;
+  char *id_short_name;
   int verbosity, trace_playing, opened;
 
   int32 flags;

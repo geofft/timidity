@@ -186,6 +186,7 @@ static void ctl_pass_playing_list(int n, char *args[]);
 ControlMode ctl=
 {
     "remote interface", 'r',
+    "server",
     1,0,0,
     0,
     ctl_open,
