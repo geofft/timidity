@@ -491,8 +491,9 @@ AC_CHECK_FUNCS( \
   strtol \
   usleep])
 AC_CHECK_FUNC(getopt_long,
-	 [],
-	 AM_CONDITIONAL([NEEDGETOPT],true))
+	 tm_cv_needgetopt="no",
+	 tm_cv_needgetopt="yes")
+AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
 # Checks on cygnus
 if test "x$CYGNUS" = xyes; then
