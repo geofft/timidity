@@ -1102,7 +1102,7 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 	int32 tmpL, tmpR;
 	double time, samplerate = play_mode->rate;
 
-	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character)
+	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) * 3.0f
 		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
 
 	for(i = 0; i < numcombs; i++)
@@ -1179,6 +1179,8 @@ static void update_freeverb(InfoFreeverb *rev)
 
 	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
 	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
+
+	set_delay(&(rev->pdelay), (double)reverb_status.pre_delay_time * play_mode->rate / 1000.0f);
 }
 
 static void init_freeverb(InfoFreeverb *rev)
@@ -1243,6 +1245,7 @@ static void free_freeverb_buf(InfoFreeverb *rev)
 			rev->allpassR[i].buf = NULL;
 		}
 	}
+	free_delay(&(rev->pdelay));
 }
 
 #if OPT_MODE != 0	/* fixed-point implementation */
@@ -1274,12 +1277,15 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 	int32 outl, outr, input;
 	comb *combL = rev->combL, *combR = rev->combR;
 	allpass *allpassL = rev->allpassL, *allpassR = rev->allpassR;
+	delay *pdelay = &(rev->pdelay);
 
 	for (k = 0; k < count; k++)
 	{
 		outl = outr = 0;
 		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
 		reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+
+		do_delay(input, pdelay->buf, pdelay->size, pdelay->index);
 
 		for (i = 0; i < numcombs; i++) {
 			do_freeverb_comb(input, outl, combL[i].buf, combL[i].size, combL[i].index,

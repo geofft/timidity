@@ -248,6 +248,7 @@ typedef struct {
 #define numallpasses 4
 
 typedef struct {
+	delay pdelay;
 	double roomsize, roomsize1, damp, damp1, wet, wet1, wet2, width;
 	comb combL[numcombs], combR[numcombs];
 	allpass allpassL[numallpasses], allpassR[numallpasses];

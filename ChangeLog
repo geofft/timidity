@@ -1,3 +1,8 @@
+2004-02-13  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch]:
+	  Adjust freeverb.
+
 2004-02-13  mput  <root@mput.dip.jp>
 
 	* timidity/optcode.h (d2i): remove
