@@ -217,14 +217,24 @@ void rtsyn_normal_modeset(){
 #ifdef USE_WINSYN_TIMER_I
 #ifdef __W32__
 VOID CALLBACK timercalc(UINT uTimerID, UINT uMsg, DWORD dwUser, DWORD dummy1, DWORD dummy2){
-		MidiEvent ev;
+	MidiEvent ev;
+	double time_div, currenttime;
 	
-		rtsyn_mutex_lock(timerMUTEX);
-		ev.type = ME_NONE;
-		seq_set_time(&ev);
-		play_event(&ev);
-		aq_fill_nonblocking();
-		rtsyn_mutex_unlock(timerMUTEX);
+	rtsyn_mutex_lock(timerMUTEX);
+	currenttime=get_current_calender_time();
+	time_div=currenttime-starttime;
+	if( time_div > (play_mode->rate)/TICKTIME_HZ){
+		time_div=(play_mode->rate)/TICKTIME_HZ-3;
+	}
+	ev.time= ((double)current_sample
+			+ (play_mode->rate)*time_div+0.5);
+	starttime=currenttime;
+	ev.type = ME_NONE;
+	play_event(&ev);
+//	compute_data(tmdy_struct,(tmdy_struct->output->play_mode->rate)*time_div);
+	aq_fill_nonblocking();
+	rtsyn_reachtime=currenttime +  (double)(1.0f/TICKTIME_HZ);
+	rtsyn_mutex_unlock(timerMUTEX);
 	return;
 }
 #else
@@ -394,6 +404,21 @@ extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
 extern int volatile stream_max_compute;
 
+
+static void seq_set_time(MidiEvent *ev)
+{
+	double currenttime, time_div;
+	
+	currenttime=get_current_calender_time();
+	time_div=currenttime-starttime;
+	ev->time=((double) current_sample
+			+ (play_mode->rate)*time_div+0.5);
+	starttime=currenttime;
+	
+	rtsyn_reachtime=currenttime +  (double)(1.0f/TICKTIME_HZ);
+}
+
+#if 0
 static void seq_set_time(MidiEvent *ev)
 {
 	double past_time,btime;
@@ -426,6 +451,7 @@ static void seq_set_time(MidiEvent *ev)
 	aq_set_soft_queue(btime, 0.0);
 #endif
 }
+#endif
 
 void rtsyn_play_calculate(){
 	MidiEvent ev;
