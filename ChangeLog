@@ -1,5 +1,6 @@
 2004-10-14  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* interface/w32g_i.c (MPanelMessageHaveMesssage): fix typo
 	* autoconf/alsa.m4, autoconf/ao.m4, autoconf/arts.m4,
 	  autoconf/esd.m4, autoconf/gtk-2.0.m4, autoconf/gtk.m4,
 	  autoconf/libFLAC.m4, autoconf/libOggFLAC.m4, autoconf/ogg.m4,
