@@ -1,3 +1,9 @@
+2003-12-04  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.[ch], timidity/playmidi.c:
+	  Fasten initialization of Insertion Effect.
+	  Implement new LPF for System Effect.
+
 2003-12-03  Saito <saito2@digitalme.com>
 
 	* interface/w32g_res.rc:

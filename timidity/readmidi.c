@@ -4321,15 +4321,6 @@ char *event2string(int id)
     return string_event_table[id];
 }
 
-/*! fixed filter cutoff frequency for GS system effects in Hz. */
-#define SYSTEM_EFFECT_LPF_FC 110
-
-/*! highpass shelving filter gain table for GS system effects in decibels.
-    every value is negative or 0, so that this filter works as a sort of lowpass-filter. */
-FLOAT_T gs_system_effect_hsf_gain_table[8] = {
-	0, -1.9, -4.0, -6.5, -9.0, -12.0, -16.5, -24.0
-};
-
 void init_delay_status()
 {
 	delay_status.type = 0;
@@ -4366,9 +4357,8 @@ void recompute_delay_status()
 	}
 
 	if(delay_status.pre_lpf) {
-		dBGain = gs_system_effect_hsf_gain_table[delay_status.pre_lpf];
-		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(delay_status.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
+		delay_status.lpf.freq = (double)(7 - delay_status.pre_lpf) / 7 * 7000 + 350;
+		calc_filter_iir1_lowpass(&(delay_status.lpf));
 	}
 }
 
@@ -4406,9 +4396,8 @@ void recompute_reverb_status()
 	reverb_status.time_ratio = (double)reverb_status.time / 128.0f + 0.5f;
 
 	if(reverb_status.pre_lpf) {
-		dBGain = gs_system_effect_hsf_gain_table[reverb_status.pre_lpf];
-		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(reverb_status.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
+		reverb_status.lpf.freq = (double)(7 - reverb_status.pre_lpf) / 7 * 7000 + 350;
+		calc_filter_iir1_lowpass(&(reverb_status.lpf));
 	}
 }
 
@@ -4456,9 +4445,8 @@ void recompute_chorus_status()
 	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
 
 	if(chorus_param.chorus_pre_lpf) {
-		dBGain = gs_system_effect_hsf_gain_table[chorus_param.chorus_pre_lpf];
-		/* calculate highpass shelving filter's coefficients */
-		calc_highshelf_coefs(chorus_param.high_coef, SYSTEM_EFFECT_LPF_FC, dBGain, play_mode->rate);
+		chorus_param.lpf.freq = (double)(7 - chorus_param.chorus_pre_lpf) / 7 * 7000 + 350;
+		calc_filter_iir1_lowpass(&(chorus_param.lpf));
 	}
 }
 
@@ -4740,6 +4728,7 @@ void set_insertion_effect_default_parameter()
 static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 {
 	InfoEQ2 *eq = (InfoEQ2 *)safe_malloc(sizeof(InfoEQ2));
+	memset(eq, 0, sizeof(InfoEQ2));
 
 	eq->high_freq = 4000;
 	eq->high_gain = ieffect->parameter[16] - 0x40;
@@ -4753,6 +4742,7 @@ static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect)
 {
 	InfoOverdrive1 *od = (InfoOverdrive1 *)safe_malloc(sizeof(InfoOverdrive1));
+	memset(od, 0, sizeof(InfoOverdrive1));
 
 	od->level = (double)ieffect->parameter[19] / 127.0;
 	od->drive = ieffect->parameter[0];
@@ -4765,6 +4755,7 @@ static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect)
 static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect)
 {
 	InfoOD1OD2 *od = (InfoOD1OD2 *)safe_malloc(sizeof(InfoOD1OD2));
+	memset(od, 0, sizeof(InfoOD1OD2));
 
 	od->level = (double)ieffect->parameter[19] / 127.0;
 	od->levell = (double)ieffect->parameter[16] / 127.0;
@@ -4779,8 +4770,8 @@ static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect)
 	return od;
 }
 
-/*! recompute GS insertion effect parameters. */
-void recompute_insertion_effect()
+/*! re-allocate GS insertion effect parameters. */
+void realloc_insertion_effect()
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
 
@@ -4800,6 +4791,20 @@ void recompute_insertion_effect()
 		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gs_ie_to_dual_od(st));
 		break;
 	default: break;
+	}
+}
+
+/*! recompute GS insertion effect parameters. */
+void recompute_insertion_effect()
+{
+	struct GSInsertionEffect *st = &gs_ieffect;
+	EffectList *efc = st->ef;
+
+	if(st->ef == NULL) {return;}
+	while(efc != NULL && efc->do_effect != NULL)
+	{
+		(*efc->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
+		efc = efc->next_ef;
 	}
 }
 

@@ -3012,8 +3012,10 @@ void midi_program_change(int ch, int prog)
 	}
 }
 
-static void process_sysex_event(int ev,int ch,int val,int b)
+static void process_sysex_event(int ev, int ch, int val, int b)
 {
+	int temp;
+
 	if(ev == ME_SYSEX_GS_LSB)
 	{
 		switch(b)
@@ -3256,11 +3258,16 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			break;
 		case 0x28:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
+			temp = gs_ieffect.type;
 			gs_ieffect.type_lsb = val;
 			gs_ieffect.type = ((int32)gs_ieffect.type_msb << 8) | (int32)gs_ieffect.type_lsb;
 			set_insertion_effect_default_parameter();
-			recompute_insertion_effect();
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",gs_ieffect.type_msb,gs_ieffect.type_lsb);
+			if(temp == gs_ieffect.type) {
+				recompute_insertion_effect();
+			} else {
+				realloc_insertion_effect();
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",gs_ieffect.type_msb,gs_ieffect.type_lsb);
+			}
 			break;
 		case 0x29:
 			gs_ieffect.parameter[0] = val;

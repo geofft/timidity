@@ -153,6 +153,7 @@ extern void recompute_reverb_status();
 extern void set_reverb_macro(int macro);
 extern void recompute_eq_status();
 extern void set_insertion_effect_default_parameter();
+extern void realloc_insertion_effect();
 extern void recompute_insertion_effect();
 
 extern void recompute_userdrum(int bank, int prog);

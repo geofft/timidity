@@ -61,18 +61,29 @@ typedef struct {
 	int type;	/* current content of its buffer */
 } lfo;
 
+/*! Moog VCF (resonant IIR state variable filter) */
 typedef struct {
-	int16 freq;	/* in Hz */
-	double res_dB; /* in dB */
+	int16 freq, last_freq;	/* in Hz */
+	double res_dB, last_res_dB; /* in dB */
 	int32 f, q, p;	/* coefficients in fixed-point */
 	int32 b0, b1, b2, b3, b4;
 } filter_moog;
 
+/*! LPF18 (resonant IIR lowpass filter with waveshaping distortion) */
 typedef struct {
-	int16 freq;	/* in Hz */
-	double dist, res; /* in linear */
+	int16 freq, last_freq;	/* in Hz */
+	double dist, res, last_dist, last_res; /* in linear */
 	double ay1, ay2, aout, lastin, kres, value, kp, kp1h;
 } filter_lpf18;
+
+/*! 1st order IIR lowpass / highpass filter for stereo */
+typedef struct {
+	int16 freq, last_freq;	/* in Hz */
+	int32 a0i, a1i, b1i;	/* coefficients in fixed-point */
+	int32 x1l, y1l, x1r, y1r;
+} filter_iir1;
+
+extern void calc_filter_iir1_lowpass(filter_iir1 *);
 
 enum {
 	LFO_NONE = 0,
@@ -95,8 +106,6 @@ enum {
 
 #define MAGIC_INIT_EFFECT_INFO -1
 #define MAGIC_FREE_EFFECT_INFO -2
-/* for future effects having real-time parameter change */
-#define MAGIC_RECALC_EFFECT_INFO -3
 
 typedef struct _EffectList {
 	int8 type;
@@ -219,9 +228,7 @@ struct delay_status_t
 	double feedback_ratio;
 	double send_reverb_ratio;
 
-	/* for (negative) highpass shelving filter */
-	int32 high_coef[5];
-	int32 high_val[8];
+	filter_iir1 lpf;
 };
 
 /* GS parameters of reverb effect */
@@ -239,9 +246,7 @@ struct reverb_status_t
 	double level_ratio;
 	double time_ratio;
 
-	/* for (negative) highpass shelving filter */
-	int32 high_coef[5];
-	int32 high_val[8];
+	filter_iir1 lpf;
 };
 
 /* GS parameters of chorus effect */
@@ -267,9 +272,7 @@ struct chorus_param_t
 	int32 depth_in_sample;
 	int32 delay_in_sample;
 
-	/* for (negative) highpass shelving filter */
-	int32 high_coef[5];
-	int32 high_val[8];
+	filter_iir1 lpf;
 };
 
 /* GS parameters of channel EQ */

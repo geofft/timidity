@@ -280,21 +280,23 @@ inline int32 do_lfo(lfo *lfo)
 void calc_filter_moog(filter_moog *svf)
 {
 	double res, fr, p, q, f;
-	res = pow(10, (svf->res_dB - 96) / 20);
-	fr = 2.0 * (double)svf->freq / (double)play_mode->rate;
-	q = 1.0 - fr;
-	p = fr + 0.8 * fr * q;
-	f = p + p - 1.0;
-	q = res * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
-	svf->f = TIM_FSCALE(f, 24);
-	svf->p = TIM_FSCALE(p, 24);
-	svf->q = TIM_FSCALE(q, 24);
-}
 
-/*! initialize Moog VCF */
-void init_filter_moog(filter_moog *p)
-{
-	memset(p, 0, sizeof(filter_moog));
+	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB) {
+		if(svf->last_freq == 0) {	/* clear delay-line */
+			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
+		}
+		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB;
+
+		res = pow(10, (svf->res_dB - 96) / 20);
+		fr = 2.0 * (double)svf->freq / (double)play_mode->rate;
+		q = 1.0 - fr;
+		p = fr + 0.8 * fr * q;
+		f = p + p - 1.0;
+		q = res * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
+		svf->f = TIM_FSCALE(f, 24);
+		svf->p = TIM_FSCALE(p, 24);
+		svf->q = TIM_FSCALE(q, 24);
+	}
 }
 
 /*! calculate LPF18 coefficients */
@@ -302,21 +304,67 @@ void calc_filter_lpf18(filter_lpf18 *p)
 {
 	double kfcn, kp, kp1, kp1h, kres, value;
 
-	kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
-	kp = ((-2.7528 * kfcn + 3.0429) * kfcn + 1.718) * kfcn - 0.9984;
-	kp1 = kp + 1.0;
-	kp1h = 0.5 * kp1;
-	kres = p->res * (((-2.7079 * kp1 + 10.963) * kp1 - 14.934) * kp1 + 8.4974);
-    value = 1.0 + (p->dist * (1.5 + 2.0 * kres * (1.0 - kfcn)));
+	if(p->freq != p->last_freq || p->dist != p->last_dist
+		|| p->res != p->last_res) {
+		if(p->last_freq == 0) {	/* clear delay-line */
+			p->ay1 = p->ay2 = p->aout = p->lastin = 0;
+		}
+		p->last_freq = p->freq, p->last_dist = p->dist, p->last_res = p->res;
 
-	p->kp = kp, p->kp1h = kp1h, p->kres = kres, p->value = value;
+		kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
+		kp = ((-2.7528 * kfcn + 3.0429) * kfcn + 1.718) * kfcn - 0.9984;
+		kp1 = kp + 1.0;
+		kp1h = 0.5 * kp1;
+		kres = p->res * (((-2.7079 * kp1 + 10.963) * kp1 - 14.934) * kp1 + 8.4974);
+		value = 1.0 + (p->dist * (1.5 + 2.0 * kres * (1.0 - kfcn)));
+
+		p->kp = kp, p->kp1h = kp1h, p->kres = kres, p->value = value;
+	}
 }
 
-/*! initialize LPF18 */
-void init_filter_lpf18(filter_lpf18 *p)
+/*! calculate 1st order IIR lowpass filter coefficients */
+void calc_filter_iir1_lowpass(filter_iir1 *p)
 {
-	memset(p, 0, sizeof(filter_lpf18));
+	double freq, norm, w = 2.0 * (double)play_mode->rate, b1, a0, a1;
+
+	if(p->freq != p->last_freq) {
+		if(p->last_freq == 0) {	/* clear delay-line */
+			p->x1l = p->y1l = p->x1r = p->y1r = 0;
+		}
+		p->last_freq = p->freq;
+
+		freq = p->freq;
+		freq *= 2.0 * M_PI;
+		norm = 1.0 / (freq + w);
+		b1 = (w - freq) * norm;
+		a0 = a1 = freq * norm;
+
+		p->a0i = TIM_FSCALE(a0, 24);
+		p->a1i = TIM_FSCALE(a1, 24);
+		p->b1i = TIM_FSCALE(b1, 24);
+	}
 }
+
+/*! 1st order IIR lowpass filter */
+void do_filter_iir1_lowpass_stereo(int32 *buf, int32 count, filter_iir1 *p)
+{
+	int32 i, a0, b1, x1l, y1l, x1r, y1r, input;
+
+	a0 = p->a0i, b1 = p->b1i, x1l = p->x1l, y1l = p->y1l, x1r = p->x1r, y1r = p->y1r;
+	for(i = 0; i < count; i++) {
+		/* left */
+		input = buf[i];
+		y1l = buf[i] = imuldiv24(input + x1l, a0) + imuldiv24(y1l, b1);
+		x1l = input;
+
+		/* right */
+		input = buf[++i];
+		y1r = buf[i] = imuldiv24(input + x1r, a0) + imuldiv24(y1r, b1);
+		x1r = input;
+	}
+	p->x1l = x1l, p->y1l = y1l, p->x1r = x1r, p->y1r = y1r;
+}
+
 
 #if OPT_MODE != 0
 #if _MSC_VER
@@ -475,8 +523,7 @@ void do_ch_reverb(int32 *buf, int32 count)
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 1) && reverb_status.pre_lpf)
-		do_shelving_filter(effect_buffer, count, reverb_status.high_coef,
-		reverb_status.high_val);
+		do_filter_iir1_lowpass_stereo(effect_buffer, count, &(reverb_status.lpf));
 	if (opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 2)
@@ -608,10 +655,12 @@ void do_3tap_delay(int32* buf, int32 count);
 void init_ch_delay()
 {
 #ifdef USE_DSP_EFFECT
-	memset(delay_buf0_L,0,sizeof(delay_buf0_L));
-	memset(delay_buf0_R,0,sizeof(delay_buf0_R));
-	memset(delay_effect_buffer,0,sizeof(delay_effect_buffer));
-	memset(delay_status.high_val,0,sizeof(delay_status.high_val));
+	memset(delay_buf0_L, 0, sizeof(delay_buf0_L));
+	memset(delay_buf0_R, 0, sizeof(delay_buf0_R));
+	memset(delay_effect_buffer, 0, sizeof(delay_effect_buffer));
+	/* clear delay-line of LPF */
+	delay_status.lpf.last_freq = 0;
+	calc_filter_iir1_lowpass(&(delay_status.lpf));
 
 	delay_wpt0 = 0;
 	delay_spt0 = 0;
@@ -626,8 +675,7 @@ void do_ch_delay(int32 *buf, int32 count)
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 1) && delay_status.pre_lpf)
-		do_shelving_filter(delay_effect_buffer, count, delay_status.high_coef,
-				delay_status.high_val);
+		do_filter_iir1_lowpass_stereo(delay_effect_buffer, count, &(delay_status.lpf));
 	switch (delay_status.type) {
 	case 1:
 		do_3tap_delay(buf, count);
@@ -944,7 +992,9 @@ void init_ch_chorus()
 	memset(chorus_buf0_L, 0, sizeof(chorus_buf0_L));
 	memset(chorus_buf0_R, 0, sizeof(chorus_buf0_R));
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
-	memset(chorus_param.high_val, 0, sizeof(chorus_param.high_val));
+	/* clear delay-line of LPF */
+	chorus_param.lpf.last_freq = 0;
+	calc_filter_iir1_lowpass(&(chorus_param.lpf));
 
 	chorus_cnt0 = chorus_wpt0 = chorus_wpt1 = 0;
 	chorus_spt0 = chorus_spt1 = chorus_hist0 = chorus_hist1 = 0;
@@ -1079,8 +1129,8 @@ void do_ch_chorus(int32 *buf, int32 count)
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x100)
 			|| opt_effect_quality >= 1) && chorus_param.chorus_pre_lpf)
-		do_shelving_filter(chorus_effect_buffer, count, chorus_param.high_coef,
-				chorus_param.high_val);
+		do_filter_iir1_lowpass_stereo(chorus_effect_buffer, count, &(chorus_param.lpf));
+
 	do_stereo_chorus(buf, count);
 }
 #endif /* USE_DSP_EFFECT */
@@ -1833,7 +1883,9 @@ static void do_freeverb(int32 *buf, int32 count)
 void init_reverb(int32 output_rate)
 {
 	sample_rate = output_rate;
-	memset(reverb_status.high_val, 0, sizeof(reverb_status.high_val));
+	/* clear delay-line of LPF */
+	reverb_status.lpf.last_freq = 0;
+	calc_filter_iir1_lowpass(&(reverb_status.lpf));
 	/* Only initialize freeverb if stereo output */
 	/* Old non-freeverb must be initialized for mono reverb not to crash */
 	if (! (play_mode->encoding & PE_MONO)
@@ -1997,7 +2049,6 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* set parameters of decompositor */
-		init_filter_moog(svf);
 		svf->freq = 500;
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
@@ -2005,7 +2056,6 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		/* ideally speaking:
 		   lpf->res = table_res[drive];
 		   lpf->dist = table_dist[drive]; */
-		init_filter_lpf18(lpf);
 		lpf->freq = 7000;
 		lpf->res = 0.1;
 		lpf->dist = 1.0 * ((double)info->drive / 127.0);
@@ -2062,7 +2112,6 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* set parameters of decompositor */
-		init_filter_moog(svf);
 		svf->freq = 500;
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
@@ -2070,7 +2119,6 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		/* ideally speaking:
 		   lpf->res = table_res[drive];
 		   lpf->dist = table_dist[drive]; */
-		init_filter_lpf18(lpf);
 		lpf->freq = 7000;
 		lpf->res = 0.2;
 		lpf->dist = 1.0 * ((double)info->drive / 127.0) + 0.2;
@@ -2134,12 +2182,10 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* left */
 		/* set parameters of decompositor */
-		init_filter_moog(svfl);
 		svfl->freq = 500;
 		svfl->res_dB = 0;
 		calc_filter_moog(svfl);
 		/* set parameters of waveshaper */
-		init_filter_lpf18(lpfl);
 		lpfl->freq = 7000;
 		if(info->typel == 0) {	/* Overdrive */
 			lpfl->res = 0.1;
@@ -2152,12 +2198,10 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		info->levelli = TIM_FSCALE(info->levell * info->level, 24);
 		/* right */
 		/* set parameters of decompositor */
-		init_filter_moog(svfr);
 		svfr->freq = 500;
 		svfr->res_dB = 0;
 		calc_filter_moog(svfr);
 		/* set parameters of waveshaper */
-		init_filter_lpf18(lpfr);
 		lpfr->freq = 7000;
 		if(info->typer == 0) {	/* Overdrive */
 			lpfr->res = 0.1;
