@@ -1,3 +1,8 @@
+2003-11-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/tables.c:
+	  Adjust mean-tone tuning (Salinas) in a stricter theory
+
 2003-11-10  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/resample.c (set_resampler_parm): -N for Newton

@@ -115,14 +115,14 @@ void init_freq_table_meantone(void)
 	major_ratio[10] = 4 / pow(5.0, 1.0 / 2);
 	major_ratio[11] = pow(5.0, 5.0 / 4) / 4;
 	minor_ratio[0] = 1;
-	minor_ratio[1] = 8 / pow(10.0 / 3, 5.0 / 3);
+	minor_ratio[1] = pow(10.0 / 3, 7.0 / 3) / 16;
 	minor_ratio[2] = pow(10.0 / 3, 2.0 / 3) / 2;
-	minor_ratio[3] = 6.0 / 5;
+	minor_ratio[3] = 125.0 / 108;
 	minor_ratio[4] = pow(10.0 / 3, 4.0 / 3) / 4;
 	minor_ratio[5] = 2 / pow(10.0 / 3, 1.0 / 3);
 	minor_ratio[6] = 25.0 / 18;
 	minor_ratio[7] = pow(10.0 / 3, 1.0 / 3);
-	minor_ratio[8] = 8 / pow(10.0 / 3, 4.0 / 3);
+	minor_ratio[8] = pow(10.0 / 3, 8.0 / 3) / 16;
 	minor_ratio[9] = 5.0 / 3;
 	minor_ratio[10] = 4 / pow(10.0 / 3, 2.0 / 3);
 	minor_ratio[11] = pow(10.0 / 3, 5.0 / 3) / 4;
