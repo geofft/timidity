@@ -9,7 +9,7 @@ int main(int argc, const char *argv[])
     int sign;
 	FILE *fp;
 
-#ifdef WIN32
+#if defined (IA_W32GUI) || defined (IA_W32G_SYN)
 	if (argc != 2)
 	{
 		fprintf(stderr, "usage: calcnewt <filename>\n");
@@ -46,7 +46,7 @@ int main(int argc, const char *argv[])
     	for (j = 0, sign = pow(-1, i); j <= i; j++, sign *= -1)
     	    newt_coeffs[i][j] *= sign;
 
-#ifndef WIN32
+#if ! defined (IA_W32GUI) && ! defined (IA_W32G_SYN)
     for (i = 0; i <= n; i++)
 	for (j = 0; j <= n; j++)
 	    printf("%2.32g,\n", newt_coeffs[i][j]);
