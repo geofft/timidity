@@ -8052,6 +8052,7 @@ int play_midi_file(char *fn)
 
 void dumb_pass_playing_list(int number_of_files, char *list_of_files[])
 {
+    #ifndef CFG_FOR_SF
     int i = 0;
 
     for(;;)
@@ -8081,6 +8082,7 @@ void dumb_pass_playing_list(int number_of_files, char *list_of_files[])
 		return;
 	}
     }
+    #endif
 }
 
 void default_ctl_lyric(int lyricid)

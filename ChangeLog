@@ -1,3 +1,8 @@
+2004-01-20  Kentaro Sato <kentaro@ranvis.com>
+
+	* interface/dumb_c.c, timidity/playmidi.c, sndfont.c:
+	  Added playnote calculation for cfgforsf (finished).
+
 2004-01-20  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.c:

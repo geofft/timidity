@@ -1660,16 +1660,17 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
      common.c  controls.c  dumb_c.c  instrum.c  sbkconv.c  sffile.c
      sfitem.c  sndfont.c  tables.c  version.c
      utils/  libarc/
+  additional sources (for -f option)
+     filter.c  freq.c  resample.c
 
   MACRO
       CFG_FOR_SF
 
  *********************************************************************/
 
-#include <ctype.h>
 #include "freq.h"
 
-#define CFG_FOR_SF_SUPPORT_FFT	0
+#define CFG_FOR_SF_SUPPORT_FFT	1
 
 static FILE *x_out;
 static char x_sf_file_name[1024];
@@ -1825,7 +1826,6 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 	return 0;
 }
 
-int32 control_ratio = 1;
 PlayMode dpm = {
     DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
     -1,
@@ -1845,8 +1845,7 @@ FLOAT_T bend_coarse[1];
 void pre_resample(Sample *sp) {}
 void antialiasing(int16 *data, int32 data_length,int32 sample_rate, int32 output_rate) {}
 #endif
-char *event2string(int id) { return NULL; }
-int check_apply_control(void) { return 0; }
+
 char *wrdt = NULL; /* :-P */
 
 #ifdef WIN32
@@ -1867,7 +1866,6 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
   return 0;
 }
 static void ctl_event(CtlEvent *e) {}
-void dumb_pass_playing_list(int number_of_files, char *list_of_files[]) {}
 ControlMode w32gui_control_mode =
 {
 	"w32gui interface", 'd',
@@ -1923,7 +1921,7 @@ static struct URL_module *url_module_list[] =
     NULL
 };
 
-static void cfgforsf_usage(int status)
+static void cfgforsf_usage(const char *program_name, int status)
 {
 	printf(
 "USAGE: %s [options] soundfont [cfg_output]\n"
@@ -1953,6 +1951,8 @@ int main(int argc, char **argv)
 	int initial = 0;
 	#if CFG_FOR_SF_SUPPORT_FFT
 	uint8 fft_range[128 * 128 / 8];
+	int8 x_playnote[128 + 1];
+	char playnote_str[272], *p;	/* ,0,1,3,4,6,7,9,10,...,126,127 */
 	#endif
 	const char *program_name;
 
@@ -1971,7 +1971,7 @@ int main(int argc, char **argv)
 			#if CFG_FOR_SF_SUPPORT_FFT
 			case 'f': case 'F':
 				if(argc < 3)
-					cfgforsf_usage(EXIT_FAILURE);
+					cfgforsf_usage(program_name, EXIT_FAILURE);
 				else {
 					const char *mask_string;
 					int8 mask[128];
@@ -2011,12 +2011,12 @@ int main(int argc, char **argv)
 			#endif
 			default:
 				fprintf(stderr, "Error: Invalid option %s.\n", argv[0]);
-				cfgforsf_usage(EXIT_FAILURE);
+				cfgforsf_usage(program_name, EXIT_FAILURE);
 		}
 		argc--, argv++;
 	}
-	if(argc <= 0)
-		cfgforsf_usage(EXIT_SUCCESS);
+	if(argc <= 0 || argc > 2)
+		cfgforsf_usage(program_name, EXIT_SUCCESS);
 	x_out = (argc < 2) ? stdout : fopen(argv[1], "w");
 	if (x_out == NULL) {
 		fprintf(stderr, "Error: Unable to open %s.\n", argv[1]);
@@ -2027,6 +2027,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: -f option should be used with -s option.\n");
 		exit(EXIT_FAILURE);
 	}
+	memset(x_playnote, -1, sizeof x_playnote);
 	#endif
 	ctl->verbosity = -1;
 #ifdef SUPPORT_SOCKET
@@ -2039,6 +2040,11 @@ int main(int argc, char **argv)
 #endif /* SUPPORT_SOCKET */
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
+	init_freq_tables();
+	init_bend_fine();
+	init_bend_coarse();
+	initialize_resampler_coeffs();
+	control_ratio = play_mode->rate / CONTROLS_PER_SECOND;
 	strncpy(x_sf_file_name, argv[0], 1024);
     sf = new_soundfont(x_sf_file_name);
     sf->next = NULL;
@@ -2075,7 +2081,7 @@ int main(int argc, char **argv)
 		}
 	}
 	for(x_preset=0;x_preset<=127;x_preset++){
-		int flag = 0;
+		int flag = 0, start;
 		for(x_keynote=0;x_keynote<=127;x_keynote++){
 			if(x_cfg_info.d_preset[x_preset][x_keynote] >= 0 && x_cfg_info.d_keynote[x_preset][x_keynote] >= 0){
 				flag = 1;
@@ -2111,10 +2117,7 @@ int main(int argc, char **argv)
 							freq = freq_fourier(inst->sample, &chord);
 							note = ceil(-36.87631656f + 17.31234049f * log(freq)); /* freq.c */
 							if (note >= LOWEST_PITCH && note <= HIGHEST_PITCH) {
-								if(x_comment)
-									fprintf(x_out,"    #extension playnote %d %d # %.1fHz\n", x_keynote, note, freq);
-								else
-									fprintf(x_out,"    #extension playnote %d %d\n", x_keynote, note);
+								x_playnote[x_keynote] = note;
 							}
 							free_instrument(inst);
 						}
@@ -2123,6 +2126,30 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+		#if CFG_FOR_SF_SUPPORT_FFT
+		for(x_keynote = 0; x_keynote <= 127;) {
+			if (x_playnote[x_keynote] == -1) {
+				x_keynote++;
+				continue;
+			}
+			p = playnote_str;
+			flag = x_playnote[x_keynote];
+			do {
+				start = x_keynote;
+				while (x_playnote[x_keynote] = -1, ++x_keynote <= 127) {
+					if (x_playnote[x_keynote] != flag)
+						break;
+				}
+				if (x_keynote - start == 1)
+					p += sprintf(p, ",%d", start);
+				else
+					p += sprintf(p, ",%d%c%d", start, (x_keynote - start > 2) ? '-' : ',', x_keynote - 1);
+				while (x_keynote <= 127 && x_playnote[x_keynote] == -1)
+					x_keynote++;
+			} while(x_keynote <= 127 && x_playnote[x_keynote] == flag);
+			fprintf(x_out, "#extension playnote %s %d\n", &playnote_str[1], flag);
+		}
+		#endif
 	}
 	}
 	if(x_out!=stdout)
