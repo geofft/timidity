@@ -691,13 +691,13 @@ static void display_play_system(int mode)
     switch(mode)
     {
       case GM_SYSTEM_MODE:
-	waddstr(dftwin, "[GM]");
+	waddstr(dftwin, "[GM] ");
 	break;
       case GS_SYSTEM_MODE:
-	waddstr(dftwin, "[GS]");
+	waddstr(dftwin, "[GS] ");
 	break;
       case XG_SYSTEM_MODE:
-	waddstr(dftwin, "[XG]");
+	waddstr(dftwin, "[XG] ");
 	break;
       case GM2_SYSTEM_MODE:
 	waddstr(dftwin, "[GM2]");

@@ -1,11 +1,10 @@
-2004-12-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-12-02  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* interface/ncurs_c.c: [timidity-bugs-ja:00118]
-
-	* timidity/timidity.c (list_dyna_interface): bug fix : cmp can be
+	* timidity/timidity.c (list_dyna_interface): bug fix: cmp can be
 	  uninitialized
 
-2004-11-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-11-03  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/resample.c (rs_vib_bidir): disable PRECALC_LOOPS for
 	  this function
@@ -15,7 +14,7 @@
 	* timidity/aRts_a.c: disable aRts auto-detection to avoid
 	  segmentation violation
 
-2004-11-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-11-03  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (list_dyna_interface): ditto
 	* interface/dynamic_c.c (ctl_open): fix compile error
@@ -28,13 +27,13 @@
 2004-10-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configure, autoconf/utils.m4, doc/{C,ja_JP.eucJP}/readme.dl,
-	  interface/Makefile.{am,in},interface/{dumb,ncurs,slang,motif,tk,
+	  interface/Makefile.{am,in}, interface/{dumb,ncurs,slang,motif,tk,
 	  emacs,vt100,xaw,xskin,dynamic,mac,gtk,server,alsaseq,w32g,winsyn,
 	  portmidisyn}_c.c, timidity/controls.h, timidity/timiidty.c:
 	  Fix to fit with case-insensitive file system
-	* interface/interface_[nsmkeTaigA].txt: remove
+	* interface/interface_[nsmkeTaigA].txt: Remove
 	* interface/if_{ncurses,slang,motif,tcltk,emacs,vt100,xaw,xskin,
-	  gtk,alsaseq}.txt: add
+	  gtk,alsaseq}.txt: Add
 
 2004-10-21  Henrique de Moraes Holschuh <hmh@debian.org>
 
