@@ -1,4 +1,10 @@
 
+2003-04-01  Saito <timidity@flashmail.com>
+	* interface/w32g_res.rc, timidity/effect.c:
+	  Implement noise shaping filter for 16bit output mode.
+	* timidity/playmidi.c:
+	  Fix polyphonic key pressure.
+
 2003-03-31  Saito <timidity@flashmail.com>
 	* interface/w32g_subwin3.c:
 	  Fix tracer window (W32GUI version)

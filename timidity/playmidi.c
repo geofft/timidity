@@ -480,10 +480,10 @@ static void reset_nrpn_controllers(int c)
 	channel[c].prev_scale_tuning = 0;
 	channel[c].temper_type = 0;
 
-  /* channel pressure control */
+  /* channel pressure & polyphonic key pressure control */
   channel[c].caf_rate_ctl1 = 0.25;
   channel[c].caf_pitch_depth1 = 0.5;
-  channel[c].caf_cutoff_ctl = 1.0;
+  channel[c].caf_cutoff_ctl = 0.25;
   channel[c].caf_amp_ctl = 1.0;
 
 }
@@ -2438,20 +2438,34 @@ static void all_sounds_off(int c)
 static void adjust_pressure(MidiEvent *e)
 {
     int i, uv = upper_voices;
-    int note, ch, vel;
+    int note, ch;
+	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl, coef;
 
+	ch = e->channel;
+	pressure = (FLOAT_T)e->b / 127.0f;
+	amp_ctl = channel[ch].caf_amp_ctl * pressure;
+	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
+	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
+	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
     note = MIDI_EVENT_NOTE(e);
-    ch = e->channel;
 
-    vel = e->b;
     for(i = 0; i < uv; i++)
     if(voice[i].status == VOICE_ON &&
        voice[i].channel == ch &&
        voice[i].note == note)
     {
-	voice[i].velocity = vel;
-	recompute_amp(i);
-	apply_envelope_to_amp(i);
+		recompute_amp(i);
+		voice[i].tremolo_depth = amp_ctl * 255;
+		apply_envelope_to_amp(i);
+		voice[i].vibrato_control_ratio *= rate_ctl1;
+		voice[i].vibrato_depth *= pitch_depth1;
+		recompute_freq(i);
+		if(opt_lpf_def && voice[i].sample->cutoff_freq) {
+			coef = channel[ch].cutoff_freq_coef;
+			channel[ch].cutoff_freq_coef *= cutoff_ctl;
+			recompute_voice_filter(i);
+			channel[ch].cutoff_freq_coef = coef;
+		}
     }
 }
 
@@ -3631,6 +3645,18 @@ static void seek_forward(int32 until_time)
 
 	  case ME_LEGATO_FOOTSWITCH:
         channel[ch].legato = (current_event->a >= 64);
+	    break;
+
+      case ME_HOLD2:
+        break;
+
+	  case ME_FOOT:
+	    break;
+
+	  case ME_BREATH:
+	    break;
+
+	  case ME_BALANCE:
 	    break;
 
 	  case ME_RESET_CONTROLLERS:
@@ -5377,10 +5403,28 @@ int play_event(MidiEvent *ev)
 	break;
 
       case ME_SOSTENUTO:
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Sostenuto - this function is not supported.");
 	break;
 
       case ME_LEGATO_FOOTSWITCH:
     channel[ch].legato = (ev->a >= 64);
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Legato Footswitch (CH:%d VAL:%d)",ch,channel[ch].legato);
+	break;
+
+      case ME_HOLD2:
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Hold2 - this function is not supported.");
+	break;
+
+      case ME_BREATH:
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Breath - this function is not supported.");
+	break;
+
+      case ME_FOOT:
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Foot - this function is not supported.");
+	break;
+
+      case ME_BALANCE:
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Balance - this function is not supported.");
 	break;
 
       case ME_PORTAMENTO_TIME_MSB:

@@ -45,6 +45,7 @@
 static void effect_left_right_delay(int32* buff, int32 count);
 static void init_ns_tap(void);
 static void ns_shaping8(int32* buf, int32 count);
+static void ns_shaping16(int32* buf, int32 count);
 
 void do_effect(int32* buf, int32 count)
 {
@@ -74,7 +75,8 @@ void do_effect(int32* buf, int32 count)
     /* Noise shaping filter must apply at last */
     if(!(play_mode->encoding & (PE_16BIT|PE_ULAW|PE_ALAW)))
 	ns_shaping8(buf, count);
-
+	else if(play_mode->encoding & PE_16BIT)
+	ns_shaping16(buf,count);
 }
 
 
@@ -331,3 +333,69 @@ static void ns_shaping8(int32* lp, int32 c)
     }
 }
 
+static void ns_shaping16(int32* lp, int32 c)
+{
+    int32 l, i, ll;
+    int32 ns_tap_0, ns_tap_1, ns_tap_2, ns_tap_3;
+
+    switch(noise_sharp_type)
+    {
+      default:
+	return;
+      case 1:
+	ns_tap_0 = 1;
+	ns_tap_1 = 0;
+	ns_tap_2 = 0;
+	ns_tap_3 = 0;
+	break;
+      case 2:
+	ns_tap_0 = -2;
+	ns_tap_1 = 1;
+	ns_tap_2 = 0;
+	ns_tap_3 = 0;
+	break;
+      case 3:
+	ns_tap_0 = 3;
+	ns_tap_1 = -3;
+	ns_tap_2 = 1;
+	ns_tap_3 = 0;
+	break;
+      case 4:
+	ns_tap_0 = -4;
+	ns_tap_1 = 6;
+	ns_tap_2 = -4;
+	ns_tap_3 = 1;
+	break;
+    }
+
+    for(i = 0; i < c; i++)
+    {
+	/* applied noise-shaping filter */
+	ll = lp[i] + ns_tap_0*ns_z0[0] +
+		     ns_tap_1*ns_z0[1] +
+		     ns_tap_2*ns_z0[2] +
+		     ns_tap_3*ns_z0[3];
+	l = ll>>(32-16-GUARD_BITS);
+
+	if (l>32767) l=32767;
+	else if (l<-32768) l=-32768;
+	lp[i] = l<<(32-16-GUARD_BITS);
+
+	ns_z0[3] = ns_z0[2]; ns_z0[2] = ns_z0[1]; ns_z0[1] = ns_z0[0];
+	ns_z0[0] = ll - l*(1U<<(32-16-GUARD_BITS));
+
+	if ( play_mode->encoding & PE_MONO ) continue;
+
+	++i;
+	ll = lp[i] + ns_tap_0*ns_z1[0] +
+		     ns_tap_1*ns_z1[1] +
+		     ns_tap_2*ns_z1[2] +
+		     ns_tap_3*ns_z1[3];
+	l=ll>>(32-16-GUARD_BITS);
+	if (l>32767) l=32767;
+	else if (l<-32768) l=-32768;
+	lp[i] = l<<(32-16-GUARD_BITS);
+	ns_z1[3] = ns_z1[2]; ns_z1[2] = ns_z1[1]; ns_z1[1] = ns_z1[0];
+	ns_z1[0] = ll - l*(1U<<(32-16-GUARD_BITS));
+    }
+}

@@ -39,8 +39,8 @@ CAPTION "TiMidity++ Win32GUI"
 MENU IDM_MENU_MAIN
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_RECT_PANEL,"Static",WS_TABSTOP | SS_GRAYFRAME | SS_SUNKEN,0,0,
-                    220,44
+    CONTROL         "",IDC_RECT_PANEL,"Static",SS_GRAYFRAME | SS_SUNKEN | 
+                    WS_TABSTOP,0,0,220,44
     CONTROL         "",IDC_RECT_CANVAS,"Static",SS_GRAYFRAME,220,0,68,44
     CONTROL         "ToolBarMain",IDC_TOOLBARWINDOW_MAIN,"ToolbarWindow32",
                     0x14c,2,46,112,17
@@ -59,8 +59,8 @@ CAPTION "TiMidity++ Win32GUI"
 MENU IDM_MENU_MAIN_EN
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_RECT_PANEL,"Static",WS_TABSTOP | SS_GRAYFRAME | SS_SUNKEN,0,0,
-                    220,44
+    CONTROL         "",IDC_RECT_PANEL,"Static",SS_GRAYFRAME | SS_SUNKEN | 
+                    WS_TABSTOP,0,0,220,44
     CONTROL         "",IDC_RECT_CANVAS,"Static",SS_GRAYFRAME,220,0,68,44
     CONTROL         "ToolBarMain",IDC_TOOLBARWINDOW_MAIN,"ToolbarWindow32",
                     0x14c,2,46,112,17
@@ -926,7 +926,7 @@ BEGIN
     LTEXT           "疑似リバーブ(0..1000)",IDC_STATIC,101,104,64,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_MODIFY_RELEASE,167,102,28,10
-    LTEXT           "ノイズシャーピング (0..4)",IDC_STATIC,101,117,70,8,NOT 
+    LTEXT           "ノイズシェイピング (0..4)",IDC_STATIC,101,117,70,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_NOISESHARPING,173,116,16,10,ES_NUMBER
     CONTROL         "サラウンドコーラス",IDC_CHECKBOX_SRCHORUS,"Button",
