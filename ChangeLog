@@ -1,6 +1,6 @@
 2002-09-19  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
-	  Support AIFF file as tone data
+	  Support AIFF file as the voice data
 
 2002-09-18  Saito <timidity@flashmail.com>
 	* 
@@ -8,12 +8,12 @@
 
 2002-09-15  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
-	  Support WAVE file as tone data
+	  Support WAVE file as the voice data
 
 2002-09-14  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
 	  Bug fixed in case of MAX_CHANNEL >= 33
-	  # thank > Mr.Ueda
+	  # thanks to Mr.Ueda
 
 2002-09-10  Tamuki <tamuki@linet.gr.jp>
 	* 
@@ -29,7 +29,7 @@
 
 2002-09-01  Daisuke Aoki <dai@sweetparty.ne.jp>
 	* 
-	  Support WIndows synthesizer GUI version
+	  Support Windows synthesizer GUI version
 
 2002-08-31  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
@@ -37,7 +37,7 @@
 
 2002-08-31  s_keishi <s_keishi@mutt.freemail.ne.jp>
 	* 
-	  Support 2 ports on Windows synthsizer mode
+	  Support 2 ports on Windows synthesizer mode
 
 2002-08-29  Tamuki <tamuki@linet.gr.jp>
 	* 
@@ -61,7 +61,7 @@
 
 2002-07-29  Tamuki <tamuki@linet.gr.jp>
 	* 
-	  Bug fixed to use equal frequency table to select tone sample
+	  Bug fixed to use equal frequency table to select voice sample
 
 2002-07-29  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* 
@@ -73,8 +73,8 @@
 
 2002-07-25  mput <root@mput.dip.jp>
 	* timidity/{timidity.h,sysdep.h,optcode.c,optcode.h}:
-  	  Arrange and divide timidity/timidity.h
-  	  Create timidity/sysdep.h and timidity/optcode.[ch]
+	  Arrange and divide timidity/timidity.h
+	  Create timidity/sysdep.h and timidity/optcode.[ch]
 
 2002-07-22  Saito <timidity@flashmail.com>
 	* 
@@ -98,7 +98,7 @@
 
 2002-07-06  mput <root@mput.dip.jp>
 	* configure.in:
-  	  Rewrite configure.in
+	  Rewrite configure.in
 
 2002-07-06  Tamuki <tamuki@linet.gr.jp>
 	* 

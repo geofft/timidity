@@ -1602,9 +1602,9 @@ static int find_voice(MidiEvent *e)
 				|| altassign && find_altassign(altassign, voice[j].note)))
 			kill_note(j);
 		else if (voice[j].status != VOICE_FREE && voice[j].channel == ch
-				&& voice[j].note == note && (channel[ch].assign_mode == 1
+				&& voice[j].note == note && ((channel[ch].assign_mode == 1
 				&& voice[j].proximate_flag == 0)
-				|| channel[ch].assign_mode == 0)
+				|| channel[ch].assign_mode == 0))
 			kill_note(j);
 	for (j = 0; j < i; j++)
 		if (voice[j].channel == ch && voice[j].note == note)
@@ -1782,14 +1782,19 @@ static int find_samples(MidiEvent *e, int *vlist)
 		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 			  "Strange: percussion instrument with %d samples!",
 			  ip->samples);
-	    if(ip->sample->note_to_use)
+		if(ip->sample->note_to_use)
 		note = ip->sample->note_to_use;
-	    i = vlist[0] = find_voice(e);
-	    voice[i].orig_frequency = freq_table[note];
-	    voice[i].sample = ip->sample;
-	    voice[i].status = VOICE_ON;
-	    voice[i].proximate_flag = 1;
-	    return 1;
+		if(ip->type == INST_SF2 && ip->samples != 1) {
+			nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
+			return nv;
+		} else {
+			i = vlist[0] = find_voice(e);
+			voice[i].orig_frequency = freq_table[note];
+			voice[i].sample = ip->sample;
+			voice[i].status = VOICE_ON;
+			voice[i].proximate_flag = 1;
+			return 1;
+		}
 	}
 
 	prog = channel[ch].program;
@@ -3088,6 +3093,7 @@ void process_sysex_nrpn(int ch,int addr,int val)
 			break;
 		case 0x0D:	/* Chorus Macro */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Macro (%d)",val);
+			init_ch_chorus();
 			set_chorus_macro(val);
 			recompute_chorus_status();
 			init_chorus_lfo();
@@ -3110,6 +3116,7 @@ void process_sysex_nrpn(int ch,int addr,int val)
 		case 0x11:	/* Chorus Delay */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Delay (%d)",val);
 			chorus_param.chorus_delay = val;
+			init_ch_chorus();
 			recompute_chorus_status();
 			init_chorus_lfo();
 			break;
@@ -3137,6 +3144,7 @@ void process_sysex_nrpn(int ch,int addr,int val)
 			break;
 		case 0x16:	/* Delay Macro */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Macro (%d)",val);
+			init_ch_delay();
 			set_delay_macro(val);
 			recompute_delay_status();
 			break;
@@ -3147,6 +3155,7 @@ void process_sysex_nrpn(int ch,int addr,int val)
 			break;
 		case 0x18:	/* Delay Time Center */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Center (%d)",val);
+			init_ch_delay();
 			delay_status.time_center = delay_time_center_table[val];
 			recompute_delay_status();
 			break;
@@ -3154,12 +3163,14 @@ void process_sysex_nrpn(int ch,int addr,int val)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Left (%d)",val);
 			if(val == 0) {val = 1;}
 			delay_status.time_ratio_left = (double)val / 24;
+			init_ch_delay();
 			recompute_delay_status();
 			break;
 		case 0x1A:	/* Delay Time Ratio Right */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Time Ratio Right (%d)",val);
 			if(val == 0) {val = 1;}
 			delay_status.time_ratio_right = (double)val / 24;
+			init_ch_delay();
 			recompute_delay_status();
 			break;
 		case 0x1B:	/* Delay Level Center */
