@@ -609,9 +609,7 @@ void recompute_freq(int v)
 	int pb = channel[ch].pitchbend;
 	int32 tmp;
 	FLOAT_T pf, root_freq;
-	/* for bidirectional loops */
-	int sign = (voice[v].sample_increment < 0);
-	double a;
+	int32 a;
 	
 	if (! voice[v].sample->sample_rate)
 		return;
@@ -625,7 +623,7 @@ void recompute_freq(int v)
 		 * sample_increments.
 		 */
 		if (voice[v].modulation_wheel > 0) {
-			voice[v].vibrato_control_ratio = play_mode->rate / 2
+			voice[v].vibrato_control_ratio = play_mode->rate / 2.0
 					* MODULATION_WHEEL_RATE / VIBRATO_SAMPLE_INCREMENTS;
 			voice[v].vibrato_delay = 0;
 		}
@@ -647,7 +645,7 @@ void recompute_freq(int v)
 				+ channel[ch].drums[note]->coarse * 64) << 7;
 	/* Scale Tuning */
 	if (! ISDRUMCHANNEL(ch)) {
-		tuning += st * 81.92 + 0.5;
+		tuning += (st << 13) / 100.0 + 0.5;
 		if (st != channel[ch].prev_scale_tuning) {
 			channel[ch].pitchfactor = 0;
 			channel[ch].prev_scale_tuning = st;
@@ -683,7 +681,7 @@ void recompute_freq(int v)
 					* bend_coarse[tmp >> 13 & 0x7f];
 		else
 			pf = 1.0 / (bend_fine[-tmp >> 5 & 0xff]
-					* bend_coarse[tmp >> 13 & 0x7f]);
+					* bend_coarse[-tmp >> 13 & 0x7f]);
 		voice[v].frequency = voice[v].orig_frequency * pf;
 		voice[v].cache = NULL;
 	}
@@ -696,11 +694,9 @@ void recompute_freq(int v)
 		root_freq = voice[v].sample->root_freq;
 	a = TIM_FSCALE(((double) voice[v].sample->sample_rate
 			* voice[v].frequency + channel[ch].pitch_offset_fine)
-			/ (root_freq * play_mode->rate), FRACTION_BITS);
+			/ (root_freq * play_mode->rate), FRACTION_BITS) + 0.5;
 	/* need to preserve the loop direction */
-	if (sign)
-		a = -a;
-	voice[v].sample_increment = a + 0.5;
+	voice[v].sample_increment = (voice[v].sample_increment >= 0) ? a : -a;
 #ifdef ABORT_AT_FATAL
 	if (voice[v].sample_increment == 0) {
 		fprintf(stderr, "Invalid sample increment a=%e %ld %ld %ld %ld%s\n",
