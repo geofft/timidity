@@ -1,3 +1,8 @@
+2003-08-10 TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Commonize functions between short and long options
+
 2003-08-09 TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Some option renamed

@@ -328,6 +328,7 @@ static inline int parse_opt_s(const char *);
 static inline int parse_opt_T(const char *);
 static inline int parse_opt_t(const char *);
 static inline int parse_opt_U(const char *);
+__attribute__((noreturn))
 static inline int parse_opt_v(const char *);
 static inline int parse_opt_W(char *);
 static inline int parse_opt_W1(char *);
@@ -342,7 +343,6 @@ __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int32 *, int32, int32, int32, char *);
 static inline int set_channel_flag(ChannelBitMask *, int32, char *);
-__attribute__((pure))
 static inline int y_or_n_p(const char *);
 static inline int set_flag(int32 *, int32, const char *);
 
@@ -2496,6 +2496,26 @@ MAIN_INTERFACE void tmdy_free_config(void)
   clean_up_pathlist();
 }
 
+int set_extension_modes(char *flag)
+{
+	return parse_opt_E(flag);
+}
+
+int set_ctl(char *cp)
+{
+	return parse_opt_i(cp);
+}
+
+int set_play_mode(char *cp)
+{
+	return parse_opt_O(cp);
+}
+
+int set_wrd(char *w)
+{
+	return parse_opt_W(w);
+}
+
 #ifdef __W32__
 #ifdef SMFCONV
 int opt_rcpcv_dll = 0;
@@ -2594,7 +2614,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	case 'I':
 		return parse_opt_I(optarg);
 	case 'i':
-		return set_ctl(optarg);
+		return parse_opt_i(optarg);
 	case 'j':
 		opt_realtime_playing = (opt_realtime_playing) ? 0 : 1;
 		break;
@@ -2648,8 +2668,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		free_instruments_afterwards = 1;
 		break;
 	case 'v':
-		version();
-		exit(0);
+		return parse_opt_v(optarg);
 	case 'W':
 		return parse_opt_W(optarg);
 #ifdef __W32__
@@ -2667,107 +2686,6 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		return 1;
 	}
 	return 0;
-}
-
-int set_extension_modes(char *flag)
-{
-	return parse_opt_E(flag);
-}
-
-int set_ctl(char *cp)
-{
-	ControlMode *cmp, **cmpp;
-	int found = 0;
-	
-	for (cmpp = ctl_list; cmp = *cmpp; cmpp++) {
-		if (cmp->id_character == *cp) {
-			found = 1;
-			ctl = cmp;
-#if defined(IA_W32GUI) || defined(IA_W32G_SYN)
-			cmp->verbosity = 1;
-			cmp->trace_playing = 0;
-			cmp->flags = 0;
-#endif	/* IA_W32GUI */
-			break;
-		}
-#ifdef IA_DYNAMIC
-		if (cmp->id_character == dynamic_interface_id
-				&& dynamic_interface_module(*cp)) {
-			/* Dynamic interface loader */
-			found = 1;
-			ctl = cmp;
-			if (dynamic_interface_id != *cp) {
-				cmp->id_character = dynamic_interface_id = *cp;
-				cmp->verbosity = 1;
-				cmp->trace_playing = 0;
-				cmp->flags = 0;
-			}
-			break;
-		}
-#endif	/* IA_DYNAMIC */
-	}
-	if (! found) {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"Interface `%c' is not compiled in.", *cp);
-		return 1;
-	}
-	while (*(++cp))
-		switch (*cp) {
-		case 'v':
-			cmp->verbosity++;
-			break;
-		case 'q':
-			cmp->verbosity--;
-			break;
-		case 't':	/* toggle */
-			cmp->trace_playing = (cmp->trace_playing) ? 0 : 1;
-			break;
-		case 'l':
-			cmp->flags ^= CTLF_LIST_LOOP;
-			break;
-		case 'r':
-			cmp->flags ^= CTLF_LIST_RANDOM;
-			break;
-		case 's':
-			cmp->flags ^= CTLF_LIST_SORT;
-			break;
-		case 'a':
-			cmp->flags ^= CTLF_AUTOSTART;
-			break;
-		case 'x':
-			cmp->flags ^= CTLF_AUTOEXIT;
-			break;
-		case 'd':
-			cmp->flags ^= CTLF_DRAG_START;
-			break;
-		case 'u':
-			cmp->flags ^= CTLF_AUTOUNIQ;
-			break;
-		case 'R':
-			cmp->flags ^= CTLF_AUTOREFINE;
-			break;
-		case 'C':
-			cmp->flags ^= CTLF_NOT_CONTINUE;
-			break;
-		case 'D':
-			cmp->flags ^= CTLF_DAEMONIZE;
-			break;
-		default:
-			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-					"Unknown interface option `%c'", *cp);
-			return 1;
-		}
-	return 0;
-}
-
-int set_play_mode(char *cp)
-{
-	return parse_opt_O(cp);
-}
-
-int set_wrd(char *w)
-{
-	return parse_opt_W(w);
 }
 
 /* -------- getopt_long -------- */
@@ -3471,42 +3389,12 @@ static inline int parse_opt_I(char *arg)
 
 static inline int parse_opt_i(const char *arg)
 {
-	static const struct Name2ID {
-		const char *name;
-		const int id;
-	} name2id[] = {
-		{ "dumb", 'd' },
-		{ "ncurses", 'n' },
-		{ "vt100", 'T' },
-		{ "slang", 's' },
-		{ "motif", 'm' },
-		{ "tk", 'k' },
-		{ "emacs", 'e' },
-		{ "xaw", 'a' },
-		{ "xskin", 'i' },
-		{ "kmidi", 'q' },
-		{ "gtk", 'g' },
-		{ "mac", 'm' },
-		{ "w32gui", 'w' },
-		{ "winsyn", 'W' },
-		{ "server", 'r' },
-		{ "alsaseq", 'A' },
-		{ "portmidisyn", 'P' },
-		{ "dynamic", '\0' }		/* terminator */
-	};
-	int i, id, found = 0;
+	/* interface mode */
 	ControlMode *cmp, **cmpp;
+	int found = 0;
 	
-	if (strlen(arg) == 1)
-		id = *arg;
-	else
-		for (i = 0; name2id[i].name; i++)
-			if (! strcasecmp(name2id[i].name, arg)) {
-				id = name2id[i].id;
-				break;
-			}
 	for (cmpp = ctl_list; cmp = *cmpp; cmpp++) {
-		if (cmp->id_character == id) {
+		if (cmp->id_character == *arg) {
 			found = 1;
 			ctl = cmp;
 #if defined(IA_W32GUI) || defined(IA_W32G_SYN)
@@ -3518,12 +3406,12 @@ static inline int parse_opt_i(const char *arg)
 		}
 #ifdef IA_DYNAMIC
 		if (cmp->id_character == dynamic_interface_id
-				&& dynamic_interface_module(id)) {
+				&& dynamic_interface_module(*arg)) {
 			/* Dynamic interface loader */
 			found = 1;
 			ctl = cmp;
-			if (dynamic_interface_id != id) {
-				cmp->id_character = dynamic_interface_id = id;
+			if (dynamic_interface_id != *arg) {
+				cmp->id_character = dynamic_interface_id = *arg;
 				cmp->verbosity = 1;
 				cmp->trace_playing = 0;
 				cmp->flags = 0;
@@ -3537,6 +3425,52 @@ static inline int parse_opt_i(const char *arg)
 				"Interface `%c' is not compiled in.", *arg);
 		return 1;
 	}
+	while (*(++arg))
+		switch (*arg) {
+		case 'v':
+			cmp->verbosity++;
+			break;
+		case 'q':
+			cmp->verbosity--;
+			break;
+		case 't':	/* toggle */
+			cmp->trace_playing = (cmp->trace_playing) ? 0 : 1;
+			break;
+		case 'l':
+			cmp->flags ^= CTLF_LIST_LOOP;
+			break;
+		case 'r':
+			cmp->flags ^= CTLF_LIST_RANDOM;
+			break;
+		case 's':
+			cmp->flags ^= CTLF_LIST_SORT;
+			break;
+		case 'a':
+			cmp->flags ^= CTLF_AUTOSTART;
+			break;
+		case 'x':
+			cmp->flags ^= CTLF_AUTOEXIT;
+			break;
+		case 'd':
+			cmp->flags ^= CTLF_DRAG_START;
+			break;
+		case 'u':
+			cmp->flags ^= CTLF_AUTOUNIQ;
+			break;
+		case 'R':
+			cmp->flags ^= CTLF_AUTOREFINE;
+			break;
+		case 'C':
+			cmp->flags ^= CTLF_NOT_CONTINUE;
+			break;
+		case 'D':
+			cmp->flags ^= CTLF_DAEMONIZE;
+			break;
+		default:
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Unknown interface option `%c'", *arg);
+			return 1;
+		}
 	return 0;
 }
 
@@ -3947,11 +3881,11 @@ static inline int parse_opt_U(const char *arg)
 	return 0;
 }
 
+__attribute__((noreturn))
 static inline int parse_opt_v(const char *arg)
 {
-	/* I think --version should not die immediately. */
 	version();
-	return 0;
+	exit(EXIT_SUCCESS);
 }
 
 static inline int parse_opt_W(char *arg)
@@ -4110,7 +4044,6 @@ static inline int set_channel_flag(ChannelBitMask *flags, int32 i, char *name)
 	return 0;
 }
 
-__attribute__((pure))
 static inline int y_or_n_p(const char *arg)
 {
 	if (arg) {
