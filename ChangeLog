@@ -1,3 +1,10 @@
+2003-12-06  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.c, timidity/playmidi.c:
+	  Fix Insertion Effect.
+	  Implement HEXA-CHORUS for Insertion Effect.
+	  Fix around opt_pan_delay.
+
 2003-12-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/timidity.[ch]:

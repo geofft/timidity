@@ -2112,7 +2112,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
 #ifdef ENABLE_PAN_DELAY
   voice[i].pan_delay_rpt = 0;
-  if(opt_pan_delay) {
+  if(opt_pan_delay && channel[ch].insertion_effect == 0) {
 	  if(voice[i].panning == 64) {voice[i].delay += pan_delay_table[64] * play_mode->rate / 1000;}
 	  else {
 		  if(pan_delay_table[voice[i].panning] > pan_delay_table[127 - voice[i].panning]) {
@@ -3258,7 +3258,15 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x27:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}
+			temp = gs_ieffect.type;
 			gs_ieffect.type_msb = val;
+			gs_ieffect.type = ((int32)gs_ieffect.type_msb << 8) | (int32)gs_ieffect.type_lsb;
+			set_insertion_effect_default_parameter();
+			if(temp == gs_ieffect.type) {
+				recompute_insertion_effect();
+			} else {
+				realloc_insertion_effect();
+			}
 			break;
 		case 0x28:	/* Insertion Effect Parameter */
 			if(!opt_insertion_effect) {break;}

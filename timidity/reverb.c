@@ -267,13 +267,17 @@ static void init_lfo(lfo *lfo, int32 cycle, int type)
 			break;
 		}
 	}
+	lfo->type = type;
 }
 
 /*! LFO */
 /* returned value is between 0 and (1 << 16) */
 inline int32 do_lfo(lfo *lfo)
 {
-	return lfo->buf[imuldiv24(lfo->count++, lfo->icycle)];
+	int32 val;
+	val = lfo->buf[imuldiv24(lfo->count, lfo->icycle)];
+	if(++lfo->count == lfo->cycle) {lfo->count = 0;}
+	return val;
 }
 
 /*! calculate Moog VCF coefficients */
@@ -2021,18 +2025,26 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 	}
 }
 
-/*! panning (pan = [-1.0, 1.0]) */
-static inline int32 do_left_panning(int32 sample, FLOAT_T pan)
+/*! panning (pan = [0, 127]) */
+static inline int32 do_left_panning(int32 sample, int32 pan)
 {
-	return (int32)(sample - sample * pan);
+	return imuldiv8(sample, pan + pan);
 }
 
-static inline int32 do_right_panning(int32 sample, FLOAT_T pan)
+static inline int32 do_right_panning(int32 sample, int32 pan)
 {
-	return (int32)(sample + sample * pan);
+	return imuldiv8(sample, 256 - pan - pan);
 }
 
 #define INT32_MAX_NEG (1.0 / (double)(1 << 31))
+#define OVERDRIVE_DIST 4.0
+#define OVERDRIVE_RES 0.1
+#define OVERDRIVE_LEVEL 0.8
+#define OVERDRIVE_OFFSET 0
+#define DISTORTION_DIST 16.0
+#define DISTORTION_RES 0.2
+#define DISTORTION_LEVEL 0.2
+#define DISTORTION_OFFSET 0
 
 /*! GS 0x0110: Overdrive 1 */
 void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
@@ -2044,8 +2056,9 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 	filter_lpf18 *lpf = &(info->lpf18);
 	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
 		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
-	int32 i, input, high, low, leveli = info->leveli;
-	double sig, pan = info->pan;
+	int32 i, input, high, low, leveli = info->leveli, leveldi = info->leveldi,
+		pan = info->pan;
+	double sig;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* set parameters of decompositor */
@@ -2056,18 +2069,18 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		/* ideally speaking:
 		   lpf->res = table_res[drive];
 		   lpf->dist = table_dist[drive]; */
-		lpf->freq = 7000;
-		lpf->res = 0.1;
-		lpf->dist = 1.0 * ((double)info->drive / 127.0);
+		lpf->freq = 6000;
+		lpf->res = OVERDRIVE_RES;
+		lpf->dist = OVERDRIVE_DIST * sqrt((double)info->drive / 127.0) + OVERDRIVE_OFFSET;
 		calc_filter_lpf18(lpf);
-		info->leveli = TIM_FSCALE(info->level, 24);
+		info->leveli = TIM_FSCALE(info->level * OVERDRIVE_LEVEL, 24);
+		info->leveldi = TIM_FSCALE(info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		input = imuldiv24(buf[i], leveli);
-		input += imuldiv24(buf[i + 1], leveli);
+		input = buf[i] + buf[i + 1];
 		/* decomposition */
 		input -= imuldiv24(q, b4);
 		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
@@ -2088,7 +2101,7 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		sig = tanh(aout * value);
 		high = TIM_FSCALE(sig, 31);
 		/* mixing */
-		input = low + high;
+		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
 		buf[i] = do_left_panning(input, pan);
 		buf[i + 1] = do_right_panning(input, pan);
 		++i;
@@ -2107,8 +2120,9 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 	filter_lpf18 *lpf = &(info->lpf18);
 	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
 		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
-	int32 i, input, high, low, leveli = info->leveli;
-	double sig, pan = info->pan;
+	int32 i, input, high, low, leveli = info->leveli, leveldi = info->leveldi,
+		pan = info->pan;
+	double sig;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* set parameters of decompositor */
@@ -2119,18 +2133,18 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		/* ideally speaking:
 		   lpf->res = table_res[drive];
 		   lpf->dist = table_dist[drive]; */
-		lpf->freq = 7000;
-		lpf->res = 0.2;
-		lpf->dist = 1.0 * ((double)info->drive / 127.0) + 0.2;
+		lpf->freq = 6000;
+		lpf->res = DISTORTION_RES;
+		lpf->dist = DISTORTION_DIST * sqrt((double)info->drive / 127.0) + DISTORTION_OFFSET;
 		calc_filter_lpf18(lpf);
-		info->leveli = TIM_FSCALE(info->level, 24);
+		info->leveli = TIM_FSCALE(info->level * DISTORTION_LEVEL, 24);
+		info->leveldi = TIM_FSCALE(info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		input = imuldiv24(buf[i], leveli);
-		input += imuldiv24(buf[i + 1], leveli);
+		input = buf[i] + buf[i + 1];
 		/* decomposition */
 		input -= imuldiv24(q, b4);
 		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
@@ -2151,7 +2165,7 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		sig = tanh(aout * value);
 		high = TIM_FSCALE(sig, 31);
 		/* mixing */
-		input = low + high;
+		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
 		buf[i] = do_left_panning(input, pan);
 		buf[i + 1] = do_right_panning(input, pan);
 		++i;
@@ -2176,8 +2190,9 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 	filter_lpf18 *lpfr = &(info->lpf18r);
 	double ay1r = lpfr->ay1, ay2r = lpfr->ay2, aoutr = lpfr->aout, lastinr = lpfr->lastin,
 		kresr = lpfr->kres, valuer = lpfr->value, ax1r, ay11r, ay31r;
-	int32 i, inputl, inputr, high, low, levelli = info->levelli, levelri = info->levelri;
-	double sig, panl = info->panl, panr = info->panr;
+	int32 i, inputl, inputr, high, low, levelli = info->levelli, levelri = info->levelri,
+		leveldli = info->leveldli, leveldri = info->leveldri, panl = info->panl, panr = info->panr;
+	double sig;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* left */
@@ -2186,39 +2201,43 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		svfl->res_dB = 0;
 		calc_filter_moog(svfl);
 		/* set parameters of waveshaper */
-		lpfl->freq = 7000;
+		lpfl->freq = 6000;
 		if(info->typel == 0) {	/* Overdrive */
-			lpfl->res = 0.1;
-			lpfl->dist = 1.0 * ((double)info->drivel / 127.0);
+			lpfl->res = OVERDRIVE_RES;
+			lpfl->dist = OVERDRIVE_DIST * sqrt((double)info->drivel / 127.0) + OVERDRIVE_OFFSET;
+			info->levelli = TIM_FSCALE(info->levell * info->level * OVERDRIVE_LEVEL, 24);
 		} else {	/* Distortion */
-			lpfl->res = 0.2;
-			lpfl->dist = 1.0 * ((double)info->drivel / 127.0) + 0.2;
+			lpfl->res = DISTORTION_RES;
+			lpfl->dist = DISTORTION_DIST * sqrt((double)info->drivel / 127.0) + DISTORTION_OFFSET;
+			info->levelli = TIM_FSCALE(info->levell * info->level * DISTORTION_LEVEL, 24);
 		}
+		info->leveldli = TIM_FSCALE(info->levell * info->level, 24);
 		calc_filter_lpf18(lpfl);
-		info->levelli = TIM_FSCALE(info->levell * info->level, 24);
 		/* right */
 		/* set parameters of decompositor */
 		svfr->freq = 500;
 		svfr->res_dB = 0;
 		calc_filter_moog(svfr);
 		/* set parameters of waveshaper */
-		lpfr->freq = 7000;
+		lpfr->freq = 6000;
 		if(info->typer == 0) {	/* Overdrive */
-			lpfr->res = 0.1;
-			lpfr->dist = 1.0 * ((double)info->driver / 127.0);
+			lpfr->res = OVERDRIVE_RES;
+			lpfr->dist = OVERDRIVE_DIST * sqrt((double)info->driver / 127.0) + OVERDRIVE_OFFSET;
+			info->levelri = TIM_FSCALE(info->levelr * info->level * OVERDRIVE_LEVEL, 24);
 		} else {	/* Distortion */
-			lpfr->res = 0.2;
-			lpfr->dist = 1.0 * ((double)info->driver / 127.0) + 0.2;
+			lpfr->res = DISTORTION_RES;
+			lpfr->dist = DISTORTION_DIST * sqrt((double)info->driver / 127.0) + DISTORTION_OFFSET;
+			info->levelri = TIM_FSCALE(info->levelr * info->level * DISTORTION_LEVEL, 24);
 		}
+		info->leveldri = TIM_FSCALE(info->levelr * info->level, 24);
 		calc_filter_lpf18(lpfr);
-		info->levelri = TIM_FSCALE(info->levelr * info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
 		/* left */
-		inputl = imuldiv24(buf[i], levelli);
+		inputl = buf[i];
 		/* decomposition */
 		inputl -= imuldiv24(q, b4l);
 		t1l = b1l;  b1l = imuldiv24(inputl + b0l, p) - imuldiv24(b1l, f);
@@ -2238,10 +2257,10 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
 		sig = tanh(aoutl * valuel);
 		high = TIM_FSCALE(sig, 31);
-		inputl = low + high;
+		inputl = imuldiv24(high, levelli) + imuldiv24(low, leveldli);
 
 		/* right */
-		inputr = imuldiv24(buf[++i], levelri);
+		inputr = buf[++i];
 		/* decomposition */
 		inputr -= imuldiv24(q, b4r);
 		t1r = b1r;  b1r = imuldiv24(inputr + b0r, p) - imuldiv24(b1r, f);
@@ -2261,7 +2280,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
 		sig = tanh(aoutr * valuer);
 		high = TIM_FSCALE(sig, 31);
-		inputr = low + high;
+		inputr = imuldiv24(high, levelri) + imuldiv24(low, leveldri);
 
 		/* mixing */
 		buf[i - 1] = do_left_panning(inputl, panl) + do_left_panning(inputr, panr);
@@ -2273,20 +2292,144 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
     lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
-/*! Implementation Test: Chorus 1 (under construction... ) */
-void do_chorus1(int32 *buf, int32 count, EffectList *ef)
+#define HEXA_CHORUS_DEPTH_DEV 1
+#define HEXA_CHORUS_DELAY_DEV 1
+
+/*! GS 0x0140: HEXA-CHORUS */
+void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 {
-	InfoChorus1 *info = (InfoChorus1 *)ef->info;
-	int32 i;
+	InfoHexaChorus *info = (InfoHexaChorus *)ef->info;
+	lfo *lfo = &(info->lfo0);
+	delay *buf0 = &(info->buf0);
+	int32 *ebuf = buf0->buf, size = buf0->size, index = buf0->index;
+	int32 spt0 = info->spt0, spt1 = info->spt1, spt2 = info->spt2,
+		spt3 = info->spt3, spt4 = info->spt4, spt5 = info->spt5,
+		hist0 = info->hist0, hist1 = info->hist1, hist2 = info->hist2,
+		hist3 = info->hist3, hist4 = info->hist4, hist5 = info->hist5;
+	int32 dryi = info->dryi, weti = info->weti;
+	int32 pan0 = info->pan0, pan1 = info->pan1, pan2 = info->pan2,
+		pan3 = info->pan3, pan4 = info->pan4, pan5 = info->pan5;
+	int32 depth0 = info->depth0, depth1 = info->depth1, depth2 = info->depth2,
+		depth3 = info->depth3, depth4 = info->depth4, depth5 = info->depth5,
+		pdelay0 = info->pdelay0, pdelay1 = info->pdelay1, pdelay2 = info->pdelay2,
+		pdelay3 = info->pdelay3, pdelay4 = info->pdelay4, pdelay5 = info->pdelay5;
+	int32 i, inputw, inputd, lfo_val, wetl, wetr,
+		v0, v1, v2, v3, v4, v5, f0, f1, f2, f3, f4, f5;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
+		set_delay(buf0, 9600);
+		init_lfo(lfo, lfo->cycle, LFO_SINE);
+		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
+		info->weti = TIM_FSCALE(info->level * info->wet, 24);
+		info->depth0 = info->depth + info->depth_dev * 3 * HEXA_CHORUS_DEPTH_DEV;
+		info->depth1 = info->depth + info->depth_dev * 2 * HEXA_CHORUS_DEPTH_DEV;
+		info->depth2 = info->depth + info->depth_dev * HEXA_CHORUS_DEPTH_DEV;
+		info->depth3 = info->depth + info->depth_dev * HEXA_CHORUS_DEPTH_DEV;
+		info->depth4 = info->depth + info->depth_dev * 2 * HEXA_CHORUS_DEPTH_DEV;
+		info->depth5 = info->depth + info->depth_dev * 3 * HEXA_CHORUS_DEPTH_DEV;
+		info->pdelay0 = info->pdelay + info->pdelay_dev * 3 * HEXA_CHORUS_DELAY_DEV;
+		info->pdelay1 = info->pdelay + info->pdelay_dev * 2 * HEXA_CHORUS_DELAY_DEV;
+		info->pdelay2 = info->pdelay + info->pdelay_dev * HEXA_CHORUS_DELAY_DEV;
+		info->pdelay3 = info->pdelay + info->pdelay_dev * HEXA_CHORUS_DELAY_DEV;
+		info->pdelay4 = info->pdelay + info->pdelay_dev * 2 * HEXA_CHORUS_DELAY_DEV;
+		info->pdelay5 = info->pdelay + info->pdelay_dev * 3 * HEXA_CHORUS_DELAY_DEV;
+		/* in this part, validation check may be necessary. */
+		info->pan0 = 64 - info->pan_dev * 3;
+		info->pan1 = 64 - info->pan_dev * 2;
+		info->pan2 = 64 - info->pan_dev;
+		info->pan3 = 64 + info->pan_dev;
+		info->pan4 = 64 + info->pan_dev * 2;
+		info->pan5 = 64 + info->pan_dev * 3;
+		info->hist0 = info->hist1 = info->hist2
+			= info->hist3 = info->hist4 = info->hist5 = 0;
+		info->spt0 = info->spt1 = info->spt2
+			= info->spt3 = info->spt4 = info->spt5 = 0;
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
-		free_delay(&info->buf0);
+		free_delay(buf0);
 		return;
 	}
+
+	/* LFO */
+	lfo_val = lfo->buf[imuldiv24(lfo->count, lfo->icycle)];
+	f0 = imuldiv24(lfo_val, depth0);
+	spt0 = index - pdelay0 - (f0 >> 8);	/* integral part of delay */
+	if(spt0 < 0) {spt0 += size;}
+	f1 = imuldiv24(lfo_val, depth1);
+	spt1 = index - pdelay1 - (f1 >> 8);	/* integral part of delay */
+	if(spt1 < 0) {spt1 += size;}
+	f2 = imuldiv24(lfo_val, depth2);
+	spt2 = index - pdelay2 - (f2 >> 8);	/* integral part of delay */
+	if(spt2 < 0) {spt2 += size;}
+	f3 = imuldiv24(lfo_val, depth3);
+	spt3 = index - pdelay3 - (f3 >> 8);	/* integral part of delay */
+	if(spt3 < 0) {spt3 += size;}
+	f4 = imuldiv24(lfo_val, depth4);
+	spt4 = index - pdelay4 - (f4 >> 8);	/* integral part of delay */
+	if(spt4 < 0) {spt4 += size;}
+	f5 = imuldiv24(lfo_val, depth5);
+	spt5 = index - pdelay5 - (f5 >> 8);	/* integral part of delay */
+	if(spt5 < 0) {spt5 += size;}
+
 	for(i = 0; i < count; i++) {
+		v0 = ebuf[spt0], v1 = ebuf[spt1], v2 = ebuf[spt2],
+		v3 = ebuf[spt3], v4 = ebuf[spt4], v5 = ebuf[spt5];
+
+		/* LFO */
+		if(++index == size) {index = 0;}
+		lfo_val = do_lfo(lfo);
+		f0 = imuldiv24(lfo_val, depth0);
+		spt0 = index - pdelay0 - (f0 >> 8);	/* integral part of delay */
+		f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt0 < 0) {spt0 += size;}
+		f1 = imuldiv24(lfo_val, depth1);
+		spt1 = index - pdelay1 - (f1 >> 8);	/* integral part of delay */
+		f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt1 < 0) {spt1 += size;}
+		f2 = imuldiv24(lfo_val, depth2);
+		spt2 = index - pdelay2 - (f2 >> 8);	/* integral part of delay */
+		f2 = 0xFF - (f2 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt2 < 0) {spt2 += size;}
+		f3 = imuldiv24(lfo_val, depth3);
+		spt3 = index - pdelay3 - (f3 >> 8);	/* integral part of delay */
+		f3 = 0xFF - (f3 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt3 < 0) {spt3 += size;}
+		f4 = imuldiv24(lfo_val, depth4);
+		spt4 = index - pdelay4 - (f4 >> 8);	/* integral part of delay */
+		f4 = 0xFF - (f4 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt4 < 0) {spt4 += size;}
+		f5 = imuldiv24(lfo_val, depth5);
+		spt5 = index - pdelay5 - (f5 >> 8);	/* integral part of delay */
+		f5 = 0xFF - (f5 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt5 < 0) {spt5 += size;}
+
+		/* chorus effect */
+		/* all-pass interpolation */
+		hist0 = hist0 + imuldiv8(ebuf[spt0] - v0, f0);
+		hist1 = hist1 + imuldiv8(ebuf[spt1] - v1, f1);
+		hist2 = hist2 + imuldiv8(ebuf[spt2] - v2, f2);
+		hist3 = hist3 + imuldiv8(ebuf[spt3] - v3, f3);
+		hist4 = hist4 + imuldiv8(ebuf[spt4] - v4, f4);
+		hist5 = hist5 + imuldiv8(ebuf[spt5] - v5, f5);
+		ebuf[index] = imuldiv24(buf[i] + buf[i + 1], weti);
+
+		/* mixing */
+		buf[i] = do_left_panning(hist0, pan0) + do_left_panning(hist1, pan1)
+			+ do_left_panning(hist2, pan2) + do_left_panning(hist3, pan3)
+			+ do_left_panning(hist4, pan4) + do_left_panning(hist5, pan5)
+			+ imuldiv24(buf[i], dryi);
+		buf[i + 1] = do_right_panning(hist0, pan0) + do_right_panning(hist1, pan1)
+			+ do_right_panning(hist2, pan2) + do_right_panning(hist3, pan3)
+			+ do_right_panning(hist4, pan4) + do_right_panning(hist5, pan5)
+			+ imuldiv24(buf[i + 1], dryi);
+
+		++i;
 	}
+	buf0->size = size, buf0->index = index;
+	info->spt0 = spt0, info->spt1 = spt1, info->spt2 = spt2,
+	info->spt3 = spt3, info->spt4 = spt4, info->spt5 = spt5,
+	info->hist0 = hist0, info->hist1 = hist1, info->hist2 = hist2,
+	info->hist3 = hist3, info->hist4 = hist4, info->hist5 = hist5;
 }
 
 /*! assign effect engine according to effect type. */
@@ -2305,6 +2448,9 @@ void convert_effect(EffectList *ef)
 		break;
 	case EFFECT_DISTORTION1:
 		ef->do_effect = do_distortion1;
+		break;
+	case EFFECT_HEXA_CHORUS:
+		ef->do_effect = do_hexa_chorus;
 		break;
 	case EFFECT_OD1OD2:
 		ef->do_effect = do_dual_od;

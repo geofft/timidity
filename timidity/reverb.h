@@ -101,6 +101,7 @@ enum {
 	EFFECT_EQ2,
 	EFFECT_OVERDRIVE1,
 	EFFECT_DISTORTION1,
+	EFFECT_HEXA_CHORUS,
 	EFFECT_OD1OD2,
 };
 
@@ -136,31 +137,37 @@ typedef struct {
 
 /*! Overdrive 1 / Distortion 1 */
 typedef struct {
-	double pan, level;
-	int32 leveli;	/* in fixed-point */
-	int8 drive;
+	double level;
+	int32 leveli, leveldi;	/* in fixed-point */
+	int8 drive, pan;
 	filter_moog svf;
 	filter_lpf18 lpf18;
 } InfoOverdrive1;
 
 /*! OD1 / OD2 */
 typedef struct {
-	double panl, panr, level, levell, levelr;
-	int32 levelli, levelri;	/* in fixed-point */
-	int8 drivel, driver;
+	double level, levell, levelr;
+	int32 levelli, levelri, leveldli, leveldri;	/* in fixed-point */
+	int8 drivel, driver, panl, panr;
 	filter_moog svfl, svfr;
 	filter_lpf18 lpf18l, lpf18r;
 	int32 typel, typer;
 } InfoOD1OD2;
 
-/*! Chorus 1 (under construction...) */
+/*! HEXA-CHORUS */
 typedef struct {
 	delay buf0;
 	lfo lfo0;
-	double depth, dry, wet, feedback, feedforward;
-	int32 depthi, dryi, weti, feedbacki, feedforwardi;
-	int32 pdelay;	/* in samples */
-} InfoChorus1;
+	double dry, wet, level;
+	int32 pdelay, depth;	/* in samples */
+	int8 pdelay_dev, depth_dev, pan_dev;
+	int32 dryi, weti;	/* in fixed-point */
+	int32 pan0, pan1, pan2, pan3, pan4, pan5;
+	int32 depth0, depth1, depth2, depth3, depth4, depth5,
+		pdelay0, pdelay1, pdelay2, pdelay3, pdelay4, pdelay5;
+	int32 spt0, spt1, spt2, spt3, spt4, spt5,
+		hist0, hist1, hist2, hist3, hist4, hist5;
+} InfoHexaChorus;
 
 /*                                  */
 /*        for System Effects        */

@@ -4720,15 +4720,33 @@ void set_insertion_effect_default_parameter()
 		param[18] = 84;
 		param[19] = 127;
 		break;
+	case 0x0140: /* HEXA-CHORUS */
+		param[0] = 0x18;
+		param[1] = 0x08;
+		param[2] = 127;
+		param[3] = 5;
+		param[4] = 2;
+		param[5] = 16;
+		param[15] = 64;
+		param[16] = 0x40;
+		param[17] = 0x40;
+		param[19] = 112;
+		break;
 	default: break;
 	}
 }
 
 /*! convert GS insertion effect parameters for internal 2-Band EQ. */
-static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
+static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
-	InfoEQ2 *eq = (InfoEQ2 *)safe_malloc(sizeof(InfoEQ2));
-	memset(eq, 0, sizeof(InfoEQ2));
+	InfoEQ2 *eq; 
+
+	if(ef == NULL) {
+		eq = (InfoEQ2 *)safe_malloc(sizeof(InfoEQ2));
+		memset(eq, 0, sizeof(InfoEQ2));
+	} else {
+		eq = (InfoEQ2 *)ef->info;
+	}
 
 	eq->high_freq = 4000;
 	eq->high_gain = ieffect->parameter[16] - 0x40;
@@ -4739,35 +4757,77 @@ static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 }
 
 /*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
-static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect)
+static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
-	InfoOverdrive1 *od = (InfoOverdrive1 *)safe_malloc(sizeof(InfoOverdrive1));
-	memset(od, 0, sizeof(InfoOverdrive1));
+	InfoOverdrive1 *od;
+	
+	if(ef == NULL) {
+		od = (InfoOverdrive1 *)safe_malloc(sizeof(InfoOverdrive1));
+		memset(od, 0, sizeof(InfoOverdrive1));
+	} else {
+		od = (InfoOverdrive1 *)ef->info;
+	}
 
 	od->level = (double)ieffect->parameter[19] / 127.0;
 	od->drive = ieffect->parameter[0];
-	od->pan = (double)(ieffect->parameter[18] - 0x40) / 63.0;
+	od->pan = ieffect->parameter[18];
 
 	return od;
 }
 
 /*! convert GS insertion effect parameters for OD1 / OD2. */
-static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect)
+static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
-	InfoOD1OD2 *od = (InfoOD1OD2 *)safe_malloc(sizeof(InfoOD1OD2));
-	memset(od, 0, sizeof(InfoOD1OD2));
+	InfoOD1OD2 *od;
+
+	if(ef == NULL) {
+		od = (InfoOD1OD2 *)safe_malloc(sizeof(InfoOD1OD2));
+		memset(od, 0, sizeof(InfoOD1OD2));
+	} else {
+		od = (InfoOD1OD2 *)ef->info;
+	}
 
 	od->level = (double)ieffect->parameter[19] / 127.0;
 	od->levell = (double)ieffect->parameter[16] / 127.0;
 	od->levelr = (double)ieffect->parameter[18] / 127.0;
 	od->drivel = ieffect->parameter[1];
 	od->driver = ieffect->parameter[6];
-	od->panl = (double)(ieffect->parameter[15] - 0x40) / 63.0;
-	od->panr = (double)(ieffect->parameter[17] - 0x40) / 63.0;
+	od->panl = ieffect->parameter[15];
+	od->panr = ieffect->parameter[17];
 	od->typel = ieffect->parameter[0];
 	od->typer = ieffect->parameter[5];
 
 	return od;
+}
+
+/*! convert GS insertion effect parameters for Hexa-Chorus. */
+static void *conv_gs_ie_to_hexa_chorus(struct GSInsertionEffect *ieffect, EffectList *ef)
+{
+	InfoHexaChorus *info;
+	
+	if(ef == NULL) {
+		info = (InfoHexaChorus *)safe_malloc(sizeof(InfoHexaChorus));
+		memset(info, 0, sizeof(InfoHexaChorus));
+	} else {
+		info = (InfoHexaChorus *)ef->info;
+	}
+
+	info->level = (double)ieffect->parameter[19] / 127.0;
+	info->pdelay = pre_delay_time_table[ieffect->parameter[0]] * (double)play_mode->rate / 1000.0;
+	info->depth = info->pdelay * (double)ieffect->parameter[2] / 127.0 * CHORUS_WIDTH_RATIO;
+	info->pdelay -= info->depth;
+	if(info->pdelay <= 1) {info->pdelay = 1;}
+	info->depth *= 2;
+	info->lfo0.cycle = (double)play_mode->rate / rate1_table[ieffect->parameter[1]];
+	info->pdelay_dev = ieffect->parameter[3];
+	info->depth_dev = ieffect->parameter[4];
+	info->pan_dev = ieffect->parameter[5];
+	info->dry = (double)(127 - ieffect->parameter[19]) / 63.0;
+	if(info->dry > 1.0) {info->dry = 1.0;}
+	info->wet = (double)ieffect->parameter[19] / 64.0;
+	if(info->wet > 1.0) {info->wet = 1.0;}
+
+	return info;
 }
 
 /*! re-allocate GS insertion effect parameters. */
@@ -4780,15 +4840,19 @@ void realloc_insertion_effect()
 
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st));
-		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1, conv_gs_ie_to_overdrive1(st));
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1, conv_gs_ie_to_overdrive1(st, NULL));
 		break;
 	case 0x0111: /* Distortion */
-		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st));
-		st->ef = push_effect(st->ef, EFFECT_DISTORTION1, conv_gs_ie_to_overdrive1(st));
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_DISTORTION1, conv_gs_ie_to_overdrive1(st, NULL));
+		break;
+	case 0x0140: /* Hexa-Chorus */
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS, conv_gs_ie_to_hexa_chorus(st, NULL));
 		break;
 	case 0x1103: /* OD1 / OD2 */
-		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gs_ie_to_dual_od(st));
+		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gs_ie_to_dual_od(st, NULL));
 		break;
 	default: break;
 	}
@@ -4803,6 +4867,22 @@ void recompute_insertion_effect()
 	if(st->ef == NULL) {return;}
 	while(efc != NULL && efc->do_effect != NULL)
 	{
+		switch(efc->type) {
+		case EFFECT_EQ2:
+			efc->info = conv_gs_ie_to_eq2(st, efc);
+			break;
+		case EFFECT_OVERDRIVE1:
+		case EFFECT_DISTORTION1:
+			efc->info = conv_gs_ie_to_overdrive1(st, efc);
+			break;
+		case EFFECT_HEXA_CHORUS:
+			efc->info = conv_gs_ie_to_hexa_chorus(st, efc);
+			break;
+		case EFFECT_OD1OD2:
+			efc->info = conv_gs_ie_to_dual_od(st, efc);
+			break;
+		default: break;
+		}
 		(*efc->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
 		efc = efc->next_ef;
 	}
