@@ -1,3 +1,8 @@
+2004-02-13  mput <root@mput.dip.jp>
+
+	* timidity/tables.c: Add newline at the end of file.
+	* timidity/readmidi.c (set_xg_chorus_type): fix flanger.
+
 2004-02-13  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/aiff_a.c: Support PE_ULAW/PE_ALAW output.
@@ -12,7 +17,7 @@
 	  Fix and adjust Standard Reverb.
 	  Fix play_midi_load_instrument().
 
-2004-02-13  mput  <root@mput.dip.jp>
+2004-02-13  mput <root@mput.dip.jp>
 
 	* timidity/optcode.h (d2i): remove
 	* timidity/resample.c (initialize_resampler_coeffs):
@@ -1077,7 +1082,7 @@
 	* interface/alsaseq_c.c:
 	  Fixed the compilation on ALSA 0.5.x environemnt.
 
-2003-09-03  URABE Shyouhei <root@mput.dip.jp>
+2003-09-03  mput <root@mput.dip.jp>
 
 	* configure: autoreconf
 

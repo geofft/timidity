@@ -666,7 +666,10 @@ void set_xg_chorus_type(int msb, int lsb)
 		type = 0;			/* Celeste 1 -> Chorus 1 */
 		break;
 	    case 0x43:
-		type = 5;			/* Flanger */
+		/* We have flanger implemented, but that's for GS.
+		 * GS's flanger sounds horrible when set for drum in
+		 * XG mode, so we cannot use it. */
+		type = 0;			/* Flanger -> Chorus 1 */
 		break;
 	    default:
 		type = 2;			/* unsupported -> Chorus 3 */
