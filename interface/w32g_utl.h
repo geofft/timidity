@@ -127,6 +127,7 @@ typedef struct SETTING_TIMIDITY_ {
 	int opt_lpf_def;			// E ?
 	int opt_drum_effect;			// E ?
 	int opt_modulation_envelope;			// E ?
+	int opt_pan_delay;			// E ?
 	int opt_eq_control;			// E ?
 	int opt_insertion_effect;	// E ?
     int opt_evil_mode;		// e

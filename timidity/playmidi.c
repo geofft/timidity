@@ -1773,11 +1773,16 @@ static int reduce_voice(void)
     return lowest;
 }
 
-
-
 void free_voice(int v1)
 {
     int v2;
+
+#ifdef ENABLE_PAN_DELAY
+	if (voice[v1].pan_delay_buf != NULL) {
+		free(voice[v1].pan_delay_buf);
+		voice[v1].pan_delay_buf = NULL;
+	}
+#endif /* ENABLE_PAN_DELAY */
 
     v2 = voice[v1].chorus_link;
     if(v1 != v2)
@@ -2211,23 +2216,28 @@ static void init_voice_pan_delay(int v)
 	int ch = vp->channel;
 	double pan_delay_diff; 
 
-  vp->pan_delay_rpt = 0;
-  if(opt_pan_delay && channel[ch].insertion_effect == 0) {
-	  if(vp->panning == 64) {vp->delay += pan_delay_table[64] * play_mode->rate / 1000;}
-	  else {
-		  if(pan_delay_table[vp->panning] > pan_delay_table[127 - vp->panning]) {
-			  pan_delay_diff = pan_delay_table[vp->panning] - pan_delay_table[127 - vp->panning];
-			  vp->delay += (pan_delay_table[vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
-		  } else {
-			  pan_delay_diff = pan_delay_table[127 - vp->panning] - pan_delay_table[vp->panning];
-			  vp->delay += (pan_delay_table[127 - vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
-		  }
-		  vp->pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
-	  }
-	  memset(vp->pan_delay_buf, 0, sizeof(vp->pan_delay_buf));
-	  if(vp->pan_delay_rpt < 1) {vp->pan_delay_rpt = 0;}
-	  vp->pan_delay_wpt = vp->pan_delay_rpt - 1;
-  }
+	if (vp->pan_delay_buf != NULL) {
+		free(vp->pan_delay_buf);
+		vp->pan_delay_buf = NULL;
+	}
+	vp->pan_delay_rpt = 0;
+	if (opt_pan_delay && channel[ch].insertion_effect == 0) {
+		if (vp->panning == 64) {vp->delay += pan_delay_table[64] * play_mode->rate / 1000;}
+		else {
+			if(pan_delay_table[vp->panning] > pan_delay_table[127 - vp->panning]) {
+				pan_delay_diff = pan_delay_table[vp->panning] - pan_delay_table[127 - vp->panning];
+				vp->delay += (pan_delay_table[vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
+			} else {
+				pan_delay_diff = pan_delay_table[127 - vp->panning] - pan_delay_table[vp->panning];
+				vp->delay += (pan_delay_table[127 - vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
+			}
+			vp->pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
+		}
+		if(vp->pan_delay_rpt < 1) {vp->pan_delay_rpt = 0;}
+		vp->pan_delay_wpt = vp->pan_delay_rpt - 1;
+		vp->pan_delay_buf = (int32 *)safe_malloc(sizeof(int32) * (vp->pan_delay_rpt + 1));
+		memset(vp->pan_delay_buf, 0, sizeof(int32) * (vp->pan_delay_rpt + 1));
+	}
 #endif	/* ENABLE_PAN_DELAY */
 }
 

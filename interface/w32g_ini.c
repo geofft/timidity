@@ -143,6 +143,7 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_modulation_envelope",&(st->opt_modulation_envelope));
+	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_pan_delay",&(st->opt_pan_delay));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));
@@ -281,6 +282,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_modulation_envelope",&(st->opt_modulation_envelope));
+	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_pan_delay",&(st->opt_pan_delay));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
     IniPutKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));

@@ -9,6 +9,9 @@
 	  Fix for 24-bit output mode.
 	* configs/msc6-project.zip, configs/msc6-sjis.txt:
 	  Support for TWSYNG service mode.
+	* interface/w32g_utl.[ch], interface/w32g_ini.c,
+	  interface/w32g_pref.c, interface/w32g_res.[h,rc]:
+	  Support for Surround (opt_pan_delay).
 
 2004-02-12  Kentaro Sato <kentaro@ranvis.com>
 

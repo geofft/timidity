@@ -44,6 +44,7 @@
 #define IDC_CHECKBOX_INIT_MI            1013
 #define IDC_CHECKBOX_MOD_ENV            1013
 #define IDC_CHECKBOX_CH07               1014
+#define IDC_CHECKBOX_PAN_DELAY          1014
 #define IDC_CHECKBOX_CH08               1015
 #define IDC_CHECKBOX_CH09               1016
 #define IDC_CHECKBOX_CH10               1017

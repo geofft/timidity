@@ -389,7 +389,7 @@ typedef struct {
 	float gain;
 } FilterCoefficients;
 
-/* #define ENABLE_PAN_DELAY */
+#define ENABLE_PAN_DELAY
 #ifdef ENABLE_PAN_DELAY
 #define PAN_DELAY_BUF_MAX 48	/* 0.5ms in 96kHz */
 #endif	/* ENABLE_PAN_DELAY */
@@ -453,8 +453,7 @@ typedef struct {
   int32 delay_counter;
 
 #ifdef ENABLE_PAN_DELAY
-  int32 pan_delay_buf[PAN_DELAY_BUF_MAX];
-  int32 pan_delay_rpt, pan_delay_wpt;
+  int32 *pan_delay_buf, pan_delay_rpt, pan_delay_wpt;
 #endif	/* ENABLE_PAN_DELAY */
 } Voice;
 
@@ -574,6 +573,7 @@ extern int opt_amp_compensation;
 extern int opt_realtime_priority;	/* interface/alsaseq_c.c */
 extern int opt_sequencer_ports;		/* interface/alsaseq_c.c */
 extern int opt_user_volume_curve;
+extern int opt_pan_delay;
 
 extern int play_midi_file(char *fn);
 extern void dumb_pass_playing_list(int number_of_files, char *list_of_files[]);

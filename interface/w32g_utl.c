@@ -528,6 +528,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	opt_lpf_def = st->opt_lpf_def;
 	opt_drum_effect = st->opt_drum_effect;
 	opt_modulation_envelope = st->opt_modulation_envelope;
+	opt_pan_delay = st->opt_pan_delay;
 	opt_eq_control = st->opt_eq_control;
 	opt_insertion_effect = st->opt_insertion_effect;
     adjust_panning_immediately = SetFlag(st->adjust_panning_immediately);
@@ -646,6 +647,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_lpf_def = opt_lpf_def;
 	st->opt_drum_effect = opt_drum_effect;
 	st->opt_modulation_envelope = opt_modulation_envelope;
+	st->opt_pan_delay = opt_pan_delay;
 	st->opt_eq_control = opt_eq_control;
 	st->opt_insertion_effect = opt_insertion_effect;
     st->noise_sharp_type = noise_sharp_type;
