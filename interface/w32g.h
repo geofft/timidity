@@ -368,7 +368,6 @@ extern char *w32g_output_dir;
 extern int w32g_auto_output_mode;
 
 // HWND
-extern HWND hStartWnd;
 extern HWND hMainWnd;
 extern HWND hDebugWnd;
 extern HWND hConsoleWnd;

@@ -144,7 +144,6 @@ static HWND hMainWndScrollbarVolumeWnd;
 #define W32G_VOLUME_MAX MAX_AMPLIFICATION
 
 // HWND
-HWND hStartWnd = 0;
 HWND hMainWnd = 0;
 HWND hDebugWnd = 0;
 HWND hConsoleWnd = 0;
@@ -345,55 +344,23 @@ void OnExitReady(void)
 
 void OnQuit(void)
 {
-	SendMessage(hStartWnd, WM_CLOSE, 0, 0);
+	SendMessage(hMainWnd, WM_CLOSE, 0, 0);
 }
 
 
 // ***************************************************************************
 // Start Window
-// 大元のウインドウ。このウインドウは普段は見えない。デバッグ用に
-// 使う予定ではあったがぜんぜん使用されていない。単に親ウインドウ
-// であるだけ。
+// 大元のウィンドウの地位はMain Windowに譲り、今ではただの初期化関数
 
-#define STARTWND_XSIZE 0
-#define STARTWND_YSIZE 0
-static char StartWndClassName[] = "TiMidity++ Win32GUI";
-
-static LRESULT CALLBACK StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 void InitStartWnd(int nCmdShow)
 {
-	WNDCLASSEX wndclass ;
-
-	if (hStartWnd != NULL) {
-		DestroyWindow (hStartWnd);
-		hStartWnd = NULL;
-	}
-
-	wndclass.cbSize		   = sizeof(WNDCLASSEX);
-	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc   = StartWinProc;
-	wndclass.cbClsExtra    = 0;
-	wndclass.cbWndExtra    = 0;
-	wndclass.hInstance     = hInst;
-	wndclass.hIcon         = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 32, 32, 0);
-	wndclass.hIconSm       = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
-	wndclass.hCursor       = LoadCursor(0, IDC_ARROW);
-	wndclass.hbrBackground = (HBRUSH)(COLOR_SCROLLBAR + 1);
-	wndclass.lpszMenuName  = NULL;
-	wndclass.lpszClassName = StartWndClassName;
-
-	if (!RegisterClassEx(&wndclass)) {return;}
-	hStartWnd = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_DLGMODALFRAME, StartWndClassName, 0,
-		WS_CLIPCHILDREN | WS_BORDER | WS_DLGFRAME, -32, -32, 0, 0, 0, 0, hInst, 0);
-	ShowWindow(hStartWnd, SW_SHOW);
-	UpdateWindow(hStartWnd);
-	InitMainWnd(hStartWnd);
-	InitConsoleWnd(hStartWnd);
-	InitListWnd(hStartWnd);
-	InitTracerWnd(hStartWnd);
-	InitDocWnd(hStartWnd);
-	InitWrdWnd(hStartWnd);
-	InitSoundSpecWnd(hStartWnd);
+	InitMainWnd(NULL);
+	InitConsoleWnd(hMainWnd);
+	InitListWnd(hMainWnd);
+	InitTracerWnd(hMainWnd);
+	InitDocWnd(hMainWnd);
+	InitWrdWnd(hMainWnd);
+	InitSoundSpecWnd(hMainWnd);
 
     hMainWndScrollbarProgressWnd = GetDlgItem(hMainWnd, IDC_SCROLLBAR_PROGRESS);
 	hMainWndScrollbarVolumeWnd = GetDlgItem(hMainWnd, IDC_SCROLLBAR_VOLUME);
@@ -402,26 +369,6 @@ void InitStartWnd(int nCmdShow)
 		       0, W32G_VOLUME_MAX, TRUE);
 	SetScrollPos(hMainWndScrollbarVolumeWnd, SB_CTL,
 		     W32G_VOLUME_MAX - amplification, TRUE);
-}
-
-LRESULT CALLBACK
-StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
-{
-	switch (uMess)
-	{
-	  case WM_DESTROY:
-	    PostQuitMessage(0);
-	    break;
-	  default:
-		if (uMess == RegisterWindowMessage("TaskbarCreated")) {
-			ShowWindow(hwnd, SW_RESTORE);
-			ShowWindow(hwnd, SW_SHOWNORMAL);
-			ShowWindow(hwnd, SW_SHOWNOACTIVATE);
-			return 0;
-		}
-	    return DefWindowProc(hwnd,uMess,wParam,lParam);
-	}
-	return 0L;
 }
 
 /*****************************************************************************/
@@ -528,10 +475,10 @@ static void UpdateOutputMenu(HWND hWnd, UINT wId)
 			oldnum = i;
 		}
 	}
-	if (num != oldnum) {
+	if (!w32g_play_active && num != oldnum) {
 		if (num >= 0) {st_temp->opt_playmode[0] = play_mode_list[num]->id_character;}
 		else {st_temp->opt_playmode[0] = 'd';}
-		if(!w32g_play_active) {PrefSettingApplyReally();}
+		PrefSettingApplyReally();
 	}
 }
 
@@ -682,14 +629,14 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			w32gSaveDefaultPlaylist();
 		}
 		INISaveMainWnd();
+		PostQuitMessage(0);
 		break;
 	  case WM_CLOSE:
 		if(save_playlist_once_before_exit_flag) {
 			save_playlist_once_before_exit_flag = 0;
 			w32gSaveDefaultPlaylist();
 		}
-		DestroyWindow(hStartWnd);
-		hStartWnd = NULL;
+		DestroyWindow(hwnd);
 		break;
 
       case WM_SIZE:
@@ -894,6 +841,11 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	}
 		break;
       default:
+		if (uMess == RegisterWindowMessage("TaskbarCreated")) {
+			ShowWindow(hMainWnd, SW_HIDE);
+			ShowWindow(hMainWnd, SW_SHOWNOACTIVATE);
+			return 0;
+		}
 		return FALSE;
     }
 	return FALSE;
@@ -991,7 +943,7 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
 		  break;
 
       case IDM_SETTING:
-		  PrefWndCreate(hStartWnd);
+		  PrefWndCreate(hMainWnd);
 		  break;
 
       case IDM_MCSAVEINIFILE:
@@ -1017,7 +969,7 @@ void MainCmdProc(HWND hwnd, int wId, HWND hwndCtl, UINT wNotifyCode)
 				break;
 		  }
 		  LoadIniFile(sp_temp,st_temp);
-		  PrefWndCreate(hStartWnd);
+		  PrefWndCreate(hMainWnd);
 		  break;
       case IDM_MWDEBUG:
 #ifdef W32GUI_DEBUG

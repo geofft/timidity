@@ -1,3 +1,11 @@
+2004-02-28  Saito <saito@intaa.net>
+	* interface/w32g_icon.ico:
+	  Fix large icon. 
+
+2004-02-28  ? <>
+	* interface/w32g_i.c, interface/w32g.h:
+	  Fix about Win32 GUI.
+
 2004-02-27  Takashi Iwai <tiwai@suse.de>
 
 	* interface/Makefile.am, interface/interface_[Ak].txt:
