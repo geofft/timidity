@@ -2456,6 +2456,7 @@ static void new_delay_voice(int v1, int level)
 		voice[v2] = voice[v1];	/* copy all parameters */
 		voice[v2].velocity = (uint8)vol;
 		voice[v2].delay += (int32)(play_mode->rate * delay / 1000);
+		init_voice_pan_delay(v2);
 		recompute_amp(v2);
 		apply_envelope_to_amp(v2);
 		recompute_freq(v2);
@@ -2541,6 +2542,8 @@ static void new_chorus_voice(int v1, int level)
 	}
 	voice[v2].delay += (int)(play_mode->rate * delay);
     }
+
+	init_voice_pan_delay(v2);
 
     recompute_amp(v1);
     apply_envelope_to_amp(v1);
@@ -2666,6 +2669,8 @@ static void new_chorus_voice_alternate(int v1, int level)
             voice[v1].delay += (int)(play_mode->rate * delay);
         }
     }
+
+	init_voice_pan_delay(v2);
 
     recompute_amp(v1);
     apply_envelope_to_amp(v1);

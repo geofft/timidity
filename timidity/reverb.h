@@ -277,7 +277,7 @@ typedef struct {
 typedef struct {
 	delay delayL, delayR;
 	lfo lfoL, lfoR;
-	int32 wpt0, wpt1, spt0, spt1, hist0, hist1;
+	int32 wpt0, spt0, spt1, hist0, hist1;
 	int32 rpt0, depth, pdelay;
 	double level, feedback, send_reverb, send_delay;
 	int32 leveli, feedbacki, send_reverbi, send_delayi;

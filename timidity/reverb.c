@@ -219,8 +219,9 @@ static void init_lfo(lfo *lfo, double freq, int type)
 
 	lfo->count = 0;
 	lfo->freq = freq;
-	cycle = (double)play_mode->rate / freq;
-	if(cycle < 1) {cycle = 1;}
+	if (lfo->freq < 0.05f) {lfo->freq = 0.05f;}
+	cycle = (double)play_mode->rate / lfo->freq;
+	if (cycle < 1) {cycle = 1;}
 	lfo->cycle = cycle;
 	lfo->icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)cycle, 24) - 0.5;
 
@@ -229,6 +230,10 @@ static void init_lfo(lfo *lfo, double freq, int type)
 		case LFO_SINE:
 			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
 				lfo->buf[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2.0, 16);
+			break;
+		case LFO_COSINE:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
+				lfo->buf[i] = TIM_FSCALE((lookup_sine(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2.0, 16);
 			break;
 		case LFO_TRIANGULAR:
 			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
@@ -1541,8 +1546,8 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 	double t;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(lfo1, 1, LFO_SINE);
-		init_lfo(lfo1d, 1, LFO_SINE);
+		init_lfo(lfo1, 1.0f, LFO_SINE);
+		init_lfo(lfo1d, 1.0f, LFO_SINE);
 		t = reverb_time_table[reverb_status.time] / reverb_time_table[64] - 1.0;
 		t = 1.0 + t / 2;
 		set_delay(pd, reverb_status.pre_delay_time * play_mode->rate / 1000);
@@ -2110,34 +2115,96 @@ void do_stereo_chorus(int32* buf, register int32 count)
 #endif /* OPT_MODE != 0 */
 }
 
-#if 0
 /*! Stereo Chorus; this implementation is specialized for system effect. */
 static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 {
-	int32 i;
+	int32 i, output, f0, f1, v0, v1;
+	int32 *bufL = info->delayL.buf, *bufR = info->delayR.buf,
+		*lfobufL = info->lfoL.buf, *lfobufR = info->lfoR.buf,
+		icycle = info->lfoL.icycle, cycle = info->lfoL.cycle,
+		leveli = info->leveli, feedbacki = info->feedbacki,
+		send_reverbi = info->send_reverbi, send_delayi = info->send_delayi,
+		depth = info->depth, pdelay = info->pdelay, rpt0 = info->rpt0;
+	int32 wpt0 = info->wpt0, spt0 = info->spt0, spt1 = info->spt1,
+		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(lfoL, /*Hz*/, LFO_SINE);
-		init_lfo(lfoR, /*Hz*/, LFO_COSINE);
+		init_lfo(&(info->lfoL), (double)chorus_status.rate * 0.122f, LFO_SINE);
+		init_lfo(&(info->lfoR), (double)chorus_status.rate * 0.122f, LFO_COSINE);
+		info->rpt0 = 9600;
+		set_delay(&(info->delayL), info->rpt0 + 1);
+		set_delay(&(info->delayR), info->rpt0 + 1);
+		info->pdelay = chorus_delay_time_table[chorus_status.delay] * (double)play_mode->rate / 1000.0f;
+		info->depth = (double)(chorus_status.depth + 1) / 3.2f * (double)play_mode->rate / 1000.0f;
+		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
+		if (info->pdelay < 1) {info->pdelay = 1;}
+		info->feedback = (double)chorus_status.feedback * 0.763f / 100.0f;
+		info->level = (double)chorus_status.level / 127.0f * MASTER_CHORUS_LEVEL;
+		info->send_reverb = (double)chorus_status.send_reverb * 0.787f / 100.0f * REV_INP_LEV;
+		info->send_delay = (double)chorus_status.send_delay * 0.787f / 100.0f;
+		info->feedbacki = TIM_FSCALE(info->feedback, 24);
+		info->leveli = TIM_FSCALE(info->level, 24);
+		info->send_reverbi = TIM_FSCALE(info->send_reverb, 24);
+		info->send_delayi = TIM_FSCALE(info->send_delay, 24);
+		info->wpt0 = info->spt0 = info->spt1 = info->hist0 = info->hist1 = 0;
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
 		return;
 	}
 
-	for (i = 0; i < count; i++)
-	{
-		outr = outl = 0;
-		x = (reverb_effect_buffer[i] + reverb_effect_buffer[i + 1]) >> 1;
-		reverb_effect_buffer[i] = reverb_effect_buffer[i + 1] = 0;
+	/* LFO */
+	f0 = imuldiv24(lfobufL[imuldiv24(lfocnt, icycle)], depth);
+	spt0 = wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+	f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
+	if(spt0 < 0) {spt0 += rpt0;}
+	f1 = imuldiv24(lfobufR[imuldiv24(lfocnt, icycle)], depth);
+	spt1 = wpt0 - pdelay - (f1 >> 8);	/* integral part of delay */
+	f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
+	if(spt1 < 0) {spt1 += rpt0;}
+	
+	for(i = 0; i < count; i++) {
+		v0 = bufL[spt0];
+		v1 = bufR[spt1];
 
-		buf[i] += outl;
-		buf[i + 1] += outr;
+		/* LFO */
+		if(++wpt0 == rpt0) {wpt0 = 0;}
+		f0 = imuldiv24(lfobufL[imuldiv24(lfocnt, icycle)], depth);
+		spt0 = wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+		f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt0 < 0) {spt0 += rpt0;}
+		f1 = imuldiv24(lfobufR[imuldiv24(lfocnt, icycle)], depth);
+		spt1 = wpt0 - pdelay - (f1 >> 8);	/* integral part of delay */
+		f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
+		if(spt1 < 0) {spt1 += rpt0;}
+		if(++lfocnt == cycle) {lfocnt = 0;}
 
-		++i;
+		/* left */
+		/* delay with all-pass interpolation */
+		output = hist0 = v0 + imuldiv8(bufL[spt0] - hist0, f0);
+		bufL[wpt0] = chorus_effect_buffer[i] + imuldiv24(output, feedbacki);
+		output = imuldiv24(output, leveli);
+		buf[i] += output;
+		/* send to other system effects (it's peculiar to GS) */
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverbi);
+		delay_effect_buffer[i] += imuldiv24(output, send_delayi);
+
+		/* right */
+		/* delay with all-pass interpolation */
+		output = hist1 = v1 + imuldiv8(bufR[spt1] - hist1, f1);
+		bufR[wpt0] = chorus_effect_buffer[++i] + imuldiv24(output, feedbacki);
+		output = imuldiv24(output, leveli);
+		buf[i] += output;
+		/* send to other system effects (it's peculiar to GS) */
+		reverb_effect_buffer[i] += imuldiv24(output, send_reverbi);
+		delay_effect_buffer[i] += imuldiv24(output, send_delayi);
 	}
-	info->t1 = t1, info->t1d = t1d;
+	memset(chorus_effect_buffer, 0, sizeof(int32) * count);
+	info->wpt0 = wpt0, info->spt0 = spt0, info->spt1 = spt1,
+		info->hist0 = hist0, info->hist1 = hist1;
+	info->lfoL.count = info->lfoR.count = lfocnt;
 }
-#endif
 
 #if OPT_MODE != 0	/* fixed-point implementation */
 #if _MSC_VER

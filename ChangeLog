@@ -2,6 +2,7 @@
 
 	* timidity/reverb.[ch], timidity/playmidi.c, timidity/readmidi.c:
 	  Clean up around chorus effect.
+	  Fix bug of opt_pan_delay with opt_surround_chorus.
 
 2004-02-18  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
