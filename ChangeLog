@@ -1,4 +1,10 @@
 
+2003-06-13  s_keishi <s_keishi@mutt.freemail.ne.jp>
+
+	* configure.in, interface.h.in,
+	  timidity/Makefile.am, timidity/timidity.c:
+	  Fix configures to be able to compile twsyng with gcc.
+
 2003-06-13  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c,

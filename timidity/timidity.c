@@ -3782,7 +3782,7 @@ static int CoInitializeOK = 0;
 
 #ifndef __MACOS__
 #ifdef __W32__ /* Windows */
-#if defined(__CYGWIN32__) || defined(__MINGW32__) || ( !defined(IA_W32GUI) && !defined(IA_W32G_SYN) )
+#if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
 /* Cygwin or Console */
 int __cdecl main(int argc, char **argv)
 #else

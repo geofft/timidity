@@ -1094,7 +1094,7 @@ AC_MSG_RESULT($DEFAULT_PLAYMODE/$TIMIDITY_OUTPUT_ID)
 # Interface Section
 #
 
-interface_targets='dynamic ncurses slang motif tcltk emacs vt100 xaw xskin gtk alsaseq winsyn'
+interface_targets='dynamic ncurses slang motif tcltk emacs vt100 xaw xskin gtk alsaseq winsyn winsyng'
 
 AC_ARG_ENABLE(interface,
   [  --enable-interface=[interface_list]
@@ -1499,6 +1499,18 @@ CONFIG_INTERFACE(winsyn,WINSYN,W,
   ,
   [ INTERFACE_SRCS="$INTERFACE_SRCS winsyn_c.c" ])
 
+dnl TiMidity Windows GUI synthesizer server
+AM_CONDITIONAL(ENABLE_W32G_SYN, false)
+CONFIG_INTERFACE(winsyng,W32G_SYN,W,
+  [  --enable-winsyng        Enable Windows GUI Synthesizer interface
+                                                          (default is no)],
+  ,
+  [ lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
+    lib_user32_opt='-luser32'
+    LDFLAGS="-mwindows $LDFLAGS"
+    INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c w32g_ogg_dll.c w32g_vorbis_dll.c w32g_vorbisenc_dll.c winsyn_c.c"
+  ])
+
 
 dnl Windows GUI
 AM_CONDITIONAL(ENABLE_W32GUI, false)
@@ -1508,7 +1520,7 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
   [ lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
     LDFLAGS="-mwindows $LDFLAGS"
-    INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_ut2.c"
+    INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
   ])
 
 dnl UMP configuration

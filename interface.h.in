@@ -37,6 +37,9 @@
 /* Define if you have Windows32 GUI interface. */
 #undef IA_W32GUI
 
+/* Define if you have Windows GUI synthesizer mode interface. */
+#undef IA_W32G_SYN
+
 /* Define if you have Remote MIDI interface. */
 #undef IA_SERVER
 
@@ -45,3 +48,10 @@
 
 /* Define if you have Remote MIDI interface. */
 #undef IA_WINSYN
+
+#if defined(IA_W32GUI) || defined(IA_W32G_SYN)
+#define __W32READDIR__
+#define URL_DIR_CACHE_ENABLE
+#define ANOTHER_MAIN
+#define __W32G__        /* for Win32 GUI */
+#endif

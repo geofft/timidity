@@ -150,6 +150,10 @@ if ENABLE_W32GUI
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 endif
 
+if ENABLE_W32G_SYN
+W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+endif
+
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.o) \
 	$(top_builddir)/interface/libinterface.a \
