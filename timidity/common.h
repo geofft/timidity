@@ -69,6 +69,7 @@ extern void *safe_realloc(void *old_ptr, size_t new_size);
 extern void *safe_large_malloc(size_t count);
 extern char *safe_strdup(const char *s);
 extern void free_ptr_list(void *ptr_list, int count);
+extern int string_to_7bit_range(const char *s, int *start, int *end);
 extern char **expand_file_archives(char **files, int *nfiles_in_out);
 extern void randomize_string_list(char **strlist, int nstr);
 extern int pathcmp(const char *path1, const char *path2, int ignore_case);

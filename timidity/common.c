@@ -663,6 +663,36 @@ void free_ptr_list(void *ptr_list, int count)
 	free(ptr_list);
 }
 
+static int atoi_limited(const char *string, int v_min, int v_max)
+{
+	int value = atoi(string);
+	
+	if (value <= v_min)
+		value = v_min;
+	else if (value > v_max)
+		value = v_max;
+	return value;
+}
+
+int string_to_7bit_range(const char *string_, int *start, int *end)
+{
+	const char *string = string_;
+	
+	if(isdigit(*string)) {
+		*start = atoi_limited(string, 0, 127);
+		while(isdigit(*++string)) ;
+	} else
+		*start = 0;
+	if (*string == '-') {
+		string++;
+		*end = isdigit(*string) ? atoi_limited(string, 0, 127) : 127;
+		if(*start > *end)
+			*end = *start;
+	} else
+		*end = *start;
+	return string != string_;
+}
+
 /* This adds a directory to the path list */
 void add_to_pathlist(char *s)
 {
