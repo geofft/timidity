@@ -675,7 +675,9 @@ void winplaymidi(void){
 #endif
 	while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
 		play_one_data();
+#ifdef IA_W32G_SYN
 		winplaymidi_sleep_level = 0;
+#endif
 	}
 #ifdef IA_W32G_SYN
 	if ( winplaymidi_sleep_level == 1 ) {

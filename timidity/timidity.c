@@ -47,6 +47,9 @@
 #if defined(__FreeBSD__)
 #include <floatingpoint.h> /* For FP exceptions */
 #endif
+#if defined(__NetBSD__) || defined(__OpenBSD__)
+#include <ieeefp.h> /* For FP exceptions */
+#endif
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -3232,7 +3235,11 @@ MAIN_INTERFACE void timidity_start_initialize(void)
     static int is_first = 1;
 #if defined(__FreeBSD__)
     fp_except_t fpexp;
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
+    fp_except fpexp;
+#endif
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
     fpexp = fpgetmask();
     fpsetmask(fpexp & ~(FP_X_INV|FP_X_DZ));
 #endif
