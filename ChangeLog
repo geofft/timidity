@@ -1,3 +1,14 @@
+2004-03-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1,
+	  timidity/effect.c, timidity/timidity.c:
+	  Change specification of -EFns=? option (for 16-bit)
+	  -EFns=0 : no noise shaping
+	  -EFns=1 : traditional noise shaping
+	  -EFns=2 : overdrive-like soft-clipping + new noise shaping
+	  -EFns=3 : tube-amplifier-like soft-clipping + new noise shaping
+	  -EFns=4 : new noise shaping (default)
+
 2004-03-24  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/w32g.h, interface/w32g_c.c, interface/w32g_i.c:

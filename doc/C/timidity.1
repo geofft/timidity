@@ -1,4 +1,4 @@
-.TH timidity 1 "March 01 2004" "2.13.0"
+.TH timidity 1 "March 25 2004" "2.13.0"
 .SH NAME
 TiMidity++ \- MIDI\-to\-WAVE converter and player
 .SH SYNOPSIS
@@ -371,7 +371,25 @@ increases because it shifts to a high frequency.  In case of 8\-bit
 linear encoding, valid values of \fIn\fP are in the interval from
 \fB0\fP (min) to \fB4\fP (max).  Default value is \fB4\fP.  In case of
 16\-bit linear encoding, valid values of n are in the interval from
-\fB0\fP to \fB2\fP.  Default value is \fB2\fP.
+\fB0\fP to \fB4\fP.  According to the value, it works as following.
+Default value is \fB4\fP.
+.RS
+.TP
+.B 0
+no noise shaping
+.TP
+.B 1
+traditional noise shaping
+.TP
+.B 2
+overdrive-like soft-clipping + new noise shaping
+.TP
+.B 3
+tube-amplifier-like soft-clipping + new noise shaping
+.TP
+.B 4
+new noise shaping
+.RE
 .TP
 .BI "resamp=, \-\-resample " (d|l|c|L|n|g)
 .RS

@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,15 +15,15 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     effect.c - To apply sound effects.
-    Mainly written by Masanao Izumo <mo@goice.co.jp>
+    Mainly written by Masanao Izumo <iz@onicos.co.jp>
 
- * Interfaces:
- * void init_effect(void);
- * do_effect(int32* buf, int32 count);
- */
+    Interfaces:
+    void init_effect(void);
+    do_effect(int32* buf, int32 count);
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -57,9 +57,9 @@ static void init_ns_tap16(void);
 static void ns_shaping8(int32 *, int32);
 static void ns_shaping16(int32 *, int32);
 static void ns_shaping16_trad(int32 *, int32);
-static void ns_shaping16_9(int32 *, int32);
 static void do_soft_clipping1(int32 *, int32);
 static void do_soft_clipping2(int32 *, int32);
+static void ns_shaping16_9(int32 *, int32);
 static inline unsigned long frand(void);
 static inline int32 my_mod(int32, int32);
 
@@ -325,7 +325,7 @@ static void ns_shaping8(int32 *lp, int32 c)
 	default:
 		return;
 	}
-	if (!(play_mode->encoding & PE_MONO))
+	if (! (play_mode->encoding & PE_MONO))
 		c *= 2;
 	for (i = 0; i < c; i++) {
 		/* applied noise-shaping filter */
@@ -357,25 +357,25 @@ static void ns_shaping8(int32 *lp, int32 c)
 
 static void ns_shaping16(int32 *lp, int32 c)
 {
-	if (!(play_mode->encoding & PE_MONO)) {c *= 2;}
+	if (! (play_mode->encoding & PE_MONO))
+		c *= 2;
 	switch (noise_sharp_type) {
 	case 1:
 		ns_shaping16_trad(lp, c);
 		break;
 	case 2:
-	case 3:
-	case 4:
-		ns_shaping16_9(lp, c);
-		break;
-	case 5:
 		do_soft_clipping1(lp, c);
 		ns_shaping16_9(lp, c);
 		break;
-	case 6:
+	case 3:
 		do_soft_clipping2(lp, c);
 		ns_shaping16_9(lp, c);
 		break;
-	default: break;
+	case 4:
+		ns_shaping16_9(lp, c);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -413,6 +413,36 @@ static void ns_shaping16_trad(int32 *lp, int32 c)
 		lp[i] = l << (32 - 16 - GUARD_BITS);
 		ns_z1[3] = ns_z1[2], ns_z1[2] = ns_z1[1], ns_z1[1] = ns_z1[0];
 		ns_z1[0] = ll - l * (1U << (32 - 16 - GUARD_BITS));
+	}
+}
+
+#define WS_AMP_MAX	((int32) 0x0fffffff)
+#define WS_AMP_MIN	((int32)-0x0fffffff)
+
+static void do_soft_clipping1(int32 *buf, int32 count)
+{
+	int32 i, x;
+	int32 ai = TIM_FSCALE(1.5f, 24), bi = TIM_FSCALE(0.5f, 24);
+	
+	for (i = 0; i < count; i++) {
+		x = buf[i];
+		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+				: ((x < WS_AMP_MIN) ? WS_AMP_MIN : x);
+		x = imuldiv24(x, ai) - imuldiv24(imuldiv28(imuldiv28(x, x), x), bi);
+		buf[i] = x;
+	}
+}
+
+static void do_soft_clipping2(int32 *buf, int32 count)
+{
+	int32 i, x;
+	
+	for (i = 0; i < count; i++) {
+		x = buf[i];
+		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+				: ((x < WS_AMP_MIN) ? WS_AMP_MIN : x);
+		x = signlong(x) * ((abs(x) << 1) - imuldiv28(x, x));
+		buf[i] = x;
 	}
 }
 
@@ -486,34 +516,6 @@ static void ns_shaping16_9(int32 *lp, int32 c)
 		ns9_histposr = my_mod((ns9_histposr + 8), ns9_order);
 		ns9_ehr[ns9_histposr + 9] = ns9_ehr[ns9_histposr] = output - sample;
 		lp[i] = output;
-	}
-}
-
-#define WS_AMP_MAX	((int32) 0x0fffffff)
-#define WS_AMP_MIN	((int32)-0x0fffffff)
-
-static void do_soft_clipping1(int32 *buf, int32 count)
-{
-	int32 i, x;
-	int32 ai = TIM_FSCALE(1.5f, 24), bi = TIM_FSCALE(0.5f, 24);
-	for (i = 0; i < count; i++) {
-		x = buf[i];
-		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
-				: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
-		x = imuldiv24(x, ai) - imuldiv24(imuldiv28(imuldiv28(x, x), x), bi);
-		buf[i] = x;
-	}
-}
-
-static void do_soft_clipping2(int32 *buf, int32 count)
-{
-	int32 i, x;
-	for (i = 0; i < count; i++) {
-		x = buf[i];
-		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
-				: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
-		x = signlong(x) * ((abs(x) << 1) - imuldiv28(x, x));
-		buf[i] = x;
 	}
 }
 

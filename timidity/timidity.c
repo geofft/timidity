@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2003 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 #ifdef HAVE_CONFIG_H
@@ -3575,9 +3575,9 @@ static inline int parse_opt_h(const char *arg)
 "  -EFvlpf=d    Disable voice LPF" NLS
 "  -EFvlpf=c    Enable Chamberlin resonant LPF (12dB/oct) (default)" NLS
 "  -EFvlpf=m    Enable Moog resonant lowpass VCF (24dB/oct)" NLS
-"  -EFns=n      Enable the n th degree noise shaping filter" NLS
+"  -EFns=n      Enable the n th degree (type) noise shaping filter" NLS
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
-"                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
+"                 n:[0..4] (for 16-bit linear encoding, default is 4)" NLS, fp);
 #ifndef FIXED_RESAMPLATION
 	fputs(
 "  -EFresamp=d  Disable resamplation" NLS
