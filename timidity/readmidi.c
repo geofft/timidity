@@ -1821,18 +1821,18 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				}
 				break;
 			case 0x0c:
-				SETMIDIEVENT(evm[0], 0, ME_USER_TEMPER_ENTER,
+				SETMIDIEVENT(evm[0], 0, ME_USER_TEMPER_ENTRY,
 						0, val[4], val[21]);
 				for (i = 0; i < val[21]; i++) {
-					SETMIDIEVENT(evm[i * 5 + 1], 0, ME_USER_TEMPER_ENTER,
+					SETMIDIEVENT(evm[i * 5 + 1], 0, ME_USER_TEMPER_ENTRY,
 							1, val[i * 10 + 22], val[i * 10 + 23]);
-					SETMIDIEVENT(evm[i * 5 + 2], 0, ME_USER_TEMPER_ENTER,
+					SETMIDIEVENT(evm[i * 5 + 2], 0, ME_USER_TEMPER_ENTRY,
 							2, val[i * 10 + 24], val[i * 10 + 25]);
-					SETMIDIEVENT(evm[i * 5 + 3], 0, ME_USER_TEMPER_ENTER,
+					SETMIDIEVENT(evm[i * 5 + 3], 0, ME_USER_TEMPER_ENTRY,
 							3, val[i * 10 + 26], val[i * 10 + 27]);
-					SETMIDIEVENT(evm[i * 5 + 4], 0, ME_USER_TEMPER_ENTER,
+					SETMIDIEVENT(evm[i * 5 + 4], 0, ME_USER_TEMPER_ENTRY,
 							4, val[i * 10 + 28], val[i * 10 + 29]);
-					SETMIDIEVENT(evm[i * 5 + 5], 0, ME_USER_TEMPER_ENTER,
+					SETMIDIEVENT(evm[i * 5 + 5], 0, ME_USER_TEMPER_ENTRY,
 							5, val[i * 10 + 30], val[i * 10 + 31]);
 				}
 				num_events += val[21] * 5 + 1;

@@ -125,7 +125,7 @@ enum midi_event_t
 	ME_TEMPER_KEYSIG,		/* Temperament key signature */
 	ME_TEMPER_TYPE,			/* Temperament type */
 	ME_MASTER_TEMPER_TYPE,	/* Master temperament type */
-	ME_USER_TEMPER_ENTER,	/* User-defined temperament enter */
+	ME_USER_TEMPER_ENTRY,	/* User-defined temperament entry */
 	
 	ME_SYSEX_LSB,			/* Universal system exclusive message (LSB) */
 	ME_SYSEX_MSB,			/* Universal system exclusive message (MSB) */

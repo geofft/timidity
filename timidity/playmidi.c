@@ -268,7 +268,7 @@ static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
 static void set_single_note_tuning(int, int, int, int);
-static void set_user_temper_enter(int, int, int);
+static void set_user_temper_entry(int, int, int);
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -350,7 +350,7 @@ static char *event_name(int type)
 	EVENT_NAME(ME_TEMPER_KEYSIG);
 	EVENT_NAME(ME_TEMPER_TYPE);
 	EVENT_NAME(ME_MASTER_TEMPER_TYPE);
-	EVENT_NAME(ME_USER_TEMPER_ENTER);
+	EVENT_NAME(ME_USER_TEMPER_ENTRY);
 	EVENT_NAME(ME_SYSEX_LSB);
 	EVENT_NAME(ME_SYSEX_MSB);
 	EVENT_NAME(ME_SYSEX_GS_LSB);
@@ -4211,8 +4211,8 @@ static void seek_forward(int32 until_time)
 			channel[i].temper_type = current_event->a;
 		break;
 
-	case ME_USER_TEMPER_ENTER:
-		set_user_temper_enter(ch, current_event->a, current_event->b);
+	case ME_USER_TEMPER_ENTRY:
+		set_user_temper_entry(ch, current_event->a, current_event->b);
 		break;
 
 	  case ME_SYSEX_LSB:
@@ -6165,8 +6165,8 @@ int play_event(MidiEvent *ev)
 				}
 		break;
 
-	case ME_USER_TEMPER_ENTER:
-		set_user_temper_enter(ch, current_event->a, current_event->b);
+	case ME_USER_TEMPER_ENTRY:
+		set_user_temper_entry(ch, current_event->a, current_event->b);
 		break;
 
 	case ME_SYSEX_LSB:
@@ -6244,7 +6244,7 @@ static void set_single_note_tuning(int part, int a, int b, int rt)
 	}
 }
 
-static void set_user_temper_enter(int part, int a, int b)
+static void set_user_temper_entry(int part, int a, int b)
 {
 	static int tp;		/* temperament program number */
 	static int ll;		/* number of formula */

@@ -1,7 +1,7 @@
 2003-11-19  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/ncurs_c.c, timidity/playmidi.[ch], timidity/readmidi.c:
-	  Support for user-defined temperament enter
+	  Support for user-defined temperament entry
 
 2003-11-17  Takashi Iwai <tiwai@suse.de>
 	
