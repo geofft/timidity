@@ -124,6 +124,7 @@ typedef struct SETTING_TIMIDITY_ {
 	int opt_tva_decay;			// E ?
 	int opt_tva_release;		// E ?
 	int opt_delay_control;		// E ?
+	int opt_default_module;		// --module
 	int opt_lpf_def;			// E ?
 	int opt_drum_effect;			// E ?
 	int opt_modulation_envelope;			// E ?

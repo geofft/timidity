@@ -613,6 +613,38 @@ static char *cb_info_IDC_COMBO_LPF_jp[] = {
 	"LPF (24dB/oct)",
 };
 
+// IDC_COMBO_MODULE
+struct _ModuleList {
+	int num;
+	char *name;
+};
+
+static struct _ModuleList cb_info_IDC_COMBO_MODULE[] = {
+	MODULE_TIMIDITY_DEFAULT, "TiMidity++ Default",
+	MODULE_SC55, "SC-55",
+	MODULE_SC88, "SC-88",
+	MODULE_SC88PRO, "SC-88Pro",
+	MODULE_SC8850, "SC-8850",
+	MODULE_MU50, "MU-50",
+	MODULE_MU80, "MU-80",
+	MODULE_MU90, "MU-90",
+	MODULE_MU100, "MU-100",
+	MODULE_SBLIVE, "Sound Blaster Live!",
+	MODULE_SBAUDIGY, "Sound Blaster Audigy",
+	MODULE_TIMIDITY_SPECIAL1, "TiMidity++ Special 1",
+	MODULE_TIMIDITY_DEBUG, "TiMidity++ Debug",
+};
+
+#define cb_num_IDC_COMBO_MODULE (sizeof(cb_info_IDC_COMBO_MODULE) / sizeof(struct _ModuleList))
+
+static int find_combo_module_item(int val)
+{
+	int i;
+	for (i = 0; i < cb_num_IDC_COMBO_MODULE; i++)
+		if (val == cb_info_IDC_COMBO_MODULE[i].num) {return i;}
+	return 0;
+}
+
 static BOOL APIENTRY
 PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
@@ -686,6 +718,14 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 
 		SendDlgItemMessage(hwnd, IDC_COMBO_DELAY, CB_SETCURSEL,
 				(WPARAM) st_temp->opt_delay_control, (LPARAM) 0);
+		// DEFAULT MODULE
+		for (i = 0; i < cb_num_IDC_COMBO_MODULE; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_MODULE,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info_IDC_COMBO_MODULE[i].name);
+
+		SendDlgItemMessage(hwnd, IDC_COMBO_MODULE, CB_SETCURSEL,
+				(WPARAM) find_combo_module_item(st_temp->opt_default_module), (LPARAM) 0);
 		// LPF
 		if (PlayerLanguage == LANGUAGE_JAPANESE)
 			cb_info = cb_info_IDC_COMBO_LPF_jp;
@@ -809,6 +849,8 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		}
 		// DELAY
 		st_temp->opt_delay_control = (int)SendDlgItemMessage(hwnd, IDC_COMBO_DELAY, CB_GETCURSEL, 0, 0);
+		// DEFAULT MODULE
+		st_temp->opt_default_module = cb_info_IDC_COMBO_MODULE[(int)SendDlgItemMessage(hwnd, IDC_COMBO_MODULE, CB_GETCURSEL, 0, 0)].num;
 		// LPF
 		st_temp->opt_lpf_def = (int)SendDlgItemMessage(hwnd, IDC_COMBO_LPF, CB_GETCURSEL, 0, 0);
 		// L&R DELAY

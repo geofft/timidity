@@ -319,6 +319,7 @@
 #define IDC_CHECKBOX_TEMPER_USER2       2100
 #define IDC_CHECKBOX_TEMPER_USER3       2101
 #define IDC_COMBO_REVERB                2103
+#define IDC_COMBO_MODULE                2104
 #define IDC_COMBO_CHORUS                2105
 #define IDC_COMBO_DELAY                 2106
 #define IDC_COMBO_LPF                   2107

@@ -139,6 +139,7 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_tva_decay",&(st->opt_tva_decay));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_tva_release",&(st->opt_tva_release));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_delay_control",&(st->opt_delay_control));
+	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_default_module",&(st->opt_default_module));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_modulation_envelope",&(st->opt_modulation_envelope));
@@ -275,6 +276,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_tva_decay",&(st->opt_tva_decay));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_tva_release",&(st->opt_tva_release));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_delay_control",&(st->opt_delay_control));
+	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_default_module",&(st->opt_default_module));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_modulation_envelope",&(st->opt_modulation_envelope));

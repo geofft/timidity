@@ -523,6 +523,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	opt_tva_decay = st->opt_tva_decay;
 	opt_tva_release = st->opt_tva_release;
 	opt_delay_control = st->opt_delay_control;
+	opt_default_module = st->opt_default_module;
 	opt_lpf_def = st->opt_lpf_def;
 	opt_drum_effect = st->opt_drum_effect;
 	opt_modulation_envelope = st->opt_modulation_envelope;
@@ -638,6 +639,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_tva_decay = opt_tva_decay;
 	st->opt_tva_release = opt_tva_release;
 	st->opt_delay_control = opt_delay_control;
+	st->opt_default_module = opt_default_module;
 	st->opt_lpf_def = opt_lpf_def;
 	st->opt_drum_effect = opt_drum_effect;
 	st->opt_modulation_envelope = opt_modulation_envelope;
