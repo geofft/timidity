@@ -2050,7 +2050,7 @@ static int select_play_sample(Sample *splist,
 		} else
 			ft = f, fst = fs;
 		if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-			ft *= ratio + 0.5, fst *= ratio + 0.5;
+			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel
 				&& ! (sp->inst_type == INST_SF2
@@ -2077,7 +2077,7 @@ static int select_play_sample(Sample *splist,
 			} else
 				ft = f, fst = fs;
 			if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-				ft *= ratio + 0.5, fst *= ratio + 0.5;
+				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 			diff = abs(sp->root_freq - fst);
 			if (cdiff > diff) {
 				if (sp->inst_type == INST_SF2
@@ -2127,7 +2127,7 @@ static int select_play_sample(Sample *splist,
 					} else
 						ft = f;
 					if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-						ft *= ratio + 0.5;
+						ft = ft * ratio + 0.5;
 					k = vlist[nv] = find_voice(e);
 					voice[k].orig_frequency = ft;
 					MYCHECK(voice[k].orig_frequency);
