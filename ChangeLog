@@ -1,6 +1,8 @@
-2004-03-29  URABE Shyouhei  <shyouhei@YahooBB218133008099.bbtec.net>
+2004-03-29  mput <root@mput.dip.jp>
 
+	* NEWS: update
 	* configure.in: version to 2.13.0
+	* configure.in: disable --enable-simd (not working)
 
 2004-02-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

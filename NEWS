@@ -1,3 +1,117 @@
+29/03/2004
+    * Verison 2.13.0
+    * Newly supported platforms
+          * Mac OS X native
+          * ALSA 0.9 and later
+          * Ogg Vorbis RC3 and later
+          * aRts
+          * JACK
+          * Windows Synthesizer mode (TWSYMTH)
+          * PortAudio?
+          * PortMIDI Synthesizer mode 
+    * Newly supported input format
+          * MFi (Melody format for i-Mode)
+          * RMI 
+    * Support for Tcl/Tk 8.3/8.4
+    * Temperament control
+          * Trial Pure intonation playing (-Zpure)
+          * Support for Temperament Tonality Control Tuning (MTS)
+          * Support for Temperament Type Control Tuning (MTS)
+          * Support for User-defined Temperament Entry (MTS)
+          * Channel mute by temperament type 
+    * Not pseudo reverb engine(Schroeder's & Freeverb)
+    * Plate reverberator
+    * Modulation envelope support
+    * voice-by-voice LPF (Chamberlin & Moog VCF)
+    * Insertion/Varidation effect support
+          * Distortion
+          * Overdrive
+          * OD1 / OD2
+          * HEXA-CHORUS
+          * Lo-Fi
+          * Stereo-EQ 
+    * Support for transpose
+    * SoundFont
+          * Support for stereo samples
+          * Support for SF2 scale tuning
+          * Support for sample link 
+    * Parameter Numbers
+          * NRPN drum pitch coarse & fine
+          * NRPN drum instrument tva level
+          * NRPN Vibrato Rate & Vibrato Depth
+          * RPN tuning program select
+          * GM2 RPN modulation range 
+    * Newly supported system exclusives
+          * GS SysEx Pitch Offset Fine
+          * GS SysEx tone map
+          * GS SysEx Reverb Level
+          * GS SysEx Reverb Time
+          * GS SysEx Note Off
+          * GS SysEx Velocity Sense Depth/Offset
+          * GS SysEx TONE MAP-0 NUMBER
+          * GS/XG SysEx Velocity Limit and Note Limit
+          * XG SysEx reverb/chorus types
+          * XG SysEx Drum Setup
+          * XG Dry Level related SysEx
+          * GM2 SysEx system ON
+          * Support for Checksum calculation of GS SysEx 
+    * GM2 support
+          * GM2 volume curve
+          * GM2 pan table
+          * GM2 SysEx Bulk Tuning Dump (MTS)
+          * GM2 SysEx Single Note Tuning Change (MTS)
+          * Other MIDI Tuning Standard related SysEx (see above) 
+    * Support for channel layer (GS - Rx. Channel / XG - Rcv Channel)
+    * Support for XG Multi EQ and Part EQ
+    * Resampling engine
+          * modified Gauss resample
+          * Newton polynomials 
+    * Noise shaper for 16bit output
+    * Automatic volume compensation
+    * User control for volume curve
+          * volume curve's default also changed 
+    * Realtime channel mute support
+    * Non-linear panning
+    * Support ME_TIMESIG/ME_KEYSIG for RCP/R36/G18/G36 MIDI data
+    * Support for RCP tempo gradation
+    * Support for WAV and AIFF files as sample data
+    * Support NeoWrd
+    * Command-line options
+          * Support for getopt_long()
+          * too many changes. refer timidity(1) 
+    * Config file
+          * path name to be quotable with ""
+          * New options
+                * note=
+                * pan=
+                * strip=tail
+                * amp
+                * fc=
+                * q=
+                * (trem|mod)(pitch|fc)=
+                * fc(keyf|velf)=
+                * qvelf=
+                * scl(note|tune)=
+                * ADSR-type options 
+          * New mappings for map command
+                * gm2[drum]
+                * sc8850[drum] 
+          * New extension commands
+                * #extension copymap
+                * #extension legato
+                * #extension level
+                * #extension playnote
+                * #extension (reverb|chorus|delay)send
+                * #extension damper
+                * #extension rnddelay 
+          * New command
+                * drumset 
+    * Project files for VC6 and VC7 are included 
+
+1/18, 2002
+    * Version 2.11.3 released.
+    * New config file option "tune=" 
+
 01/12, 2002
     * Version 2.11.2 released.
 

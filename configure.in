@@ -171,9 +171,9 @@ AC_ARG_WITH(elf,
   [  --with-elf              create ELF shared object instead of AOUT ],
   [ ELFFORMAT=$withval ], [ ELFFORMAT="yes" ])
 
-AC_ARG_WITH(simd,
-  [  --with-simd             create SIMD friendly binary (default is no) ],
-  [ SIMD=$withval ], [ SIMD="no" ])
+# AC_ARG_WITH(simd,
+#  [  --with-simd             create SIMD friendly binary (default is no) ],
+#  [ SIMD=$withval ], [ SIMD="no" ])
 
 case "$target" in
   *-*-hpux*)
