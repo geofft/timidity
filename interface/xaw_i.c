@@ -232,7 +232,7 @@ static void safe_getcwd(char *cwd, int maxlen);
 static Widget title_mb,title_sm,time_l,popup_load,popup_load_f,load_d,load_t;
 static Widget load_vport,load_flist,cwd_l,load_info, lyric_t;
 static Dimension lyric_height, base_height, text_height;
-static GC gc,gcs,gct;
+static GC gc,gcs,gct,gc_xcopy;
 static Pixel bgcolor,menubcolor,textcolor,textbgcolor,text2bgcolor,buttonbgcolor,
   buttoncolor,togglecolor,tracecolor,volcolor,expcolor,pancolor,capcolor,rimcolor,
   boxcolor,suscolor,playcolor,revcolor,chocolor;
@@ -393,7 +393,7 @@ static XFontStruct *ttitlefont;
 
 static struct _app_resources {
   String bitmap_dir;
-  Boolean arrange_title,save_list;
+  Boolean arrange_title,save_list,gradient_bar;
   Dimension text_height,trace_width,trace_height,menu_width;
   Pixel common_fgcolor,common_bgcolor,menub_bgcolor,text_bgcolor,text2_bgcolor,
 	toggle_fgcolor,button_fgcolor,button_bgcolor,
@@ -417,6 +417,8 @@ static XtResource xaw_resources[] ={
    offset(arrange_title), XtRImmediate, (XtPointer)False},
   {"saveList", "SaveList", XtRBoolean, sizeof(Boolean),
    offset(save_list), XtRImmediate, (XtPointer)True},
+  {"gradientBar", "GradientBar", XtRBoolean, sizeof(Boolean),
+   offset(gradient_bar), XtRImmediate, (XtPointer)False},
 #ifdef WIDGET_IS_LABEL_WIDGET
   {"textLHeight", "TextLHeight", XtRShort, sizeof(short),
    offset(text_height), XtRImmediate, (XtPointer)30},
@@ -1772,16 +1774,134 @@ static void setDirList(Widget list, Widget label, XawListReturnStruct *lrs) {
 #endif	/* RAKK/HIOENS */
 }
 
+static int Red_depth,Green_depth,Blue_depth;
+static int Red_sft,Green_sft,Blue_sft;
+static int bitcount( int d )
+{
+    int rt=0;
+    while( (d & 0x01)==0x01 ){
+        d>>=1;
+        rt++;
+    }
+    return(rt);
+}
+static int sftcount( int *mask )
+{
+    int rt=0;
+    while( (*mask & 0x01)==0 ){
+        (*mask)>>=1;
+            rt++;
+    }
+    return(rt);
+}
+static int getdisplayinfo()
+{
+    XWindowAttributes xvi;
+    XGetWindowAttributes( disp, XtWindow(trace), &xvi );
+    if( 16 <= xvi.depth ){
+	Red_depth=(xvi.visual)->red_mask;
+	Green_depth=(xvi.visual)->green_mask;
+	Blue_depth=(xvi.visual)->blue_mask;
+	Red_sft=sftcount(&(Red_depth));
+	Green_sft=sftcount(&(Green_depth));
+	Blue_sft=sftcount(&(Blue_depth));
+	Red_depth=bitcount(Red_depth);
+	Green_depth=bitcount(Green_depth);
+	Blue_depth=bitcount(Blue_depth);
+    }
+    return(xvi.depth);
+}
+
 static void drawBar(int ch,int len, int xofs, int column, Pixel color) {
-  XSetForeground(disp, gct, bgcolor);
-  XSetForeground(disp, gct, boxcolor);
-  XFillRectangle(XtDisplay(trace),XtWindow(trace),gct,
-                 xofs+len+2,TRACEV_OFS+BAR_SPACE*ch+2,
-                 pl[plane].w[column] -len -4,BAR_HEIGHT);
-  XSetForeground(disp, gct, color);
-  XFillRectangle(XtDisplay(trace),XtWindow(trace),gct,
-                 xofs+2,TRACEV_OFS+BAR_SPACE*ch+2,
-                 len,BAR_HEIGHT);
+  static Pixel column1color0;
+  static GC gradient_gc[T2COLUMN];
+  static Pixmap gradient_pixmap[T2COLUMN];
+  static int gradient_set[T2COLUMN];
+  static int depth,init=1;
+  static XColor x_boxcolor;
+  static XGCValues gv;
+  int i;
+  int col;
+  XColor x_color;
+  if( init ){
+      for(i=0;i<T2COLUMN;i++) gradient_set[i]=0;
+      depth=getdisplayinfo();
+      if( 16 <= depth && app_resources.gradient_bar != 0 ){
+	  x_boxcolor.pixel=boxcolor;
+	  XQueryColor(disp,DefaultColormap(disp,0),&x_boxcolor);
+	  gv.fill_style = FillTiled;
+	  gv.fill_rule = WindingRule;
+      }
+      init=0;
+  }
+  if( 16 <= depth && app_resources.gradient_bar != 0 ){
+      if( column < T2COLUMN ){
+	  col=column;
+	  if( column==1 ){
+	      if( gradient_set[0]==0 ){
+		  column1color0=color;
+		  col=0;
+	      }
+	      else if(gradient_set[1]==0 && column1color0!=color){
+		  col=1;
+	      }
+	      else{
+		  if( column1color0==color ) col=0;
+		  else col=1;
+	      }
+	  }
+	  if( gradient_set[col]==0 ){
+	      unsigned long pxl;
+	      gradient_pixmap[col]=XCreatePixmap(disp,XtWindow(trace),BARH2_SPACE[column],1,
+						    DefaultDepth(disp,screen));	  
+	      x_color.pixel=color;
+	      XQueryColor(disp,DefaultColormap(disp,0),&x_color);
+	      for(i=0;i<BARH2_SPACE[column];i++){
+		  int r,g,b;
+		  r=(x_boxcolor.red)+(x_color.red-x_boxcolor.red)*i/BARH2_SPACE[column];
+		  g=(x_boxcolor.green)+(x_color.green-x_boxcolor.green)*i/BARH2_SPACE[column];
+		  b=(x_boxcolor.blue)+(x_color.blue-x_boxcolor.blue)*i/BARH2_SPACE[column];
+		  if(r<0) r=0;
+		  if(g<0) g=0;
+		  if(b<0) b=0;
+		  r >>= 8;
+		  g >>= 8;
+		  b >>= 8;
+		  if(255<r) r=255;
+		  if(255<g) g=255;
+		  if(255<b) b=255;
+		  pxl  = (r>>(8-Red_depth))<<Red_sft;
+		  pxl |= (g>>(8-Green_depth))<<Green_sft;
+		  pxl |= (b>>(8-Blue_depth))<<Blue_sft;
+		  XSetForeground(disp, gct, pxl);
+		  XDrawPoint(disp,gradient_pixmap[col],gct,i,0);
+	      }
+	      gv.tile = gradient_pixmap[col];
+	      gradient_gc[col] = XCreateGC( disp,XtWindow(trace),GCFillStyle|GCFillRule|GCTile,&gv );
+	      gradient_set[col]=1;
+	  }
+	  XSetForeground(disp, gct, boxcolor);
+	  XFillRectangle(XtDisplay(trace),XtWindow(trace),gct,
+			 xofs+len+2,TRACEV_OFS+BAR_SPACE*ch+2,
+			 pl[plane].w[column] -len -4,BAR_HEIGHT);
+	  gv.ts_x_origin=xofs+2 - BARH2_SPACE[column]+len;
+	  XChangeGC(disp,gradient_gc[col],GCTileStipXOrigin,&gv);
+	  XFillRectangle(XtDisplay(trace),XtWindow(trace),gradient_gc[col],
+			 xofs+2,TRACEV_OFS+BAR_SPACE*ch+2,
+			 len,BAR_HEIGHT);
+      }
+  }
+  else{
+      /* XSetForeground(disp, gct, bgcolor); */ /* ?? */
+      XSetForeground(disp, gct, boxcolor);
+      XFillRectangle(XtDisplay(trace),XtWindow(trace),gct,
+		     xofs+len+2,TRACEV_OFS+BAR_SPACE*ch+2,
+		     pl[plane].w[column] -len -4,BAR_HEIGHT);
+      XSetForeground(disp, gct, color);
+      XFillRectangle(XtDisplay(trace),XtWindow(trace),gct,
+		     xofs+2,TRACEV_OFS+BAR_SPACE*ch+2,
+		     len,BAR_HEIGHT);
+  }
 }
 
 static void drawProg(int ch,int val,int column,int xofs, Boolean do_clean) {
@@ -2022,22 +2142,29 @@ static void redrawCaption(Widget w,XEvent *e,String *v,Cardinal *n) {
 
 static void redrawTrace(Boolean draw) {
   int i;
-  Dimension w1, h1;
+  /* Dimension w1, h1; */
   char s[3];
 
   if(!ctl->trace_playing) return;
   if(!XtIsRealized(trace)) return;
 
-  XtVaGetValues(trace,XtNheight,&h1,XtNwidth,&w1,NULL);
-  XSetForeground(disp, gct, tracecolor);
-  XFillRectangle(disp,XtWindow(trace),gct, 0,0,w1,h1);
-  XSetForeground(disp, gct, boxcolor);
-  XFillRectangle(disp,XtWindow(trace),gct,
+  /* XtVaGetValues(trace,XtNheight,&h1,XtNwidth,&w1,NULL); */
+  /* XSetForeground(disp, gct, tracecolor); */
+  /* XFillRectangle(disp,XtWindow(trace),gct, 0,0,w1,h1); */
+  /* XSetForeground(disp, gct, boxcolor); */
+  /* XFillRectangle(disp,XtWindow(trace),gct,
                  BARH_OFS8 -1,TRACEV_OFS, TRACE_WIDTH-BARH_OFS8+1,
-                 BAR_SPACE*MAX_XAW_MIDI_CHANNELS);
+                 BAR_SPACE*MAX_XAW_MIDI_CHANNELS); */
   for(i= 0; i<MAX_XAW_MIDI_CHANNELS; i++) {
-    XCopyArea(disp, layer[plane], XtWindow(trace), gct, 0,0,
-              TRACE_WIDTH,BAR_SPACE, 0, TRACEV_OFS+i*BAR_SPACE);
+    XGCValues gv;
+    gv.tile = layer[plane];
+    gv.ts_x_origin = 0;
+    gv.ts_y_origin = TRACEV_OFS+i*BAR_SPACE;
+    XChangeGC(disp,gc_xcopy,GCTile|GCTileStipXOrigin|GCTileStipYOrigin,&gv);
+    XFillRectangle(disp,XtWindow(trace),gc_xcopy,
+		   0, TRACEV_OFS+i*BAR_SPACE, TRACE_WIDTH,BAR_SPACE);
+    /* XCopyArea(disp, layer[plane], XtWindow(trace), gct, 0,0,
+              TRACE_WIDTH,BAR_SPACE, 0, TRACEV_OFS+i*BAR_SPACE); */
   }
   XSetForeground(disp, gct, capcolor);
   XDrawLine(disp,XtWindow(trace),gct,BARH_OFS0,TRACEV_OFS+BAR_SPACE*MAX_XAW_MIDI_CHANNELS,
@@ -3383,7 +3510,7 @@ void a_start_interface(int pipe_in) {
 #endif
             XtNwidth,trace_width, XtNheight,trace_height+12, NULL);
     trace = XtVaCreateManagedWidget("trace",widgetClass,trace_vport,
-            XtNwidth,trace_width,
+            XtNwidth,trace_width, XtNbackground,tracecolor,
             XtNheight,BAR_SPACE*MAX_XAW_MIDI_CHANNELS+TRACEV_OFS, NULL);
   }
   XtAddCallback(quit_b,XtNcallback,quitCB,NULL);
@@ -3427,7 +3554,11 @@ void a_start_interface(int pipe_in) {
   a_pipe_write("READY");
 
   if(ctl->trace_playing) {
+    XGCValues gv;
+    gv.fill_style = FillTiled;
+    gv.fill_rule = WindingRule;
     Panel = (PanelInfo *)safe_malloc(sizeof(PanelInfo));
+    gc_xcopy = XCreateGC(disp,RootWindow(disp, screen),GCFillStyle|GCFillRule,&gv);
     gct = XCreateGC(disp, RootWindow(disp, screen), 0, NULL);
     gc = XCreateGC(disp, RootWindow(disp, screen), 0, NULL);
     for(i=0; i<MAX_XAW_MIDI_CHANNELS; i++) {

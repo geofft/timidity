@@ -1,3 +1,9 @@
+2003-02-26  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
+
+	* interface/xaw_i.c:
+	  Support for gradient bar resource
+	  Hack up arround redraw
+
 2003-02-23  Tamuki <tamuki@linet.gr.jp>
 
 	* timidity/tables.[ch], timidity/timidity.c:
