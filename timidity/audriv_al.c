@@ -86,7 +86,7 @@ char audriv_errmsg[BUFSIZ];
 
 static void audriv_err(const char *msg)
 {
-    strcpy(audriv_errmsg, msg);
+    strncpy(audriv_errmsg, msg, sizeof(audriv_errmsg));
     if(audriv_error_handler != NULL)
 	audriv_error_handler(audriv_errmsg);
 }

@@ -175,33 +175,6 @@ static char *wrd_event2string(int id)
     return "";
 }
 
-static void print_ecmd(char *cmd, int *args, int narg)
-{
-    char *p;
-
-    p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-    sprintf(p, "^%s(", cmd);
-
-    if(*args == WRD_NOARG)
-	strcat(p, "*");
-    else
-	sprintf(p + strlen(p), "%d", *args);
-    args++;
-    narg--;
-    while(narg > 0)
-    {
-	if(*args == WRD_NOARG)
-	    strcat(p, ",*");
-	else
-	    sprintf(p + strlen(p), ",%d", *args);
-	args++;
-	narg--;
-    }
-    strcat(p, ")");
-    ctl->cmsg(CMSG_INFO, VERB_DEBUG, "%s", p);
-    reuse_mblock(&tmpbuffer);
-}
-
 static void load_default_graphics(char *fn)
 {
     MBlockList pool;
@@ -376,18 +349,20 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
   	{
 	  magdata *m;
 	  p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-	  strcpy(p, "@MAG(");
-	  strcat(p, wrd_event2string(wrd_args[0]));
-	  strcat(p, ",");
-	  for(i = 1; i < 3; i++)
-	    {
+	  snprintf(p, MIN_MBLOCK_SIZE-1, "@MAG(%s", wrd_event2string(wrd_args[0]));
+	  p[MIN_MBLOCK_SIZE-1] = '\0'; /* fail safe */
+	  for(i = 1; i < 5; i++)
+	  {
 	      if(wrd_args[i] == WRD_NOARG)
-		strcat(p, "*,");
-	      else
-		sprintf(p + strlen(p), "%d,", wrd_args[i]);
-	    }
-	  sprintf(p + strlen(p), "%d,%d)", wrd_args[3], wrd_args[4]);
-	  ctl->cmsg(CMSG_INFO, VERB_DEBUG, "%s", p);
+		  strncat(p, ",*", MIN_MBLOCK_SIZE - strlen(p) - 1);
+	      else {
+		  char q[CHAR_BIT*sizeof(int)];
+		  snprintf(q, sizeof(q)-1, ",%d", wrd_args[i]);
+		  strncat(p, q, MIN_MBLOCK_SIZE - strlen(p) - 1);
+	      }
+	  }
+	  strncat(p, ")", MIN_MBLOCK_SIZE - strlen(p) - 1);
+	  ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
 	  m=mag_search(wrd_event2string(wrd_args[0]));
 	  if(m!=NULL){
 	    x_Mag(m,wrd_args[1],wrd_args[2],wrd_args[3],wrd_args[4]);

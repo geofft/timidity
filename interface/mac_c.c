@@ -553,11 +553,17 @@ void change_ListRow( short row, const MidiFile* file)
 	char	buf[256]="",*p;
 	
 	if( file && file->mfn && file->mfn->title )
-		strcat(buf, file->mfn->title);
+	{
+		strncpy(buf, file->mfn->title, sizeof(buf) - 1);
+		buf[sizeof(buf)-1] = '\0';
+	}
 	
 	p= strrchr(file->filename, PATH_SEP);
 	if( p ){
-		strcat(buf, "  ("); strcat(buf, p+1); strcat(buf, ")");
+		size_t len = strlen(buf);
+		char* q = buf[len];		 /* last */
+		snprintf(buf, 256-len-1, "	(%s)", p+1);
+		buf[sizeof(buf)-1] = '\0';
 	}
 
 	SetPt(&aCell, 0, row);
@@ -739,10 +745,13 @@ static int	message_DocWin(int message, long param)
 			char		*p, docname[256];
 
 			//midiname= (char*)param;
-		    strcpy(docname, midiname);
+		    strcpy(docname, midiname, 256);
 	    	if((p = strrchr(docname, '.')) == NULL){
 				return 0;
 		    }
+            else if(p - docname >= 256 - 4) {
+                /* cannot strcpy: that cause buffer overrun */
+            }
 		    if('A' <= p[1] && p[1] <= 'Z')	strcpy(p + 1, "DOC");
 	    						else		strcpy(p + 1, "doc");
 

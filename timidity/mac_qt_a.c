@@ -499,6 +499,7 @@ static void set_instrument(MidiEvent *ev)
 		Str31 name;
 		SynthesizerConnections connections;
 		MusicComponent mc;
+                char tmp[256];  /* enough */
 
 		instrument_number[ch] = instrumentNumber;
 		if(note_channel[ch] != NULL)
@@ -515,7 +516,8 @@ static void set_instrument(MidiEvent *ev)
 		NAGetNoteChannelInfo(gNoteAllocator, note_channel[ch], &index, &part);
 		NAGetRegisteredMusicDevice(gNoteAllocator, index, &synthType, name, &connections, &mc);
 		MusicGetPartName(mc, part, name);
-		p2cstrcpy(instrument_name[ch], name);
+		p2cstrcpy(tmp, name);
+                strncpy(instrument_name[ch], tmp, sizeof(instrument_name[ch]));
 	}
 	ctl_prog_event(ch, ev->a);
 }

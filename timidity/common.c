@@ -434,13 +434,13 @@ struct timidity_file *open_file(char *name, int decompress, int noise_mode)
 	l=strlen(plp->path);
 	if(l)
 	  {
-	    strcpy(current_filename, plp->path);
+              strncpy(current_filename, plp->path, sizeof(current_filename));
 	    if(!IS_PATH_SEP(current_filename[l-1]) &&
 	       current_filename[l-1] != '#' &&
 	       name[0] != '#')
-		strcat(current_filename, PATH_STRING);
+		strncat(current_filename, PATH_STRING, sizeof(current_filename) - strlen(current_filename) - 1);
 	  }
-	strcat(current_filename, name);
+	strncat(current_filename, name, sizeof(current_filename) - strlen(current_filename) - 1);
 	if(noise_mode)
 	    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
 		      "Trying to open %s", current_filename);

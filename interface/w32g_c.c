@@ -340,7 +340,8 @@ static int ctl_load_files_and_play(argc_argv_t *argc_argv, int playflag)
 	n = argc_argv->argc;
     for(i = 0; i < n; i++)
     {
-	strcpy(buffer,(argc_argv->argv)[i]);
+	strncpy(buffer,(argc_argv->argv)[i],BUFSIZ-1);
+	buffer[BUFSIZ-1] = '\0';
 	if(is_directory(buffer))
 	    directory_form(buffer);
 	len = strlen(buffer);
@@ -737,7 +738,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		{
 			char *p = w32g_get_playlist(selected);
 			if(Panel!=NULL && p!=NULL)
-				strcpy(Panel->filename,p);
+                            strncpy(Panel->filename,p,sizeof(Panel->filename));
 		}
 
 		SetWrdWndActive();

@@ -2081,11 +2081,11 @@ static int import_sherrywrd_file(const char * fn)
 	struct timidity_file	*tf;
     struct wrd_step_tracer wrdstep;
 	
-	strcpy(sry_fn, fn);
+	strncpy(sry_fn, fn, sizeof(sry_fn));
 	cp=strrchr(sry_fn, '.');
 	if( cp==0 ) return 0;
 	
-	strcpy(cp+1, "sry");
+	strncpy(cp+1, "sry", sizeof(sry_fn) - (cp - sry_fn) - 1);
 	tf= open_file( sry_fn, 0, OF_NORMAL);
 	if( tf==NULL ) return 0;
 	if( sry_check_head(tf)!=0 ) return 0;

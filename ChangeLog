@@ -1,3 +1,13 @@
+2004-09-27  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* interface/mac_c.c, interface/server_c.c, interface/w32g_c.c,
+	  interface/w32g_i.c, interface/wrdt_dumb.c, interface/wrdt_mac.c,
+	  interface/wrdt_tty.c, interface/wrdt_w32g.c, interface/xaw_i.c,
+	  interface/xskin_i.c, libarc/arc.c, timidity/audriv_al.c,
+	  timidity/audriv_mme.c, timidity/common.c, timidity/mac_qt_a.c,
+	  timidity/sun_a.c, timidity/timidity.c, timidity/wrdt_read.c:
+	  Fix to use strn* functinos.
+
 2004-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* utils/support.h: ditto

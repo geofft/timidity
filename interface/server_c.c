@@ -485,7 +485,8 @@ static int send_status(int status, char *message, ...)
     sprintf(buff, "%03d ", status);
     vsnprintf(buff + 4, sizeof(buff) - 5, message, ap);
     va_end(ap);
-    strcat(buff, "\n");
+    strncat(buff, "\n", BUFSIZ - strlen(buff) - 1);
+    buff[BUFSIZ-1] = '\0';      /* force terminate */
     if(write(control_fd, buff, strlen(buff)) == -1)
 	return -1;
     return 0;

@@ -129,7 +129,7 @@ void ts_puttext( int x0, int y0, char *message ) {
   XSync( xskin_d, True ); /* discards any events in the queue */
 
   if ( x0 == MESSAGE_X )
-    strcpy( last_text, message );
+    strncpy( last_text, message, sizeof(last_text) );
 
   return;
 }

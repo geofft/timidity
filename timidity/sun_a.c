@@ -144,8 +144,8 @@ static int open_output(void)
        audio device accordingly  - Lalit Chhabra 23/Oct/2001 */
     if((audio_dev  = getenv("AUDIODEV")) != NULL)
     {
-      dpm.id_name = safe_malloc(strlen(audio_dev));
-      dpm.name = safe_malloc(strlen(audio_dev));
+      dpm.id_name = safe_malloc(strlen(audio_dev)+1);
+      dpm.name = safe_malloc(strlen(audio_dev)+1);
       strcpy(dpm.name, audio_dev);
       strcpy(dpm.id_name, audio_dev);
 

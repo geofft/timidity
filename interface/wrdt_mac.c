@@ -1313,10 +1313,11 @@ static void wrd_load_default_image()
 {
 	char	filename[256], *p;
 	
-	strcpy(filename, current_file_info->filename);
+	strncpy(filename, current_file_info->filename, sizeof(filename));
 	p= strrchr( filename, '.' );
 	if( p==0 ) return;
-	strcpy( p, ".mag" );
+	strncpy( p, ".mag", sizeof(filename) - (p - filename) - 1 );
+	filename[sizeof(filename) - 1] = '\0';
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "@DEFAULT_LOAD_MAG(%s)", filename);
 
@@ -1324,38 +1325,12 @@ static void wrd_load_default_image()
 		return;
 	
 		//retry pho file
-	strcpy(filename, current_file_info->filename);
+	strncpy(filename, current_file_info->filename sizeof(filename));
 	p= strrchr( filename, '.' );
 	if( p==0 ) return;
-	strcpy( p, ".pho" );
+	strncpy( p, ".pho", sizeof(filename) - (p - filename) - 1 );
+	filename[sizeof(filename) - 1] = '\0';
 	wrd_pho(filename);
-}
-
-static void print_ecmd(char *cmd, int *args, int narg)
-{
-    char *p;
-
-    p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-    sprintf(p, "^%s(", cmd);
-
-    if(*args == WRD_NOARG)
-	strcat(p, "*");
-    else
-	sprintf(p + strlen(p), "%d", *args);
-    args++;
-    narg--;
-    while(narg > 0)
-    {
-	if(*args == WRD_NOARG)
-	    strcat(p, ",*");
-	else
-	    sprintf(p + strlen(p), ",%d", *args);
-	args++;
-	narg--;
-    }
-    strcat(p, ")");
-    WRD_DEBUG((CMSG_INFO, VERB_VERBOSE, "%s", p));
-    reuse_mblock(&tmpbuffer);
 }
 
 // **************************************************
@@ -1408,7 +1383,8 @@ static void mac_wrd_DrawText(const char* str, int len)
 static void mac_wrd_doESC(const char* code )
 {
 	char	str[20]="\33[";
-	strcat(str, code);
+	strncat(str, code, sizeof(str) - strlen(str) - 1);
+        str[sizeof(str)-1] = '\0';
 	mac_wrd_DrawText(str, strlen(str));
 }
 
@@ -1551,36 +1527,36 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 	break;
       case WRD_LOOP: /* Never call */
 	break;
-      case WRD_MAG:
+    case WRD_MAG:
    	wrd_mag(wrd_event2string(wrd_args[0]), wrd_args[1], wrd_args[2], wrd_args[3], wrd_args[4]);
-	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-	strcpy(p, "@MAG(");
-	strcat(p, wrd_event2string(wrd_args[0]));
-	strcat(p, ",");
-	for(i = 1; i < 3; i++)
-	{
-	    if(wrd_args[i] == WRD_NOARG)
-		strcat(p, "*,");
-	    else
-		sprintf(p + strlen(p), "%d,", wrd_args[i]);
-	}
-	sprintf(p + strlen(p), "%d,%d)", wrd_args[3], wrd_args[4]);
-	WRD_DEBUG((CMSG_INFO, VERB_VERBOSE, "%s", p));
-	reuse_mblock(&tmpbuffer);
+/* 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE); */
+/* 	strcpy(p, "@MAG("); */
+/* 	strcat(p, wrd_event2string(wrd_args[0])); */
+/* 	strcat(p, ","); */
+/* 	for(i = 1; i < 3; i++) */
+/* 	{ */
+/* 	    if(wrd_args[i] == WRD_NOARG) */
+/* 		strcat(p, "*,"); */
+/* 	    else */
+/* 		sprintf(p + strlen(p), "%d,", wrd_args[i]); */
+/* 	} */
+/* 	sprintf(p + strlen(p), "%d,%d)", wrd_args[3], wrd_args[4]); */
+/* 	WRD_DEBUG((CMSG_INFO, VERB_VERBOSE, "%s", p)); */
+/* 	reuse_mblock(&tmpbuffer); */
 	break;
       case WRD_MIDI: /* Never call */
 	break;
       case WRD_OFFSET: /* Never call */
 	break;
       case WRD_PAL:
-      	mac_wrd_pal( wrd_args[0], &wrd_args[1]);
-	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-	sprintf(p, "@PAL(%03x", wrd_args[0]);
-	for(i = 1; i < 17; i++)
-	    sprintf(p + strlen(p), ",%03x", wrd_args[i]);
-	strcat(p, ")");
-	WRD_DEBUG((CMSG_INFO, VERB_VERBOSE, "%s", p));
-	reuse_mblock(&tmpbuffer);
+/*       	mac_wrd_pal( wrd_args[0], &wrd_args[1]); */
+/* 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE); */
+/* 	sprintf(p, "@PAL(%03x", wrd_args[0]); */
+/* 	for(i = 1; i < 17; i++) */
+/* 	    sprintf(p + strlen(p), ",%03x", wrd_args[i]); */
+/* 	strcat(p, ")"); */
+/* 	WRD_DEBUG((CMSG_INFO, VERB_VERBOSE, "%s", p)); */
+/* 	reuse_mblock(&tmpbuffer); */
 	break;
       case WRD_PALCHG:
 	WRD_DEBUG((CMSG_INFO, VERB_VERBOSE,

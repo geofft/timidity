@@ -3566,15 +3566,15 @@ void MPanelMessageAdd(char *message, int msec, int mode)
 {
 	if ( MPanelMessageData.nextmode >= 0 ) {
 		MPanelMessageNext();
-		strcpy(MPanelMessageData.nextbuff,message);
+		strncpy(MPanelMessageData.nextbuff,message,sizeof(MPanelMessageData.nextbuff)-1);
 		MPanelMessageData.nextmode = mode;
 		MPanelMessageData.nextmsec = msec;
 	} else if ( MPanelMessageData.curmode >= 0 ){
-		strcpy(MPanelMessageData.nextbuff,message);
+		strncpy(MPanelMessageData.nextbuff,messagesizeof(MPanelMessageData.nextbuff)-1);
 		MPanelMessageData.nextmode = mode;
 		MPanelMessageData.nextmsec = msec;
 	} else {
-		strcpy(MPanelMessageData.nextbuff,message);
+		strncpy(MPanelMessageData.nextbuff,messagesizeof(MPanelMessageData.nextbuff)-1);
 		MPanelMessageData.nextmode = mode;
 		MPanelMessageData.nextmsec = msec;
 		MPanelMessageNext();

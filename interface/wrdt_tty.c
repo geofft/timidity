@@ -206,18 +206,20 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 	break;
       case WRD_MAG:
 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-	strcpy(p, "@MAG(");
-	strcat(p, wrd_event2string(wrd_args[0]));
-	strcat(p, ",");
-	for(i = 1; i < 3; i++)
+        snprintf(p, MIN_MBLOCK_SIZE-1, "@MAG(%s", wrd_event2string(wrd_args[0]));
+        p[MIN_MBLOCK_SIZE-1] = '\0'; /* fail safe */
+	for(i = 1; i < 5; i++)
 	{
 	    if(wrd_args[i] == WRD_NOARG)
-		strcat(p, "*,");
-	    else
-		sprintf(p + strlen(p), "%d,", wrd_args[i]);
+		strncat(p, ",*", MIN_MBLOCK_SIZE - strlen(p) - 1);
+	    else {
+		char q[CHAR_BIT*sizeof(int)];
+		snprintf(q, sizeof(q)-1, ",%d", wrd_args[i]);
+		strncat(p, q, MIN_MBLOCK_SIZE - strlen(p) - 1);
+            }
 	}
-	sprintf(p + strlen(p), "%d,%d)", wrd_args[3], wrd_args[4]);
-	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "%s", p);
+        strncat(p, ")", MIN_MBLOCK_SIZE - strlen(p) - 1);
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
 	reuse_mblock(&tmpbuffer);
 	break;
       case WRD_MIDI: /* Never call */
@@ -226,11 +228,14 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 	break;
       case WRD_PAL:
 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE);
-	sprintf(p, "@PAL(%03x", wrd_args[0]);
-	for(i = 1; i < 17; i++)
-	    sprintf(p + strlen(p), ",%03x", wrd_args[i]);
-	strcat(p, ")");
-	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "%s", p);
+	snprintf(p, MIN_MBLOCK_SIZE, "@PAL(%03x", wrd_args[0]);
+	for(i = 1; i < 17; i++) {
+	    char q[5];
+	    snprintf(q, sizeof(q)-1, ",%03x", wrd_args[i]);
+	    strncat(p, q, MIN_MBLOCK_SIZE - strlen(p) - 1);
+	}
+	strncat(p, ")", MIN_MBLOCK_SIZE - strlen(p) - 1);
+	ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
 	reuse_mblock(&tmpbuffer);
 	break;
       case WRD_PALCHG:

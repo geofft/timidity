@@ -452,7 +452,7 @@ char **expand_archive_names(int *nfiles_in_out, char **files)
 		continue;
 	    }
 
-	    strcpy(buff, base);
+	    strncpy(buff, base, sizeof(buff)-1);
 	    p = strchr(buff + 7, '/') + 1; /* news://..../ */
 	    *p = '\0';
 	    news_prefix = strdup_mblock(pool, buff);

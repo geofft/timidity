@@ -5113,7 +5113,7 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 	if(strp = strrchr(local, '\\'))
 	{
 	    *(++strp)='\0';
-	    strcat(local,"TIMIDITY.CFG");
+	    strncat(local,"TIMIDITY.CFG",sizeof(local)-strlen(local)-1);
 	    if((check = open(local, 0)) >= 0)
 	    {
 		close(check);
@@ -5644,7 +5644,7 @@ int main(int argc, char **argv)
 		if(strp = strrchr(config2, '\\'))
 		{
 		    *(++strp)='\0';
-		    strcat(config2,"TIMIDITY.CFG");
+		    strcat(config2,"TIMIDITY.CFG",sizeof(config2)-strlen(config2)-1);
 		}
 	    }
 

@@ -1607,15 +1607,16 @@ static char *expandDir(char *path, DirPath *full) {
     strcpy(newfull, tmp); return newfull;
   } else if (*p != '~' && NULL == (tail = strrchr(path, '/'))) {
     p = tmp;
-    strcpy(p, basepath);
+    strncpy(p, basepath, PATH_MAX - 1);
     full->dirname = p;
     while (*p++ != '\0') ;
-    strcpy(p, path);
+    strncpy(p, path, PATH_MAX - (p - tmp) - 1);
+    tmp[PATH_MAX-1] = '\0';
     snprintf(newfull,sizeof(newfull),"%s/%s", basepath, path);
     full->basename = p; return newfull;
   }
   if (*p  == '/') {
-    strcpy(tmp, path);
+    strncpy(tmp, path, PATH_MAX - 1);
   } else {
     if (*p == '~') {
       struct passwd *pw;
@@ -1660,7 +1661,7 @@ static void setDirAction(Widget w,XEvent *e,String *v,Cardinal *n) {
     p = p2;
   if(stat(p, &st) == -1) return;
   if(S_ISDIR(st.st_mode)) {
-    strcpy(basepath,p);
+    strncpy(basepath,p,sizeof(basepath)-1);
     p = strrchr(basepath, '/');
     if (*(p+1) == '\0') *p = '\0';
     lrs.string = "";
@@ -2279,13 +2280,15 @@ static void completeDir(Widget w,XEvent *e, XtPointer data)
           if (stat(fullpath, &st) == -1)
             continue;
           if (!match)
-            strcpy(matchstr, filename);
+            strncpy(matchstr, filename, PATH_MAX - 1);
           else
             strmatch(matchstr, filename);
           match++;
           if(S_ISDIR(st.st_mode) && (!strcmp(filename,full.basename))) {
-            strcpy(matchstr, filename);
-            strcat(matchstr, "/"); match = 1; break;
+            strncpy(matchstr, filename, PATH_MAX - 1);
+            strncat(matchstr, "/", PATH_MAX - strlen(matchstr) - 1);
+            match = 1;
+            break;
           }
         }
       }
