@@ -221,11 +221,11 @@ typedef struct {
   int8  nrpn; /* 0:RPN, 1:NRPN, -1:Undefined */
   int rpn_7f7f_flag;		/* Boolean flag used for RPN 7F/7F */
 
-  /* For channel envelope, but this is not used yet. */
-  int32 envelope_rate[6]; /* for Envelope Generator
-			   * 0: Attack rate
-			   * 1: Decay rate
-			   * 3: Release rate
+  /* For channel envelope */
+  int32 envelope_rate[6]; /* for Envelope Generator in mix.c
+			   * 0: value for attack rate
+			   * 1: value for decay rate
+			   * 3: value for release rate
 			   */
 
   int mapID;			/* Program map ID */
@@ -235,13 +235,8 @@ typedef struct {
   /* flag for random pan */
   int pan_random;
 
-  /* for Channel LPF / Resonance */
-  int16 cutoff_freq;	/* 0 ~ 22050 */
-  int16 resonance;	/* 0 ~ 127 */
+  /* for Voice LPF / Resonance */
   int8 param_resonance,param_cutoff_freq;	/* -64 ~ 63 */
-  int32 lpf_val[8];
-  int32 lpf_coef[5];
-
   double cutoff_freq_coef;
   double resonance_dB;
 
@@ -276,8 +271,9 @@ typedef struct {
   int vid;
   Sample *sample;
   int32
-    orig_frequency, frequency,
-    sample_offset, sample_increment,
+      sample_offset;
+  int32
+    orig_frequency, frequency, sample_increment,
     envelope_volume, envelope_target, envelope_increment,
     tremolo_sweep, tremolo_sweep_position,
     tremolo_phase, tremolo_phase_increment,
@@ -355,6 +351,7 @@ extern int opt_reverb_control;
 extern int opt_chorus_control;
 extern int opt_surround_chorus;
 extern int opt_channel_pressure;
+extern int opt_lpf_def;
 extern int opt_overlap_voice_allow;
 extern int opt_tva_attack;
 extern int opt_tva_decay;
@@ -362,9 +359,6 @@ extern int opt_tva_release;
 extern int opt_delay_control;
 extern int opt_eq_control;
 extern int opt_insertion_effect;
-extern int opt_resonance;
-extern int opt_lpf_def;
-extern int opt_sf_lpf;
 extern int opt_drum_effect;
 extern int opt_env_attack;
 extern int opt_random_expression;

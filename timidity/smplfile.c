@@ -1088,7 +1088,7 @@ static void initialize_sample(Instrument *inst, int frames, int sample_bits, int
 		sample->tremolo_sweep_increment =
 			sample->tremolo_phase_increment = sample->tremolo_depth =
 			sample->vibrato_sweep_increment = sample->vibrato_control_ratio = sample->vibrato_depth = 0;
-		sample->cutoff_freq = sample->resonance = 0;
+		sample->cutoff_freq = sample->resonance_dB = 0;
 	}
 	if (samples <= 6 && (panning = gen_pan_list[samples - 1]) != NULL)
 	{

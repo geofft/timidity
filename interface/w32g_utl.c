@@ -521,13 +521,10 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	opt_tva_decay = st->opt_tva_decay;
 	opt_tva_release = st->opt_tva_release;
 	opt_delay_control = st->opt_delay_control;
-	opt_resonance = st->opt_resonance;
 	opt_lpf_def = st->opt_lpf_def;
-	opt_sf_lpf = st->opt_sf_lpf;
 	opt_drum_effect = st->opt_drum_effect;
 	opt_eq_control = st->opt_eq_control;
 	opt_insertion_effect = st->opt_insertion_effect;
-	opt_velocity_table = st->opt_velocity_table;
     adjust_panning_immediately = SetFlag(st->adjust_panning_immediately);
     fast_decay = SetFlag(st->fast_decay);
 #ifdef SUPPORT_SOUNDSPEC
@@ -637,13 +634,10 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_tva_decay = opt_tva_decay;
 	st->opt_tva_release = opt_tva_release;
 	st->opt_delay_control = opt_delay_control;
-	st->opt_resonance = opt_resonance;
 	st->opt_lpf_def = opt_lpf_def;
-	st->opt_sf_lpf = opt_sf_lpf;
 	st->opt_drum_effect = opt_drum_effect;
 	st->opt_eq_control = opt_eq_control;
 	st->opt_insertion_effect = opt_insertion_effect;
-	st->opt_velocity_table = opt_velocity_table;
     st->noise_sharp_type = noise_sharp_type;
     st->opt_evil_mode = SetFlag(opt_evil_mode);
     st->adjust_panning_immediately = SetFlag(adjust_panning_immediately);

@@ -45,7 +45,7 @@ typedef struct _Sample {
     vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
-  int16 cutoff_freq,resonance;
+  int32 cutoff_freq;/*,resonance;*/
   FLOAT_T resonance_dB;
   int32
     mod_envelope_rate[6], mod_envelope_offset[6];

@@ -345,6 +345,13 @@ typedef double FLOAT_T;
 /* #define GM_CHANNEL_PRESSURE_ALLOW */
 
 
+/* Define if you want to use voice-by-voice LPF.
+ * This mode needs high CPU power.
+ * There is a command line option to enable/disable this mode.
+ */
+/* #define VOICE_BY_VOICE_LPF_ALLOW */
+
+
 /* Define if you want to trace text meta event at playing.
  * There is a command line option to enable/disable this mode.
  */

@@ -123,13 +123,10 @@ typedef struct SETTING_TIMIDITY_ {
 	int opt_tva_decay;			// E ?
 	int opt_tva_release;		// E ?
 	int opt_delay_control;		// E ?
-	int opt_resonance;			// E ?
 	int opt_lpf_def;			// E ?
-	int opt_sf_lpf;			// E ?
 	int opt_drum_effect;			// E ?
 	int opt_eq_control;			// E ?
 	int opt_insertion_effect;	// E ?
-	int opt_velocity_table;		// E ?
     int opt_evil_mode;		// e
     int adjust_panning_immediately; // F
     int fast_decay;		// f

@@ -55,41 +55,32 @@
 #endif
 
 #ifdef VOICE_LPF
-static int32 a1, a2, b0, b1, b2, hist1, hist2, centernode;
-static inline void mixation_norm(sample_t s,int32 a,int32* lp) {
-	*lp += a * s;
-}
-static inline void mixation_filt(sample_t s,int32 a,int32* lp) {
-	centernode = a * s - imuldiv16(a1, hist1) - imuldiv16(a2, hist2);
-	*lp += imuldiv16(b0, centernode)
-			+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2);
-	hist2 = hist1, hist1 = centernode;
-}
-static void (*mixation_func)(sample_t,int32,int32*);
-#define MIXATION(a) (*mixation_func)(s,(a),lp++);
+typedef int32 mix_t;
 #else
+typedef sample_t mix_t;
+#endif
+
 #ifdef LOOKUP_HACK
 #define MIXATION(a) *lp++ += mixup[(a << 8) | (uint8) s]
 #else
 #define MIXATION(a) *lp++ += (a) * s
 #endif
-#endif
 
 void mix_voice(int32 *, int, int32);
 #ifdef VOICE_LPF
-static inline void set_voice_filter(int);
+static inline void do_voice_filter(int, sample_t*, mix_t*, int32);
 static inline void recalc_voice_resonance(int);
 static inline void recalc_voice_fc(int);
 #endif
-static inline void ramp_out(sample_t *, int32 *, int, int32);
-static inline void mix_mono_signal(sample_t *, int32 *, int, int);
-static inline void mix_mono(sample_t *, int32 *, int, int);
-static inline void mix_mystery_signal(sample_t *, int32 *, int, int);
-static inline void mix_mystery(sample_t *, int32 *, int, int);
-static inline void mix_center_signal(sample_t *, int32 *, int, int);
-static inline void mix_center(sample_t *, int32 *, int, int);
-static inline void mix_single_signal(sample_t *, int32 *, int, int);
-static inline void mix_single(sample_t *, int32 *, int, int);
+static inline void ramp_out(mix_t *, int32 *, int, int32);
+static inline void mix_mono_signal(mix_t *, int32 *, int, int);
+static inline void mix_mono(mix_t *, int32 *, int, int);
+static inline void mix_mystery_signal(mix_t *, int32 *, int, int);
+static inline void mix_mystery(mix_t *, int32 *, int, int);
+static inline void mix_center_signal(mix_t *, int32 *, int, int);
+static inline void mix_center(mix_t *, int32 *, int, int);
+static inline void mix_single_signal(mix_t *, int32 *, int, int);
+static inline void mix_single(mix_t *, int32 *, int, int);
 static inline int update_signal(int);
 static inline int update_envelope(int);
 int recompute_envelope(int);
@@ -100,9 +91,6 @@ int apply_envelope_to_amp(int);
 #ifdef SMOOTH_MIXING
 static inline void compute_mix_smoothing(Voice *);
 #endif
-#ifdef VOICE_LPF
-static inline void finish_voice_filter(int);
-#endif
 
 int min_sustain_time = 0;
 
@@ -111,16 +99,23 @@ void mix_voice(int32 *buf, int v, int32 c)
 {
 	Voice *vp = voice + v;
 	sample_t *sp;
-	
+#ifdef VOICE_LPF
+	static mix_t lp[AUDIO_BUFFER_SIZE];
+#else
+	mix_t *lp;
+#endif
+
 	if (vp->status == VOICE_DIE) {
 		if (c >= MAX_DIE_TIME)
 			c = MAX_DIE_TIME;
 		sp = resample_voice(v, &c);
 #ifdef VOICE_LPF
-		set_voice_filter(v);
+		do_voice_filter(v, sp, lp, c);
+#else
+		lp = sp;
 #endif
 		if (c > 0)
-			ramp_out(sp, buf, v, c);
+			ramp_out(lp, buf, v, c);
 		free_voice(v);
 	} else {
 		if (vp->delay) {
@@ -136,26 +131,30 @@ void mix_voice(int32 *buf, int v, int32 c)
 			vp->delay = 0;
 		}
 		sp = resample_voice(v, &c);
+
 #ifdef VOICE_LPF
-		set_voice_filter(v);
+		do_voice_filter(v, sp, lp, c);
+#else
+		lp = sp;
 #endif
+
 		if (play_mode->encoding & PE_MONO) {
 			/* Mono output. */
 			if (vp->envelope_increment || vp->tremolo_phase_increment)
-				mix_mono_signal(sp, buf, v, c);
+				mix_mono_signal(lp, buf, v, c);
 			else
-				mix_mono(sp, buf, v, c);
+				mix_mono(lp, buf, v, c);
 		} else {
 			if (vp->panned == PANNED_MYSTERY) {
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_mystery_signal(sp, buf, v, c);
+					mix_mystery_signal(lp, buf, v, c);
 				else
-					mix_mystery(sp, buf, v, c);
+					mix_mystery(lp, buf, v, c);
 			} else if (vp->panned == PANNED_CENTER) {
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_center_signal(sp, buf, v, c);
+					mix_center_signal(lp, buf, v, c);
 				else
-					mix_center(sp, buf, v, c);
+					mix_center(lp, buf, v, c);
 			} else {
 				/* It's either full left or full right. In either case,
 				 * every other sample is 0. Just get the offset right:
@@ -163,31 +162,41 @@ void mix_voice(int32 *buf, int v, int32 c)
 				if (vp->panned == PANNED_RIGHT)
 					buf++;
 				if (vp->envelope_increment || vp->tremolo_phase_increment)
-					mix_single_signal(sp, buf, v, c);
+					mix_single_signal(lp, buf, v, c);
 				else
-					mix_single(sp, buf, v, c);
+					mix_single(lp, buf, v, c);
 			}
 		}
 	}
-#ifdef VOICE_LPF
-	finish_voice_filter(v);
-#endif
 }
 
 #ifdef VOICE_LPF
-static inline void set_voice_filter(int v)
+static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
+	int32 a1,a2,b0,b1,b2,hist1,hist2,centernode,i;
 	
-	if(fc->freq == -1)
-		mixation_func = mixation_norm;
-	else {
+	if(fc->freq == -1) {
+		for(i=0;i<count;i++) {
+			lp[i] = sp[i];
+		}
+		lp[count] = 0;	/* add null sample */
+		return;
+	} else {
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		hist1 = fc->hist1, hist2 = fc->hist2;
 		a1 = fc->a1, a2 = fc->a2;
 		b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
-		mixation_func = mixation_filt;
+		for(i=0;i<count;i++) {
+			centernode = sp[i] - imuldiv16(a1, hist1) - imuldiv16(a2, hist2);
+			lp[i] = (imuldiv16(b0, centernode)
+				+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2));
+			hist2 = hist1, hist1 = centernode;
+		}
+		lp[count] = 0;	/* add null sample */
+		fc->hist1 = hist1, fc->hist2 = hist2;
+		return;
 	}
 }
 
@@ -227,12 +236,12 @@ static inline void recalc_voice_fc(int v)
 #endif
 
 /* Ramp a note out in c samples */
-static inline void ramp_out(sample_t *sp, int32 *lp, int v, int32 c)
+static inline void ramp_out(mix_t *sp, int32 *lp, int v, int32 c)
 {
 	/* should be final_volume_t, but uint8 gives trouble. */
 	int32 left, right, li, ri, i;
 	/* silly warning about uninitialized s */
-	sample_t s = 0;
+	mix_t s = 0;
 	
 	left = voice[v].left_mix;
 	li = -(left / c);
@@ -295,12 +304,12 @@ static inline void ramp_out(sample_t *sp, int32 *lp, int v, int32 c)
 }
 
 static inline void mix_mono_signal(
-		sample_t *sp, int32 *lp, int v, int count)
+		mix_t *sp, int32 *lp, int v, int count)
 {
 	Voice *vp = voice + v;
 	final_volume_t left = vp->left_mix;
 	int cc, i;
-	sample_t s;
+	mix_t s;
 #ifdef SMOOTH_MIXING
 	int32 linear_left;
 #endif
@@ -388,10 +397,10 @@ static inline void mix_mono_signal(
 		}
 }
 
-static inline void mix_mono(sample_t *sp, int32 *lp, int v, int count)
+static inline void mix_mono(mix_t *sp, int32 *lp, int v, int count)
 {
 	final_volume_t left = voice[v].left_mix;
-	sample_t s;
+	mix_t s;
 	int i;
 #ifdef SMOOTH_MIXING
 	Voice *vp = voice + v;
@@ -431,12 +440,12 @@ static inline void mix_mono(sample_t *sp, int32 *lp, int v, int count)
 }
 
 static inline void mix_mystery_signal(
-		sample_t *sp, int32 *lp, int v, int count)
+		mix_t *sp, int32 *lp, int v, int count)
 {
 	Voice *vp = voice + v;
 	final_volume_t left = vp->left_mix, right = vp->right_mix;
 	int cc, i;
-	sample_t s;
+	mix_t s;
 #ifdef SMOOTH_MIXING
 	int32 linear_left, linear_right;
 #endif
@@ -574,10 +583,10 @@ static inline void mix_mystery_signal(
 		}
 }
 
-static inline void mix_mystery(sample_t *sp, int32 *lp, int v, int count)
+static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 {
 	final_volume_t left = voice[v].left_mix, right = voice[v].right_mix;
-	sample_t s;
+	mix_t s;
 	int i;
 #ifdef SMOOTH_MIXING
 	Voice *vp = voice + v;
@@ -640,12 +649,12 @@ static inline void mix_mystery(sample_t *sp, int32 *lp, int v, int count)
 }
 
 static inline void mix_center_signal(
-		sample_t *sp, int32 *lp, int v, int count)
+		mix_t *sp, int32 *lp, int v, int count)
 {
 	Voice *vp = voice + v;
 	final_volume_t left=vp->left_mix;
 	int cc, i;
-	sample_t s;
+	mix_t s;
 #ifdef SMOOTH_MIXING
 	int32 linear_left;
 #endif
@@ -737,10 +746,10 @@ static inline void mix_center_signal(
 		}
 }
 
-static inline void mix_center(sample_t *sp, int32 *lp, int v, int count)
+static inline void mix_center(mix_t *sp, int32 *lp, int v, int count)
 {
 	final_volume_t left = voice[v].left_mix;
-	sample_t s;
+	mix_t s;
 	int i;
 #ifdef SMOOTH_MIXING
 	Voice *vp = voice + v;
@@ -781,12 +790,12 @@ static inline void mix_center(sample_t *sp, int32 *lp, int v, int count)
 }
 
 static inline void mix_single_signal(
-		sample_t *sp, int32 *lp, int v, int count)
+		mix_t *sp, int32 *lp, int v, int count)
 {
 	Voice *vp = voice + v;
 	final_volume_t left = vp->left_mix;
 	int cc, i;
-	sample_t s;
+	mix_t s;
 #ifdef SMOOTH_MIXING
 	int32 linear_left;
 #endif
@@ -878,10 +887,10 @@ static inline void mix_single_signal(
 		}
 }
 
-static inline void mix_single(sample_t *sp, int32 *lp, int v, int count)
+static inline void mix_single(mix_t *sp, int32 *lp, int v, int count)
 {
 	final_volume_t left = voice[v].left_mix;
-	sample_t s;
+	mix_t s;
 	int i;
 #ifdef SMOOTH_MIXING
 	Voice *vp = voice + v;
@@ -958,8 +967,7 @@ int recompute_envelope(int v)
 	if (stage > 5) {
 		voice_ran_out(v);
 		return 1;
-	}
-	if (stage > 2 && vp->envelope_volume <= 0) {
+	} else if (stage > 2 && vp->envelope_volume <= 0) {
 		/* Remove silent voice in the release stage */
 		voice_ran_out(v);
 		return 1;
@@ -1027,8 +1035,8 @@ static inline void voice_ran_out(int v)
 static inline int next_stage(int v)
 {
 	int stage, ch;
-	int32 offset, val, rate;
-	FLOAT_T tmp;
+	int32 offset, val;
+	FLOAT_T rate;
 	Voice *vp = &voice[v];
 	
 	stage = vp->envelope_stage++;
@@ -1037,41 +1045,55 @@ static inline int next_stage(int v)
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
 	ch = vp->channel;
-	tmp = vp->sample->envelope_rate[stage];
-	if (vp->sample->modes & MODES_ENVELOPE) {
-		if (vp->sample->inst_type == INST_SF2 && stage == 3)
-			tmp *= (double) vp->envelope_volume
-					/ vp->sample->envelope_offset[0];
-		if (ISDRUMCHANNEL(ch))
-			val = (channel[ch].drums[vp->note] != NULL)
-					? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
-					: -1;
-		else {
-			/* envelope key-follow */
-			if (vp->sample->envelope_keyf[stage])
-				tmp *= pow(2.0, (double) (voice[v].note - 60)
-						* vp->sample->envelope_keyf[stage]);
-			val = channel[ch].envelope_rate[stage];
-		}
-		/* envelope velocity-follow */
-		if (vp->sample->envelope_velf[stage])
-			tmp *= pow(2.0, (double) (voice[v].velocity - 64)
-					* vp->sample->envelope_velf[stage]);
-		if (val != -1)
-			tmp *= envelope_coef[val & 0x7f];
-		if (tmp > ((stage < 2) ? 4 : 2) * 0x10000000)
-			tmp = ((stage < 2) ? 4 : 2) * 0x10000000;
+	rate = vp->sample->envelope_rate[stage];
+
+	/* envelope generator (see also playmidi.c) */
+	if (ISDRUMCHANNEL(ch))
+		val = (channel[ch].drums[vp->note] != NULL)
+				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
+				: -1;
+	else {
+		/* envelope key-follow */
+		if (vp->sample->envelope_keyf[stage])
+			rate *= pow(2.0, (double) (voice[v].note - 60)
+					* vp->sample->envelope_keyf[stage]);
+		val = channel[ch].envelope_rate[stage];
 	}
-	rate = tmp;
-	vp->envelope_increment = rate;
-	vp->envelope_target = offset;
-	if (vp->envelope_target < vp->envelope_volume)
-		vp->envelope_increment = -vp->envelope_increment;
-	if(stage > 2) {
+	if (val != -1)
+		rate *= envelope_coef[val & 0x7f];
+
+	/* envelope velocity-follow */
+	if (vp->sample->envelope_velf[stage])
+		rate *= pow(2.0, (double) (voice[v].velocity - 64)
+				* vp->sample->envelope_velf[stage]);
+
+	/* just before release phase, some modifications are necessary */
+	if (stage > 2 /* && vp->sample->inst_type == INST_SF2 */) {
+		/* adjust release rate for consistent release time */
+		rate *= (double) vp->envelope_volume
+				/ vp->sample->envelope_offset[0];
+		/* calculate current envelope scale and a value for optimization */
 		vp->envelope_scale = vp->last_envelope_volume;
 		vp->inv_envelope_scale = OFFSET_MAX
 				/ (double) vp->envelope_volume * 0x10000;
 	}
+
+	/* avoid too fast envelope speed */
+	if (offset < vp->envelope_volume) {	/* decaying phase */
+		if(rate > vp->envelope_volume - offset) {
+			rate = -vp->envelope_volume + offset - 1;
+		} else {
+			rate = -rate;
+		}
+	} else {	/* attacking phase */
+		if(rate > offset - vp->envelope_volume) {
+			rate = offset - vp->envelope_volume + 1;
+		}
+	}
+	
+	vp->envelope_increment = (int32)rate;
+	vp->envelope_target = offset;
+
 	return 0;
 }
 
@@ -1108,16 +1130,9 @@ static inline void update_tremolo(int v)
 int apply_envelope_to_amp(int v)
 {
 	Voice *vp = &voice[v];
-	FLOAT_T lamp = vp->left_amp, ramp, *v_table;
-	int32 la, ra, shift;
-
-	if (vp->sample->inst_type == INST_SF2) {
-		v_table = sb_vol_table;
-		shift = 20;
-	} else {
-		v_table = vol_table;
-		shift = 23;
-	}
+	FLOAT_T lamp = vp->left_amp, ramp,
+		*v_table = vp->sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
+	int32 la, ra;
 	
 	if (vp->panned == PANNED_MYSTERY) {
 		ramp = vp->right_amp;
@@ -1128,12 +1143,12 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> shift,
+						imuldiv16(vp->envelope_volume >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						vp->envelope_volume >> shift];
+						vp->envelope_volume >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
 				vp->envelope_volume >> 20];
@@ -1147,7 +1162,7 @@ int apply_envelope_to_amp(int v)
 		if (ra > MAX_AMP_VALUE)
 			ra = MAX_AMP_VALUE;
 		if ((vp->status & (VOICE_OFF | VOICE_SUSTAINED))
-				&& (la | ra) <= 0) { /* <= MIN_AMP_VALUE */
+				&& (la | ra) <= 0) {
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
@@ -1160,12 +1175,12 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> shift,
+						imuldiv16(vp->envelope_volume >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						vp->envelope_volume >> shift];
+						vp->envelope_volume >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
 				vp->envelope_volume >> 20];
@@ -1175,7 +1190,7 @@ int apply_envelope_to_amp(int v)
 		if (la > MAX_AMP_VALUE)
 		la = MAX_AMP_VALUE;
 		if ((vp->status & (VOICE_OFF | VOICE_SUSTAINED))
-				&& la <= 0) { /* <= MIN_AMP_VALUE */
+				&& la <= 0) {
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
@@ -1215,12 +1230,4 @@ static inline void compute_mix_smoothing(Voice *vp)
 }
 #endif
 
-#ifdef VOICE_LPF
-static inline void finish_voice_filter(int v)
-{
-	FilterCoefficients *fc = &(voice[v].fc);
-	
-	fc->hist1 = hist1, fc->hist2 = hist2;
-}
-#endif
 

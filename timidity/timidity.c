@@ -349,6 +349,7 @@ static void help(void)
 "                   p/P : Enable/Disable Portamento.",
 "                   v/V : Enable/Disable NRPN Vibrato.",
 "                   s/S : Enable/Disable Channel pressure.",
+"                   l/L : Enable/Disable voice-by-voice LPF.",
 "                   t/T : Enable/Disable Trace Text Meta Event at playing",
 "                   o/O : Enable/Disable Overlapped voice",
 "                   m<HH>: Define default Manufacture ID <HH> in two hex",
@@ -380,6 +381,12 @@ static void help(void)
 #else
 "S"
 #endif /* GM_CHANNEL_PRESSURE_ALLOW */
+
+#ifdef VOICE_BY_VOICE_LPF_ALLOW
+"l"
+#else
+"L"
+#endif /* VOICE_BY_VOICE_LPF_ALLOW */
 
 #ifdef ALWAYS_TRACE_TEXT_META_EVENT
 "t"
@@ -1811,60 +1818,6 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 	    bank->tone[i].legato = atoi(w[2]);
-	}	/* #extension cutoff program cutoff-frequency */
-	else if(strcmp(w[0], "cutoff") == 0)
-	{
-	    if(words != 3)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    if(!bank)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: Must specify tone bank or drum set "
-			  "before assignment", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    i = atoi(w[1]);
-	    if(i < 0 || i > 127)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: extension cutoff "
-			  "must be between 0 and 127", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-		bank->tone[i].cutoff_freq = atoi(w[2]);
-	}	/* #extension resonance program resonance */
-	else if(strcmp(w[0], "resonance") == 0)
-	{
-	    if(words != 3)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    if(!bank)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: Must specify tone bank or drum set "
-			  "before assignment", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    i = atoi(w[1]);
-	    if(i < 0 || i > 127)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: extension resonance "
-			  "must be between 0 and 127", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-		bank->tone[i].resonance = atoi(w[2]);
 	}	/* #extension level program tva_level */
 	else if(strcmp(w[0], "level") == 0)
 	{
@@ -2699,6 +2652,12 @@ int set_extension_modes(char *flag)
 	  case 'S':
 	    opt_channel_pressure = 0;
 	    break;
+	  case 'l':
+	    opt_lpf_def = 1;
+	    break;
+	  case 'L':
+	    opt_lpf_def = 0;
+	    break;
 	  case 't':
 	    opt_trace_text_meta_event = 1;
 	    break;
@@ -3324,6 +3283,8 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_tables();
 	init_attack_vol_table();
 	init_sb_vol_table();
+	init_def_vol_table();
+	init_gs_vol_table();
 #ifdef SUPPORT_SOCKET
 	url_news_connection_cache(URL_NEWS_CONN_CACHE);
 #endif /* SUPPORT_SOCKET */

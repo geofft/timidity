@@ -945,31 +945,6 @@ Instrument *load_instrument(int dr, int b, int prog)
 			ip->sample[i].data_length = ip->sample[i].loop_end;
 		}
 	}
-	/* #extension cutoff / resonance */
-	if(opt_resonance && ip != NULL) {
-		int i,cutoff_freq = 0,resonance = 0;
-		for(i = 0; i < ip->samples; i++) {
-			if(cutoff_freq < ip->sample[i].cutoff_freq) {
-				cutoff_freq = ip->sample[i].cutoff_freq;
-			}/* else if(ip->sample[i].cutoff_freq == 0) {
-				cutoff_freq = 0;
-				resonance = 0;
-				break;
-			}*/
-			if(ip->sample[i].resonance != 0) {
-				if(resonance == 0) {resonance = ip->sample[i].resonance;}
-				else if(resonance > ip->sample[i].resonance) {
-					resonance = ip->sample[i].resonance;
-				}
-			}
-		}	
-		if(bank->tone[prog].cutoff_freq == 0) {
-			bank->tone[prog].cutoff_freq = cutoff_freq;
-		}
-		if(bank->tone[prog].resonance == 0) {
-			bank->tone[prog].resonance = resonance;
-		}
-	}
 	if (ip != NULL) {
 	  int i;
 	  i = (dr ? 0 : prog);

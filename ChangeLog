@@ -1,3 +1,57 @@
+
+2003-03-26  Saito <timidity@flashmail.com>
+	* interface/w32g_subwin3.c:
+	  Fix resource leak of tracer window (W32GUI version)
+	  
+2003-03-25  Saito <timidity@flashmail.com>
+	* timidity/playmidi.c:
+	  Fix channel pressure about LPF.
+	  Weaken NRPN cutoff controls.
+	* interface/w32g_subwin3.c, interface/w32g_res.rc:
+	  Fix tracer window (W32GUI version)
+
+2003-03-24  Saito <timidity@flashmail.com>
+	* timidity/playmidi.h, timidity/resample.c:
+	  Restore Voice struct sample_offset to int32
+	* timidity/playmidi.c:
+	  Fix panning.
+	* timidity/mix.c:
+	  Optimize MIXATION about voice-by-voice LPF.
+	* interface/w32g_subwin3.c, interface/w32g_tracer.h,
+	  interface/w32g_res.h, interface/w32g_res.rc:
+	  Improve the appearance of tracer window (W32GUI version)
+
+2003-03-20  Saito <timidity@flashmail.com>
+	* timidity/table.c, timidity/playmidi.c:
+	  Fix panning.
+
+2003-03-18  Tamuki <tamuki@linet.gr.jp>
+	* timidity/playmidi.[ch], timidity/timidity.[ch]:
+	  Support for command line option
+	  -E l/L: Enable/Disable voice-by-voice LPF.
+
+2003-03-18  Saito <timidity@flashmail.com>
+	  Obsolete "velocity_table"
+	  Obsolete "opt_sf_lpf"
+	  Obsolete "opt_resonance"
+	  Obsolete "#extension cutoff"
+	  Obsolete "#extension resonance"
+	* timidity/sndfont.c:
+	  Bug fix around envelope
+	* timidity/mix.c:
+	  Fix around voice-by-voice LPF
+
+2003-03-17  Saito <timidity@flashmail.com>
+
+	* timidity/tables.[ch], timidity/timidity.c, timidity/mix.c:
+	  Hack up def_vol_table[] and gs_vol_table[]
+	* timidity/playmidi.h, timidity/resample.c:
+	  Change Voice struct sample_offset to uint32
+	* timidity/sndfont.c:
+	  Bug fix around looping, sample rate, and envelope
+	* timidity/mix.c:
+	  Fixed around recompute_envelope()
+
 2003-02-26  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
 
 	* interface/xaw_i.c:

@@ -55,11 +55,6 @@ extern uint8 delay_macro_presets[];
 extern FLOAT_T delay_time_center_table[];
 extern FLOAT_T pre_delay_time_table[];
 extern FLOAT_T rate1_table[];
-extern uint8 velocity_table[];
-extern int opt_velocity_table;
-extern FLOAT_T linear_vol_table[];
-extern FLOAT_T log_vol_table[];
-extern FLOAT_T exp_vol_table[];
 extern FLOAT_T attack_vol_table[];
 extern FLOAT_T envelope_coef[];
 extern FLOAT_T sc_vel_table[];
@@ -77,5 +72,7 @@ extern void init_bend_coarse(void);
 extern void init_tables(void);
 extern void init_attack_vol_table(void);
 extern void init_sb_vol_table(void);
+extern void init_def_vol_table(void);
+extern void init_gs_vol_table(void);
 
 #endif /* ___TABLES_H_ */

@@ -67,13 +67,9 @@ extern void calc_highshelf_coefs(int32*,int32,FLOAT_T,int32);
 extern void init_insertion_effect();
 extern void do_insertion_effect(int32*, int32);
 
-/* channel LPF */
-extern void do_channel_lpf(register int32*,int32,int32*,int32*,int8);
-extern void do_lowpass_12db(register int32*,int32,int32*,int32*);
+/* LPF for system effects */
 extern void do_lowpass_24db(register int32*,int32,int32*,int32*);
-extern void calc_lowpass_coefs_12db(int32*,int32,int16,int32);
 extern void calc_lowpass_coefs_24db(int32*,int32,int16,int32);
-extern void calc_lowpass_coefs(int32*,int32,int16,int32,int8);
 
 /* GS parameters of delay effect */
 struct delay_status_t

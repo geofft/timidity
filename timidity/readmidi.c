@@ -3964,7 +3964,7 @@ void recompute_delay_status()
 
 	/* precalc lpf coef */
 	if(cutoff_freq < play_mode->rate / 2) {
-		calc_lowpass_coefs_12db(delay_status.lpf_coef,cutoff_freq,0,play_mode->rate);
+		calc_lowpass_coefs_24db(delay_status.lpf_coef,cutoff_freq,0,play_mode->rate);
 	}
 }
 
@@ -4059,7 +4059,7 @@ void recompute_chorus_status()
 
 	/* precalc lpf coef */
 	if(cutoff_freq < play_mode->rate / 2) {
-		calc_lowpass_coefs_12db(chorus_param.lpf_coef,cutoff_freq,0,play_mode->rate);
+		calc_lowpass_coefs_24db(chorus_param.lpf_coef,cutoff_freq,0,play_mode->rate);
 	}
 }
 

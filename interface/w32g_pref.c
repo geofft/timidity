@@ -804,7 +804,6 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		 }
 			// NOISESHARPING
 		 st_temp->noise_sharp_type = GetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,NULL,FALSE);
-		 st_temp->opt_velocity_table = GetDlgItemInt(hwnd,IDC_EDIT_VELOCITYTABLE,NULL,FALSE);
 			// Misc
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
@@ -817,9 +816,7 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_RESONANCE,st_temp->opt_resonance);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
-			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_SF_LPF,st_temp->opt_sf_lpf);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
@@ -896,7 +893,6 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_DELAY,0);
 			// NOISESHARPING
 		 SetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,st_temp->noise_sharp_type,TRUE);
-		 SetDlgItemInt(hwnd,IDC_EDIT_VELOCITYTABLE,st_temp->opt_velocity_table,TRUE);
 			// Misc
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PORTAMENTO,st_temp->opt_portamento);
@@ -908,9 +904,7 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAD,st_temp->opt_tva_decay);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TVAR,st_temp->opt_tva_release);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_RESONANCE,st_temp->opt_resonance);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
-			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_SF_LPF,st_temp->opt_sf_lpf);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);

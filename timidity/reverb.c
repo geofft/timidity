@@ -470,7 +470,7 @@ void init_ch_delay()
 void do_ch_delay(int32* buf, int32 count)
 {
 #ifdef DELAY_PRE_LPF
-	do_lowpass_12db(delay_effect_buffer,count,delay_status.lpf_coef,delay_status.lpf_val);
+	do_lowpass_24db(delay_effect_buffer,count,delay_status.lpf_coef,delay_status.lpf_val);
 #endif /* DELAY_PRE_LPF */
 
 	switch(delay_status.type) {
@@ -907,7 +907,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 void do_ch_chorus(int32* buf, int32 count)
 {
 #ifdef CHORUS_PRE_LPF
-	do_lowpass_12db(chorus_effect_buffer,count,chorus_param.lpf_coef,chorus_param.lpf_val);
+	do_lowpass_24db(chorus_effect_buffer,count,chorus_param.lpf_coef,chorus_param.lpf_val);
 #endif /* CHORUS_PRE_LPF */
 	do_stereo_chorus(buf,count);
 }
@@ -1082,67 +1082,10 @@ void set_ch_eq(register int32 *sbuffer, int32 n)
 }
 #endif /* OPT_MODE != 0 */
 
-/* lowpass filters */
-void do_lowpass_12db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_val)
-{
-#if OPT_MODE != 0
-	register int32 i,length;
-	int32 x1l,y1l,y2l,x1r,y1r,y2r,yout;
-	int32 a1,a2,b0;
 
-	a1 = lpf_coef[0];
-	a2 = lpf_coef[1];
-	b0 = lpf_coef[2];
-
-	length = count;
-
-	x1l = lpf_val[0];
-	y1l = lpf_val[1];
-	y2l = lpf_val[2];
-	x1r = lpf_val[3];
-	y1r = lpf_val[4];
-	y2r = lpf_val[5];
-
-	for(i=0;i<length;i++) {
-		yout = imuldiv16(y1l,a1) + imuldiv16(y2l,a2) + imuldiv16(x1l,b0);
-		x1l = buf[i];
-		buf[i] = yout;
-		y2l = y1l;
-		y1l = yout;
-
-		yout = imuldiv16(y1r,a1) + imuldiv16(y2r,a2) + imuldiv16(x1r,b0);
-		x1r = buf[++i];
-		buf[i] = yout;
-		y2r = y1r;
-		y1r = yout;
-	}
-
-	lpf_val[0] = x1l;
-	lpf_val[1] = y1l;
-	lpf_val[2] = y2l;
-	lpf_val[3] = x1r;
-	lpf_val[4] = y1r;
-	lpf_val[5] = y2r;
-#endif /* OPT_MODE != 0 */
-}
-
-void calc_lowpass_coefs_12db(int32* lpf_coef,int32 cutoff_freq,int16 resonance,int32 rate)
-{
-	FLOAT_T T,w0,k,a1,a2,b0;
-
-	if(resonance >= 127) {resonance = 126;}
-
-	T = 1.0 / (FLOAT_T)rate;
-	w0 = 2.0 * M_PI * (FLOAT_T)cutoff_freq;
-	k = 0.007874f * (127 - resonance);
-	a1 = 2.0 * exp(-w0 * k / sqrt(1.0 - k * k) * T) * cos(w0 * T);
-	a2 = -exp(-2.0 * w0 * k / sqrt(1.0 - k * k) * T);
-	b0 = 1.0 - a1 - a2;
-
-	lpf_coef[0] = a1 * 0x10000;
-	lpf_coef[1] = a2 * 0x10000;
-	lpf_coef[2] = b0 * 0x10000;
-}
+/*                             */
+/*   LPF for system effects    */
+/*                             */
 
 void calc_lowpass_coefs_24db(int32* lpf_coef,int32 cutoff_freq,int16 resonance,int32 rate)
 {
@@ -1216,29 +1159,6 @@ void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_
 #endif /* OPT_MODE != 0 */
 }
 
-void calc_lowpass_coefs(int32* lpf_coef,int32 cutoff_freq,int16 resonance,int32 rate,int8 type)
-{
-	switch(type) {
-	case 1:	calc_lowpass_coefs_12db(lpf_coef,cutoff_freq,resonance,rate);
-		break;
-	case 2: calc_lowpass_coefs_24db(lpf_coef,cutoff_freq,resonance,rate);
-		break;
-	default:
-		break;
-	}
-}
-
-void do_channel_lpf(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_val,int8 type)
-{
-	switch(type) {
-	case 1:	do_lowpass_12db(buf,count,lpf_coef,lpf_val);
-		break;
-	case 2: do_lowpass_24db(buf,count,lpf_coef,lpf_val);
-		break;
-	default:
-		break;
-	}
-}
 
 
 /*                             */

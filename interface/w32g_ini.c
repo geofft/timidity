@@ -139,13 +139,10 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_tva_decay",&(st->opt_tva_decay));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_tva_release",&(st->opt_tva_release));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_delay_control",&(st->opt_delay_control));
-	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_resonance",&(st->opt_resonance));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
-	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_sf_lpf",&(st->opt_sf_lpf));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
-	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_velocity_table",&(st->opt_velocity_table));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));
     IniGetKeyInt(INI_SEC_TIMIDITY,"opt_evil_mode",&(st->opt_evil_mode));
     IniGetKeyInt(INI_SEC_TIMIDITY,"adjust_panning_immediately",&(st->adjust_panning_immediately));
@@ -275,13 +272,10 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_tva_decay",&(st->opt_tva_decay));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_tva_release",&(st->opt_tva_release));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_delay_control",&(st->opt_delay_control));
-	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_resonance",&(st->opt_resonance));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_lpf_def",&(st->opt_lpf_def));
-	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_sf_lpf",&(st->opt_sf_lpf));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_drum_effect",&(st->opt_drum_effect));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
-	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_velocity_table",&(st->opt_velocity_table));
     IniPutKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));
     IniPutKeyInt(INI_SEC_TIMIDITY,"opt_evil_mode",&(st->opt_evil_mode));
     IniPutKeyInt(INI_SEC_TIMIDITY,"adjust_panning_immediately",&(st->adjust_panning_immediately));

@@ -170,6 +170,12 @@ int opt_channel_pressure = 1;
 int opt_channel_pressure = 0;
 #endif /* GM_CHANNEL_PRESSURE_ALLOW */
 
+#ifdef VOICE_BY_VOICE_LPF_ALLOW
+int opt_lpf_def = 1;
+#else
+int opt_lpf_def = 0;
+#endif /* VOICE_BY_VOICE_LPF_ALLOW */
+
 #ifdef OVERLAP_VOICE_ALLOW
 int opt_overlap_voice_allow = 1;
 #else
@@ -180,11 +186,8 @@ int opt_tva_attack = 0;	/* attack envelope control */
 int opt_tva_decay = 0;	/* decay envelope control */
 int opt_tva_release = 0;	/* release envelope control */
 int opt_delay_control = 0;	/* CC#94 delay(celeste) effect control */
-int opt_resonance = 0;		/* realtime resonant LPF control */
-int opt_lpf_def = 0;		/* use default value about LPF */
 int opt_eq_control = 0;		/* channel equalizer control */
 int opt_insertion_effect = 0;	/* insertion effect control */
-int opt_sf_lpf = 0;	/* soundfont pre-lpf */
 int opt_drum_effect = 0;	/* drumpart effect control */
 int opt_random_expression = 0; /* expression randomize */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
@@ -245,10 +248,6 @@ static void ctl_prog_event(int ch);
 static void ctl_timestamp(void);
 static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
-
-
-void recompute_channel_lpf(int ch,int note,int vel);
-void init_channel_lpf(int ch,int note);
 
 static char *event_name(int type)
 {
@@ -455,13 +454,10 @@ static void reset_nrpn_controllers(int c)
   channel[c].vibrato_delay = 0;
   channel[c].param_cutoff_freq = 0;
   channel[c].param_resonance = 0;
-  channel[c].cutoff_freq = 0;
-  channel[c].resonance = 0;
   channel[c].cutoff_freq_coef = 1.0;
   channel[c].resonance_dB = 0;
-  init_channel_lpf(c,0);
 
-  /* GS&XG System Exclusive */
+  /* GS & XG System Exclusive */
   channel[c].eq_on = 1;
   channel[c].insertion_effect = 0;
   channel[c].velocity_sense_depth = 0x40;
@@ -482,7 +478,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].caf_rate_ctl1 = 0.25;
   channel[c].caf_pitch_depth1 = 0.5;
   channel[c].caf_cutoff_ctl = 1.0;
-  channel[c].caf_amp_ctl = 0.25;
+  channel[c].caf_amp_ctl = 0.125;
 
 }
 
@@ -712,7 +708,6 @@ static int32 calc_velocity(int32 ch,int32 vel)
 	int32 velocity;
 	velocity = channel[ch].velocity_sense_depth * vel / 64 + (channel[ch].velocity_sense_offset - 64) * 2;
 	if(velocity > 127) {velocity = 127;}
-/*	velocity = velocity_table[velocity];*/
 	return velocity;
 }
 
@@ -724,46 +719,49 @@ static void recompute_amp(int v)
 		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
 		   voice[v].sample->volume *
 		   sc_vol_table[channel[voice[v].channel].volume] *
-		   sc_vol_table[channel[voice[v].channel].expression] * 1.63f); /* 21 bits */
+		   sc_vol_table[channel[voice[v].channel].expression]); /* 21 bits */
 
 	if((opt_reverb_control || opt_chorus_control
-			|| opt_delay_control || (opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40)) || opt_insertion_effect
-			|| opt_resonance) && !(play_mode->encoding & PE_MONO)) {
-		tempamp *= 0.55f;
+			|| opt_delay_control || (opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40)) || opt_insertion_effect)
+			&& !(play_mode->encoding & PE_MONO)) {
+		tempamp *= 0.55f * 1.35f;
+	} else {
+		tempamp *= 1.35f;
 	}
 
-	/* Level of Drum Instrument */
+	/* level of drum instrument */
 	if(ISDRUMCHANNEL(voice[v].channel)) {
 		if(channel[voice[v].channel].drums[voice[v].note] != NULL) {
 			tempamp *= channel[voice[v].channel].drums[voice[v].note]->drum_level;
 		}
-		tempamp *= (double) opt_drum_power / 100;
+		tempamp *= (double)opt_drum_power * 0.01f;
 	}
 
 	if(!(play_mode->encoding & PE_MONO))
     {
 		if(voice[v].panning == 64)
 		{
-			voice[v].panned = PANNED_CENTER;
-			voice[v].left_amp = TIM_FSCALENEG(tempamp, 21);
+			voice[v].panned = PANNED_MYSTERY;
+			voice[v].left_amp = voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[64], 27);
 		}
-		else if (voice[v].panning <= 1)
+		else if (voice[v].panning < 2)
 		{
-			voice[v].panned = PANNED_LEFT;
-			voice[v].left_amp = TIM_FSCALENEG(tempamp, 27) * sc_pan_table[127];
+			voice[v].panned = PANNED_MYSTERY;
+			voice[v].left_amp = TIM_FSCALENEG(tempamp, 20);
+			voice[v].right_amp = 0;
 		}
 		else if(voice[v].panning == 127)
 		{
-			voice[v].panned = PANNED_RIGHT;
-			/* left_amp will be used */
-			voice[v].left_amp =  TIM_FSCALENEG(tempamp, 27) * sc_pan_table[127];
+			/* PANNED_RIGHT has a bug that will cause pop-noises */ 
+			voice[v].panned = PANNED_MYSTERY;
+			voice[v].left_amp =  0;
+			voice[v].right_amp =  TIM_FSCALENEG(tempamp, 20);
 		}
 		else
 		{
 			voice[v].panned = PANNED_MYSTERY;
-			voice[v].left_amp = TIM_FSCALENEG(tempamp, 27);
-			voice[v].right_amp = voice[v].left_amp * sc_pan_table[voice[v].panning];
-			voice[v].left_amp *= sc_pan_table[127 - voice[v].panning];
+			voice[v].left_amp = TIM_FSCALENEG(tempamp * sc_pan_table[127 - voice[v].panning], 27);
+			voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[voice[v].panning], 27);
 		}
     }
     else
@@ -771,131 +769,10 @@ static void recompute_amp(int v)
 		voice[v].panned = PANNED_CENTER;
 		voice[v].left_amp = TIM_FSCALENEG(tempamp, 21);
     }
-
-#if 0
-    if(!(play_mode->encoding & PE_MONO))
-    {
-	if(voice[v].panning > 60 && voice[v].panning < 68)
-	{
-	    voice[v].panned = PANNED_CENTER;
-	    voice[v].left_amp = TIM_FSCALENEG(tempamp, 21);
-	}
-	else if (voice[v].panning < 5)
-	{
-	    voice[v].panned = PANNED_LEFT;
-	    voice[v].left_amp = TIM_FSCALENEG(tempamp, 20);
-	}
-	else if(voice[v].panning > 123)
-	{
-	    voice[v].panned = PANNED_RIGHT;
-	    /* left_amp will be used */
-	    voice[v].left_amp =  TIM_FSCALENEG(tempamp, 20);
-	}
-	else
-	{
-	    voice[v].panned = PANNED_MYSTERY;
-	    voice[v].left_amp = TIM_FSCALENEG(tempamp, 27);
-	    voice[v].right_amp = voice[v].left_amp * voice[v].panning;
-	    voice[v].left_amp *= (FLOAT_T)(127 - voice[v].panning);
-	}
-    }
-    else
-    {
-	voice[v].panned = PANNED_CENTER;
-	voice[v].left_amp = TIM_FSCALENEG(tempamp, 21);
-    }
-#endif
 }
 
-void recompute_channel_lpf(int ch,int note,int vel)
-{
-	int cutoff_freq = 0,resonance = 0;
-	int prog,n,velocity;
-	ToneBank *bank;
-
-	if(channel[ch].special_sample > 0) {return;}
-
-	prog = channel[ch].program;
-
-	if(ISDRUMCHANNEL(ch)) {
-		return;
-	} else {
-		if(prog == SPECIAL_PROGRAM) {return;}
-		bank = tonebank[(int)channel[ch].bank];
-		if(bank == NULL) {bank = tonebank[0];}
-	}
-
-	cutoff_freq = bank->tone[prog].cutoff_freq;
-	resonance = bank->tone[prog].resonance;
-
-	if(cutoff_freq <= 0) {
-		channel[ch].cutoff_freq = 0;
-		return;
-	}
-
-	/* velocity to cutoff frequency */
-	velocity = vel;
-	if(velocity < 32) {velocity = 32;}
-	cutoff_freq *= log_vol_table[velocity & 0x7F] * 1.27;
-
-	/* note to cutoff frequency */
-	n = ((note & 0x7F) - 60);
-	if(n > 0) {cutoff_freq *= bend_coarse[n];}
-
-	/* soft pedal to cutoff frequency */
-	if(channel[ch].soft_pedal > 63) {
-		cutoff_freq /= bend_coarse[12];
-	}
-
-	/* NRPN to cutoff frequency */
-	if(channel[ch].param_cutoff_freq > 0) {
-		cutoff_freq *= bend_coarse[channel[ch].param_cutoff_freq];
-	} else {
-		cutoff_freq /= bend_coarse[-channel[ch].param_cutoff_freq];
-	}
-
-	/* normalizing cutoff frequency */
-	if(cutoff_freq > 20000) {
-		/*cutoff_freq = 20000;*/
-		channel[ch].cutoff_freq = 0;
-		return;
-	} else if(cutoff_freq < 1) {
-		cutoff_freq = 1;
-	}
-
-	/* NRPN to resonance */
-	resonance += channel[ch].param_resonance;
-
-	/* normalize resonance */
-	if(resonance > 127) {resonance = 127;}
-	else if(resonance < 0) {resonance = 0;}
-
-	if(channel[ch].cutoff_freq == cutoff_freq && channel[ch].resonance == resonance) {
-		return;
-	}
-
-	channel[ch].cutoff_freq = cutoff_freq;
-	channel[ch].resonance = resonance;
-
-	if(cutoff_freq > play_mode->rate / 2) {
-		channel[ch].cutoff_freq = 0;
-		return;
-	}
-
-	/* calculate lowpass-filter coefficients */
-	calc_lowpass_coefs(channel[ch].lpf_coef,cutoff_freq,resonance,play_mode->rate,opt_resonance);
-
-/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Cutoff Frequency (CH:%d %dHz)",ch,channel[ch].cutoff_freq);
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Resonance (CH:%d VAL:%d)",ch,channel[ch].resonance);
-*/
-}
-
-void init_channel_lpf(int ch,int note) {
-	int i;
-	for(i=0;i<8;i++) {
-		channel[ch].lpf_val[i] = 0;
-	}
-}
+#define MAX_CUTOFF_COEF 4.0f
+#define MIN_CUTOFF_COEF 0.25f
 
 void recompute_channel_filter(MidiEvent *e)
 {
@@ -910,11 +787,11 @@ void recompute_channel_filter(MidiEvent *e)
 	bk = channel[ch].bank;
 	elm = &tonebank[bk]->tone[prog];
 
-	/* Velocity to Filter */
+	/* Velocity to Filter Cutoff */
 	vel = e->b;
 	coef *= pow(2.0, -2.0f * (double)(127 - vel) / 127.0f);
 
-	/* Filter Keyfollow - It's reserved. */
+	/* Filter Keyfollow, reserved.  */
 /*	if(note > 60) {
 		keyf = (double)(note & 0x7F) / 60.0f * 0.5f + 0.5f;
 		coef *= keyf;
@@ -943,28 +820,33 @@ void recompute_voice_filter(int v)
 
 	if(fc->freq == -1) {return;}
 
+	coef = channel[ch].cutoff_freq_coef;
 	if(!ISDRUMCHANNEL(ch)) {
 		/* NRPN Filter Cutoff */
-		diff = channel[ch].param_cutoff_freq * 62.0f;
+		coef *= pow(2.0, (double)(channel[ch].param_cutoff_freq) / 64.0f);
+		if(coef > MAX_CUTOFF_COEF) {coef = MAX_CUTOFF_COEF;}
+		else if(coef < MIN_CUTOFF_COEF) {coef = MIN_CUTOFF_COEF;}
 		reso = 0;
 	} else if(channel[ch].drums[note] != NULL) {
 		/* NRPN Drum Instrument Filter Cutoff */
-		diff = channel[ch].drums[note]->drum_cutoff_freq * 62.0f;
-
+		coef *= pow(2.0, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 64.0f);
+		if(coef > MAX_CUTOFF_COEF) {coef = MAX_CUTOFF_COEF;}
+		else if(coef < MIN_CUTOFF_COEF) {coef = MIN_CUTOFF_COEF;}
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	} else {
-		diff = reso = 0;
+		reso = 0;
 	}
 
-	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef + diff;
-	if(fc->freq < 20) {fc->freq = 20;}
-	else if(fc->freq > 20000) {fc->freq = 20000;}
+	fc->freq = fc->orig_freq * coef;
 
+	/* in this case, it's not necessary to do lowpass filter */
 	if (fc->freq > play_mode->rate / 2) {
 		fc->freq = -1;
 		return;
 	}
+	else if(fc->freq < 20) {fc->freq = 20;}
+	else if(fc->freq > 20000) {fc->freq = 20000;}
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
@@ -2000,7 +1882,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].vibrato_sweep_position=0;
 
   memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
-  if(!opt_resonance && voice[i].sample->cutoff_freq) {
+  if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = voice[i].sample->resonance_dB;
 	  recompute_voice_filter(i);
@@ -2028,7 +1910,6 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
   /* Pan */
   voice[i].panning = get_panning(ch, note, i);
-/*ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d Average:%d",voice[i].panning,voice[i].sample_panning_average);*/
 
   voice[i].porta_control_counter = 0;
   if(channel[ch].portamento && !channel[ch].porta_control_ratio)
@@ -2393,7 +2274,6 @@ static void note_on(MidiEvent *e)
     vid = new_vidq(e->channel, note);
     ch = e->channel;
 
-	if(opt_resonance) {recompute_channel_lpf(ch,note,e->b);}
 	recompute_bank_parameter(ch,note);
 	recompute_channel_filter(e);
 	calc_sample_panning_average(nv, vlist);
@@ -2562,11 +2442,11 @@ static void adjust_channel_pressure(MidiEvent *e)
     {
 	int i, uv = upper_voices;
 	int ch;
-	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl;
+	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl, coef;
 
 	ch = e->channel;
 	pressure = (FLOAT_T)e->a / 127.0f;
-	amp_ctl = channel[ch].caf_amp_ctl * pressure + 1.0f;
+	amp_ctl = 1.0 / (channel[ch].caf_amp_ctl * pressure + 1.0f);
 	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
 	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
 	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
@@ -2582,9 +2462,11 @@ static void adjust_channel_pressure(MidiEvent *e)
 		voice[i].vibrato_control_ratio *= rate_ctl1;
 		voice[i].vibrato_depth *= pitch_depth1;
 		recompute_freq(i);
-		if(!opt_resonance && voice[i].sample->cutoff_freq) {
-			voice[i].fc.orig_freq *= cutoff_ctl;
+		if(opt_lpf_def && voice[i].sample->cutoff_freq) {
+			coef = channel[ch].cutoff_freq_coef;
+			channel[ch].cutoff_freq_coef *= cutoff_ctl;
 			recompute_voice_filter(i);
+			channel[ch].cutoff_freq_coef = coef;
 		}
 	    }
 	}
@@ -2901,8 +2783,6 @@ void midi_program_change(int ch, int prog)
 	instrument_map(channel[ch].mapID, &b, &p);
 	play_midi_load_instrument(0, b, p);
 	}
-
-	init_channel_lpf(ch,prog);
 }
 
 static void process_sysex_event(int ev,int ch,int val,int b)
@@ -3305,7 +3185,6 @@ static void play_midi_prescan(MidiEvent *ev)
 		Voice *vp;
 
 		nv = find_samples(ev, vlist);
-		calc_sample_panning_average(nv, vlist);
 		for(i = 0; i < nv; i++)
 		{
 		    vp = voice + vlist[i];
@@ -3507,16 +3386,16 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_0120:	/* Filter cutoff frequency */
-/*	if(opt_resonance) {*/
+	if(opt_lpf_def) {
 		channel[ch].param_cutoff_freq = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Filter Cutoff (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-/*	}*/
+	}
 	break;
       case NRPN_ADDR_0121:	/* Filter Resonance */
-/*	if(opt_resonance) {*/
+	if(opt_lpf_def) {
 		channel[ch].param_resonance = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Filter Resonance (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-/*	}*/
+	}
 	break;
       case NRPN_ADDR_0163:	/* Attack Time */
 	if(!opt_tva_attack) {break;}
@@ -3760,24 +3639,24 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	  case ME_SOFT_PEDAL:
-/*		  if(opt_resonance) {*/
+		  if(opt_lpf_def) {
 			  channel[ch].soft_pedal = current_event->a;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Soft Pedal (CH:%d VAL:%d)",ch,channel[ch].soft_pedal);
-/*		  }*/
+		  }
 		  break;
 
 	  case ME_HARMONIC_CONTENT:
-/*		  if(opt_resonance) {*/
+		  if(opt_lpf_def) {
 			  channel[ch].param_resonance = current_event->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Harmonic Content (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-/*		  }*/
+		  }
 		  break;
 
 	  case ME_BRIGHTNESS:
-/*		  if(opt_resonance) {*/
+		  if(opt_lpf_def) {
 			  channel[ch].param_cutoff_freq = current_event->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Brightness (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-/*		  }*/
+		  }
 		  break;
 
 	    /* RPNs */
@@ -4587,8 +4466,7 @@ static void do_compute_data_midi(int32 count)
 	channel_eq = opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40);
 
 	channel_effect = ((channel_reverb || channel_chorus
-			|| channel_delay || channel_eq || opt_insertion_effect
-			|| opt_resonance) && stereo);
+			|| channel_delay || channel_eq || opt_insertion_effect) && stereo);
 
 	uv = upper_voices;
 	for(i=0;i<uv;i++) {
@@ -4607,9 +4485,6 @@ static void do_compute_data_midi(int32 count)
 		for(i=0;i<MAX_CHANNELS;i++) {
 			if(ISDRUMCHANNEL(i) && opt_drum_effect == 0) {
 				vpblist[i] = buffer_pointer;
-			} else if(channel[i].cutoff_freq > 0) {
-				vpblist[i] = (int32*)(reverb_buffer + buf_index);
-				buf_index += n;
 			} else if(opt_insertion_effect && channel[i].insertion_effect) {
 				vpblist[i] = insertion_effect_buffer;
 			} else if(channel[i].eq_on || (channel[i].reverb_level >= 0
@@ -4659,24 +4534,6 @@ static void do_compute_data_midi(int32 count)
 	upper_voices = uv;
 
 	if(channel_effect) {
-		if(opt_resonance) {	/* channel lowpass filter */ 
-			for(i=0;i<MAX_CHANNELS;i++) {
-				int32 *p;
-				p = vpblist[i];
-				if(p != buffer_pointer && p != insertion_effect_buffer && channel[i].cutoff_freq > 0) {
-					/* applying lowpass filter with resonance */
-					do_channel_lpf(p, cnt, channel[i].lpf_coef,	channel[i].lpf_val, opt_resonance);
-					/* mixing filtered voice to insertion effect buffer */
-					if(opt_insertion_effect && channel[i].insertion_effect) {
-						for(j=0;j<cnt;j++) {
-							insertion_effect_buffer[j] += p[j];
-							p[j] = 0;
-						}
-					}
-				}
-			}
-		}
-
 		if(opt_insertion_effect) { 	/* insertion effect */
 			/* applying insertion effect */
 			do_insertion_effect(insertion_effect_buffer, cnt);
@@ -4747,8 +4604,7 @@ static void do_compute_data_midi(int32 count)
 	memset(buffer_pointer, 0, n);
 
 	channel_effect = ((opt_reverb_control || opt_chorus_control
-			|| opt_delay_control || opt_eq_control || opt_insertion_effect
-			|| opt_resonance) && stereo);
+			|| opt_delay_control || opt_eq_control || opt_insertion_effect) && stereo);
 	uv = upper_voices;
 	for (i = 0; i < uv; i++)
 		if (voice[i].status != VOICE_FREE)
@@ -5478,24 +5334,24 @@ int play_event(MidiEvent *ev)
 	break;
 
 	  case ME_SOFT_PEDAL:
-		  if(opt_resonance) {
+		  if(opt_lpf_def) {
 			  channel[ch].soft_pedal = ev->a;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Soft Pedal (CH:%d VAL:%d)",ch,channel[ch].soft_pedal);
 		  }
 		  break;
 
 	  case ME_HARMONIC_CONTENT:
-/*		  if(opt_resonance) {*/
+		  if(opt_lpf_def) {
 			  channel[ch].param_resonance = ev->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Harmonic Content (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-/*		  }*/
+		  }
 		  break;
 
 	  case ME_BRIGHTNESS:
-/*		  if(opt_resonance) {*/
+		  if(opt_lpf_def) {
 			  channel[ch].param_cutoff_freq = ev->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Brightness (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-/*		  }*/
+		  }
 		  break;
 
       case ME_DATA_ENTRY_MSB:
