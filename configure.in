@@ -353,7 +353,6 @@ AC_HEADER_DIRENT
 AC_CHECK_HEADERS( \
   [arpa/inet.h \
   errno.h \
-  getopt.h \
   glob.h \
   dlfcn.h \
   fcntl.h \
@@ -390,6 +389,11 @@ AC_CHECK_HEADERS( \
   unistd.h \
   X11/extensions/XShm.h \
   X11/Xmu/ExtAgent.h])
+if test "x$CYGNUS" = xno; then
+if test "x$MINGW" = xno; then
+AC_CHECK_HEADERS([getopt.h])
+fi
+fi
 AC_CHECK_HEADER(string.h,, [ AC_DEFINE(NO_STRING_H,1,Define to 1 if you do not have <string.h>.)])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -460,7 +464,6 @@ AC_CHECK_FUNCS( \
   dup2 \
   floor \
   getcwd \
-  getopt \
   gethostbyname \
   gettimeofday \
   getwd \
@@ -489,10 +492,24 @@ AC_CHECK_FUNCS( \
   strstr \
   strtol \
   usleep])
+if test "x$CYGNUS" = xno; then
+if test "x$MINGW" = xno; then
+AC_CHECK_FUNCS([getopt])
 AC_CHECK_FUNC(getopt_long,
 	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long function'])
 	 tm_cv_needgetopt="no",
 	 tm_cv_needgetopt="yes")
+else 
+tm_cv_needgetopt="yes"
+AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
+AC_MSG_WARN(If you use native CYGWIN. )
+AC_MSG_WARN(Define it in config.h. manually.)
+fi
+else
+tm_cv_needgetopt="yes"
+AC_MSG_WARN(GETOPT in MINGW may be broken! It is unused.)
+AC_MSG_WARN(If you use native CYGWIN. Define it in config.h. manually.)
+fi
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
 # Checks on cygnus
