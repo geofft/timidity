@@ -4173,7 +4173,7 @@ void recompute_chorus_status()
 	int cutoff_freq;
 
 	chorus_param.delay_in_sample = pre_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
-	chorus_param.depth_in_sample = pre_delay_time_table[chorus_param.chorus_depth] * (double)play_mode->rate / 10000.0;
+	chorus_param.depth_in_sample = chorus_param.delay_in_sample * chorus_param.chorus_depth / 127;
 	chorus_param.cycle_in_sample = play_mode->rate / rate1_table[chorus_param.chorus_rate];
 	chorus_param.feedback_ratio = (double)chorus_param.chorus_feedback * 0.0077165;
 	chorus_param.level_ratio = (double)chorus_param.chorus_level / 127.0;

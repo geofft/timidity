@@ -1,4 +1,22 @@
 
+2003-05-25  Kentaro Sato <kentaro@ps.catv.ne.jp>
+
+	* timidity/timidity.c:
+	  Bug fix in config parameter with quotation.
+
+2003-05-24  Saito <timidity@flashmail.com>
+
+	* timidity/mix.c, timidity/reverb.c,
+	  timidity/sndfont.c, timidity/playmidi.c:
+	  Fix new Reverberation Effect.
+	  Fix about SoundFont.
+
+2003-05-22  Saito <timidity@flashmail.com>
+
+	* timidity/tables.c, timidity/reverb.c, timidity/readmidi.c:
+	  Fix new Reverberation Effect.
+	  Improve Chorus Effect.
+
 2003-05-21  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/tables.c, timidity/reverb.c:

@@ -1371,7 +1371,8 @@ static int mapname2id(char *name, int *isdrum)
 /* string[0] should not be '#' */
 static int strip_trailing_comment(char *string, int next_token_index)
 {
-    if (string[next_token_index - 1] == '#')	/* strip \1 in /^\S+(#*\s.*)/ */
+    if (string[next_token_index - 1] == '#'	/* strip \1 in /^\S+(#*[ \t].*)/ */
+	&& (string[next_token_index] == ' ' || string[next_token_index] == '\t'))
     {
 	string[next_token_index] = '\0';	/* new c-string terminator */
 	while(string[--next_token_index - 1] == '#')

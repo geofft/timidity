@@ -908,11 +908,7 @@ void recompute_voice_filter(int v)
 			cent += (double)voice[v].sample->tremolo_to_fc * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT);
 		}
 		if(voice[v].sample->modenv_to_fc) {
-			if(voice[v].modenv_stage < 2 && voice[v].last_modenv_volume < 0.75 && voice[v].sample->modenv_to_fc > 1200) {
-				cent += (double)voice[v].sample->modenv_to_fc * 0.75;				
-			} else {
-				cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
-			}
+			cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
 		}
 	}
 

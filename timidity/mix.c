@@ -1371,6 +1371,10 @@ static inline int modenv_next_stage(int v)
 	if (vp->modenv_volume == offset
 			|| (stage > 2 && vp->modenv_volume < offset))
 		return recompute_modulation_envelope(v);
+	else if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
+			vp->modenv_volume = offset;
+			return recompute_modulation_envelope(v);
+	}
 	ch = vp->channel;
 
 	/* envelope generator (see also playmidi.[ch]) */
@@ -1404,10 +1408,7 @@ static inline int modenv_next_stage(int v)
 				rate *= sc_eg_decay_table[val & 0x7f];
 			}
 		}
-		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
-			vp->modenv_volume = offset;
-			return recompute_modulation_envelope(v);
-		} else if(rate > vp->modenv_volume - offset) {	/* fastest decay */
+		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;
 		} else if (rate < 1) {	/* slowest decay */
 			rate = -1;
@@ -1417,10 +1418,7 @@ static inline int modenv_next_stage(int v)
 	} else {	/* attacking phase */
 		if (val != -1)
 			rate *= sc_eg_attack_table[val & 0x7f];
-		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous attack */
-				vp->modenv_volume = offset;
-				return recompute_modulation_envelope(v);
-		} else if(rate > offset - vp->modenv_volume) {	/* fastest attack */
+		if(rate > offset - vp->modenv_volume) {	/* fastest attack */
 			rate = offset - vp->modenv_volume + 1;
 		} else if (rate < 1) {rate = 1;}	/* slowest attack */
 	}

@@ -755,6 +755,7 @@ static int32 chorus_buf0_L[CHORUS_BUFFER_SIZE + 1];
 static int32 chorus_buf0_R[CHORUS_BUFFER_SIZE + 1];
 static int32 chorus_rpt0 = CHORUS_BUFFER_SIZE;
 static int32 chorus_wpt0;
+static int32 chorus_wpt1;
 static int32 chorus_spt0;
 static int32 chorus_spt1;
 static int32 chorus_lfo0[SINE_CYCLE_LENGTH];
@@ -791,6 +792,7 @@ void init_ch_chorus()
 
 	chorus_cnt0 = 0;
 	chorus_wpt0 = 0;
+	chorus_wpt1 = 0;
 	chorus_spt0 = 0;
 	chorus_spt1 = 0;
 #endif /* NEW_CHORUS */
@@ -801,7 +803,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 {
 #if OPT_MODE != 0	/* fixed-point implementation */
 	register int32 i;
-	int32 level, feedback, send_reverb, send_delay, delay, depth, output, div;
+	int32 level, feedback, send_reverb, send_delay, delay, depth, output, div, v1l, v1r, f0, f1;
 
 	level = TIM_FSCALE(chorus_param.level_ratio, 24);
 	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 24);
@@ -811,36 +813,46 @@ void do_stereo_chorus(int32* buf, register int32 count)
 	delay = chorus_param.delay_in_sample;
 	div = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)chorus_cyc0, 24) - 0.5;
 
-	chorus_spt0 = chorus_wpt0 - delay -
-		imuldiv24(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
+	f0 = imuldiv16(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
+	chorus_spt0 = chorus_wpt0 - delay - (f0 >> 8);
+	f0 &= 0xFF;
 	if(chorus_spt0 < 0) {chorus_spt0 += chorus_rpt0;}
-	chorus_spt1 = chorus_wpt0 - delay -
-		imuldiv24(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
+	f1 = imuldiv16(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
+	chorus_spt1 = chorus_wpt0 - delay - (f1 >> 8);
+	f1 &= 0xFF;
 	if(chorus_spt1 < 0) {chorus_spt1 += chorus_rpt0;}
 	
 	for(i=0;i<count;i++) {
-		chorus_buf0_L[chorus_wpt0] = chorus_effect_buffer[i] + imuldiv24(chorus_buf0_L[chorus_spt0], feedback);
-		output = imuldiv24(chorus_buf0_L[chorus_spt0], level);
-		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output, send_reverb);
-		delay_effect_buffer[i] += imuldiv24(output, send_delay);
-		chorus_effect_buffer[i] = 0;
+		v1l = chorus_buf0_L[chorus_spt0];
+		v1r = chorus_buf0_R[chorus_spt1];
 
-		chorus_buf0_R[chorus_wpt0] = chorus_effect_buffer[++i] + imuldiv24(chorus_buf0_R[chorus_spt1], feedback);
-		output = imuldiv24(chorus_buf0_R[chorus_spt1], level);
-		buf[i] += output;
-		effect_buffer[i] += imuldiv24(output, send_reverb);
-		delay_effect_buffer[i] += imuldiv24(output, send_delay);
-		chorus_effect_buffer[i] = 0;
-
+		chorus_wpt1 = chorus_wpt0;
 		if(++chorus_wpt0 == chorus_rpt0) {chorus_wpt0 = 0;}
-		if(++chorus_cnt0 == chorus_cyc0) {chorus_cnt0 = 0;}
-		chorus_spt0 = chorus_wpt0 - delay -
-			imuldiv24(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
+		f0 = imuldiv16(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
+		chorus_spt0 = chorus_wpt0 - delay - (f0 >> 8);
+		f0 &= 0xFF;
 		if(chorus_spt0 < 0) {chorus_spt0 += chorus_rpt0;}
-		chorus_spt1 = chorus_wpt0 - delay -
-			imuldiv24(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
+		f1 = imuldiv16(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
+		chorus_spt1 = chorus_wpt0 - delay - (f1 >> 8);
+		f1 &= 0xFF;
 		if(chorus_spt1 < 0) {chorus_spt1 += chorus_rpt0;}
+		if(++chorus_cnt0 == chorus_cyc0) {chorus_cnt0 = 0;}
+
+		output = v1l + imuldiv8(chorus_buf0_L[chorus_spt0] - v1l, f0);
+		chorus_buf0_L[chorus_wpt1] = chorus_effect_buffer[i] + imuldiv24(output, feedback);
+		output = imuldiv24(output, level);
+		buf[i] += output;
+		effect_buffer[i] += imuldiv24(output, send_reverb);
+		delay_effect_buffer[i] += imuldiv24(output, send_delay);
+		chorus_effect_buffer[i] = 0;
+
+		output = v1r + imuldiv8(chorus_buf0_R[chorus_spt1] - v1r, f1);
+		chorus_buf0_R[chorus_wpt1] = chorus_effect_buffer[++i] + imuldiv24(output, feedback);
+		output = imuldiv24(output, level);
+		buf[i] += output;
+		effect_buffer[i] += imuldiv24(output, send_reverb);
+		delay_effect_buffer[i] += imuldiv24(output, send_delay);
+		chorus_effect_buffer[i] = 0;
 	}
 #endif /* OPT_MODE != 0 */
 }
@@ -1455,11 +1467,11 @@ static void init_comb(comb *comb)
 #define initialwet 1 / scalewet
 #define initialdry 0
 #define initialwidth 0.5f
-#define initialallpassfbk 0.5f
+#define initialallpassfbk 0.65f
 #define stereospread 23
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
-#define fixedgain 0.0345f/*0.015f*/
+#define fixedgain 0.025f
 
 typedef struct _revmodel_t {
 	double roomsize, roomsize1;
@@ -1491,13 +1503,89 @@ static inline int isprime(int val)
   else return 0; /* even */
 }
 
+static double gs_revchar_to_roomsize(int character)
+{
+	double rs;
+	switch(character) {
+	case 0: rs = 1.0;	break;	/* Room 1 */
+	case 1: rs = 0.94;	break;	/* Room 2 */
+	case 2: rs = 0.97;	break;	/* Room 3 */
+	case 3: rs = 0.90;	break;	/* Hall 1 */
+	case 4: rs = 0.85;	break;	/* Hall 2 */
+	default: rs = 1.0;	break;	/* Plate, Delay, Panning Delay */
+	}
+/*	if(opt_effect_quality > 2) {
+		return (double)(opt_effect_quality - 2) / 100.0;
+	} else {*/
+		return rs;
+/*	}*/
+}
+
+static double gs_revchar_to_level(int character)
+{
+	double level;
+	switch(character) {
+	case 0: level = 0.744025605;	break;	/* Room 1 */
+	case 1: level = 1.224309745;	break;	/* Room 2 */
+	case 2: level = 0.858592403;	break;	/* Room 3 */
+	case 3: level = 1.0471802;	break;	/* Hall 1 */
+	case 4: level = 1.0;	break;	/* Hall 2 */
+	case 5: level = 0.865335496;	break;	/* Plate */
+	default: level = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return level;
+}
+
+static double gs_revchar_to_rt(int character)
+{
+	double rt;
+	switch(character) {
+	case 0: rt = 0.516850262;	break;	/* Room 1 */
+	case 1: rt = 1.004226004;	break;	/* Room 2 */
+	case 2: rt = 0.691046825;	break;	/* Room 3 */
+	case 3: rt = 0.893006004;	break;	/* Hall 1 */
+	case 4: rt = 1.0;	break;	/* Hall 2 */
+	case 5: rt = 0.538476488;	break;	/* Plate */
+	default: rt = 1.0;	break;	/* Delay, Panning Delay */
+	}
+	return rt;
+}
+
+static double gs_revchar_to_width(int character)
+{
+	double width;
+	switch(character) {
+	case 0: width = 0.5;	break;	/* Room 1 */
+	case 1: width = 0.5;	break;	/* Room 2 */
+	case 2: width = 0.5;	break;	/* Room 3 */
+	case 3: width = 0.5;	break;	/* Hall 1 */
+	case 4: width = 0.5;	break;	/* Hall 2 */
+	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return width;
+}
+
+static double gs_revchar_to_apfbk(int character)
+{
+	double apf;
+	switch(character) {
+	case 0: apf = 0.7;	break;	/* Room 1 */
+	case 1: apf = 0.7;	break;	/* Room 2 */
+	case 2: apf = 0.7;	break;	/* Room 3 */
+	case 3: apf = 0.6;	break;	/* Hall 1 */
+	case 4: apf = 0.55;	break;	/* Hall 2 */
+	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return apf;
+}
+
 static void recalc_reverb_buffer(revmodel_t *rev)
 {
 	int i;
 	int32 tmpL, tmpR;
 	double time;
 
-	time = reverb_time_table[reverb_status.time]
+	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character)
 		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
 
 	for(i = 0; i < numcombs; i++)
@@ -1531,39 +1619,12 @@ static void recalc_reverb_buffer(revmodel_t *rev)
 	}
 }
 
-static double gs_revchar_to_roomsize(int character)
-{
-	double rs;
-	switch(character) {
-	case 0: rs = 0.5;	break;	/* Room 1 */
-	case 1: rs = 0.3;	break;	/* Room 2 */
-	case 2: rs = 0.4;	break;	/* Room 3 */
-	case 3: rs = 0.8;	break;	/* Hall 1 */
-	case 4: rs = 0.7;	break;	/* Hall 2 */
-	default: rs = 0.5;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return rs;
-}
-
-static double gs_revchar_to_width(int character)
-{
-	double width;
-	switch(character) {
-	case 0: width = 0.5;	break;	/* Room 1 */
-	case 1: width = 0.5;	break;	/* Room 2 */
-	case 2: width = 0.5;	break;	/* Room 3 */
-	case 3: width = 0.5;	break;	/* Hall 1 */
-	case 4: width = 0.5;	break;	/* Hall 2 */
-	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return width;
-}
-
 static void update_revmodel(revmodel_t *rev)
 {
 	int i;
+	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character);
 
-	rev->wet = (double)reverb_status.level / 127.0;
+	rev->wet = (double)reverb_status.level / 127.0 * gs_revchar_to_level(reverb_status.character);
 	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
 	rev->width = gs_revchar_to_width(reverb_status.character);
 
@@ -1591,6 +1652,8 @@ static void update_revmodel(revmodel_t *rev)
 
 	for(i = 0; i < numallpasses; i++)
 	{
+		rev->allpassL[i].feedback = allpassfbk;
+		rev->allpassR[i].feedback = allpassfbk;
 		rev->allpassL[i].feedbacki = TIM_FSCALE(rev->allpassL[i].feedback, 24);
 		rev->allpassR[i].feedbacki = TIM_FSCALE(rev->allpassR[i].feedback, 24);
 	}
@@ -1808,7 +1871,7 @@ void init_reverb(int32 output_rate)
 		init_revmodel(revmodel);
 		memset(effect_buffer, 0, effect_bufsize);
 		memset(direct_buffer, 0, direct_bufsize);
-		REV_INP_LEV = fixedgain * (1.0 + (double)(opt_effect_quality - 2) * 0.1) * revmodel->wet;
+		REV_INP_LEV = fixedgain * revmodel->wet;
 	} else {
 		ta = 0; tb = 0;
 		HPFL = 0; HPFR = 0;

@@ -1416,6 +1416,7 @@ static int abscent_to_Hz(int abscents)
 static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
+	int val;
 
     /* scale tuning */
 	vp->v.scale_tuning = tbl->val[SF_scaleTuning];
@@ -1468,8 +1469,12 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
 	if(tbl->set[SF_lfo1ToFilterFc])
 		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
-	if(tbl->set[SF_env1ToPitch])
-		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
+	if(tbl->set[SF_env1ToPitch]) {
+		val = (int)tbl->val[SF_env1ToPitch];
+		if(val > 1200) {val = 1200;}
+		else if(val < -1200) {val = -1200;}
+		vp->v.modenv_to_pitch = val;
+	}
 	if(tbl->set[SF_env1ToFilterFc])
 		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }
@@ -1530,6 +1535,7 @@ extern int32 modify_release;
 /* volume envelope parameters */
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 {
+	double attack, hold, to_fc;
     vp->attack  = to_rate(65535, tbl->val[SF_attackEnv2]);
     vp->hold    = to_rate(1, tbl->val[SF_holdEnv2]);
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
@@ -1541,8 +1547,16 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 	vp->v.envelope_delay = play_mode->rate * 
 		to_msec(tbl->val[SF_delayEnv2]) * 0.001;
 
-    vp->modattack  = to_rate(65535, tbl->val[SF_attackEnv1]);
-    vp->modhold    = to_rate(1, tbl->val[SF_holdEnv1]);
+	/* convert modulation envelope */
+	attack = to_msec(tbl->val[SF_attackEnv1]);
+	hold = to_msec(tbl->val[SF_holdEnv1]);
+	to_fc = tbl->val[SF_env1ToFilterFc];
+	if(attack != 0 && to_fc / attack > 300) {
+		hold += attack;
+		attack = 0;
+	}
+    vp->modattack  = calc_rate(65535, attack);
+    vp->modhold    = calc_rate(1, hold);
     vp->modsustain = calc_sustain(tbl->val[SF_sustainEnv1]);
     vp->moddecay   = to_rate(65533 - vp->modsustain, tbl->val[SF_decayEnv1]);
     if(modify_release) /* Pseudo Reverb */
