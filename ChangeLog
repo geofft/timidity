@@ -1,3 +1,7 @@
+2004-04-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c: Fix around temperament control
+
 2004-04-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1: Update

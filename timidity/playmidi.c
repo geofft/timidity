@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,10 +15,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     playmidi.c -- random stuff in need of rearrangement
-
 */
 
 #ifdef HAVE_CONFIG_H
@@ -127,6 +126,7 @@ static int file_from_stdin;
 int key_adjust = 0;
 int opt_pure_intonation = 0;
 int current_freq_table = 0;
+int current_temper_freq_table = 0;
 
 static void set_reverb_level(int ch, int level);
 static int make_rvid_flag = 0; /* For reverb optimization */
@@ -848,33 +848,33 @@ void recompute_freq(int v)
 			break;
 		case 1:
 			if (current_temper_keysig < 8)
-				f = freq_table_pytha[current_freq_table][note];
+				f = freq_table_pytha[current_temper_freq_table][note];
 			else
-				f = freq_table_pytha[current_freq_table + 12][note];
+				f = freq_table_pytha[current_temper_freq_table + 12][note];
 			break;
 		case 2:
 			if (current_temper_keysig < 8)
-				f = freq_table_meantone[current_freq_table
+				f = freq_table_meantone[current_temper_freq_table
 						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_meantone[current_freq_table
+				f = freq_table_meantone[current_temper_freq_table
 						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		case 3:
 			if (current_temper_keysig < 8)
-				f = freq_table_pureint[current_freq_table
+				f = freq_table_pureint[current_temper_freq_table
 						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_pureint[current_freq_table
+				f = freq_table_pureint[current_temper_freq_table
 						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		default:	/* user-defined temperament */
 			if ((tt -= 0x40) >= 0 && tt < 4) {
 				if (current_temper_keysig < 8)
-					f = freq_table_user[tt][current_freq_table
+					f = freq_table_user[tt][current_temper_freq_table
 							+ ((temper_adj) ? 36 : 0)][note];
 				else
-					f = freq_table_user[tt][current_freq_table
+					f = freq_table_user[tt][current_temper_freq_table
 							+ ((temper_adj) ? 24 : 12)][note];
 			} else
 				f = freq_table[note];
@@ -1932,33 +1932,35 @@ static int select_play_sample(Sample *splist,
 				break;
 			case 1:
 				if (current_temper_keysig < 8)
-					f = freq_table_pytha[current_freq_table][*note];
+					f = freq_table_pytha[
+							current_temper_freq_table][*note];
 				else
-					f = freq_table_pytha[current_freq_table + 12][*note];
+					f = freq_table_pytha[
+							current_temper_freq_table + 12][*note];
 				break;
 			case 2:
 				if (current_temper_keysig < 8)
-					f = freq_table_meantone[current_freq_table
+					f = freq_table_meantone[current_temper_freq_table
 							+ ((temper_adj) ? 36 : 0)][*note];
 				else
-					f = freq_table_meantone[current_freq_table
+					f = freq_table_meantone[current_temper_freq_table
 							+ ((temper_adj) ? 24 : 12)][*note];
 				break;
 			case 3:
 				if (current_temper_keysig < 8)
-					f = freq_table_pureint[current_freq_table
+					f = freq_table_pureint[current_temper_freq_table
 							+ ((temper_adj) ? 36 : 0)][*note];
 				else
-					f = freq_table_pureint[current_freq_table
+					f = freq_table_pureint[current_temper_freq_table
 							+ ((temper_adj) ? 24 : 12)][*note];
 				break;
 			default:	/* user-defined temperament */
 				if ((tt -= 0x40) >= 0 && tt < 4) {
 					if (current_temper_keysig < 8)
-						f = freq_table_user[tt][current_freq_table
+						f = freq_table_user[tt][current_temper_freq_table
 								+ ((temper_adj) ? 36 : 0)][*note];
 					else
-						f = freq_table_user[tt][current_freq_table
+						f = freq_table_user[tt][current_temper_freq_table
 								+ ((temper_adj) ? 24 : 12)][*note];
 				} else
 					f = freq_table[*note];
@@ -6332,6 +6334,9 @@ static int apply_controls(void)
 	    note_key_offset += val;
 	    current_freq_table += val;
 	    current_freq_table -= floor(current_freq_table / 12.0) * 12;
+	    current_temper_freq_table += val;
+	    current_temper_freq_table -=
+	    		floor(current_temper_freq_table / 12.0) * 12;
 	    if(sync_restart(1) != -1)
 		jump_flag = 1;
 	    ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
@@ -7872,7 +7877,7 @@ int play_event(MidiEvent *ev)
 		while (i != 7 && i != 19)
 			i += (i < 7) ? 5 : -7, j++;
 		j += note_key_offset, j -= floor(j / 12.0) * 12;
-		current_freq_table = j;
+		current_temper_freq_table = j;
 		if (current_event->b)
 			for (i = 0; i < upper_voices; i++)
 				if (voice[i].status != VOICE_FREE) {
