@@ -372,7 +372,7 @@ void InitStartWnd(int nCmdShow)
 	wndclass.cbClsExtra    = 0 ;
 	wndclass.cbWndExtra    = 0 ;
 	wndclass.hInstance     = hInst ;
-	wndclass.hIcon         = LoadIcon(hInst,MAKEINTRESOURCE(IDI_ICON_TIMIDITY)) ;
+	wndclass.hIcon         = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	wndclass.hCursor       = LoadCursor(0,IDC_ARROW) ;
 	wndclass.hbrBackground = (HBRUSH)(COLOR_SCROLLBAR + 1);
 	wndclass.lpszMenuName  = NULL;

@@ -313,7 +313,7 @@ void InitWrdWnd(HWND hParentWnd)
 			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
 	      	FIXED_PITCH | FF_MODERN	,fontname);
 	}
-	hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	if (hIcon!=NULL) SendMessage(hWrdWnd,WM_SETICON,FALSE,(LPARAM)hIcon);
 	wrd_wnd_unlock();
 

@@ -619,7 +619,7 @@ END
 
 IDD_PREF_SYN1_EN DIALOGEX 0, 0, 207, 166
 STYLE DS_CONTROL | WS_CHILD | WS_CAPTION
-FONT 9, "Times New Roman"
+FONT 9, "Times New Roman", 0, 0, 0x1
 BEGIN
     LTEXT           "Port 0",IDC_STATIC,6,27,24,10
     LTEXT           "Port 1",IDC_STATIC,6,42,24,10
@@ -1349,7 +1349,7 @@ END
 
 IDD_PREF_SYN1 DIALOGEX 0, 0, 191, 177
 STYLE DS_CONTROL | WS_CHILD | WS_CAPTION
-FONT 9, "ÇlÇr ÇoÉSÉVÉbÉN"
+FONT 9, "ÇlÇr ÇoÉSÉVÉbÉN", 0, 0, 0x1
 BEGIN
     LTEXT           "É|Å[Ég 0",IDC_STATIC,6,27,24,12
     GROUPBOX        "MIDI IN ÉfÉoÉCÉX",IDC_STATIC,0,0,174,102
@@ -1627,6 +1627,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+IDI_ICON_TWSYNG         ICON    DISCARDABLE     "w32g_syn_icon.ico"
 IDI_ICON_TIMIDITY       ICON    DISCARDABLE     "w32g_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////

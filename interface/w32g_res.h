@@ -21,6 +21,7 @@
 #define IDD_PREF_SYN1                   127
 #define IDD_PREF_SYN1_EN                128
 #define IDD_DIALOG_PREF                 132
+#define IDI_ICON_TWSYNG                 156
 #define IDC_CHECK_SEACHDIRRECURSIVE     1001
 #define IDC_CHECK_DOCWNDINDEPENDENT     1002
 #define IDC_CHECK_INIFILE_AUTOSAVE      1003
@@ -334,7 +335,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        157
 #define _APS_NEXT_COMMAND_VALUE         40003
 #define _APS_NEXT_CONTROL_VALUE         2105
 #define _APS_NEXT_SYMED_VALUE           101

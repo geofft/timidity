@@ -988,7 +988,7 @@ void InitDocWnd(HWND hParentWnd)
 			(hInst,MAKEINTRESOURCE(IDD_DIALOG_DOC),hParentWnd,DocWndProc);
 	break;
 	}
-	hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	if (hIcon!=NULL) SendMessage(hDocWnd,WM_SETICON,FALSE,(LPARAM)hIcon);
 	DocWndInfoReset2(hDocWnd);
 	hMenu = GetSystemMenu(DocWndInfo.hwnd,FALSE);

@@ -289,7 +289,7 @@ void InitTracerWnd(HWND hParentWnd)
 		(hInst,MAKEINTRESOURCE(IDD_DIALOG_TRACER),hParentWnd,TracerWndProc);
 	TracerWndInfoReset(hTracerWnd);
 	ShowWindow(hTracerWnd,SW_HIDE);
-	hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY));
+	hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	if (hIcon!=NULL) SendMessage(hTracerWnd,WM_SETICON,FALSE,(LPARAM)hIcon);
 	INILoadTracerWnd();
 
