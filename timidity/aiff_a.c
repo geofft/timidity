@@ -182,7 +182,9 @@ static int update_header(void)
     f = bytes_output;
     if(!(dpm.encoding & PE_MONO))
 	f /= 2;
-    if(dpm.encoding & PE_16BIT)
+    if(dpm.encoding & PE_24BIT)
+	f /= 3;
+    else if(dpm.encoding & PE_16BIT)
 	f /= 2;
     if(write_u32(f) == -1) return -1;
 
@@ -199,6 +201,8 @@ static int update_header(void)
 
 static int aiff_output_open(const char *fname)
 {
+  int t;
+
   if(strcmp(fname, "-") == 0) {
     dpm.fd = 1; /* data to stdout */
   } else {
@@ -234,11 +238,13 @@ static int aiff_output_open(const char *fname)
   if(write_u32((uint32)0xffffffff) == -1) return -1;
 
   /* bits per sample */
-  if(dpm.encoding & PE_16BIT) {
-    if(write_u16((uint16)16) == -1) return -1;
-  } else {
-    if(write_u16((uint16)8) == -1) return -1;
-  }
+  if(dpm.encoding & PE_24BIT)
+    t = 24;
+  else if(dpm.encoding & PE_16BIT)
+    t = 16;
+  else
+    t = 8;
+  if(write_u16((uint16)t) == -1) return -1;
 
   /* sample rate */
   if(write_ieee_80bitfloat((double)dpm.rate) == -1) return -1;
@@ -298,7 +304,7 @@ static int open_output(void)
     int include_enc, exclude_enc;
     include_enc = exclude_enc = 0;
 
-    if(dpm.encoding & PE_16BIT)
+    if(dpm.encoding & (PE_16BIT | PE_24BIT))
     {
 #ifdef LITTLE_ENDIAN
 	include_enc = PE_BYTESWAP;

@@ -118,10 +118,13 @@ static int write_str(const char *s)
 #define AUDIO_FILE_ENCODING_MULAW_8     1      /* 8-bit ISDN u-law */
 #define AUDIO_FILE_ENCODING_LINEAR_8    2      /* 8-bit linear PCM */
 #define AUDIO_FILE_ENCODING_LINEAR_16   3      /* 16-bit linear PCM */
+#define AUDIO_FILE_ENCODING_LINEAR_24   4      /* 24-bit linear PCM */
 #define AUDIO_FILE_ENCODING_ALAW_8      27     /* 8-bit ISDN A-law */
 
 static int au_output_open(const char *fname, const char *comment)
 {
+  int t;
+
   if(strcmp(fname, "-") == 0) {
     dpm.fd = 1; /* data to stdout */
     if(comment == NULL)
@@ -148,15 +151,17 @@ static int au_output_open(const char *fname, const char *comment)
   if(write_u32((uint32)0xffffffff) == -1) return -1;
 
   /* audio file encoding */
-  if(dpm.encoding & PE_ULAW) {
-      if(write_u32((uint32)AUDIO_FILE_ENCODING_MULAW_8) == -1) return -1;
-  } else if(dpm.encoding & PE_ALAW) {
-    if(write_u32((uint32)AUDIO_FILE_ENCODING_ALAW_8) == -1) return -1;
-  } else if(dpm.encoding & PE_16BIT) {
-    if(write_u32((uint32)AUDIO_FILE_ENCODING_LINEAR_16) == -1) return -1;
-  } else {
-    if(write_u32((uint32)AUDIO_FILE_ENCODING_LINEAR_8) == -1) return -1;
-  }
+  if(dpm.encoding & PE_ULAW)
+    t = AUDIO_FILE_ENCODING_MULAW_8;
+  else if(dpm.encoding & PE_ALAW)
+    t = AUDIO_FILE_ENCODING_ALAW_8;
+  else if(dpm.encoding & PE_24BIT)
+    t = AUDIO_FILE_ENCODING_LINEAR_24;
+  else if(dpm.encoding & PE_16BIT)
+    t = AUDIO_FILE_ENCODING_LINEAR_16;
+  else
+    t = AUDIO_FILE_ENCODING_LINEAR_8;
+  if(write_u32((uint32)t) == -1) return -1;
 
   /* sample rate */
   if(write_u32((uint32)dpm.rate) == -1) return -1;
@@ -220,7 +225,7 @@ static int open_output(void)
     int include_enc, exclude_enc;
 
     include_enc = exclude_enc = 0;
-    if(dpm.encoding & PE_16BIT)
+    if(dpm.encoding & (PE_16BIT | PE_24BIT))
     {
 #ifdef LITTLE_ENDIAN
 	include_enc = PE_BYTESWAP;

@@ -87,7 +87,7 @@ PlayMode dpm = {
  * This extension is available for sox.
  */
 static const char *encoding_ext(int32 encoding) {
-  static char ext[4], *p;
+  static char ext[5], *p;
 
   if(encoding & PE_ULAW) {
     return ".ul";
@@ -104,6 +104,8 @@ static const char *encoding_ext(int32 encoding) {
     *p++ = 'u';
   if(encoding & PE_16BIT)
     *p++ = 'w';
+  else if(encoding & PE_24BIT)
+    *p++ = '2', *p++ = '4'; /* is there any common extension? */
   else
     *p++ = 'b';
   *p = '\0';

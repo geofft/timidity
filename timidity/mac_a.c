@@ -235,11 +235,8 @@ static int output_data (char *buf, int32 nbytes)
 
 	if (dpm.encoding & PE_16BIT)
 		samples /= 2;
-	else{
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "Sorry, not support 8bit sound.");
-		ExitToShell();
-	}
+	else
+		mac_ErrorExit("Sorry, support only 16-bit sound.");
 	
 	//s32tos16 (buf, count);	/*power mac always 16bit*/
 	
