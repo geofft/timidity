@@ -1,3 +1,8 @@
+2004-02-25  Saito <saito2@digitalme.com>
+
+	* timidity/w32g_vorbis_dll.c, timidity/vorbis_a.c, timidity/recache.c:
+	  Fix.
+	  
 2004-02-24  Saito <saito2@digitalme.com>
 
 	* interface/w32g_syn.c, interface/w32g_i.c:

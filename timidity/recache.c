@@ -322,9 +322,12 @@ static int cache_resampling(struct cache_hash *p)
     int32 i, incr, _x;
     resample_rec_t resrc;
     double a;
+	int8 note;
 
     sp = p->sp;
-    a = sample_resamp_info(sp, p->note, &xls, &xle, &newlen);
+	if (sp->note_to_use) {note = sp->note_to_use;}
+	else {note = p->note;}
+	a = sample_resamp_info(sp, note, &xls, &xle, &newlen);
     if(newlen == 0)
 	return CACHE_RESAMPLING_NOTOK;
 
@@ -373,7 +376,7 @@ static int cache_resampling(struct cache_hash *p)
 	loop_connect(dest, (int32)(xls >> FRACTION_BITS), (int32)(xle >> FRACTION_BITS));
     dest[xle >> FRACTION_BITS] = dest[xls >> FRACTION_BITS];
 
-    newsp->root_freq = get_note_freq(newsp, p->note);
+    newsp->root_freq = get_note_freq(newsp, note);
     newsp->sample_rate = play_mode->rate;
 
     p->resampled = newsp;

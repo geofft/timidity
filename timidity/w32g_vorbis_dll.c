@@ -53,6 +53,8 @@ typedef float **(*type_vorbis_analysis_buffer)(vorbis_dsp_state *v,int vals);
 typedef int     (*type_vorbis_analysis_wrote)(vorbis_dsp_state *v,int vals);
 typedef int     (*type_vorbis_analysis_blockout)(vorbis_dsp_state *v,vorbis_block *vb);
 typedef int     (*type_vorbis_analysis)(vorbis_block *vb,ogg_packet *op);
+typedef int     (*type_vorbis_bitrate_addblock)(vorbis_block *vb);
+typedef int     (*type_vorbis_bitrate_flushpacket)(vorbis_dsp_state *vd, ogg_packet *op);
 typedef int     (*type_vorbis_synthesis_headerin)(vorbis_info *vi,vorbis_comment *vc,ogg_packet *op);
 typedef int     (*type_vorbis_synthesis_init)(vorbis_dsp_state *v,vorbis_info *vi);
 typedef int     (*type_vorbis_synthesis)(vorbis_block *vb,ogg_packet *op);
@@ -79,6 +81,8 @@ static struct vorbis_dll_ {
 	 type_vorbis_analysis_wrote vorbis_analysis_wrote;
 	 type_vorbis_analysis_blockout vorbis_analysis_blockout;
 	 type_vorbis_analysis vorbis_analysis;
+	 type_vorbis_bitrate_addblock vorbis_bitrate_addblock;
+     type_vorbis_bitrate_flushpacket vorbis_bitrate_flushpacket;
 //	 type_vorbis_synthesis_headerin vorbis_synthesis_headerin;
 //	 type_vorbis_synthesis_init vorbis_synthesis_init;
 //	 type_vorbis_synthesis vorbis_synthesis;
@@ -139,6 +143,10 @@ int load_vorbis_dll(void)
 	if(!vorbis_dll.vorbis_analysis_blockout){ free_vorbis_dll(); return -1; }
 	vorbis_dll.vorbis_analysis = (type_vorbis_analysis)GetProcAddress(h_vorbis_dll,"vorbis_analysis");
 	if(!vorbis_dll.vorbis_analysis){ free_vorbis_dll(); return -1; }
+	vorbis_dll.vorbis_bitrate_addblock = (type_vorbis_bitrate_addblock)GetProcAddress(h_vorbis_dll,"vorbis_bitrate_addblock");
+	if(!vorbis_dll.vorbis_bitrate_addblock){ free_vorbis_dll(); return -1; }
+	vorbis_dll.vorbis_bitrate_flushpacket = (type_vorbis_bitrate_flushpacket)GetProcAddress(h_vorbis_dll,"vorbis_bitrate_flushpacket");
+	if(!vorbis_dll.vorbis_bitrate_flushpacket){ free_vorbis_dll(); return -1; }
 //	vorbis_dll.vorbis_synthesis_headerin = (type_vorbis_synthesis_headerin)GetProcAddress(h_vorbis_dll,"vorbis_synthesis_headerin");
 //	if(!vorbis_dll.vorbis_synthesis_headerin){ free_vorbis_dll(); return -1; }
 //	vorbis_dll.vorbis_synthesis_init = (type_vorbis_synthesis_init)GetProcAddress(h_vorbis_dll,"vorbis_synthesis_init");
@@ -289,6 +297,22 @@ int     vorbis_analysis(vorbis_block *vb,ogg_packet *op)
 {
 	if(h_vorbis_dll){
 		return vorbis_dll.vorbis_analysis(vb,op);
+	}
+	return (int     )0;
+}
+
+int     vorbis_bitrate_addblock(vorbis_block *vb)
+{
+	if(h_vorbis_dll){
+		return vorbis_dll.vorbis_bitrate_addblock(vb);
+	}
+	return (int     )0;
+}
+
+int     vorbis_bitrate_flushpacket(vorbis_dsp_state *vd, ogg_packet *op)
+{
+	if(h_vorbis_dll){
+		return vorbis_dll.vorbis_bitrate_flushpacket(vd,op);
 	}
 	return (int     )0;
 }

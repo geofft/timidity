@@ -384,16 +384,19 @@ static int output_data(char *readbuffer, int32 bytes)
   while(vorbis_analysis_blockout(&vd, &vb) == 1) {
 
     /* analysis */
-    vorbis_analysis(&vb, &op);
+    vorbis_analysis(&vb, NULL);
+	vorbis_bitrate_addblock(&vb);
 
-    /* weld the packet into the bitstream */
-    ogg_stream_packetin(&os, &op);
+	while (vorbis_bitrate_flushpacket(&vd, &op)) {
+		/* weld the packet into the bitstream */
+		ogg_stream_packetin(&os, &op);
 
-    /* write out pages (if any) */
-    while(ogg_stream_pageout(&os, &og) != 0) {
-      write(dpm.fd, og.header, og.header_len);
-      write(dpm.fd, og.body, og.body_len);
-    }
+		/* write out pages (if any) */
+		while(ogg_stream_pageout(&os, &og) != 0) {
+		  write(dpm.fd, og.header, og.header_len);
+		  write(dpm.fd, og.body, og.body_len);
+		}
+	}
   }
   return 0;
 }
@@ -419,8 +422,11 @@ static void close_output(void)
   while(vorbis_analysis_blockout(&vd, &vb) == 1) {
 
     /* analysis */
-    vorbis_analysis(&vb, &op);
-      
+    vorbis_analysis(&vb, NULL);
+    vorbis_bitrate_addblock(&vb);
+
+    while(vorbis_bitrate_flushpacket(&vd,&op)) { 
+
     /* weld the packet into the bitstream */
     ogg_stream_packetin(&os, &op);
 
@@ -438,6 +444,7 @@ static void close_output(void)
       if(ogg_page_eos(&og))
 	eos = 1;
     }
+	}
   }
 
   /* clean up and exit.  vorbis_info_clear() must be called last */
