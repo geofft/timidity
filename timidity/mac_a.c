@@ -236,7 +236,7 @@ static int output_data (char *buf, int32 nbytes)
 	if (dpm.encoding & PE_16BIT)
 		samples /= 2;
 	else
-		mac_ErrorExit("Sorry, support only 16-bit sound.");
+		mac_ErrorExit("\pSorry, support only 16-bit sound.");
 	
 	//s32tos16 (buf, count);	/*power mac always 16bit*/
 	
