@@ -1426,12 +1426,12 @@ CanvasWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_A,"A Part");
 			AppendMenu(Canvas.hPopupMenuKeyboard,MF_STRING,IDM_CANVAS_KEYBOARD_B,"B Part");
 			Canvas.hPopupMenu = CreatePopupMenu();
-			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_SLEEP,"Sleep Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_GSLCD,"LCD Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP16,"Map16 Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_MAP32,"Map32 Mode");
-			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_GSLCD,"LCD Mode");
-		//	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_KEYBOARD,"Keyboard Mode");
+			//	AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_KEYBOARD,"Keyboard Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_POPUP,(UINT)Canvas.hPopupMenuKeyboard,"Keyboard Mode");
+			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_SLEEP,"Sleep Mode");
 			AppendMenu(Canvas.hPopupMenu,MF_SEPARATOR,0,0);
 			AppendMenu(Canvas.hPopupMenu,MF_STRING,IDM_CANVAS_REDRAW,"Redraw");
 			break;
@@ -1612,7 +1612,7 @@ static void CanvasInit(HWND hwnd)
 	Canvas.CKCh = 16;
 	Canvas.CKPart = 1;
 	Canvas.UpdateAll = 0;
-	Canvas.Mode = CANVAS_MODE_SLEEP;
+	Canvas.Mode = MainWndInfo.CanvasMode/*CANVAS_MODE_GSLCD*/;
 	Canvas.PaintDone = 0;
 	GDI_UNLOCK(); // gdi_lock
 	CanvasReset();
@@ -2525,16 +2525,17 @@ void CanvasChange(int mode)
    	Canvas.Mode = mode;
 	else {
 		if(Canvas.Mode==CANVAS_MODE_SLEEP)
+   		Canvas.Mode = CANVAS_MODE_GSLCD;
+		else if(Canvas.Mode==CANVAS_MODE_GSLCD)
    		Canvas.Mode = CANVAS_MODE_MAP;
 		else if(Canvas.Mode==CANVAS_MODE_MAP)
    		Canvas.Mode = CANVAS_MODE_KEYBOARD;
 		else if(Canvas.Mode==CANVAS_MODE_KEYBOARD)
-   		Canvas.Mode = CANVAS_MODE_GSLCD;
-		else if(Canvas.Mode==CANVAS_MODE_GSLCD)
    		Canvas.Mode = CANVAS_MODE_SLEEP;
 		else
    		Canvas.Mode = CANVAS_MODE_SLEEP;
 	}
+	MainWndInfo.CanvasMode = Canvas.Mode;
 	CanvasReset();
 	CanvasClear();
 	CanvasReadPanelInfo(1);

@@ -41,6 +41,7 @@ typedef struct MAINWNDINFO_ {
 	HWND hwnd;
 	int PosX;
 	int PosY;
+	int CanvasMode;
 } MAINWNDINFO;
 extern MAINWNDINFO MainWndInfo;
 

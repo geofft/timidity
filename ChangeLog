@@ -1,3 +1,8 @@
+2004-03-19  Saito <saito@intaa.net>
+
+	* interface/w32g_ut2.[ch], interface/w32g_i.c:
+	  Set GS LCD Mode to default.
+
 2004-03-18  Saito <saito@intaa.net>
 
 	* timidity/optcode.h:

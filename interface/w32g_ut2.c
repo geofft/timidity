@@ -185,6 +185,8 @@ int INISaveMainWnd(void)
 		if ( MainWndInfo.PosY >= 0 )
 		WritePrivateProfileString(section,"PosY",buffer,inifile);
 	}
+	sprintf(buffer,"%d",MainWndInfo.CanvasMode);
+	WritePrivateProfileString(section,"CanvasMode",buffer,inifile);
 	WritePrivateProfileString(NULL,NULL,NULL,inifile);		// Write Flush
 	return 0;
 }
@@ -198,6 +200,8 @@ int INILoadMainWnd(void)
 	MainWndInfo.PosX = num;
 	num = GetPrivateProfileInt(section,"PosY",-1,inifile);
 	MainWndInfo.PosY = num;
+	num = GetPrivateProfileInt(section,"CanvasMode",-1,inifile);
+	MainWndInfo.CanvasMode = num;
 	return 0;
 }
 
