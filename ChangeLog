@@ -1,3 +1,10 @@
+2003-06-24  mput <root@mput.dip.jp>
+
+	* bootstrap.sh, autoconf/Makefile.boot : Deleted.
+	* Makefile.am (M4DIR, ACLOCAL_AMFLAGS): Add.
+	* configs/Makefile.am (EXTRA_DIST): To fit with Saito's changes
+	* timidity/Makefile.am (EXTRA_timidity_SOURCES): To fit with
+	  Saito's changes
 
 2003-06-22  Saito <timidity@flashmail.com>
 

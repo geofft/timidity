@@ -18,7 +18,6 @@
 # USA
 
 EXTRA_DIST = \
-  Makefile.boot \
   alsa.m4 \
   arts.m4 \
   esd.m4 \

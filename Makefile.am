@@ -18,6 +18,8 @@
 #
 # This Makefile is known to work with GNU make.
 
+ACLOCAL_AMFLAGS = -I autoconf
+M4DIR = autoconf
 SUBDIRS = \
 	autoconf \
 	configs \
@@ -36,8 +38,7 @@ EXTRA_DIST = \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad \
-	TiMidity.ad \
-	bootstrap.sh
+	TiMidity.ad
 
 TOOLSDIR = timidity-tools
 UMPDIR = ump

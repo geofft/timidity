@@ -116,6 +116,8 @@ ENABLE_VT100_FALSE = @ENABLE_VT100_FALSE@
 ENABLE_VT100_TRUE = @ENABLE_VT100_TRUE@
 ENABLE_W32GUI_FALSE = @ENABLE_W32GUI_FALSE@
 ENABLE_W32GUI_TRUE = @ENABLE_W32GUI_TRUE@
+ENABLE_W32G_SYN_FALSE = @ENABLE_W32G_SYN_FALSE@
+ENABLE_W32G_SYN_TRUE = @ENABLE_W32G_SYN_TRUE@
 ENABLE_WINSYN_FALSE = @ENABLE_WINSYN_FALSE@
 ENABLE_WINSYN_TRUE = @ENABLE_WINSYN_TRUE@
 ENABLE_WRD_FALSE = @ENABLE_WRD_FALSE@
@@ -238,6 +240,8 @@ tcltk_dep = @tcltk_dep@
 timidity_LDFLAGS = @timidity_LDFLAGS@
 w_so_libs = @w_so_libs@
 
+ACLOCAL_AMFLAGS = -I autoconf
+M4DIR = autoconf
 SUBDIRS = \
 	autoconf \
 	configs \
@@ -257,8 +261,7 @@ EXTRA_DIST = \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad \
-	TiMidity.ad \
-	bootstrap.sh
+	TiMidity.ad
 
 
 TOOLSDIR = timidity-tools
@@ -297,7 +300,7 @@ $(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in 
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in autoconf/alsa.m4 autoconf/arts.m4 autoconf/esd.m4 autoconf/gtk.m4 autoconf/ogg.m4 autoconf/utils.m4 autoconf/vorbis.m4
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
 config.h: stamp-h1
