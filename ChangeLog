@@ -1,3 +1,8 @@
+2004-02-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/sndfont.c:
+	  Fix around scale tuning
+
 2004-02-01  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5:

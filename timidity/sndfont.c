@@ -1437,8 +1437,6 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
 	int val, temp;
 
-	/* scale freq */
-	vp->v.scale_freq = tbl->val[SF_keyTuning];
 	/* scale factor */
 	vp->v.scale_factor = 1024 * (double) tbl->val[SF_scaleTuning] / 100 + 0.5;
 
@@ -1542,8 +1540,9 @@ static void set_rootfreq(SampleList *vp)
     else
 	vp->v.root_freq = (int32)((FLOAT_T)freq_table[root] * bend_fine[tune]);
 
-	/* recompute scale freq? */
-	vp->v.scale_freq = 69 - log(440.0 / vp->v.root_freq) / log(2) * 12 + 0.5;
+	/* scale freq */
+	vp->v.scale_freq =
+		69 - log(440000.0 / vp->v.root_freq) / log(2) * 12 + 0.5;
 }
 
 /*----------------------------------------------------------------*/
