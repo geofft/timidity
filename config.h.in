@@ -112,10 +112,6 @@
 /* Define to 1 if you have the <machine/endian.h> header file. */
 #undef HAVE_MACHINE_ENDIAN_H
 
-/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
-#undef HAVE_MALLOC
-
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
@@ -194,6 +190,9 @@
 /* Define to 1 if you have the `sqrt' function. */
 #undef HAVE_SQRT
 
+/* Define to 1 if stdbool.h conforms to C99. */
+#undef HAVE_STDBOOL_H
+
 /* Define to 1 if you have the <stddef.h> header file. */
 #undef HAVE_STDDEF_H
 
@@ -214,6 +213,9 @@
 
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
+
+/* Define to 1 if cpp supports the ANSI # stringizing operator. */
+#undef HAVE_STRINGIZE
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -328,6 +330,9 @@
 /* Define to 1 if you have the `XShmCreatePixmap' function. */
 #undef HAVE_XSHMCREATEPIXMAP
 
+/* Define to 1 if the system has the type `_Bool'. */
+#undef HAVE__BOOL
+
 /* Define to 1 if you use lagrange complemention. */
 #undef LAGRANGE_INTERPOLATION
 
@@ -390,6 +395,24 @@
 /* shared library extention */
 #undef SHARED_LIB_EXT
 
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `int64_t', as computed by sizeof. */
+#undef SIZEOF_INT64_T
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of a `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
+
+/* The size of a `short', as computed by sizeof. */
+#undef SIZEOF_SHORT
+
+/* The size of a `__int64', as computed by sizeof. */
+#undef SIZEOF___INT64
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -444,9 +467,6 @@
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
 #undef inline
-
-/* Define to rpl_malloc if the replacement function should be used. */
-#undef malloc
 
 /* Define to `long' if <sys/types.h> does not define. */
 #undef off_t

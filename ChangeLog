@@ -1,3 +1,51 @@
+2003-04-10  mput  <root@mput.dip.jp>
+
+	* timidity/optcode.h, timidity/optcode.c:
+	  delete repeated #define's
+
+2003-04-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/sysdep.h: Fix again around splen_t
+
+2003-04-10  Saito <timidity@flashmail.com>
+
+	* timidity/tables.[ch]:
+	  Modify sc_drum_level_table.
+	  Add lookup_triangular.
+	* timidity/mix.c:
+	  Replace sine wave with triangular wave in SF2 instrument tremolo.
+	  Disable tremolo auto-pan temporarily.
+	* timidity/resample.c:
+	  Replace sine wave with triangular wave in SF2 instrument vibrato.
+
+2003-04-09  Saito <timidity@flashmail.com>
+
+	* timidity/optcode.[ch]:
+	  Implement imuldiv24() and d2i().
+	* timidity/reverb.c, timidity/effect.c, timidity/mix.c:
+	  Fasten effect-voice mixing function.
+	  Replace imuldiv16() with imuldiv24() in some functions.
+	* timidity/resample.c, timidity/playmidi.h:
+	  Restore Voice struct sample_increment to int32.
+	* timidity/playmidi.c:
+	  Restore PANNED_LEFT, RIGHT, CENTER.
+	* timidity/sysdep.h:
+	  Change splen_t to uint32.
+	* timidity/resample.c:
+	  Disable bidir loop if SAMPLE_LENGTH_BITS = 32.
+
+2003-04-09  mput <root@mput.dip.jp>
+
+	* timidity/sysdep.h, timidity/recache.c:
+	  Fix around splen_t.
+	* configure, configure.in, {,*/}Makefile{,.in,.am}:
+	  Add integer size detection.
+
+2003-04-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/sysdep.h, timidity/recache.c:
+	  Fix around INT32_MAX.
+
 2003-04-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/w32g_subwin3.c:

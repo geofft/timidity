@@ -100,14 +100,14 @@
 #elif defined(LINEAR_INTERPOLATION)
 # if defined(LOOKUP_HACK) && defined(LOOKUP_INTERPOLATION)
 #   define RESAMPLATION \
-	   ofsi = (int32)(ofs >> FRACTION_BITS);\
+	   ofsi = ofs >> FRACTION_BITS;\
        v1 = src[ofsi];\
        v2 = src[ofsi + 1];\
        *dest++ = (sample_t)(v1 + (iplookup[(((v2 - v1) << 5) & 0x03FE0) | \
            ((ofs & FRACTION_MASK) >> (FRACTION_BITS-5))]));
 # else
 #   define RESAMPLATION \
-	  ofsi = (int32)(ofs >> FRACTION_BITS);\
+	  ofsi = ofs >> FRACTION_BITS;\
       v1 = src[ofsi];\
       v2 = src[ofsi + 1];\
       *dest++ = (sample_t)(v1 + (((v2 - v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -171,12 +171,11 @@ static sample_t *rs_plain(int v, int32 *countptr)
     *src = vp->sample->data;
   splen_t
     ofs = vp->sample_offset,
-    incr = vp->sample_increment,
 #if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
     ls = 0,
 #endif /* LAGRANGE_INTERPOLATION */
     le = vp->sample->data_length;
-  int32 count = *countptr;
+  int32 count = *countptr, incr = vp->sample_increment;
 #ifdef PRECALC_LOOPS
   int32 i, j;
 #endif
@@ -263,7 +262,6 @@ static sample_t *rs_loop(Voice *vp, int32 count)
   INTERPVARS
   splen_t
     ofs = vp->sample_offset,
-    incr = vp->sample_increment,
     le = vp->sample->loop_end,
 #if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
     ls = vp->sample->loop_start,
@@ -275,6 +273,7 @@ static sample_t *rs_loop(Voice *vp, int32 count)
 #ifdef PRECALC_LOOPS
   int32 i, j;
 #endif
+  int32 incr = vp->sample_increment;
 
   if(vp->cache && incr == (1 << FRACTION_BITS))
       return rs_loop_c(vp, count);
@@ -317,12 +316,12 @@ static sample_t *rs_bidir(Voice *vp, int32 count)
   INTERPVARS
   splen_t
     ofs = vp->sample_offset,
-    incr = vp->sample_increment,
     le = vp->sample->loop_end,
     ls = vp->sample->loop_start;
   sample_t
     *dest = resample_buffer + resample_buffer_offset,
     *src = vp->sample->data;
+  int32 incr = vp->sample_increment;
 
 #ifdef PRECALC_LOOPS
   splen_t
@@ -442,7 +441,7 @@ static int32 update_vibrato(Voice *vp, int sign)
   {
       vp->vibrato_delay -= vp->vibrato_control_ratio;
       if(vp->vibrato_delay > 0)
-	  return (int32)vp->sample_increment;
+	  return vp->sample_increment;
   }
 
   if (vp->vibrato_phase++ >= 2 * VIBRATO_SAMPLE_INCREMENTS - 1)
@@ -478,9 +477,15 @@ static int32 update_vibrato(Voice *vp, int sign)
 	}
     }
 
+  if(vp->sample->inst_type == INST_SF2) {
+  pb = (int)((lookup_triangular(vp->vibrato_phase *
+			(SINE_CYCLE_LENGTH / (2 * VIBRATO_SAMPLE_INCREMENTS)))
+	    * (double)(depth) * VIBRATO_AMPLITUDE_TUNING));
+  } else {
   pb = (int)((lookup_sine(vp->vibrato_phase *
 			(SINE_CYCLE_LENGTH / (2 * VIBRATO_SAMPLE_INCREMENTS)))
 	    * (double)(depth) * VIBRATO_AMPLITUDE_TUNING));
+  }
 
   a = TIM_FSCALE(((double)(vp->sample->sample_rate) *
 		  (double)(vp->frequency)) /
@@ -519,9 +524,9 @@ static sample_t *rs_vib_plain(int v, int32 *countptr)
     ls = 0,
 #endif /* LAGRANGE_INTERPOLATION */
     le = vp->sample->data_length,
-    ofs = vp->sample_offset,
-    incr = vp->sample_increment;
-  int32 count = *countptr;
+    ofs = vp->sample_offset;
+    
+  int32 count = *countptr, incr = vp->sample_increment;
   int cc = vp->vibrato_control_counter;
 
   /* This has never been tested */
@@ -558,7 +563,6 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
   INTERPVARS
   splen_t
     ofs = vp->sample_offset,
-    incr = vp->sample_increment,
 #if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
     ls = vp->sample->loop_start,
 #endif /* LAGRANGE_INTERPOLATION */
@@ -568,6 +572,7 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
     *dest = resample_buffer + resample_buffer_offset,
     *src = vp->sample->data;
   int cc = vp->vibrato_control_counter;
+  int32 incr = vp->sample_increment;
 
 #ifdef PRECALC_LOOPS
   int32 i, j;
@@ -628,13 +633,13 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
   INTERPVARS
   splen_t
     ofs = vp->sample_offset,
-    incr = vp->sample_increment,
     le = vp->sample->loop_end,
     ls = vp->sample->loop_start;
   sample_t
     *dest = resample_buffer + resample_buffer_offset,
     *src = vp->sample->data;
   int cc=vp->vibrato_control_counter;
+  int32 incr = vp->sample_increment;
 
 #ifdef PRECALC_LOOPS
   splen_t
@@ -897,8 +902,13 @@ sample_t *resample_voice(int v, int32 *countptr)
     {
 	if(mode & MODES_PINGPONG)
 	{
+#if SAMPLE_LENGTH_BITS == 32
+		/* if sample_offset is unsigned, bidir loop doesn't get along. */
+		mode = 0;
+#else
 	    vp->cache = NULL;
 	    mode = 2;	/* Bidir loop */
+#endif
 	}
 	else
 	    mode = 0;	/* loop */
@@ -918,9 +928,9 @@ sample_t *resample_voice(int v, int32 *countptr)
 void pre_resample(Sample * sp)
 {
   double a, xdiff;
-  splen_t incr, ofs, newlen;
+  splen_t ofs, newlen;
   sample_t *newdata, *dest, *src = (sample_t *)sp->data, *vptr;
-  int32 v, v1, v2, v3, v4, v5, i, count;
+  int32 v, v1, v2, v3, v4, v5, i, count, incr;
 
   ctl->cmsg(CMSG_INFO, VERB_DEBUG, " * pre-resampling for note %d (%s%d)",
 	    sp->note_to_use,

@@ -60,13 +60,6 @@ static MBlockList hash_entry_pool;
 #define CACHE_RESAMPLING_OK	0
 #define CACHE_RESAMPLING_NOTOK	1
 
-#define INT64_SAMPLE_LENGTH
-#ifdef INT64_SAMPLE_LENGTH
-#define INT32MAX (splen_t)((1 << 63) - 1)
-#else
-#define INT32MAX 2147483647L /* (1LU<<31)-1 */
-#endif
-
 #if defined(CSPLINE_INTERPOLATION)
 # define INTERPVARS_CACHE      splen_t ofsd; int32 v0, v1, v2, v3, temp;
 # define RESAMPLATION_CACHE \
@@ -311,7 +304,7 @@ static double sample_resamp_info(Sample *sp, int note,
 		      FRACTION_BITS);
 
     xn = sp->data_length / a;
-    if(xn >= INT32MAX)
+    if(xn >= SPLEN_T_MAX)
     {
 	/* Ignore this sample */
 	*data_length = 0;
@@ -324,7 +317,7 @@ static double sample_resamp_info(Sample *sp, int note,
     ll = (le - ls);
 
     xxls = ls / a + 0.5;
-    if(xxls >= INT32MAX)
+    if(xxls >= SPLEN_T_MAX)
     {
 	/* Ignore this sample */
 	*data_length = 0;
@@ -333,7 +326,7 @@ static double sample_resamp_info(Sample *sp, int note,
     xls = (splen_t)xxls;
 
     xxle = le / a + 0.5;
-    if(xxle >= INT32MAX)
+    if(xxle >= SPLEN_T_MAX)
     {
 	/* Ignore this sample */
 	*data_length = 0;
@@ -350,7 +343,7 @@ static double sample_resamp_info(Sample *sp, int note,
 	double xnewxle;
 
 	xl = ll / a;
-	if(xl >= INT32MAX)
+	if(xl >= SPLEN_T_MAX)
 	{
 	    /* Ignore this sample */
 	    *data_length = 0;
@@ -360,7 +353,7 @@ static double sample_resamp_info(Sample *sp, int note,
 	n = (splen_t)(0.0001 + MIN_LOOPLEN /
 		    TIM_FSCALENEG(xl, FRACTION_BITS)) + 1;
 	xnewxle = le / a + n * xl + 0.5;
-	if(xnewxle >= INT32MAX)
+	if(xnewxle >= SPLEN_T_MAX)
 	{
 	    /* Ignore this sample */
 	    *data_length = 0;
@@ -384,8 +377,8 @@ static int cache_resampling(struct cache_hash *p)
 {
     Sample *sp, *newsp;
     sample_t *src, *dest;
-    splen_t newlen, ofs, incr, le, ls, ll, xls, xle;
-	int32 i;
+    splen_t newlen, ofs, le, ls, ll, xls, xle;
+	int32 i, incr;
     double a;
 
     sp = p->sp;

@@ -276,7 +276,7 @@ static void init_ns_tap16(void)
 #endif
 	ns9_order = 9;
 	for(i=0;i<ns9_order;i++) {
-		ns9_c[i] = ns9_coef[i] * 0x10000;
+		ns9_c[i] = ns9_coef[i] * 0x1000000;
 	}
 	memset(ns9_ehl, 0, sizeof(ns9_ehl));
 	memset(ns9_ehr, 0, sizeof(ns9_ehr));
@@ -315,13 +315,12 @@ static void ns_shaping16_9(int32* lp, int32 c)
 		/* left channel */
 		ns9_r2l = ns9_r1l;
 		ns9_r1l = frand();
-		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
-		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
-		sample = lp[i] - imuldiv16(ns9_c[8],ns9_ehl[ns9_histposl+8])
-			- imuldiv16(ns9_c[7],ns9_ehl[ns9_histposl+7]) - imuldiv16(ns9_c[6],ns9_ehl[ns9_histposl+6])
-			- imuldiv16(ns9_c[5],ns9_ehl[ns9_histposl+5]) - imuldiv16(ns9_c[4],ns9_ehl[ns9_histposl+4])
-			- imuldiv16(ns9_c[3],ns9_ehl[ns9_histposl+3]) - imuldiv16(ns9_c[2],ns9_ehl[ns9_histposl+1])
-			- imuldiv16(ns9_c[1],ns9_ehl[ns9_histposl+1]) - imuldiv16(ns9_c[0],ns9_ehl[ns9_histposl]);
+		lp[i] = (lp[i] > NS_AMP_MAX) ? NS_AMP_MAX : (lp[i] < NS_AMP_MIN) ? NS_AMP_MIN : lp[i];
+		sample = lp[i] - imuldiv24(ns9_c[8],ns9_ehl[ns9_histposl+8])
+			- imuldiv24(ns9_c[7],ns9_ehl[ns9_histposl+7]) - imuldiv24(ns9_c[6],ns9_ehl[ns9_histposl+6])
+			- imuldiv24(ns9_c[5],ns9_ehl[ns9_histposl+5]) - imuldiv24(ns9_c[4],ns9_ehl[ns9_histposl+4])
+			- imuldiv24(ns9_c[3],ns9_ehl[ns9_histposl+3]) - imuldiv24(ns9_c[2],ns9_ehl[ns9_histposl+1])
+			- imuldiv24(ns9_c[1],ns9_ehl[ns9_histposl+1]) - imuldiv24(ns9_c[0],ns9_ehl[ns9_histposl]);
 		l = sample >> (32-16-GUARD_BITS);
 		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1l - ns9_r2l) >> 30);
 		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
@@ -332,13 +331,12 @@ static void ns_shaping16_9(int32* lp, int32 c)
 		++i;
 		ns9_r2r = ns9_r1r;
 		ns9_r1r = frand();
-		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
-		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
-		sample = lp[i] - imuldiv16(ns9_c[8],ns9_ehr[ns9_histposr+8])
-			- imuldiv16(ns9_c[7],ns9_ehr[ns9_histposr+7]) - imuldiv16(ns9_c[6],ns9_ehr[ns9_histposr+6])
-			- imuldiv16(ns9_c[5],ns9_ehr[ns9_histposr+5]) - imuldiv16(ns9_c[4],ns9_ehr[ns9_histposr+4])
-			- imuldiv16(ns9_c[3],ns9_ehr[ns9_histposr+3]) -	imuldiv16(ns9_c[2],ns9_ehr[ns9_histposr+1])
-			- imuldiv16(ns9_c[1],ns9_ehr[ns9_histposr+1]) - imuldiv16(ns9_c[0],ns9_ehr[ns9_histposr]);
+		lp[i] = (lp[i] > NS_AMP_MAX) ? NS_AMP_MAX : (lp[i] < NS_AMP_MIN) ? NS_AMP_MIN : lp[i];
+		sample = lp[i] - imuldiv24(ns9_c[8],ns9_ehr[ns9_histposr+8])
+			- imuldiv24(ns9_c[7],ns9_ehr[ns9_histposr+7]) - imuldiv24(ns9_c[6],ns9_ehr[ns9_histposr+6])
+			- imuldiv24(ns9_c[5],ns9_ehr[ns9_histposr+5]) - imuldiv24(ns9_c[4],ns9_ehr[ns9_histposr+4])
+			- imuldiv24(ns9_c[3],ns9_ehr[ns9_histposr+3]) -	imuldiv24(ns9_c[2],ns9_ehr[ns9_histposr+1])
+			- imuldiv24(ns9_c[1],ns9_ehr[ns9_histposr+1]) - imuldiv24(ns9_c[0],ns9_ehr[ns9_histposr]);
 		l = sample >> (32-16-GUARD_BITS);
 		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1r - ns9_r2r) >> 30);
 		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
@@ -356,13 +354,12 @@ static void ns_shaping16_9(int32* lp, int32 c)
 		/* left channel */
 		ns9_r2l = ns9_r1l;
 		ns9_r1l = frand();
-		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
-		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		lp[i] = (lp[i] > NS_AMP_MAX) ? NS_AMP_MAX : (lp[i] < NS_AMP_MIN) ? NS_AMP_MIN : lp[i];
 		sample = lp[i] - ns9_coef[8]*ns9_ehl[ns9_histposl+8] - ns9_coef[7]*ns9_ehl[ns9_histposl+7] - ns9_coef[6]*ns9_ehl[ns9_histposl+6] -
 				ns9_coef[5]*ns9_ehl[ns9_histposl+5] - ns9_coef[4]*ns9_ehl[ns9_histposl+4] - ns9_coef[3]*ns9_ehl[ns9_histposl+3] -
 				ns9_coef[2]*ns9_ehl[ns9_histposl+1] - ns9_coef[1]*ns9_ehl[ns9_histposl+1] - ns9_coef[0]*ns9_ehl[ns9_histposl];
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1 - ns9_r2) >> 30);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1l - ns9_r2l) >> 30);
 		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
 		ns9_ehl[ns9_histposl+9] = ns9_ehl[ns9_histposl] = output - sample;
 		lp[i] = output;
@@ -371,13 +368,12 @@ static void ns_shaping16_9(int32* lp, int32 c)
 		++i;
 		ns9_r2r = ns9_r1r;
 		ns9_r1r = frand();
-		if(lp[i] > NS_AMP_MAX) lp[i] = NS_AMP_MAX;
-		else if(lp[i] < NS_AMP_MIN) lp[i] = NS_AMP_MIN;
+		lp[i] = (lp[i] > NS_AMP_MAX) ? NS_AMP_MAX : (lp[i] < NS_AMP_MIN) ? NS_AMP_MIN : lp[i];
 		sample = lp[i] - ns9_coef[8]*ns9_ehr[ns9_histposr+8] - ns9_coef[7]*ns9_ehr[ns9_histposr+7] - ns9_coef[6]*ns9_ehr[ns9_histposr+6] -
 				ns9_coef[5]*ns9_ehr[ns9_histposr+5] - ns9_coef[4]*ns9_ehr[ns9_histposr+4] - ns9_coef[3]*ns9_ehr[ns9_histposr+3] -
 				ns9_coef[2]*ns9_ehr[ns9_histposr+1] - ns9_coef[1]*ns9_ehr[ns9_histposr+1] - ns9_coef[0]*ns9_ehr[ns9_histposr];
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1 - ns9_r2) >> 30);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1r - ns9_r2r) >> 30);
 		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
 		ns9_ehr[ns9_histposr+9] = ns9_ehr[ns9_histposr] = output - sample;
 		lp[i] = output;

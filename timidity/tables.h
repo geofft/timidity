@@ -29,6 +29,7 @@ extern FLOAT_T lookup_sine(int x);
 #include <math.h>
 #define lookup_sine(x) (sin((2*M_PI/1024.0) * (x)))
 #endif
+extern FLOAT_T lookup_triangular(int x);
 
 #define SINE_CYCLE_LENGTH 1024
 extern int32 freq_table[];

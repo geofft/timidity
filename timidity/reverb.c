@@ -55,6 +55,21 @@
 
 FLOAT_T REV_INP_LEV = 0.55;
 
+#if OPT_MODE != 0
+#define REV_FBK_LEV      (int32)(0.12 * 0x1000000)
+
+#define REV_NMIX_LEV     0.7
+#define REV_CMIX_LEV     (int32)(0.9 * 0x1000000)
+#define REV_MONO_LEV     0.7
+
+#define REV_HPF_LEV      (int32)(0.5 * 0x1000000)
+#define REV_LPF_LEV      (int32)(0.45 * 0x1000000)
+#define REV_LPF_INP      (int32)(0.55 * 0x1000000)
+#define REV_EPF_LEV      (int32)(0.4 * 0x1000000)
+#define REV_EPF_INP      (int32)(0.48 * 0x1000000)
+
+#define REV_WIDTH        (int32)(0.125 * 0x1000000)
+#else
 #define REV_FBK_LEV      0.12
 
 #define REV_NMIX_LEV     0.7
@@ -68,6 +83,7 @@ FLOAT_T REV_INP_LEV = 0.55;
 #define REV_EPF_INP      0.48
 
 #define REV_WIDTH        0.125
+#endif
 
 static int  spt0, rpt0, def_rpt0;
 static int  spt1, rpt1, def_rpt1;
@@ -128,6 +144,28 @@ void recompute_reverb_value(int32 output_rate)
 
 
 /* mixing dry signal */
+#if OPT_MODE != 0 && _MSC_VER
+void set_dry_signal(int32 *buf, int32 count)
+{
+	int32 *dbuf = direct_buffer;
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		mov		ebx, [edi]
+		add		esi, 4
+		add		ebx, eax
+		mov		[edi], ebx
+		add		edi, 4
+		dec		ecx
+		jnz		L1
+L2:
+	}
+}
+#else
 void set_dry_signal(register int32 *buf, int32 n)
 {
 #if USE_ALTIVEC
@@ -146,6 +184,7 @@ void set_dry_signal(register int32 *buf, int32 n)
   }
 #endif
 }
+#endif
 
 void mix_dry_signal(register int32 *buf, int32 n)
 {
@@ -180,25 +219,43 @@ void init_reverb(int32 output_rate)
 }
 
 #if OPT_MODE != 0
-void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
+#if _MSC_VER
+void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
-    register int32 i;
-	int32 *buf = effect_buffer;
-	int8 shift;
-    level = level * reverb_status.level / 128;
-	shift = bitshift_table[level & 0x7F];
+	int32 *dbuf = effect_buffer;
+	level = level * reverb_status.level / 63.25;
 
-	switch(shift) {
-	case 0: 
-		level *= 2;
-		for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i],level);}
-		break;
-	case -1: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i];}
-		break;
-	default: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i] >> shift;}
-		break;
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		mov		ebx, [level]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		imul	ebx
+		shr		eax, 8
+		shl		edx, 24
+		or		eax, edx	/* u */
+		mov		edx, [edi]	/* v */
+		add		esi, 4		/* u */	
+		add		edx, eax	/* v */
+		mov		[edi], edx	/* u */
+		add		edi, 4		/* v */
+		dec		ecx			/* u */
+		jnz		L1			/* v */
+L2:
 	}
 }
+#else
+void set_ch_reverb(int32 *buf, int32 count, int32 level)
+{
+    int32 i, *dbuf = effect_buffer;
+    level = level * reverb_status.level / 63.25;
+
+	for(i=count-1;i>=0;i--) {dbuf[i] += imuldiv8(buf[i], level);}
+}
+#endif	/* _MSC_VER */
 #else
 void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 {
@@ -212,21 +269,11 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 }
 #endif /* OPT_MODE != 0 */
 
+
 #if OPT_MODE != 0
 void do_standard_reverb(register int32 *comp, int32 n)
 {
-	register int32 i;
-    int32  fixp, s, t;
-	int32 lpf_lev,lpf_inp,width,hpf_lev,fbk_lev,cmix_lev,epf_lev,epf_inp;
-
-	lpf_lev = REV_LPF_LEV * 0x10000;
-	lpf_inp = REV_LPF_INP * 0x10000;
-	width = REV_WIDTH * 0x10000;
-	hpf_lev = REV_HPF_LEV * 0x10000;
-	fbk_lev = REV_FBK_LEV * 0x10000;
-	cmix_lev = REV_CMIX_LEV * 0x10000;
-	epf_lev = REV_EPF_LEV * 0x10000;
-	epf_inp = REV_EPF_INP * 0x10000;
+	int32 i, fixp, s, t;
 
     for(i = 0; i < n; i++)
     {
@@ -234,38 +281,38 @@ void do_standard_reverb(register int32 *comp, int32 n)
         fixp = effect_buffer[i];
         effect_buffer[i] = 0;
 
-        LPFL = imuldiv16(LPFL,lpf_lev) + imuldiv16(buf2_L[spt2] + tb,lpf_inp) + imuldiv16(ta,width);
+        LPFL = imuldiv24(LPFL,REV_LPF_LEV) + imuldiv24(buf2_L[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
         ta = buf3_L[spt3];
         s  = buf3_L[spt3] = buf0_L[spt0];
         buf0_L[spt0] = -LPFL;
 
-        t = imuldiv16(HPFL + fixp,hpf_lev);
+        t = imuldiv24(HPFL + fixp,REV_HPF_LEV);
         HPFL = t - fixp;
 
-        buf2_L[spt2] = imuldiv16(s - imuldiv16(fixp,fbk_lev),cmix_lev);
+        buf2_L[spt2] = imuldiv24(s - imuldiv24(fixp,REV_FBK_LEV),REV_CMIX_LEV);
         tb = buf1_L[spt1];
         buf1_L[spt1] = t;
 
-        EPFL = imuldiv16(EPFL,epf_lev) + imuldiv16(ta,epf_inp);
+        EPFL = imuldiv24(EPFL,REV_EPF_LEV) + imuldiv24(ta,REV_EPF_INP);
         comp[i] += ta + EPFL;
 
         /* R */
         fixp = effect_buffer[++i];
         effect_buffer[i] = 0;
 
-        LPFR = imuldiv16(LPFR,lpf_lev) + imuldiv16(buf2_R[spt2] + tb,lpf_inp) + imuldiv16(ta,width);
+        LPFR = imuldiv24(LPFR,REV_LPF_LEV) + imuldiv24(buf2_R[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
         ta = buf3_R[spt3];
         s  = buf3_R[spt3] = buf0_R[spt0];
         buf0_R[spt0] = LPFR;
 
-        t = imuldiv16(HPFR + fixp,hpf_lev);
+        t = imuldiv24(HPFR + fixp,REV_HPF_LEV);
         HPFR = t - fixp;
 
-        buf2_R[spt2] = imuldiv16(s - imuldiv16(fixp,fbk_lev),cmix_lev);
+        buf2_R[spt2] = imuldiv24(s - imuldiv24(fixp,REV_FBK_LEV),REV_CMIX_LEV);
         tb = buf1_R[spt1];
         buf1_R[spt1] = t;
 
-        EPFR = imuldiv16(EPFR,epf_lev) + imuldiv16(ta,epf_inp);
+        EPFR = imuldiv24(EPFR,REV_EPF_LEV) + imuldiv24(ta,REV_EPF_INP);
         comp[i] += ta + EPFR;
 
         rev_ptinc();
@@ -484,6 +531,35 @@ void do_ch_delay(int32* buf, int32 count)
 }
 
 #if OPT_MODE != 0
+#if _MSC_VER
+void set_ch_delay(int32 *buf, int32 count, int32 level)
+{
+	int32 *dbuf = delay_effect_buffer;
+	level = level * 255 / 127;
+
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		mov		ebx, [level]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		imul	ebx
+		shr		eax, 8
+		shl		edx, 24
+		or		eax, edx	/* u */
+		mov		edx, [edi]	/* v */
+		add		esi, 4		/* u */	
+		add		edx, eax	/* v */
+		mov		[edi], edx	/* u */
+		add		edi, 4		/* v */
+		dec		ecx			/* u */
+		jnz		L1			/* v */
+L2:
+	}
+}
+#else
 void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
@@ -501,6 +577,7 @@ void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 		break;
 	}
 }
+#endif	/* _MSC_VER */
 #else
 void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
@@ -873,6 +950,35 @@ void do_stereo_chorus(int32* buf,int32 count)
 #endif /* OPT_MODE != 0 */
 
 #if OPT_MODE != 0
+#if _MSC_VER
+void set_ch_chorus(int32 *buf, int32 count, int32 level)
+{
+	int32 *dbuf = chorus_effect_buffer;
+	level = level * 255 / 127;
+
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		mov		ebx, [level]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		imul	ebx
+		shr		eax, 8
+		shl		edx, 24
+		or		eax, edx	/* u */
+		mov		edx, [edi]	/* v */
+		add		esi, 4		/* u */	
+		add		edx, eax	/* v */
+		mov		[edi], edx	/* u */
+		add		edi, 4		/* v */
+		dec		ecx			/* u */
+		jnz		L1			/* v */
+L2:
+	}
+}
+#else
 void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
     register int32 i;
@@ -890,6 +996,7 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 		break;
 	}
 }
+#endif	/* _MSC_VER */
 #else
 void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
@@ -952,11 +1059,11 @@ void calc_lowshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rate
 	b2 *= a0;
 	b0 *= a0;
 
-	coef[0] = a1 * 0x10000;
-	coef[1] = a2 * 0x10000;
-	coef[2] = b0 * 0x10000;
-	coef[3] = b1 * 0x10000;
-	coef[4] = b2 * 0x10000;
+	coef[0] = a1 * 0x1000000;
+	coef[1] = a2 * 0x1000000;
+	coef[2] = b0 * 0x1000000;
+	coef[3] = b1 * 0x1000000;
+	coef[4] = b2 * 0x1000000;
 }
 
 void calc_highshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rate)
@@ -986,11 +1093,11 @@ void calc_highshelf_coefs(int32* coef,int32 cutoff_freq,FLOAT_T dbGain,int32 rat
 	b2 *= a0;
 	b0 *= a0;
 
-	coef[0] = a1 * 0x10000;
-	coef[1] = a2 * 0x10000;
-	coef[2] = b0 * 0x10000;
-	coef[3] = b1 * 0x10000;
-	coef[4] = b2 * 0x10000;
+	coef[0] = a1 * 0x1000000;
+	coef[1] = a2 * 0x1000000;
+	coef[2] = b0 * 0x1000000;
+	coef[3] = b1 * 0x1000000;
+	coef[4] = b2 * 0x1000000;
 }
 
 
@@ -1020,14 +1127,14 @@ void do_eq(register int32* buf,int32 count,int32* eq_coef,int32* eq_val)
 	y2r = eq_val[7];
 
 	for(i=0;i<length;i++) {
-		yout = imuldiv16(buf[i],b0) + imuldiv16(x1l,b1) + imuldiv16(x2l,b2) + imuldiv16(y1l,a1) + imuldiv16(y2l,a2);
+		yout = imuldiv24(buf[i],b0) + imuldiv24(x1l,b1) + imuldiv24(x2l,b2) + imuldiv24(y1l,a1) + imuldiv24(y2l,a2);
 		x2l = x1l;
 		x1l = buf[i];
 		y2l = y1l;
 		y1l = yout;
 		buf[i] = yout;
 
-		yout = imuldiv16(buf[++i],b0) + imuldiv16(x1r,b1) + imuldiv16(x2r,b2) + imuldiv16(y1r,a1) + imuldiv16(y2r,a2);
+		yout = imuldiv24(buf[++i],b0) + imuldiv24(x1r,b1) + imuldiv24(x2r,b2) + imuldiv24(y1r,a1) + imuldiv24(y2r,a2);
 		x2r = x1r;
 		x1r = buf[i];
 		y2r = y1r;
@@ -1061,6 +1168,28 @@ void do_ch_eq(int32* buf,int32 n)
 }
 
 #if OPT_MODE != 0
+#if _MSC_VER
+void set_ch_eq(int32 *buf, int32 count)
+{
+	int32 *dbuf = eq_buffer;
+	_asm {
+		mov		ecx, [count]
+		mov		esi, [buf]
+		test	ecx, ecx
+		jz		short L2
+		mov		edi, [dbuf]
+L1:		mov		eax, [esi]
+		mov		ebx, [edi]
+		add		esi, 4
+		add		ebx, eax
+		mov		[edi], ebx
+		add		edi, 4
+		dec		ecx
+		jnz		L1
+L2:
+	}
+}
+#else
 void set_ch_eq(register int32 *buf, int32 n)
 {
     register int32 i;
@@ -1070,6 +1199,7 @@ void set_ch_eq(register int32 *buf, int32 n)
         eq_buffer[i] += buf[i];
     }
 }
+#endif	/* _MSC_VER */
 #else
 void set_ch_eq(register int32 *sbuffer, int32 n)
 {
@@ -1101,11 +1231,11 @@ void calc_lowpass_coefs_24db(int32* lpf_coef,int32 cutoff_freq,int16 resonance,i
 	b1 = -(2.0 * (1.0 - c * c) * a1); 
 	b2 = -(1.0 - q * c + c * c) * a1; 
 
-	lpf_coef[0] = a1 * 0x10000;
-	lpf_coef[1] = a2 * 0x10000;
-	lpf_coef[2] = a3 * 0x10000;
-	lpf_coef[3] = b1 * 0x10000;
-	lpf_coef[4] = b2 * 0x10000;
+	lpf_coef[0] = a1 * 0x1000000;
+	lpf_coef[1] = a2 * 0x1000000;
+	lpf_coef[2] = a3 * 0x1000000;
+	lpf_coef[3] = b1 * 0x1000000;
+	lpf_coef[4] = b2 * 0x1000000;
 }
 
 void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_val)
@@ -1133,14 +1263,14 @@ void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_
 	y2r = lpf_val[7];
 
 	for(i=0;i<length;i++) {
-		yout = imuldiv16(buf[i] + x2l,a1) + imuldiv16(x1l,a2) + imuldiv16(y1l,b1) + imuldiv16(y2l,b2);
+		yout = imuldiv24(buf[i] + x2l,a1) + imuldiv24(x1l,a2) + imuldiv24(y1l,b1) + imuldiv24(y2l,b2);
 		x2l = x1l;
 		x1l = buf[i];
 		buf[i] = yout;
 		y2l = y1l;
 		y1l = yout;
 
-		yout = imuldiv16(buf[++i] + x2r,a1) + imuldiv16(x1r,a2) + imuldiv16(y1r,b1) + imuldiv16(y2r,b2);
+		yout = imuldiv24(buf[++i] + x2r,a1) + imuldiv24(x1r,a2) + imuldiv24(y1r,b1) + imuldiv24(y2r,b2);
 		x2r = x1r;
 		x1r = buf[i];
 		buf[i] = yout;

@@ -21,6 +21,10 @@
 #ifndef SYSDEP_H_INCLUDED
 #define SYSDEP_H_INCLUDED 1
 
+#if defined(HAVE_LIMITS_H)
+#include <limits.h>
+#endif
+
 #if defined(__WIN32__) && !defined(__W32__)
 #define __W32__
 #endif
@@ -50,6 +54,7 @@
 # endif
 #endif
 
+#define SAMPLE_LENGTH_BITS 32
 
 #ifndef NO_VOLATILE
 # define VOLATILE_TOUCH(val) /* do nothing */
@@ -77,41 +82,56 @@ extern int volatile_touch(void* dmy);
 /* integer type definitions: ISO C now knows a better way */
 #if __STDC_VERSION__ == 199901L
 #include <stdint.h> // int types are defined here
-typedef uint_fast64_t uint64;
-typedef  int_fast64_t  int64;
-typedef uint_fast32_t uint32;
-typedef  int_fast32_t  int32;
-typedef uint_fast16_t uint16;
-typedef  int_fast16_t  int16;
-typedef uint_fast8_t  uint8;
 typedef  int_fast8_t   int8;
-#else /* not C99 */
+typedef uint_fast8_t  uint8;
+typedef  int_fast16_t  int16;
+typedef uint_fast16_t uint16;
+typedef  int_fast32_t  int32;
+typedef uint_fast32_t uint32;
+typedef  int_fast64_t  int64;
+typedef uint_fast64_t uint64;
+#define TIMIDITY_HAVE_INT64 1
 
+#else /* not C99 */
+#ifdef HPUX
+typedef          char   int8;
+typedef unsigned char  uint8;
+typedef          short  int16;
+typedef unsigned short uint16;
+#else
+typedef   signed char   int8;
+typedef unsigned char  uint8;
+typedef   signed short  int16;
+typedef unsigned short uint16;
+#endif
 /* DEC MMS has 64 bit long words */
 /* Linux-Axp has also 64 bit long words */
-#if defined(DEC) || defined(__alpha__)
-typedef unsigned int uint32;
-typedef int int32;
+#if defined(DEC) || defined(__alpha__) \
+		|| defined(__ia64__) || defined (__x86_64__) || defined(__ppc64__)
+typedef          int   int32;
+typedef unsigned int  uint32;
+typedef          long  int64;
+typedef unsigned long uint64;
+#define TIMIDITY_HAVE_INT64 1
 #else
+typedef          long  int32;
 typedef unsigned long uint32;
-typedef long int32;
 #endif
-#ifdef HPUX
-typedef unsigned short uint16;
-typedef short int16;
-typedef unsigned char uint8;
-typedef char int8;
-#else
-typedef unsigned short uint16;
-typedef signed short int16;
-typedef unsigned char uint8;
-typedef signed char int8;
-#endif
-
 #if __GNUC__
-typedef long long int int64;
+/* gcc version<3 (gcc3 has c99 support) */
+typedef          long long  int64;
+typedef unsigned long long uint64;
+#define TIMIDITY_HAVE_INT64 1
 #elif _MSC_VER
-typedef _int64 int64;
+/* VC++. */
+typedef          _int64  int64;
+typedef unsigned _int64 uint64;
+#define TIMIDITY_HAVE_INT64 1
+#elif __MACOS__
+/* Mac's C compiler seems to have these types in common */
+typedef SInt64  int64;
+typedef UInt64 uint64;
+#define TIMIDITY_HAVE_INT64 1
 #endif
 #endif /* C99 */
 
@@ -207,7 +227,21 @@ typedef struct _ChannelBitMask
 #endif
 #define MIN_AMP_VALUE (MAX_AMP_VALUE >> 9)
 
+#if SAMPLE_LENGTH_BITS > 32 
+#if TIMIDITY_HAVE_INT64
 typedef int64 splen_t;
+#define SPLEN_T_MAX (splen_t)((((uint64)1)<<63)-1)
+#else	/* TIMIDITY_HAVE_INT64 */
+typedef uint32 splen_t;
+#define SPLEN_T_MAX (splen_t)((uint32)0xFFFFFFFF)
+#endif	/* TIMIDITY_HAVE_INT64 */
+#elif SAMPLE_LENGTH_BITS == 32
+typedef uint32 splen_t;
+#define SPLEN_T_MAX (splen_t)((uint32)0xFFFFFFFF)
+#else	/* SAMPLE_LENGTH_BITS */
+typedef int32 splen_t;
+#define SPLEN_T_MAX (splen_t)((((uint32)1)<<31)-1)
+#endif	/* SAMPLE_LENGTH_BITS */
 
 #ifdef USE_LDEXP
 #  define TIM_FSCALE(a,b) ldexp((double)(a),(b))

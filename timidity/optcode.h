@@ -54,6 +54,14 @@
 
 /*****************************************************************************/
 #if OPT_MODE == 1
+
+#ifdef LITTLE_ENDIAN
+#define iman_ 0
+#else
+#define iman_ 1
+#endif
+#define _double2fixmagic 68719476736.0 * 1.5
+
 #if defined(__GNUC__) && defined(__i386__)
 static inline int32 imuldiv8(int32 a, int32 b)
 {
@@ -86,6 +94,29 @@ static inline int32 imuldiv16(int32 a, int32 b)
 	    : "eax", "edx");
     return result;
 }
+
+static inline int32 imuldiv24(int32 a, int32 b)
+{
+    int32 result;
+    __asm__("movl %1, %%eax\n\t"
+	    "movl %2, %%edx\n\t"
+	    "imull %%edx\n\t"
+	    "shr $24, %%eax\n\t"
+	    "shl $8, %%edx\n\t"
+	    "or %%edx, %%eax\n\t"
+	    "movl %%eax, %0\n\t"
+	    : "=g"(result)
+	    : "g"(a), "g"(b)
+	    : "eax", "edx");
+    return result;
+}
+
+static inline int32 d2i(double val)
+{
+   val = val + _double2fixmagic;
+   return ((int32*)&val)[iman_] >> 16;
+}
+
 #elif _MSC_VER
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
@@ -108,10 +139,30 @@ inline int32 imuldiv16(int32 a, int32 b) {
 		or  eax, edx
 	}
 }
+
+inline int32 imuldiv24(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 24
+		shl edx, 8
+		or  eax, edx
+	}
+}
+
+inline int32 d2i(double val)
+{
+   val = val + _double2fixmagic;
+   return ((int32*)&val)[iman_] >> 16;
+}
+
 #else
 /* generic */
 int32 imuldiv8(int32 a, int32 b);
 int32 imuldiv16(int32 a, int32 b);
+int32 imuldiv24(int32 a, int32 b);
+int32 d2i(double val);
 #endif /* architectures */
 #endif /* OPT_MODE != 0 */
 

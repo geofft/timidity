@@ -188,9 +188,9 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 		a1 = fc->a1, a2 = fc->a2;
 		b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
 		for(i=0;i<count;i++) {
-			centernode = sp[i] - imuldiv16(a1, hist1) - imuldiv16(a2, hist2);
-			lp[i] = (imuldiv16(b0, centernode)
-				+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2));
+			centernode = sp[i] - imuldiv24(a1, hist1) - imuldiv24(a2, hist2);
+			lp[i] = (imuldiv24(b0, centernode)
+				+ imuldiv24(b1, hist1) + imuldiv24(b2, hist2));
 			hist2 = hist1, hist1 = centernode;
 		}
 		fc->hist1 = hist1, fc->hist2 = hist2;
@@ -227,8 +227,8 @@ static inline void recalc_voice_fc(int v)
 		a2 = (1 - alpha_coef) / (1 + alpha_coef);
 		b1 = (1 - cos_coef) / (1 + alpha_coef) * fc->filter_gain;
 		b0 = b2 = b1 * 0.5f;
-		fc->a1 = a1 * 0x10000, fc->a2 = a2 * 0x10000;
-		fc->b0 = b0 * 0x10000, fc->b1 = b1 * 0x10000, fc->b2 = b2 * 0x10000;
+		fc->a1 = a1 * 0x1000000, fc->a2 = a2 * 0x1000000;
+		fc->b0 = b0 * 0x1000000, fc->b1 = b1 * 0x1000000, fc->b2 = b2 * 0x1000000;
 	}
 }
 #endif
@@ -692,7 +692,7 @@ static inline void mix_center_signal(
 				}
 				left = FINAL_VOLUME(linear_left);
 			}
-			vp->old_left_mix = linear_left;
+			vp->old_left_mix = vp->old_right_mix = linear_left;
 			cc -= i;
 #endif
 			for (i = 0; i < cc; i++) {
@@ -732,7 +732,7 @@ static inline void mix_center_signal(
 				}
 				left = FINAL_VOLUME(linear_left);
 			}
-			vp->old_left_mix = linear_left;
+			vp->old_left_mix = vp->old_right_mix = linear_left;
 			count -= i;
 #endif
 			for (i = 0; i < count; i++) {
@@ -777,7 +777,7 @@ static inline void mix_center(mix_t *sp, int32 *lp, int v, int count)
 		}
 		left = FINAL_VOLUME(linear_left);
 	}
-	vp->old_left_mix = linear_left;
+	vp->old_left_mix = vp->old_right_mix = linear_left;
 	count -= i;
 #endif
 	for (i = 0; i < count; i++) {
@@ -1117,15 +1117,24 @@ static inline void update_tremolo(int v)
 	if (vp->tremolo_phase >= SINE_CYCLE_LENGTH << RATE_SHIFT)
 		vp->tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
 #endif
+
+	if(vp->sample->inst_type == INST_SF2) {
+	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
+			(lookup_triangular(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
+			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+	} else {
 	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
 			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+	}
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
 	 */
-	vp->tremolo_volume_right = 1.0 - TIM_FSCALENEG(
+
+	/* right tremolo volume is reserved temporarily. */
+/*	vp->tremolo_volume_right = 1.0 - TIM_FSCALENEG(
 			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
-			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
+			* depth * TREMOLO_AMPLITUDE_TUNING, 17);*/
 }
 
 int apply_envelope_to_amp(int v)
@@ -1139,7 +1148,7 @@ int apply_envelope_to_amp(int v)
 		ramp = vp->right_amp;
 		if (vp->tremolo_phase_increment) {
 			lamp *= vp->tremolo_volume;
-			ramp *= vp->tremolo_volume_right;
+			ramp *= vp->tremolo_volume;
 		}
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)

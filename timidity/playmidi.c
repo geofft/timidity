@@ -769,24 +769,35 @@ static void recompute_amp(int v)
     {
 		if(voice[v].panning == 64)
 		{
-			voice[v].panned = PANNED_MYSTERY;
+			voice[v].panned = PANNED_CENTER;
 			voice[v].left_amp = voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[64], 27);
 		}
 		else if (voice[v].panning < 2)
 		{
-			voice[v].panned = PANNED_MYSTERY;
+			voice[v].panned = PANNED_LEFT;
 			voice[v].left_amp = TIM_FSCALENEG(tempamp, 20);
 			voice[v].right_amp = 0;
 		}
 		else if(voice[v].panning == 127)
 		{
-			/* PANNED_RIGHT has a bug that will cause pop-noises */ 
-			voice[v].panned = PANNED_MYSTERY;
-			voice[v].left_amp =  0;
-			voice[v].right_amp =  TIM_FSCALENEG(tempamp, 20);
+#ifdef SMOOTH_MIXING
+			if(voice[v].panned == PANNED_MYSTERY) {
+				voice[v].old_left_mix = voice[v].old_right_mix;
+				voice[v].old_right_mix = 0;
+			}
+#endif
+			voice[v].panned = PANNED_RIGHT;
+			voice[v].left_amp =  TIM_FSCALENEG(tempamp, 20);
+			voice[v].right_amp = 0;
 		}
 		else
 		{
+#ifdef SMOOTH_MIXING
+			if(voice[v].panned == PANNED_RIGHT) {
+				voice[v].old_right_mix = voice[v].old_left_mix;
+				voice[v].old_left_mix = 0;
+			}
+#endif
 			voice[v].panned = PANNED_MYSTERY;
 			voice[v].left_amp = TIM_FSCALENEG(tempamp * sc_pan_table[127 - voice[v].panning], 27);
 			voice[v].right_amp = TIM_FSCALENEG(tempamp * sc_pan_table[voice[v].panning], 27);
@@ -4536,7 +4547,6 @@ static int apply_controls(void)
     return jump_flag ? RC_JUMP : RC_NONE;
 }
 
-
 #ifdef NEW_CHORUS
 /* do_compute_data_midi() for new chorus */
 static void do_compute_data_midi(int32 count)
@@ -4666,7 +4676,7 @@ static void do_compute_data_midi(int32 count)
 				}
 			}
 		}
-
+		
 		if(channel_reverb) {
 			set_ch_reverb(buffer_pointer, cnt, DEFAULT_REVERB_SEND_LEVEL);
 		}
