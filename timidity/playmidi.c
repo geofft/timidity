@@ -2141,7 +2141,7 @@ static int select_play_sample(Sample *splist,
 	}
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
-		/* GUS,SF2 - Scale Tuning */
+		/* GUS/SF2 - Scale Tuning */
 		if ((sf = sp->scale_factor) != 1024) {
 			sn = sp->scale_freq;
 			ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
@@ -2168,7 +2168,7 @@ static int select_play_sample(Sample *splist,
 		fr = fc = 0;
 		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			/* GUS,SF2 - Scale Tuning */
+			/* GUS/SF2 - Scale Tuning */
 			if ((sf = sp->scale_factor) != 1024) {
 				sn = sp->scale_freq;
 				ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
@@ -2220,7 +2220,7 @@ static int select_play_sample(Sample *splist,
 						&& sp->sample_type == SF_SAMPLETYPE_RIGHT
 						&& sp->sf_sample_index == sample_link) {
 					/* right sample is found. */
-					/* GUS,SF2 - Scale Tuning */
+					/* GUS/SF2 - Scale Tuning */
 					if ((sf = sp->scale_factor) != 1024) {
 						sn = sp->scale_freq;
 						ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);
@@ -2269,7 +2269,7 @@ int32 get_note_freq(Sample *sp, int note)
 	double ratio;
 	
 	f = freq_table[note];
-	/* GUS,SF2 - Scale Tuning */
+	/* GUS/SF2 - Scale Tuning */
 	if ((sf = sp->scale_factor) != 1024) {
 		sn = sp->scale_freq;
 		ratio = pow(2.0, (note - sn) * (sf - 1024) / 12288.0);

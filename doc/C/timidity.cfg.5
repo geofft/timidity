@@ -137,6 +137,18 @@ between 0 and 255.  The format is similar to \fBrate=\fP.
 \fIphase_increment\fP is the rate changing frequency.
 \fIdepth\fP is the depth changing frequency.
 .TP
+\fBsclnote=\fP\fInote[,...]\fP
+Set the instrument's standard note for scale tuning.  For example,
+\fBnote=60\fP causes the center note C to be standard note for scale
+tuning.  When two or more sample data is contained, the arguments
+after the second can specify different value respectively.
+.TP
+\fBscltune=\fP\fItune[,...]\fP
+Set the instrument's scale tuning factor in cents.  For example,
+\fBtune=50\fP causes the half tone steps as 50 cents.  When two or
+more sample data is contained, the arguments after the second can
+specify different value respectively.
+.TP
 \fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
 .br
 .ns

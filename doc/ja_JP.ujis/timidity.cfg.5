@@ -137,6 +137,18 @@ baz.pat，zoo.pat が読み込まれます。
 \fIphase_increment\fP は周波数が変化する速さ，\fIdepth\fP は 周波数が変
 化する深さです。\fBrate=\fP 同様，複数のサンプルに対する設定が可能です。
 .TP
+\fBsclnote=\fP\fInote[,...]\fP
+インスツルメントのスケールチューニングの基準とするノートを設定します。
+例えば，\fBsclnote=60\fP とすれば，真ん中のドを中心にスケールチューニン
+グが行われます。二つ目以降の引数は，音域別に複数のサンプルデータが含ま
+れている場合に，それぞれ別の値を指定できます。
+.TP
+\fBscltune=\fP\fItune[,...]\fP
+インスツルメントのスケールチューニングの度合いを cent 単位で設定します。
+例えば，\fBscltune=50\fP とすれば，ノート間隔が50 cent になります。二つ
+目以降の引数は，音域別に複数のサンプルデータが含まれている場合に，それ
+ぞれ別の値を指定できます。
+.TP
 \fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
 .br
 .ns

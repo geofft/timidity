@@ -291,12 +291,16 @@ static void store_instrument_cache(Instrument *ip,
     p->ip = ip;
 }
 
-static int
-adjust_tune_freq(int val, float tune)
+static int32 adjust_tune_freq(int32 val, float tune)
 {
-  if (!tune)
-    return val;
-  return (int)(val / pow(2.0, tune / 12.0));
+	if (! tune)
+		return val;
+	return val / pow(2.0, tune / 12.0);
+}
+
+static int16 adjust_scale_tune(int16 val)
+{
+	return 1024 * (double) val / 100 + 0.5;
 }
 
 static int16 adjust_fc(int16 val)
@@ -358,9 +362,9 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 		for (i = 0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
 			if (tone->scltunenum == 1)
-				sp->scale_factor = tone->scltune[0];
+				sp->scale_factor = adjust_scale_tune(tone->scltune[0]);
 			else if (i < tone->scltunenum)
-				sp->scale_factor = tone->scltune[i];
+				sp->scale_factor = adjust_scale_tune(tone->scltune[i]);
 		}
 	if (tone->fcnum)
 		for (i = 0; i < ip->samples; i++) {

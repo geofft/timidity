@@ -1,6 +1,7 @@
-2004-01-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
+2004-01-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/instrum.[ch], timidity/mod2midi.c,
+	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5,
+	  timidity/instrum.[ch], timidity/mod2midi.c,
 	  timidity/playmidi.c, timidity/smplfile.c,
 	  timidity/sndfont.c, timidity/timidity.c:
 	  Support for GUS scale tuning
