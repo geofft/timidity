@@ -3924,6 +3924,15 @@ int main(int argc, char **argv)
 	if((err = set_tim_opt(c, optarg)) != 0)
 	    break;
 
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+    initialize_newton_coeffs();
+#endif
+#ifdef GAUSS_INTERPOLATION
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Initializing Gauss table...");
+    initialize_gauss_table(gauss_n);
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Done");
+#endif
+
     err += timidity_post_load_configuration();
 
     /* If there were problems, give up now */
@@ -3974,6 +3983,7 @@ int main(int argc, char **argv)
 	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		      "Try %s -h for help", program_name);
 	}
+
 #if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN ) /* Try to continue if it is Windows version */
 	return 1; /* problems with command line */
 #endif

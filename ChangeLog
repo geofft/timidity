@@ -1,4 +1,9 @@
 
+2003-06-14  s_keishi <s_keishi@mutt.freemail.ne.jp>
+
+	* timidity/timidity.c:
+	  Fix noise with gauss interpolation at synthesizer modes.
+
 2003-06-13  s_keishi <s_keishi@mutt.freemail.ne.jp>
 
 	* configure.in, interface.h.in,
