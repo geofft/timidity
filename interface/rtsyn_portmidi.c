@@ -187,7 +187,7 @@ int rtsyn_play_some_data (void){
 	long pmlength,pmbpoint;
 	
 	played=0;
-	{
+	do{
 		sleep(0);
 		for(port=0;port<rtsyn_portnumber;port++){
 			pmerr=Pm_Read(midistream[port].stream, pmbuffer, PMBUFF_SIZE);

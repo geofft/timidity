@@ -1,3 +1,10 @@
+2003-06-30  skeishi(s_keishi@mutt.freemail.ne.jp>
+        * interface/rtsyn.h,interface/rtsyn_common,
+          /interface/rtsyn_wimm interface/rtsyn_portmidi: Changed 
+
+	 BugFix  Realteime Synthesizer Engine.
+
+
 2003-06-29  skeishi(s_keishi@mutt.freemail.ne.jp>
 	* interface/portmidisyn_c,interface/rtsyn.h,interface/rtsyn_common,
 	  interface/interface/rtsyn_wimm interface/rtsyn_portmidi: Added.

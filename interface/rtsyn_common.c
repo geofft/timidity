@@ -78,6 +78,7 @@ static int32 event_time_offset;
 static double starttime;
 double rtsyn_reachtime;
 static int time_advance;
+static int set_time_first=2;
 
 //acitive sensing
 static int active_sensing_flag=0;
@@ -258,15 +259,34 @@ void rtsyn_stop_playing(void)
 }
 extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
+extern int volatile stream_max_compute;
 
 static void seq_set_time(MidiEvent *ev)
 {
 	double past_time,btime;
-	past_time = get_current_calender_time() - starttime;
-	ev->time = (int32)((past_time) * play_mode->rate);
-	ev->time += (int32)event_time_offset;
-	rtsyn_reachtime=get_current_calender_time()+(double)time_advance/play_mode->rate;
+	static int shift=0;
 
+	if(set_time_first==2){
+		starttime=get_current_calender_time()-(double)current_sample/(double)play_mode->rate;
+	}
+	past_time = (int32)((get_current_calender_time() - starttime)*play_mode->rate);	
+//	printf("%f,%f\n",(double)past_time,(  (double)current_sample-(double)past_time )  );
+	if (set_time_first==1){
+		shift=(double)past_time-(double)current_sample;
+///		printf("%d\n",shift);
+	}
+	if (set_time_first>0) set_time_first--;
+	event_time_offset=play_mode->rate/TICKTIME_HZ;
+	ev->time = past_time;
+	if(set_time_first==0 && (past_time-current_sample>stream_max_compute*play_mode->rate/1000)){ 
+		starttime=get_current_calender_time()-(double)(current_sample+shift)/(double)play_mode->rate;
+		ev->time=current_sample+shift;
+	}
+	ev->time += (int32)event_time_offset;
+
+	
+	rtsyn_reachtime=get_current_calender_time()+  (double)(1.0f/TICKTIME_HZ);
+	
 #if 0
 	btime = (double)((ev->time-current_sample/midi_time_ratio)/play_mode->rate);
 	btime *= 1.01; /* to be sure */
