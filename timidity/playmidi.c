@@ -1169,8 +1169,8 @@ void recompute_voice_filter(int v)
 		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
 		if(fc->reso_dB > CHAMBERLIN_RESONANCE_MAX) {fc->reso_dB = CHAMBERLIN_RESONANCE_MAX;}
 	} else if(fc->type == 2) {	/* Moog VCF */
-		if(fc->reso_dB > fc->orig_reso_dB) {
-			fc->gain = pow(10.0f, (fc->reso_dB - fc->orig_reso_dB) / 20.0f);
+		if(fc->reso_dB > fc->orig_reso_dB / 2) {
+			fc->gain = pow(10.0f, (fc->reso_dB - fc->orig_reso_dB / 2) / 20.0f);
 		}
 	}
 }
