@@ -2,6 +2,8 @@
 
 	* timidity/playmidi.[ch], timidity/mix.c:
 	  Implement Moog VCF resonant lowpass filter; it sounds good, but slow.
+	* timidity/mix.c:
+	  Fix typo.
 
 2003-12-01  Saito <saito2@digitalme.com>
 

@@ -192,11 +192,11 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 	if(fc->type == 0) {	/* copy without change.	*/
 		/* (FIXME: It's absolutely essential that converting int16 sp[] to int32 lp[],
 			but it might not be only way.) */
-		for(i=0;i<count;i++) {
+		for(i = 0; i <count; i++) {
 			lp[i] = sp[i];
 		}
 		return;
-	} else if(fc->type == 1) {	/* copy with applying voice-by-voice lowpass filter. */
+	} else if(fc->type == 1) {	/* copy with applying Chamberlin's lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		f = fc->f, q = fc->q, b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
@@ -208,7 +208,7 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 		}
 		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2;
 		return;
-	} else if(fc->type == 2) {	/* copy with applying voice-by-voice lowpass filter. */
+	} else if(fc->type == 2) {	/* copy with applying Moog VCF lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		f = fc->f, q = fc->q, p = fc->p, b0 = fc->b0, b1 = fc->b1,
@@ -231,7 +231,7 @@ static inline void recalc_voice_resonance(int v)
 	double q;
 	FilterCoefficients *fc = &(voice[v].fc);
 	
-	if (fc->reso_dB != fc->last_reso_dB) {
+	if (fc->reso_dB != fc->last_reso_dB || fc->q == 0) {
 		fc->last_reso_dB = fc->reso_dB;
 		if(fc->type == 1) {
 			q = 1.0 / chamberlin_filter_db_to_q_table[(int)(fc->reso_dB * 4)];
@@ -246,7 +246,7 @@ static inline void recalc_voice_resonance(int v)
 
 static inline void recalc_voice_fc(int v)
 {
-	double f, p, q, freq;
+	double f, p, q, fr;
 	FilterCoefficients *fc = &(voice[v].fc);
 
 	if (fc->freq != fc->last_freq) {
@@ -254,9 +254,9 @@ static inline void recalc_voice_fc(int v)
 			f = 2.0 * sin(M_PI * (double)fc->freq / (double)play_mode->rate);
 			fc->f = TIM_FSCALE(f, 24);
 		} else if(fc->type == 2) {
-			freq = 2.0 * (double)fc->freq / (double)play_mode->rate;
-			q = 1.0 - freq;
-			p = freq + 0.8 * freq * q;
+			fr = 2.0 * (double)fc->freq / (double)play_mode->rate;
+			q = 1.0 - fr;
+			p = fr + 0.8 * fr * q;
 			f = p + p - 1.0;
 			q = fc->reso_lin * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
 			fc->f = TIM_FSCALE(f, 24);
