@@ -264,7 +264,6 @@ static int32 ns9_histposl, ns9_histposr;
 static int32 ns9_ehl[18];
 static int32 ns9_ehr[18];
 static uint32 ns9_r1l, ns9_r2l, ns9_r1r, ns9_r2r;
-static double ns9_d = 1.0f / (double)(1U<<15) / RAND_MAX;
 static float ns9_coef[9] = {2.412f, -3.370f, 3.937f, -4.174f, 3.353f, -2.205f, 1.281f, -0.569f, 0.0847f};
 static int32 ns9_c[9];
 
@@ -324,7 +323,7 @@ static void ns_shaping16_9(int32* lp, int32 c)
 			- imuldiv16(ns9_c[3],ns9_ehl[ns9_histposl+3]) - imuldiv16(ns9_c[2],ns9_ehl[ns9_histposl+1])
 			- imuldiv16(ns9_c[1],ns9_ehl[ns9_histposl+1]) - imuldiv16(ns9_c[0],ns9_ehl[ns9_histposl]);
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1l - ns9_r2l);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1l - ns9_r2l) >> 30);
 		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
 		ns9_ehl[ns9_histposl+9] = ns9_ehl[ns9_histposl] = output - sample;
 		lp[i] = output;
@@ -341,7 +340,7 @@ static void ns_shaping16_9(int32* lp, int32 c)
 			- imuldiv16(ns9_c[3],ns9_ehr[ns9_histposr+3]) -	imuldiv16(ns9_c[2],ns9_ehr[ns9_histposr+1])
 			- imuldiv16(ns9_c[1],ns9_ehr[ns9_histposr+1]) - imuldiv16(ns9_c[0],ns9_ehr[ns9_histposr]);
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1r - ns9_r2r);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1r - ns9_r2r) >> 30);
 		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
 		ns9_ehr[ns9_histposr+9] = ns9_ehr[ns9_histposr] = output - sample;
 		lp[i] = output;
@@ -363,7 +362,7 @@ static void ns_shaping16_9(int32* lp, int32 c)
 				ns9_coef[5]*ns9_ehl[ns9_histposl+5] - ns9_coef[4]*ns9_ehl[ns9_histposl+4] - ns9_coef[3]*ns9_ehl[ns9_histposl+3] -
 				ns9_coef[2]*ns9_ehl[ns9_histposl+1] - ns9_coef[1]*ns9_ehl[ns9_histposl+1] - ns9_coef[0]*ns9_ehl[ns9_histposl];
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1 - ns9_r2);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1 - ns9_r2) >> 30);
 		ns9_histposl = my_mod((ns9_histposl+8), ns9_order);
 		ns9_ehl[ns9_histposl+9] = ns9_ehl[ns9_histposl] = output - sample;
 		lp[i] = output;
@@ -378,7 +377,7 @@ static void ns_shaping16_9(int32* lp, int32 c)
 				ns9_coef[5]*ns9_ehr[ns9_histposr+5] - ns9_coef[4]*ns9_ehr[ns9_histposr+4] - ns9_coef[3]*ns9_ehr[ns9_histposr+3] -
 				ns9_coef[2]*ns9_ehr[ns9_histposr+1] - ns9_coef[1]*ns9_ehr[ns9_histposr+1] - ns9_coef[0]*ns9_ehr[ns9_histposr];
 		l = sample >> (32-16-GUARD_BITS);
-		output = l * (1U << (32-16-GUARD_BITS)) + ns9_d * (ns9_r1 - ns9_r2);
+		output = l * (1U << (32-16-GUARD_BITS)) + ((ns9_r1 - ns9_r2) >> 30);
 		ns9_histposr = my_mod((ns9_histposr+8), ns9_order);
 		ns9_ehr[ns9_histposr+9] = ns9_ehr[ns9_histposr] = output - sample;
 		lp[i] = output;

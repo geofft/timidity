@@ -274,12 +274,11 @@ typedef struct {
 typedef struct {
   uint8
     status, channel, note, velocity;
-  int vid;
+  int vid, temper_instant;
   Sample *sample;
   int32
-      sample_offset;
-  int32
-    orig_frequency, frequency, sample_increment,
+    orig_frequency, frequency,
+    sample_offset, sample_increment,
     envelope_volume, envelope_target, envelope_increment,
     tremolo_sweep, tremolo_sweep_position,
     tremolo_phase, tremolo_phase_increment,

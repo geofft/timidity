@@ -383,6 +383,7 @@ static void reset_voices(void)
     for(i = 0; i < MAX_VOICES; i++)
     {
 	voice[i].status = VOICE_FREE;
+	voice[i].temper_instant = 0;
 	voice[i].chorus_link = i;
     }
     upper_voices = 0;
@@ -607,6 +608,7 @@ void recompute_freq(int v)
 	int note = voice[v].note;
 	int32 tuning = 0;
 	int8 st = channel[ch].scale_tuning[note % 12];
+	int32 f;
 	int pb = channel[ch].pitchbend;
 	int32 tmp;
 	FLOAT_T pf, root_freq;
@@ -651,6 +653,26 @@ void recompute_freq(int v)
 			channel[ch].pitchfactor = 0;
 			channel[ch].prev_scale_tuning = st;
 		}
+	}
+	if (voice[v].temper_instant) {
+		switch (channel[ch].temper_type) {
+		case 0:
+			f = freq_table[note];
+			break;
+		case 1:
+			f = freq_table_pytha[current_freq_table][note];
+			break;
+		case 2:
+			f = freq_table_meantone[current_freq_table][note];
+			break;
+		case 3:
+			if (current_temper_keysig < 8)
+				f = freq_table_pureint[current_freq_table][note];
+			else
+				f = freq_table_pureint[current_freq_table + 12][note];
+			break;
+		}
+		voice[v].orig_frequency = f;
 	}
 	if (! voice[v].porta_control_ratio) {
 		if (tuning == 0 && pb == 0x2000)
@@ -701,7 +723,7 @@ void recompute_freq(int v)
 #ifdef ABORT_AT_FATAL
 	if (voice[v].sample_increment == 0) {
 		fprintf(stderr, "Invalid sample increment a=%e %ld %ld %ld %ld%s\n",
-				a, (long) voice[v].sample->sample_rate,
+				(double)a, (long) voice[v].sample->sample_rate,
 				(long) voice[v].frequency, (long) voice[v].sample->root_freq,
 				(long) play_mode->rate, (voice[v].cache) ? " (Cached)" : "");
 		abort();
@@ -1563,6 +1585,7 @@ void free_voice(int v1)
 	voice[v2].chorus_link = v2;
     }
     voice[v1].status = VOICE_FREE;
+    voice[v1].temper_instant = 0;
 }
 
 static int find_free_voice(void)
@@ -1922,8 +1945,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 
   if(opt_nrpn_vibrato)
   {
-      voice[i].vibrato_control_ratio = saturate_f((double)voice[i].sample->vibrato_control_ratio * channel[ch].vibrato_ratio, 2147483648);
-      voice[i].vibrato_depth = saturate_f(voice[i].sample->vibrato_depth * channel[ch].vibrato_depth, 255);
+      voice[i].vibrato_control_ratio = saturate_f((FLOAT_T)voice[i].sample->vibrato_control_ratio * channel[ch].vibrato_ratio, (FLOAT_T)2147483648.0);
+      voice[i].vibrato_depth = saturate_f(voice[i].sample->vibrato_depth * channel[ch].vibrato_depth, (FLOAT_T)255);
       voice[i].vibrato_delay = channel[ch].vibrato_delay;
   }
   else
@@ -3223,6 +3246,7 @@ static void play_midi_prescan(MidiEvent *ev)
 		    start_note(ev, vlist[i], 0, nv - i - 1);
 		    resamp_cache_refer_on(vp, ev->time);
 		    vp->status = VOICE_FREE;
+		    vp->temper_instant = 0;
 		}
 	    }
 	    break;
@@ -3867,7 +3891,7 @@ static void seek_forward(int32 until_time)
 		break;
 
 	case ME_TEMPER_KEYSIG:
-		current_temper_keysig = current_event->a + current_event->b * 16;
+		current_temper_keysig = current_event->a;
 		break;
 
 	case ME_TEMPER_TYPE:
@@ -4079,6 +4103,7 @@ static void voice_increment(int n)
 	if(voices == MAX_VOICES)
 	    break;
 	voice[voices].status = VOICE_FREE;
+	voice[voices].temper_instant = 0;
 	voice[voices].chorus_link = voices;
 	voices++;
     }
@@ -5707,7 +5732,7 @@ int play_event(MidiEvent *ev)
 		break;
 
 	case ME_TEMPER_KEYSIG:
-		current_temper_keysig = current_event->a + current_event->b * 16;
+		current_temper_keysig = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
 		i = current_temper_keysig + ((current_temper_keysig < 8) ? 7 : -9);
 		j = 0;
@@ -5715,11 +5740,23 @@ int play_event(MidiEvent *ev)
 			i += (i < 7) ? 5 : -7, j++;
 		j += note_key_offset, j -= floor(j / 12.0) * 12;
 		current_freq_table = j;
+		if (current_event->b)
+			for (i = 0; i < upper_voices; i++)
+				if (voice[i].status != VOICE_FREE) {
+					voice[i].temper_instant = 1;
+					recompute_freq(i);
+				}
 		break;
 
 	case ME_TEMPER_TYPE:
 		channel[ch].temper_type = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
+		if (current_event->b)
+			for (i = 0; i < upper_voices; i++)
+				if (voice[i].status != VOICE_FREE) {
+					voice[i].temper_instant = 1;
+					recompute_freq(i);
+				}
 		break;
 
 	case ME_MASTER_TEMPER_TYPE:
@@ -5727,6 +5764,12 @@ int play_event(MidiEvent *ev)
 			channel[i].temper_type = current_event->a;
 			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
 		}
+		if (current_event->b)
+			for (i = 0; i < upper_voices; i++)
+				if (voice[i].status != VOICE_FREE) {
+					voice[i].temper_instant = 1;
+					recompute_freq(i);
+				}
 		break;
 
 	case ME_SYSEX_GS1:

@@ -680,7 +680,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				case 0x4a:
 				case 0x4b:
 				case 0x4c:
-					SETMIDIEVENT(evm[0], 0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
+					SETMIDIEVENT(evm[0],
+							0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
 					num_events++;
 					ctl->cmsg(CMSG_INFO, VERB_NOISY,
 							"Scale Tuning %s (CH:%d %d cent)",
@@ -793,7 +794,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				case 0x4a:
 				case 0x4b:
 				case 0x4c:
-					SETMIDIEVENT(evm[0], 0, ME_SCALE_TUNING, p, ent - 0x41, val[6] - 64);
+					SETMIDIEVENT(evm[0],
+							0, ME_SCALE_TUNING, p, ent - 0x41, val[6] - 64);
 					num_events++;
 					ctl->cmsg(CMSG_INFO, VERB_NOISY,
 							"Scale Tuning %s (CH:%d %d cent)",
@@ -974,7 +976,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 				case 0x40:	/* Scale Tuning */
 					for (i = 0; i < 12; i++) {
-						SETMIDIEVENT(evm[i], 0, ME_SCALE_TUNING, p, i, val[i + 7] - 64);
+						SETMIDIEVENT(evm[i],
+								0, ME_SCALE_TUNING, p, i, val[i + 7] - 64);
 						ctl->cmsg(CMSG_INFO, VERB_NOISY,
 								"Scale Tuning %s (CH:%d %d cent)",
 								note_name[i], p, val[i + 7] - 64);
@@ -1473,14 +1476,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			case 0x0b:
 				channel_st = val[4] << 14 | val[5] << 7 | val[6];
 				if (val[1] == 0x7f) {
-					SETMIDIEVENT(evm[0],
-							0, ME_MASTER_TEMPER_TYPE, 0, val[7], 0);
+					SETMIDIEVENT(evm[0], 0, ME_MASTER_TEMPER_TYPE,
+							0, val[7], (val[0] == 0x7f) ? 1 : 0);
 					num_events++;
 				} else {
 					for (i = 0, j = 0; i < 16; i++)
 						if (channel_st & 1 << i) {
 							SETMIDIEVENT(evm[j], 0, ME_TEMPER_TYPE,
-									MERGE_CHANNEL_PORT(i), val[7], 0);
+									MERGE_CHANNEL_PORT(i),
+									val[7], (val[0] == 0x7f) ? 1 : 0);
 							j++;
 						}
 					num_events += j;
@@ -1760,8 +1764,9 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 		case 0x08:	/* MIDI Tuning Standard */
 			switch (val[3]) {
 			case 0x0a:
-				SETMIDIEVENT(
-						*ev, 0, ME_TEMPER_KEYSIG, 0, val[4] - 0x40, val[5]);
+				SETMIDIEVENT(*ev, 0, ME_TEMPER_KEYSIG, 0,
+						val[4] - 0x40 + val[5] * 16,
+						(val[0] == 0x7f) ? 1 : 0);
 				return 1;
 			}
 			break;
