@@ -1,9 +1,10 @@
 2004-02-14  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/mix.c,
-	  timidity/sndfont.c:
+	  timidity/sndfont.c, timidity/instrum.c:
 	  Fix modulation envelope of SoundFont.
 	  Fix bahaviour of filter.
+	  Hack up around load_instrument().
 
 2004-02-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

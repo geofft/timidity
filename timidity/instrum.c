@@ -1404,91 +1404,89 @@ void free_tone_bank(void)
 /*! Release ToneBankElement. */
 void free_tone_bank_element(ToneBankElement *elm)
 {
-	int i;
-	
-	if (!elm->name)
-		return;
-	free(elm->name);
+	if (elm->name) {
+		free(elm->name);
+	}
 	elm->name = NULL;
 	if (elm->comment) {
 		free(elm->comment);
-		elm->comment = NULL;
 	}
+	elm->comment = NULL;
 	if (elm->tune) {
 		free(elm->tune);
-		elm->tune = NULL;
-		elm->tunenum = 0;
 	}
+	elm->tune = NULL;
+	elm->tunenum = 0;
 	if (elm->sclnote) {
 		free(elm->sclnote);
-		elm->sclnote = NULL;
-		elm->sclnotenum = 0;
 	}
+	elm->sclnote = NULL;
+	elm->sclnotenum = 0;
 	if (elm->scltune) {
 		free(elm->scltune);
-		elm->scltune = NULL;
-		elm->scltunenum = 0;
 	}
+	elm->scltune = NULL;
+	elm->scltunenum = 0;
 	if (elm->fc) {
 		free(elm->fc);
-		elm->fc = NULL;
-		elm->fcnum = 0;
 	}
+	elm->fc = NULL;
+	elm->fcnum = 0;
 	if (elm->reso) {
 		free(elm->reso);
-		elm->reso = NULL;
-		elm->resonum = 0;
 	}
+	elm->reso = NULL;
+	elm->resonum = 0;
 	if (elm->trempitch) {
 		free(elm->trempitch);
-		elm->trempitch = NULL;
-		elm->trempitchnum = 0;
 	}
+	elm->trempitch = NULL;
+	elm->trempitchnum = 0;
 	if (elm->tremfc) {
 		free(elm->tremfc);
-		elm->tremfc = NULL;
-		elm->tremfcnum = 0;
 	}
+	elm->tremfc = NULL;
+	elm->tremfcnum = 0;
 	if (elm->modpitch) {
 		free(elm->modpitch);
-		elm->modpitch = NULL;
-		elm->modpitchnum = 0;
 	}
+	elm->modpitch = NULL;
+	elm->modpitchnum = 0;
 	if (elm->modfc) {
 		free(elm->modfc);
-		elm->modfc = NULL;
-		elm->modfcnum = 0;
 	}
+	elm->modfc = NULL;
+	elm->modfcnum = 0;
 	if (elm->envratenum) {
 		free_ptr_list(elm->envrate, elm->envratenum);
-		elm->envrate = NULL;
-		elm->envratenum = 0;
 	}
+	elm->envrate = NULL;
+	elm->envratenum = 0;
 	if (elm->envofsnum) {
 		free_ptr_list(elm->envofs, elm->envofsnum);
-		elm->envofs = NULL;
-		elm->envofsnum = 0;
 	}
+	elm->envofs = NULL;
+	elm->envofsnum = 0;
 	if (elm->modenvratenum) {
 		free_ptr_list(elm->modenvrate, elm->modenvratenum);
-		elm->modenvrate = NULL;
-		elm->modenvratenum = 0;
 	}
+	elm->modenvrate = NULL;
+	elm->modenvratenum = 0;
 	if (elm->modenvofsnum) {
 		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-		elm->modenvofs = NULL;
-		elm->modenvofsnum = 0;
 	}
+	elm->modenvofs = NULL;
+	elm->modenvofsnum = 0;
 	if (elm->tremnum) {
 		free_ptr_list(elm->trem, elm->tremnum);
-		elm->trem = NULL;
-		elm->tremnum = 0;
 	}
+	elm->trem = NULL;
+	elm->tremnum = 0;
 	if (elm->vibnum) {
 		free_ptr_list(elm->vib, elm->vibnum);
-		elm->vib = NULL;
-		elm->vibnum = 0;
 	}
+	elm->vib = NULL;
+	elm->vibnum = 0;
 	elm->instype = 0;
 }
 

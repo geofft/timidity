@@ -1308,37 +1308,39 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 	if (bank[bk] == NULL)
 		alloc_instrument_bank(dr, bk);
 
-	if ((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT) {
-		if (ip = bank[bk]->tone[prog].instrument =
-				load_instrument(dr, bk, prog))
-			load_success = 1;
+	if (bank[bk]->tone[prog].name) {
+		/* Instrument is found. */
+		if ((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT
 #ifndef SUPPRESS_CHANNEL_LAYER
-	} else if (ip == NULL) {
-		if (ip = bank[bk]->tone[prog].instrument =
-				load_instrument(dr, bk, prog))
-			load_success = 1;
+			|| ip == NULL	/* see also readmidi.c: groom_list(). */
 #endif
-	}
-	if (ip == NULL && bk) {
+		) {ip = bank[bk]->tone[prog].instrument = load_instrument(dr, bk, prog);}
+		if (ip == NULL || IS_MAGIC_INSTRUMENT(ip)) {
+			bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+		} else {
+			load_success = 1;
+		}
+	} else {
 		/* Instrument is not found.
-		 * Retry to load the instrument from bank 0
-		 */
+		   Try to load the instrument from bank 0 */
 		if ((ip = bank[0]->tone[prog].instrument) == NULL
-				|| ip == MAGIC_LOAD_INSTRUMENT)
-			ip = bank[0]->tone[prog].instrument =
-					load_instrument(dr, 0, prog);
-		if (ip != NULL) {
+			|| ip == MAGIC_LOAD_INSTRUMENT)
+			ip = bank[0]->tone[prog].instrument = load_instrument(dr, 0, prog);
+		if (ip == NULL || IS_MAGIC_INSTRUMENT(ip)) {
+			bank[0]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+		} else {
 			copy_tone_bank_element(&bank[bk]->tone[prog], &bank[0]->tone[prog]);
 			bank[bk]->tone[prog].instrument = ip;
 			load_success = 1;
 		}
 	}
+
 	if (load_success)
 		aq_add(NULL, 0);	/* Update software buffer */
+
 	if (ip == MAGIC_ERROR_INSTRUMENT)
 		return NULL;
-	if (ip == NULL)
-		bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+
 	return ip;
 }
 
@@ -8010,11 +8012,13 @@ char *channel_instrum_name(int ch)
     bank = channel[ch].bank;
     prog = channel[ch].program;
     instrument_map(channel[ch].mapID, &bank, &prog);
-    if(tonebank[bank] == NULL)
-	bank = 0;
-    comm = tonebank[bank]->tone[prog].comment;
-    if(comm == NULL)
-	comm = tonebank[0]->tone[prog].comment;
+
+	if (tonebank[bank] == NULL) {bank = 0;}
+	if (tonebank[bank]->tone[prog].name) {
+	    comm = tonebank[bank]->tone[prog].comment;
+		if (comm == NULL) {comm = tonebank[bank]->tone[prog].name;}
+	}
+	
     return comm;
 }
 
