@@ -553,14 +553,6 @@ static void reset_module_dependent_controllers(int c)
 	}
 }
 
-static void reset_instrument_parameters(int c)
-{
-  channel[c].legato = 0;
-  channel[c].damper_mode = 0;
-  channel[c].loop_timeout = 0;
-  recompute_bank_parameter(c, 0);
-}
-
 static void reset_nrpn_controllers(int c)
 {
   int i;
@@ -611,6 +603,10 @@ static void reset_nrpn_controllers(int c)
   channel[c].vel_limit_low = 0;
 
   free_drum_effect(c);
+
+  channel[c].legato = 0;
+  channel[c].damper_mode = 0;
+  channel[c].loop_timeout = 0;
 
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
 	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
@@ -681,7 +677,6 @@ static void reset_midi(int playing)
 	int i, cnt;
 	
 	for (i = 0; i < MAX_CHANNELS; i++) {
-		reset_instrument_parameters(i);
 		reset_controllers(i);
 		reset_nrpn_controllers(i);
      	reset_module_dependent_controllers(i);
@@ -3332,7 +3327,6 @@ void midi_program_change(int ch, int prog)
 			instrument_map(channel[ch].mapID, &b, &p);
 			play_midi_load_instrument(0, b, p);
 		}
-		reset_instrument_parameters(ch);
 	}
 }
 
