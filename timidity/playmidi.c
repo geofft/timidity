@@ -275,8 +275,10 @@ static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
 
 static void init_voice_filter(int);
+/* XG Part EQ */
 void init_part_eq_xg(struct part_eq_xg *);
 void recompute_part_eq_xg(struct part_eq_xg *);
+/* MIDI controllers (MW, Bend, CAf, PAf,...) */
 static void init_midi_controller(midi_controller *);
 static float get_midi_controller_amp(midi_controller *);
 static float get_midi_controller_filter_cutoff(midi_controller *);
@@ -284,6 +286,13 @@ static float get_midi_controller_filter_depth(midi_controller *);
 static int32 get_midi_controller_pitch(midi_controller *);
 static int16 get_midi_controller_pitch_depth(midi_controller *);
 static int16 get_midi_controller_amp_depth(midi_controller *);
+/* Rx. ~ (Rcv ~) */
+static void init_rx(int);
+static void set_rx(int, int32, int8);
+static int32 get_rx(int, int32);
+static void init_rx_drum(struct DrumParts *);
+static void set_rx_drum(struct DrumParts *, int32, int8);
+static int32 get_rx_drum(struct DrumParts *, int32);
 
 #define IS_SYSEX_EVENT_TYPE(event) ((event)->type == ME_NONE || (event)->type >= ME_RANDOM_PAN || (event)->b == SYSEX_TAG)
 
@@ -471,9 +480,9 @@ static void reset_drum_controllers(struct DrumParts *d[], int note)
 		d[i]->chorus_level = 0;
 		d[i]->reverb_level = 0;
 		d[i]->play_note = -1;
-		d[i]->rx_note_off = 0;
 		d[i]->drum_cutoff_freq = 0;
 		d[i]->drum_resonance = 0;
+		init_rx_drum(d[i]);
 	    }
     }
     else
@@ -488,9 +497,9 @@ static void reset_drum_controllers(struct DrumParts *d[], int note)
 	d[note]->chorus_level = 0;
 	d[note]->reverb_level = 0;
 	d[note]->play_note = -1;
-	d[note]->rx_note_off = 0;
 	d[note]->drum_cutoff_freq = 0;
 	d[note]->drum_resonance = 0;
+	init_rx_drum(d[note]);
     }
 }
 
@@ -509,7 +518,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].resonance_dB = 0;
 
   /* GS & XG System Exclusive */
-  channel[c].eq_on = 1;
+  channel[c].eq_gs = 1;
   channel[c].insertion_effect = 0;
   channel[c].velocity_sense_depth = 0x40;
   channel[c].velocity_sense_offset = 0x40;
@@ -536,6 +545,12 @@ static void reset_nrpn_controllers(int c)
   init_midi_controller(&(channel[c].cc2)); 
   channel[c].bend.pitch = 2;
   channel[c].mod.lfo1_pitch_depth = 10;
+
+  init_rx(c);
+  channel[c].note_limit_high = 127;
+  channel[c].note_limit_low = 0;
+  channel[c].vel_limit_high = 127;
+  channel[c].vel_limit_low = 0;
 
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
 	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
@@ -1138,9 +1153,9 @@ void recompute_voice_filter(int v)
 	}
 }
 
-FLOAT_T calc_drum_tva_level(int ch,int note,int level)
+float calc_drum_tva_level(int ch, int note, int level)
 {
-	int def_level,nbank,nprog;
+	int def_level, nbank, nprog;
 	ToneBank *bank;
 
 	if(channel[ch].special_sample > 0) {return 1.0;}
@@ -2634,20 +2649,68 @@ static void new_chorus_voice_alternate(int v1, int level)
     if (level) recompute_freq(v2);
 }
 
+static void note_on_prescan(MidiEvent *ev)
+{
+	int i, ch = ev->channel, note = MIDI_EVENT_NOTE(ev);
+
+	if(ISDRUMCHANNEL(ch) &&
+	   channel[ch].drums[note] != NULL &&
+	   !get_rx_drum(channel[ch].drums[note], RX_NOTE_ON)) {	/* Rx. Note On */
+		return;
+	}
+	if(channel[ch].note_limit_low > note ||
+		channel[ch].note_limit_high < note ||
+		channel[ch].vel_limit_low > ev->b ||
+		channel[ch].vel_limit_high < ev->b) {
+		return;
+	}
+
+    if((channel[ch].portamento_time_msb |
+		channel[ch].portamento_time_lsb) == 0 ||
+	    channel[ch].portamento == 0)
+	{
+		int nv;
+		int vlist[32];
+		Voice *vp;
+
+		nv = find_samples(ev, vlist);
+		for(i = 0; i < nv; i++)
+		{
+		    vp = voice + vlist[i];
+		    start_note(ev, vlist[i], 0, nv - i - 1);
+		    resamp_cache_refer_on(vp, ev->time);
+		    vp->status = VOICE_FREE;
+		    vp->temper_instant = 0;
+		}
+	}
+}
+
 static void note_on(MidiEvent *e)
 {
     int i, nv, v, ch, note;
     int vlist[32];
     int vid;
 
+	ch = e->channel;
+	note = MIDI_EVENT_NOTE(e);
+	
+	if(ISDRUMCHANNEL(ch) &&
+	   channel[ch].drums[note] != NULL &&
+	   !get_rx_drum(channel[ch].drums[note], RX_NOTE_ON)) {	/* Rx. Note On */
+		return;
+	}
+	if(channel[ch].note_limit_low > note ||
+		channel[ch].note_limit_high < note ||
+		channel[ch].vel_limit_low > e->b ||
+		channel[ch].vel_limit_high < e->b) {
+		return;
+	}
     if((nv = find_samples(e, vlist)) == 0)
 	return;
 
-    note = MIDI_EVENT_NOTE(e);
     vid = new_vidq(e->channel, note);
-    ch = e->channel;
 
-	recompute_bank_parameter(ch,note);
+	recompute_bank_parameter(ch, note);
 	recompute_channel_filter(e);
 	calc_sample_panning_average(nv, vlist);
 
@@ -2729,7 +2792,7 @@ static void note_off(MidiEvent *e)
   note = MIDI_EVENT_NOTE(e);
 
   if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL &&
-     !channel[ch].drums[note]->rx_note_off)
+     get_rx_drum(channel[ch].drums[note], RX_NOTE_OFF))
   {
       ToneBank *bank;
 
@@ -3456,6 +3519,38 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			channel[ch].cc2.lfo2_tva_depth = (float)val / 127.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].cc2.lfo2_tva_depth); 
 			break;
+		case 0x42:	/* Note Limit Low */
+			channel[ch].note_limit_low = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit Low (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x43:	/* Note Limit High */
+			channel[ch].note_limit_high = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit High (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x44:	/* Velocity Limit Low */
+			channel[ch].vel_limit_low = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit Low (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x45:	/* Velocity Limit High */
+			channel[ch].vel_limit_high = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit High (CH:%d VAL:%d)", ch, val); 
+			break;
+		case 0x46:	/* Rx. Note Off */
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			set_rx(channel[ch].drums[note], RX_NOTE_OFF, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Rx. Note Off (CH:%d NOTE:%d VAL:%d)",
+				ch, note, val);
+			break;
+		case 0x47:	/* Rx. Note On */
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			set_rx(channel[ch].drums[note], RX_NOTE_ON, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Rx. Note On (CH:%d NOTE:%d VAL:%d)",
+				ch, note, val);
+			break;
 		default:
 			break;
 		}
@@ -3468,14 +3563,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		{
 		case 0x00:	/* EQ ON/OFF */
 			if(!opt_eq_control) {break;}
-			if(channel[ch].eq_on != val) {
+			if(channel[ch].eq_gs != val) {
 				if(val) {
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ ON (CH:%d)",ch);
 				} else {
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ OFF (CH:%d)",ch);
 				}
 			}
-			channel[ch].eq_on = val;
+			channel[ch].eq_gs = val;
 			break;
 		case 0x01:	/* EQ LOW FREQ */
 			if(!opt_eq_control) {break;}
@@ -4084,24 +4179,7 @@ static void play_midi_prescan(MidiEvent *ev)
 	switch(ev->type)
 	{
 	  case ME_NOTEON:
-	    if((channel[ch].portamento_time_msb |
-		channel[ch].portamento_time_lsb) == 0 ||
-	       channel[ch].portamento == 0)
-	    {
-		int nv;
-		int vlist[32];
-		Voice *vp;
-
-		nv = find_samples(ev, vlist);
-		for(i = 0; i < nv; i++)
-		{
-		    vp = voice + vlist[i];
-		    start_note(ev, vlist[i], 0, nv - i - 1);
-		    resamp_cache_refer_on(vp, ev->time);
-		    vp->status = VOICE_FREE;
-		    vp->temper_instant = 0;
-		}
-	    }
+		note_on_prescan(ev);
 	    break;
 
 	  case ME_NOTEOFF:
@@ -5668,7 +5746,7 @@ static void do_compute_data_midi(int32 count)
 				vpblist[i] = buffer_pointer;
 			} else if(opt_insertion_effect && channel[i].insertion_effect) {
 				vpblist[i] = insertion_effect_buffer;
-			} else if(channel[i].eq_on || (channel[i].reverb_level >= 0
+			} else if(channel[i].eq_gs || (channel[i].reverb_level >= 0
 					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT)
 					|| channel[i].chorus_level > 0 || channel[i].delay_level > 0
 					|| channel[i].eq_xg.valid) {
@@ -5777,7 +5855,7 @@ static void do_compute_data_midi(int32 count)
 					&& current_sample - channel[i].lasttime < REVERB_MAX_DELAY_OUT) {
 					set_ch_reverb(p, cnt, channel[i].reverb_level);
 				}
-				if(channel_eq && channel[i].eq_on) {
+				if(channel_eq && channel[i].eq_gs) {
 					set_ch_eq_gs(p, cnt);
 				} else {
 					set_dry_signal(p, cnt);
@@ -7809,4 +7887,36 @@ static int16 get_midi_controller_pitch_depth(midi_controller *p)
 static int16 get_midi_controller_amp_depth(midi_controller *p)
 {
 	return (int16)((float)p->val * (float)p->lfo1_tva_depth * (1.0f / 127.0f * 256.0));
+}
+
+static void init_rx(int ch)
+{
+	channel[ch].rx = 0xFFFFFFFF;	/* all on */
+}
+
+static void set_rx(int ch, int32 rx, int8 flag)
+{
+	if(flag) {channel[ch].rx |= rx;}
+	else {channel[ch].rx &= ~rx;}
+}
+
+static int32 get_rx(int ch, int32 rx)
+{
+	return (channel[ch].rx & rx);
+}
+
+static void init_rx_drum(struct DrumParts *p)
+{
+	p->rx = 0xFFFFFFFF;	/* all on */
+}
+
+static void set_rx_drum(struct DrumParts *p, int32 rx, int8 flag)
+{
+	if(flag) {p->rx |= rx;}
+	else {p->rx &= ~rx;}
+}
+
+static int32 get_rx_drum(struct DrumParts *p, int32 rx)
+{
+	return (p->rx & rx);
 }

@@ -190,6 +190,29 @@ enum rpn_data_address_t /* NRPN/RPN */
     RPN_MAX_DATA_ADDR
 };
 
+enum {
+	RX_PITCH_BEND,
+	RX_CH_PRESSURE,
+	RX_PROGRAM_CHANGE,
+	RX_CONTROL_CHANGE,
+	RX_POLY_PRESSURE,
+	RX_NOTE_MESSAGE,
+	RX_RPN,
+	RX_NRPN,
+	RX_MODULATION,
+	RX_VOLUME,
+	RX_PANPOT,
+	RX_EXPRESSION,
+	RX_HOLD1,
+	RX_PORTAMENTO,
+	RX_SOSTENUTO,
+	RX_SOFT,
+	RX_NOTE_ON,
+	RX_NOTE_OFF,
+	RX_BANK_SELECT,
+	RX_BANK_SELECT_LSB,
+};
+
 #ifndef PART_EQ_XG
 #define PART_EQ_XG
 /*! shelving filter */
@@ -226,10 +249,11 @@ struct DrumParts
     int8 drum_panning;
     int32 drum_envelope_rate[6]; /* drum instrument envelope */
     int8 pan_random;    /* flag for drum random pan */
-	FLOAT_T drum_level;
+	float drum_level;
 
 	int8 chorus_level, reverb_level, delay_level, coarse, fine,
-		play_note, rx_note_off, drum_cutoff_freq, drum_resonance;
+		play_note, drum_cutoff_freq, drum_resonance;
+	int32 rx;
 };
 
 typedef struct {
@@ -246,7 +270,7 @@ typedef struct {
 			   -1: DEFAULT_REVERB_SEND_LEVEL
 			   */
   int8 delay_level;	/* Delay Send Level */
-  int8 eq_on;	/* EQ ON/OFF */
+  int8 eq_gs;	/* EQ ON/OFF (GS) */
   int8 insertion_effect;
 
   /* Special sample ID. (0 means Normal sample) */
@@ -267,7 +291,7 @@ typedef struct {
 
   /* For NRPN Vibrato */
   int32 vibrato_depth, vibrato_delay;
-  double vibrato_ratio;
+  float vibrato_ratio;
 
   /* For RPN */
   uint8 rpnmap[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
@@ -291,8 +315,7 @@ typedef struct {
 
   /* for Voice LPF / Resonance */
   int8 param_resonance, param_cutoff_freq;	/* -64 ~ 63 */
-  double cutoff_freq_coef;
-  double resonance_dB;
+  float cutoff_freq_coef, resonance_dB;
 
   int8 velocity_sense_depth, velocity_sense_offset;
   
@@ -300,6 +323,7 @@ typedef struct {
   int8 temper_type;
 
   int8 soft_pedal;
+  int8 sostenuto;
 
   int8 tone_map0_number;
   FLOAT_T pitch_offset_fine;	/* in Hz */
@@ -314,6 +338,10 @@ typedef struct {
   int port_select;
 
   struct part_eq_xg eq_xg;
+
+  int8 note_limit_high, note_limit_low;	/* Note Limit (Keyboard Range) */
+  int8 vel_limit_high, vel_limit_low;	/* Velocity Limit */
+  int32 rx;	/* Rx. ~ (Rcv ~) */
 
   int8 sysex_gs_msb_addr, sysex_gs_msb_val,
 		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;
@@ -330,7 +358,7 @@ typedef struct {
 	int32 b0, b1, b2, b3, b4;
 } FilterCoefficients;
 
-#define ENABLE_PAN_DELAY
+/* #define ENABLE_PAN_DELAY */
 #ifdef ENABLE_PAN_DELAY
 #define PAN_DELAY_BUF_MAX 48	/* 0.5ms in 96kHz */
 #endif	/* ENABLE_PAN_DELAY */

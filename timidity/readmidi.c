@@ -1032,12 +1032,14 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x0F:	/* Note Limit Low */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit Low is not supported. (CH:%d VAL:%d)", p, *body); 
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x42);
+			num_events++;
 		    break;
 
 		case 0x10:	/* Note Limit High */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit High is not supported. (CH:%d VAL:%d)", p, *body); 
-		    break;
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x43);
+			num_events++;
+			break;
 
 		case 0x11:	/* Dry Level */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Dry Level is not supported. (CH:%d VAL:%d)", p, *body); 
@@ -1349,11 +1351,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x6D:	/* Velocity Limit Low */
-		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit Low is not supported. (CH:%d VAL:%d)", p, *body); 
-		    break;
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x44);
+			num_events++;
+			break;
 
 		case 0x6E:	/* Velocity Limit High */
-		    ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit High is not supported. (CH:%d VAL:%d)", p, *body); 
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, *body, 0x45);
+			num_events++;
 		    break;
 
 		case 0x70:	/* Bend Pitch Low Control */
@@ -1621,11 +1625,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x0F:	/* Note Limit Low */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit Low is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x42);
+					num_events++;
 					break;
 
 				case 0x10:	/* Note Limit High */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Note Limit High is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x43);
+					num_events++;
 					break;
 
 				case 0x11:	/* Dry Level */
@@ -1940,11 +1946,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 
 				case 0x6D:	/* Velocity Limit Low */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit Low is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x44);
+					num_events++;
 					break;
 
 				case 0x6E:	/* Velocity Limit High */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Velocity Limit High is not supported. (CH:%d VAL:%d)", p, val[6]); 
+					SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_LSB, p, val[6], 0x45);
+					num_events++;
 					break;
 
 				case 0x70:	/* Bend Pitch Low Control */
@@ -1956,30 +1964,30 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					break;
 
 				case 0x72:	/* EQ BASS */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x30, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x30, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x73:	/* EQ TREBLE */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x31, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x31, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x76:	/* EQ BASS frequency */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x34, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x34, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
 				case 0x77:	/* EQ TREBLE frequency */
-					SETMIDIEVENT(evm[num_events], 0,ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 1], 0,ME_NRPN_LSB, p, 0x35, SYSEX_TAG);
-					SETMIDIEVENT(evm[num_events + 2], 0,ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events], 0, ME_NRPN_MSB, p, 0x01, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 1], 0, ME_NRPN_LSB, p, 0x35, SYSEX_TAG);
+					SETMIDIEVENT(evm[num_events + 2], 0, ME_DATA_ENTRY_MSB, p, val[6], SYSEX_TAG);
 					num_events += 3;
 					break;
 
@@ -2103,10 +2111,12 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events++;
 					break;
 				case 0x1D:	/* Keyboard Range Low */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Keyboard Range Low is not supported. (CH:%d VAL:%d)", p, val[7]);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x42);
+					num_events++;
 					break;
 				case 0x1E:	/* Keyboard Range High */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Keyboard Range High is not supported. (CH:%d VAL:%d)", p, val[7]);
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_LSB, p, val[7], 0x43);
+					num_events++;
 					break;
 				case 0x1F:	/* CC1 Controller Number */
 					ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Controller Number is not supported. (CH:%d VAL:%d)", p, val[7]);
@@ -2788,10 +2798,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 				num_events += 3;
 				break;
-			case 0x700:	/* !!!FIXME!!! Rx. Note Off */
-				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Rx. Note Off (CH:%d NOTE:%d VAL:%d)",dp,val[6],val[7]);
-				if(channel[dp].drums[val[6]] == NULL) {play_midi_setup_drums(dp, val[6]);}
-				channel[dp].drums[val[6]]->rx_note_off = val[7];
+			case 0x700:	/* Rx. Note Off */
+				SETMIDIEVENT(evm[0], 0, ME_SYSEX_MSB, dp, val[6], 0);
+				SETMIDIEVENT(evm[1], 0, ME_SYSEX_LSB, dp, val[7], 0x46);
+				num_events += 2;
+				break;
+			case 0x800:	/* Rx. Note On */
+				SETMIDIEVENT(evm[0], 0, ME_SYSEX_MSB, dp, val[6], 0);
+				SETMIDIEVENT(evm[1], 0, ME_SYSEX_LSB, dp, val[7], 0x47);
+				num_events += 2;
 				break;
 			case 0x900:
 				SETMIDIEVENT(evm[0], 0, ME_NRPN_MSB, dp, 0x1F, SYSEX_TAG);
@@ -2864,14 +2879,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					SETMIDIEVENT(evm[2], 0, ME_DATA_ENTRY_MSB, dp, val[7], SYSEX_TAG);
 					num_events += 3;
 					break;
-				case 0x700:	/* !!!FIXME!!! Rx. Note Off */
+				case 0x700:	/* Rx. Note Off */
 					get_userdrum(64 + udn, val[6])->rx_note_off = val[7];
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Rx. Note Off (CH:%d NOTE:%d VAL:%d)",dp,val[6],val[7]);
-					if(channel[dp].drums[val[6]] == NULL) {play_midi_setup_drums(dp, val[6]);}
-					channel[dp].drums[val[6]]->rx_note_off = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_MSB, dp, val[6], 0);
+					SETMIDIEVENT(evm[1], 0, ME_SYSEX_LSB, dp, val[7], 0x46);
+					num_events += 2; 
 					break;
-				case 0x800:	/* !!!FIXME!!! Rx. Note On */
+				case 0x800:	/* Rx. Note On */
 					get_userdrum(64 + udn, val[6])->rx_note_on = val[7];
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_MSB, dp, val[6], 0);
+					SETMIDIEVENT(evm[1], 0, ME_SYSEX_LSB, dp, val[7], 0x47);
+					num_events += 2; 
 					break;
 				case 0x900:	/* Delay Send Level */
 					get_userdrum(64 + udn, val[6])->delay_send_level = val[7];
@@ -2909,9 +2927,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				num_events++;
 				break;
 			default:
-				ctl->cmsg(CMSG_INFO,VERB_NOISY, "Unsupported GS SysEx. "
+			/*	ctl->cmsg(CMSG_INFO,VERB_NOISY, "Unsupported GS SysEx. "
 						"(ADDR:%02X %02X %02X VAL:%02X %02X)",
-						addr_h, addr_m, addr_l, val[7], val[8]);
+						addr_h, addr_m, addr_l, val[7], val[8]);*/
 				break;
 			}
 			break;

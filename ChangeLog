@@ -1,3 +1,9 @@
+2003-12-28  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Support for Velocity Limit and Note Limit through GS / XG SysEx.
+	  Support for Rx. Note On and Rx. Note Off through GS SysEx.
+
 2003-12-27  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/readmidi.[ch]:
