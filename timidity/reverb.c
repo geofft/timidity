@@ -423,19 +423,22 @@ static inline void do_filter_moog(int32 *stream, int32 *high, int32 f, int32 p, 
 	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
 }
 
+static void init_filter_moog_dist(filter_moog_dist *svf)
+{
+	svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0.0f;
+}
+
 /*! calculate Moog VCF coefficients */
 void calc_filter_moog_dist(filter_moog_dist *svf)
 {
 	double res, fr, p, q, f;
 
 	if (svf->freq > play_mode->rate / 2) {svf->freq = play_mode->rate / 2;}
-	else if(svf->freq < 20) {svf->freq = 20;}
+	else if (svf->freq < 20) {svf->freq = 20;}
 
-	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB
+	if (svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB
 		 || svf->dist != svf->last_dist) {
-		if(svf->last_freq == 0) {	/* clear delay-line */
-			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0.0f;
-		}
+		if (svf->last_freq == 0) {init_filter_moog_dist(svf);}
 		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB,
 			svf->last_dist = svf->dist;
 
@@ -471,7 +474,7 @@ static inline void do_filter_moog_dist(double *stream, double *high, double *ban
 	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
 }
 
-static inline void do_filter_moog_dist_low(double *stream, double f, double p, double q, double d,
+static inline void do_filter_moog_dist_band(double *stream, double f, double p, double q, double d,
 								   double *b0, double *b1, double *b2, double *b3, double *b4)
 {
 	double t1, t2, in, tb0 = *b0, tb1 = *b1, tb2 = *b2, tb3 = *b3, tb4 = *b4;
@@ -484,8 +487,13 @@ static inline void do_filter_moog_dist_low(double *stream, double f, double p, d
 	tb4 *= d;
 	tb4 = tb4 - tb4 * tb4 * tb4 * 0.166667f;
 	tb0 = in;
-	*stream = tb4;
+	*stream = 3.0f * (tb3 - tb4);
 	*b0 = tb0, *b1 = tb1, *b2 = tb2, *b3 = tb3, *b4 = tb4;
+}
+
+static void init_filter_lpf18(filter_lpf18 *p)
+{
+	p->ay1 = p->ay2 = p->aout = p->lastin = 0;
 }
 
 /*! calculate LPF18 coefficients */
@@ -495,9 +503,7 @@ void calc_filter_lpf18(filter_lpf18 *p)
 
 	if(p->freq != p->last_freq || p->dist != p->last_dist
 		|| p->res != p->last_res) {
-		if(p->last_freq == 0) {	/* clear delay-line */
-			p->ay1 = p->ay2 = p->aout = p->lastin = 0;
-		}
+		if(p->last_freq == 0) {init_filter_lpf18(p);}
 		p->last_freq = p->freq, p->last_dist = p->dist, p->last_res = p->res;
 
 		kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
@@ -2610,6 +2616,7 @@ void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 		lpf->res = OVERDRIVE_RES;
 		lpf->dist = OVERDRIVE_DIST * sqrt((double)info->drive / 127.0) + OVERDRIVE_OFFSET;
 		calc_filter_lpf18(lpf);
+		init_filter_lpf18(lpf);
 		info->leveli = TIM_FSCALE(info
 			->level * OVERDRIVE_LEVEL, 24);
 		info->leveldi = TIM_FSCALE(info->level, 24);
@@ -2672,6 +2679,7 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 		lpf->res = DISTORTION_RES;
 		lpf->dist = DISTORTION_DIST * sqrt((double)info->drive / 127.0) + DISTORTION_OFFSET;
 		calc_filter_lpf18(lpf);
+		init_filter_lpf18(lpf);
 		info->leveli = TIM_FSCALE(info->level * DISTORTION_LEVEL, 24);
 		info->leveldi = TIM_FSCALE(info->level, 24);
 		return;
@@ -2748,6 +2756,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		}
 		info->leveldli = TIM_FSCALE(info->levell * info->level, 24);
 		calc_filter_lpf18(lpfl);
+		init_filter_lpf18(lpfl);
 		/* right */
 		/* set parameters of decompositor */
 		svfr->freq = 500;
@@ -2766,6 +2775,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		}
 		info->leveldri = TIM_FSCALE(info->levelr * info->level, 24);
 		calc_filter_lpf18(lpfr);
+		init_filter_lpf18(lpfr);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -3412,7 +3422,9 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		info->wetdi = TIM_FSCALE(info->wet * info->level, 24);
 		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
 		calc_filter_lpf18(lpfl);
+		init_filter_lpf18(lpfl);
 		calc_filter_lpf18(lpfr);
+		init_filter_lpf18(lpfr);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -3966,7 +3978,7 @@ static void conv_xg_auto_wah(struct effect_xg_t *st, EffectList *ef)
 
 	info->lfo_freq = lfo_freq_table_xg[st->param_lsb[0]];
 	info->lfo_depth = st->param_lsb[1];
-	info->offset_freq = (double)(st->param_lsb[2] + 1) * 3900.0f / 128.0f + 100.0f;
+	info->offset_freq = (double)(st->param_lsb[2]) * 3900.0f / 127.0f + 100.0f;
 	info->resonance = (double)clip_int(st->param_lsb[3], 10, 120) / 10.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
@@ -4009,7 +4021,9 @@ static void do_xg_auto_wah(int32 *buf, int32 count, EffectList *ef)
 		val = do_lfo(lfo);
 		fil0->freq = fil1->freq = calc_xg_auto_wah_freq(val, info->offset_freq, info->lfo_depth);
 		calc_filter_moog_dist(fil0);
+		init_filter_moog_dist(fil0);
 		calc_filter_moog_dist(fil1);
+		init_filter_moog_dist(fil1);
 		info->fil_count = 0;
 		info->fil_cycle = (int32)(44.0f * play_mode->rate / 44100.0f);
 		info->dryi = TIM_FSCALE(info->dry, 24);
@@ -4023,14 +4037,14 @@ static void do_xg_auto_wah(int32 *buf, int32 count, EffectList *ef)
 	{
 		x = y = buf[i];
 		yf = (double)y * XG_AUTO_WAH_MAX_NEG;
-		do_filter_moog_dist_low(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
+		do_filter_moog_dist_band(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
 								   &fil0->b0, &fil0->b1, &fil0->b2, &fil0->b3, &fil0->b4);
 		y = TIM_FSCALE(yf, XG_AUTO_WAH_BITS);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = y = buf[++i];
 		yf = (double)y * XG_AUTO_WAH_MAX_NEG;
-		do_filter_moog_dist_low(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
+		do_filter_moog_dist_band(&yf, fil0->f, fil0->p, fil0->q, fil0->d,
 								   &fil1->b0, &fil1->b1, &fil1->b2, &fil1->b3, &fil1->b4);
 		y = TIM_FSCALE(yf, XG_AUTO_WAH_BITS);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
@@ -4073,6 +4087,48 @@ static void do_xg_auto_wah_od(int32 *buf, int32 count, EffectList *ef)
 		buf[i] = imuldiv24(x, leveli);
 	}
 }
+
+enum {	/* width * length * height */
+	ER_SMALL_ROOM,	/* 5m * 5m * 3m */
+	ER_MEDIUM_ROOM,	/* 10m * 10m * 5m */
+	ER_LARGE_ROOM,	/* 12m * 12m * 8m */
+	ER_MEDIUM_HALL,	/* 15m * 20m * 10m */
+	ER_LARGE_HALL,	/* 20m * 40m * 18m */
+	ER_EOF,
+};
+
+struct early_reflection_param_t {
+	int8 character;
+	int16 time_left[20];	/* in ms */
+	float weight_left[20];
+	int16 time_right[20];	/* in ms */
+	float weight_right[20];
+};
+
+static struct early_reflection_param_t early_reflection_param[] = {
+	ER_SMALL_ROOM, 461, 487, 505, 530, 802, 818, 927, 941, 1047, 1058, 1068, 1070, 1076, 1096, 1192, 1203, 1236, 1261, 1321, 1344,
+	0.1594, 0.1328, 0.1197, 0.1025, 0.0285, 0.0267, 0.0182, 0.0173, 0.0098, 0.0121, 0.0092, 0.0116, 0.0090, 0.0085, 0.0084, 0.0081, 0.0059, 0.0055, 0.0048, 0.0045,
+	381, 524, 621, 636, 718, 803, 890, 906, 975, 1016, 1026, 1040, 1137, 1166, 1212, 1220, 1272, 1304, 1315, 1320,
+	0.1896, 0.0706, 0.0467, 0.0388, 0.0298, 0.0211, 0.0137, 0.0181, 0.0144, 0.0101, 0.0088, 0.0118, 0.0072, 0.0081, 0.0073, 0.0071, 0.0062, 0.0042, 0.0057, 0.0024,
+	ER_MEDIUM_ROOM, 461, 802, 927, 1047, 1236, 1321, 1345, 1468, 1497, 1568, 1609, 1642, 1713, 1744, 1768, 1828, 1835, 1864, 1893, 1923,
+	0.3273, 0.0586, 0.0374, 0.0201, 0.0120, 0.0098, 0.0152, 0.0090, 0.0109, 0.0095, 0.0068, 0.0034, 0.0073, 0.0041, 0.0027, 0.0024, 0.0059, 0.0034, 0.0054, 0.0035,
+	381, 636, 906, 1026, 1040, 1315, 1320, 1415, 1445, 1556, 1588, 1628, 1637, 1663, 1693, 1768, 1788, 1824, 1882, 1920,
+	0.1896, 0.0706, 0.0467, 0.0388, 0.0298, 0.0211, 0.0137, 0.0181, 0.0144, 0.0101, 0.0088, 0.0118, 0.0072, 0.0081, 0.0073, 0.0071, 0.0062, 0.0042, 0.0057, 0.0024,
+	ER_LARGE_ROOM, 577, 875, 1665, 1713, 1784, 1790, 1835, 1913, 1954, 2023, 2062, 2318, 2349, 2371, 2405, 2409, 2469, 2492, 2534, 2552,
+	0.2727, 0.0752, 0.0070, 0.0110, 0.0083, 0.0056, 0.0089, 0.0079, 0.0051, 0.0066, 0.0043, 0.0019, 0.0035, 0.0023, 0.0038, 0.0017, 0.0015, 0.0029, 0.0027, 0.0032,
+	381, 636, 1485, 1570, 1693, 1768, 1875, 1895, 1963, 2066, 2128, 2220, 2277, 2309, 2361, 2378, 2432, 2454, 2497, 2639,
+	0.5843, 0.1197, 0.0117, 0.0098, 0.0032, 0.0028, 0.0042, 0.0022, 0.0020, 0.0038, 0.0035, 0.0043, 0.0040, 0.0022, 0.0028, 0.0035, 0.0033, 0.0018, 0.0010, 0.0008,
+	ER_MEDIUM_HALL, 1713, 1835, 2534, 2618, 2780, 2849, 2857, 3000, 3071, 3159, 3226, 3338, 3349, 3407, 3413, 3465, 3594, 3669, 3714, 3728,
+	0.0146, 0.0118, 0.0036, 0.0033, 0.0033, 0.0030, 0.0031, 0.0013, 0.0012, 0.0023, 0.0021, 0.0018, 0.0016, 0.0015, 0.0016, 0.0016, 0.0015, 0.0013, 0.0006, 0.0012,
+	381, 636, 1693, 1768, 2066, 2128, 2362, 2416, 2454, 2644, 2693, 2881, 2890, 2926, 2957, 3036, 3185, 3328, 3385, 3456,
+	0.7744, 0.1586, 0.0042, 0.0037, 0.0051, 0.0046, 0.0036, 0.0034, 0.0024, 0.0018, 0.0017, 0.0024, 0.0015, 0.0023, 0.0008, 0.0012, 0.0013, 0.0005, 0.0012, 0.0005,
+	ER_LARGE_HALL, 1713, 1835, 2534, 2618, 3159, 3226, 3669, 3728, 4301, 4351, 4936, 5054, 5097, 5278, 5492, 5604, 5631, 5714, 5751, 5800,
+	0.0150, 0.0121, 0.0037, 0.0034, 0.0023, 0.0022, 0.0013, 0.0012, 0.0005, 0.0005, 0.0006, 0.0002, 0.0002, 0.0004, 0.0004, 0.0004, 0.0004, 0.0002, 0.0002, 0.0003,
+	381, 636, 1693, 1768, 2066, 2128, 2644, 2693, 3828, 3862, 4169, 4200, 4792, 5068, 5204, 5231, 5378, 5460, 5485, 5561,
+	0.7936, 0.1625, 0.0043, 0.0038, 0.0052, 0.0047, 0.0018, 0.0017, 0.0008, 0.0008, 0.0007, 0.0007, 0.0003, 0.0001, 0.0003, 0.0002, 0.0002, 0.0002, 0.0001, 0.0003,
+	ER_EOF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+};
 
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,

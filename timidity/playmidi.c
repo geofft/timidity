@@ -1823,7 +1823,7 @@ static int find_free_voice(void)
     for(i = 0; i < nv; i++)
     {
 	if(voice[i].status & ~(VOICE_ON | VOICE_DIE) &&
-	   !(voice[i].sample->note_to_use && ISDRUMCHANNEL(voice[i].channel)))
+	   !(voice[i].sample && voice[i].sample->note_to_use && ISDRUMCHANNEL(voice[i].channel)))
 	{
 	    v = voice[i].left_mix;
 	    if((voice[i].panned==PANNED_MYSTERY) && (voice[i].right_mix>v))
