@@ -140,6 +140,10 @@ if CYGNUS
 WRD_WINCON_OBJS = wrdt_wcon.o
 endif
 
+if MINGW
+WRD_WINCON_OBJS2 = wrdt_wcon.o
+endif
+
 if NEEDDLOPEN
 DYNAMIC_OBJS = dynamic_c.o
 endif
@@ -163,6 +167,7 @@ libinterface_a_LIBADD = \
 	$(INTERFACE_OBJS) \
 	$(WRD_OBJS) \
 	$(WRD_WINCON_OBJS) \
+	$(WRD_WINCON_OBJS2) \
 	$(DYNAMIC_OBJS) \
 	$(SOUND_SPEC_OBJS)
 
@@ -209,6 +214,8 @@ clean:
 	rm -f tkmidity.tcl
 	rm -f *.o
 	rm -f *.$(so)
+	rm -f *.res
+	rm -f *escaped.c
 
 tclIndex: $(TCLSRCS)
 	rm -f tclIndex

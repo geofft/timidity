@@ -222,7 +222,11 @@ void InitConsoleWnd(HWND hParentWnd);
 static SERVICE_STATUS_HANDLE serviceStatusHandle;
 static DWORD currentServiceStatus;
 static const char *serviceName = "Timidity";
+#ifdef TIMID_VERSION
 static const char *serviceLongName = "Timidity version " TIMID_VERSION;
+#else
+static const char *serviceLongName = "Timidity version " PACKAGE_VERSION;
+#endif
 static const char *serviceDescription = "Realtime synthesize midi message";
 static const char *regKeyTwSynSrv = "SYSTEM\\CurrentControlSet\\Services\\Timidity";
 

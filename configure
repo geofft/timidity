@@ -14058,7 +14058,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-if test "x$CYGWIN" = xyes || test "x$MINGW" = xyes ; then
+if test "x$CYGNUS" = xyes || test "x$MINGW" = xyes ; then
   echo "$as_me:$LINENO: checking enable_audio=flac" >&5
 echo $ECHO_N "checking enable_audio=flac... $ECHO_C" >&6
   if test "x$au_enable_flac" = xyes; then
