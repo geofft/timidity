@@ -9,7 +9,7 @@ timidity.cfg \- configure file of TiMidity++
 .P
 .SH DESCRIPTION
 The file \fItimidity.cfg\fP describes the runtime environments of
-timidity(1) that are the path of sound font, instruments configrations
+timidity(1) that are the path of sound font, instruments configurations
 or else.
 .br
 \fITiMidity++\fP looks for the configuration file \fItimidity.cfg\fP
@@ -43,11 +43,11 @@ bank 0
 .br
 2 zoo.pat
 .sp
-At first, \fBdir\fP specities the archive name (followed by '#') for
+At first, \fBdir\fP specifies the archive name (followed by '#') for
 the path of patch files same as directory name (in this case,
 "/usr/local/share/timidity/inst/foo.zip").  TiMidity recognize the
 path is an archive file if the expression has the last character '#',
-and also read the files contained in this archive file.  In previouns
+and also read the files contained in this archive file.  In previous
 example the patch files bar.pat, baz.pat and zoo.pat contained in the
 foo.zip are also installed.
 .TP
@@ -62,7 +62,7 @@ affect this tone bank.
 .BI "progbase " number
 Sets and displays the tone number from \fInumber\fP to
 \fInumber+128\fP.  If \fB progbase 1\fP are specified, tone numbers
-that follow are setted and displayed as the numbers from 1 to 128.
+that follow are sett and displayed as the numbers from 1 to 128.
 .TP
 .BI "drumset " number
 Selects the drum set to modify.  Patch mappings that follow will
@@ -270,10 +270,10 @@ Note that alternate assign of drumset 0 is used by default.
 .TP
 .BI "#extension comm " "program comment"
 Specifies the comment \fIcomment\fP for the tone number \fIprogram\fP.
-These comments are displayed in the indicater line at the case
+These comments are displayed in the indicator line at the case
 TiMidity is booted with option \fB\-int\fP, \fB\-iTt\fP.
 .TP
-.BI "#extension timeout " "program secound"
+.BI "#extension timeout " "program second"
 Specifies the time\-out value of the \fIprogram\fP.  If any notes
 pronounced with the tone number \fIprogram\fP are suspended more than
 \fIsecond\fP seconds, TiMidity kills the notes.
@@ -289,10 +289,10 @@ Specifies the proxy of the HTTP protocol.  \fIhostname\fP and
 \fIport\fB are of the proxy host's.
 .TP
 .BI "#extension FTPproxy " hostname:port
-Specifies the prox of the FTP protocol.  Same as HTTP.
+Specifies the proxy of the FTP protocol.  Same as HTTP.
 .TP
 .BI "#extension mailaddr " your\-mail\-address
-Specifies user's mail address.  This address is sended to the FTP
+Specifies user's mail address.  This address is sent to the FTP
 server if TiMidity access any file via FTp.
 .TP
 .BI "#extension opt [\-]{option} " [optarg]
@@ -336,12 +336,12 @@ effect which is not set as the tone will become the initial value 0.
 .TP
 .BI "#extension rnddelay " "progno msec"
 For every pronunciation, it is random and less than a maximum of
-\fImsec\fP delay.  The distribution of randam value is pink noise
+\fImsec\fP delay.  The distribution of random value is pink noise
 (1/f fluctuation) rather than a white noise.
 .P
 These "#extension" statements are beginning with character '#' that
 is the comment flag of old TiMidity (version 0.2i or earlier).  So
-these statememts are treated as comment line.
+these statements are treated as comment line.
 .br
 The latest TiMidity treats "#extension" as white\-space.  So you can
 omit it.

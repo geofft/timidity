@@ -1,6 +1,7 @@
 2004-01-21  mput <root@mput.dip.jp>
 
 	* doc/ja_JP.ujis/timidity.cfg.5: sorry, I was confusing. revert.
+	* doc/C/timidity.cfg.5: fix typo
 
 2004-01-21  mput <root@mput.dip.jp>
 
