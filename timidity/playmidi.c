@@ -318,6 +318,7 @@ static char *event_name(int type)
 	EVENT_NAME(ME_NOTE_STEP);
 	EVENT_NAME(ME_TIMESIG);
 	EVENT_NAME(ME_KEYSIG);
+	EVENT_NAME(ME_SCALE_TUNING);
 	EVENT_NAME(ME_WRD);
 	EVENT_NAME(ME_SHERRY);
 	EVENT_NAME(ME_BARMARKER);
@@ -467,11 +468,11 @@ static void reset_nrpn_controllers(int c)
   if(play_system_mode == GS_SYSTEM_MODE) {
 	  channel[c].bank_lsb = channel[c].tone_map0_number;
   }
-  if(!ISDRUMCHANNEL(c)) {
-	  for(i=0;i<12;i++) {
-		  channel[c].scale_tuning[i] = 0;
-	  }
-  }
+	if (! ISDRUMCHANNEL(c)) {
+		for (i = 0; i < 12; i++)
+			channel[c].scale_tuning[i] = 0;
+		channel[c].prev_scale_tuning = 0;
+	}
 
   /* channel pressure control */
   channel[c].caf_rate_ctl1 = 0.25;
@@ -595,130 +596,114 @@ static void reset_midi(int playing)
 
 void recompute_freq(int v)
 {
-  int ch=voice[v].channel,note=voice[v].note;
-  int
-    sign=(voice[v].sample_increment < 0), /* for bidirectional loops */
-    pb=channel[ch].pitchbend;
-  double a;
-  int32 tuning = 0;
-  FLOAT_T root_freq;
-
-  if(!voice[v].sample->sample_rate)
-      return;
-
-  if(!opt_modulation_wheel)
-      voice[v].modulation_wheel = 0;
-  if(!opt_portamento)
-      voice[v].porta_control_ratio = 0;
-
-  voice[v].vibrato_control_ratio = voice[v].orig_vibrato_control_ratio;
-  if(voice[v].vibrato_control_ratio || voice[v].modulation_wheel > 0)
-  {
-      /* This instrument has vibrato. Invalidate any precomputed
-         sample_increments. */
-      int i;
-      if(voice[v].modulation_wheel > 0)
-      {
-	  voice[v].vibrato_control_ratio =
-	      (int32)(play_mode->rate * MODULATION_WHEEL_RATE
-		      / (2.0 * VIBRATO_SAMPLE_INCREMENTS));
-	  voice[v].vibrato_delay = 0;
-      }
-      for(i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
-	  voice[v].vibrato_sample_increment[i] = 0;
-      voice[v].cache = NULL;
-  }
-
-  /* fine: [0..128] => [-256..256]
-   * 1 coarse = 256 fine (= 1 note)
-   * 1 fine = 2^5 tuning
-   */
-  tuning = (((int32)channel[ch].rpnmap[RPN_ADDR_0001] - 0x40)
-	    + 64 * ((int32)channel[ch].rpnmap[RPN_ADDR_0002] - 0x40)) << 7;
-  
-  /* for NRPN Coarse Pitch of Drum (GS) & Fine Pitch of Drum (XG) */
-  if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL && (channel[ch].drums[note]->fine || channel[ch].drums[note]->coarse))
-  {
-	  tuning += ((int32)channel[ch].drums[note]->fine + 64 * (int32)channel[ch].drums[note]->coarse) << 7;
-  }
-
-  /* Scale Tuning */
-  if(!ISDRUMCHANNEL(ch)) {
-	  tuning += channel[ch].scale_tuning[note % 12] << 7;
-  }
-
-
-  if(!voice[v].porta_control_ratio)
-  {
-      if(tuning == 0 && pb == 0x2000) {
-	voice[v].frequency = voice[v].orig_frequency;
-      }
-      else
-      {
-	  pb -= 0x2000;
-	  if(!(channel[ch].pitchfactor))
-	  {
-	      /* Damn. Somebody bent the pitch. */
-	      int32 i = (int32)pb * channel[ch].rpnmap[RPN_ADDR_0000] + tuning;
-	      if(i >= 0)
-		  channel[ch].pitchfactor =
-		      bend_fine[(i>>5) & 0xFF] * bend_coarse[(i>>13) & 0x7F];
-	      else
-	      {
-		  i = -i;
-		  channel[ch].pitchfactor = 1.0 /
-		      (bend_fine[(i>>5) & 0xFF] * bend_coarse[(i>>13) & 0x7F]);
-	      }
-	  }
-	  voice[v].frequency =
-	      (int32)((double)voice[v].orig_frequency
-		      * channel[ch].pitchfactor);
-	  if(voice[v].frequency != voice[v].orig_frequency)
-	      voice[v].cache = NULL;
-      }
-  }
-  else /* Portament */
-  {
-      int32 i;
-      FLOAT_T pf;
-
-      pb -= 0x2000;
-      i = pb * channel[ch].rpnmap[RPN_ADDR_0000]
-	  + (voice[v].porta_pb << 5) + tuning;
-      if(i >= 0)
-	  pf = bend_fine[(i>>5) & 0xFF] * bend_coarse[(i>>13) & 0x7F];
-      else
-      {
-	  i = -i;
-	  pf = 1.0 / (bend_fine[(i>>5) & 0xFF] * bend_coarse[(i>>13) & 0x7F]);
-      }
-      voice[v].frequency = (int32)((double)(voice[v].orig_frequency) * pf);
-      voice[v].cache = NULL;
-  }
-  
-  if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL && channel[ch].drums[note]->play_note != -1) {
-	  root_freq = (double)freq_table[channel[ch].drums[note]->play_note]
-		  * (double)voice[v].sample->root_freq / (double)voice[v].orig_frequency;
-  } else {
-	  root_freq = voice[v].sample->root_freq;
-  }
-
-  a = TIM_FSCALE(((double)voice[v].sample->sample_rate * voice[v].frequency + channel[ch].pitch_offset_fine) /
-		 ((double)root_freq * play_mode->rate),
-		 FRACTION_BITS) + 0.5;
-
-  if(sign)
-      a = -a; /* need to preserve the loop direction */
-
-  voice[v].sample_increment = (int32)a;
+	int i;
+	int ch = voice[v].channel;
+	int note = voice[v].note;
+	int32 tuning = 0;
+	int8 st = channel[ch].scale_tuning[note % 12];
+	int pb = channel[ch].pitchbend;
+	int32 tmp;
+	FLOAT_T pf, root_freq;
+	/* for bidirectional loops */
+	int sign = (voice[v].sample_increment < 0);
+	double a;
+	
+	if (! voice[v].sample->sample_rate)
+		return;
+	if (! opt_modulation_wheel)
+		voice[v].modulation_wheel = 0;
+	if (! opt_portamento)
+		voice[v].porta_control_ratio = 0;
+	voice[v].vibrato_control_ratio = voice[v].orig_vibrato_control_ratio;
+	if (voice[v].vibrato_control_ratio || voice[v].modulation_wheel > 0) {
+		/* This instrument has vibrato. Invalidate any precomputed
+		 * sample_increments.
+		 */
+		if (voice[v].modulation_wheel > 0) {
+			voice[v].vibrato_control_ratio = play_mode->rate / 2
+					* MODULATION_WHEEL_RATE / VIBRATO_SAMPLE_INCREMENTS;
+			voice[v].vibrato_delay = 0;
+		}
+		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
+			voice[v].vibrato_sample_increment[i] = 0;
+		voice[v].cache = NULL;
+	}
+	/* fine: [0..128] => [-256..256]
+	 * 1 coarse = 256 fine (= 1 note)
+	 * 1 fine = 2^5 tuning
+	 */
+	tuning = (channel[ch].rpnmap[RPN_ADDR_0001] - 0x40
+			+ (channel[ch].rpnmap[RPN_ADDR_0002] - 0x40) * 64) << 7;
+	/* for NRPN Coarse Pitch of Drum (GS) & Fine Pitch of Drum (XG) */
+	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
+			&& (channel[ch].drums[note]->fine
+			|| channel[ch].drums[note]->coarse))
+		tuning += (channel[ch].drums[note]->fine
+				+ channel[ch].drums[note]->coarse * 64) << 7;
+	/* Scale Tuning */
+	if (! ISDRUMCHANNEL(ch)) {
+		tuning += st * 81.92 + 0.5;
+		if (st != channel[ch].prev_scale_tuning) {
+			channel[ch].pitchfactor = 0;
+			channel[ch].prev_scale_tuning = st;
+		}
+	}
+	if (! voice[v].porta_control_ratio) {
+		if (tuning == 0 && pb == 0x2000)
+			voice[v].frequency = voice[v].orig_frequency;
+		else {
+			pb -= 0x2000;
+			if (! channel[ch].pitchfactor) {
+				/* Damn. Somebody bent the pitch. */
+				tmp = pb * channel[ch].rpnmap[RPN_ADDR_0000] + tuning;
+				if (tmp >= 0)
+					channel[ch].pitchfactor = bend_fine[tmp >> 5 & 0xff]
+							* bend_coarse[tmp >> 13 & 0x7f];
+				else
+					channel[ch].pitchfactor = 1.0 /
+							(bend_fine[-tmp >> 5 & 0xff]
+							* bend_coarse[-tmp >> 13 & 0x7f]);
+			}
+			voice[v].frequency =
+					voice[v].orig_frequency * channel[ch].pitchfactor;
+			if (voice[v].frequency != voice[v].orig_frequency)
+				voice[v].cache = NULL;
+		}
+	} else { /* Portament */
+		pb -= 0x2000;
+		tmp = pb * channel[ch].rpnmap[RPN_ADDR_0000]
+				+ (voice[v].porta_pb << 5) + tuning;
+		if (tmp >= 0)
+			pf = bend_fine[tmp >> 5 & 0xff]
+					* bend_coarse[tmp >> 13 & 0x7f];
+		else
+			pf = 1.0 / (bend_fine[-tmp >> 5 & 0xff]
+					* bend_coarse[tmp >> 13 & 0x7f]);
+		voice[v].frequency = voice[v].orig_frequency * pf;
+		voice[v].cache = NULL;
+	}
+	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
+			&& channel[ch].drums[note]->play_note != -1)
+		root_freq = voice[v].sample->root_freq
+				* (double) freq_table[channel[ch].drums[note]->play_note]
+				/ voice[v].orig_frequency;
+	else
+		root_freq = voice[v].sample->root_freq;
+	a = TIM_FSCALE(((double) voice[v].sample->sample_rate
+			* voice[v].frequency + channel[ch].pitch_offset_fine)
+			/ (root_freq * play_mode->rate), FRACTION_BITS);
+	/* need to preserve the loop direction */
+	if (sign)
+		a = -a;
+	voice[v].sample_increment = a + 0.5;
 #ifdef ABORT_AT_FATAL
-  if (voice[v].sample_increment == 0) {
-      fprintf(stderr, "Invalid sample increment a=%e %ld %ld %ld %ld%s\n",
-	      a, (long)voice[v].sample->sample_rate, (long)voice[v].frequency,
-	      (long)voice[v].sample->root_freq, (long)play_mode->rate,
-	      voice[v].cache ? " (Cached)" : "");
-      abort();
-  }
+	if (voice[v].sample_increment == 0) {
+		fprintf(stderr, "Invalid sample increment a=%e %ld %ld %ld %ld%s\n",
+				a, (long) voice[v].sample->sample_rate,
+				(long) voice[v].frequency, (long) voice[v].sample->root_freq,
+				(long) play_mode->rate, (voice[v].cache) ? " (Cached)" : "");
+		abort();
+	}
 #endif /* ABORT_AT_FATAL */
 }
 
@@ -2704,7 +2689,7 @@ static void drop_sustain(int c)
       finish_note(i);
 }
 
-static void adjust_pitchbend(int c)
+static void adjust_pitch(int c)
 {
   int i, uv = upper_voices;
   for(i = 0; i < uv; i++)
@@ -3015,6 +3000,11 @@ static void play_midi_prescan(MidiEvent *ev)
 	    resamp_cache_refer_alloff(ch, ev->time);
 	    channel[ch].key_shift = (int)ev->a - 0x40;
 	    break;
+
+	case ME_SCALE_TUNING:
+		resamp_cache_refer_alloff(ch, ev->time);
+		channel[ch].scale_tuning[ev->a] = ev->b;
+		break;
 
 	  case ME_MAINVOLUME:
 	    if (ev->a > mainvolume_max) {
@@ -3784,6 +3774,10 @@ static void seek_forward(int32 until_time)
 
 	case ME_KEYSIG:
 		current_keysig = current_event->a + current_event->b * 16;
+		break;
+
+	case ME_SCALE_TUNING:
+		channel[ch].scale_tuning[current_event->a] = current_event->b;
 		break;
 
 	  case ME_EOT:
@@ -5253,7 +5247,7 @@ int play_event(MidiEvent *ev)
 	channel[ch].pitchbend = ev->a + ev->b * 128;
 	channel[ch].pitchfactor = 0;
 	/* Adjust pitch for notes already playing */
-	adjust_pitchbend(ch);
+	adjust_pitch(ch);
 	ctl_mode_event(CTLE_PITCH_BEND, 1, ch, channel[ch].pitchbend);
 	break;
 
@@ -5569,6 +5563,12 @@ int play_event(MidiEvent *ev)
 			i += (i < 7) ? 5 : -7, j++;
 		j += note_key_offset, j -= floor(j / 12.0) * 12;
 		current_freq_table = j;
+		break;
+
+	case ME_SCALE_TUNING:
+		resamp_cache_refer_alloff(ch, current_event->time);
+		channel[ch].scale_tuning[current_event->a] = current_event->b;
+		adjust_pitch(ch);
 		break;
 
 	case ME_NOTE_STEP:

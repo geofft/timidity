@@ -118,6 +118,7 @@ enum midi_event_t
 
     ME_TIMESIG,			/* Time signature */
     ME_KEYSIG,			/* Key signature */
+    ME_SCALE_TUNING,		/* Scale tuning */
 
     ME_WRD,			/* for MIMPI WRD tracer */
     ME_SHERRY,			/* for Sherry WRD tracer */
@@ -244,7 +245,7 @@ typedef struct {
 
   int8 velocity_sense_depth,velocity_sense_offset;
   
-  int8 scale_tuning[12];
+  int8 scale_tuning[12], prev_scale_tuning;
 
   int8 soft_pedal;	/* for CC# Soft */
 

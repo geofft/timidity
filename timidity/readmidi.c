@@ -667,65 +667,23 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				  break;
 
 				case 0x41:	/* scale tuning */
-				  channel[p].scale_tuning[0] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x42:	/* scale tuning */
-				  channel[p].scale_tuning[1] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C# (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x43:	/* scale tuning */
-				  channel[p].scale_tuning[2] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x44:	/* scale tuning */
-				  channel[p].scale_tuning[3] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D# (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x45:	/* scale tuning */
-				  channel[p].scale_tuning[4] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning E (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x46:	/* scale tuning */
-				  channel[p].scale_tuning[5] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x47:	/* scale tuning */
-				  channel[p].scale_tuning[6] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F# (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x48:	/* scale tuning */
-				  channel[p].scale_tuning[7] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x49:	/* scale tuning */
-				  channel[p].scale_tuning[8] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G# (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x4A:	/* scale tuning */
-				  channel[p].scale_tuning[9] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x4B:	/* scale tuning */
-				  channel[p].scale_tuning[10] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A# (CH:%d %dcent)",p,*body - 64);
-				  break;
-
-				case 0x4C:	/* scale tuning */
-				  channel[p].scale_tuning[11] = *body - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning B (CH:%d %dcent)",p,*body - 64);
-				  break;
-
+				case 0x42:
+				case 0x43:
+				case 0x44:
+				case 0x45:
+				case 0x46:
+				case 0x47:
+				case 0x48:
+				case 0x49:
+				case 0x4a:
+				case 0x4b:
+				case 0x4c:
+					MIDIEVENT(at, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
+					num_events++;
+					ctl->cmsg(CMSG_INFO, VERB_NOISY,
+							"Scale Tuning %s (CH:%d %d cent)",
+							note_name[ent - 0x41], p, *body - 64);
+					break;
 
 				default:
 				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
@@ -826,64 +784,23 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				  break;
 
 				case 0x41:	/* scale tuning */
-				  channel[p].scale_tuning[0] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x42:	/* scale tuning */
-				  channel[p].scale_tuning[1] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C# (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x43:	/* scale tuning */
-				  channel[p].scale_tuning[2] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x44:	/* scale tuning */
-				  channel[p].scale_tuning[3] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D# (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x45:	/* scale tuning */
-				  channel[p].scale_tuning[4] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning E (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x46:	/* scale tuning */
-				  channel[p].scale_tuning[5] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x47:	/* scale tuning */
-				  channel[p].scale_tuning[6] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F# (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x48:	/* scale tuning */
-				  channel[p].scale_tuning[7] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x49:	/* scale tuning */
-				  channel[p].scale_tuning[8] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G# (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x4A:	/* scale tuning */
-				  channel[p].scale_tuning[9] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x4B:	/* scale tuning */
-				  channel[p].scale_tuning[10] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A# (CH:%d %dcent)",p,val[6] - 64);
-				  break;
-
-				case 0x4C:	/* scale tuning */
-				  channel[p].scale_tuning[11] = val[6] - 64;
-				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning B (CH:%d %dcent)",p,val[6] - 64);
-				  break;
+				case 0x42:
+				case 0x43:
+				case 0x44:
+				case 0x45:
+				case 0x46:
+				case 0x47:
+				case 0x48:
+				case 0x49:
+				case 0x4a:
+				case 0x4b:
+				case 0x4c:
+					MIDIEVENT(at, ME_SCALE_TUNING, p, ent - 0x41, val[6] - 64);
+					num_events++;
+					ctl->cmsg(CMSG_INFO, VERB_NOISY,
+							"Scale Tuning %s (CH:%d %d cent)",
+							note_name[ent - 0x41], p, val[6] - 64);
+					break;
 
 				default:
 				  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[3],val[4],val[5],val[6]);
@@ -1069,30 +986,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 					num_events += 3;
 					break;
 				case 0x40:	/* Scale Tuning */
-					channel[p].scale_tuning[0] = val[7] - 64;
-					channel[p].scale_tuning[1] = val[8] - 64;
-					channel[p].scale_tuning[2] = val[9] - 64;
-					channel[p].scale_tuning[3] = val[10] - 64;
-					channel[p].scale_tuning[4] = val[11] - 64;
-					channel[p].scale_tuning[5] = val[12] - 64;
-					channel[p].scale_tuning[6] = val[13] - 64;
-					channel[p].scale_tuning[7] = val[14] - 64;
-					channel[p].scale_tuning[8] = val[15] - 64;
-					channel[p].scale_tuning[9] = val[16] - 64;
-					channel[p].scale_tuning[10] = val[17] - 64;
-					channel[p].scale_tuning[11] = val[18] - 64;
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C (CH:%d %dcent)",p,val[7] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning C# (CH:%d %dcent)",p,val[8] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D (CH:%d %dcent)",p,val[9] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning D# (CH:%d %dcent)",p,val[10] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning E (CH:%d %dcent)",p,val[11] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F (CH:%d %dcent)",p,val[12] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning F# (CH:%d %dcent)",p,val[13] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G (CH:%d %dcent)",p,val[14] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning G# (CH:%d %dcent)",p,val[15] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A (CH:%d %dcent)",p,val[16] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning A# (CH:%d %dcent)",p,val[17] - 64);
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Scale Tuning B (CH:%d %dcent)",p,val[18] - 64);
+					for (i = 0; i < 12; i++) {
+						MIDIEVENT(at, ME_SCALE_TUNING, p, i, val[i + 7] - 64);
+						ctl->cmsg(CMSG_INFO, VERB_NOISY,
+								"Scale Tuning %s (CH:%d %d cent)",
+								note_name[i], p, val[i + 7] - 64);
+					}
+					num_events += 12;
 					break;
 				default:
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);

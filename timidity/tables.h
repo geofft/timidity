@@ -72,6 +72,8 @@ extern FLOAT_T cb_to_amp_table[];
 extern int8 bitshift_table[];
 
 extern void init_freq_table2(void);
+extern void init_bend_fine(void);
+extern void init_bend_coarse(void);
 extern void init_tables(void);
 
 #endif /* ___TABLES_H_ */

@@ -3318,6 +3318,8 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	    url_add_module(url_module_list[i]);
 	init_string_table(&opt_config_string);
 	init_freq_table2();
+	init_bend_fine();
+	init_bend_coarse();
 	init_tables();
 #ifdef SUPPORT_SOCKET
 	url_news_connection_cache(URL_NEWS_CONN_CACHE);
