@@ -1,3 +1,7 @@
+2003-08-12 TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix typo around long options
+
 2003-08-11 TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Hack up around short/long options

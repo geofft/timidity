@@ -3219,7 +3219,7 @@ static inline int parse_opt_h(const char *arg)
 "  --[no-]loop" NLS
 "  --[no-]random" NLS
 "  --[no-]sort" NLS
-"  --backbround" NLS, fp);
+"  --background" NLS, fp);
 	fputs(NLS, fp);
 	fputs("Available output modes (-O, --output-mode option):" NLS, fp);
 	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
