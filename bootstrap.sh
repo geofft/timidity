@@ -6,6 +6,7 @@ if [ "x$1" = "x-f" ]; then
 
     # Force re-construct the whole autotools.
     # May take much time than usual.
+
     # for Mac OS X + Fink:
     #aclocal -I /usr/share/aclocal -I /sw/share/aclocal -I /sw/share/aclocal-1.6 -I autoconf \
        aclocal -I /usr/share/aclocal -I autoconf \
