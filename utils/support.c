@@ -674,3 +674,41 @@ int strncasecmp(char *s1, char *s2, unsigned int len) {
   return (0);
 }
 #endif /* HAVE_STRNCASECMP */
+
+#ifndef HAVE_SYS_STAT_H
+#ifdef __MACOS__
+int stat(const char *filename, struct stat *st)
+{
+	Str255				pfilename;
+	CInfoPBRec			pb;
+	FSSpec				fss;
+	
+	c2pstrcpy(pfilename, filename);
+	if (FSMakeFSSpec(0, 0, pfilename, &fss) == noErr)
+	{
+		pb.hFileInfo.ioNamePtr = fss.name;
+		pb.hFileInfo.ioVRefNum = fss.vRefNum;
+		pb.hFileInfo.ioFDirIndex = 0;
+		pb.hFileInfo.ioDirID = fss.parID;
+		if (PBGetCatInfoSync(&pb) == noErr)
+		{
+			st->st_mode = (pb.hFileInfo.ioFlAttrib & kioFlAttribDirMask) ? S_IFDIR : 0;
+			st->st_dev = pb.hFileInfo.ioVRefNum;
+			st->st_ino = pb.hFileInfo.ioDirID;
+			st->st_size = pb.hFileInfo.ioFlLgLen;
+			st->st_mtime = pb.hFileInfo.ioFlMdDat;
+			st->st_ctime = pb.hFileInfo.ioFlCrDat;
+			st->st_btime = pb.hFileInfo.ioFlBkDat;
+			return 0;
+		}
+	}
+	st->st_mode = 0;
+	st->st_dev = 0;
+	st->st_ino = 0;
+	st->st_size = 0;
+	st->st_mtime = st->st_ctime = st->st_btime = 0;
+	errno = EIO;
+	return -1;
+}
+#endif /* __MACOS__ */
+#endif /* HAVE_SYS_STAT_H */
