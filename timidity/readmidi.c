@@ -4307,14 +4307,14 @@ void recompute_eq_status()
 /*! convert GS user drumset assign groups to internal "alternate assign". */
 void recompute_userdrum_altassign(int bank, int group)
 {
-	int number = 0, i;
+	int number = 0;
 	char *params[131], param[10];
 	ToneBank *bk;
 	UserDrumset *p;
 	
 	for(p = userdrum_first; p != NULL; p = p->next) {
 		if(p->assign_group == group) {
-			sprintf(param,"%d",i);
+			sprintf(param, "%d", group);
 			params[number] = safe_strdup(param);
 			number++;
 		}
