@@ -255,7 +255,7 @@ static inline int32 imuldiv28(int32 a, int32 b)
 
 static inline int32 signlong(int32 a)
 {
-	return (1 + ((a >> 31) << 1));
+	return ((a < 0) ? -1 : 1);
 }
 #endif /* OPT_MODE != 0 */
 

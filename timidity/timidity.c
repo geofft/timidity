@@ -181,6 +181,15 @@ enum {
 	TIM_OPT_FLAC_OGGFLAC,
 #endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+	TIM_OPT_SPEEX_QUALITY,
+	TIM_OPT_SPEEX_VBR,
+	TIM_OPT_SPEEX_ABR,
+	TIM_OPT_SPEEX_VAD,
+	TIM_OPT_SPEEX_DTX,
+	TIM_OPT_SPEEX_COMPLEXITY,
+	TIM_OPT_SPEEX_NFRAMES,
+#endif /* AU_SPEEX */
 	TIM_OPT_OUTPUT_FILE,
 	TIM_OPT_PATCH_FILE,
 	TIM_OPT_POLYPHONY,
@@ -309,6 +318,15 @@ static const struct option longopts[] = {
 	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
 #endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+	{ "speex-quality",          required_argument, NULL, TIM_OPT_SPEEX_QUALITY },
+	{ "speex-vbr",              no_argument,       NULL, TIM_OPT_SPEEX_VBR },
+	{ "speex-abr",              required_argument, NULL, TIM_OPT_SPEEX_ABR },
+	{ "speex-vad",              no_argument,       NULL, TIM_OPT_SPEEX_VAD },
+	{ "speex-dtx",              no_argument,       NULL, TIM_OPT_SPEEX_DTX },
+	{ "speex-complexity",       required_argument, NULL, TIM_OPT_SPEEX_COMPLEXITY },
+	{ "speex-nframes",          required_argument, NULL, TIM_OPT_SPEEX_NFRAMES },
+#endif /* AU_SPEEX */
 	{ "output-file",            required_argument, NULL, TIM_OPT_OUTPUT_FILE },
 	{ "patch-file",             required_argument, NULL, TIM_OPT_PATCH_FILE },
 	{ "polyphony",              required_argument, NULL, TIM_OPT_POLYPHONY },
@@ -438,6 +456,15 @@ static inline int parse_opt_flac_complevel(const char *);
 static inline int parse_opt_flac_oggflac(const char *);
 #endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+static inline int parse_opt_speex_quality(const char *);
+static inline int parse_opt_speex_vbr(const char *);
+static inline int parse_opt_speex_abr(const char *);
+static inline int parse_opt_speex_vad(const char *);
+static inline int parse_opt_speex_dtx(const char *);
+static inline int parse_opt_speex_complexity(const char *);
+static inline int parse_opt_speex_nframes(const char *);
+#endif /* AU_SPEEX */
 static inline int parse_opt_o(char *);
 static inline int parse_opt_P(const char *);
 static inline int parse_opt_p(const char *);
@@ -2770,6 +2797,22 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_flac_oggflac(arg);
 #endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+	case TIM_OPT_SPEEX_QUALITY:
+		return parse_opt_speex_quality(arg);
+	case TIM_OPT_SPEEX_VBR:
+		return parse_opt_speex_vbr(arg);
+	case TIM_OPT_SPEEX_ABR:
+		return parse_opt_speex_abr(arg);
+	case TIM_OPT_SPEEX_VAD:
+		return parse_opt_speex_vad(arg);
+	case TIM_OPT_SPEEX_DTX:
+		return parse_opt_speex_dtx(arg);
+	case TIM_OPT_SPEEX_COMPLEXITY:
+		return parse_opt_speex_complexity(arg);
+	case TIM_OPT_SPEEX_NFRAMES:
+		return parse_opt_speex_nframes(arg);
+#endif /* AU_SPEEX */
 	case TIM_OPT_OUTPUT_FILE:
 		return parse_opt_o(arg);
 	case TIM_OPT_PATCH_FILE:
@@ -3840,6 +3883,17 @@ static inline int parse_opt_h(const char *arg)
 #endif /* AU_OGGFLAC */
 	fputs(NLS, fp);
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+	fputs("Speex output format long options:" NLS
+"  --speex-quality=n             Encoding quality n:[0..10]" NLS
+"  --speex-vbr                   Enable variable bit-rate (VBR)" NLS
+"  --speex-abr=n                 Enable average bit-rate (ABR) at rate bps" NLS
+"  --speex-vad                   Enable voice activity detection (VAD)" NLS
+"  --speex-dtx                   Enable file-based discontinuous transmission (DTX)" NLS
+"  --speex-complexity=n          Set encoding complexity n:[0-10]" NLS
+"  --speex-nframes=n             Number of frames per Ogg packet n:[0-10]" NLS, fp);
+	fputs(NLS, fp);
+#endif
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
 	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
@@ -4309,6 +4363,51 @@ static inline int parse_opt_flac_oggflac(const char *arg)
 }
 #endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
+
+#ifdef AU_SPEEX
+extern void speex_set_option_quality(int quality);
+extern void speex_set_option_vbr(int vbr);
+extern void speex_set_option_abr(int rate);
+extern void speex_set_option_vad(int vad);
+extern void speex_set_option_dtx(int dtx);
+extern void speex_set_option_complexity(int complexity);
+
+static inline int parse_opt_speex_quality(const char *arg)
+{
+	speex_set_option_quality(atoi(arg));
+	return 0;
+}
+static inline int parse_opt_speex_vbr(const char *arg)
+{
+	speex_set_option_vbr(1);
+	return 0;
+}
+static inline int parse_opt_speex_abr(const char *arg)
+{
+	speex_set_option_abr(atoi(arg));
+	return 0;
+}
+static inline int parse_opt_speex_vad(const char *arg)
+{
+	speex_set_option_vad(1);
+	return 0;
+}
+static inline int parse_opt_speex_dtx(const char *arg)
+{
+	speex_set_option_dtx(1);
+	return 0;
+}
+static inline int parse_opt_speex_complexity(const char *arg)
+{
+	speex_set_option_complexity(atoi(arg));
+	return 0;
+}
+static inline int parse_opt_speex_nframes(const char *arg)
+{
+	speex_set_option_nframes(atoi(arg));
+	return 0;
+}
+#endif /* AU_SPEEX */
 
 static inline int parse_opt_o(char *arg)
 {

@@ -3428,7 +3428,7 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		do_od(&high, di);
 		/* anti-aliasing */
 		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1l, &lpf1->x2l, &lpf1->y1l, &lpf1->y2l);
-		buf[i] = imuldiv24(high + inputr, weti) + imuldiv24(buf[i], dryi);
+		buf[i] = imuldiv24(high + inputl, weti) + imuldiv24(buf[i], dryi);
 
 		/* right */
 		inputr = buf[++i];

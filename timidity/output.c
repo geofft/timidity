@@ -116,6 +116,9 @@ extern PlayMode vorbis_play_mode;
 #ifdef AU_FLAC
 extern PlayMode flac_play_mode;
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+extern PlayMode speex_play_mode;
+#endif /* AU_SPEEX */
 #ifdef AU_GOGO
 extern PlayMode gogo_play_mode;
 #endif /* AU_GOGO */
@@ -171,6 +174,9 @@ PlayMode *play_mode_list[] = {
 #ifdef AU_FLAC
   &flac_play_mode,
 #endif /* AU_FLAC */
+#ifdef AU_SPEEX
+  &speex_play_mode,
+#endif /* AU_SPEEX */
 #ifdef AU_GOGO
   &gogo_play_mode,
 #endif /* AU_GOGO */
