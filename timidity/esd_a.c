@@ -40,11 +40,6 @@
 
 #include <esd.h>
 
-
-void *libesd = NULL;
-int (*_esd_play_stream_fallback)(esd_format_t, int, const char *, const char *) = NULL;
-void (*_esd_audio_flush)() = NULL;
-
 #include "timidity.h"
 #include "common.h"
 #include "output.h"
@@ -89,16 +84,6 @@ static int open_output(void)
     int include_enc, exclude_enc;
     esd_format_t esdformat;
 
-    if(!libesd) {
-	    libesd=dlopen("/usr/lib/libesd.so.0", RTLD_LAZY);
-	    if(!libesd) {
-		    fputs("Can't dlopen libesd", stderr);
-		    return -1;
-	    }
-	    _esd_play_stream_fallback=dlsym(libesd, "esd_play_stream_fallback");
-	    _esd_audio_flush=dlsym(libesd, "esd_audio_flush");
-    }
-    
     include_enc = 0;
     exclude_enc = PE_ULAW|PE_ALAW|PE_BYTESWAP; /* They can't mean these */
     if(dpm.encoding & PE_16BIT)
@@ -110,7 +95,7 @@ static int open_output(void)
     /* Open the audio device */
     esdformat = (dpm.encoding & PE_16BIT) ? ESD_BITS16 : ESD_BITS8;
     esdformat |= (dpm.encoding & PE_MONO) ? ESD_MONO : ESD_STEREO;
-    fd = _esd_play_stream_fallback(esdformat,dpm.rate,NULL,"timidity");
+    fd = esd_play_stream_fallback(esdformat,dpm.rate,NULL,"timidity");
     if(fd < 0)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: %s",
@@ -154,10 +139,6 @@ static int output_data(char *buf, int32 nbytes)
 
 static void close_output(void)
 {
-    if(libesd) {
-	dlclose(libesd);
-	libesd=NULL;
-    }
     if(dpm.fd == -1)
 	return;
     close(dpm.fd);
@@ -169,7 +150,7 @@ static int acntl(int request, void *arg)
     switch(request)
     {
       case PM_REQ_DISCARD:
-        _esd_audio_flush();
+        esd_audio_flush();
 	return 0;
 
       case PM_REQ_RATE: {

@@ -1,3 +1,8 @@
+2003-06-06  mput <root@mput.dip.jp>
+
+	* timidity/esd_a.c : Restore. Latest changes into this file turned
+	  out to be unable to run on Windows.
+
 2003-06-06  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/aRts_a.c (output_data, open_output): Fix typo
