@@ -183,6 +183,9 @@ void mix_voice(int32 *buf, int v, int32 c)
 		if (c >= MAX_DIE_TIME)
 			c = MAX_DIE_TIME;
 		sp = resample_voice(v, &c);
+#ifdef VOICE_LPF
+		set_voice_filter(v);
+#endif
 		if (c > 0)
 			ramp_out(sp, buf, v, c);
 		free_voice(v);

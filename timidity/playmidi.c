@@ -951,9 +951,9 @@ void recompute_voice_filter(int v)
 	else if(fc->freq > 20000) {fc->freq = 20000;}
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
+	fc->reso_dB -= 3.01f;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
-	fc->reso_dB -= 3.01f;
 }
 
 FLOAT_T calc_drum_tva_level(int ch,int note,int level)
