@@ -6082,9 +6082,9 @@ int play_event(MidiEvent *ev)
 	case ME_TEMPER_TYPE:
 		channel[ch].temper_type = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
-		current_event->a -= (current_event->a >= 0x40) ? 0x3c : 0;
 		if (temper_type_mute) {
-			if (temper_type_mute & 1 << current_event->a) {
+			if (temper_type_mute & 1 << current_event->a
+					- ((current_event->a >= 0x40) ? 0x3c : 0)) {
 				SET_CHANNELMASK(channel_mute, ch);
 				ctl_mode_event(CTLE_MUTE, 1, ch, 1);
 			} else {
@@ -6105,9 +6105,9 @@ int play_event(MidiEvent *ev)
 			channel[i].temper_type = current_event->a;
 			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
 		}
-		current_event->a -= (current_event->a >= 0x40) ? 0x3c : 0;
 		if (temper_type_mute) {
-			if (temper_type_mute & 1 << current_event->a) {
+			if (temper_type_mute & 1 << current_event->a
+					- ((current_event->a >= 0x40) ? 0x3c : 0)) {
 				FILL_CHANNELMASK(channel_mute);
 				for (i = 0; i < MAX_CHANNELS; i++)
 					ctl_mode_event(CTLE_MUTE, 1, i, 1);

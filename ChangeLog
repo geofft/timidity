@@ -1,3 +1,9 @@
+2003-07-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/tables.c:
+	  Support for modal interchange playing in pure intonation
+	  Fix around user-defined temperament type
+
 2003-07-22  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/effect.c, timidity/timidity.c:
