@@ -307,6 +307,8 @@ INCLUDES = \
 
 bin_PROGRAMS = timidity
 
+noinst_PROGRAMS = calcnewt
+
 timidity_SOURCES = \
 	aenc.h \
 	aiff_a.c \
@@ -428,6 +430,10 @@ EXTRA_timidity_SOURCES = \
 	w32g_ogg_dll.c
 
 
+calcnewt_SOURCES = calcnewt.c
+
+CLEANFILES = newton_table.c
+
 @ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 @ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
@@ -454,8 +460,14 @@ mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/interface.h
 CONFIG_CLEAN_FILES =
 bin_PROGRAMS = timidity$(EXEEXT)
-PROGRAMS = $(bin_PROGRAMS)
+noinst_PROGRAMS = calcnewt$(EXEEXT)
+PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
+am_calcnewt_OBJECTS = calcnewt.$(OBJEXT)
+calcnewt_OBJECTS = $(am_calcnewt_OBJECTS)
+calcnewt_LDADD = $(LDADD)
+calcnewt_DEPENDENCIES =
+calcnewt_LDFLAGS =
 am_timidity_OBJECTS = aiff_a.$(OBJEXT) aq.$(OBJEXT) au_a.$(OBJEXT) \
 	audio_cnv.$(OBJEXT) common.$(OBJEXT) controls.$(OBJEXT) \
 	effect.$(OBJEXT) filter.$(OBJEXT) freq.$(OBJEXT) \
@@ -504,18 +516,19 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/audriv_a.Po ./$(DEPDIR)/audriv_al.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/audriv_mme.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/audriv_none.Po ./$(DEPDIR)/bsd20_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/common.Po ./$(DEPDIR)/controls.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/darwin_a.Po ./$(DEPDIR)/dl_dld.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/dl_dlopen.Po ./$(DEPDIR)/dl_dyld.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/dl_hpux.Po ./$(DEPDIR)/dl_w32.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/effect.Po ./$(DEPDIR)/esd_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/filter.Po ./$(DEPDIR)/freq.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/gogo_a.Po ./$(DEPDIR)/hpux_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/hpux_d_a.Po ./$(DEPDIR)/instrum.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/jack_a.Po ./$(DEPDIR)/list_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/loadtab.Po ./$(DEPDIR)/m2m.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mac_a.Po ./$(DEPDIR)/mac_dlog.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mac_main.Po ./$(DEPDIR)/mac_qt_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/calcnewt.Po ./$(DEPDIR)/common.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/controls.Po ./$(DEPDIR)/darwin_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dl_dld.Po ./$(DEPDIR)/dl_dlopen.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dl_dyld.Po ./$(DEPDIR)/dl_hpux.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dl_w32.Po ./$(DEPDIR)/effect.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/esd_a.Po ./$(DEPDIR)/filter.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/freq.Po ./$(DEPDIR)/gogo_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/hpux_a.Po ./$(DEPDIR)/hpux_d_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/instrum.Po ./$(DEPDIR)/jack_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/list_a.Po ./$(DEPDIR)/loadtab.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/m2m.Po ./$(DEPDIR)/mac_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mac_dlog.Po ./$(DEPDIR)/mac_main.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mac_qt_a.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mac_soundspec.Po ./$(DEPDIR)/mfi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mfnode.Po ./$(DEPDIR)/miditrace.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mix.Po ./$(DEPDIR)/mod.Po \
@@ -543,9 +556,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(timidity_SOURCES) $(EXTRA_timidity_SOURCES)
+DIST_SOURCES = $(calcnewt_SOURCES) $(timidity_SOURCES) \
+	$(EXTRA_timidity_SOURCES)
 DIST_COMMON = $(top_srcdir)/common.makefile.in Makefile.am Makefile.in
-SOURCES = $(timidity_SOURCES) $(EXTRA_timidity_SOURCES)
+SOURCES = $(calcnewt_SOURCES) $(timidity_SOURCES) $(EXTRA_timidity_SOURCES)
 
 all: all-am
 
@@ -581,6 +595,12 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
+	@rm -f calcnewt$(EXEEXT)
+	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
 
@@ -598,6 +618,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audriv_mme.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audriv_none.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bsd20_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/calcnewt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/controls.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/darwin_a.Po@am__quote@
@@ -800,6 +821,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-rm -f Makefile $(CONFIG_CLEAN_FILES)
@@ -809,7 +831,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-noinstPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -853,15 +876,16 @@ ps-am:
 uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic ctags distclean distclean-compile \
-	distclean-depend distclean-generic distclean-tags distdir dvi \
-	dvi-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-exec install-exec-am \
-	install-info install-info-am install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-info-am
+	clean-generic clean-noinstPROGRAMS ctags distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-tags distdir dvi dvi-am info info-am install \
+	install-am install-binPROGRAMS install-data install-data-am \
+	install-exec install-exec-am install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-info-am
 
 
 timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
@@ -870,6 +894,11 @@ timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
 
 version.o: version.c ../configure
 	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
+
+resample.c: newton_table.c
+
+newton_table.c: calcnewt
+	./calcnewt > $@
 
 $(top_builddir)/interface/libinterface.a $(W32GUI_RES):
 	cd $(top_builddir)/interface; $(MAKE)
