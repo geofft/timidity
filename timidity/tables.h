@@ -60,6 +60,7 @@ extern uint8 chorus_macro_presets[];
 extern uint8 delay_macro_presets[];
 extern FLOAT_T delay_time_center_table[];
 extern FLOAT_T pre_delay_time_table[];
+extern FLOAT_T chorus_delay_time_table[];
 extern FLOAT_T rate1_table[];
 extern FLOAT_T attack_vol_table[];
 extern FLOAT_T perceived_vol_table[];

@@ -1,3 +1,8 @@
+2003-11-30  Saito <saito2@digitalme.com>
+
+	* timidity/readmidi.c, timidity/tables.[ch]:
+	  Fix parameter-handling of Chorus Effect.
+
 2003-11-28  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch]:

@@ -4438,14 +4438,19 @@ void init_chorus_status()
 	init_chorus_lfo();
 }
 
+#define CHORUS_WIDTH_RATIO 0.85
+
 void recompute_chorus_status()
 {
 	FLOAT_T dBGain;
 
-	chorus_param.delay_in_sample = pre_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
-	chorus_param.depth_in_sample = chorus_param.delay_in_sample * chorus_param.chorus_depth / 127;
+	chorus_param.delay_in_sample = chorus_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
+	chorus_param.depth_in_sample = chorus_param.delay_in_sample * (double)chorus_param.chorus_depth / 127.0 * CHORUS_WIDTH_RATIO;
+	chorus_param.delay_in_sample -= chorus_param.depth_in_sample;	/* NOMINAL_DELAY to delay */
+	if(chorus_param.delay_in_sample <= 1) {chorus_param.delay_in_sample = 1;}
+	chorus_param.depth_in_sample *= 2;	/* CHORUS_WIDTH to depth */
 	chorus_param.cycle_in_sample = play_mode->rate / rate1_table[chorus_param.chorus_rate];
-	chorus_param.feedback_ratio = (double)chorus_param.chorus_feedback * 0.0077165;
+	chorus_param.feedback_ratio = (double)chorus_param.chorus_feedback / (127.0 + 1.0);
 	chorus_param.level_ratio = (double)chorus_param.chorus_level / 127.0;
 	chorus_param.send_reverb_ratio = (double)chorus_param.chorus_send_level_to_reverb / 127.0;
 	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
