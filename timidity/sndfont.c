@@ -1419,11 +1419,11 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	int val;
 
     /* scale tuning */
-#ifdef SF_EMULATE_SBLIVE
+/* #ifdef SF_EMULATE_SBLIVE */
 	vp->v.scale_tuning = 100;
-#else
+/* #else
 	vp->v.scale_tuning = tbl->val[SF_scaleTuning];
-#endif
+#endif */
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
