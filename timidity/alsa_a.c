@@ -41,12 +41,7 @@
 #endif
 
 /*ALSA header file*/
-
-#if HAHE_ALSA_ASOUNDLIB_H
-#include <alsa/asoundlib.h>
-#else
 #include <sys/asoundlib.h>
-#endif
 
 #if defined(SND_LIB_MINOR)
 #define ALSA_LIB  SND_LIB_MINOR

@@ -46,11 +46,7 @@
 #include <math.h>
 #include <signal.h>
 
-#if HAHE_ALSA_ASOUNDLIB_H
-#include <alsa/asoundlib.h>
-#else
 #include <sys/asoundlib.h>
-#endif
 
 #include "timidity.h"
 #include "common.h"

@@ -1371,17 +1371,18 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(tbl->val[SF_initialFilterFc] < 0)
 	tbl->set[SF_initialFilterFc] = tbl->val[SF_initialFilterFc] = 0;
     if(current_sfrec->def_cutoff_allowed &&
-       (tbl->set[SF_initialFilterFc] || tbl->set[SF_env1ToFilterFc]))
+       (tbl->set[SF_initialFilterFc] && tbl->val[SF_initialFilterFc] <= 13500 && tbl->val[SF_initialFilterFc] >= 1500))
     {
 	if(!tbl->set[SF_initialFilterFc])
 	    val = 13500;
 	else
 	    val = tbl->val[SF_initialFilterFc];
 
-	if(tbl->set[SF_env1ToFilterFc] && (int)tbl->val[SF_env1ToFilterFc] > 0)
+	if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
 	{
-	    val += ((int)tbl->val[SF_env1ToFilterFc])/* * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000*/;
+	    val += (int)tbl->val[SF_env1ToFilterFc];
 	}
+
 	vp->cutoff_freq = abscent_to_Hz(val);
     }
 

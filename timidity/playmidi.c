@@ -455,6 +455,7 @@ static void reset_nrpn_controllers(int c)
   channel[c].velocity_sense_offset = 0x40;
   channel[c].pitch_offset_fine = 0;
   channel[c].legato = 0;
+  channel[c].env_velf = 0;
   channel[c].assign_mode = 1;
   if(play_system_mode == GS_SYSTEM_MODE) {
 	  channel[c].bank_lsb = channel[c].tone_map0_number;
@@ -883,6 +884,46 @@ void init_channel_lpf(int ch,int note) {
 		channel[ch].lpf_val[i] = 0;
 	}
 }
+
+void recompute_channel_filter(MidiEvent *e)
+{
+	int ch = e->channel, note, prog, bk, vel;
+	double coef = 1.0f, reso, keyf;
+	ToneBankElement *elm;
+
+	if(channel[ch].special_sample > 0 || ISDRUMCHANNEL(ch)) {return;}
+
+	note = MIDI_EVENT_NOTE(e);
+	prog = channel[ch].program;
+	bk = channel[ch].bank;
+	elm = &tonebank[bk]->tone[prog];
+
+	/* Velocity to Filter */
+	vel = e->b;
+	coef *= vel_to_cutoff[vel & 0x7F];
+
+	/* Filter Keyfollow */
+	keyf = (double)(note & 0x7F) / 60.0f * 0.25f + 0.75f;
+	coef *= keyf;
+
+	/* Soft Pedal */
+	if(channel[ch].soft_pedal > 63) {
+		coef *= 0.5f;
+	}
+
+	/* NRPN Filter Cutoff */
+	coef *= (double)(channel[ch].param_cutoff_freq + 64) / 128.0f + 0.5f;
+
+	/* NRPN Resonance */
+	reso = (double)channel[ch].param_resonance * 0.5f;
+
+	channel[ch].cutoff_freq_coef = coef;
+	channel[ch].resonance_dB = reso;
+
+/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Cutoff Frequency (CH:%d VAL:%f)",ch,coef);
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Resonance (CH:%d VAL:%f)",ch,reso);*/
+}
+
 
 FLOAT_T calc_drum_tva_level(int ch,int note,int level)
 {
@@ -2232,6 +2273,7 @@ static void note_on(MidiEvent *e)
 
 	if(opt_resonance) {recompute_channel_lpf(ch,note,e->b);}
 	recompute_bank_parameter(ch,note);
+	recompute_channel_filter(e);
 
     for(i = 0; i < nv; i++)
     {
@@ -2960,16 +3002,16 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_0120:	/* Filter cutoff frequency */
-	if(opt_resonance) {
+/*	if(opt_resonance) {*/
 		channel[ch].param_cutoff_freq = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"NRPN Cutoff Freq (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-	}
+/*	}*/
 	break;
       case NRPN_ADDR_0121:	/* Filter Resonance */
-	if(opt_resonance) {
+/*	if(opt_resonance) {*/
 		channel[ch].param_resonance = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"NRPN Resonance (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-	}
+/*	}*/
 	break;
       case NRPN_ADDR_0163:	/* Attack Time */
 	if(!opt_tva_attack) {break;}
@@ -3226,24 +3268,24 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	  case ME_SOFT_PEDAL:
-		  if(opt_resonance) {
+/*		  if(opt_resonance) {*/
 			  channel[ch].soft_pedal = current_event->a;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Soft Pedal (CH:%d VAL:%d)",ch,channel[ch].soft_pedal);
-		  }
+/*		  }*/
 		  break;
 
 	  case ME_HARMONIC_CONTENT:
-		  if(opt_resonance) {
+/*		  if(opt_resonance) {*/
 			  channel[ch].param_resonance = current_event->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Harmonic Content (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-		  }
+/*		  }*/
 		  break;
 
 	  case ME_BRIGHTNESS:
-		  if(opt_resonance) {
+/*		  if(opt_resonance) {*/
 			  channel[ch].param_cutoff_freq = current_event->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Brightness (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-		  }
+/*		  }*/
 		  break;
 
 	    /* RPNs */
@@ -4928,17 +4970,17 @@ int play_event(MidiEvent *ev)
 		  break;
 
 	  case ME_HARMONIC_CONTENT:
-		  if(opt_resonance) {
+/*		  if(opt_resonance) {*/
 			  channel[ch].param_resonance = ev->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Harmonic Content (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-		  }
+/*		  }*/
 		  break;
 
 	  case ME_BRIGHTNESS:
-		  if(opt_resonance) {
+/*		  if(opt_resonance) {*/
 			  channel[ch].param_cutoff_freq = ev->a - 64;
 			  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Brightness (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-		  }
+/*		  }*/
 		  break;
 
       case ME_DATA_ENTRY_MSB:

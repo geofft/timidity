@@ -65,6 +65,8 @@ extern FLOAT_T envelope_coef[];
 extern FLOAT_T sc_vel_table[];
 extern FLOAT_T sc_vol_table[];
 extern FLOAT_T sc_pan_table[];
+extern FLOAT_T vel_to_cutoff[];
+extern FLOAT_T vel_to_envelope[];
 
 extern void init_freq_table2(void);
 extern void init_tables(void);
