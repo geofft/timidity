@@ -3001,6 +3001,8 @@ static void update_sostenuto_controls(int ch)
 		  voice[i].status = VOICE_SUSTAINED;
 		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
+		  voice[i].envelope_stage = 3;
+		  recompute_envelope(i);
 	  }
   }
 }
@@ -3018,6 +3020,8 @@ static void update_redamper_controls(int ch)
 		  voice[i].status = VOICE_SUSTAINED;
 		  set_voice_timeout(voice + i, ch, 0);
 		  ctl_note_event(i);
+		  voice[i].envelope_stage = 3;
+		  recompute_envelope(i);
 	  }
   }
 }
