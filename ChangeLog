@@ -1,3 +1,7 @@
+2004-02-24  mput <root@mput.dip.jp>
+
+	* configure.in: avoid warning
+
 2004-02-24  Henrique de Moraes Holschuh <hmh@debian.org>
 
 	* interface/Makefile.am (install.dynamics): The Dynamic interfaces
