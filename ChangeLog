@@ -12,6 +12,9 @@
 
 	* README(.ja), AUTHORS, INSTALL(.ja),
 	  doc/C/timidity.1, doc/ja_JP.ujis/timidity.1: Update
+	* timidity/wrd_read.c:
+	  Revert fix timing @WAIT bug emulation of the original MIMPI
+	  player; use -WRd=2 instead
 
 2004-02-14  mput <root@mput.dip.jp>
 
