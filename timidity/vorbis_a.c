@@ -58,6 +58,12 @@ extern void free_vorbisenc_dll(void);
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+
+#ifdef __W32__
+#include <windows.h>
+#include <winnls.h>
+#endif
+
 #include <vorbis/vorbisenc.h>
 
 #include "timidity.h"
@@ -163,6 +169,56 @@ choose_bitrate(int nch, int rate)
 }
 #endif
 
+#ifdef __W32__
+static char *w32_mbs_to_utf8(const char* str)
+{
+	int str_size = strlen(str);
+	int buff16_size = str_size;
+	wchar_t* buff16;
+	int buff8_size = 0;
+	char* buff8;
+	char* buff8_p;
+	int i;
+	if ( str_size == 0 ) {
+		return strdup ( str );
+	}
+	buff16 = (wchar_t*) malloc (sizeof(wchar_t)*buff16_size + 1);
+	if ( buff16 == NULL ) return NULL;
+	buff16_size = MultiByteToWideChar(CP_OEMCP, MB_PRECOMPOSED, str, str_size, buff16, buff16_size ) ;
+	if ( buff16_size == 0 ) {
+		free ( buff16 );
+		return NULL;
+	}
+	for ( i = 0; i < buff16_size; ++i ) {
+		wchar_t w = buff16[i];
+		if ( w < 0x0080 ) buff8_size += 1;
+		else if ( w < 0x0800 ) buff8_size += 2;
+		else buff8_size += 3;
+	}
+	buff8 = (char*) malloc ( sizeof(char)*buff8_size + 1 );
+	if ( buff8 == NULL ) {
+		free ( buff16 );
+		return NULL;
+	}
+	for ( i = 0, buff8_p = buff8; i < buff16_size; ++i ) {
+		wchar_t w = buff16[i];
+		if ( w < 0x0080 ) {
+			*(buff8_p++) = (char)w;
+		} else if ( buff16[i] < 0x0800 ) {
+			*(buff8_p++) = 0xc0 | (w >> 6);
+			*(buff8_p++) = 0x80 | (w & 0x3f);
+		} else {
+			*(buff8_p++) = 0xe0 | (w >> 12);
+			*(buff8_p++) = 0x80 | ((w >>6 ) & 0x3f);
+			*(buff8_p++) = 0x80 | (w & 0x3f);
+		}
+	}
+	*buff8_p = '\0';
+	free ( buff16 );
+	return buff8;
+}
+#endif
+
 static int ogg_output_open(const char *fname, const char *comment)
 {
   int fd;
@@ -237,12 +293,39 @@ static int ogg_output_open(const char *fname, const char *comment)
       (char *)safe_malloc(strlen(comment) + sizeof("LOCATION=") + 2);
     strcpy(location_string, "LOCATION=");
     strcat(location_string, comment);
+#ifndef __W32__
     vorbis_comment_add(&vc, (char *)location_string);
     free(location_string);
+#else
+		{
+			char* location_string_utf8 = w32_mbs_to_utf8 ( location_string );
+			if ( location_string_utf8 == NULL ) {
+		    vorbis_comment_add(&vc, (char *)location_string);
+			} else {
+		    vorbis_comment_add(&vc, (char *)location_string_utf8);
+				if ( location_string_utf8 != location_string )
+					free ( location_string_utf8 );
+			}
+			free(location_string);
+		}
+#endif
   }
   /* add default tag */
     if (tag_title != NULL) {
+#ifndef __W32__
 	vorbis_comment_add_tag(&vc, "title", (char *)tag_title);
+#else
+		{
+			char* tag_title_utf8 = w32_mbs_to_utf8 ( tag_title );
+			if ( tag_title_utf8 == NULL ) {
+				vorbis_comment_add_tag(&vc, "title", (char *)tag_title);
+			} else {
+				vorbis_comment_add_tag(&vc, "title", (char *)tag_title_utf8);
+				if ( tag_title_utf8 != tag_title )
+					free ( tag_title_utf8 );
+			}
+		}
+#endif
   }
 
   /* set up the analysis state and auxiliary encoding storage */
@@ -457,9 +540,9 @@ static void close_output(void)
   close(dpm.fd);
 
 #ifdef AU_VORBIS_DLL
-  free_ogg_dll();
-  free_vorbis_dll();
   free_vorbisenc_dll();
+  free_vorbis_dll();
+  free_ogg_dll();
 #endif
 
   dpm.fd = -1;

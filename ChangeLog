@@ -1,3 +1,14 @@
+2004-05-16  Daisuke Aoki <dai@sweetparty.ne.jp>
+
+	* timidity/{flac_a.c,vorbis_a.c,w32_libFLAC_dll.c,w32_libFLAC_dll.h,
+	  w32_libFLAC_dll_g.h,w32_libFLAC_dll_i.h,w32_libOggFLAC_dll.c,
+	  w32_libOggFLAC_dll.h,w32_libOggFLAC_dll_g.h}:
+	  Support for FLAC/OggFLAC DLL.
+
+2004-05-16  skeishi <s_keishi@mutt.freemail.ne.jp>
+
+	* interface/gogo_a.c: Support for MP3 GOGO output in Win32CUI interface.
+
 2004-05-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/msc[67]-project.zip: Change version to "current"

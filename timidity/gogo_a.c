@@ -62,6 +62,10 @@
 #include "playmidi.h"
 #include "readmidi.h"
 
+#if defined(__W32__) && !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+#include "w32g.h" //for crt_beginthreadex();
+#endif
+
 static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 bytes);
@@ -112,11 +116,13 @@ typedef LPTHREAD_START_ROUTINE BCC_BEGINTHREAD_START_ADDRESS;
 volatile extern char *w32g_output_dir;
 volatile extern int w32g_auto_output_mode;
 
+extern int gogo_ConfigDialogInfoApply(void);
+#endif
+
+#ifdef __W32__
 volatile static HANDLE hMPGEthread = NULL;
 volatile static HANDLE hMutexgogo = NULL;
 volatile static DWORD dwMPGEthreadID = 0;
-
-extern int gogo_ConfigDialogInfoApply(void);
 #endif
 
 volatile gogo_opts_t gogo_opts;
