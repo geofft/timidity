@@ -145,16 +145,16 @@ extern int readmidi_wrd_mode;
 extern int play_system_mode;
 extern FLOAT_T tempo_adjust;
 
-extern void recompute_delay_status();
-extern void set_delay_macro(int macro);
-extern void recompute_chorus_status();
-extern void set_chorus_macro(int macro);
-extern void recompute_reverb_status();
-extern void set_reverb_macro(int macro);
-extern void recompute_eq_status();
-extern void set_insertion_effect_default_parameter();
-extern void realloc_insertion_effect();
-extern void recompute_insertion_effect();
+extern void recompute_delay_status_gs(void);
+extern void set_delay_macro_gs(int);
+extern void recompute_chorus_status_gs(void);
+extern void set_chorus_macro_gs(int);
+extern void recompute_reverb_status_gs(void);
+extern void set_reverb_macro_gs(int);
+extern void recompute_eq_status_gs(void);
+extern void set_insertion_effect_def_gs(void);
+extern void realloc_insertion_effect_gs(void);
+extern void recompute_insertion_effect_gs(void);
 
 extern void recompute_userdrum(int bank, int prog);
 extern void free_userdrum();

@@ -96,24 +96,11 @@ static int    string_event_table_size = 0;
 int    default_channel_program[256];
 static MidiEvent timesig[256];
 
-void init_delay_status();
-void recompute_delay_status();
-void set_delay_macro(int macro);
-
-void init_chorus_status();
-void recompute_chorus_status();
-void set_chorus_macro(int macro);
-
-void init_reverb_status();
-void recompute_reverb_status();
-void set_reverb_macro(int macro);
-
-void init_eq_status();
-void recompute_eq_status();
-
-void init_insertion_effect_status();
-void set_insertion_effect_default_parameter();
-void recompute_insertion_effect();
+void init_delay_status_gs(void);
+void init_chorus_status_gs(void);
+void init_reverb_status_gs(void);
+void init_eq_status_gs(void);
+void init_insertion_effect_gs(void);
 
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
@@ -650,8 +637,8 @@ void set_xg_reverb_type(int msb, int lsb)
 	if (lsb == 0x02 && msb == 0x02)
 	    type = 2;				/* Room 3 */
 
-	set_reverb_macro(type);
-	recompute_reverb_status();	
+	set_reverb_macro_gs(type);
+	recompute_reverb_status_gs();	
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Reverb Type (%d)", type);
 }
 
@@ -726,8 +713,8 @@ void set_xg_chorus_type(int msb, int lsb)
 	    }
 	}
 
-	set_chorus_macro(type);
-	recompute_chorus_status();
+	set_chorus_macro_gs(type);
+	recompute_chorus_status_gs();
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Chorus Type (%d)", type);
 }
 
@@ -796,13 +783,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		case 0x0C:	/* Reverb Return */
 		    reverb_status.level = *body;
-		    recompute_reverb_status();
+		    recompute_reverb_status_gs();
 		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",*body);
 		    break;
 
 		case 0x2C:	/* Chorus Return */
 		    chorus_param.chorus_level = *body;
-		    recompute_chorus_status();
+		    recompute_chorus_status_gs();
 		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Level (%d)",*body);
 		    break;
 
@@ -3355,11 +3342,11 @@ void readmidi_read_init(void)
 	/* initialize effect status */
 	for (i = 0; i < MAX_CHANNELS; i++)
 		init_channel_layer(i);
-	init_reverb_status();
-	init_delay_status();
-	init_chorus_status();
-	init_eq_status();
-	init_insertion_effect_status();
+	init_reverb_status_gs();
+	init_delay_status_gs();
+	init_chorus_status_gs();
+	init_eq_status_gs();
+	init_insertion_effect_gs();
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = 9;
@@ -4321,174 +4308,195 @@ char *event2string(int id)
     return string_event_table[id];
 }
 
-void init_delay_status()
+/*! initialize Delay Effect (GS) */
+void init_delay_status_gs(void)
 {
-	delay_status.type = 0;
-	delay_status.level = 0x40;
-	delay_status.level_center = 0x7F;
-	delay_status.level_left = 0;
-	delay_status.level_right = 0;
-	delay_status.time_center = 340.0;
-	delay_status.time_ratio_left = 1.0 / 24.0;
-	delay_status.time_ratio_right = 1.0 / 24.0;
-	delay_status.feedback = 0x50;
-	delay_status.pre_lpf = 0;
-	recompute_delay_status();
+	struct delay_status_t *p = &delay_status;
+	p->type = 0;
+	p->level = 0x40;
+	p->level_center = 0x7F;
+	p->level_left = 0;
+	p->level_right = 0;
+	p->time_center = 340.0;
+	p->time_ratio_left = 1.0 / 24.0;
+	p->time_ratio_right = 1.0 / 24.0;
+	p->feedback = 0x50;
+	p->pre_lpf = 0;
+	recompute_delay_status_gs();
 }
 
-void recompute_delay_status()
+/*! recompute Delay Effect (GS) */
+void recompute_delay_status_gs(void)
 {
-	delay_status.sample_c = delay_status.time_center * play_mode->rate / 1000;
-	delay_status.sample_l = delay_status.sample_c * delay_status.time_ratio_left;
-	delay_status.sample_r = delay_status.sample_c * delay_status.time_ratio_right;
-	if(delay_status.sample_c > play_mode->rate) {delay_status.sample_c = play_mode->rate;}
-	if(delay_status.sample_l > play_mode->rate) {delay_status.sample_l = play_mode->rate;}
-	if(delay_status.sample_r > play_mode->rate) {delay_status.sample_r = play_mode->rate;}
-	delay_status.level_ratio_c = (double)delay_status.level * (double)delay_status.level_center / 16129.0;
-	delay_status.level_ratio_l = (double)delay_status.level * (double)delay_status.level_left / 16129.0;
-	delay_status.level_ratio_r = (double)delay_status.level * (double)delay_status.level_right / 16129.0;
-	delay_status.feedback_ratio = (double)(delay_status.feedback - 64) * 0.0153125;
-	delay_status.send_reverb_ratio = (double)delay_status.send_reverb / 127.0;
+	struct delay_status_t *p = &delay_status;
+	p->sample_c = p->time_center * play_mode->rate / 1000;
+	p->sample_l = p->sample_c * p->time_ratio_left;
+	p->sample_r = p->sample_c * p->time_ratio_right;
+	if(p->sample_c > play_mode->rate) {p->sample_c = play_mode->rate;}
+	if(p->sample_l > play_mode->rate) {p->sample_l = play_mode->rate;}
+	if(p->sample_r > play_mode->rate) {p->sample_r = play_mode->rate;}
+	p->level_ratio_c = (double)p->level * (double)p->level_center / 16129.0;
+	p->level_ratio_l = (double)p->level * (double)p->level_left / 16129.0;
+	p->level_ratio_r = (double)p->level * (double)p->level_right / 16129.0;
+	p->feedback_ratio = (double)(p->feedback - 64) * 0.0153125;
+	p->send_reverb_ratio = (double)p->send_reverb / 127.0;
 
-	if(delay_status.level_left || delay_status.level_right && delay_status.type == 0) {
-		delay_status.type = 1;
+	if(p->level_left || p->level_right && p->type == 0) {
+		p->type = 1;
 	}
 
-	if(delay_status.pre_lpf) {
-		delay_status.lpf.a = (double)(7 - delay_status.pre_lpf) / 7.0 * 0.9 + 0.05;
-		init_filter_lowpass1(&(delay_status.lpf));
+	if(p->pre_lpf) {
+		p->lpf.a = (double)(7 - p->pre_lpf) / 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(p->lpf));
 	}
 }
 
-void set_delay_macro(int macro)
+/*! Delay Macro (GS) */
+void set_delay_macro_gs(int macro)
 {
-	if(macro > 3) {delay_status.type = 2;}
+	struct delay_status_t *p = &delay_status;
+	if(macro > 3) {p->type = 2;}
 	macro *= 10;
-	delay_status.time_center = delay_time_center_table[delay_macro_presets[macro+1]];
-	delay_status.time_ratio_left = (double)delay_macro_presets[macro+2] / 24;
-	delay_status.time_ratio_right = (double)delay_macro_presets[macro+3] / 24;
-	delay_status.level_center = delay_macro_presets[macro+4];
-	delay_status.level_left = delay_macro_presets[macro+5];
-	delay_status.level_right = delay_macro_presets[macro+6];
-	delay_status.level = delay_macro_presets[macro+7];
-	delay_status.feedback = delay_macro_presets[macro+8];
+	p->time_center = delay_time_center_table[delay_macro_presets[macro + 1]];
+	p->time_ratio_left = (double)delay_macro_presets[macro + 2] / 24;
+	p->time_ratio_right = (double)delay_macro_presets[macro + 3] / 24;
+	p->level_center = delay_macro_presets[macro + 4];
+	p->level_left = delay_macro_presets[macro + 5];
+	p->level_right = delay_macro_presets[macro + 6];
+	p->level = delay_macro_presets[macro + 7];
+	p->feedback = delay_macro_presets[macro + 8];
 }
 
-void init_reverb_status()
+/*! initialize Reverb Effect (GS) */
+void init_reverb_status_gs(void)
 {
-	reverb_status.character = 0x04;
-	reverb_status.pre_lpf = 0;
-	reverb_status.level = 0x40;
-	reverb_status.time = 0x40;
-	reverb_status.delay_feedback = 0;
-	reverb_status.pre_delay_time = 0;
-	recompute_reverb_status();
+	struct reverb_status_t *p = &reverb_status;
+	p->character = 0x04;
+	p->pre_lpf = 0;
+	p->level = 0x40;
+	p->time = 0x40;
+	p->delay_feedback = 0;
+	p->pre_delay_time = 0;
+	recompute_reverb_status_gs();
 	init_reverb(play_mode->rate);
 }
 
-void recompute_reverb_status()
+/*! recompute Reverb Effect (GS) */
+void recompute_reverb_status_gs(void)
 {
-	reverb_status.level_ratio = (double)reverb_status.level / 127.0f;
-	reverb_status.time_ratio = (double)reverb_status.time / 128.0f + 0.5f;
+	struct reverb_status_t *p = &reverb_status;
+	p->level_ratio = (double)p->level / 127.0f;
+	p->time_ratio = (double)p->time / 128.0f + 0.5f;
 
-	if(reverb_status.pre_lpf) {
-		reverb_status.lpf.a = (double)(7 - reverb_status.pre_lpf)/ 7.0 * 0.9 + 0.05;
-		init_filter_lowpass1(&(reverb_status.lpf));
+	if(p->pre_lpf) {
+		p->lpf.a = (double)(7 - p->pre_lpf)/ 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(p->lpf));
 	}
 }
 
-void set_reverb_macro(int macro)
+/*! Reverb Macro (GS) */
+void set_reverb_macro_gs(int macro)
 {
+	struct reverb_status_t *p = &reverb_status;
 	macro *= 6;
-	reverb_status.character = reverb_macro_presets[macro];
-	reverb_status.pre_lpf = reverb_macro_presets[macro+1];
-	reverb_status.level = reverb_macro_presets[macro+2];
-	reverb_status.time = reverb_macro_presets[macro+3];
-	reverb_status.delay_feedback = reverb_macro_presets[macro+4];
-	reverb_status.pre_delay_time = reverb_macro_presets[macro+5];
+	p->character = reverb_macro_presets[macro];
+	p->pre_lpf = reverb_macro_presets[macro + 1];
+	p->level = reverb_macro_presets[macro + 2];
+	p->time = reverb_macro_presets[macro + 3];
+	p->delay_feedback = reverb_macro_presets[macro + 4];
+	p->pre_delay_time = reverb_macro_presets[macro + 5];
 }
 
-void init_chorus_status()
+/*! initialize Chorus Effect (GS) */
+void init_chorus_status_gs(void)
 {
-	chorus_param.chorus_macro = 0;
-	chorus_param.chorus_pre_lpf = 0;
-	chorus_param.chorus_level = 0x40;
-	chorus_param.chorus_feedback = 0x08;
-	chorus_param.chorus_delay = 0x50;
-	chorus_param.chorus_rate = 0x03;
-	chorus_param.chorus_depth = 0x13;
-	chorus_param.chorus_send_level_to_reverb = 0;
-	chorus_param.chorus_send_level_to_delay = 0;
-	recompute_chorus_status();
+	struct chorus_param_t *p = &chorus_param;
+	p->chorus_macro = 0;
+	p->chorus_pre_lpf = 0;
+	p->chorus_level = 0x40;
+	p->chorus_feedback = 0x08;
+	p->chorus_delay = 0x50;
+	p->chorus_rate = 0x03;
+	p->chorus_depth = 0x13;
+	p->chorus_send_level_to_reverb = 0;
+	p->chorus_send_level_to_delay = 0;
+	recompute_chorus_status_gs();
 	init_chorus_lfo();
 }
 
 #define CHORUS_WIDTH_RATIO 0.85
 
-void recompute_chorus_status()
+/*! recompute Chorus Effect (GS) */
+void recompute_chorus_status_gs()
 {
-	chorus_param.delay_in_sample = chorus_delay_time_table[chorus_param.chorus_delay] * (double)play_mode->rate / 1000.0;
-	chorus_param.depth_in_sample = chorus_param.delay_in_sample * (double)chorus_param.chorus_depth / 127.0 * CHORUS_WIDTH_RATIO;
-	chorus_param.delay_in_sample -= chorus_param.depth_in_sample;	/* NOMINAL_DELAY to delay */
-	if(chorus_param.delay_in_sample <= 1) {chorus_param.delay_in_sample = 1;}
-	chorus_param.depth_in_sample *= 2;	/* CHORUS_WIDTH to depth */
-	chorus_param.cycle_in_sample = play_mode->rate / rate1_table[chorus_param.chorus_rate];
-	chorus_param.feedback_ratio = (double)chorus_param.chorus_feedback / (127.0 + 1.0);
-	chorus_param.level_ratio = (double)chorus_param.chorus_level / 127.0;
-	chorus_param.send_reverb_ratio = (double)chorus_param.chorus_send_level_to_reverb / 127.0;
-	chorus_param.send_delay_ratio = (double)chorus_param.chorus_send_level_to_delay / 127.0;
+	struct chorus_param_t *p = &chorus_param;
+	p->delay_in_sample = chorus_delay_time_table[p->chorus_delay] * (double)play_mode->rate / 1000.0;
+	p->depth_in_sample = p->delay_in_sample * (double)p->chorus_depth / 127.0 * CHORUS_WIDTH_RATIO;
+	p->delay_in_sample -= p->depth_in_sample;	/* NOMINAL_DELAY to delay */
+	if(p->delay_in_sample <= 1) {p->delay_in_sample = 1;}
+	p->depth_in_sample *= 2;	/* CHORUS_WIDTH to depth */
+	p->cycle_in_sample = play_mode->rate / rate1_table[p->chorus_rate];
+	p->feedback_ratio = (double)p->chorus_feedback / (127.0 + 1.0);
+	p->level_ratio = (double)p->chorus_level / 127.0;
+	p->send_reverb_ratio = (double)p->chorus_send_level_to_reverb / 127.0;
+	p->send_delay_ratio = (double)p->chorus_send_level_to_delay / 127.0;
 
-	if(chorus_param.chorus_pre_lpf) {
-		chorus_param.lpf.a = (double)(7 - chorus_param.chorus_pre_lpf) / 7.0 * 0.9 + 0.05;
-		init_filter_lowpass1(&(chorus_param.lpf));
+	if(p->chorus_pre_lpf) {
+		p->lpf.a = (double)(7 - p->chorus_pre_lpf) / 7.0 * 0.9 + 0.05;
+		init_filter_lowpass1(&(p->lpf));
 	}
 }
 
-void set_chorus_macro(int macro)
+/*! Chorus Macro (GS) */
+void set_chorus_macro_gs(int macro)
 {
+	struct chorus_param_t *p = &chorus_param;
 	macro *= 8;
-	chorus_param.chorus_pre_lpf = chorus_macro_presets[macro];
-	chorus_param.chorus_level = chorus_macro_presets[macro+1];
-	chorus_param.chorus_feedback = chorus_macro_presets[macro+2];
-	chorus_param.chorus_delay = chorus_macro_presets[macro+3];
-	chorus_param.chorus_rate = chorus_macro_presets[macro+4];
-	chorus_param.chorus_depth = chorus_macro_presets[macro+5];
-	chorus_param.chorus_send_level_to_reverb = chorus_macro_presets[macro+6];
-	chorus_param.chorus_send_level_to_delay = chorus_macro_presets[macro+7];
+	p->chorus_pre_lpf = chorus_macro_presets[macro];
+	p->chorus_level = chorus_macro_presets[macro + 1];
+	p->chorus_feedback = chorus_macro_presets[macro + 2];
+	p->chorus_delay = chorus_macro_presets[macro + 3];
+	p->chorus_rate = chorus_macro_presets[macro + 4];
+	p->chorus_depth = chorus_macro_presets[macro + 5];
+	p->chorus_send_level_to_reverb = chorus_macro_presets[macro + 6];
+	p->chorus_send_level_to_delay = chorus_macro_presets[macro + 7];
 }
 
-void init_eq_status()
+/*! initialize EQ (GS) */
+void init_eq_status_gs(void)
 {
-	eq_status.low_freq = 0;
-	eq_status.low_gain = 0x40;
-	eq_status.high_freq = 0;
-	eq_status.high_gain = 0x40;
-	recompute_eq_status();
+	struct eq_status_t *p = &eq_status;
+	p->low_freq = 0;
+	p->low_gain = 0x40;
+	p->high_freq = 0;
+	p->high_gain = 0x40;
+	recompute_eq_status_gs();
 }
 
-void recompute_eq_status()
+/*! recompute EQ (GS) */
+void recompute_eq_status_gs(void)
 {
-	int32 freq;
-	FLOAT_T dbGain;
+	double freq, dbGain;
+	struct eq_status_t *p = &eq_status;
 
 	/* Lowpass Shelving Filter */
-	if(eq_status.low_freq == 0) {freq = 200;}
+	if(p->low_freq == 0) {freq = 200;}
 	else {freq = 400;}
-	dbGain = eq_status.low_gain - 0x40;
+	dbGain = p->low_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
-		eq_status.lsf.freq = freq;
-		eq_status.lsf.gain = dbGain;
-		calc_filter_shelving_low(&(eq_status.lsf));
+		p->lsf.freq = freq;
+		p->lsf.gain = dbGain;
+		calc_filter_shelving_low(&(p->lsf));
 	}
 
 	/* Highpass Shelving Filter */
-	if(eq_status.high_freq == 0) {freq = 3000;}
+	if(p->high_freq == 0) {freq = 3000;}
 	else {freq = 6000;}
-	dbGain = eq_status.high_gain - 0x40;
+	dbGain = p->high_gain - 0x40;
 	if(freq < play_mode->rate / 2) {
-		eq_status.hsf.freq = freq;
-		eq_status.hsf.gain = dbGain;
-		calc_filter_shelving_high(&(eq_status.hsf));
+		p->hsf.freq = freq;
+		p->hsf.gain = dbGain;
+		calc_filter_shelving_high(&(p->hsf));
 	}
 }
 
@@ -4655,7 +4663,7 @@ void free_userinst()
 }
 
 /*! initialize GS insertion effect parameters */
-void init_insertion_effect_status()
+void init_insertion_effect_gs(void)
 {
 	int i;
 	struct GSInsertionEffect *st = &gs_ieffect;
@@ -4679,7 +4687,7 @@ void init_insertion_effect_status()
 }
 
 /*! set GS default insertion effect parameters according to effect type. */
-void set_insertion_effect_default_parameter()
+void set_insertion_effect_def_gs(void)
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
 	int8 *param = st->parameter;
@@ -4735,7 +4743,7 @@ void set_insertion_effect_default_parameter()
 }
 
 /*! convert GS insertion effect parameters for internal 2-Band EQ. */
-static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
 	InfoEQ2 *eq; 
 
@@ -4755,7 +4763,7 @@ static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect, EffectList *ef
 }
 
 /*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
-static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
 	InfoOverdrive1 *od;
 	
@@ -4774,7 +4782,7 @@ static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect, EffectL
 }
 
 /*! convert GS insertion effect parameters for OD1 / OD2. */
-static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
 	InfoOD1OD2 *od;
 
@@ -4799,7 +4807,7 @@ static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect, EffectList
 }
 
 /*! convert GS insertion effect parameters for Hexa-Chorus. */
-static void *conv_gs_ie_to_hexa_chorus(struct GSInsertionEffect *ieffect, EffectList *ef)
+static void *conv_gsie_to_hexa_chorus(struct GSInsertionEffect *ieffect, EffectList *ef)
 {
 	InfoHexaChorus *info;
 	
@@ -4829,7 +4837,7 @@ static void *conv_gs_ie_to_hexa_chorus(struct GSInsertionEffect *ieffect, Effect
 }
 
 /*! re-allocate GS insertion effect parameters. */
-void realloc_insertion_effect()
+void realloc_insertion_effect_gs(void)
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
 
@@ -4838,26 +4846,26 @@ void realloc_insertion_effect()
 
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
-		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1, conv_gs_ie_to_overdrive1(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gsie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1, conv_gsie_to_overdrive1(st, NULL));
 		break;
 	case 0x0111: /* Distortion */
-		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
-		st->ef = push_effect(st->ef, EFFECT_DISTORTION1, conv_gs_ie_to_overdrive1(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gsie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_DISTORTION1, conv_gsie_to_overdrive1(st, NULL));
 		break;
 	case 0x0140: /* Hexa-Chorus */
-		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st, NULL));
-		st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS, conv_gs_ie_to_hexa_chorus(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gsie_to_eq2(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS, conv_gsie_to_hexa_chorus(st, NULL));
 		break;
 	case 0x1103: /* OD1 / OD2 */
-		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gs_ie_to_dual_od(st, NULL));
+		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gsie_to_dual_od(st, NULL));
 		break;
 	default: break;
 	}
 }
 
 /*! recompute GS insertion effect parameters. */
-void recompute_insertion_effect()
+void recompute_insertion_effect_gs(void)
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
 	EffectList *efc = st->ef;
@@ -4867,17 +4875,17 @@ void recompute_insertion_effect()
 	{
 		switch(efc->type) {
 		case EFFECT_EQ2:
-			efc->info = conv_gs_ie_to_eq2(st, efc);
+			efc->info = conv_gsie_to_eq2(st, efc);
 			break;
 		case EFFECT_OVERDRIVE1:
 		case EFFECT_DISTORTION1:
-			efc->info = conv_gs_ie_to_overdrive1(st, efc);
+			efc->info = conv_gsie_to_overdrive1(st, efc);
 			break;
 		case EFFECT_HEXA_CHORUS:
-			efc->info = conv_gs_ie_to_hexa_chorus(st, efc);
+			efc->info = conv_gsie_to_hexa_chorus(st, efc);
 			break;
 		case EFFECT_OD1OD2:
-			efc->info = conv_gs_ie_to_dual_od(st, efc);
+			efc->info = conv_gsie_to_dual_od(st, efc);
 			break;
 		default: break;
 		}
