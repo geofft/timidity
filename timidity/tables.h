@@ -62,6 +62,7 @@ extern FLOAT_T rate1_table[];
 extern FLOAT_T attack_vol_table[];
 extern FLOAT_T sc_eg_attack_table[];
 extern FLOAT_T sc_eg_decay_table[];
+extern FLOAT_T sc_eg_release_table[];
 extern FLOAT_T sc_vel_table[];
 extern FLOAT_T sc_vol_table[];
 extern FLOAT_T sc_pan_table[];

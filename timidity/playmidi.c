@@ -906,7 +906,11 @@ void recompute_voice_filter(int v)
 			cent += (double)voice[v].sample->tremolo_to_fc * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT);
 		}
 		if(voice[v].sample->modenv_to_fc) {
-			cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
+			if(voice[v].modenv_stage < 2 && voice[v].last_modenv_volume < 0.75 && voice[v].sample->modenv_to_fc > 1200) {
+				cent += (double)voice[v].sample->modenv_to_fc * 0.75;				
+			} else {
+				cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
+			}
 		}
 	}
 
@@ -1988,7 +1992,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].prev_tuning = 0;
   voice[i].delay_counter = 0;
 
-  memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
+  memset(&(voice[i].fc), 0, sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
@@ -2065,6 +2069,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].modenv_volume = 0;
       recompute_modulation_envelope(i);
 	  apply_modulation_envelope(i);
+
     }
   else
     {

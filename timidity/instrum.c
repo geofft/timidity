@@ -157,7 +157,7 @@ void clear_magic_instruments(void)
     }
 }
 
-#define GUS_ENVRATE_MAX (int32)(0x40000000 >> 9)
+#define GUS_ENVRATE_MAX (int32)(0x3FFFFFFF >> 9)
 
 static int32 convert_envelope_rate(uint8 rate)
 {
@@ -853,7 +853,8 @@ static Instrument *load_gus_instrument(char *name,
          cause a "pop" by reading random data beyond data_length */
       sp->data[sp->data_length] = sp->data[sp->data_length - 1];
 
-	  if(!(sp->modes & MODES_LOOPING)) {	/* remove abnormal loops */
+	  /* Remove abnormal loops that cause pop noise in long sustain stage */
+	  if(!(sp->modes & MODES_LOOPING) && sp->modes & MODES_ENVELOPE) {
 		  sp->loop_start = sp->data_length - 1;
 		  sp->loop_end = sp->data_length;
 	  }

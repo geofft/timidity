@@ -1,4 +1,11 @@
 
+2003-05-19  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/tables.[ch],
+	  timidity/instrum.c, timidity/sndfont.c, timidity/mix.c:
+	  Fix in delay and envelope generator.
+	  Fix some noises.
+
 2003-05-17  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c:

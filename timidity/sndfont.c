@@ -495,8 +495,8 @@ static int32 to_offset(int32 offset)
 	return offset << 14;
 }
 
-#define SF_ENVRATE_MAX (double)(0x40000000)
-#define SF_ENVRATE_MIN (double)(1L)
+#define SF_ENVRATE_MAX (0x3FFFFFFFL)
+#define SF_ENVRATE_MIN (1L)
 
 /* calculate ramp rate in fractional unit;
  * diff = 16bit, time = msec

@@ -52,6 +52,7 @@
 
 #if OPT_MODE != 0
 #define VOICE_LPF
+#define VOICE_LPF_TRANSITION
 #endif
 
 #ifdef VOICE_LPF
@@ -89,6 +90,7 @@ int apply_modulation_envelope(int);
 int recompute_modulation_envelope(int);
 static inline void voice_ran_out(int);
 static inline int next_stage(int);
+static inline int modenv_next_stage(int);
 static inline void update_tremolo(int);
 int apply_envelope_to_amp(int);
 #ifdef SMOOTH_MIXING
@@ -108,8 +110,6 @@ void mix_voice(int32 *buf, int v, int32 c)
 	mix_t *lp;
 #endif
 
-	vp->delay_counter = c;
-
 	if (vp->status == VOICE_DIE) {
 		if (c >= MAX_DIE_TIME)
 			c = MAX_DIE_TIME;
@@ -123,9 +123,14 @@ void mix_voice(int32 *buf, int v, int32 c)
 			ramp_out(lp, buf, v, c);
 		free_voice(v);
 	} else {
+		vp->delay_counter = c;
 		if (vp->delay) {
 			if (c < vp->delay) {
 				vp->delay -= c;
+				if (vp->tremolo_phase_increment)
+					update_tremolo(v);
+				if (opt_modulation_envelope)
+					update_modulation_envelope(v);
 				return;
 			}
 			if (play_mode->encoding & PE_MONO)
@@ -255,7 +260,7 @@ static inline void recalc_voice_fc(int v)
 	double freq, omega, cos_coef, sin_coef, alpha_coef;
 	double a1, a2, b02, b1;
 	FilterCoefficients *fc = &(voice[v].fc);
-	
+
 	freq = fc->freq;
 	if (freq != fc->last_freq) {
 		omega = 2 * M_PI * freq / play_mode->rate;
@@ -274,7 +279,9 @@ static inline void recalc_voice_fc(int v)
 		} else {
 			fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24),
 			fc->b02 = TIM_FSCALE(b02, 24), fc->b1 = TIM_FSCALE(b1, 24);
+#ifdef VOICE_LPF_TRANSITION
 			fc->filter_calculated = 1;
+#endif
 			fc->filter_coeff_incr_count = 0;
 		}
 		fc->last_freq = freq;
@@ -1087,7 +1094,7 @@ static inline int next_stage(int v)
 	int32 offset, val;
 	FLOAT_T rate;
 	Voice *vp = &voice[v];
-	
+
 	stage = vp->envelope_stage++;
 	offset = vp->sample->envelope_offset[stage];
 	rate = vp->sample->envelope_rate[stage];
@@ -1124,8 +1131,13 @@ static inline int next_stage(int v)
 
 	/* regularizing envelope */
 	if (offset < vp->envelope_volume) {	/* decaying phase */
-		if (val != -1)
-			rate *= sc_eg_decay_table[val & 0x7f];
+		if (val != -1) {
+			if(stage > 2) {
+				rate *= sc_eg_release_table[val & 0x7f];
+			} else {
+				rate *= sc_eg_decay_table[val & 0x7f];
+			}
+		}
 		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
 			vp->envelope_volume = offset;
 			return recompute_envelope(v);
@@ -1164,7 +1176,7 @@ static inline void update_tremolo(int v)
 		vp->tremolo_delay -= vp->delay_counter;
 		if(vp->tremolo_delay > 0) {
 			vp->tremolo_volume = 1.0;
-			return 0;
+			return;
 		}
 		vp->tremolo_delay = 0;
 	}
@@ -1207,8 +1219,7 @@ int apply_envelope_to_amp(int v)
 		*v_table = vp->sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
 	int32 la, ra;
 	
-	if (vp->delay > 0) {vp->left_mix = vp->right_mix = 0;}
-	else if (vp->panned == PANNED_MYSTERY) {
+	if (vp->panned == PANNED_MYSTERY) {
 		ramp = vp->right_amp;
 		if (vp->tremolo_phase_increment) {
 			lamp *= vp->tremolo_volume;
@@ -1217,15 +1228,15 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16((vp->envelope_volume - 1) >> 20,
+						imuldiv16(vp->envelope_volume >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						(vp->envelope_volume - 1) >> 20];
+						vp->envelope_volume >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
-				(vp->envelope_volume - 1) >> 20];
+				vp->envelope_volume >> 20];
 			lamp *= vp->last_envelope_volume;
 			ramp *= vp->last_envelope_volume;
 		}
@@ -1249,15 +1260,15 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16((vp->envelope_volume - 1) >> 20,
+						imuldiv16(vp->envelope_volume >> 20,
 						vp->inv_envelope_scale)]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
-						(vp->envelope_volume - 1) >> 20];
+						vp->envelope_volume >> 20];
 			else
 				vp->last_envelope_volume = attack_vol_table[
-				(vp->envelope_volume - 1) >> 20];
+				vp->envelope_volume >> 20];
 			lamp *= vp->last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
@@ -1310,9 +1321,7 @@ static inline int update_modulation_envelope(int v)
 
 	if(vp->modenv_delay > 0) {
 		vp->modenv_delay -= vp->delay_counter;
-		if(vp->modenv_delay > 0) {
-			return 1;
-		}
+		if(vp->modenv_delay > 0) {return 1;}
 		vp->modenv_delay = 0;
 	}
 	vp->modenv_volume += vp->modenv_increment;
@@ -1336,14 +1345,12 @@ int apply_modulation_envelope(int v)
 
 	if(!opt_modulation_envelope) {return 0;}
 
-	if (vp->modenv_delay > 0) {vp->last_modenv_volume = 0;}
-	else if (vp->sample->modes & MODES_ENVELOPE) {
+	if (vp->sample->modes & MODES_ENVELOPE) {
 		if (vp->modenv_stage > 1)
 			vp->last_modenv_volume = (double)vp->modenv_volume / (double)OFFSET_MAX;
 		else
-			vp->last_modenv_volume = convex_vol_table[(vp->modenv_volume - 1) >> 20];
+			vp->last_modenv_volume = convex_vol_table[vp->modenv_volume >> 20];
 	}
-
 	recompute_voice_filter(v);
 	if(!(vp->porta_control_ratio && vp->porta_control_counter == 0)) {
 		recompute_freq(v);
@@ -1390,8 +1397,13 @@ static inline int modenv_next_stage(int v)
 
 	/* regularizing envelope */
 	if (offset < vp->modenv_volume) {	/* decaying phase */
-		if (val != -1)
-			rate *= sc_eg_decay_table[val & 0x7f];
+		if (val != -1) {
+			if(stage > 2) {
+				rate *= sc_eg_release_table[val & 0x7f];
+			} else {
+				rate *= sc_eg_decay_table[val & 0x7f];
+			}
+		}
 		if(stage < 2 && rate > OFFSET_MAX) {	/* instantaneous decay */
 			vp->modenv_volume = offset;
 			return recompute_modulation_envelope(v);
