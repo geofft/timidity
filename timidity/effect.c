@@ -51,7 +51,7 @@
 #define CHANGE_SEC		2.0
 
 #define NS_AMP_MAX	((int32) 0x0fffffff)
-#define NS_AMP_MIN	((int32) 0x8fffffff)
+#define NS_AMP_MIN	((int32)-0x0fffffff)
 
 static void effect_left_right_delay(int32 *, int32);
 static void init_ns_tap(void);
@@ -65,12 +65,12 @@ static inline int32 my_mod(int32, int32);
 
 static int32 ns_z0[4];
 static int32 ns_z1[4];
-static int32 ns9_order;
+static const int32 ns9_order = 9;
 static int32 ns9_histposl, ns9_histposr;
 static int32 ns9_ehl[18];
 static int32 ns9_ehr[18];
 static uint32 ns9_r1l, ns9_r2l, ns9_r1r, ns9_r2r;
-static float ns9_coef[9] = {
+static const float ns9_coef[9] = {
 	2.412f, -3.370f, 3.937f, -4.174f, 3.353f,
 	-2.205f, 1.281f, -0.569f, 0.0847f
 };
@@ -220,7 +220,7 @@ static void effect_left_right_delay(int32 *buff, int32 count)
 static void init_ns_tap(void)
 {
 	memset(ns_z0, 0, sizeof(ns_z0));
-	memset(ns_z1, 0, sizeof(ns_z0));
+	memset(ns_z1, 0, sizeof(ns_z1));
 	if (play_mode->encoding & PE_16BIT)
 		init_ns_tap16();
 }
@@ -236,7 +236,6 @@ static void init_ns_tap16(void)
 #ifdef USE_MT_RAND
 	init_by_array(init, length);
 #endif
-	ns9_order = 9;
 	for (i = 0; i < ns9_order; i++)
 		ns9_c[i] = TIM_FSCALE(ns9_coef[i], 24);
 	memset(ns9_ehl, 0, sizeof(ns9_ehl));
@@ -250,21 +249,25 @@ void do_effect(int32* buf, int32 count)
 	/* reverb in mono */
 	if (opt_reverb_control && (play_mode->encoding & PE_MONO))
 		do_mono_reverb(buf, count);
-#ifndef USE_DSP_EFFECTS	/* do_compute_data_midi() already applied them */
+#ifndef USE_DSP_EFFECT	/* do_compute_data_midi() already applied them */
 	/* for static reverb / chorus level */
 	if (opt_reverb_control < 0 || opt_chorus_control < 0) {
-		set_dry_signal(buf,2 * count);
+		int32				nsamples = count;
+		
+		if (!(play_mode->encoding & PE_MONO))
+			nsamples *= 2;
+		set_dry_signal(buf, nsamples);
 		if (opt_chorus_control < 0)
-			set_ch_chorus(buf, 2 * count, -opt_chorus_control);
+			set_ch_chorus(buf, nsamples, -opt_chorus_control);
 		if (opt_reverb_control < 0)
-			set_ch_reverb(buf, 2 * count, -opt_reverb_control);
-		mix_dry_signal(buf, 2 * count);
+			set_ch_reverb(buf, nsamples, -opt_reverb_control);
+		mix_dry_signal(buf, nsamples);
 		if (opt_chorus_control < 0)
-			do_ch_chorus(buf, 2 * count);
+			do_ch_chorus(buf, nsamples);
 		if (opt_reverb_control < 0)
-			do_ch_reverb(buf, 2 * count);
+			do_ch_reverb(buf, nsamples);
 	}
-#endif /* USE_DSP_EFFECTS */
+#endif /* USE_DSP_EFFECT */
 	/* L/R Delay */
 	effect_left_right_delay(buf, count);
 	/* Noise shaping filter must apply at last */
@@ -307,6 +310,8 @@ static void ns_shaping8(int32 *lp, int32 c)
 	default:
 		return;
 	}
+	if (!(play_mode->encoding & PE_MONO))
+		c *= 2;
 	for (i = 0; i < c; i++) {
 		/* applied noise-shaping filter */
 		if (lp[i] > NS_AMP_MAX)
@@ -337,14 +342,16 @@ static void ns_shaping8(int32 *lp, int32 c)
 
 static void ns_shaping16(int32 *lp, int32 c)
 {
+	if (!(play_mode->encoding & PE_MONO))
+		c *= 2;
 	switch (noise_sharp_type) {
 	case 1:
-		ns_shaping16_trad(lp, c * 2);
+		ns_shaping16_trad(lp, c);
 		break;
 	case 2:
 	case 3:
 	case 4:
-		ns_shaping16_9(lp, c * 2);
+		ns_shaping16_9(lp, c);
 		break;
 	}
 }
@@ -448,7 +455,7 @@ static void ns_shaping16_9(int32 *lp, int32 c)
 				- ns9_coef[3] * ns9_ehr[ns9_histposr + 3]
 				- ns9_coef[2] * ns9_ehr[ns9_histposr + 2]
 				- ns9_coef[1] * ns9_ehr[ns9_histposr + 1]
-				- ns9_coef[0]*ns9_ehr[ns9_histposr];
+				- ns9_coef[0] * ns9_ehr[ns9_histposr];
 #endif
 		l = sample >> (32 - 16 - GUARD_BITS);
 		output = l * (1U << (32 - 16 - GUARD_BITS))
@@ -477,4 +484,3 @@ static inline int32 my_mod(int32 x, int32 n)
 		x -= n;
 	return x;
 }
-
