@@ -510,7 +510,7 @@ int rtsyn_play_one_data (int port, int32 dwParam1){
 //		rtsyn_play_event(&ev);
 		break;
 	case 0xf0:
-#ifdef USE_PORTMIDI
+#ifdef IA_PORTMIDISYN
 		if ( (dwParam1 & 0x000000ff) == 0xf0) {
 			//SysEx
 			return 1;
