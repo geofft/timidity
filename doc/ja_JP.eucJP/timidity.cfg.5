@@ -30,6 +30,20 @@ ${variable} # $variable と同義
 .sp
 変数を新たに定義する命令は，今のところ用意されていません。未定義の変数
 は，空文字に置き換えられます。
+.br
+規定の変数として定義されている変数は，次の 1 つだけです。
+.TP
+.B $basedir
+設定ファイルが存在するディレクトリを表します。主にパスを指定する命令で，
+設定ファイルからの相対パスを指定する目的で使います。
+.br
+$basedir に空白が含まれるかも知れない場合は，"" で括る必要があります。
+.sp
+例:
+.br
+/usr/local/share/timidity/timidity.cfg 内で
+.br
+dir $basedir/inst # source /usr/local/share/timidity/inst と解釈される
 .SH 文法
 設定ファイル中には以下の書式が指定可能です。
 .TP
@@ -449,20 +463,6 @@ timidity 'cat fild.mid|'
 .RE
 .sp
 は，cat fild.mid の出力結果から読み取ります。
-.LP
-規定の変数として定義されている変数は，次の 1 つだけです。
-.TP
-.B $basedir
-設定ファイルが存在するディレクトリを表します。主にパスを指定する命令で，
-設定ファイルからの相対パスを指定する目的で使います。
-.br
-$basedir に空白が含まれるかも知れない場合は，"" で括る必要があります。
-.sp
-例:
-.br
-/usr/local/share/timidity/timidity.cfg 内で
-.br
-dir $basedir/inst # source /usr/local/share/timidity/inst と解釈される
 .SH ファイル
 .TP
 .B /etc/timidity.cfg

@@ -17,11 +17,11 @@ Configuration files define the mapping of MIDI programs to instrument
 files.  Multiple files may be specified, and statements in later ones
 will override earlier ones.
 .SH VARIABLE
-If alphanumeric and/or underscore `_' characters continue after dollar
-sign `$', it is considered that the string is a variable and the
-configuration file is processed, it is transposed to another string.
-The variable name can also be written with an inside parenthesis, in
-order to separate from a following character.
+When alphanumeric and/or underscore `_' characters continue after
+dollar sign `$', it is considered that the string is a variable and
+the configuration file is processed, it is transposed to another
+string.  The variable name can also be written with an inside
+parenthesis, in order to separate from a following character.
 .sp
 For example:
 .br
@@ -29,9 +29,24 @@ $variable
 .br
 ${variable} # same as $variable
 .sp
-For the moment, the command which newly defines a variable is not
-prepared.  The variable non-given a definition is transposed to null
-string.
+For the moment, the command which newly defines variables is not
+prepared.  The undifined variable is transposed to null string.
+.br
+The variable defined as a regular variable is the next only one.
+.TP
+.B $basedir
+Expresses the directory where the configuration file exists.  By the
+command which mainly specifies a path, it uses in order to specify the
+relative path from a setting file.
+.br
+When a blank may be included in $basedir, it is necessary to bundle
+with "".
+.sp
+For example:
+.br
+In /usr/local/share/timidity/timidity.cfg
+.br
+dir $basedir/inst # source /usr/local/share/timidity/inst
 .SH SYNTAX
 The following statements can be used in a configuration file:
 .TP
@@ -453,22 +468,6 @@ timidity 'cat fild.mid|'
 .RE
 .sp
 will read from the output of cat fild.mid.
-.LP
-The variable defined as a regular variable is the onle next one.
-.TP
-.B $basedir
-Expresses the directory where the configuration file exists.  By the
-command which mainly specifies a path, it uses in order to specify the
-relative path from a setting file.
-.br
-When a blank may be included in $basedir, it is necessary to bundle
-with "".
-.sp
-For example:
-.br
-In /usr/local/share/timidity/timidity.cfg
-.br
-dir $basedir/inst # source /usr/local/share/timidity/inst
 .SH FILES
 .TP
 .B /etc/timidity.cfg
