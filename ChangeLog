@@ -1,3 +1,8 @@
+2004-01-26  mput <root@mput.dip.jp>
+
+	* doc/C/timidity.1: Remove Japanese characters
+	* doc/ja_JP.ujis/timidity.1 : Add some missed entries
+
 2004-01-26  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.h, timidity/mix.c:
