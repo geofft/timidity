@@ -1,3 +1,8 @@
+2004-02-22 Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/mac_a.c: Support 8/24-bit output and PF_BUFF_FRAGM_OPT.
+	* timidity/aiff_a.c, timidity/smplfile.c: Fixed padding bug.
+
 2004-02-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/instrum.c: Beautify and fix typo
