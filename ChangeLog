@@ -1,3 +1,8 @@
+2003-06-04  mput <root@mput.dip.jp>
+
+	* Makefile.am (dist-hook): Bug fix
+	* configure.in,autoconf/Makefile.boot: modernize
+
 2003-06-02  mput <root@mput.dip.jp>
 
 	* bootstrap.sh: Fix to use make

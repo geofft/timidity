@@ -58,10 +58,9 @@ install.bin:
 	cd timidity; $(MAKE) install
 
 dist-hook:
-	CONFIG_HEADERS='' CONFIG_FILES=configs/msc-config.h $(SHELL) ./config.status
-	cp -r configs $(distdir)
-	chmod -R a+r $(distdir)
-	$(AMTAR) chof - $(distdir) | bzip2 -9 - > $(distdir).tar.bz2
+	echo '$(SHELL) ./config.status ; cp $$CONFIG_FILES $(distdir)/$$CONFIG_FILES' \
+	| env CONFIG_HEADERS='' CONFIG_FILES=configs/msc-config.h \
+	$(SHELL) -x
 
 ##
 ## Targets for timidity-tools

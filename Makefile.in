@@ -276,10 +276,8 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	installdirs-recursive install-recursive uninstall-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-	Makefile.in NEWS TODO aclocal.m4 autoconf/config.guess \
-	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
-	autoconf/missing autoconf/mkinstalldirs common.makefile.in \
-	config.h.in configure configure.in interface.h.in
+	Makefile.in NEWS TODO aclocal.m4 common.makefile.in config.h.in \
+	configure configure.in interface.h.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: config.h interface.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -476,7 +474,7 @@ distcleancheck_listfiles = find . -type f -print
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/. $(distdir)/autoconf
+	$(mkinstalldirs) $(distdir)/.
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -528,8 +526,13 @@ dist-gzip: distdir
 	$(AMTAR) chof - $(distdir) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
 	$(am__remove_distdir)
 
+dist-bzip2: distdir
+	$(AMTAR) chof - $(distdir) | bzip2 -9 -c >$(distdir).tar.bz2
+	$(am__remove_distdir)
+
 dist dist-all: distdir
 	$(AMTAR) chof - $(distdir) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
+	$(AMTAR) chof - $(distdir) | bzip2 -9 -c >$(distdir).tar.bz2
 	$(am__remove_distdir)
 
 # This target untars the dist file and tries a VPATH configuration.  Then
@@ -667,13 +670,13 @@ uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am clean \
 	clean-generic clean-recursive ctags ctags-recursive dist \
-	dist-all dist-gzip distcheck distclean distclean-generic \
-	distclean-hdr distclean-recursive distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am dvi-recursive info \
-	info-am info-recursive install install-am install-data \
-	install-data-am install-data-recursive install-exec \
-	install-exec-am install-exec-recursive install-info \
-	install-info-am install-info-recursive install-man \
+	dist-all dist-bzip2 dist-gzip distcheck distclean \
+	distclean-generic distclean-hdr distclean-recursive \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am dvi-recursive info info-am info-recursive install \
+	install-am install-data install-data-am install-data-recursive \
+	install-exec install-exec-am install-exec-recursive \
+	install-info install-info-am install-info-recursive install-man \
 	install-recursive install-strip installcheck installcheck-am \
 	installdirs installdirs-am installdirs-recursive \
 	maintainer-clean maintainer-clean-generic \
@@ -699,10 +702,9 @@ install.bin:
 	cd timidity; $(MAKE) install
 
 dist-hook:
-	CONFIG_HEADERS='' CONFIG_FILES=configs/msc-config.h $(SHELL) ./config.status
-	cp -r configs $(distdir)
-	chmod -R a+r $(distdir)
-	$(AMTAR) chof - $(distdir) | bzip2 -9 - > $(distdir).tar.bz2
+	echo '$(SHELL) ./config.status ; cp $$CONFIG_FILES $(distdir)/$$CONFIG_FILES' \
+	| env CONFIG_HEADERS='' CONFIG_FILES=configs/msc-config.h \
+	$(SHELL) -x
 
 tools:: tools-targets
 	cd $(TOOLSDIR); $(MAKE)

@@ -21,7 +21,7 @@
 # $Author$
 # Created at: Fri Jan 10 21:48:22 JST 2003
 
-all: automake configure
+all: config.h.in automake configure
 
 configure : configure.in aclocal.m4 config.h.in
 	autoconf
@@ -35,46 +35,46 @@ config.h.in : configure.in aclocal.m4
 automake : aclocal.m4 configure.in Makefile.in autoconf/Makefile.in configs/Makefile.in doc/Makefile.in doc/C/Makefile.in doc/ja_JP.ujis/Makefile.in interface/Makefile.in interface/bitmaps/Makefile.in interface/motif_bitmaps/Makefile.in interface/pixmaps/Makefile.in libarc/Makefile.in libunimod/Makefile.in script/Makefile.in timidity/Makefile.in utils/Makefile.in
 
 Makefile.in : Makefile.am
-	automake --gnu Makefile
+	automake Makefile
 
 autoconf/Makefile.in : autoconf/Makefile.am
-	automake --gnu autoconf/Makefile
+	automake autoconf/Makefile
 
 configs/Makefile.in : configs/Makefile.am
-	automake --gnu configs/Makefile
+	automake configs/Makefile
 
 doc/Makefile.in : doc/Makefile.am
-	automake --gnu doc/Makefile
+	automake doc/Makefile
 
 doc/C/Makefile.in : doc/C/Makefile.am
-	automake --gnu doc/C/Makefile
+	automake doc/C/Makefile
 
 doc/ja_JP.ujis/Makefile.in : doc/ja_JP.ujis/Makefile.am
-	automake --gnu doc/ja_JP.ujis/Makefile
+	automake doc/ja_JP.ujis/Makefile
 
 interface/Makefile.in : interface/Makefile.am
-	automake --gnu interface/Makefile
+	automake interface/Makefile
 
 interface/bitmaps/Makefile.in : interface/bitmaps/Makefile.am
-	automake --gnu interface/bitmaps/Makefile
+	automake interface/bitmaps/Makefile
 
 interface/motif_bitmaps/Makefile.in : interface/motif_bitmaps/Makefile.am
-	automake --gnu interface/motif_bitmaps/Makefile
+	automake interface/motif_bitmaps/Makefile
 
 interface/pixmaps/Makefile.in : interface/pixmaps/Makefile.am
-	automake --gnu interface/pixmaps/Makefile
+	automake interface/pixmaps/Makefile
 
 libarc/Makefile.in : libarc/Makefile.am
-	automake --gnu libarc/Makefile
+	automake libarc/Makefile
 
 libunimod/Makefile.in : libunimod/Makefile.am
-	automake --gnu libunimod/Makefile
+	automake libunimod/Makefile
 
 script/Makefile.in : script/Makefile.am
-	automake --gnu script/Makefile
+	automake script/Makefile
 
 timidity/Makefile.in : timidity/Makefile.am
-	automake --gnu timidity/Makefile
+	automake timidity/Makefile
 
 utils/Makefile.in : utils/Makefile.am
-	automake --gnu utils/Makefile
+	automake utils/Makefile
