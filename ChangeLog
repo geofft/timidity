@@ -1,3 +1,12 @@
+2004-01-15  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Casting error fixed.
+	* timidity/sndfont.c: Added playnote calculation for cfgforsf (incomplete).
+
+2004-01-15  Daisuke Aoki <dai@sweetparty.ne.jp>
+
+	* timidity/sndfont.c: cfgforsf supported comment option.
+
 2004-01-13  Christian Casteyde <casteyde.christian@free.fr>
 
 	* timidity/aRts_a.c (open_output): Fix for aRts backend hogging
@@ -7,6 +16,12 @@
 
 	* timidity/playmidi.c:
 	  Rewrite and fix around select_play_sample()
+
+2004-01-11  Saito <saito2@digitalme.com>
+
+	* timidity/timidity.c, timidity/playmidi.c, timidity/instrum.h:
+	  Support for #extension reverbsend, chorussend, delaysend.
+	  Fix SF2 scale tuning.
 
 2004-01-10  Saito <saito2@digitalme.com>
 
@@ -121,6 +136,7 @@
 	  Fix around channel pressure.
 
 2003-12-25  Kentaro Sato <kentaro@ranvis.com>
+
 	* timidity/playmidi.c, timidity/readmidi.c,
 	  timidity/tables.[ch], timidity/timidity.c:
 	  Support for GM2 default MSB bank and volume curve.
