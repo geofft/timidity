@@ -1,3 +1,9 @@
+
+2003-06-21  Saito <timidity@flashmail.com>
+
+	* nouse, timw32g, timw32gd, twsyng, cfgforsf, ...:
+	  Add VC++ project files to be able to compile Win32GUI interface.
+
 2003-06-17  s_keishi <s_keishi@mutt.freemail.ne.jp>
 
 	* interface/winsyn_c.c: To work under PortAudio
