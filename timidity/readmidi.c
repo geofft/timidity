@@ -6137,7 +6137,8 @@ void recompute_chorus_status_gs()
 	p->delay_in_sample = chorus_delay_time_table[p->chorus_delay] * (double)play_mode->rate / 1000.0;
 	p->depth_in_sample = (double)(p->chorus_depth + 1) / 3.2f * (double)play_mode->rate / 1000.0;
 	p->delay_in_sample -= p->depth_in_sample / 2;	/* NOMINAL_DELAY to delay */
-	if(p->delay_in_sample < 1) {p->delay_in_sample = 1;}
+	if (p->delay_in_sample < 1) {p->delay_in_sample = 1;}
+	if (p->chorus_rate < 1) {p->chorus_rate = 1;}
 	p->cycle_in_sample = play_mode->rate / ((double)p->chorus_rate * 0.122f);
 	p->feedback_ratio = (double)p->chorus_feedback * 0.763f / 100.0f;
 	p->level_ratio = (double)p->chorus_level / 127.0f;
