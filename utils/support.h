@@ -71,7 +71,16 @@ extern int mkstemp(char *template);
 #ifdef __W32__
 #include <sys/stat.h>          /* they have. */
 #elif defined(__MACOS__)
-/* TODO: wrte something here to work stat() correctly on mac */
+#define S_IFDIR 1
+#define S_ISDIR(m)   ((m) & S_IFDIR)
+struct stat {
+	short st_mode;
+	short st_dev;
+	long st_ino;
+	unsigned long st_size;
+	unsigned long st_mtime, st_ctime, st_btime;
+};
+int stat(const char *filename, struct stat *st);
 #endif /* __W32__ */
 #endif /* HAVE_SYS_STAT_H*/
 #endif /* ___SUPPORT_H_ */
