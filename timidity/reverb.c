@@ -276,6 +276,48 @@ inline int32 do_lfo(lfo *lfo)
 	return lfo->buf[imuldiv24(lfo->count++, lfo->icycle)];
 }
 
+/*! calculate Moog VCF coefficients */
+void calc_filter_moog(filter_moog *svf)
+{
+	double res, fr, p, q, f;
+	res = pow(10, (svf->res_dB - 96) / 20);
+	fr = 2.0 * (double)svf->freq / (double)play_mode->rate;
+	q = 1.0 - fr;
+	p = fr + 0.8 * fr * q;
+	f = p + p - 1.0;
+	q = res * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
+	svf->f = TIM_FSCALE(f, 24);
+	svf->p = TIM_FSCALE(p, 24);
+	svf->q = TIM_FSCALE(q, 24);
+}
+
+/*! initialize Moog VCF */
+void init_filter_moog(filter_moog *p)
+{
+	memset(p, 0, sizeof(filter_moog));
+}
+
+/*! calculate LPF18 coefficients */
+void calc_filter_lpf18(filter_lpf18 *p)
+{
+	double kfcn, kp, kp1, kp1h, kres, value;
+
+	kfcn = 2.0 * (double)p->freq / (double)play_mode->rate;
+	kp = ((-2.7528 * kfcn + 3.0429) * kfcn + 1.718) * kfcn - 0.9984;
+	kp1 = kp + 1.0;
+	kp1h = 0.5 * kp1;
+	kres = p->res * (((-2.7079 * kp1 + 10.963) * kp1 - 14.934) * kp1 + 8.4974);
+    value = 1.0 + (p->dist * (1.5 + 2.0 * kres * (1.0 - kfcn)));
+
+	p->kp = kp, p->kp1h = kp1h, p->kres = kres, p->value = value;
+}
+
+/*! initialize LPF18 */
+void init_filter_lpf18(filter_lpf18 *p)
+{
+	memset(p, 0, sizeof(filter_lpf18));
+}
+
 #if OPT_MODE != 0
 #if _MSC_VER
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
@@ -1927,14 +1969,6 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 	}
 }
 
-/*! volume stat. */
-inline void do_volume_stat(int32 sample,int32 *volume)
-{
-	*volume -= 200;
-	if(sample < 0) {sample = -sample;}
-	if(sample > *volume) {*volume = sample;}
-}
-
 /*! panning (pan = [-1.0, 1.0]) */
 static inline int32 do_left_panning(int32 sample, FLOAT_T pan)
 {
@@ -1946,127 +1980,253 @@ static inline int32 do_right_panning(int32 sample, FLOAT_T pan)
 	return (int32)(sample + sample * pan);
 }
 
-/*! Overdrive (level = [0.0, 1.0], volume = [0.0, 1.0]) */ 
-inline int32 do_overdrive(int32 sample, FLOAT_T level, FLOAT_T volume, int32 max_volume)
-{
-	int32 od_threshold = max_volume >> 1;
-
-	if(sample < -od_threshold) {
-		sample = (int32)(-pow((FLOAT_T)-sample / (FLOAT_T)max_volume, level) * volume * max_volume);
-	} else if(sample > od_threshold) {
-		sample = (int32)(pow((FLOAT_T)sample / (FLOAT_T)max_volume, level) * volume * max_volume);
-	} else {
-		sample *= volume;
-	}
-
-	return sample;
-}
-
-/*! Distortion (level = [0.0, 1.0], volume = [0.0, 1.0]) */ 
-inline int32 do_distortion(int32 sample, FLOAT_T level, FLOAT_T volume, int32 max_volume)
-{
-	int32 od_clip = max_volume >> 2;
-	sample *= level;
-	if(sample > od_clip) {sample = od_clip;}
-	else if(sample < -od_clip) {sample = -od_clip;}
-	sample *= volume;
-	sample <<= 2;
-	return sample;
-}
+#define INT32_MAX_NEG (1.0 / (double)(1 << 31))
 
 /*! GS 0x0110: Overdrive 1 */
 void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 {
-	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
-	int32 i, output, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
-	double pan = od->pan, level = od->level, volume = od->volume;
+	InfoOverdrive1 *info = (InfoOverdrive1 *)ef->info;
+	filter_moog *svf = &(info->svf);
+	int32 t1, t2, f = svf->f, q = svf->q, p = svf->p, b0 = svf->b0,
+		b1 = svf->b1, b2 = svf->b2, b3 = svf->b3, b4 = svf->b4;
+	filter_lpf18 *lpf = &(info->lpf18);
+	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
+		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
+	int32 i, input, high, low, leveli = info->leveli;
+	double sig, pan = info->pan;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		/* set parameters of decompositor */
+		init_filter_moog(svf);
+		svf->freq = 500;
+		svf->res_dB = 0;
+		calc_filter_moog(svf);
+		/* set parameters of waveshaper */
+		/* ideally speaking:
+		   lpf->res = table_res[drive];
+		   lpf->dist = table_dist[drive]; */
+		init_filter_lpf18(lpf);
+		lpf->freq = 7000;
+		lpf->res = 0.1;
+		lpf->dist = 1.0 * ((double)info->drive / 127.0);
+		calc_filter_lpf18(lpf);
+		info->leveli = TIM_FSCALE(info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		/* left */
-		output = buf[i];
-		do_volume_stat(output, &max_volume1);
-		output = do_overdrive(output, level, volume, max_volume1);
-		buf[i] = do_left_panning(output, pan);
-
-		/* right */
-		output = buf[++i];
-		do_volume_stat(output, &max_volume2);
-		output = do_overdrive(output, level, volume, max_volume2);
-		buf[i] = do_right_panning(output, pan);
+		input = imuldiv24(buf[i], leveli);
+		input += imuldiv24(buf[i + 1], leveli);
+		/* decomposition */
+		input -= imuldiv24(q, b4);
+		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
+		t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
+		t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);
+		low = b4 = imuldiv24(b3 + t1, p) - imuldiv24(b4, f);
+		b0 = input;
+		high = input - b4;
+		/* waveshaping */
+		sig = (double)high * INT32_MAX_NEG;
+		ax1 = lastin;
+		ay11 = ay1;
+		ay31 = ay2;
+		lastin = sig - tanh(kres * aout);
+		ay1 = kp1h * (lastin + ax1) - kp * ay1;
+		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
+		aout = kp1h * (ay2 + ay31) - kp * aout;
+		sig = tanh(aout * value);
+		high = TIM_FSCALE(sig, 31);
+		/* mixing */
+		input = low + high;
+		buf[i] = do_left_panning(input, pan);
+		buf[i + 1] = do_right_panning(input, pan);
+		++i;
 	}
-	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+	svf->b0 = b0, svf->b1 = b1, svf->b2 = b2, svf->b3 = b3, svf->b4 = b4;
+    lpf->ay1 = ay1, lpf->ay2 = ay2, lpf->aout = aout, lpf->lastin = lastin;
 }
 
 /*! GS 0x0111: Distortion 1 */
 void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 {
-	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
-	int32 i, output, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
-	double pan = od->pan, level = od->level, volume = od->volume;
+	InfoOverdrive1 *info = (InfoOverdrive1 *)ef->info;
+	filter_moog *svf = &(info->svf);
+	int32 t1, t2, f = svf->f, q = svf->q, p = svf->p, b0 = svf->b0,
+		b1 = svf->b1, b2 = svf->b2, b3 = svf->b3, b4 = svf->b4;
+	filter_lpf18 *lpf = &(info->lpf18);
+	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
+		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
+	int32 i, input, high, low, leveli = info->leveli;
+	double sig, pan = info->pan;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		/* set parameters of decompositor */
+		init_filter_moog(svf);
+		svf->freq = 500;
+		svf->res_dB = 0;
+		calc_filter_moog(svf);
+		/* set parameters of waveshaper */
+		/* ideally speaking:
+		   lpf->res = table_res[drive];
+		   lpf->dist = table_dist[drive]; */
+		init_filter_lpf18(lpf);
+		lpf->freq = 7000;
+		lpf->res = 0.2;
+		lpf->dist = 1.0 * ((double)info->drive / 127.0) + 0.2;
+		calc_filter_lpf18(lpf);
+		info->leveli = TIM_FSCALE(info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		/* left */
-		output = buf[i];
-		do_volume_stat(output, &max_volume1);
-		output = do_distortion(output, level, volume, max_volume1);
-		buf[i] = do_left_panning(output, pan);
-
-		/* right */
-		output = buf[++i];
-		do_volume_stat(output, &max_volume2);
-		output = do_distortion(output, level, volume, max_volume2);
-		buf[i] = do_right_panning(output, pan);
+		input = imuldiv24(buf[i], leveli);
+		input += imuldiv24(buf[i + 1], leveli);
+		/* decomposition */
+		input -= imuldiv24(q, b4);
+		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
+		t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
+		t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);
+		low = b4 = imuldiv24(b3 + t1, p) - imuldiv24(b4, f);
+		b0 = input;
+		high = input - b4;
+		/* waveshaping */
+		sig = (double)high * INT32_MAX_NEG;
+		ax1 = lastin;
+		ay11 = ay1;
+		ay31 = ay2;
+		lastin = sig - tanh(kres * aout);
+		ay1 = kp1h * (lastin + ax1) - kp * ay1;
+		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
+		aout = kp1h * (ay2 + ay31) - kp * aout;
+		sig = tanh(aout * value);
+		high = TIM_FSCALE(sig, 31);
+		/* mixing */
+		input = low + high;
+		buf[i] = do_left_panning(input, pan);
+		buf[i + 1] = do_right_panning(input, pan);
+		++i;
 	}
-	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+	svf->b0 = b0, svf->b1 = b1, svf->b2 = b2, svf->b3 = b3, svf->b4 = b4;
+    lpf->ay1 = ay1, lpf->ay2 = ay2, lpf->aout = aout, lpf->lastin = lastin;
 }
 
 /*! GS 0x1103: OD1 / OD2 */
 void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 {
-	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
-	int32 i, output1, output2, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
-	double pan1 = od->pan1, level1 = od->level1, volume1 = od->volume1,
-		pan2 = od->pan2, level2 = od->level2, volume2 = od->volume2;
-	int32 (*od1)(int32, FLOAT_T, FLOAT_T, int32),(*od2)(int32, FLOAT_T, FLOAT_T, int32);
+	InfoOD1OD2 *info = (InfoOD1OD2 *)ef->info;
+	filter_moog *svfl = &(info->svfl);
+	int32 t1l, t2l, f = svfl->f, q = svfl->q, p = svfl->p, b0l = svfl->b0,
+		b1l = svfl->b1, b2l = svfl->b2, b3l = svfl->b3, b4l = svfl->b4;
+	filter_moog *svfr = &(info->svfr);
+	int32 t1r, t2r, b0r = svfr->b0,
+		b1r = svfr->b1, b2r = svfr->b2, b3r = svfr->b3, b4r = svfr->b4;
+	filter_lpf18 *lpfl = &(info->lpf18l);
+	double ay1l = lpfl->ay1, ay2l = lpfl->ay2, aoutl = lpfl->aout, lastinl = lpfl->lastin,
+		kresl = lpfl->kres, valuel = lpfl->value, kp = lpfl->kp, kp1h = lpfl->kp1h, ax1l, ay11l, ay31l;
+	filter_lpf18 *lpfr = &(info->lpf18r);
+	double ay1r = lpfr->ay1, ay2r = lpfr->ay2, aoutr = lpfr->aout, lastinr = lpfr->lastin,
+		kresr = lpfr->kres, valuer = lpfr->value, ax1r, ay11r, ay31r;
+	int32 i, inputl, inputr, high, low, levelli = info->levelli, levelri = info->levelri;
+	double sig, panl = info->panl, panr = info->panr;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		/* left */
+		/* set parameters of decompositor */
+		init_filter_moog(svfl);
+		svfl->freq = 500;
+		svfl->res_dB = 0;
+		calc_filter_moog(svfl);
+		/* set parameters of waveshaper */
+		init_filter_lpf18(lpfl);
+		lpfl->freq = 7000;
+		if(info->typel == 0) {	/* Overdrive */
+			lpfl->res = 0.1;
+			lpfl->dist = 1.0 * ((double)info->drivel / 127.0);
+		} else {	/* Distortion */
+			lpfl->res = 0.2;
+			lpfl->dist = 1.0 * ((double)info->drivel / 127.0) + 0.2;
+		}
+		calc_filter_lpf18(lpfl);
+		info->levelli = TIM_FSCALE(info->levell * info->level, 24);
+		/* right */
+		/* set parameters of decompositor */
+		init_filter_moog(svfr);
+		svfr->freq = 500;
+		svfr->res_dB = 0;
+		calc_filter_moog(svfr);
+		/* set parameters of waveshaper */
+		init_filter_lpf18(lpfr);
+		lpfr->freq = 7000;
+		if(info->typer == 0) {	/* Overdrive */
+			lpfr->res = 0.1;
+			lpfr->dist = 1.0 * ((double)info->driver / 127.0);
+		} else {	/* Distortion */
+			lpfr->res = 0.2;
+			lpfr->dist = 1.0 * ((double)info->driver / 127.0) + 0.2;
+		}
+		calc_filter_lpf18(lpfr);
+		info->levelri = TIM_FSCALE(info->levelr * info->level, 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
-	if(od->type1 == 0) {od1 = do_overdrive;}
-	else {od1 = do_distortion;}
-	if(od->type2 == 0) {od2 = do_overdrive;}
-	else {od2 = do_distortion;}
 	for(i = 0; i < count; i++) {
 		/* left */
-		output1 = buf[i];
-		do_volume_stat(output1, &max_volume1);
-		output1 = (*od1)(output1, level1, volume1, max_volume1);
+		inputl = imuldiv24(buf[i], levelli);
+		/* decomposition */
+		inputl -= imuldiv24(q, b4l);
+		t1l = b1l;  b1l = imuldiv24(inputl + b0l, p) - imuldiv24(b1l, f);
+		t2l = b2l;  b2l = imuldiv24(b1l + t1l, p) - imuldiv24(b2l, f);
+		t1l = b3l;  b3l = imuldiv24(b2l + t2l, p) - imuldiv24(b3l, f);
+		low = b4l = imuldiv24(b3l + t1l, p) - imuldiv24(b4l, f);
+		b0l = inputl;
+		high = inputl - b4l;
+		/* waveshaping */
+		sig = (double)high * INT32_MAX_NEG;
+		ax1l = lastinl;
+		ay11l = ay1l;
+		ay31l = ay2l;
+		lastinl = sig - tanh(kresl * aoutl);
+		ay1l = kp1h * (lastinl + ax1l) - kp * ay1l;
+		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
+		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
+		sig = tanh(aoutl * valuel);
+		high = TIM_FSCALE(sig, 31);
+		inputl = low + high;
 
 		/* right */
-		output2 = buf[++i];
-		do_volume_stat(output2, &max_volume2);
-		output2 = (*od2)(output2, level2, volume2, max_volume2);
+		inputr = imuldiv24(buf[++i], levelri);
+		/* decomposition */
+		inputr -= imuldiv24(q, b4r);
+		t1r = b1r;  b1r = imuldiv24(inputr + b0r, p) - imuldiv24(b1r, f);
+		t2r = b2r;  b2r = imuldiv24(b1r + t1r, p) - imuldiv24(b2r, f);
+		t1r = b3r;  b3r = imuldiv24(b2r + t2r, p) - imuldiv24(b3r, f);
+		low = b4r = imuldiv24(b3r + t1r, p) - imuldiv24(b4r, f);
+		b0r = inputr;
+		high = inputr - b4r;
+		/* waveshaping */
+		sig = (double)high * INT32_MAX_NEG;
+		ax1r = lastinr;
+		ay11r = ay1r;
+		ay31r = ay2r;
+		lastinr = sig - tanh(kresr * aoutr);
+		ay1r = kp1h * (lastinr + ax1r) - kp * ay1r;
+		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
+		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
+		sig = tanh(aoutr * valuer);
+		high = TIM_FSCALE(sig, 31);
+		inputr = low + high;
 
-		/* mix */
-		buf[i-1] = do_left_panning(output1, pan1) + do_left_panning(output2, pan2);
-		buf[i] = do_right_panning(output1, pan1) + do_right_panning(output2, pan2);
+		/* mixing */
+		buf[i - 1] = do_left_panning(inputl, panl) + do_left_panning(inputr, panr);
+		buf[i] = do_right_panning(inputl, panl) + do_right_panning(inputr, panr);
 	}
-	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+	svfl->b0 = b0l, svfl->b1 = b1l, svfl->b2 = b2l, svfl->b3 = b3l, svfl->b4 = b4l;
+    lpfl->ay1 = ay1l, lpfl->ay2 = ay2l, lpfl->aout = aoutl, lpfl->lastin = lastinl;
+	svfr->b0 = b0r, svfr->b1 = b1r, svfr->b2 = b2r, svfr->b3 = b3r, svfr->b4 = b4r;
+    lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
 /*! Implementation Test: Chorus 1 (under construction... ) */

@@ -208,7 +208,7 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 		}
 		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2;
 		return;
-	} else if(fc->type == 2) {	/* copy with applying Moog VCF lowpass filter. */
+	} else if(fc->type == 2) {	/* copy with applying Moog lowpass VCF. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		f = fc->f, q = fc->q, p = fc->p, b0 = fc->b0, b1 = fc->b1,

@@ -2,7 +2,11 @@
 
 	* interface/w32g_res.rc:
 	  Fix dialog around temperaments.
-
+	* timidity/reverb.[ch], timidity/readmidi.c:
+	  Implement new algorithm for Distortion and Overdrive effect.
+	* timidity/mix.c:
+	  Fix a comment.
+	  
 2003-12-02  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/mix.c:

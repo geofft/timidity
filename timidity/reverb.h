@@ -42,7 +42,7 @@ extern void mix_dry_signal(register int32 *, int32);
 /*  Effect Utitities  */
 /*                    */
 /*! simple or feedback delay */
-typedef struct _delay {
+typedef struct {
 	int32 *buf, size, index;
 	double feedback;
 	int32 feedbacki;
@@ -54,12 +54,25 @@ typedef struct _delay {
 #define MIN_LFO_CYCLE_LENGTH 1
 
 /*! LFO */
-typedef struct _lfo {
+typedef struct {
 	int32 buf[SINE_CYCLE_LENGTH];
 	int32 count, cycle;	/* in samples */
 	int32 icycle;	/* proportional to (SINE_CYCLE_LENGTH / cycle) */
 	int type;	/* current content of its buffer */
 } lfo;
+
+typedef struct {
+	int16 freq;	/* in Hz */
+	double res_dB; /* in dB */
+	int32 f, q, p;	/* coefficients in fixed-point */
+	int32 b0, b1, b2, b3, b4;
+} filter_moog;
+
+typedef struct {
+	int16 freq;	/* in Hz */
+	double dist, res; /* in linear */
+	double ay1, ay2, aout, lastin, kres, value, kp, kp1h;
+} filter_lpf18;
 
 enum {
 	LFO_NONE = 0,
@@ -82,6 +95,8 @@ enum {
 
 #define MAGIC_INIT_EFFECT_INFO -1
 #define MAGIC_FREE_EFFECT_INFO -2
+/* for future effects having real-time parameter change */
+#define MAGIC_RECALC_EFFECT_INFO -3
 
 typedef struct _EffectList {
 	int8 type;
@@ -112,20 +127,27 @@ typedef struct {
 
 /*! Overdrive 1 / Distortion 1 */
 typedef struct {
-	double pan, level, volume;
-	int32 max_volume1, max_volume2;
+	double pan, level;
+	int32 leveli;	/* in fixed-point */
+	int8 drive;
+	filter_moog svf;
+	filter_lpf18 lpf18;
 } InfoOverdrive1;
 
 /*! OD1 / OD2 */
 typedef struct {
-	double volume, pan1, level1, volume1, pan2, level2, volume2;
-	int32 max_volume1, max_volume2, type1, type2;
+	double panl, panr, level, levell, levelr;
+	int32 levelli, levelri;	/* in fixed-point */
+	int8 drivel, driver;
+	filter_moog svfl, svfr;
+	filter_lpf18 lpf18l, lpf18r;
+	int32 typel, typer;
 } InfoOD1OD2;
 
 /*! Chorus 1 (under construction...) */
 typedef struct {
-	struct _delay buf0;
-	struct _lfo lfo0;
+	delay buf0;
+	lfo lfo0;
 	double depth, dry, wet, feedback, feedforward;
 	int32 depthi, dryi, weti, feedbacki, feedforwardi;
 	int32 pdelay;	/* in samples */

@@ -4754,9 +4754,9 @@ static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect)
 {
 	InfoOverdrive1 *od = (InfoOverdrive1 *)safe_malloc(sizeof(InfoOverdrive1));
 
-	od->volume = (double)ieffect->parameter[19] / 127.0;
-	od->level = (double)ieffect->parameter[0] / 127.0;
-	od->pan = (ieffect->parameter[18] - 0x40) / 63.0;
+	od->level = (double)ieffect->parameter[19] / 127.0;
+	od->drive = ieffect->parameter[0];
+	od->pan = (double)(ieffect->parameter[18] - 0x40) / 63.0;
 
 	return od;
 }
@@ -4766,15 +4766,15 @@ static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect)
 {
 	InfoOD1OD2 *od = (InfoOD1OD2 *)safe_malloc(sizeof(InfoOD1OD2));
 
-	od->volume = (double)ieffect->parameter[19] / 127.0;
-	od->volume1 = (double)ieffect->parameter[16] / 127.0 * od->volume;
-	od->volume2 = (double)ieffect->parameter[18] / 127.0 * od->volume;
-	od->level1 = (double)ieffect->parameter[1] / 127.0;
-	od->level2 = (double)ieffect->parameter[6] / 127.0;
-	od->pan1 = (double)(ieffect->parameter[15] - 0x40) / 63.0;
-	od->pan2 = (double)(ieffect->parameter[17] - 0x40) / 63.0;
-	od->type1 = ieffect->parameter[0];
-	od->type2 = ieffect->parameter[5];
+	od->level = (double)ieffect->parameter[19] / 127.0;
+	od->levell = (double)ieffect->parameter[16] / 127.0;
+	od->levelr = (double)ieffect->parameter[18] / 127.0;
+	od->drivel = ieffect->parameter[1];
+	od->driver = ieffect->parameter[6];
+	od->panl = (double)(ieffect->parameter[15] - 0x40) / 63.0;
+	od->panr = (double)(ieffect->parameter[17] - 0x40) / 63.0;
+	od->typel = ieffect->parameter[0];
+	od->typer = ieffect->parameter[5];
 
 	return od;
 }
