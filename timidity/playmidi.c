@@ -1258,172 +1258,6 @@ void recompute_bank_parameter(int ch, int note)
 	}
 }
 
-static void *memdup(void *s,size_t size)
-{
-	void *p;
-
-	p = safe_malloc(size);
-	if(p != NULL) {memcpy(p,s,size);}
-
-	return p;
-}
-
-void dup_tone_bank_element(int dr, int bk, int prog)
-{
-	ToneBank **bank = ((dr) ? drumset : tonebank);
-	ToneBankElement *elm = &bank[bk]->tone[prog];
-	int i;
-	
-	if (elm->name)
-		elm->name = safe_strdup(elm->name);
-	if (elm->comment)
-		elm->comment = safe_strdup(elm->comment);
-	if (elm->tunenum)
-		elm->tune = (float *) memdup(
-				elm->tune, elm->tunenum * sizeof(float));
-	if (elm->sclnotenum)
-		elm->sclnote = (int16 *) memdup(
-				elm->sclnote, elm->sclnotenum * sizeof(int16));
-	if (elm->scltunenum)
-		elm->scltune = (int16 *) memdup(
-				elm->scltune, elm->scltunenum * sizeof(int16));
-	if (elm->fcnum)
-		elm->fc = (int16 *) memdup(
-				elm->fc, elm->fcnum * sizeof(int16));
-	if (elm->resonum)
-		elm->reso = (int16 *) memdup(
-				elm->reso, elm->resonum * sizeof(int16));
-	if (elm->trempitchnum)
-		elm->trempitch = (int16 *) memdup(
-				elm->trempitch, elm->trempitchnum * sizeof(int16));
-	if (elm->tremfcnum)
-		elm->tremfc = (int16 *) memdup(
-				elm->tremfc, elm->tremfcnum * sizeof(int16));
-	if (elm->modpitchnum)
-		elm->modpitch = (int16 *) memdup(
-				elm->modpitch, elm->modpitchnum * sizeof(int16));
-	if (elm->modfcnum)
-		elm->modfc = (int16 *) memdup(
-				elm->modfc, elm->modfcnum * sizeof(int16));
-	if (elm->envratenum) {
-		elm->envrate = (int **) memdup(
-				elm->envrate, elm->envratenum * sizeof(int *));
-		for (i = 0; i < elm->envratenum; i++)
-			elm->envrate[i] = (int *) memdup(elm->envrate[i], 6 * sizeof(int));
-	}
-	if (elm->envofsnum) {
-		elm->envofs = (int **) memdup(
-				elm->envofs, elm->envofsnum * sizeof(int *));
-		for (i = 0; i < elm->envofsnum; i++)
-			elm->envofs[i] = (int *) memdup(elm->envofs[i], 6 * sizeof(int));
-	}
-	if (elm->modenvratenum) {
-		elm->modenvrate = (int **) memdup(
-				elm->modenvrate, elm->modenvratenum * sizeof(int *));
-		for (i = 0; i < elm->modenvratenum; i++)
-			elm->modenvrate[i] = (int *) memdup(elm->modenvrate[i], 6 * sizeof(int));
-	}
-	if (elm->modenvofsnum) {
-		elm->modenvofs = (int **) memdup(
-				elm->modenvofs, elm->modenvofsnum * sizeof(int *));
-		for (i = 0; i < elm->modenvofsnum; i++)
-			elm->modenvofs[i] = (int *) memdup(elm->modenvofs[i], 6 * sizeof(int));
-	}
-	if (elm->tremnum) {
-		elm->trem = (Quantity **) memdup(elm->trem, elm->tremnum * sizeof(Quantity *));
-		for (i = 0; i < elm->tremnum; i++)
-			elm->trem[i] = (Quantity *) memdup(elm->trem[i], 3 * sizeof(Quantity));
-	}
-	if (elm->vibnum) {
-		elm->vib = (Quantity **) memdup(elm->vib, elm->vibnum * sizeof(Quantity *));
-		for (i = 0; i < elm->vibnum; i++)
-			elm->vib[i] = (Quantity *) memdup(elm->vib[i], 3 * sizeof(Quantity));
-	}
-}
-
-void free_tone_bank_element(int dr, int bk, int prog)
-{
-	ToneBank **bank = (dr) ? drumset : tonebank;
-	ToneBankElement *elm = &bank[bk]->tone[prog];
-	int i;
-	
-	if (elm->name) {
-		free(elm->name);
-		elm->name = NULL;
-	}
-	if (elm->comment) {
-		free(elm->comment);
-		elm->comment = NULL;
-	}
-	if (elm->tune) {
-		free(elm->tune);
-		elm->tune = NULL;
-	}
-	if (elm->sclnote) {
-		free(elm->sclnote);
-		elm->sclnote = NULL;
-	}
-	if (elm->scltune) {
-		free(elm->scltune);
-		elm->scltune = NULL;
-	}
-	if (elm->fc) {
-		free(elm->fc);
-		elm->fc = NULL;
-	}
-	if (elm->reso) {
-		free(elm->reso);
-		elm->reso = NULL;
-	}
-	if (elm->trempitch) {
-		free(elm->trempitch);
-		elm->trempitch = NULL;
-	}
-	if (elm->tremfc) {
-		free(elm->tremfc);
-		elm->tremfc = NULL;
-	}
-	if (elm->modpitch) {
-		free(elm->modpitch);
-		elm->modpitch = NULL;
-	}
-	if (elm->modfc) {
-		free(elm->modfc);
-		elm->modfc = NULL;
-	}
-	if (elm->envratenum) {
-		free_ptr_list(elm->envrate, elm->envratenum);
-		elm->envrate = NULL;
-		elm->envratenum = 0;
-	}
-	if (elm->envofsnum) {
-		free_ptr_list(elm->envofs, elm->envofsnum);
-		elm->envofs = NULL;
-		elm->envofsnum = 0;
-	}
-	if (elm->modenvratenum) {
-		free_ptr_list(elm->modenvrate, elm->modenvratenum);
-		elm->modenvrate = NULL;
-		elm->modenvratenum = 0;
-	}
-	if (elm->modenvofsnum) {
-		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-		elm->modenvofs = NULL;
-		elm->modenvofsnum = 0;
-	}
-	if (elm->tremnum) {
-		free_ptr_list(elm->trem, elm->tremnum);
-		elm->trem = NULL;
-		elm->tremnum = 0;
-	}
-	if (elm->vibnum) {
-		free_ptr_list(elm->vib, elm->vibnum);
-		elm->vib = NULL;
-		elm->vibnum = 0;
-	}
-	elm->instype = 0;
-}
-
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
 	ToneBank **bank = (dr) ? drumset : tonebank;
@@ -1455,9 +1289,8 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 		if (ip) {
 			/* duplicate tone bank parameter */
 			elm = &bank[bk]->tone[prog];
-			memcpy(elm, &bank[0]->tone[prog], sizeof(ToneBankElement));
+			copy_tone_bank_element(elm, &bank[0]->tone[prog]);
 			elm->instrument = ip;
-			dup_tone_bank_element(dr, bk, prog);
 			load_success = 1;
 		}
 	}
@@ -8377,4 +8210,3 @@ static int32 get_rx_drum(struct DrumParts *p, int32 rx)
 {
 	return (p->rx & rx);
 }
-

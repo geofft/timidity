@@ -560,9 +560,6 @@ extern void playmidi_stream_init(void);
 extern void playmidi_tmr_reset(void);
 extern int play_event(MidiEvent *ev);
 
-extern void dup_tone_bank_element(int,int,int);
-extern void free_tone_bank_element(int,int,int);
-
 extern void recompute_voice_filter(int);
 extern int32 get_note_freq(Sample *, int);
 

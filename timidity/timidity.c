@@ -552,60 +552,45 @@ extern char* pcm_alternate_file;
 extern double atof(const char *);
 #endif
 
-static void copybank(ToneBank *to, ToneBank *from)
+/*! copy bank and, if necessary, map appropriately */
+static void copybank(ToneBank *to, ToneBank *from, int mapid, int bankmapfrom, int bankno)
 {
-    int i;
-
-    if(from == NULL)
-	return;
-    for(i = 0; i < 128; i++)
-    {
 	ToneBankElement *toelm, *fromelm;
+	int i;
 
-	toelm   = &to->tone[i];
-	fromelm = &from->tone[i];
+	if (from == NULL)
+		return;
+	for(i = 0; i < 128; i++)
+	{
+		toelm = &to->tone[i];
+		fromelm = &from->tone[i];
+		if (fromelm->name == NULL)
+		    continue;
+		copy_tone_bank_element(toelm, fromelm);
+		toelm->instrument = NULL;
+		toelm->instype = 0;
+		if (mapid != INST_NO_MAP)
+		    set_instrument_map(mapid, bankmapfrom, i, bankno, i);
+	}
+}
 
-	if(fromelm->name == NULL)
-	    continue;
-
-	if(toelm->name)
-	    free(toelm->name);
-	toelm->name = NULL;
-	if(toelm->comment)
-	    free(toelm->comment);
-	toelm->comment = NULL;
-	memcpy(toelm, fromelm, sizeof(ToneBankElement));
-	if(toelm->name)
-	    toelm->name = safe_strdup(toelm->name);
-	if(toelm->comment)
-	    toelm->comment = safe_strdup(toelm->comment);
-	toelm->instrument = NULL;
-	toelm->tune = NULL;
-	toelm->tunenum = 0;
-	toelm->sclnote = NULL;
-	toelm->sclnotenum = 0;
-	toelm->scltune = NULL;
-	toelm->scltunenum = 0;
-	toelm->fc = NULL;
-	toelm->fcnum = 0;
-	toelm->reso = NULL;
-	toelm->resonum = 0;
-	toelm->trempitch = NULL;
-	toelm->trempitchnum = 0;
-	toelm->tremfc = NULL;
-	toelm->tremfcnum = 0;
-	toelm->modpitch = NULL;
-	toelm->modpitchnum = 0;
-	toelm->modfc = NULL;
-	toelm->modfcnum = 0;
-	toelm->envrate = toelm->envofs = NULL;
-	toelm->envratenum = toelm->envofsnum = 0;
-	toelm->modenvrate = toelm->modenvofs = NULL;
-	toelm->modenvratenum = toelm->modenvofsnum = 0;
-	toelm->trem = toelm->vib = NULL;
-	toelm->tremnum = toelm->vibnum = 0;
-	toelm->instype = 0;
-    }
+/*! copy the whole mapped bank. returns 0 if no error. */
+static int copymap(int mapto, int mapfrom, int isdrum)
+{
+	ToneBank **tb = isdrum ? drumset : tonebank;
+	int i, bankfrom, bankto;
+	
+	for(i = 0; i < 128; i++)
+	{
+		bankfrom = find_instrument_map_bank(isdrum, mapfrom, i);
+		if (bankfrom <= 0) /* not mapped */
+			continue;
+		bankto = alloc_instrument_map_bank(isdrum, mapto, i);
+		if (bankto == -1) /* failed */
+			return 1;
+		copybank(tb[bankto], tb[bankfrom], mapto, i, bankto);
+	}
+	return 0;
 }
 
 static float *config_parse_tune(const char *cp, int *num)
@@ -898,85 +883,7 @@ static int set_gus_patchconf_opts(char *name, int line, char *opts,
 
 static void reinit_tone_bank_element(ToneBankElement *tone)
 {
-	if (tone->name) {
-		free(tone->name);
-		tone->name = NULL;
-	}
-	if (tone->tunenum) {
-		tone->tunenum = 0;
-		free(tone->tune);
-		tone->tune = NULL;
-	}
-	if (tone->sclnotenum) {
-		tone->sclnotenum = 0;
-		free(tone->sclnote);
-		tone->sclnote = NULL;
-	}
-	if (tone->scltunenum) {
-		tone->scltunenum = 0;
-		free(tone->scltune);
-		tone->scltune = NULL;
-	}
-	if (tone->fcnum) {
-		tone->fcnum = 0;
-		free(tone->fc);
-		tone->fc = NULL;
-	}
-	if (tone->resonum) {
-		tone->resonum = 0;
-		free(tone->reso);
-		tone->reso = NULL;
-	}
-	if (tone->trempitchnum) {
-		tone->trempitchnum = 0;
-		free(tone->trempitch);
-		tone->trempitch = NULL;
-	}
-	if (tone->tremfcnum) {
-		tone->tremfcnum = 0;
-		free(tone->tremfc);
-		tone->tremfc = NULL;
-	}
-	if (tone->modpitchnum) {
-		tone->modpitchnum = 0;
-		free(tone->modpitch);
-		tone->modpitch = NULL;
-	}
-	if (tone->modfcnum) {
-		tone->modfcnum = 0;
-		free(tone->modfc);
-		tone->modfc = NULL;
-	}
-	if (tone->envratenum) {
-		free_ptr_list(tone->envrate, tone->envratenum);
-		tone->envratenum = 0;
-		tone->envrate = NULL;
-	}
-	if (tone->envofsnum) {
-		free_ptr_list(tone->envofs, tone->envofsnum);
-		tone->envofsnum = 0;
-		tone->envofs = NULL;
-	}
-	if (tone->modenvratenum) {
-		free_ptr_list(tone->modenvrate, tone->modenvratenum);
-		tone->modenvratenum = 0;
-		tone->modenvrate = NULL;
-	}
-	if (tone->modenvofsnum) {
-		free_ptr_list(tone->modenvofs, tone->modenvofsnum);
-		tone->modenvofsnum = 0;
-		tone->modenvofs = NULL;
-	}
-	if (tone->tremnum) {
-		free_ptr_list(tone->trem, tone->tremnum);
-		tone->tremnum = 0;
-		tone->trem = NULL;
-	}
-	if (tone->vibnum) {
-		free_ptr_list(tone->vib, tone->vibnum);
-		tone->vibnum = 0;
-		tone->vib = NULL;
-	}
+	free_tone_bank_element(tone);
 	tone->note = tone->pan = -1;
 	tone->strip_loop = tone->strip_envelope = tone->strip_tail = -1;
 	tone->amp = -1;
@@ -1082,6 +989,42 @@ static int set_gus_patchconf(char *name, int line,
     return 0;
 }
 
+static int set_patchconf(char *name, int line, ToneBank *bank, char *w[], int dr, int mapid, int bankmapfrom, int bankno)
+{
+    int i;
+    
+    i = atoi(w[0]);
+    if(!dr)
+	i -= progbase;
+    if(i < 0 || i > 127)
+    {
+	if(dr)
+	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		      "%s: line %d: Drum number must be between "
+		      "0 and 127",
+		      name, line);
+	else
+	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		      "%s: line %d: Program must be between "
+		      "%d and %d",
+		      name, line, progbase, 127 + progbase);
+	return 1;
+    }
+    if(!bank)
+    {
+	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+		  "%s: line %d: Must specify tone bank or drum set "
+		  "before assignment", name, line);
+	return 1;
+    }
+
+    if(set_gus_patchconf(name, line, &bank->tone[i], w[1], w + 2))
+	return 1;
+    if (mapid != INST_NO_MAP)
+	set_instrument_map(mapid, bankmapfrom, i, bankno, i);
+    return 0;
+}
+
 typedef struct {
 	const char *name;
 	int mapid, isdrum;
@@ -1149,7 +1092,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
-    int dr = 0, bankno = 0;
+    int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno;
     int extension_flag, param_parse_err;
 
     if(rcf_count > 50)
@@ -1334,7 +1277,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    copybank(bank, drumset[i]);
+	    copybank(bank, drumset[i], mapid, origbankno, bankno);
 	}
 	/* #extension copybank bank */
 	else if(strcmp(w[0], "copybank") == 0)
@@ -1364,7 +1307,50 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    copybank(bank, tonebank[i]);
+	    copybank(bank, tonebank[i], mapid, origbankno, bankno);
+	}
+	/* #extension copymap tomapid frommapid */
+	else if(strcmp(w[0], "copymap") == 0)
+	{
+	    int mapto, mapfrom;
+	    int toisdrum, fromisdrum;
+
+	    if(words != 3)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: syntax error", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if ((mapto = mapname2id(w[1], &toisdrum)) == -1)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Invalid map name: %s", name, line, w[1]);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if ((mapfrom = mapname2id(w[2], &fromisdrum)) == -1)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Invalid map name: %s", name, line, w[2]);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if (toisdrum != fromisdrum)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Map type should be matched", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if (copymap(mapto, mapfrom, toisdrum))
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: No free %s available to map",
+			  name, line, toisdrum ? "drum set" : "tone bank");
+		CHECKERRLIMIT;
+		continue;
+	    }
 	}
 	/* #extension HTTPproxy hostname:port */
 	else if(strcmp(w[0], "HTTPproxy") == 0)
@@ -1519,17 +1505,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    if(bank->tone[i].name)
-	    {
-		free(bank->tone[i].name);
-		    bank->tone[i].name = NULL;
-	    }
-	    if(bank->tone[i].comment)
-	    {
-		free(bank->tone[i].comment);
-		bank->tone[i].comment = NULL;
-	    }
-			bank->tone[i].instype = 0;
+	    free_tone_bank_element(&bank->tone[i]);
 	}
 	/* #extension altassign numbers... */
 	else if(strcmp(w[0], "altassign") == 0)
@@ -2083,8 +2059,11 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    def_instr_name[255] = '\0';
 	    default_instrument_name = def_instr_name;
 	}
+	/* drumset [mapid] num */
 	else if(!strcmp(w[0], "drumset"))
 	{
+	    int newmapid, isdrum, newbankno;
+	    
 	    if(words < 2)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -2092,6 +2071,20 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
+	    if (words != 2 && !isdigit(w[1]))
+	    {
+		if ((newmapid = mapname2id(w[1], &isdrum)) == -1 || !isdrum)
+		{
+		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Invalid drum set map name: %s", name, line, w[1]);
+		    CHECKERRLIMIT;
+		    continue;
+		}
+		words--;
+		memmove(&w[1], &w[2], sizeof w[0] * words);
+	    }
+	    else
+		newmapid = INST_NO_MAP;
 	    i = atoi(w[1]) - progbase;
 	    if(i < 0 || i > 127)
 	    {
@@ -2103,20 +2096,28 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 
+	    newbankno = i;
+	    i = alloc_instrument_map_bank(1, newmapid, i);
+	    if (i == -1)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: No free drum set available to map",
+			  name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
 	    alloc_instrument_bank(1, i);
 
 	    if(words == 2)
 	    {
 		bank = drumset[i];
 		bankno = i;
+		mapid = newmapid;
+		origbankno = newbankno;
 		dr = 1;
 	    }
 	    else
 	    {
-		ToneBank *localbank;
-
-		localbank = drumset[i];
-
 		if(words < 4 || *w[2] < '0' || *w[2] > '9')
 		{
 		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -2124,28 +2125,18 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		    CHECKERRLIMIT;
 		    continue;
 		}
-
-		i = atoi(w[2]);
-		if(i < 0 || i > 127)
-		{
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "%s: line %d: Drum number must be between "
-			      "0 and 127",
-			      name, line);
-		    CHECKERRLIMIT;
-		    continue;
-		}
-
-		if(set_gus_patchconf(name, line, &localbank->tone[i],
-				     w[3], w + 4))
+		if (set_patchconf(name, line, drumset[i], &w[2], 1, newmapid, newbankno, i))
 		{
 		    CHECKERRLIMIT;
 		    continue;
 		}
 	    }
 	}
+	/* bank [mapid] num */
 	else if(!strcmp(w[0], "bank"))
 	{
+	    int newmapid, isdrum, newbankno;
+	    
 	    if(words < 2)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -2153,6 +2144,20 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
+	    if (words != 2 && !isdigit(w[1]))
+	    {
+		if ((newmapid = mapname2id(w[1], &isdrum)) == -1 || isdrum)
+		{
+		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Invalid bank map name: %s", name, line, w[1]);
+		    CHECKERRLIMIT;
+		    continue;
+		}
+		words--;
+		memmove(&w[1], &w[2], sizeof w[0] * words);
+	    }
+	    else
+		newmapid = INST_NO_MAP;
 	    i = atoi(w[1]);
 	    if(i < 0 || i > 127)
 	    {
@@ -2163,20 +2168,28 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 
+	    newbankno = i;
+	    i = alloc_instrument_map_bank(0, newmapid, i);
+	    if (i == -1)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: No free tone bank available to map",
+			  name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
 	    alloc_instrument_bank(0, i);
 
 	    if(words == 2)
 	    {
 		bank = tonebank[i];
 		bankno = i;
+		mapid = newmapid;
+		origbankno = newbankno;
 		dr = 0;
 	    }
 	    else
 	    {
-		ToneBank *localbank;
-
-		localbank = tonebank[i];
-
 		if(words < 4 || *w[2] < '0' || *w[2] > '9')
 		{
 		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -2184,21 +2197,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		    CHECKERRLIMIT;
 		    continue;
 		}
-
-		i = atoi(w[2]) - progbase;
-		if(i < 0 || i > 127)
-		{
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "%s: line %d: Program must be between "
-			      "%d and %d",
-			      name, line,
-			      progbase, 127 + progbase);
-		    CHECKERRLIMIT;
-		    continue;
-		}
-
-		if(set_gus_patchconf(name, line, &localbank->tone[i],
-				     w[3], w + 4))
+		if (set_patchconf(name, line, tonebank[i], &w[2], 0, newmapid, newbankno, i))
 		{
 		    CHECKERRLIMIT;
 		    continue;
@@ -2216,35 +2215,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    i = atoi(w[0]);
-	    if(!dr)
-		i -= progbase;
-	    if(i < 0 || i > 127)
-	    {
-		if(dr)
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "%s: line %d: Drum number must be between "
-			      "0 and 127",
-			      name, line);
-		else
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "%s: line %d: Program must be between "
-			      "%d and %d",
-			      name, line,
-			      progbase, 127 + progbase);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    if(!bank)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: Must specify tone bank or drum set "
-			  "before assignment", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-
-	    if(set_gus_patchconf(name, line, &bank->tone[i], w[1], w + 2))
+	    if (set_patchconf(name, line, bank, w, dr, mapid, origbankno, bankno))
 	    {
 		CHECKERRLIMIT;
 		continue;
@@ -2365,142 +2336,7 @@ static int read_user_config_file(void)
 
 MAIN_INTERFACE void tmdy_free_config(void)
 {
-	int i, j;
-	ToneBank *bank;
-	ToneBankElement *elm;
-	
-	for (i = 0; i < 128; i++) {
-		bank = tonebank[i];
-		if (! bank)
-			continue;
-		for (j = 0; j < 128; j++) {
-			elm = &bank->tone[j];
-			if (elm->name)
-				free(elm->name);
-			elm->name = NULL;
-			if (elm->comment)
-				free(elm->comment);
-			elm->comment = NULL;
-			if (elm->tune)
-				free(elm->tune);
-			elm->tune = NULL;
-			if (elm->sclnote)
-				free(elm->sclnote);
-			elm->sclnote = NULL;
-			if (elm->scltune)
-				free(elm->scltune);
-			elm->scltune = NULL;
-			if (elm->fc)
-				free(elm->fc);
-			elm->fc = NULL;
-			if (elm->reso)
-				free(elm->reso);
-			if (elm->trempitch)
-				free(elm->trempitch);
-			if (elm->tremfc)
-				free(elm->tremfc);
-			if (elm->modpitch)
-				free(elm->modpitch);
-			if (elm->modfc)
-				free(elm->modfc);
-			elm->reso = NULL;
-			if (elm->envrate)
-				free_ptr_list(elm->envrate, elm->envratenum);
-			elm->envrate = NULL;
-			elm->envratenum = 0;
-			if (elm->envofs)
-				free_ptr_list(elm->envofs, elm->envofsnum);
-			elm->envofs = NULL;
-			elm->envofsnum = 0;
-			if (elm->modenvrate)
-				free_ptr_list(elm->modenvrate, elm->modenvratenum);
-			elm->modenvrate = NULL;
-			elm->modenvratenum = 0;
-			if (elm->modenvofs)
-				free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-			elm->modenvofs = NULL;
-			elm->modenvofsnum = 0;
-			if (elm->trem)
-				free_ptr_list(elm->trem, elm->tremnum);
-			elm->trem = NULL;
-			elm->tremnum = 0;
-			if (elm->vib)
-				free_ptr_list(elm->vib, elm->vibnum);
-			elm->vib = NULL;
-			elm->vibnum = 0;
-			elm->instype = 0;
-		}
-		if (i > 0) {
-			free(bank);
-			tonebank[i] = NULL;
-		}
-	}
-	for (i = 0; i < 128; i++) {
-		bank = drumset[i];
-		if (! bank)
-			continue;
-		for (j = 0; j < 128; j++) {
-			elm = &bank->tone[j];
-			if (elm->name)
-				free(elm->name);
-			elm->name = NULL;
-			if (elm->comment)
-				free(elm->comment);
-			elm->comment = NULL;
-			if (elm->tune)
-				free(elm->tune);
-			elm->tune = NULL;
-			if (elm->sclnote)
-				free(elm->sclnote);
-			elm->sclnote = NULL;
-			if (elm->scltune)
-				free(elm->scltune);
-			elm->scltune = NULL;
-			if (elm->fc)
-				free(elm->fc);
-			elm->fc = NULL;
-			if (elm->reso)
-				free(elm->reso);
-			if (elm->trempitch)
-				free(elm->trempitch);
-			if (elm->tremfc)
-				free(elm->tremfc);
-			if (elm->modpitch)
-				free(elm->modpitch);
-			if (elm->modfc)
-				free(elm->modfc);
-			elm->reso = NULL;
-			if (elm->envrate)
-				free_ptr_list(elm->envrate, elm->envratenum);
-			elm->envrate = NULL;
-			elm->envratenum = 0;
-			if (elm->envofs)
-				free_ptr_list(elm->envofs, elm->envofsnum);
-			elm->envofs = NULL;
-			elm->envofsnum = 0;
-			if (elm->modenvrate)
-				free_ptr_list(elm->modenvrate, elm->modenvratenum);
-			elm->modenvrate = NULL;
-			elm->modenvratenum = 0;
-			if (elm->modenvofs)
-				free_ptr_list(elm->modenvofs, elm->modenvofsnum);
-			elm->modenvofs = NULL;
-			elm->modenvofsnum = 0;
-			if (elm->trem)
-				free_ptr_list(elm->trem, elm->tremnum);
-			elm->trem = NULL;
-			elm->tremnum = 0;
-			if (elm->vib)
-				free_ptr_list(elm->vib, elm->vibnum);
-			elm->vib = NULL;
-			elm->vibnum = 0;
-			elm->instype = 0;
-		}
-		if (i > 0) {
-			free(bank);
-			drumset[i] = NULL;
-		}
-	}
+	free_tone_bank();
 	free_instrument_map();
 	clean_up_pathlist();
 }

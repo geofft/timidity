@@ -58,12 +58,20 @@ struct InstrumentCache
 };
 static struct InstrumentCache *instrument_cache[INSTRUMENT_HASH_SIZE];
 
+#define MAP_BANK_COUNT 256
 /* Some functions get aggravated if not even the standard banks are
    available. */
 static ToneBank standard_tonebank, standard_drumset;
 ToneBank
-  *tonebank[128]={&standard_tonebank},
-  *drumset[128]={&standard_drumset};
+  *tonebank[128 + MAP_BANK_COUNT] = {&standard_tonebank},
+  *drumset[128 + MAP_BANK_COUNT] = {&standard_drumset};
+
+/* bank mapping (mapped bank) */
+struct bank_map_elem {
+	int16 used, mapid;
+	int bankno;
+};
+static struct bank_map_elem map_bank[MAP_BANK_COUNT], map_drumset[MAP_BANK_COUNT];
 
 /* This is a special instrument, used for all melodic programs */
 Instrument *default_instrument=0;
@@ -1286,6 +1294,204 @@ int load_missing_instruments(int *rc)
   return errors;
 }
 
+static void *safe_memdup(void *s, size_t size)
+{
+	return memcpy(safe_malloc(size), s, size);
+}
+
+/*! Copy ToneBankElement src to elm. The original elm is released. */
+void copy_tone_bank_element(ToneBankElement *elm, const ToneBankElement *src)
+{
+	int i;
+
+	free_tone_bank_element(elm);
+	memcpy(elm, src, sizeof(ToneBankElement));
+	if (elm->name)
+		elm->name = safe_strdup(elm->name);
+	if (elm->comment)
+		elm->comment = safe_strdup(elm->comment);
+	if (elm->tunenum)
+		elm->tune = (float *) safe_memdup(
+				elm->tune, elm->tunenum * sizeof(float));
+	if (elm->sclnotenum)
+		elm->sclnote = (int16 *) safe_memdup(
+				elm->sclnote, elm->sclnotenum * sizeof(int16));
+	if (elm->scltunenum)
+		elm->scltune = (int16 *) safe_memdup(
+				elm->scltune, elm->scltunenum * sizeof(int16));
+	if (elm->fcnum)
+		elm->fc = (int16 *) safe_memdup(
+				elm->fc, elm->fcnum * sizeof(int16));
+	if (elm->resonum)
+		elm->reso = (int16 *) safe_memdup(
+				elm->reso, elm->resonum * sizeof(int16));
+	if (elm->trempitchnum)
+		elm->trempitch = (int16 *) safe_memdup(
+				elm->trempitch, elm->trempitchnum * sizeof(int16));
+	if (elm->tremfcnum)
+		elm->tremfc = (int16 *) safe_memdup(
+				elm->tremfc, elm->tremfcnum * sizeof(int16));
+	if (elm->modpitchnum)
+		elm->modpitch = (int16 *) safe_memdup(
+				elm->modpitch, elm->modpitchnum * sizeof(int16));
+	if (elm->modfcnum)
+		elm->modfc = (int16 *) safe_memdup(
+				elm->modfc, elm->modfcnum * sizeof(int16));
+	if (elm->envratenum) {
+		elm->envrate = (int **) safe_memdup(
+				elm->envrate, elm->envratenum * sizeof(int *));
+		for (i = 0; i < elm->envratenum; i++)
+			elm->envrate[i] = (int *) safe_memdup(elm->envrate[i], 6 * sizeof(int));
+	}
+	if (elm->envofsnum) {
+		elm->envofs = (int **) safe_memdup(
+				elm->envofs, elm->envofsnum * sizeof(int *));
+		for (i = 0; i < elm->envofsnum; i++)
+			elm->envofs[i] = (int *) safe_memdup(elm->envofs[i], 6 * sizeof(int));
+	}
+	if (elm->modenvratenum) {
+		elm->modenvrate = (int **) safe_memdup(
+				elm->modenvrate, elm->modenvratenum * sizeof(int *));
+		for (i = 0; i < elm->modenvratenum; i++)
+			elm->modenvrate[i] = (int *) safe_memdup(elm->modenvrate[i], 6 * sizeof(int));
+	}
+	if (elm->modenvofsnum) {
+		elm->modenvofs = (int **) safe_memdup(
+				elm->modenvofs, elm->modenvofsnum * sizeof(int *));
+		for (i = 0; i < elm->modenvofsnum; i++)
+			elm->modenvofs[i] = (int *) safe_memdup(elm->modenvofs[i], 6 * sizeof(int));
+	}
+	if (elm->tremnum) {
+		elm->trem = (Quantity **) safe_memdup(elm->trem, elm->tremnum * sizeof(Quantity *));
+		for (i = 0; i < elm->tremnum; i++)
+			elm->trem[i] = (Quantity *) safe_memdup(elm->trem[i], 3 * sizeof(Quantity));
+	}
+	if (elm->vibnum) {
+		elm->vib = (Quantity **) safe_memdup(elm->vib, elm->vibnum * sizeof(Quantity *));
+		for (i = 0; i < elm->vibnum; i++)
+			elm->vib[i] = (Quantity *) safe_memdup(elm->vib[i], 3 * sizeof(Quantity));
+	}
+}
+
+/*! Release ToneBank[128 + MAP_BANK_COUNT] */
+static void free_tone_bank_list(ToneBank *tb[])
+{
+	int i, j;
+	ToneBank *bank;
+	
+	for (i = 0; i < 128 + MAP_BANK_COUNT; i++)
+	{
+		bank = tb[i];
+		if (!bank)
+			continue;
+		for (j = 0; j < 128; j++)
+			free_tone_bank_element(&bank->tone[j]);
+		if (i > 0)
+		{
+			free(bank);
+			tonebank[i] = NULL;
+		}
+	}
+}
+
+/*! Release tonebank and drumset */
+void free_tone_bank(void)
+{
+	free_tone_bank_list(tonebank);
+	free_tone_bank_list(drumset);
+}
+
+/*! Release ToneBankElement. */
+void free_tone_bank_element(ToneBankElement *elm)
+{
+	int i;
+	
+	if (!elm->name)
+		return;
+	free(elm->name);
+	elm->name = NULL;
+	if (elm->comment) {
+		free(elm->comment);
+		elm->comment = NULL;
+	}
+	if (elm->tune) {
+		free(elm->tune);
+		elm->tune = NULL;
+		elm->tunenum = 0;
+	}
+	if (elm->sclnote) {
+		free(elm->sclnote);
+		elm->sclnote = NULL;
+		elm->sclnotenum = 0;
+	}
+	if (elm->scltune) {
+		free(elm->scltune);
+		elm->scltune = NULL;
+		elm->scltunenum = 0;
+	}
+	if (elm->fc) {
+		free(elm->fc);
+		elm->fc = NULL;
+		elm->fcnum = 0;
+	}
+	if (elm->reso) {
+		free(elm->reso);
+		elm->reso = NULL;
+		elm->resonum = 0;
+	}
+	if (elm->trempitch) {
+		free(elm->trempitch);
+		elm->trempitch = NULL;
+		elm->trempitchnum = 0;
+	}
+	if (elm->tremfc) {
+		free(elm->tremfc);
+		elm->tremfc = NULL;
+		elm->tremfcnum = 0;
+	}
+	if (elm->modpitch) {
+		free(elm->modpitch);
+		elm->modpitch = NULL;
+		elm->modpitchnum = 0;
+	}
+	if (elm->modfc) {
+		free(elm->modfc);
+		elm->modfc = NULL;
+		elm->modfcnum = 0;
+	}
+	if (elm->envratenum) {
+		free_ptr_list(elm->envrate, elm->envratenum);
+		elm->envrate = NULL;
+		elm->envratenum = 0;
+	}
+	if (elm->envofsnum) {
+		free_ptr_list(elm->envofs, elm->envofsnum);
+		elm->envofs = NULL;
+		elm->envofsnum = 0;
+	}
+	if (elm->modenvratenum) {
+		free_ptr_list(elm->modenvrate, elm->modenvratenum);
+		elm->modenvrate = NULL;
+		elm->modenvratenum = 0;
+	}
+	if (elm->modenvofsnum) {
+		free_ptr_list(elm->modenvofs, elm->modenvofsnum);
+		elm->modenvofs = NULL;
+		elm->modenvofsnum = 0;
+	}
+	if (elm->tremnum) {
+		free_ptr_list(elm->trem, elm->tremnum);
+		elm->trem = NULL;
+		elm->tremnum = 0;
+	}
+	if (elm->vibnum) {
+		free_ptr_list(elm->vib, elm->vibnum);
+		elm->vib = NULL;
+		elm->vibnum = 0;
+	}
+	elm->instype = 0;
+}
+
 void free_instruments(int reload_default_inst)
 {
     int i=128, j;
@@ -1420,6 +1626,50 @@ int set_default_instrument(char *name)
     return 0;
 }
 
+/*! search mapped bank.
+    returns negative value indicating free bank if not found,
+    0 if no free bank was available */
+int find_instrument_map_bank(int dr, int map, int bk)
+{
+	struct bank_map_elem *bm;
+	int i;
+	
+	if (map == INST_NO_MAP)
+		return 0;
+	bm = dr ? map_drumset : map_bank;
+	for(i = 0; i < MAP_BANK_COUNT; i++)
+	{
+		if (!bm[i].used)
+			return -(128 + i);
+		else if (bm[i].mapid == map && bm[i].bankno == bk)
+			return 128 + i;
+	}
+	return 0;
+}
+
+/*! allocate mapped bank if needed. returns -1 if allocation failed. */
+int alloc_instrument_map_bank(int dr, int map, int bk)
+{
+	struct bank_map_elem *bm;
+	int i;
+	
+	if (map == INST_NO_MAP)
+		return bk;
+	i = find_instrument_map_bank(dr, map, bk);
+	if (i == 0)
+		return -1;
+	if (i < 0)
+	{
+		i = -i - 128;
+		bm = dr ? map_drumset : map_bank;
+		bm[i].used = 1;
+		bm[i].mapid = map;
+		bm[i].bankno = bk;
+		i += 128;
+	}
+	return i;
+}
+
 void alloc_instrument_bank(int dr, int bk)
 {
     ToneBank *b;
@@ -1499,6 +1749,8 @@ void free_instrument_map(void)
 {
   int i, j;
 
+  for(i = 0; i < MAP_BANK_COUNT; i++)
+    map_bank[i].used = map_drumset[i].used = 0;
   for (i = 0; i < NUM_INST_MAP; i++) {
     for (j = 0; j < 128; j++) {
       struct inst_map_elem *map;

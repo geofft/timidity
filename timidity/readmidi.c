@@ -6344,15 +6344,13 @@ void recompute_userdrum(int bank, int prog)
 
 	p = get_userdrum(bank, prog);
 
-	if(drumset[bank]->tone[prog].name) {free_tone_bank_element(1, bank, prog);}
+	free_tone_bank_element(&drumset[bank]->tone[prog]);
 	if(drumset[p->source_prog]) {
 		if(drumset[p->source_prog]->tone[p->source_note].name) {
-			memcpy(&drumset[bank]->tone[prog], &drumset[p->source_prog]->tone[p->source_note], sizeof(ToneBankElement));
-			dup_tone_bank_element(1, bank, prog);
+			copy_tone_bank_element(&drumset[bank]->tone[prog], &drumset[p->source_prog]->tone[p->source_note]);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", p->source_prog, p->source_note, bank, prog);
 		} else if(drumset[0]->tone[p->source_note].name) {
-			memcpy(&drumset[bank]->tone[prog], &drumset[0]->tone[p->source_note], sizeof(ToneBankElement));
-			dup_tone_bank_element(1, bank, prog);
+			copy_tone_bank_element(&drumset[bank]->tone[prog], &drumset[0]->tone[p->source_note]);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", 0, p->source_note, bank, prog);
 		}
 	}
@@ -6409,15 +6407,13 @@ void recompute_userinst(int bank, int prog)
 
 	p = get_userinst(bank, prog);
 
-	if(tonebank[bank]->tone[prog].name) {free_tone_bank_element(0, bank, prog);}
+	free_tone_bank_element(&tonebank[bank]->tone[prog]);
 	if(tonebank[p->source_bank]) {
 		if(tonebank[p->source_bank]->tone[p->source_prog].name) {
-			memcpy(&tonebank[bank]->tone[prog], &tonebank[p->source_bank]->tone[p->source_prog], sizeof(ToneBankElement));
-			dup_tone_bank_element(0, bank, prog);
+			copy_tone_bank_element(&tonebank[bank]->tone[prog], &tonebank[p->source_bank]->tone[p->source_prog]);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)", p->source_bank, p->source_prog, bank, prog);
 		} else if(tonebank[0]->tone[p->source_prog].name) {
-			memcpy(&tonebank[bank]->tone[prog], &tonebank[0]->tone[p->source_prog], sizeof(ToneBankElement));
-			dup_tone_bank_element(0, bank, prog);
+			copy_tone_bank_element(&tonebank[bank]->tone[prog], &tonebank[0]->tone[p->source_prog]);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Instrument (%d %d -> %d %d)", 0, p->source_prog, bank, prog);
 		}
 	}
@@ -6727,4 +6723,3 @@ void remove_channel_layer(int ch)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
 }
-

@@ -212,6 +212,8 @@ extern void free_special_patch(int id);
 extern int set_default_instrument(char *name);
 extern void clear_magic_instruments(void);
 extern Instrument *load_instrument(int dr, int b, int prog);
+extern int find_instrument_map_bank(int dr, int map, int bk);
+extern int alloc_instrument_map_bank(int dr, int map, int bk);
 extern void alloc_instrument_bank(int dr, int bankset);
 extern int instrument_map(int mapID, int *set_in_out, int *elem_in_out);
 extern void set_instrument_map(int mapID,
@@ -221,6 +223,9 @@ extern void free_instrument_map(void);
 extern AlternateAssign *add_altassign_string(AlternateAssign *old,
 					     char **params, int n);
 extern AlternateAssign *find_altassign(AlternateAssign *altassign, int note);
+extern void copy_tone_bank_element(ToneBankElement *elm, const ToneBankElement *src);
+extern void free_tone_bank_element(ToneBankElement *elm);
+extern void free_tone_bank(void);
 extern void free_instrument(Instrument *ip);
 
 extern char *default_instrument_name;
