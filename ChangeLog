@@ -1,3 +1,7 @@
+2004-06-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/common.c: fix compiling problem on VC6.
+
 2004-05-31 Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
 	* configure.in:
 	  dynamic linked runtime library must be used with Open Watcom.
