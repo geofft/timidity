@@ -1,3 +1,10 @@
+2003-12-16  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/readmidi.c:
+	  Implement Plate Reverberator.
+	* timidity/mix.c:
+	  Fix tremolo waveform for SoundFont.
+
 2003-12-12  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/resample.c:

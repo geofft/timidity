@@ -4818,7 +4818,7 @@ static void *conv_gs_ie_to_hexa_chorus(struct GSInsertionEffect *ieffect, Effect
 	info->pdelay -= info->depth;
 	if(info->pdelay <= 1) {info->pdelay = 1;}
 	info->depth *= 2;
-	info->lfo0.cycle = (double)play_mode->rate / rate1_table[ieffect->parameter[1]];
+	info->lfo0.freq = rate1_table[ieffect->parameter[1]];
 	info->pdelay_dev = ieffect->parameter[3];
 	info->depth_dev = ieffect->parameter[4] - 64;
 	info->pan_dev = ieffect->parameter[5];

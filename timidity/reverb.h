@@ -41,17 +41,14 @@ extern void mix_dry_signal(register int32 *, int32);
 /*                    */
 /*  Effect Utitities  */
 /*                    */
-/*! simple or feedback delay */
+/*! simple delay */
 typedef struct {
 	int32 *buf, size, index;
-	double feedback;
-	int32 feedbacki;
 } delay;
 
 #ifndef SINE_CYCLE_LENGTH
 #define SINE_CYCLE_LENGTH 1024
 #endif
-#define MIN_LFO_CYCLE_LENGTH 1
 
 /*! LFO */
 typedef struct {
@@ -59,7 +56,30 @@ typedef struct {
 	int32 count, cycle;	/* in samples */
 	int32 icycle;	/* proportional to (SINE_CYCLE_LENGTH / cycle) */
 	int type;	/* current content of its buffer */
+	double freq;	/* in Hz */
 } lfo;
+
+enum {
+	LFO_NONE = 0,
+	LFO_SINE,
+	LFO_COSINE,
+	LFO_TRIANGULAR,
+	LFO_WHITENOISE,
+};
+
+/*! modulated delay with allpass interpolation */
+typedef struct {
+	int32 *buf, size, rindex, windex, hist;
+	int32 ndelay, depth;	/* in samples */
+} mod_delay;
+
+/*! modulated allpass filter with allpass interpolation */
+typedef struct {
+	int32 *buf, size, rindex, windex, hist;
+	int32 ndelay, depth;	/* in samples */
+	double feedback;
+	int32 feedbacki;
+} mod_allpass;
 
 /*! Moog VCF (resonant IIR state variable filter) */
 typedef struct {
@@ -69,7 +89,7 @@ typedef struct {
 	int32 b0, b1, b2, b3, b4;
 } filter_moog;
 
-/*! LPF18 (resonant IIR lowpass filter with waveshaping distortion) */
+/*! LPF18 (resonant IIR lowpass filter with waveshaping) */
 typedef struct {
 	int16 freq, last_freq;	/* in Hz */
 	double dist, res, last_dist, last_res; /* in linear */
@@ -83,15 +103,28 @@ typedef struct {
 	int32 x1l, y1l, x1r, y1r;
 } filter_iir1;
 
+/*! 1st order lowpass filter */
+typedef struct {
+	double a;
+	int32 ai, iai;	/* coefficients in fixed-point */
+	int32 x1l, x1r;
+} filter_lowpass1;
+
 extern void calc_filter_iir1_lowpass(filter_iir1 *);
 
-enum {
-	LFO_NONE = 0,
-	LFO_SINE,
-	LFO_COSINE,
-	LFO_TRIANGULAR,
-	LFO_WHITENOISE,
-};
+/*! allpass filter */
+typedef struct _allpass {
+	int32 *buf, size, index;
+	double feedback;
+	int32 feedbacki;
+} allpass;
+
+/*! comb filter */
+typedef struct _comb {
+	int32 *buf, filterstore, size, index;
+	double feedback, damp1, damp2;
+	int32 feedbacki, damp1i, damp2i;
+} comb;
 
 /*                                    */
 /* for Insertion and Variation Effect */
@@ -168,6 +201,25 @@ typedef struct {
 	int32 spt0, spt1, spt2, spt3, spt4, spt5,
 		hist0, hist1, hist2, hist3, hist4, hist5;
 } InfoHexaChorus;
+
+/*! Plate Reverb */
+typedef struct {
+	delay pd, od1l, od2l, od3l, od4l, od5l, od6l, od7l,
+		od1r, od2r, od3r, od4r, od5r, od6r, od7r,
+		td1, td2, td1d, td2d;
+	lfo lfo1, lfo1d;
+	allpass ap1, ap2, ap3, ap4, ap6, ap6d;
+	mod_allpass ap5, ap5d;
+	filter_lowpass1 lpf1, lpf2;
+	int32 t1, t1d;
+	double decay, ddif1, ddif2, idif1, idif2, dry, wet;
+	int32 decayi, ddif1i, ddif2i, idif1i, idif2i, dryi, weti;
+} InfoPlateReverb;
+
+/*! Freeverb */
+typedef struct {
+	double level;
+} InfoFreeverb;
 
 /*                                  */
 /*        for System Effects        */
@@ -253,6 +305,8 @@ struct reverb_status_t
 	double level_ratio;
 	double time_ratio;
 
+	InfoPlateReverb info_plate_reverb;
+	InfoFreeverb info_freeverb;
 	filter_iir1 lpf;
 };
 

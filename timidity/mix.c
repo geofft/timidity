@@ -1645,7 +1645,7 @@ static inline void update_tremolo(int v)
 
 	if(vp->sample->inst_type == INST_SF2) {
 	vp->tremolo_volume = 1.0 + TIM_FSCALENEG(
-			lookup_log(vp->tremolo_phase >> RATE_SHIFT)
+			lookup_sine(vp->tremolo_phase >> RATE_SHIFT)
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
 	} else {
 	vp->tremolo_volume = 1.0 + TIM_FSCALENEG(
