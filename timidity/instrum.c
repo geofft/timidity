@@ -1514,7 +1514,8 @@ void free_instruments(int reload_default_inst)
 	    for(j = 127; j >= 0; j--)
 	    {
 		ip = bank->tone[j].instrument;
-		if(ip != NULL && (i == 0 || ip != tonebank[0]->tone[j].instrument))
+		if(ip != NULL && ip->type == INST_SF2 &&
+		   (i == 0 || ip != tonebank[0]->tone[j].instrument))
 		    free_instrument(ip);
 		bank->tone[j].instrument = NULL;
 	    }
@@ -1522,7 +1523,8 @@ void free_instruments(int reload_default_inst)
 	    for(j = 127; j >= 0; j--)
 	    {
 		ip = bank->tone[j].instrument;
-		if(ip != NULL && (i == 0 || ip != drumset[0]->tone[j].instrument))
+		if(ip != NULL && ip->type == INST_SF2 &&
+		   (i == 0 || ip != drumset[0]->tone[j].instrument))
 		    free_instrument(ip);
 		bank->tone[j].instrument = NULL;
 	    }
