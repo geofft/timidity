@@ -527,7 +527,6 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	opt_drum_effect = st->opt_drum_effect;
 	opt_eq_control = st->opt_eq_control;
 	opt_insertion_effect = st->opt_insertion_effect;
-	opt_env_attack = st->opt_env_attack;
 	opt_velocity_table = st->opt_velocity_table;
     adjust_panning_immediately = SetFlag(st->adjust_panning_immediately);
     fast_decay = SetFlag(st->fast_decay);
@@ -644,7 +643,6 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_drum_effect = opt_drum_effect;
 	st->opt_eq_control = opt_eq_control;
 	st->opt_insertion_effect = opt_insertion_effect;
-	st->opt_env_attack = opt_env_attack;
 	st->opt_velocity_table = opt_velocity_table;
     st->noise_sharp_type = noise_sharp_type;
     st->opt_evil_mode = SetFlag(opt_evil_mode);

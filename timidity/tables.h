@@ -60,7 +60,7 @@ extern int opt_velocity_table;
 extern FLOAT_T linear_vol_table[];
 extern FLOAT_T log_vol_table[];
 extern FLOAT_T exp_vol_table[];
-extern FLOAT_T *attack_vol_table;
+extern FLOAT_T attack_vol_table[];
 extern FLOAT_T envelope_coef[];
 extern FLOAT_T sc_vel_table[];
 extern FLOAT_T sc_vol_table[];

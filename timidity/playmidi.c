@@ -177,7 +177,6 @@ int opt_overlap_voice_allow = 0;
 #endif /* OVERLAP_VOICE_ALLOW */
 
 int opt_tva_attack = 0;	/* attack envelope control */
-int opt_env_attack = 0;	/* 0:linear, 1:exponential1, 2:exponential2, 3:logarithmic */
 int opt_tva_decay = 0;	/* decay envelope control */
 int opt_tva_release = 0;	/* release envelope control */
 int opt_delay_control = 0;	/* CC#94 delay(celeste) effect control */

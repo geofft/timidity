@@ -129,7 +129,6 @@ typedef struct SETTING_TIMIDITY_ {
 	int opt_drum_effect;			// E ?
 	int opt_eq_control;			// E ?
 	int opt_insertion_effect;	// E ?
-	int opt_env_attack;			// E ?
 	int opt_velocity_table;		// E ?
     int opt_evil_mode;		// e
     int adjust_panning_immediately; // F

@@ -804,7 +804,6 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		 }
 			// NOISESHARPING
 		 st_temp->noise_sharp_type = GetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,NULL,FALSE);
-		 st_temp->opt_env_attack = GetDlgItemInt(hwnd,IDC_EDIT_ENV_ATTACK,NULL,FALSE);
 		 st_temp->opt_velocity_table = GetDlgItemInt(hwnd,IDC_EDIT_VELOCITYTABLE,NULL,FALSE);
 			// Misc
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);
@@ -897,7 +896,6 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_DELAY,0);
 			// NOISESHARPING
 		 SetDlgItemInt(hwnd,IDC_EDIT_NOISESHARPING,st_temp->noise_sharp_type,TRUE);
-		 SetDlgItemInt(hwnd,IDC_EDIT_ENV_ATTACK,st_temp->opt_env_attack,TRUE);
 		 SetDlgItemInt(hwnd,IDC_EDIT_VELOCITYTABLE,st_temp->opt_velocity_table,TRUE);
 			// Misc
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MODWHEEL,st_temp->opt_modulation_wheel);

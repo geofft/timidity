@@ -924,9 +924,11 @@ static inline void mix_single(sample_t *sp, int32 *lp, int v, int count)
 /* Returns 1 if the note died */
 static inline int update_signal(int v)
 {
-	if (voice[v].envelope_increment && update_envelope(v))
+	Voice *vp = &voice[v];
+
+	if (vp->envelope_increment && update_envelope(v))
 		return 1;
-	if (voice[v].tremolo_phase_increment)
+	if (vp->tremolo_phase_increment)
 		update_tremolo(v);
 	return apply_envelope_to_amp(v);
 }
@@ -1075,27 +1077,28 @@ static inline int next_stage(int v)
 
 static inline void update_tremolo(int v)
 {
-	uint32 depth = voice[v].sample->tremolo_depth << 7;
+	Voice *vp = &voice[v];
+	uint32 depth = vp->sample->tremolo_depth << 7;
 	
-	if (voice[v].tremolo_sweep) {
+	if (vp->tremolo_sweep) {
 		/* Update sweep position */
-		voice[v].tremolo_sweep_position += voice[v].tremolo_sweep;
-		if (voice[v].tremolo_sweep_position >= 1 << SWEEP_SHIFT)
+		vp->tremolo_sweep_position += vp->tremolo_sweep;
+		if (vp->tremolo_sweep_position >= 1 << SWEEP_SHIFT)
 			/* Swept to max amplitude */
-			voice[v].tremolo_sweep = 0;
+			vp->tremolo_sweep = 0;
 		else {
 			/* Need to adjust depth */
-			depth *= voice[v].tremolo_sweep_position;
+			depth *= vp->tremolo_sweep_position;
 			depth >>= SWEEP_SHIFT;
 		}
 	}
-	voice[v].tremolo_phase += voice[v].tremolo_phase_increment;
+	vp->tremolo_phase += vp->tremolo_phase_increment;
 #if 0
-	if (voice[v].tremolo_phase >= SINE_CYCLE_LENGTH << RATE_SHIFT)
-		voice[v].tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
+	if (vp->tremolo_phase >= SINE_CYCLE_LENGTH << RATE_SHIFT)
+		vp->tremolo_phase -= SINE_CYCLE_LENGTH << RATE_SHIFT;
 #endif
-	voice[v].tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(lookup_sine(voice[v].tremolo_phase >> RATE_SHIFT) + 1.0)
+	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
+			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
@@ -1104,31 +1107,38 @@ static inline void update_tremolo(int v)
 
 int apply_envelope_to_amp(int v)
 {
-	FLOAT_T lamp = voice[v].left_amp, ramp;
-	FLOAT_T *v_table = (voice[v].sample->inst_type == INST_SF2)
-			? sb_vol_table : vol_table;
-	int32 la, ra;
+	Voice *vp = &voice[v];
+	FLOAT_T lamp = vp->left_amp, ramp, *v_table;
+	int32 la, ra, shift;
+
+	if (vp->sample->inst_type == INST_SF2) {
+		v_table = sb_vol_table;
+		shift = 20;
+	} else {
+		v_table = vol_table;
+		shift = 23;
+	}
 	
-	if (voice[v].panned == PANNED_MYSTERY) {
-		ramp = voice[v].right_amp;
-		if (voice[v].tremolo_phase_increment) {
-			lamp *= voice[v].tremolo_volume;
-			ramp *= voice[v].tremolo_volume;
+	if (vp->panned == PANNED_MYSTERY) {
+		ramp = vp->right_amp;
+		if (vp->tremolo_phase_increment) {
+			lamp *= vp->tremolo_volume;
+			ramp *= vp->tremolo_volume;
 		}
-		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_stage > 3)
-				voice[v].last_envelope_volume = v_table[
-						imuldiv16(voice[v].envelope_volume >> 23,
-						voice[v].inv_envelope_scale)]
-						* voice[v].envelope_scale;
-			else if (voice[v].envelope_stage > 1)
-				voice[v].last_envelope_volume = v_table[
-						voice[v].envelope_volume >> 23];
+		if (vp->sample->modes & MODES_ENVELOPE) {
+			if (vp->envelope_stage > 3)
+				vp->last_envelope_volume = v_table[
+						imuldiv16(vp->envelope_volume >> shift,
+						vp->inv_envelope_scale)]
+						* vp->envelope_scale;
+			else if (vp->envelope_stage > 1)
+				vp->last_envelope_volume = v_table[
+						vp->envelope_volume >> shift];
 			else
-				voice[v].last_envelope_volume = attack_vol_table[
-						voice[v].envelope_volume >> 23];
-			lamp *= voice[v].last_envelope_volume;
-			ramp *= voice[v].last_envelope_volume;
+				vp->last_envelope_volume = attack_vol_table[
+				vp->envelope_volume >> 20];
+			lamp *= vp->last_envelope_volume;
+			ramp *= vp->last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
 		if (la > MAX_AMP_VALUE)
@@ -1136,41 +1146,41 @@ int apply_envelope_to_amp(int v)
 		ra = TIM_FSCALE(ramp, AMP_BITS);
 		if (ra > MAX_AMP_VALUE)
 			ra = MAX_AMP_VALUE;
-		if ((voice[v].status & (VOICE_OFF | VOICE_SUSTAINED))
+		if ((vp->status & (VOICE_OFF | VOICE_SUSTAINED))
 				&& (la | ra) <= 0) { /* <= MIN_AMP_VALUE */
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
 		}
-		voice[v].left_mix = FINAL_VOLUME(la);
-		voice[v].right_mix = FINAL_VOLUME(ra);
+		vp->left_mix = FINAL_VOLUME(la);
+		vp->right_mix = FINAL_VOLUME(ra);
 	} else {
-		if (voice[v].tremolo_phase_increment)
-			lamp *= voice[v].tremolo_volume;
-		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_stage > 3)
-				voice[v].last_envelope_volume = v_table[
-						imuldiv16(voice[v].envelope_volume >> 23,
-						voice[v].inv_envelope_scale)]
-						* voice[v].envelope_scale;
-			else if (voice[v].envelope_stage > 1)
-				voice[v].last_envelope_volume = v_table[
-						voice[v].envelope_volume >> 23];
+		if (vp->tremolo_phase_increment)
+			lamp *= vp->tremolo_volume;
+		if (vp->sample->modes & MODES_ENVELOPE) {
+			if (vp->envelope_stage > 3)
+				vp->last_envelope_volume = v_table[
+						imuldiv16(vp->envelope_volume >> shift,
+						vp->inv_envelope_scale)]
+						* vp->envelope_scale;
+			else if (vp->envelope_stage > 1)
+				vp->last_envelope_volume = v_table[
+						vp->envelope_volume >> shift];
 			else
-				voice[v].last_envelope_volume = attack_vol_table[
-						voice[v].envelope_volume >> 23];
-			lamp *= voice[v].last_envelope_volume;
+				vp->last_envelope_volume = attack_vol_table[
+				vp->envelope_volume >> 20];
+			lamp *= vp->last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
 		if (la > MAX_AMP_VALUE)
 		la = MAX_AMP_VALUE;
-		if ((voice[v].status & (VOICE_OFF | VOICE_SUSTAINED))
+		if ((vp->status & (VOICE_OFF | VOICE_SUSTAINED))
 				&& la <= 0) { /* <= MIN_AMP_VALUE */
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
 		}
-		voice[v].left_mix = FINAL_VOLUME(la);
+		vp->left_mix = FINAL_VOLUME(la);
 	}
 	return 0;
 }

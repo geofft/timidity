@@ -119,8 +119,6 @@ void init_insertion_effect_status();
 void set_insertion_effect_default_parameter();
 void recompute_insertion_effect();
 
-void reset_env_attack();
-
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
 
@@ -2976,7 +2974,6 @@ void readmidi_read_init(void)
 	init_eq_status();
 	init_insertion_effect_status();
 	init_userdrum();
-	reset_env_attack();
 	rhythm_part[0] = 9;
 	rhythm_part[1] = 9;
 
@@ -4249,25 +4246,4 @@ void recompute_insertion_effect()
 		dbGain = insertion_effect.eq_high_gain;
 		calc_highshelf_coefs(insertion_effect.eq_high_coef,freq,dbGain,play_mode->rate);
 	}
-}
-
-void reset_env_attack() {
-	switch(opt_env_attack) {
-	case 1:
-		attack_vol_table = def_vol_table;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Envelope Shape: Exponential1");
-		break;
-	case 2:
-		attack_vol_table = gs_vol_table;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Envelope Shape: Exponential2");
-		break;
-	case 3:
-		attack_vol_table = log_vol_table;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Envelope Shape: Logarithmic");
-		break;
-	default:
-		attack_vol_table = linear_vol_table;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Envelope Shape: Linear");
-		break;
-	}	
 }

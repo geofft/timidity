@@ -146,7 +146,6 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_velocity_table",&(st->opt_velocity_table));
-	IniGetKeyInt(INI_SEC_TIMIDITY,"opt_env_attack",&(st->opt_env_attack));
 	IniGetKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));
     IniGetKeyInt(INI_SEC_TIMIDITY,"opt_evil_mode",&(st->opt_evil_mode));
     IniGetKeyInt(INI_SEC_TIMIDITY,"adjust_panning_immediately",&(st->adjust_panning_immediately));
@@ -283,7 +282,6 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_eq_control",&(st->opt_eq_control));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_insertion_effect",&(st->opt_insertion_effect));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_velocity_table",&(st->opt_velocity_table));
-	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_env_attack",&(st->opt_env_attack));
     IniPutKeyInt(INI_SEC_TIMIDITY,"noise_sharp_type",&(st->noise_sharp_type));
     IniPutKeyInt(INI_SEC_TIMIDITY,"opt_evil_mode",&(st->opt_evil_mode));
     IniPutKeyInt(INI_SEC_TIMIDITY,"adjust_panning_immediately",&(st->adjust_panning_immediately));
