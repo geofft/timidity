@@ -3137,16 +3137,14 @@ int opt_buffer_fragments = -1;
 
 MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 {
-    int32 tmpi32;
-
-    switch(c)
-    {
+	int32 tmpi32;
+	
+	switch (c) {
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-      case '4':
-	no_4point_interpolation = (no_4point_interpolation) ? 0 : 1;
-        break;
+	case '4':
+		no_4point_interpolation = (no_4point_interpolation) ? 0 : 1;
+		break;
 #endif
-
 	case 'A':	/* amplify volume by n percent */
 		if (*optarg != ',' && *optarg != 'a')
 			if (set_value(&amplification, atoi(optarg), 0,
@@ -3160,218 +3158,186 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		if (strchr(optarg, 'a'))
 			opt_amp_compensation = 1;
 		break;
-
-      case 'a':
-	antialiasing_allowed = 1;
-	break;
-
-      case 'B':
-	if(parse_opt_B(optarg))
-	  return 1;
-	break;
+	case 'a':
+		antialiasing_allowed = 1;
+		break;
+	case 'B':
+		if (parse_opt_B(optarg))
+			return 1;
+		break;
 #if 0
-	if(set_value(&tmpi32, atoi(optarg), 0, 1000, "Buffer fragments"))
-	    return 1;
-	opt_buffer_fragments = tmpi32;
+		if (set_value(&tmpi32, atoi(optarg), 0, 1000, "Buffer fragments"))
+			return 1;
+		opt_buffer_fragments = tmpi32;
 #endif
-	break;
-
-      case 'b':
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "-b option is obsoleted.  "
-		  "Please use -EFdelay=b");
-	return 1;
-
-      case 'C':
-	if(set_value(&control_ratio, atoi(optarg), 1, MAX_CONTROL_RATIO,
-		     "Control ratio"))
-	    return 1;
-	opt_control_ratio = control_ratio;
-	break;
-
-      case 'c':
-	if(read_config_file(optarg, 0))
-	    return 1;
-	got_a_configuration = 1;
-	break;
-
-      case 'D':
-	tmpi32 = atoi(optarg);
-	if(set_channel_flag(&default_drumchannels, tmpi32, "Drum channel"))
-	    return 1;
-	if(tmpi32 < 0)
-	    tmpi32 = -tmpi32;
-	set_channel_flag(&default_drumchannel_mask, tmpi32, "Drum channel");
-	break;
-
-      case 'd': /* dynamic lib root */
+		break;
+	case 'b':
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"-b option is obsoleted.  Please use -EFdelay=b");
+		return 1;
+	case 'C':
+		if (set_value(&control_ratio, atoi(optarg), 1, MAX_CONTROL_RATIO,
+				"Control ratio"))
+			return 1;
+		opt_control_ratio = control_ratio;
+		break;
+	case 'c':
+		if (read_config_file(optarg, 0))
+			return 1;
+		got_a_configuration = 1;
+		break;
+	case 'D':
+		tmpi32 = atoi(optarg);
+		if (set_channel_flag(&default_drumchannels, tmpi32, "Drum channel"))
+			return 1;
+		if (tmpi32 < 0)
+			tmpi32 = -tmpi32;
+		set_channel_flag(&default_drumchannel_mask, tmpi32, "Drum channel");
+		break;
+	case 'd':	/* dynamic lib root */
 #ifdef IA_DYNAMIC
-	if(dynamic_lib_root != NULL)
-	    free(dynamic_lib_root);
-	dynamic_lib_root = safe_strdup(optarg);
+		if (dynamic_lib_root != NULL)
+			free(dynamic_lib_root);
+		dynamic_lib_root = safe_strdup(optarg);
 #else
-	ctl->cmsg(CMSG_WARNING, VERB_NOISY, "-d option is not supported");
-#endif /* IA_DYNAMIC */
-	break;
-
-      case 'E':
-	return set_extension_modes(optarg);
-
-      case 'e': /* evil */
+		ctl->cmsg(CMSG_WARNING, VERB_NOISY, "-d option is not supported");
+#endif	/* IA_DYNAMIC */
+		break;
+	case 'E':
+		return set_extension_modes(optarg);
+	case 'e':	/* evil */
 #ifdef __W32__
-	opt_evil_mode = 1;
-	break;
+		opt_evil_mode = 1;
+		break;
 #else
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-e option is not supported");
-	return 1;
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-e option is not supported");
+		return 1;
 #endif
-
-      case 'F':
-	adjust_panning_immediately = !adjust_panning_immediately;
-	break;
-
-      case 'f':
-	fast_decay = (fast_decay) ? 0 : 1;
-	break;
-
-      case 'g':
+	case 'F':
+		adjust_panning_immediately = ! adjust_panning_immediately;
+		break;
+	case 'f':
+		fast_decay = (fast_decay) ? 0 : 1;
+		break;
+	case 'g':
 #ifdef SUPPORT_SOUNDSPEC
-	spectrogram_update_sec = (FLOAT_T)atof(optarg);
-	if(spectrogram_update_sec <= 0)
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "Invalid -g argument: `%s'", optarg);
-	    return 1;
-	}
-	view_soundspec_flag = 1;
-	break;
+		spectrogram_update_sec = (FLOAT_T) atof(optarg);
+		if (spectrogram_update_sec <= 0) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Invalid -g argument: `%s'", optarg);
+			return 1;
+		}
+		view_soundspec_flag = 1;
+		break;
 #else
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-g option is not supported");
-	return 1;
-#endif /* SUPPORT_SOUNDSPEC */
-
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-g option is not supported");
+		return 1;
+#endif	/* SUPPORT_SOUNDSPEC */
 	case 'H':	/* force keysig (number of sharp/flat) */
 		if (set_value(&tmpi32, atoi(optarg), -7, 7,
 				"Force keysig (number of sHarp(+)/flat(-)"))
 			return 1;
 		opt_force_keysig = tmpi32;
 		break;
-
-      case 'h':
-	help();
-	exit(0);
-
-      case 'I':
-	if(set_default_prog(optarg))
-	    return -1;
-	break;
-
-      case 'i':
-	if(set_ctl(optarg))
-	    return 1;
-	break;
-
-      case 'j':
-	opt_realtime_playing = !opt_realtime_playing;
-	break;
-
+	case 'h':
+		help();
+		exit(0);
+	case 'I':
+		if (set_default_prog(optarg))
+			return -1;
+		break;
+	case 'i':
+		if (set_ctl(optarg))
+			return 1;
+		break;
+	case 'j':
+		opt_realtime_playing = ! opt_realtime_playing;
+		break;
 	case 'K':	/* key adjust */
 		if (set_value(&tmpi32, atoi(optarg), -24, 24, "Key adjust"))
 			return 1;
 		key_adjust = tmpi32;
 		break;
-
-      case 'k':
-	reduce_voice_threshold = atoi(optarg);
-	break;
-
-      case 'L':
-	add_to_pathlist(optarg);
-	try_config_again = 1;
-	break;
-
-      case 'M':
-	if(pcm_alternate_file != NULL)
-	    free(pcm_alternate_file);
-	pcm_alternate_file = safe_strdup(optarg);
-	break;
-
-      case 'm':
-        min_sustain_time = atoi(optarg);
-        if(min_sustain_time < 0) min_sustain_time = 0;
-        break;
-
+	case 'k':
+		reduce_voice_threshold = atoi(optarg);
+		break;
+	case 'L':
+		add_to_pathlist(optarg);
+		try_config_again = 1;
+		break;
+	case 'M':
+		if (pcm_alternate_file != NULL)
+			free(pcm_alternate_file);
+		pcm_alternate_file = safe_strdup(optarg);
+		break;
+	case 'm':
+		min_sustain_time = atoi(optarg);
+		if (min_sustain_time < 0)
+			min_sustain_time = 0;
+		break;
 #ifdef GAUSS_INTERPOLATION
-      case 'N':
-        gauss_n = atoi(optarg);
-        if (gauss_n < 0 || gauss_n > 34)
-        {
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "Gauss interpolation: -N value must be from 1 to 34.");
-	    return 1;
-	}
-	if (gauss_n == 0)
-	{
-	    gauss_n = 5;
-	    no_4point_interpolation = 1;
-	    reduce_quality_flag = 1;
-	}
-	break;
-#endif
+	case 'N':
+		gauss_n = atoi(optarg);
+		if (gauss_n < 0 || gauss_n > 34) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Gauss interpolation: -N value must be from 1 to 34.");
+			return 1;
+		}
+		if (gauss_n == 0) {
+			gauss_n = 5;
+			no_4point_interpolation = 1;
+			reduce_quality_flag = 1;
+		}
+		break;
+#endif	/* GAUSS_INTERPOLATION */
 #ifdef NEWTON_INTERPOLATION
-      case 'N':
-        newt_n = atoi(optarg);
-        if ((newt_n > 0 && newt_n % 2 == 0) || newt_n < 0 || newt_n > 57)
-        {
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "Newton interpolation: -N value must be an odd number from 1 to 57.");
-	    return 1;
-	}
-	if (newt_n == 0)
-	{
-	    newt_n = 5;
-	    no_4point_interpolation = 1;
-	    reduce_quality_flag = 1;
-	}
-
-	/* set optimal value for newt_max */
-	newt_max = -1.875328947 + 1.57730263158 * newt_n;
-	if (newt_max < newt_n) newt_max = newt_n;
-	if (newt_max > 57) newt_max = 57;
-	break;
+	case 'N':
+		newt_n = atoi(optarg);
+		if ((newt_n > 0 && newt_n % 2 == 0) || newt_n < 0 || newt_n > 57) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Newton interpolation: -N value must be "
+					"an odd number from 1 to 57.");
+			return 1;
+		}
+		if (newt_n == 0) {
+			newt_n = 5;
+			no_4point_interpolation = 1;
+			reduce_quality_flag = 1;
+		}
+		/* set optimal value for newt_max */
+		newt_max = -1.875328947 + 1.57730263158 * newt_n;
+		if (newt_max < newt_n)
+			newt_max = newt_n;
+		if (newt_max > 57)
+			newt_max = 57;
+		break;
 #endif
-
-      case 'n': 
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "-n option is obsoleted.  Please use -EFns=<n>");
-	return 1;
-
-      case 'O': /* output mode */
-	if(set_play_mode(optarg))
-	    return 1;
-	break;
-
-      case 'o':
-	if(opt_output_name != NULL)
-	    free(opt_output_name);
-	opt_output_name = safe_strdup(url_expand_home_dir(optarg));
-	break;
-
-      case 'P': /* set overriding instrument */
-	strncpy(def_instr_name, optarg, 255);
-	def_instr_name[255] = '\0';
-	break;
-
-      case 'p':
-	if (strchr(optarg, 'a')) auto_reduce_polyphony =
-	    !auto_reduce_polyphony;
-	if (*optarg != 'a') {
-	    if(set_value(&tmpi32, atoi(optarg), 1, MAX_VOICES, "Polyphony"))
+	case 'n':
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"-n option is obsoleted.  Please use -EFns=<n>");
 		return 1;
-	    voices = tmpi32;
-	}
-	break;
-
+	case 'O':	/* output mode */
+		if (set_play_mode(optarg))
+			return 1;
+		break;
+	case 'o':
+		if (opt_output_name != NULL)
+			free(opt_output_name);
+		opt_output_name = safe_strdup(url_expand_home_dir(optarg));
+		break;
+	case 'P':	/* set overriding instrument */
+		strncpy(def_instr_name, optarg, 255);
+		def_instr_name[255] = '\0';
+		break;
+	case 'p':
+		if (strchr(optarg, 'a'))
+			auto_reduce_polyphony = ! auto_reduce_polyphony;
+		if (*optarg != 'a') {
+			if (set_value(&tmpi32, atoi(optarg), 1, MAX_VOICES, "Polyphony"))
+				return 1;
+			voices = tmpi32;
+		}
+		break;
 	case 'Q':
 		if (strchr(optarg, 't')) {
 			if (set_value(&tmpi32, atoi(optarg), 0, 7, "Quiet temperament"))
@@ -3382,116 +3348,100 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 					&quietchannels, atoi(optarg), "Quiet channel"))
 				return 1;
 		break;
-
-      case 'q':
-	if(strchr(optarg, '/') == NULL)
-	{
-	    if(opt_aq_max_buff)
-		free(opt_aq_max_buff);
-	    opt_aq_max_buff = safe_strdup(optarg);
-	}
-	else
-	{
-	    if(optarg[0] == '/')
-	    {
-		if(opt_aq_fill_buff)
-		    free(opt_aq_fill_buff);
-		opt_aq_fill_buff = safe_strdup(optarg + 1);
-	    }
-	    else
-	    {
-		char *max_buff, *fill_buff;
-
-		max_buff = safe_strdup(optarg);
-		fill_buff = strchr(max_buff, '/');
-		*fill_buff++ = '\0';
-		if(opt_aq_max_buff)
-		    free(opt_aq_max_buff);
-		if(opt_aq_fill_buff)
-		    free(opt_aq_fill_buff);
-		opt_aq_max_buff = max_buff;
-		opt_aq_fill_buff = safe_strdup(fill_buff);
-	    }
-	}
-	break;
-
-      case 'R':
-        tmpi32 = atoi(optarg);
-	if(tmpi32 == -1) {
-	    /* reset */
-	    modify_release = 0;
-	} else {
-	    if(set_value(&modify_release, tmpi32, 0, MAX_MREL, "Modify Release"))
+	case 'q':
+		if (strchr(optarg, '/') == NULL) {
+			if (opt_aq_max_buff)
+				free(opt_aq_max_buff);
+			opt_aq_max_buff = safe_strdup(optarg);
+		} else {
+			if (optarg[0] == '/') {
+				if (opt_aq_fill_buff)
+					free(opt_aq_fill_buff);
+				opt_aq_fill_buff = safe_strdup(optarg + 1);
+			} else {
+				char *max_buff, *fill_buff;
+				
+				max_buff = safe_strdup(optarg);
+				fill_buff = strchr(max_buff, '/');
+				*fill_buff++ = '\0';
+				if (opt_aq_max_buff)
+					free(opt_aq_max_buff);
+				if (opt_aq_fill_buff)
+					free(opt_aq_fill_buff);
+				opt_aq_max_buff = max_buff;
+				opt_aq_fill_buff = safe_strdup(fill_buff);
+			}
+		}
+		break;
+	case 'R':
+		tmpi32 = atoi(optarg);
+		if (tmpi32 == -1)
+			/* reset */
+			modify_release = 0;
+		else {
+			if (set_value(&modify_release, tmpi32, 0, MAX_MREL,
+					"Modify Release"))
+				return 1;
+			if (modify_release == 0)
+				modify_release = DEFAULT_MREL;
+		}
+		break;
+	case 'r':
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"-r option is obsoleted.  Please use -EFreverb=1");
 		return 1;
-	    if (modify_release==0) modify_release=DEFAULT_MREL;
-	}
-        break;
-
-      case 'r':
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "-r option is obsoleted.  Please use -EFreverb=1");
-	return 1;
-
-      case 'S':
-	if(optarg[strlen(optarg) - 1] == 'k' ||
-	   optarg[strlen(optarg) - 1] == 'K')
-	    allocate_cache_size = (int32)(1024.0 * atof(optarg));
-	else if(optarg[strlen(optarg) - 1] == 'm' ||
-		optarg[strlen(optarg) - 1] == 'M')
-	    allocate_cache_size = (int32)(1024 * 1024 * atof(optarg));
-	else
-	    allocate_cache_size = atoi(optarg);
-	break;
-
-      case 's': /* sampling rate */
-	tmpi32 = atoi(optarg);
-	if(tmpi32 < 100)
-	    tmpi32 = (int32)(atof(optarg) * 1000.0 + 0.5);
-	if(set_value(&opt_output_rate, tmpi32, MIN_OUTPUT_RATE,MAX_OUTPUT_RATE,
-		     "Resampling frequency"))
-	    return 1;
-	break;
-
-       case 'T':
-         tmpi32 = atoi(optarg);
-         if(set_value(&tmpi32, tmpi32, 10, 400, "Tempo adjust"))
- 	    return 1;
- 	tempo_adjust = 100.0 / tmpi32;
- 	break;
-
-      case 't':
-	if(output_text_code)
-	    free(output_text_code);
-	output_text_code = safe_strdup(optarg);
-	break;
-
-      case 'U':
-	free_instruments_afterwards = 1;
-	break;
-
-      case 'W':
-	if(set_wrd(optarg))
-	    return 1;
-	break;
-
-      case 'w':
+	case 'S':
+		if (optarg[strlen(optarg) - 1] == 'k'
+				|| optarg[strlen(optarg) - 1] == 'K')
+			allocate_cache_size = (int32) (1024.0 * atof(optarg));
+		else if (optarg[strlen(optarg) - 1] == 'm'
+				|| optarg[strlen(optarg) - 1] == 'M')
+			allocate_cache_size = (int32) (1024 * 1024 * atof(optarg));
+		else
+			allocate_cache_size = atoi(optarg);
+		break;
+	case 's':	/* sampling rate */
+		tmpi32 = atoi(optarg);
+		if (tmpi32 < 100)
+			tmpi32 = (int32) (atof(optarg) * 1000.0 + 0.5);
+		if (set_value(&opt_output_rate, tmpi32, MIN_OUTPUT_RATE,
+				MAX_OUTPUT_RATE, "Resampling frequency"))
+			return 1;
+		break;
+	case 'T':
+		tmpi32 = atoi(optarg);
+		if (set_value(&tmpi32, tmpi32, 10, 400, "Tempo adjust"))
+			return 1;
+		tempo_adjust = 100.0 / tmpi32;
+		break;
+	case 't':
+		if (output_text_code)
+			free(output_text_code);
+		output_text_code = safe_strdup(optarg);
+		break;
+	case 'U':
+		free_instruments_afterwards = 1;
+		break;
+	case 'W':
+		if (set_wrd(optarg))
+			return 1;
+		break;
+	case 'w':
 #ifdef __W32__
-	return set_win_modes(optarg);
+		return set_win_modes(optarg);
 #else
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-w option is not supported");
-	return 1;
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-w option is not supported");
+		return 1;
 #endif /* __W32__ */
-
-      case 'x':
-	{
-	    StringTableNode *st;
-
-	    if((st = put_string_table(&opt_config_string,
-				      optarg, strlen(optarg))) != NULL)
-		expand_escape_string(st->string);
-	}
-	break;
-
+	case 'x':
+		{
+		StringTableNode *st;
+		
+		if ((st = put_string_table(&opt_config_string,
+				optarg, strlen(optarg))) != NULL)
+			expand_escape_string(st->string);
+		}
+		break;
 	case 'Z':	/* load frequency table */
 		if (! strncmp(optarg, "pure", 4)) {
 			opt_pure_intonation = 1;
@@ -3507,11 +3457,10 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 		} else if (load_table(optarg))
 			return 1;
 		break;
-
-      default:
-	return 1;
-    }
-    return 0;
+	default:
+		return 1;
+	}
+	return 0;
 }
 
 /* -------- getopt_long -------- */
@@ -3525,6 +3474,7 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 	else {
 		const struct option *the_option = &(longopts[index]);
 		char *arg;
+		
 		if (! strncmp(the_option->name, "no-", 3))
 			arg = "no";		/* `reverse' switch */
 		else if (! strncmp(the_option->name, "output-un", 9))
@@ -3537,165 +3487,165 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 		switch (c >> 8) {
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
 		case '4':
-			return ! parse_opt_4(arg);
+			return parse_opt_4(arg);
 #endif
 		case 'A':
-			return ! parse_opt_A(arg);
+			return parse_opt_A(arg);
 		case 'B':
-			return ! parse_opt_B(arg);
+			return parse_opt_B(arg);
 		case 'C':
-			return ! parse_opt_C(arg);
+			return parse_opt_C(arg);
 		case 'D':
-			return ! parse_opt_D(arg);
+			return parse_opt_D(arg);
 		case 'E':
-			return ! parse_opt_E(arg);
+			return parse_opt_E(arg);
 		case 'F':
-			return ! parse_opt_F(arg);
+			return parse_opt_F(arg);
 		case 'H':
-			return ! parse_opt_H(arg);
+			return parse_opt_H(arg);
 		case 'I':
-			return ! parse_opt_I(arg);
+			return parse_opt_I(arg);
 		case 'K':
-			return ! parse_opt_K(arg);
+			return parse_opt_K(arg);
 		case 'L':
-			return ! parse_opt_L(arg);
+			return parse_opt_L(arg);
 		case 'M':
-			return ! parse_opt_M(arg);
+			return parse_opt_M(arg);
 #if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
 		case 'N':
-			return ! parse_opt_N(arg);
+			return parse_opt_N(arg);
 #endif
 		case 'O':
-			return ! parse_opt_O(arg);
+			return parse_opt_O(arg);
 		case 'P':
-			return ! parse_opt_P(arg);
+			return parse_opt_P(arg);
 		case 'S':
-			return ! parse_opt_S(arg);
+			return parse_opt_S(arg);
 		case 'T':
-			return ! parse_opt_T(arg);
+			return parse_opt_T(arg);
 		case 'U':
-			return ! parse_opt_U(arg);
+			return parse_opt_U(arg);
 		case 'W':
-			return ! parse_opt_W(arg);
+			return parse_opt_W(arg);
 		case 'Z':
-			return ! parse_opt_Z(arg);
+			return parse_opt_Z(arg);
 		case 'a':
-			return ! parse_opt_a(arg);
+			return parse_opt_a(arg);
 		case 'b':
-			return ! parse_opt_b(arg);
+			return parse_opt_b(arg);
 		case 'c':
-			return ! parse_opt_c(arg);
+			return parse_opt_c(arg);
 #ifdef IA_DYNAMIC
 		case 'd':
-			return ! parse_opt_d(arg);
+			return parse_opt_d(arg);
 #endif
 #ifdef __W32__
 		case 'e':
-			return ! parse_opt_e(arg);
+			return parse_opt_e(arg);
 #endif
 		case 'f':
-			return ! parse_opt_f(arg);
+			return parse_opt_f(arg);
 #ifdef SUPPORTT_SOUNDSPEC
 		case 'g':
-			return ! parse_opt_g(arg);
+			return parse_opt_g(arg);
 #endif
 		case 'h':
-			return ! parse_opt_h(arg);
+			return parse_opt_h(arg);
 		case 'i':
-			return ! parse_opt_i(arg);
+			return parse_opt_i(arg);
 		case 'j':
-			return ! parse_opt_j(arg);
+			return parse_opt_j(arg);
 		case 'k':
-			return ! parse_opt_k(arg);
+			return parse_opt_k(arg);
 		case 'm':
-			return ! parse_opt_m(arg);
+			return parse_opt_m(arg);
 		case 'o':
-			return ! parse_opt_o(arg);
+			return parse_opt_o(arg);
 		case 'p':
-			return ! parse_opt_p(arg);
+			return parse_opt_p(arg);
 		case 'q':
-			return ! parse_opt_q(arg);
+			return parse_opt_q(arg);
 		case 's':
-			return ! parse_opt_s(arg);
+			return parse_opt_s(arg);
 		case 'v':
-			return ! parse_opt_v(arg);
+			return parse_opt_v(arg);
 		case 'x':
-			return ! parse_opt_x(arg);
+			return parse_opt_x(arg);
 		case 200:
-			return ! parse_opt_200(arg);
+			return parse_opt_200(arg);
 		case 201:
-			return ! parse_opt_201(arg);
+			return parse_opt_201(arg);
 		case 202:
-			return ! parse_opt_202(arg);
+			return parse_opt_202(arg);
 		case 203:
-			return ! parse_opt_203(arg);
+			return parse_opt_203(arg);
 		/*   204: is missing: not reserved */
 		case 205:
-			return ! parse_opt_205(arg);
+			return parse_opt_205(arg);
 		case 206:
-			return ! parse_opt_206(arg);
+			return parse_opt_206(arg);
 		case 207:
-			return ! parse_opt_207(arg);
+			return parse_opt_207(arg);
 		case 208:
-			return ! parse_opt_208(arg);
+			return parse_opt_208(arg);
 		case 209:
-			return ! parse_opt_209(arg);
+			return parse_opt_209(arg);
 		case 210:
-			return ! parse_opt_210(arg);
+			return parse_opt_210(arg);
 		case 211:
-			return ! parse_opt_211(arg);
+			return parse_opt_211(arg);
 		case 212:
-			return ! parse_opt_212(arg);
+			return parse_opt_212(arg);
 		case 213:
-			return ! parse_opt_213(arg);
+			return parse_opt_213(arg);
 		case 214:
-			return ! parse_opt_214(arg);
+			return parse_opt_214(arg);
 		case 215:
-			return ! parse_opt_215(arg);
+			return parse_opt_215(arg);
 		case 216:
-			return ! parse_opt_216(arg);
+			return parse_opt_216(arg);
 		case 217:
-			return ! parse_opt_217(arg);
+			return parse_opt_217(arg);
 		case 218:
-			return ! parse_opt_218(arg);
+			return parse_opt_218(arg);
 		case 219:
-			return ! parse_opt_219(arg);
+			return parse_opt_219(arg);
 		case 220:
-			return ! parse_opt_220(arg);
+			return parse_opt_220(arg);
 		case 221:
-			return ! parse_opt_221(arg);
+			return parse_opt_221(arg);
 		case 222:
-			return ! parse_opt_222(arg);
+			return parse_opt_222(arg);
 		case 223:
-			return ! parse_opt_223(arg);
+			return parse_opt_223(arg);
 		case 224:
-			return ! parse_opt_224(arg);
+			return parse_opt_224(arg);
 		case 225:
-			return ! parse_opt_225(arg);
+			return parse_opt_225(arg);
 		case 226:
-			return ! parse_opt_226(arg);
+			return parse_opt_226(arg);
 		case 227:
-			return ! parse_opt_227(arg);
+			return parse_opt_227(arg);
 		case 228:
-			return ! parse_opt_228(arg);
+			return parse_opt_228(arg);
 		case 229:
-			return ! parse_opt_229(arg);
+			return parse_opt_229(arg);
 		case 230:
-			return ! parse_opt_230(arg);
+			return parse_opt_230(arg);
 		case 231:
-			return ! parse_opt_231(arg);
+			return parse_opt_231(arg);
 		case 232:
-			return ! parse_opt_232(arg);
+			return parse_opt_232(arg);
 		case 233:
-			return ! parse_opt_233(arg);
+			return parse_opt_233(arg);
 		case 234:
-			return ! parse_opt_234(arg);
+			return parse_opt_234(arg);
 		case 235:
-			return ! parse_opt_235(arg);
+			return parse_opt_235(arg);
 		case 236:
-			return ! parse_opt_236(arg);
+			return parse_opt_236(arg);
 		case 237:
-			return ! parse_opt_237(arg);
+			return parse_opt_237(arg);
 		default:
 			ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 					"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
@@ -3708,7 +3658,7 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 static inline bool parse_opt_4(const char *arg)
 {
 	no_4point_interpolation = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 #endif
 
@@ -3717,11 +3667,11 @@ static inline bool parse_opt_A(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, MAX_AMPLIFICATION, "Amplification"))
-		return false;
+		return 1;
 	amplification = tmpi32;
 	if (strchr(arg, 'a'))
 		opt_amp_compensation = true;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_227(const char *arg)
@@ -3729,15 +3679,15 @@ static inline bool parse_opt_227(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, MAX_AMPLIFICATION, "Drum power"))
-		return false;
+		return 1;
 	opt_drum_power = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_a(const char *arg)
 {
 	antialiasing_allowed = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_B(const char *arg)
@@ -3746,7 +3696,7 @@ static inline bool parse_opt_B(const char *arg)
 	const char *arg2;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, 1000, "Buffer Fragments"))
-		return false;
+		return 1;
 	opt_buffer_fragments = tmpi32;
 	if (arg2 = strchr(arg, ','))
 		/* --buffer-size can take the second parameter `bits' for
@@ -3755,7 +3705,7 @@ static inline bool parse_opt_B(const char *arg)
 		 * for later version. -- mput
 		 */
 		return parse_opt_228(arg2);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_228(const char *arg)
@@ -3764,9 +3714,9 @@ static inline bool parse_opt_228(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 1, AUDIO_BUFFER_BITS, "Buffer bits"))
-		return false;
+		return 1;
 	audio_buffer_bits = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_b(const char *arg)
@@ -3779,17 +3729,17 @@ static inline bool parse_opt_C(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, MAX_CONTROL_RATIO, "Control ratio"))
-		return false;
+		return 1;
 	opt_control_ratio = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_c(char *arg)
 {
 	if (read_config_file(arg, 0))
-		return false;
+		return 1;
 	got_a_configuration = 1;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_D(const char *arg)
@@ -3797,11 +3747,11 @@ static inline bool parse_opt_D(const char *arg)
 	int val = atoi(optarg);
 	
 	if (set_channel_flag(&default_drumchannels, val, "Drum channel"))
-		return false;
+		return 1;
 	if (val < 0)
 		val = -val;
 	set_channel_flag(&default_drumchannel_mask, val, "Drum channel");
-	return true;
+	return 0;
 }
 
 #ifdef IA_DYNAMIC
@@ -3809,7 +3759,7 @@ static inline bool parse_opt_d(const char *arg)
 {
 	free(dynamic_lib_root);
 	dynamic_lib_root = safe_strdup(arg);
-	return true;
+	return 0;
 }
 #endif
 
@@ -3823,56 +3773,56 @@ static inline bool parse_opt_216(const char *arg)
 {
 	/* --[no-]modulation-wheel */
 	opt_modulation_wheel = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_217(const char *arg)
 {
 	/* --[no-]portamento */
 	opt_portamento = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_218(const char *arg)
 {
 	/* --[no-]vibrato */
 	opt_nrpn_vibrato = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_219(const char *arg)
 {
 	/* --[no-]channel-pressure */
 	opt_channel_pressure = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_220(const char *arg)
 {
 	/* --[no-]new-lpf */
 	opt_lpf_def = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_236(const char *arg)
 {
 	/* --[no-]modulation-envelope */
 	opt_modulation_envelope = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_214(const char *arg)
 {
 	/* --[no-]trace-text-meta */
 	opt_trace_text_meta_event = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_221(const char *arg)
 {
 	/* --[no-]overlap */
 	opt_overlap_voice_allow = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_213(char *arg)
@@ -3882,10 +3832,10 @@ static inline bool parse_opt_213(char *arg)
 	
 	if (val) {
 		opt_default_mid = val;
-		return true;
+		return 0;
 	} else {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Manufacture ID: Illegal value");
-		return false;
+		return 1;
 	}
 }
 
@@ -3896,10 +3846,10 @@ static inline bool parse_opt_237(char *arg)
 	
 	if (val) {
 		opt_system_mid = val;
-		return true;
+		return 0;
 	} else {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Manufacture ID: Illegal value");
-		return false;
+		return 1;
 	}
 }
 
@@ -3909,9 +3859,9 @@ static inline bool parse_opt_211(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
-		return false;
+		return 1;
 	default_tonebank = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_212(const char *arg)
@@ -3920,9 +3870,9 @@ static inline bool parse_opt_212(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Bank number"))
-		return false;
+		return 1;
 	special_tonebank = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_224(const char *arg)
@@ -3942,10 +3892,10 @@ static inline bool parse_opt_224(const char *arg)
 		break;
 	case '0':
 		effect_lr_mode = -1;
-		return true;
+		return 0;
 	case 'n':
 		effect_lr_mode = -1;
-		return true;
+		return 0;
 	}
 	if (type = strchr(type, ',')) {
 		int val = atoi(type + 1);
@@ -3954,11 +3904,11 @@ static inline bool parse_opt_224(const char *arg)
 			effect_lr_delay_msec = 0;
 			effect_lr_mode = -1;
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid delay parameter.");
-			return false;
+			return 1;
 		} else
 			effect_lr_delay_msec = val;
 	}
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_222(const char *arg)
@@ -3971,16 +3921,16 @@ static inline bool parse_opt_222(const char *arg)
 		opt_reverb_control = atoi(arg);
 	else if (strncasecmp("no", arg, 2)) {
 		opt_reverb_control = 0;
-		return true;
+		return 0;
 	} else if (strncasecmp("standard", arg, 8) || strncasecmp("std", arg, 3))
 		opt_reverb_control = 1;
 	else if (strncasecmp("global", arg, 6)) {
 		opt_reverb_control = 2;
-		return true;
+		return 0;
 	} else if (strncasecmp("new", arg, 3)
 			|| strncasecmp("freeverb", arg, 8)) {
 		opt_reverb_control = 3;
-		return true;
+		return 0;
 	} else if (strncasecmp("pseudo", arg, 6))
 		/* I think pseudo reverb can now be retired... Computers are
 		 * enough fast to do a full reverb, don't they?
@@ -3989,27 +3939,27 @@ static inline bool parse_opt_222(const char *arg)
 	else {
 		/* reaching here indicates arg is inalid. */
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
-		return false;
+		return 1;
 	}
 	if (lv = strchr(arg, ',')) {
 		if (arg[0] == 'p' || arg[0] == 'P') {
 			if (set_value(&tmpi32, atoi(lv), 0, MAX_MREL, "Modify release"))
-				return false;
+				return 1;
 			modify_release = tmpi32;
 		} else {
 			if (set_value(&tmpi32, atoi(lv), 0, 0x7f, "Reverb level"))
-				return false;
+				return 1;
 			opt_reverb_control = -tmpi32;
 		}
 	}
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_223(const char *arg)
 {
 	/* --chorus */
 	int32 tmpi32;
-	const char* lv;
+	const char *lv;
 	
 	if (isdigit(arg[0])) {
 		char *tmp = malloc(strlen(arg) + 8);	/* 8 for "chorus=", '\0' */
@@ -4021,12 +3971,12 @@ static inline bool parse_opt_223(const char *arg)
 			return ! ret;
 		} else {
 			free(tmp);
-			return false;	/* maybe not enough memory -- no way but die? */
+			return 1;	/* maybe not enough memory -- no way but die? */
 		}
 	} else if (strncasecmp("no", arg, 2)) {
 		opt_chorus_control = false;
 		opt_surround_chorus = false;
-		return true;
+		return 0;
 	} else if (strncasecmp("standard", arg, 8)
 			|| strncasecmp("std", arg, 3)) {
 		opt_chorus_control = true;
@@ -4037,14 +3987,14 @@ static inline bool parse_opt_223(const char *arg)
 	} else {
 		/* reaching here indicates arg is inalid. */
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid chorus parameter.");
-		return false;
+		return 1;
 	}
 	if (lv = strchr(arg, ',')) {
 		if (set_value(&tmpi32, atoi(lv), 0, 0x7f, "Chorus level"))
-			return false;
+			return 1;
 		opt_chorus_control = -tmpi32;
 	}
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_225(const char *arg)
@@ -4053,9 +4003,9 @@ static inline bool parse_opt_225(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, 4, "Noise shaper type"))
-		return false;
+		return 1;
 	noise_sharp_type = tmpi32;
-	return true;
+	return 0;
 }
 
 #ifdef __W32__
@@ -4063,20 +4013,20 @@ static inline bool parse_opt_e(const char *arg)
 {
 	free(dynamic_lib_root);
 	dynamic_lib_root = safe_strdup(arg);
-	return true;
+	return 0;
 }
 #endif
 
 static inline bool parse_opt_F(const char *arg)
 {
 	adjust_panning_immediately = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_f(const char *arg)
 {
 	fast_decay = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 #ifdef SUPPORT_SOUNDSPEC
@@ -4086,11 +4036,11 @@ static inline bool parse_opt_g(const char *arg)
 
 	if (msec <= 0) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "-g argument must be positive");
-		return false;
+		return 1;
 	} else {
 		spectrogram_update_sec = msec;
 		view_soundspec_flag = true;
-		return true;
+		return 0;
 	}
 }
 #endif
@@ -4101,9 +4051,9 @@ static inline bool parse_opt_H(const char *arg)
 	
 	if (set_value(&tmpi32, atoi(arg), -7, 7,
 			"Key Signature -- number of sharp(+)/flat(-)"))
-		return false;
+		return 1;
 	opt_force_keysig = tmpi32;
-	return true;
+	return 0;
 }
 
 __attribute__((noreturn))
@@ -4116,8 +4066,8 @@ static inline bool parse_opt_h(const char *arg)
 static inline bool parse_opt_I(char *arg)
 {
 	if (set_default_prog(arg))
-		return false;
-	return true;
+		return 1;
+	return 0;
 }
 
 static inline bool parse_opt_i(const char *arg)
@@ -4164,7 +4114,7 @@ static inline bool parse_opt_i(const char *arg)
 	while (cp = *cpp++) {
 		if (cp->id_character == id) {
 			ctl = cp;
-			return true;
+			return 0;
 		}
 #ifdef IA_DYNAMIC
 		else if ((cp->id_character == dynamic_interface_id)
@@ -4176,33 +4126,33 @@ static inline bool parse_opt_i(const char *arg)
 				ctl->flags = 0;
 				ctl->id_character = dynamic_interface_id = id;
 			}
-			return true;
+			return 0;
 		}
 #endif
 	}
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Interface `%s' not found.", arg);
-	return false;
+	return 1;
 }
 
 static inline bool parse_opt_205(const char *arg)
 {
 	/* --verbose */
 	ctl->verbosity += (arg) ? atoi(arg) : 1;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_206(const char *arg)
 {
 	/* --quiet */
 	ctl->verbosity -= (arg) ? atoi(arg) : 1;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_207(const char *arg)
 {
 	/* --[no-]trace */
 	ctl->trace_playing = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_208(const char *arg)
@@ -4260,7 +4210,7 @@ static inline bool parse_opt_235(const char *arg)
 		ctl->flags &= ~CTLF_NOT_CONTINUE;
 	else
 		ctl->flags |= CTLF_NOT_CONTINUE;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_j(const char *arg)
@@ -4273,29 +4223,29 @@ static inline bool parse_opt_K(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), -24, 24, "Key adjust"))
-		return false;
+		return 1;
 	key_adjust = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_k(const char *arg)
 {
 	reduce_voice_threshold = atoi(optarg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_L(char *arg)
 {
 	add_to_pathlist(arg);
 	try_config_again = true;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_M(const char *arg)
 {
 	free(pcm_alternate_file);
 	pcm_alternate_file = safe_strdup(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_m(const char *arg)
@@ -4303,7 +4253,7 @@ static inline bool parse_opt_m(const char *arg)
 	min_sustain_time = atoi(optarg);
 	if (min_sustain_time < 0)
 		min_sustain_time = 0;
-	return true;
+	return 0;
 }
 
 #ifdef GAUSS_INTERPOLATION
@@ -4314,14 +4264,14 @@ static inline bool parse_opt_N(const char *arg)
 	if (atoi(arg)) {
 		if (set_value(&tmpi32, atoi(arg), 1, 34,
 				"Gauss interpolation -N value"))
-			return false;
+			return 1;
 		gauss_n = tmpi32;
 	} else {
 		gauss_n = 5;
 		no_4point_interpolation = true;
 		reduce_quality_flag = true;
 	}
-	return true;
+	return 0;
 }
 #elif defined(NEWTON_INTERPOLATION)
 static inline bool parse_opt_N(const char *arg)
@@ -4331,11 +4281,11 @@ static inline bool parse_opt_N(const char *arg)
 	if (atoi(arg)) {
 		if (set_value(&tmpi32, atoi(arg), 1, 56,
 				"Newton interpolation -N value"))
-			return false;
+			return 1;
 		if (tmpi32 % 2) {
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Newton -N value must be even");
-			return false;
+			return 1;
 		}
 		newt_n = tmpi32;
 	} else {
@@ -4349,7 +4299,7 @@ static inline bool parse_opt_N(const char *arg)
 		newt_max = newt_n;
 	if (newt_max > 57)
 		newt_max = 57;
-	return true;
+	return 0;
 }
 #endif
 
@@ -4391,10 +4341,10 @@ static inline bool parse_opt_O(const char *arg)
 	while (pp = *ppp++)
 		if (pp->id_character == arg[0]) {
 			play_mode = pp;
-			return true;
+			return 0;
 		}
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Output mode `%s' not found.", arg);
-	return false;
+	return 1;
 }
 
 static inline bool parse_opt_200(const char *arg)
@@ -4405,13 +4355,13 @@ static inline bool parse_opt_200(const char *arg)
 	if ((val == 1) || (val == 16)) {
 		play_mode->encoding |= PE_16BIT;
 		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return true;
+		return 0;
 	} else if (val == 8) {
 		play_mode->encoding &= ~PE_16BIT;
-		return true;
+		return 0;
 	} else {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "bit width must be 8 or 16");
-		return false;
+		return 1;
 	}
 }
 
@@ -4425,44 +4375,42 @@ static inline bool parse_opt_201(const char *arg)
 		play_mode->encoding |= PE_ULAW;
 		play_mode->encoding &=
 				~(PE_ALAW | PE_16BIT | PE_SIGNED | PE_BYTESWAP);
-		return true;
+		return 0;
 	case 'a':
 	case 'A':
 		/* aLaw */
 		play_mode->encoding |= PE_ALAW;
 		play_mode->encoding &=
 				~(PE_ULAW | PE_16BIT | PE_SIGNED | PE_BYTESWAP);
-		return true;
+		return 0;
 	case 'l':
 	case 'L':
 		/* linear */
 		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return true;
+		return 0;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				"unknown output enciding `%s'",arg);
-		return false;
+		return 1;
 	}
 }
 
 static inline bool parse_opt_202(const char *arg)
 {
 	/* --output-[un]singed */
-	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg)) {
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return true;
-	}
-	return false;
+	if (set_flag(&(play_mode->encoding), PE_SIGNED, arg))
+		return 1;
+	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
 }
 
 static inline bool parse_opt_203(const char *arg)
 {
 	/* --[no-]output-byte-swap */
-	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg)) {
-		play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
-		return true;
-	}
-	return false;
+	if (set_flag(&(play_mode->encoding), PE_BYTESWAP, arg))
+		return 1;
+	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
+	return 0;
 }
 
 static inline bool parse_opt_229(const char *arg)
@@ -4477,21 +4425,21 @@ static inline bool parse_opt_229(const char *arg)
 		play_mode->encoding &= ~PE_MONO;
 	else
 		play_mode->encoding |= PE_MONO;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_o(char *arg)
 {
 	free(opt_output_name);
 	opt_output_name = safe_strdup(url_expand_home_dir(arg));
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_P(const char *arg)
 {
 	strncpy(def_instr_name, arg, sizeof(def_instr_name));
 	def_instr_name[sizeof(def_instr_name) - 1] = '\0';
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_p(const char *arg)
@@ -4499,16 +4447,16 @@ static inline bool parse_opt_p(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 1, MAX_VOICES, "Polyphony"))
-		return false;
+		return 1;
 	voices = tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_215(const char *arg)
 {
 	/* --[no-]polyphony-reduction */
 	auto_reduce_polyphony = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_Q(const char *arg)
@@ -4518,9 +4466,9 @@ static inline bool parse_opt_Q(const char *arg)
 	if (isdigit(arg[0]) || arg[0] == '-') {
 		if (strchr(arg, 't')) {
 			if (set_value(&tmpi32, atoi(arg), 0, 7, "Quiet temperament"))
-				return false;
+				return 1;
 			temper_type_mute |= 1 << tmpi32;
-			return true;
+			return 0;
 		} else
 			return ! set_channel_flag(&quietchannels, atoi(arg),
 					"Quiet channel");
@@ -4539,10 +4487,10 @@ static inline bool parse_opt_Q(const char *arg)
 		for (i = 0; name2type[i].name; i++)
 			if (strcasecmp(name2type[i].name, arg)) {
 				temper_type_mute |= 1 << name2type[i].type;
-				return true;
+				return 0;
 			}
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Unknown temperament `%s'", arg);
-		return false;
+		return 1;
 	}
 }
 
@@ -4560,7 +4508,7 @@ static inline bool parse_opt_q(const char *arg)
 		free(opt_aq_fill_buff);
 		opt_aq_fill_buff = f + 1;
 	}
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_S(const char *arg)
@@ -4580,7 +4528,7 @@ static inline bool parse_opt_S(const char *arg)
 		figure = 1;
 	}
 	allocate_cache_size = figure * val;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_s(const char *arg)
@@ -4589,16 +4537,16 @@ static inline bool parse_opt_s(const char *arg)
 	
 	if (atoi(arg) < 100) {
 		if (set_value(&tmpi32, atoi(arg), 4, 65, "Frequency"))
-			return false;
+			return 1;
 		/* Hey, what's this 0.5? -- mput */
 		opt_output_rate = tmpi32 * 1000 + 0.5;
 	} else {
 		if (set_value(&tmpi32, atoi(arg), MIN_OUTPUT_RATE, MAX_OUTPUT_RATE,
 				"Frequency"))
-			return false;
+			return 1;
 		opt_output_rate = tmpi32;
 	}
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_T(const char *arg)
@@ -4606,29 +4554,29 @@ static inline bool parse_opt_T(const char *arg)
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 10, 400, "Tempo adjust"))
-		return false;
+		return 1;
 	tempo_adjust = 100.0 / tmpi32;
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_t(const char *arg)
 {
 	free(output_text_code);
 	output_text_code = safe_strdup(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_U(const char *arg)
 {
 	free_instruments_afterwards = y_or_n_p(arg);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_v(const char *arg)
 {
 	/* I think --version should not die immediately. */
 	version();
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_W(const char *arg)
@@ -4644,7 +4592,7 @@ static inline bool parse_opt_W(const char *arg)
 			wrdt = wp;
 			free(wrdt_open_opts);
 			wrdt_open_opts = safe_strdup(arg + 1);
-			return true;
+			return 0;
 		}
 	}
 }
@@ -4653,7 +4601,7 @@ static inline bool parse_opt_238(char *arg)
 {
 	/* --wrd-read-opts */
 	put_string_table(&wrd_read_opts, arg, strlen(arg));
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_x(const char *arg)
@@ -4663,7 +4611,7 @@ static inline bool parse_opt_x(const char *arg)
 	if ((st = put_string_table(&opt_config_string,
 			optarg, strlen(optarg))) != NULL)
 		expand_escape_string(st->string);
-	return true;
+	return 0;
 }
 
 static inline bool parse_opt_Z(char *arg)
@@ -4681,7 +4629,7 @@ static inline bool parse_opt_226(const char *arg)
 		if (arg[4] != '\0') {
 			if (set_value(&tmpi32, atoi(arg + 4), -7, -7,
 					"Initial keysig (number of #(+)/b(-)[m(minor)])"))
-				return false;
+				return 1;
 			if (strchr(arg + 4, 'm'))
 				opt_init_keysig = tmpi32 + 16;
 			else
@@ -4735,7 +4683,7 @@ static inline bool set_flag(int32 *fields, int32 bitmask, const char *arg)
 		*fields |= bitmask;
 	else
 		*fields &= ~bitmask;
-	return true;
+	return 0;
 }
 
 /* -------- functions for getopt_long ends here --------- */
@@ -5368,9 +5316,9 @@ int main(int argc, char **argv)
     if((err = timidity_pre_load_configuration()) != 0)
 	return err;
 
-    while((c = getopt_long(argc, argv, OPTCOMMANDS, longopts, &longind)) > 0)
-	if((err = set_tim_opt_long(c, optarg, longind)) != 0)
-	    break;
+	while ((c = getopt_long(argc, argv, OPTCOMMANDS, longopts, &longind)) > 0)
+		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
+			break;
 
 #if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
     initialize_newton_coeffs();
