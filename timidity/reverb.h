@@ -172,7 +172,10 @@ enum {
 	EFFECT_CHORUS,	
 	EFFECT_FLANGER,
 	EFFECT_SYMPHONIC,
-	EFFECT_CHORUS_EQ3,	
+	EFFECT_CHORUS_EQ3,
+	EFFECT_STEREO_OVERDRIVE,
+	EFFECT_STEREO_DISTORTION,
+	EFFECT_OD_EQ3,
 	EFFECT_HEXA_CHORUS,
 };
 
@@ -360,6 +363,15 @@ typedef struct {
 	double dry, wet, feedback, pdelay_ms, depth_ms, rate, phase_diff;
 	int32 dryi, weti, feedbacki;
 } InfoChorus;
+
+/*! Stereo Overdrive / Distortion */
+typedef struct {
+	int8 type;
+	double level, dry, wet, drive, cutoff;
+	int32 dryi, weti, wetdi;
+	filter_moog svfl, svfr;
+	filter_lpf18 lpf18l, lpf18r;
+} InfoStereoOD;
 
 /*                             */
 /*        System Effect        */

@@ -2950,7 +2950,7 @@ static double calc_wet_xg(int val, struct effect_xg_t *st)
 	case XG_CONN_SYSTEM:
 		return ((double)st->ret / 127.0f);
 	case XG_CONN_SYSTEM_CHORUS:
-		return ((double)st->ret / 127.0f * MASTER_CHORUS_LEVEL);
+		return ((double)st->ret / 127.0f);
 	case XG_CONN_SYSTEM_REVERB:
 		return ((double)st->ret / 127.0f);
 	default:
@@ -3136,6 +3136,155 @@ static void do_chorus(int32 *buf, int32 count, EffectList *ef)
 	info->lfoL.count = info->lfoR.count = lfocnt;
 }
 
+static void conv_xg_od_eq3(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEQ3 *info = (InfoEQ3 *)ef->info;
+	int val;
+
+	val = st->param_lsb[1];
+	val = (val > 40) ? 40 : (val < 4) ? 4 : val;
+	info->low_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[2] - 64;
+	info->low_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[6];
+	val = (val > 54) ? 54 : (val < 14) ? 14 : val;
+	info->mid_freq = eq_freq_table_xg[val];
+	val = st->param_lsb[7] - 64;
+	info->mid_gain = (val > 12) ? 12 : (val < -12) ? -12 : val;
+	val = st->param_lsb[8];
+	val = (val > 120) ? 120 : (val < 10) ? 10 : val;
+	info->mid_width = (double)val / 10.0f;
+	info->high_freq = 0;
+	info->high_gain = 0;
+}
+
+static void conv_xg_overdrive(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoStereoOD *info = (InfoStereoOD *)ef->info;
+	int val;
+
+	info->type = 0;
+	info->drive = (double)st->param_lsb[0] / 127.0f;
+	val = st->param_lsb[3];
+	val = (val > 60) ? 60 : (val < 34) ? 34 : val;
+	info->cutoff = eq_freq_table_xg[val];
+	info->level = (double)st->param_lsb[4] / 127.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void conv_xg_distortion(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoStereoOD *info = (InfoStereoOD *)ef->info;
+	int val;
+
+	info->type = 1;
+	info->drive = (double)st->param_lsb[0] / 127.0f;
+	val = st->param_lsb[3];
+	val = (val > 60) ? 60 : (val < 34) ? 34 : val;
+	info->cutoff = eq_freq_table_xg[val];
+	info->level = (double)st->param_lsb[4] / 127.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoStereoOD *info = (InfoStereoOD *)ef->info;
+	filter_moog *svfl = &(info->svfl);
+	int32 t1l, t2l, f = svfl->f, q = svfl->q, p = svfl->p, b0l = svfl->b0,
+		b1l = svfl->b1, b2l = svfl->b2, b3l = svfl->b3, b4l = svfl->b4;
+	filter_moog *svfr = &(info->svfr);
+	int32 t1r, t2r, b0r = svfr->b0,
+		b1r = svfr->b1, b2r = svfr->b2, b3r = svfr->b3, b4r = svfr->b4;
+	filter_lpf18 *lpfl = &(info->lpf18l);
+	double ay1l = lpfl->ay1, ay2l = lpfl->ay2, aoutl = lpfl->aout, lastinl = lpfl->lastin,
+		kresl = lpfl->kres, valuel = lpfl->value, kp = lpfl->kp, kp1h = lpfl->kp1h, ax1l, ay11l, ay31l;
+	filter_lpf18 *lpfr = &(info->lpf18r);
+	double ay1r = lpfr->ay1, ay2r = lpfr->ay2, aoutr = lpfr->aout, lastinr = lpfr->lastin,
+		kresr = lpfr->kres, valuer = lpfr->value, ax1r, ay11r, ay31r;
+	int32 i, inputl, inputr, high, low, weti = info->weti, dryi = info->dryi, wetdi = info->wetdi;
+	double sig;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		/* left */
+		/* set parameters of decompositor */
+		svfl->freq = svfr->freq = 800;
+		svfl->res_dB = svfr->res_dB = 0;
+		calc_filter_moog(svfl);
+		calc_filter_moog(svfr);
+		/* set parameters of waveshaper */
+		lpfl->freq = lpfr->freq = info->cutoff;
+		if(info->type == 0) {	/* Overdrive */
+			lpfl->res = lpfr->res = OVERDRIVE_RES;
+			lpfl->dist = lpfr->dist = OVERDRIVE_DIST * sqrt(info->drive) + OVERDRIVE_OFFSET;
+			info->weti = TIM_FSCALE(info->wet * info->level * OVERDRIVE_LEVEL, 24);
+		} else {	/* Distortion */
+			lpfl->res = lpfr->res = DISTORTION_RES;
+			lpfl->dist = lpfr->dist = DISTORTION_DIST * sqrt(info->drive) + DISTORTION_OFFSET;
+			info->weti = TIM_FSCALE(info->wet * info->level * DISTORTION_LEVEL, 24);
+		}
+		info->wetdi = TIM_FSCALE(info->wet * info->level, 24);
+		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
+		calc_filter_lpf18(lpfl);
+		calc_filter_lpf18(lpfr);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	for(i = 0; i < count; i++) {
+		/* left */
+		inputl = buf[i];
+		/* decomposition */
+		inputl -= imuldiv24(q, b4l);
+		t1l = b1l;  b1l = imuldiv24(inputl + b0l, p) - imuldiv24(b1l, f);
+		t2l = b2l;  b2l = imuldiv24(b1l + t1l, p) - imuldiv24(b2l, f);
+		t1l = b3l;  b3l = imuldiv24(b2l + t2l, p) - imuldiv24(b3l, f);
+		low = b4l = imuldiv24(b3l + t1l, p) - imuldiv24(b4l, f);
+		b0l = inputl;
+		high = inputl - b4l;
+		/* waveshaping */
+		sig = (double)high * OD_MAX_NEG;
+		ax1l = lastinl;
+		ay11l = ay1l;
+		ay31l = ay2l;
+		lastinl = sig - tanh(kresl * aoutl);
+		ay1l = kp1h * (lastinl + ax1l) - kp * ay1l;
+		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
+		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
+		sig = tanh(aoutl * valuel);
+		high = TIM_FSCALE(sig, OD_BITS);
+		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
+
+		/* right */
+		inputr = buf[++i];
+		/* decomposition */
+		inputr -= imuldiv24(q, b4r);
+		t1r = b1r;  b1r = imuldiv24(inputr + b0r, p) - imuldiv24(b1r, f);
+		t2r = b2r;  b2r = imuldiv24(b1r + t1r, p) - imuldiv24(b2r, f);
+		t1r = b3r;  b3r = imuldiv24(b2r + t2r, p) - imuldiv24(b3r, f);
+		low = b4r = imuldiv24(b3r + t1r, p) - imuldiv24(b4r, f);
+		b0r = inputr;
+		high = inputr - b4r;
+		/* waveshaping */
+		sig = (double)high * OD_MAX_NEG;
+		ax1r = lastinr;
+		ay11r = ay1r;
+		ay31r = ay2r;
+		lastinr = sig - tanh(kresr * aoutr);
+		ay1r = kp1h * (lastinr + ax1r) - kp * ay1r;
+		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
+		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
+		sig = tanh(aoutr * valuer);
+		high = TIM_FSCALE(sig, OD_BITS);
+		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
+	}
+	svfl->b0 = b0l, svfl->b1 = b1l, svfl->b2 = b2l, svfl->b3 = b3l, svfl->b4 = b4l;
+    lpfl->ay1 = ay1l, lpfl->ay2 = ay2l, lpfl->aout = aoutl, lpfl->lastin = lastinl;
+	svfr->b0 = b0r, svfr->b1 = b1r, svfr->b2 = b2r, svfr->b3 = b3r, svfr->b4 = b4r;
+    lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
+}
+
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
 	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
@@ -3147,6 +3296,9 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_FLANGER, "Flanger", do_chorus, NULL, conv_xg_flanger, sizeof(InfoChorus),
 	EFFECT_SYMPHONIC, "Symphonic", do_chorus, NULL, conv_xg_symphonic, sizeof(InfoChorus),
 	EFFECT_CHORUS_EQ3, "3-Band EQ (XG Chorus built-in)", do_eq3, NULL, conv_xg_chorus_eq3, sizeof(InfoEQ3),
+	EFFECT_STEREO_OVERDRIVE, "Stereo Overdrive", do_stereo_od, NULL, conv_xg_overdrive, sizeof(InfoStereoOD),
+	EFFECT_STEREO_DISTORTION, "Stereo Distortion", do_stereo_od, NULL, conv_xg_distortion, sizeof(InfoStereoOD),
+	EFFECT_OD_EQ3, "2-Band EQ (XG OD built-in)", do_eq3, NULL, conv_xg_od_eq3, sizeof(InfoEQ3),
 	-1, "EOF", NULL, NULL, NULL, 0, 
 };
 
@@ -3157,6 +3309,10 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0,
 	0x43, 0, "FLANGER 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	14, 14, 104, 2, 0, 28, 64, 46, 64, 96, 40, 64, 10, 4, 0, 0,
+	0x49, 0, "DISTORTION", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	40, 20, 72, 53, 48, 0, 43, 74, 10, 127, 120, 0, 0, 0, 0, 0,
+	0x4A, 0, "OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	29, 24, 68, 45, 55, 0, 41, 72, 10, 127, 104, 0, 0, 0, 0, 0,
 	-1, -1, "EOF", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };

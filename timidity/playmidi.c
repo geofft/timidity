@@ -4226,14 +4226,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		{
 		case 0x00:	/* Insertion Effect Type MSB */
 			if (insertion_effect_xg[note].type_msb != val) {
-				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%02X)", val);
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type MSB (%d %02X)", note, val);
 				insertion_effect_xg[note].type_msb = val;
 				realloc_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x01:	/* Insertion Effect Type LSB */
 			if (insertion_effect_xg[note].type_lsb != val) {
-				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%02X)", val);
+				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Type LSB (%d %02X)", note, val);
 				insertion_effect_xg[note].type_lsb = val;
 				realloc_effect_xg(&insertion_effect_xg[note]);
 			}
@@ -4250,63 +4250,63 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x0B:
 			if (insertion_effect_xg[note].use_msb) {break;}
 			temp = b - 0x02;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d)", temp + 1, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d %d)", temp + 1, note, val);
 			if (insertion_effect_xg[note].param_lsb[temp] != val) {
 				insertion_effect_xg[note].param_lsb[temp] = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x0C:	/* Insertion Effect Part */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Part (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Part (%d %d)", note, val);
 			if (insertion_effect_xg[note].part != val) {
 				insertion_effect_xg[note].part = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x0D:	/* MW Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MW Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MW Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].mw_depth != val) {
 				insertion_effect_xg[note].mw_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x0E:	/* BEND Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].bend_depth != val) {
 				insertion_effect_xg[note].bend_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x0F:	/* CAT Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAT Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAT Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].cat_depth != val) {
 				insertion_effect_xg[note].cat_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x10:	/* AC1 Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC1 Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].ac1_depth != val) {
 				insertion_effect_xg[note].ac1_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x11:	/* AC2 Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "AC2 Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].ac2_depth != val) {
 				insertion_effect_xg[note].ac2_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x12:	/* CBC1 Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC1 Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC1 Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].cbc1_depth != val) {
 				insertion_effect_xg[note].cbc1_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
 			}
 			break;
 		case 0x13:	/* CBC2 Insertion Control Depth */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC2 Insertion Control Depth (%d)", val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CBC2 Insertion Control Depth (%d %d)", note, val);
 			if (insertion_effect_xg[note].cbc2_depth != val) {
 				insertion_effect_xg[note].cbc2_depth = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
@@ -4319,7 +4319,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x24:
 		case 0x25:
 			temp = b - 0x20 + 10;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d)", temp + 1, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d (%d %d)", temp + 1, note, val);
 			if (insertion_effect_xg[note].param_lsb[temp] != val) {
 				insertion_effect_xg[note].param_lsb[temp] = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
@@ -4337,7 +4337,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x42:
 			if (!insertion_effect_xg[note].use_msb) {break;}
 			temp = (b - 0x30) / 2;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d MSB (%d)", temp + 1, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d MSB (%d %d)", temp + 1, note, val);
 			if (insertion_effect_xg[note].param_msb[temp] != val) {
 				insertion_effect_xg[note].param_msb[temp] = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
@@ -4355,7 +4355,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x43:
 			if (!insertion_effect_xg[note].use_msb) {break;}
 			temp = (b - 0x31) / 2;
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d LSB (%d)", temp + 1, val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Insertion Effect Parameter %d LSB (%d %d)", temp + 1, note, val);
 			if (insertion_effect_xg[note].param_lsb[temp] != val) {
 				insertion_effect_xg[note].param_lsb[temp] = val;
 				recompute_effect_xg(&insertion_effect_xg[note]);
@@ -4953,6 +4953,7 @@ static void play_midi_prescan(MidiEvent *ev)
 
 	  case ME_RESET:
 	    change_system_mode(ev->a);
+		init_all_effect_xg();
 	    reset_midi(0);
 	    break;
 
@@ -5694,6 +5695,7 @@ static void seek_forward(int32 until_time)
 
 	  case ME_RESET:
 	    change_system_mode(current_event->a);
+		init_all_effect_xg();
 	    reset_midi(0);
 	    break;
 

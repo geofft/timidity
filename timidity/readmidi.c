@@ -102,7 +102,6 @@ void init_reverb_status_gs(void);
 void init_eq_status_gs(void);
 void init_insertion_effect_gs(void);
 void init_multi_eq_xg(void);
-static void init_all_effect_xg(void);
 
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
@@ -916,7 +915,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	body_end = val + len-3;
 
 	for (ent = val[7]; body <= body_end; body++, ent++) {
-	    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 2);
+	    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5], 2);
 		SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
 		num_events += 2;
     }
@@ -948,7 +947,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 	for (ent = val[7]; body <= body_end; body++, ent++) {
 	    switch(ent) {
 		case 0x00:	/* Element Reserve */
-			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, *body); 
+/*			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, *body); */
 		    break;
 
 		case 0x01:	/* bank select MSB */
@@ -1759,13 +1758,13 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			}
 			}
 		} else if (val[3] == 0x03) {	/* Effect 2 */
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 2);
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4], 2);
 			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
 			num_events += 2;
 		} else if (val[3] == 0x08) {	/* Multi Part Data parameter change */
 			switch(ent) {
 				case 0x00:	/* Element Reserve */
-					ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, val[6]); 
+			/*		ctl->cmsg(CMSG_INFO, VERB_NOISY, "Element Reserve is not supported. (CH:%d VAL:%d)", p, val[6]); */
 					break;
 
 				case 0x01:	/* bank select MSB */
@@ -5136,7 +5135,6 @@ void readmidi_read_init(void)
 	init_eq_status_gs();
 	init_insertion_effect_gs();
 	init_multi_eq_xg();
-	init_all_effect_xg();
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = rhythm_part[1] = 9;
@@ -6611,6 +6609,14 @@ void realloc_effect_xg(struct effect_xg_t *st)
 		st->ef = push_effect(st->ef, EFFECT_SYMPHONIC);
 		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
 		break;
+	case 0x49:
+		st->ef = push_effect(st->ef, EFFECT_STEREO_DISTORTION);
+		st->ef = push_effect(st->ef, EFFECT_OD_EQ3);
+		break;
+	case 0x4A:
+		st->ef = push_effect(st->ef, EFFECT_STEREO_OVERDRIVE);
+		st->ef = push_effect(st->ef, EFFECT_OD_EQ3);
+		break;
 	default:	/* Not Supported */
 		type_msb = type_lsb = 0;
 		break;
@@ -6639,9 +6645,10 @@ static void init_effect_xg(struct effect_xg_t *st)
 }
 
 /*! initialize XG effect parameters */
-static void init_all_effect_xg(void)
+void init_all_effect_xg(void)
 {
 	int i;
+	if (play_system_mode != XG_SYSTEM_MODE) {return;}
  	init_effect_xg(&reverb_status_xg);
 	reverb_status_xg.type_msb = 0x01;
 	reverb_status_xg.connection = XG_CONN_SYSTEM_REVERB;
