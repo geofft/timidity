@@ -328,7 +328,7 @@ typedef struct {
   int modenv_stage;
   int32
     modenv_volume, modenv_target, modenv_increment;
-  FLOAT_T modenv_scale, last_modenv_volume;
+  FLOAT_T modenv_scale, last_modenv_volume, prev_modenv_volume;
 } Voice;
 
 /* Voice status options: */

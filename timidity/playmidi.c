@@ -649,17 +649,24 @@ void recompute_freq(int v)
 	/* for NRPN Coarse Pitch of Drum (GS) & Fine Pitch of Drum (XG) */
 	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
 			&& (channel[ch].drums[note]->fine
-			|| channel[ch].drums[note]->coarse))
+			|| channel[ch].drums[note]->coarse)) {
 		tuning += (channel[ch].drums[note]->fine
 				+ channel[ch].drums[note]->coarse * 64) << 7;
+		channel[ch].pitchfactor = 0;
+	}
 	if(opt_modulation_envelope) {
 		if(voice[v].sample->tremolo_to_pitch) {
 			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
-				* (double)voice[v].sample->tremolo_to_pitch * (1 << 13) / 100.0f;
+				* (double)voice[v].sample->tremolo_to_pitch * (1L << 13) / 100.0f;
+			channel[ch].pitchfactor = 0;
 		}
 		if(voice[v].sample->modenv_to_pitch) {
 			tuning += (1.0 - sb_vol_table[1023 - (int)(voice[v].last_modenv_volume * 1023)])
-				* (double)voice[v].sample->modenv_to_pitch * (1 << 13) / 100.0f;
+				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f;
+			if(voice[v].last_modenv_volume != voice[v].prev_modenv_volume) {
+				voice[v].prev_modenv_volume = voice[v].last_modenv_volume;
+				channel[ch].pitchfactor = 0;
+			}
 		}
 	}
 	/* Scale Tuning */
@@ -882,8 +889,11 @@ void recompute_voice_filter(int v)
 
 	coef = channel[ch].cutoff_freq_coef;
 
-	if(sp->vel_to_fc && voice[v].velocity < sp->vel_to_fc_threshold) {	/* velocity to filter cutoff frequency */
-		coef *= pow(2.0, sp->vel_to_fc * (double)(127 - voice[v].velocity) / 1200.0f / 127.0f);
+	if(sp->vel_to_fc) {	/* velocity to filter cutoff frequency */
+		if(voice[v].velocity > sp->vel_to_fc_threshold)
+			coef *= pow(2.0, sp->vel_to_fc * (double)(127 - voice[v].velocity) / (1200.0f * 127.0f));
+		else
+			coef *= 0.5f;
 	}
 	if(sp->vel_to_resonance) {	/* velocity to filter resonance */
 		reso += (double)voice[v].velocity * sp->vel_to_resonance / 127.0f / 10.0f;
@@ -1969,6 +1979,8 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].vibrato_sweep=voice[i].sample->vibrato_sweep_increment;
   voice[i].vibrato_sweep_position=0;
 
+  voice[i].prev_modenv_volume = 0;
+
   memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
@@ -2054,6 +2066,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].envelope_increment=0;
 	  voice[i].modenv_increment=0;
       apply_envelope_to_amp(i);
+	  apply_modulation_envelope(i);
     }
 
   voice[i].timeout = -1;
@@ -3575,6 +3588,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		channel[ch].drums[note]->coarse = val - 64;
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VALUE:%d)",ch,note,channel[ch].drums[note]->coarse);
 	}
+	channel[ch].pitchfactor = 0;
 	break;
       case NRPN_ADDR_1900:	/* Fine Pitch of Drum (XG) */
 	drumflag = 1;
@@ -3583,6 +3597,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
 	channel[ch].drums[note]->fine = val - 64;
  	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Pitch Fine (CH:%d NOTE:%d VALUE:%d)",ch,note,channel[ch].drums[note]->fine);
+	channel[ch].pitchfactor = 0;
 	break;
       case NRPN_ADDR_1A00:	/* Level of Drum */	 
 	drumflag = 1;

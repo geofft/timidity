@@ -150,6 +150,7 @@ typedef struct SETTING_TIMIDITY_ {
     int voices;			// p
     int auto_reduce_polyphony;  // pa
     ChannelBitMask quietchannels; // Q
+    int temper_type_mute;	// Q
     char opt_qsize[16];		// q
     int32 modify_release;	// R
     int32 allocate_cache_size;	// S

@@ -1,4 +1,16 @@
+2003-05-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* interface/w32g_{ini,pref}.c, interface/w32g_utl.[ch]:
+	  Add temperament type mute selector in preference. (W32GUI version)
+
+2003-05-02  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Fix around initialization.
+	* timidity/mix.c, timidity/playmidi.[ch]:
+	  Fix about modulation envelope.
+	  Fix about velocity to filter cutoff frequency.
+	  
 2003-05-01  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c, timidity/instrum.c,
@@ -568,7 +580,7 @@
 	  Support for command line option -A
 	  as drumpower and auto volume adjustment
 	  Change handling drumpower in % value (W32GUI version)
-	  Beautify tiidity/mix.c a little
+	  Beautify timidity/mix.c a little
 
 2002-11-09  Saito <timidity@flashmail.com>
 

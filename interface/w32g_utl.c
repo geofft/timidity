@@ -560,6 +560,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     voices = SetValue(st->voices, 1, MAX_VOICES);
 	auto_reduce_polyphony = st->auto_reduce_polyphony;
     quietchannels = st->quietchannels;
+    temper_type_mute = st->temper_type_mute;
     if(opt_aq_max_buff)
 	free(opt_aq_max_buff);
     if(opt_aq_fill_buff)
@@ -708,6 +709,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
     st->voices = SetValue(voices, 1, MAX_VOICES);
 	st->auto_reduce_polyphony = auto_reduce_polyphony;
     st->quietchannels = quietchannels;
+    st->temper_type_mute = temper_type_mute;
     snprintf(st->opt_qsize,sizeof(st->opt_qsize),"%s/%s",
 	     opt_aq_max_buff,opt_aq_fill_buff);
     st->modify_release = SetValue(modify_release, 0, MAX_MREL);

@@ -532,6 +532,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 	SampleList *sp;
 	Instrument *inst;
 	int i;
+	int32 len;
 
 	if(ip->pat.bank == 128)
 	    ctl->cmsg(CMSG_INFO, VERB_NOISY,
@@ -650,7 +651,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		    }
 		}
 
-		sample->data = (sample_t *)safe_malloc(sp->len + sizeof(sample_t) * 2);
+		sample->data = (sample_t *)safe_malloc(sp->len + 2 * 2);
 		sample->data_alloced = 1;
 
 		ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
@@ -675,10 +676,10 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			*tmp++ = s;
 		}
 #endif
-		/* short-shot; set a small blank loop at the tail for avoiding odd loop. */
-		memset(sample->data + sp->len / 2, 0, sizeof(sample_t) * 2);
+		/* set a small blank loop at the tail for avoiding abnormal loop. */
+		len = sp->len / 2;
+		sample->data[len] = sample->data[len + 1] = 0;
 
-		/* #extension cutoff / resonance */
 		if(sp->cutoff_freq > 0) {sample->cutoff_freq = sp->cutoff_freq;}
 		if(sp->resonance > 0) {sample->resonance = sp->resonance;}
 
@@ -1227,23 +1228,23 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* volume envelope & total volume */
     vp->v.volume = calc_volume(tbl) * current_sfrec->amptune;
+
     if(tbl->val[SF_sampleFlags] == 1 || tbl->val[SF_sampleFlags] == 3)
     {
+#ifndef SF_SUPPRESS_ENVELOPE
+		convert_volume_envelope(vp, tbl);
+#endif /* SF_SUPPRESS_ENVELOPE */
 		/* looping */
-		vp->v.modes |= MODES_LOOPING|MODES_SUSTAIN;
+		vp->v.modes |= MODES_LOOPING | MODES_SUSTAIN;
 		if(tbl->val[SF_sampleFlags] == 3)
 			vp->v.data_length = vp->v.loop_end; /* strip the tail */
-
-#ifndef SF_SUPPRESS_ENVELOPE
-	convert_volume_envelope(vp, tbl);
-#endif /* SF_SUPPRESS_ENVELOPE */
 	}
     else
     {
-		/* short-shot; set a small blank loop at the tail for avoiding odd loop. */
+		/* set a small blank loop at the tail for avoiding abnormal loop. */
 		vp->v.loop_start = vp->len;
 		vp->v.loop_end = vp->len + 1;
-		vp->v.data_length = vp->len + 2;
+		vp->v.data_length = vp->len + 1;
     }
 
     /* convert to fractional samples */

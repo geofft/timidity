@@ -167,6 +167,7 @@ void LoadIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniGetKeyInt(INI_SEC_TIMIDITY,"voices",&(st->voices));
     IniGetKeyInt(INI_SEC_TIMIDITY,"auto_reduce_polyphony",&(st->auto_reduce_polyphony));
     IniGetKeyInt32(INI_SEC_TIMIDITY,"quietchannels",(int32 *)&(st->quietchannels));
+	IniGetKeyInt(INI_SEC_TIMIDITY,"temper_type_mute",&(st->temper_type_mute));
     IniGetKeyStringN(INI_SEC_TIMIDITY,"opt_qsize",st->opt_qsize,sizeof(st->opt_qsize)-1);
     IniGetKeyInt32(INI_SEC_TIMIDITY,"modify_release",&(st->modify_release));
     IniGetKeyStringN(INI_SEC_TIMIDITY,"allocate_cache_size",buff,sizeof(buff)-1);
@@ -302,6 +303,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
     IniPutKeyInt(INI_SEC_TIMIDITY,"voices",&(st->voices));
     IniPutKeyInt(INI_SEC_TIMIDITY,"auto_reduce_polyphony",&(st->auto_reduce_polyphony));
     IniPutKeyInt32(INI_SEC_TIMIDITY,"quietchannels",(int32 *)&(st->quietchannels));
+	IniPutKeyInt(INI_SEC_TIMIDITY,"temper_type_mute",&(st->temper_type_mute));
     IniPutKeyStringN(INI_SEC_TIMIDITY,"opt_qsize",st->opt_qsize,sizeof(st->opt_qsize));
     IniPutKeyInt32(INI_SEC_TIMIDITY,"modify_release",&(st->modify_release));
     IniPutKeyInt32(INI_SEC_TIMIDITY,"allocate_cache_size",&(st->allocate_cache_size));

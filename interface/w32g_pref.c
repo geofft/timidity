@@ -819,40 +819,12 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 
 	switch (uMess){
 	case WM_INITDIALOG:
-		for (i = 0; i < 15; i++)
-			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG,
-					CB_INSERTSTRING, (WPARAM) -1,
-					(LPARAM) cb_info_IDC_COMBO_INIT_KEYSIG[i]);
-		if (! st_temp->opt_pure_intonation) {
-			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
-					(WPARAM) 7, (LPARAM) 0);
-			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
-					0, 0);
-		} else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
-					(WPARAM) st_temp->opt_init_keysig + 7 & 0x0f,
-					(LPARAM) 0);
-			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
-					(st_temp->opt_init_keysig + 7 & 0x10) ? 1 : 0, 0);
-		}
-		for (i = 0; i < 15; i++)
-			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG,
-					CB_INSERTSTRING, (WPARAM) -1,
-					(LPARAM) cb_info_IDC_COMBO_FORCE_KEYSIG[i]);
-		if (st_temp->opt_force_keysig == 8)
-			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG, CB_SETCURSEL,
-					(WPARAM) 7, (LPARAM) 0);
-		else
-			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG, CB_SETCURSEL,
-					(WPARAM) st_temp->opt_force_keysig + 7, (LPARAM) 0);
 		SetDlgItemInt(hwnd,IDC_EDIT_VOICES,st_temp->voices,FALSE);
 		SetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,st_temp->amplification,FALSE);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
-		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
 		SetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,st_temp->allocate_cache_size,FALSE);
-		SetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,st_temp->key_adjust,TRUE);
 
 		SetDlgItemInt(hwnd,IDC_EDIT_REDUCE_VOICE,st_temp->reduce_voice_threshold,TRUE);
 		SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_SETCHECK,st_temp->reduce_voice_threshold,0);
@@ -864,13 +836,6 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hwnd,IDC_CHECKBOX_SPECIAL_TONEBANK,BM_SETCHECK,1,0);
 		}
 		SendMessage(hwnd,WM_COMMAND,IDC_CHECKBOX_SPECIAL_TONEBANK,0);
-		if (st_temp->opt_force_keysig == 8)
-			SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-					BM_SETCHECK, 0, 0);
-		else
-			SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-					BM_SETCHECK, 1, 0);
-		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_FORCE_KEYSIG, 0);
 		switch(st_temp->opt_default_mid){
 	 case 0x41:
 			CheckRadioButton(hwnd,IDC_RADIOBUTTON_GM,IDC_RADIOBUTTON_XG,IDC_RADIOBUTTON_GS);
@@ -891,6 +856,39 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		SetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,st_temp->control_ratio,FALSE);
 		SetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,st_temp->opt_drum_power,FALSE);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
+		for (i = 0; i < 15; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info_IDC_COMBO_INIT_KEYSIG[i]);
+		if (! st_temp->opt_pure_intonation) {
+			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
+					(WPARAM) 7, (LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
+					0, 0);
+		} else {
+			SendDlgItemMessage(hwnd, IDC_COMBO_INIT_KEYSIG, CB_SETCURSEL,
+					(WPARAM) st_temp->opt_init_keysig + 7 & 0x0f,
+					(LPARAM) 0);
+			SendDlgItemMessage(hwnd, IDC_CHECKBOX_INIT_MI, BM_SETCHECK,
+					(st_temp->opt_init_keysig + 7 & 0x10) ? 1 : 0, 0);
+		}
+		DLG_FLAG_TO_CHECKBUTTON(hwnd, IDC_CHECKBOX_PURE_INTONATION,
+				st_temp->opt_pure_intonation);
+		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_PURE_INTONATION, 0);
+		SetDlgItemInt(hwnd, IDC_EDIT_KEY_ADJUST, st_temp->key_adjust, TRUE);
+		for (i = 0; i < 15; i++)
+			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG,
+					CB_INSERTSTRING, (WPARAM) -1,
+					(LPARAM) cb_info_IDC_COMBO_FORCE_KEYSIG[i]);
+		if (st_temp->opt_force_keysig == 8)
+			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG, CB_SETCURSEL,
+					(WPARAM) 7, (LPARAM) 0);
+		else
+			SendDlgItemMessage(hwnd, IDC_COMBO_FORCE_KEYSIG, CB_SETCURSEL,
+					(WPARAM) st_temp->opt_force_keysig + 7, (LPARAM) 0);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
+				(st_temp->opt_force_keysig != 8));
+		SendMessage(hwnd, WM_COMMAND, IDC_CHECKBOX_FORCE_KEYSIG, 0);
 		initflag = 0;
 		break;
 	case WM_COMMAND:
@@ -955,9 +953,7 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LOADINST_PLAYING,st_temp->opt_realtime_playing);
-		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PURE_INTONATION,st_temp->opt_pure_intonation);
 		st_temp->allocate_cache_size = GetDlgItemInt(hwnd,IDC_EDIT_CACHE_SIZE,NULL,FALSE);
-		st_temp->key_adjust = GetDlgItemInt(hwnd,IDC_EDIT_KEY_ADJUST,NULL,TRUE);
 		if(SendDlgItemMessage(hwnd,IDC_CHECKBOX_REDUCE_VOICE,BM_GETCHECK,0,0))
 		{
 			st_temp->reduce_voice_threshold = -1;
@@ -975,22 +971,6 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	 } else {
 			st_temp->special_tonebank = -1;
 	 }
-		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_PURE_INTONATION,
-				BM_GETCHECK, 0, 0))
-			st_temp->opt_init_keysig = SendDlgItemMessage(hwnd,
-					IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
-					(WPARAM) 0, (LPARAM) 0) + ((SendDlgItemMessage(hwnd,
-					IDC_CHECKBOX_INIT_MI, BM_GETCHECK,
-					0, 0)) ? 16 : 0) - 7;
-		else
-			st_temp->opt_init_keysig = 0;
-		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
-				BM_GETCHECK, 0, 0))
-			st_temp->opt_force_keysig = SendDlgItemMessage(hwnd,
-					IDC_COMBO_FORCE_KEYSIG, CB_GETCURSEL,
-					(WPARAM) 0, (LPARAM) 0) - 7;
-		else
-			st_temp->opt_force_keysig = 8;
 		if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_GS,BM_GETCHECK,0,0)){
 		st_temp->opt_default_mid = 0x41;
 		} else if(SendDlgItemMessage(hwnd,IDC_RADIOBUTTON_XG,BM_GETCHECK,0,0)){
@@ -1017,6 +997,27 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		st_temp->opt_drum_power = GetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,NULL,FALSE);
 
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
+
+		DLG_CHECKBUTTON_TO_FLAG(hwnd, IDC_CHECKBOX_PURE_INTONATION,
+				st_temp->opt_pure_intonation);
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_PURE_INTONATION,
+				BM_GETCHECK, 0, 0))
+			st_temp->opt_init_keysig = SendDlgItemMessage(hwnd,
+					IDC_COMBO_INIT_KEYSIG, CB_GETCURSEL,
+					(WPARAM) 0, (LPARAM) 0) + ((SendDlgItemMessage(hwnd,
+					IDC_CHECKBOX_INIT_MI, BM_GETCHECK,
+					0, 0)) ? 16 : 0) - 7;
+		else
+			st_temp->opt_init_keysig = 0;
+		st_temp->key_adjust = GetDlgItemInt(
+				hwnd, IDC_EDIT_KEY_ADJUST, NULL, TRUE);
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_FORCE_KEYSIG,
+				BM_GETCHECK, 0, 0))
+			st_temp->opt_force_keysig = SendDlgItemMessage(hwnd,
+					IDC_COMBO_FORCE_KEYSIG, CB_GETCURSEL,
+					(WPARAM) 0, (LPARAM) 0) - 7;
+		else
+			st_temp->opt_force_keysig = 8;
 
 		SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
 	}
@@ -1462,6 +1463,14 @@ PrefTiMidity4DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
   case WM_INITDIALOG:
 		pref_channel_mode = PREF_CHANNEL_MODE_DRUM_CHANNEL;
 		SendMessage(hwnd,WM_MYRESTORE,(WPARAM)0,(LPARAM)0);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_EQUAL,
+				st_temp->temper_type_mute & 1 << 0);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_PYTHA,
+				st_temp->temper_type_mute & 1 << 1);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_MEANTONE,
+				st_temp->temper_type_mute & 1 << 2);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_TEMPER_PUREINT,
+				st_temp->temper_type_mute & 1 << 3);
 		initflag = 0;
 		break;
 	case WM_MYRESTORE:
@@ -1632,6 +1641,19 @@ else UNSET_CHANNELMASK((channelbitmask),(ch)); }
 			break;
 		}
 	}
+		st_temp->temper_type_mute = 0;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_EQUAL,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 0;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_PYTHA,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 1;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_MEANTONE,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 2;
+		if (SendDlgItemMessage(hwnd, IDC_CHECKBOX_TEMPER_PUREINT,
+				BM_GETCHECK, 0, 0))
+			st_temp->temper_type_mute |= 1 << 3;
 	SetWindowLong(hwnd,DWL_MSGRESULT,FALSE);
 	break;
   case WM_SIZE:
