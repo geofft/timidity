@@ -58,7 +58,8 @@ static void ns_shaping8(int32 *, int32);
 static void ns_shaping16(int32 *, int32);
 static void ns_shaping16_trad(int32 *, int32);
 static void ns_shaping16_9(int32 *, int32);
-static void ns_shaping16_9_with_soft_clipping(int32 *, int32, double);
+static void do_soft_clipping1(int32 *, int32);
+static void do_soft_clipping2(int32 *, int32);
 static inline unsigned long frand(void);
 static inline int32 my_mod(int32, int32);
 
@@ -356,8 +357,7 @@ static void ns_shaping8(int32 *lp, int32 c)
 
 static void ns_shaping16(int32 *lp, int32 c)
 {
-	if (!(play_mode->encoding & PE_MONO))
-		c *= 2;
+	if (!(play_mode->encoding & PE_MONO)) {c *= 2;}
 	switch (noise_sharp_type) {
 	case 1:
 		ns_shaping16_trad(lp, c);
@@ -367,14 +367,15 @@ static void ns_shaping16(int32 *lp, int32 c)
 	case 4:
 		ns_shaping16_9(lp, c);
 		break;
-	default: break;
-/* omitted */
-/*	case 3:
-		ns_shaping16_9_with_soft_clipping(lp, c, 0.5);
+	case 5:
+		do_soft_clipping1(lp, c);
+		ns_shaping16_9(lp, c);
 		break;
-	case 4:
-		ns_shaping16_9_with_soft_clipping(lp, c, 0.75);
-		break; */
+	case 6:
+		do_soft_clipping2(lp, c);
+		ns_shaping16_9(lp, c);
+		break;
+	default: break;
 	}
 }
 
@@ -488,100 +489,31 @@ static void ns_shaping16_9(int32 *lp, int32 c)
 	}
 }
 
-#define NS_LIMIT_AMP ((double)(1 << (32 - GUARD_BITS)))
+#define WS_AMP_MAX	((int32) 0x0fffffff)
+#define WS_AMP_MIN	((int32)-0x0fffffff)
 
-static void ns_shaping16_9_with_soft_clipping(int32 *lp, int32 c, double arg)
+static void do_soft_clipping1(int32 *buf, int32 count)
 {
-	int32 i, l, sample, output;
-	double x, k1, k2, lim;
-	lim = NS_LIMIT_AMP;
-	arg = lim * arg;
-	k1 = 1.0f / (lim - arg);
-	k1 *= k1;
-	k2 = (lim + arg) * 0.5f;
+	int32 i, x;
+	int32 ai = TIM_FSCALE(1.5f, 24), bi = TIM_FSCALE(0.5f, 24);
+	for (i = 0; i < count; i++) {
+		x = buf[i];
+		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+				: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
+		x = imuldiv24(x, ai) - imuldiv24(imuldiv28(imuldiv28(x, x), x), bi);
+		buf[i] = x;
+	}
+}
 
-	for (i = 0; i < c; i++) {
-		/* left channel */
-		x = (double)lp[i];
-		if (x >= 0.0f) {
-			if (x > lim) {x = k2;}
-			else if(x > arg) {
-				x = arg + (x - arg) / (1.0f + (x - arg) * (x - arg) * k1);
-			}
-		} else {
-			if (x < -lim) {x = -k2;}
-			else if (-x > arg) {
-				x = -arg + (x + arg) / (1.0f + (x + arg) * (x + arg) * k1);
-			}
-		}
-		lp[i] = (int32)x;
-#if OPT_MODE != 0
-		sample = lp[i] - imuldiv24(ns9_c[8], ns9_ehl[ns9_histposl + 8])
-				- imuldiv24(ns9_c[7], ns9_ehl[ns9_histposl + 7])
-				- imuldiv24(ns9_c[6], ns9_ehl[ns9_histposl + 6])
-				- imuldiv24(ns9_c[5], ns9_ehl[ns9_histposl + 5])
-				- imuldiv24(ns9_c[4], ns9_ehl[ns9_histposl + 4])
-				- imuldiv24(ns9_c[3], ns9_ehl[ns9_histposl + 3])
-				- imuldiv24(ns9_c[2], ns9_ehl[ns9_histposl + 2])
-				- imuldiv24(ns9_c[1], ns9_ehl[ns9_histposl + 1])
-				- imuldiv24(ns9_c[0], ns9_ehl[ns9_histposl]);
-#else
-		sample = lp[i] - ns9_coef[8] * ns9_ehl[ns9_histposl + 8]
-				- ns9_coef[7] * ns9_ehl[ns9_histposl + 7]
-				- ns9_coef[6] * ns9_ehl[ns9_histposl + 6]
-				- ns9_coef[5] * ns9_ehl[ns9_histposl + 5]
-				- ns9_coef[4] * ns9_ehl[ns9_histposl + 4]
-				- ns9_coef[3] * ns9_ehl[ns9_histposl + 3]
-				- ns9_coef[2] * ns9_ehl[ns9_histposl + 2]
-				- ns9_coef[1] * ns9_ehl[ns9_histposl + 1]
-				- ns9_coef[0] * ns9_ehl[ns9_histposl];
-#endif
-		l = sample >> (32 - 16 - GUARD_BITS);
-		output = l * (1U << (32 - 16 - GUARD_BITS));
-		ns9_histposl = my_mod((ns9_histposl + 8), ns9_order);
-		ns9_ehl[ns9_histposl + 9] = ns9_ehl[ns9_histposl] = output - sample;
-		lp[i] = output;
-
-		/* right channel */
-		x = (double)lp[++i];
-		if (x >= 0.0f) {
-			if (x > lim) {x = k2;}
-			else if(x > arg) {
-				x = arg + (x - arg) / (1.0f + (x - arg) * (x - arg) * k1);
-			}
-		} else {
-			if (x < -lim) {x = -k2;}
-			else if (-x > arg) {
-				x = -arg + (x + arg) / (1.0f + (x + arg) * (x + arg) * k1);
-			}
-		}
-		lp[i] = (int32)x;
-#if OPT_MODE != 0
-		sample = lp[i] - imuldiv24(ns9_c[8], ns9_ehr[ns9_histposr + 8])
-				- imuldiv24(ns9_c[7], ns9_ehr[ns9_histposr + 7])
-				- imuldiv24(ns9_c[6], ns9_ehr[ns9_histposr + 6])
-				- imuldiv24(ns9_c[5], ns9_ehr[ns9_histposr + 5])
-				- imuldiv24(ns9_c[4], ns9_ehr[ns9_histposr + 4])
-				- imuldiv24(ns9_c[3], ns9_ehr[ns9_histposr + 3])
-				- imuldiv24(ns9_c[2], ns9_ehr[ns9_histposr + 2])
-				- imuldiv24(ns9_c[1], ns9_ehr[ns9_histposr + 1])
-				- imuldiv24(ns9_c[0], ns9_ehr[ns9_histposr]);
-#else
-		sample = lp[i] - ns9_coef[8] * ns9_ehr[ns9_histposr + 8]
-				- ns9_coef[7] * ns9_ehr[ns9_histposr + 7]
-				- ns9_coef[6] * ns9_ehr[ns9_histposr + 6]
-				- ns9_coef[5] * ns9_ehr[ns9_histposr + 5]
-				- ns9_coef[4] * ns9_ehr[ns9_histposr + 4]
-				- ns9_coef[3] * ns9_ehr[ns9_histposr + 3]
-				- ns9_coef[2] * ns9_ehr[ns9_histposr + 2]
-				- ns9_coef[1] * ns9_ehr[ns9_histposr + 1]
-				- ns9_coef[0] * ns9_ehr[ns9_histposr];
-#endif
-		l = sample >> (32 - 16 - GUARD_BITS);
-		output = l * (1U << (32 - 16 - GUARD_BITS));
-		ns9_histposr = my_mod((ns9_histposr + 8), ns9_order);
-		ns9_ehr[ns9_histposr + 9] = ns9_ehr[ns9_histposr] = output - sample;
-		lp[i] = output;
+static void do_soft_clipping2(int32 *buf, int32 count)
+{
+	int32 i, x;
+	for (i = 0; i < count; i++) {
+		x = buf[i];
+		x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+				: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
+		x = signlong(x) * ((abs(x) << 1) - imuldiv28(x, x));
+		buf[i] = x;
 	}
 }
 

@@ -258,7 +258,7 @@ BEGIN
     LTEXT           "Pseudo Reverb(0..1000)",IDC_STATIC,103,124,67,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_MODIFY_RELEASE,184,122,28,12
-    LTEXT           "Noise Shaping (0..4)",IDC_STATIC,104,67,57,8,NOT 
+    LTEXT           "Noise Shaping (0..6)",IDC_STATIC,104,67,57,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_NOISESHARPING,165,65,28,12,ES_NUMBER
     CONTROL         "NRPN Drumpart Effect",IDC_CHECKBOX_DRUM_EFFECT,"Button",
@@ -967,7 +967,7 @@ BEGIN
     LTEXT           "疑似リバーブ(0..1000)",IDC_STATIC,101,155,64,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_MODIFY_RELEASE,167,153,28,10
-    LTEXT           "ノイズシェイピング (0..4)",IDC_STATIC,101,87,70,8,NOT 
+    LTEXT           "ノイズシェイピング (0..6)",IDC_STATIC,101,87,70,8,NOT 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_NOISESHARPING,176,85,16,10,ES_NUMBER
     CONTROL         "NRPN ドラム・エフェクト",IDC_CHECKBOX_DRUM_EFFECT,

@@ -2,6 +2,8 @@
 
 	* interface/w32g_ut2.[ch], interface/w32g_i.c:
 	  Set GS LCD Mode to default.
+	* interface/w32g_res.rc, timidity/optcode.h, timidity/effect.c:
+	  Implement "soft-clipping before waveshaping" again.
 
 2004-03-18  Saito <saito@intaa.net>
 

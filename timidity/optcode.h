@@ -252,6 +252,11 @@ static inline int32 imuldiv28(int32 a, int32 b)
     (int32)(((int64)(a) * (int64)(b)) >> 28)
 
 #endif /* architectures */
+
+static inline int32 signlong(int32 a)
+{
+	return (1 + ((a >> 31) << 1));
+}
 #endif /* OPT_MODE != 0 */
 
 /*****************************************************************************/
