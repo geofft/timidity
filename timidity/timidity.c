@@ -604,7 +604,7 @@ static float *config_parse_tune(const char *cp, int *num)
 	
 	/* count num */
 	*num = 1, p = cp;
-	while (p = strchr(p, ','))
+	while ((p = strchr(p, ',')) != NULL)
 		(*num)++, p++;
 	/* alloc */
 	tune_list = (float *) safe_malloc((*num) * sizeof(float));
@@ -625,7 +625,7 @@ static int16 *config_parse_int16(const char *cp, int *num)
 	
 	/* count num */
 	*num = 1, p = cp;
-	while (p = strchr(p, ','))
+	while ((p = strchr(p, ',')) != NULL)
 		(*num)++, p++;
 	/* alloc */
 	list = (int16 *) safe_malloc((*num) * sizeof(int16));
@@ -646,7 +646,7 @@ static int **config_parse_envelope(const char *cp, int *num)
 	
 	/* count num */
 	*num = 1, p = cp;
-	while (p = strchr(p, ','))
+	while ((p = strchr(p, ',')) != NULL)
 		(*num)++, p++;
 	/* alloc */
 	env_list = (int **) safe_malloc((*num) * sizeof(int *));
@@ -688,7 +688,7 @@ static Quantity **config_parse_modulation(const char *name, int line, const char
 	
 	/* count num */
 	*num = 1, p = cp;
-	while (p = strchr(p, ','))
+	while ((p = strchr(p, ',')) != NULL)
 		(*num)++, p++;
 	/* alloc */
 	mod_list = (Quantity **) safe_malloc((*num) * sizeof(Quantity *));
@@ -1096,7 +1096,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
-    int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno;
+    int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0;
     int extension_flag, param_parse_err;
 
     if(rcf_count > 50)
@@ -2740,7 +2740,7 @@ static inline int parse_opt_B(const char *arg)
 			return 1;
 	}
 	/* bits */
-	if (p = strchr(arg, ',')) {
+	if ((p = strchr(arg, ',')) != NULL) {
 		if (set_value(&audio_buffer_bits, atoi(++p), 1, AUDIO_BUFFER_BITS,
 				"Buffer Fragments (bit)"))
 			return 1;
@@ -3016,7 +3016,7 @@ static inline int parse_opt_default_program(const char *arg)
 	
 	if (set_value(&prog, atoi(arg), 0, 0x7f, "Program number"))
 		return 1;
-	if (p = strchr(arg, '/')) {
+	if ((p = strchr(arg, '/')) != NULL) {
 		if (set_value(&i, atoi(++p), 1, MAX_CHANNELS, "Program channel"))
 			return 1;
 		default_program[i - 1] = prog;
@@ -3036,7 +3036,7 @@ static inline int parse_opt_force_program(const char *arg)
 		return 1;
 	if (ctl->opened)
 		set_default_program(def_prog);
-	if (p = strchr(arg, '/')) {
+	if ((p = strchr(arg, '/')) != NULL) {
 		if (set_value(&i, atoi(++p), 1, MAX_CHANNELS, "Program channel"))
 			return 1;
 		default_program[i - 1] = SPECIAL_PROGRAM;
@@ -3078,7 +3078,7 @@ static inline int parse_opt_delay(const char *arg)
 		effect_lr_mode = 2;
 		break;
 	}
-	if (p = strchr(arg, ','))
+	if ((p = strchr(arg, ',')) != NULL)
 		if ((effect_lr_delay_msec = atoi(++p)) < 0) {
 			effect_lr_delay_msec = 0;
 			effect_lr_mode = -1;
@@ -3104,7 +3104,7 @@ static inline int parse_opt_chorus(const char *arg)
 	case '2':
 	case 's':	/* surround */
 		opt_surround_chorus = (*arg == '2' || *arg == 's') ? 1 : 0;
-		if (p = strchr(arg, ',')) {
+		if ((p = strchr(arg, ',')) != NULL) {
 			if (set_value(&opt_chorus_control, atoi(++p), 0, 0x7f,
 					"Chorus level"))
 				return 1;
@@ -3155,7 +3155,7 @@ static inline int parse_opt_reverb(const char *arg)
 		break;
 	case '1':
 	case 'n':	/* normal */
-		if (p = strchr(arg, ',')) {
+		if ((p = strchr(arg, ',')) != NULL) {
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
@@ -3165,7 +3165,7 @@ static inline int parse_opt_reverb(const char *arg)
 		break;
 	case '2':
 	case 'g':	/* global */
-		if (p = strchr(arg, ',')) {
+		if ((p = strchr(arg, ',')) != NULL) {
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
@@ -3175,7 +3175,7 @@ static inline int parse_opt_reverb(const char *arg)
 		break;
 	case '3':
 	case 'f':	/* freeverb */
-		if (p = strchr(arg, ',')) {
+		if ((p = strchr(arg, ',')) != NULL) {
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
@@ -3185,7 +3185,7 @@ static inline int parse_opt_reverb(const char *arg)
 		break;
 	case '4':
 	case 'G':	/* global freeverb */
-		if (p = strchr(arg, ',')) {
+		if ((p = strchr(arg, ',')) != NULL) {
 			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
 					"Reverb level"))
 				return 1;
@@ -3557,7 +3557,7 @@ static inline int parse_opt_h(const char *arg)
 	help_args[0] = timidity_version;
 	help_args[1] = program_name;
 	help_args[2] = NULL;
-	for (i = 0, j = 0; h = help_list[i]; i++) {
+	for (i = 0, j = 0; (h = help_list[i]) != NULL; i++) {
 		if (strchr(h, '%')) {
 			if (*(strchr(h, '%') + 1) != '%')
 				fprintf(fp, h, help_args[j++]);
@@ -3633,7 +3633,7 @@ static inline int parse_opt_h(const char *arg)
 #endif
 	fputs(NLS, fp);
 	fputs("Available interfaces (-i, --interface option):" NLS, fp);
-	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
+	for (cmpp = ctl_list; (cmp = *cmpp) != NULL; cmpp++)
 #ifdef IA_DYNAMIC
 		if (cmp->id_character != dynamic_interface_id)
 			fprintf(fp, "  -i%c          %s" NLS,
@@ -3646,7 +3646,7 @@ static inline int parse_opt_h(const char *arg)
 	fprintf(fp, "Supported dynamic load interfaces (%s):" NLS,
 			dynamic_lib_root);
 	memset(mark, 0, sizeof(mark));
-	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
+	for (cmpp = ctl_list; (cmp = *cmpp) != NULL; cmpp++)
 		mark[(int) cmp->id_character] = 1;
 	if (dynamic_interface_id != 0)
 		mark[(int) dynamic_interface_id] = 0;
@@ -3677,7 +3677,7 @@ static inline int parse_opt_h(const char *arg)
 #endif
 	fputs(NLS, fp);
 	fputs("Available output modes (-O, --output-mode option):" NLS, fp);
-	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
+	for (pmpp = play_mode_list; (pmp = *pmpp) != NULL; pmpp++)
 		fprintf(fp, "  -O%c          %s" NLS,
 				pmp->id_character, pmp->id_name);
 	fputs(NLS, fp);
@@ -3708,7 +3708,7 @@ static inline int parse_opt_h(const char *arg)
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
-	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)
+	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
 	fputs(NLS, fp);
 	close_pager(fp);
@@ -3783,7 +3783,7 @@ static inline int parse_opt_i(const char *arg)
 	ControlMode *cmp, **cmpp;
 	int found = 0;
 	
-	for (cmpp = ctl_list; cmp = *cmpp; cmpp++) {
+	for (cmpp = ctl_list; (cmp = *cmpp) != NULL; cmpp++) {
 		if (cmp->id_character == *arg) {
 			found = 1;
 			ctl = cmp;
@@ -4003,7 +4003,7 @@ static inline int parse_opt_O(const char *arg)
 	PlayMode *pmp, **pmpp;
 	int found = 0;
 	
-	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
+	for (pmpp = play_mode_list; (pmp = *pmpp) != NULL; pmpp++)
 		if (pmp->id_character == *arg) {
 			found = 1;
 			play_mode = pmp;
@@ -4184,7 +4184,7 @@ static inline int parse_opt_Q(const char *arg)
 		return parse_opt_Q1(arg);
 	if (set_channel_flag(&quietchannels, atoi(arg), "Quiet channel"))
 		return 1;
-	while (p = strchr(p, ','))
+	while ((p = strchr(p, ',')) != NULL)
 		if (set_channel_flag(&quietchannels, atoi(++p), "Quiet channel"))
 			return 1;
 	return 0;
@@ -4199,7 +4199,7 @@ static inline int parse_opt_Q1(const char *arg)
 	if (set_value(&prog, atoi(arg), 0, 7, "Temperament program number"))
 		return 1;
 	temper_type_mute |= 1 << prog;
-	while (p = strchr(p, ',')) {
+	while ((p = strchr(p, ',')) != NULL) {
 		if (set_value(&prog, atoi(++p), 0, 7, "Temperament program number"))
 			return 1;
 		temper_type_mute |= 1 << prog;
@@ -4351,7 +4351,7 @@ static inline int parse_opt_W(char *arg)
 		put_string_table(&wrd_read_opts, arg + 1, strlen(arg + 1));
 		return 0;
 	}
-	for (wlpp = wrdt_list; wlp = *wlpp; wlpp++)
+	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		if (wlp->id == *arg) {
 			wrdt = wlp;
 			if (wrdt_open_opts)

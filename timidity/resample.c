@@ -234,7 +234,7 @@ static int newt_n = 11;
 static int32 newt_old_trunc_x = -1;
 static int newt_grow = -1;
 static int newt_max = 13;
-static double newt_divd[60][60] = {0};
+static double newt_divd[60][60];
 static double newt_recip[60] = { 0, 1, 1.0/2, 1.0/3, 1.0/4, 1.0/5, 1.0/6, 1.0/7,
 			1.0/8, 1.0/9, 1.0/10, 1.0/11, 1.0/12, 1.0/13, 1.0/14,
 			1.0/15, 1.0/16, 1.0/17, 1.0/18, 1.0/19, 1.0/20, 1.0/21,

@@ -269,8 +269,8 @@ static int output_data(char *buf, int32 nbytes)
 	if((n = write(dpm.fd, buf, nbytes)) == -1)
 	{
 #if 0
-	    if(errno != ???) /* I don't know what error should be ignored.
-			      * ??? := EWOULDBLOCK??
+	    if(errno != XXX) /* I don't know what error should be ignored.
+			      * XXX := EWOULDBLOCK??
 			      */
 	    {
 		usleep(100000);

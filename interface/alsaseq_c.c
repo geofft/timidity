@@ -64,6 +64,8 @@
 #include "timer.h"
 
 
+void readmidi_read_init(void);
+
 #define MAX_PORTS	16
 
 #define TICKTIME_HZ	100
@@ -144,7 +146,7 @@ static int alsa_create_port(snd_seq_t *seq, int index)
 static void alsa_set_timestamping(struct seq_context *ctxp, int port)
 {
 #if HAVE_SND_SEQ_PORT_INFO_SET_TIMESTAMPING
-	int q;
+	int q = 0;
 	snd_seq_port_info_t *pinfo;
 
 	if (ctxp->queue < 0) {
@@ -743,8 +745,8 @@ static int do_sequencer(struct seq_context *ctxp)
 		if (parse_sysex_event(aevp->data.ext.ptr + 1,
 				 aevp->data.ext.len - 1, &ev))
 			seq_play_event(&ev);
-		if (ne = parse_sysex_event_multi(aevp->data.ext.ptr + 1,
-				aevp->data.ext.len - 1, evm))
+		if ((ne = parse_sysex_event_multi(aevp->data.ext.ptr + 1,
+						  aevp->data.ext.len - 1, evm)) > 0)
 			for (i = 0; i < ne; i++)
 				seq_play_event(&evm[i]);
 		break;

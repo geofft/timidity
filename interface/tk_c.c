@@ -880,15 +880,15 @@ static int AppInit(Tcl_Interp *interp)
 		return TCL_ERROR;
 	}
 
-	Tcl_CreateCommand(interp, "TraceCreate", TraceCreate,
+	Tcl_CreateCommand(interp, "TraceCreate", (Tcl_CmdProc*) TraceCreate,
 			  (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
-	Tcl_CreateCommand(interp, "TraceUpdate", TraceUpdate,
+	Tcl_CreateCommand(interp, "TraceUpdate", (Tcl_CmdProc*) TraceUpdate,
 			  (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
-	Tcl_CreateCommand(interp, "TraceReset", TraceReset,
+	Tcl_CreateCommand(interp, "TraceReset", (Tcl_CmdProc*) TraceReset,
 			  (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
-	Tcl_CreateCommand(interp, "ExitAll", ExitAll,
+	Tcl_CreateCommand(interp, "ExitAll", (Tcl_CmdProc*) ExitAll,
 			  (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
-	Tcl_CreateCommand(interp, "TraceUpdate", TraceUpdate,
+	Tcl_CreateCommand(interp, "TraceUpdate", (Tcl_CmdProc*) TraceUpdate,
 			  (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
 	return TCL_OK;
 }
@@ -901,6 +901,7 @@ static int ExitAll(ClientData clientData, Tcl_Interp *interp,
 	kill(getppid(), SIGTERM);
 	for (;;)
 		sleep(1000);
+	return TCL_OK;
 }
 
 /* evaluate Tcl script */
@@ -915,7 +916,7 @@ static char *v_eval(char *fmt, ...)
 	return my_interp->result;
 }
 
-static char *v_get2(char *v1, char *v2)
+static const char *v_get2(const char *v1, const char *v2)
 {
 	return Tcl_GetVar2(my_interp, v1, v2, 0);
 }
@@ -1112,7 +1113,7 @@ static void update_notes(void)
 static int TraceUpdate(ClientData clientData, Tcl_Interp *interp,
 		    int argc, char *argv[])
 {
-	char *playing = v_get2("Stat", "Playing");
+	const char *playing = v_get2("Stat", "Playing");
 	if (playing && *playing != '0') {
 		if (Panel->reset_panel) {
 			v_eval("TraceReset");

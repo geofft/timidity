@@ -563,7 +563,7 @@ static int RedrawText(Drawable drawable, int x,int y,int width,int height)
   	    }else if(prevattr&CATTR_BGCOLORED){
   	      int tcol;
   	      tcol=(prevattr&CATTR_TXTCOL_MASK)>>CATTR_TXTCOL_MASK_SHIFT;
-	      DrawStringFunc=(DrawStringFunc==XDrawString)?DrawReverseString:DrawReverseString16;
+	      DrawStringFunc=(DrawStringFunc==XDrawString)?(int(*)())DrawReverseString:(int(*)())DrawReverseString16;
 	      XSetForeground(mywin.d,mywin.gc,
 			     mywin.txtcolor[tcol].pixel);
 	    }

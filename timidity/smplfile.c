@@ -950,7 +950,7 @@ static int AIFFGetMarkerPosition(int16 id, const AIFFMarkerData *markers, uint32
 
 #define BLOCK_READ_BEGIN(stype, sbyte, fch)	{ /* sbyte may sizeof(stype) */	\
 			stype				data[WAVE_BUF_SIZE / sizeof(stype)];	\
-			int					j, c;	\
+			int					j;	\
 			for(block_frame_count = (sizeof data / sbyte / fch); block_frame_count != 0; block_frame_count >>= 1) {	\
 				while(i <= frames - block_frame_count) {	\
 					READ_WAVE_FRAME(data, sbyte, block_frame_count);	\
@@ -982,6 +982,7 @@ static int read_sample_data(int32 flags, struct timidity_file *tf, int bits, int
 			if (flags & SAMPLE_BIG_ENDIAN) {
 				BLOCK_READ_BEGIN(uint16, 2, channels)
 				{
+					int c;
 					for(c = 0; c < channels; c++, j++)
 						sdata[c][i] = BE_SHORT(data[j]);
 				}
@@ -989,6 +990,7 @@ static int read_sample_data(int32 flags, struct timidity_file *tf, int bits, int
 			} else {
 				BLOCK_READ_BEGIN(uint16, 2, channels)
 				{
+					int c;
 					for(c = 0; c < channels; c++, j++)
 						sdata[c][i] = LE_SHORT(data[j]);
 				}
@@ -1017,6 +1019,7 @@ static int read_sample_data(int32 flags, struct timidity_file *tf, int bits, int
 			if (flags & SAMPLE_8BIT_UNSIGNED) {
 				BLOCK_READ_BEGIN(uint8, 1, channels)
 				{
+					int c;
 					for(c = 0; c < channels; c++, j++)
 						sdata[c][i] = BITS_U8_TO_16(data[j]);
 				}
@@ -1024,6 +1027,7 @@ static int read_sample_data(int32 flags, struct timidity_file *tf, int bits, int
 			} else {
 				BLOCK_READ_BEGIN(uint8, 1, channels)
 				{
+					int c;
 					for(c = 0; c < channels; c++, j++)
 						sdata[c][i] = BITS_S8_TO_16(data[j]);
 				}

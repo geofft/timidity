@@ -256,7 +256,7 @@ void do_effect(int32 *buf, int32 count)
 		do_mono_reverb(buf, count);
 	/* for static reverb / chorus level */
 	if (opt_reverb_control == 2 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80)
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
 			|| opt_chorus_control < 0) {
 		set_dry_signal(buf, nsamples);
 		/* chorus sounds horrible
@@ -267,7 +267,7 @@ void do_effect(int32 *buf, int32 count)
 			set_ch_chorus(buf, nsamples, -opt_chorus_control);
 #endif
 		if (opt_reverb_control == 2 || opt_reverb_control == 4
-			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
+			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x80)))
 			set_ch_reverb(buf, nsamples, reverb_level);
 		mix_dry_signal(buf, nsamples);
 			/* chorus sounds horrible
@@ -278,7 +278,7 @@ void do_effect(int32 *buf, int32 count)
 			do_ch_chorus(buf, nsamples);
 #endif
 		if (opt_reverb_control == 2 || opt_reverb_control == 4
-				|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
+				|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x80)))
 			do_ch_reverb(buf, nsamples);
 	}
 	/* L/R Delay */

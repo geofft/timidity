@@ -335,10 +335,12 @@ static int32 to_rate(int rate)
 			* 44100 / play_mode->rate * control_ratio) << fast_decay : 0;
 }
 
+#if 0
 static int32 to_control(int control)
 {
 	return (int32) (0x2000 / pow(2.0, control / 31.0));
 }
+#endif
 
 static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 {

@@ -492,10 +492,8 @@ int8 *iplookup;
 
 void init_tables(void)
 {
-  int i;
-
 #ifdef LOOKUP_HACK
-  int j,v;
+  int i,j,v;
   mixup = (int32 *)safe_malloc(1<<(7+8+2)); /* Give your cache a workout! */
 
   for (i=0; i<128; i++)

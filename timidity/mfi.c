@@ -296,7 +296,6 @@ char *get_mfi_file_title(timidity_file *tf)
 	int				length, dataLength, infoLength, dataType;
 	uint32			type;
 	uint8			numTracks;
-	int				i;
 	
 	if (tf_read_beint32(&dataLength, tf) != 1
 			|| tf_read_beint16(&infoLength, tf) != 1
@@ -430,7 +429,6 @@ static int read_mfi_track(int trackNo, int length, int mfiVersion, int noteType,
 			}
 			else
 				StoreLastNoteInfo(lastNotes, channel, pos, data[2], note, velocity);
-			silent: ;
 			NOTE_EVENT_DEBUGSTR(channel, note_name[note % 12], note / 12, velocity, data[2]);
 		}
 		else	/* controls */

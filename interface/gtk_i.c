@@ -209,7 +209,8 @@ file_list_cb(GtkWidget *widget, gint row, gint column,
 static void
 playlist_cb(GtkWidget *widget, guint data)
 {
-    gchar	*pldir, *plpatt;
+    const gchar	*pldir;
+    gchar	*plpatt;
 
     if( ! plfilesel ) {
 	plfilesel = gtk_file_selection_new("");
@@ -708,7 +709,6 @@ handle_input(gpointer client_data, gint source, GdkInputCondition ic)
 	{
 	    char filename[255], title[255];
 	    char *pc;
-	    int i;
 
 	    gtk_pipe_string_read(filename);
 

@@ -1423,7 +1423,7 @@ static void ctl_temper_keysig(int8 tk, int ko)
 		lastoffset = ko;
 	if (ctl_ncurs_mode != NCURS_MODE_TRACE)
 		return;
-	adj = tk + 8 & 0x20, tk = (tk + 8) % 32 - 8;
+	adj = (tk + 8) & 0x20, tk = (tk + 8) % 32 - 8;
 	i = tk + ((tk < 8) ? 7 : -6);
 	if (ko > 0)
 		for (j = 0; j < ko; j++)

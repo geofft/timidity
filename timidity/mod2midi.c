@@ -569,7 +569,7 @@ void shrink_huge_sample (Sample *sp)
 
 void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 {
-    int i, j;
+    int i;
 
     for(i = 1; numsamples--; i++, s++)
     {

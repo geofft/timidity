@@ -35,7 +35,6 @@
 #include <stdlib.h>
 #include <io.h>
 #include <ctype.h>
-#include <time.h>
 extern int load_ogg_dll(void);
 extern void free_ogg_dll(void);
 extern int load_vorbis_dll(void);
@@ -52,6 +51,7 @@ extern void free_vorbisenc_dll(void);
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 #elif HAVE_STRINGS_H
 #include <strings.h>
 #endif

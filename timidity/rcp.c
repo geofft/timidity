@@ -459,7 +459,7 @@ static int rcp_parse_sysex_event(int32 at, uint8 *val, int32 len)
 	ev.time = at;
 	readmidi_add_event(&ev);
     }
-	if (ne = parse_sysex_event_multi(val, len, evm))
+	if ((ne = parse_sysex_event_multi(val, len, evm)) > 0)
 		for (i = 0; i < ne; i++) {
 			evm[i].time = at;
 			readmidi_add_event(&evm[i]);

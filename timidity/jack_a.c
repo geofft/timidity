@@ -47,6 +47,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifndef NO_STRING_H /* for memmove */
 #include <string.h>
@@ -454,7 +457,7 @@ static int write_jack(char *buf, int32 nbytes)
 			ctx->running = 1;
 			nframes -= size1;
 			if (! nframes)
-				return;
+				return 0;
 			buf += size1 << ctx->shift;
 			size -= size1;
 		}

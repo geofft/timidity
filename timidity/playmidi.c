@@ -1002,9 +1002,10 @@ static void recompute_amp(int v)
 	 * so that it must be reduced in advance.
 	 */
 	if (! (play_mode->encoding & PE_MONO)
-			&& (opt_reverb_control || opt_chorus_control || opt_delay_control
-			|| opt_eq_control && (eq_status_gs.low_gain != 0x40
-			|| eq_status_gs.high_gain != 0x40) || opt_insertion_effect))
+	    && (opt_reverb_control || opt_chorus_control || opt_delay_control
+		|| (opt_eq_control && (eq_status_gs.low_gain != 0x40
+				       || eq_status_gs.high_gain != 0x40))
+		|| opt_insertion_effect))
 		tempamp *= 1.35f * 0.55f;
 	else
 		tempamp *= 1.35f;
@@ -2082,9 +2083,9 @@ static double get_play_note_ratio(int ch, int note)
 	if ((def_play_note = dbank->tone[note].play_note) == -1)
 		return 1.0;
 	if (play_note >= def_play_note)
-		return bend_coarse[play_note - def_play_note & 0x7f];
+		return bend_coarse[(play_note - def_play_note) & 0x7f];
 	else
-		return 1 / bend_coarse[def_play_note - play_note & 0x7f];
+		return 1 / bend_coarse[(def_play_note - play_note) & 0x7f];
 }
 
 /* Only one instance of a note can be playing on a single channel. */
@@ -2107,13 +2108,14 @@ static int find_voice(MidiEvent *e)
 		}
 	for (i = 0; i < upper_voices; i++)
 		if (voice[i].status != VOICE_FREE && voice[i].channel == ch) {
-			if (voice[i].note == note && voice[i].status & status_check
-					|| mono_check
-					|| altassign && find_altassign(altassign, voice[i].note))
+			if ((voice[i].note == note && (voice[i].status & status_check))
+			    || mono_check
+			    || (altassign && find_altassign(altassign, voice[i].note)))
 				kill_note(i);
-			else if (voice[i].note == note && (channel[ch].assign_mode == 0
-					|| channel[ch].assign_mode == 1
-					&& voice[i].proximate_flag == 0))
+			else if (voice[i].note == note &&
+				 (channel[ch].assign_mode == 0
+				  || (channel[ch].assign_mode == 1
+				      && voice[i].proximate_flag == 0)))
 				kill_note(i);
 		}
 	for (i = 0; i < upper_voices; i++)
@@ -2281,7 +2283,6 @@ static void init_voice_portamento(int v)
 static void init_voice_tremolo(int v)
 {
 	Voice *vp = &(voice[v]);
-	int ch = vp->channel;
 
   vp->tremolo_delay = vp->sample->tremolo_delay;
   vp->tremolo_phase = 0;
@@ -2433,6 +2434,7 @@ static void set_envelope_time(int ch, int val, int stage)
 }
 
 /*! pseudo Delay Effect without DSP */
+#ifndef USE_DSP_EFFECT
 static void new_delay_voice(int v1, int level)
 {
     int v2, ch = voice[v1].channel;
@@ -2550,6 +2552,8 @@ static void new_chorus_voice(int v1, int level)
      */
     recompute_freq(v2);
 }
+#endif /* !USE_DSP_EFFECT */
+
 
 /* Yet another chorus implementation
  *	by Eric A. Welsh <ewelsh@gpc.wustl.edu>.
@@ -3108,6 +3112,7 @@ int get_chorus_level(int ch)
     return -opt_chorus_control;
 }
 
+#ifndef USE_DSP_EFFECT
 static void make_rvid(void)
 {
     int i, j, lv, maxrv;
@@ -3139,6 +3144,7 @@ static void make_rvid(void)
 	}
     }
 }
+#endif /* !USE_DSP_EFFECT */
 
 void free_drum_effect(int ch)
 {
@@ -5234,7 +5240,7 @@ static void seek_forward(int32 until_time)
 
 	case ME_TEMPER_KEYSIG:
 		current_temper_keysig = (current_event->a + 8) % 32 - 8;
-		temper_adj = (current_event->a + 8 & 0x20) ? 1 : 0;
+		temper_adj = ((current_event->a + 8) & 0x20) ? 1 : 0;
 		break;
 
 	case ME_TEMPER_TYPE:
@@ -5944,7 +5950,7 @@ static void do_compute_data_midi(int32 count)
 	/* are effects valid? / don't supported in mono */
 	channel_reverb = (stereo && (opt_reverb_control == 1
 			|| opt_reverb_control == 3
-			|| opt_reverb_control < 0 && opt_reverb_control & 0x80));
+			|| (opt_reverb_control < 0 && opt_reverb_control & 0x80)));
 	channel_chorus = (stereo && opt_chorus_control);
 	channel_delay = (stereo && opt_delay_control > 0);
 
@@ -7253,7 +7259,7 @@ int play_event(MidiEvent *ev)
 
 	case ME_TEMPER_KEYSIG:
 		current_temper_keysig = (current_event->a + 8) % 32 - 8;
-		temper_adj = (current_event->a + 8 & 0x20) ? 1 : 0;
+		temper_adj = ((current_event->a + 8) & 0x20) ? 1 : 0;
 		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_event->a, 0);
 		i = current_temper_keysig + ((current_temper_keysig < 8) ? 7 : -9);
 		j = 0;
@@ -8202,10 +8208,12 @@ static void set_rx(int ch, int32 rx, int flag)
 	else {channel[ch].rx &= ~rx;}
 }
 
+#if 0
 static int32 get_rx(int ch, int32 rx)
 {
 	return (channel[ch].rx & rx);
 }
+#endif
 
 static void init_rx_drum(struct DrumParts *p)
 {

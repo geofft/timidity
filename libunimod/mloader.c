@@ -88,7 +88,9 @@ typedef struct ITPACK
   }
 ITPACK;
 
+#ifdef MAX_SAMPLESPACE
 static void SL_HalveSample (SAMPLOAD *);
+#endif
 static void SL_Sample8to16 (SAMPLOAD *);
 static void SL_Sample16to8 (SAMPLOAD *);
 static void SL_SampleSigned (SAMPLOAD *);
@@ -539,6 +541,7 @@ FreeSampleList ()
 }
 
 /* Returns the total amount of memory required by the musiclist queue. */
+#ifdef MAX_SAMPLESPACE
 static ULONG 
 SampleTotal ()
 {
@@ -564,6 +567,7 @@ RealSpeed (SAMPLOAD * s)
 {
   return (s->sample->speed / (s->scalefactor ? s->scalefactor : 1));
 }
+#endif
 
 BOOL 
 SL_LoadSamples (void)
@@ -671,6 +675,7 @@ SL_SampleUnsigned (SAMPLOAD * s)
   s->sample->flags = (s->sample->flags & ~SF_FORMATMASK) | s->outfmt;
 }
 
+#ifdef MAX_SAMPLESPACE
 void 
 SL_HalveSample (SAMPLOAD * s)
 {
@@ -680,6 +685,7 @@ SL_HalveSample (SAMPLOAD * s)
   s->sample->loopstart = s->loopstart / s->scalefactor;
   s->sample->loopend = s->loopend / s->scalefactor;
 }
+#endif
 
 
 CHAR *

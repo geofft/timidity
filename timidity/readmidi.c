@@ -599,7 +599,7 @@ static int set_xg_reverb_type(int msb, int lsb)
 	    (msb >= 0x14))			/* NO EFFECT */
 	{
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Reverb Type (NO EFFECT %d %d)", msb, lsb);
-		return;
+		return -1;
 	}
 
 	switch(msb)
@@ -653,7 +653,7 @@ static int set_xg_chorus_type(int msb, int lsb)
 	    (msb >= 0x49))			/* NO EFFECT */
 	{
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Chorus Type (NO EFFECT %d %d)", msb, lsb);
-		return;
+		return -1;
 	}
 
 	switch(msb)
@@ -774,8 +774,10 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x01:	/* Reverb Type LSB */
 		    xg_reverb_type_lsb = *body;
 			v = set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
-			num_events++;
+			if (v >= 0) {
+			    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x05);
+			    num_events++;
+			}
 		    break;
 
 		case 0x20:	/* Chorus Type MSB */
@@ -785,8 +787,10 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x21:	/* Chorus Type LSB */
 		    xg_chorus_type_lsb = *body;
 			v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
-			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
-			num_events++;
+			if (v >= 0) {
+			    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
+			    num_events++;
+			}
 		    break;
 
 		case 0x0C:	/* Reverb Return */
@@ -5189,7 +5193,7 @@ static void insert_note_steps(void)
 {
 	MidiEventList *e;
 	int32 i, n, at, lasttime, meas, beat;
-	uint8 num, denom, a, b;
+	uint8 num = 0, denom = 1, a, b;
 	
 	e = evlist;
 	for (i = n = 0; i < event_count - 1 && n < 256 - 1; i++, e = e->next)
@@ -5221,7 +5225,7 @@ static void insert_note_steps(void)
 			num = timesig[n].a, denom = timesig[n].b, n++;
 		}
 		a = meas & 0xff;
-		b = (meas >> 8 & 0x0f) + (beat + 1 << 4);
+		b = ((meas >> 8) & 0x0f) + ((beat + 1) << 4);
 		MIDIEVENT(at, ME_NOTE_STEP, 0, a, b);
 		if (++beat == num)
 			meas++, beat = 0;
@@ -6144,7 +6148,7 @@ void recompute_delay_status_gs(void)
 	p->feedback_ratio = (double)(p->feedback - 64) * (0.763f * 2.0f / 100.0f);
 	p->send_reverb_ratio = (double)p->send_reverb * (0.787f / 100.0f);
 
-	if(p->level_left != 0 || p->level_right != 0 && p->type == 0) {
+	if(p->level_left != 0 || (p->level_right != 0 && p->type == 0)) {
 		p->type = 1;	/* it needs 3-tap delay effect. */
 	}
 

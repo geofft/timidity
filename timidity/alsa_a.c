@@ -120,7 +120,6 @@ static int output_counter;
 #if ALSA_LIB > 5
 static char *alsa_device_name(void)
 {
-  static char name[32];
   if (dpm.name && *dpm.name)
     return dpm.name;
   else
@@ -291,7 +290,7 @@ static int open_output(void)
   int orig_rate = dpm.rate;
   int ret_val = 0;
   int tmp, frags, r, pfds;
-  int buf_time, rate;
+  int rate;
   snd_pcm_hw_params_t *pinfo;
   snd_pcm_sw_params_t *swpinfo;
 
@@ -571,7 +570,6 @@ static int output_data(char *buf, int32 nbytes)
 
 static int acntl(int request, void *arg)
 {
-  int i;
   snd_pcm_status_t *status;
   snd_pcm_sframes_t delay;
 

@@ -213,6 +213,7 @@ static long search_near_color(Display *disp, int r, int g, int b)
     return k;
 }
 
+#if 0
 static int highbit(unsigned long ul)
 {
     int i;  unsigned long hb;
@@ -221,6 +222,7 @@ static int highbit(unsigned long ul)
 	;
     return i;
 }
+#endif
 
 static unsigned long AllocRGBColor(
 	Display *disp,
