@@ -67,4 +67,9 @@ if {$Stat(new_tcltk)} {
 if {$Config(AutoStart)} { PlayCmd }
 tkwait window .
 
+# send quit message to the main process before die...
+WriteMsg "QUIT"
+WriteMsg "ZAPP"
+exit 0
+
 # end of file
