@@ -1,8 +1,7 @@
-2004-01-11  Saito <saito2@digitalme.com>
+2004-01-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/timidity.c, timidity/playmidi.c, timidity/instrum.h:
-	  Support for #extension reverbsend, chorussend, delaysend.
-	  Fix SF2 scale tuning.
+	* timidity/playmidi.c:
+	  Rewrite and fix around select_play_sample()
 
 2004-01-10  Saito <saito2@digitalme.com>
 

@@ -265,6 +265,8 @@ int temper_type_mute;		/* For temperament type mute */
 static int mainvolume_max; /* maximum value of mainvolume */
 static double compensation_ratio = 1.0; /* compensation ratio */
 
+static int select_play_sample(Sample *, int, int, int *, MidiEvent *);
+static double get_play_note_ratio(int, int);
 static void update_portamento_controls(int ch);
 static void update_rpn_map(int ch, int addr, int update_now);
 static void ctl_prog_event(int ch);
@@ -1975,60 +1977,18 @@ static int find_free_voice(void)
     return lowest;
 }
 
-inline static double calc_st_ratio(double st)
-{
-	return (pow(2.0, st / 100.0f) - 1.0f);
-}
-
-int32 get_note_freq(Sample *sp, int note)
-{
-	double ratio;
-	int32 f;
-
-	f = freq_table[note];
-	if (sp->scale_tuning != 100) {	/* SF2 - Scale Tuning */
-		ratio = calc_st_ratio(sp->scale_tuning);
-		f = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
-	}
-	return f;
-}
-
-static double get_play_note_ratio(int ch, int note)
-{
-	int i, nbank, nprog, play_note, def_play_note;
-	ToneBank *bank;
-	if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
-			&& (play_note = channel[ch].drums[note]->play_note) != -1) {
-		nbank = channel[ch].bank;
-		nprog = note;
-		instrument_map(channel[ch].mapID, &nbank, &nprog);
-		bank = drumset[nbank];
-		if (bank == NULL) {bank = drumset[0];}
-		def_play_note = bank->tone[nprog].play_note;
-		if (def_play_note == -1) {return 1.0f;}
-		play_note -= def_play_note;
-		if (play_note >= 0) {
-			return bend_coarse[play_note & 0x7f];
-		} else {
-			return 1.0f / bend_coarse[-play_note & 0x7f];
-		}
-	} else {
-		return 1.0f;
-	}
-}
-
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
-	int ch = e->channel, keynote = e->a & 0x7F;
+	int ch = e->channel, kn = e->a & 0x7f, vel = e->b;
 	int32 f, fs, ft, fst, fc, fr, cdiff, diff, sample_link;
 	int8 tt = channel[ch].temper_type;
 	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *spc, *spr;
 	int16 st;
 	double ratio;
-	int i, j, k, nv, nvc, vel;
-
+	int i, j, k, nv, nvc;
+	
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
 			f = freq_table_pureint[current_freq_table][note];
@@ -2061,7 +2021,7 @@ static int select_play_sample(Sample *splist,
 				f = freq_table_pureint[current_freq_table
 						+ ((temper_adj) ? 24 : 12)][note];
 			break;
-		default:	/* user-defined temperaments */
+		default:	/* user-defined temperament */
 			if ((tt -= 0x40) >= 0 && tt < 4) {
 				if (current_temper_keysig < 8)
 					f = freq_table_user[tt][current_freq_table
@@ -2079,21 +2039,22 @@ static int select_play_sample(Sample *splist,
 		fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
 	else
 		fs = freq_table[note];
-	vel = e->b;
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
-		if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-			ratio = calc_st_ratio(st);
-			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
-			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
-		} else {ft = f, fst = fs;}
-		ratio = get_play_note_ratio(ch, keynote);
-		if (ratio != 1.0f) {
-			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
-		}
+		/* SF2 - Scale Tuning */
+		if ((st = sp->scale_tuning) != 100) {
+			ratio = pow((double) f / sp->root_freq, st / 100.0);
+			ft = sp->root_freq * ratio + 0.5;
+			ratio = pow((double) fs / sp->root_freq, st / 100.0);
+			fst = sp->root_freq * ratio + 0.5;
+		} else
+			ft = f, fst = fs;
+		if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+			ft *= ratio + 0.5, fst *= ratio + 0.5;
 		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel
-				&& !(sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT)) {
+				&& ! (sp->inst_type == INST_SF2
+				&& sp->sample_type == SF_SAMPLETYPE_RIGHT)) {
 			j = vlist[nv] = find_voice(e);
 			voice[j].orig_frequency = ft;
 			MYCHECK(voice[j].orig_frequency);
@@ -2102,25 +2063,26 @@ static int select_play_sample(Sample *splist,
 			nv++;
 		}
 	}
-
 	if (nv == 0) {	/* we must select at least one sample. */
 		cdiff = 0x7fffffff;
 		fr = fc = 0;
 		spc = spr = NULL;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-				ratio = calc_st_ratio(st);
-				ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
-				fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
-			} else {ft = f, fst = fs;}
-			ratio = get_play_note_ratio(ch, keynote);
-			if (ratio != 1.0f) {
-				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
-			}
+			/* SF2 - Scale Tuning */
+			if ((st = sp->scale_tuning) != 100) {
+				ratio = pow((double) f / sp->root_freq, st / 100.0);
+				ft = sp->root_freq * ratio + 0.5;
+				ratio = pow((double) fs / sp->root_freq, st / 100.0);
+				fst = sp->root_freq * ratio + 0.5;
+			} else
+				ft = f, fst = fs;
+			if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+				ft *= ratio + 0.5, fst *= ratio + 0.5;
 			diff = abs(sp->root_freq - fst);
 			if (cdiff > diff) {
-				if (sp->inst_type == INST_SF2 && sp->sample_type == SF_SAMPLETYPE_RIGHT) {
-					fr = ft;		/* reserve */
+				if (sp->inst_type == INST_SF2
+						&& sp->sample_type == SF_SAMPLETYPE_RIGHT) {
+					fr = ft;	/* reserve */
 					spr = sp;	/* reserve */
 				} else {
 					cdiff = diff;
@@ -2136,7 +2098,8 @@ static int select_play_sample(Sample *splist,
 			voice[j].sample = spc;
 			voice[j].status = VOICE_ON;
 			nv++;
-		} else {	/* it's a lonely right sample, but better than nothing. */
+		} else {
+			/* it's a lonely right sample, but better than nothing. */
 			j = vlist[nv] = find_voice(e);
 			voice[j].orig_frequency = fr;
 			MYCHECK(voice[j].orig_frequency);
@@ -2145,28 +2108,26 @@ static int select_play_sample(Sample *splist,
 			nv++;
 		}
 	}
-
 	nvc = nv;
-	for (i = 0; i < nvc; i++)
-	{
+	for (i = 0; i < nvc; i++) {
 		spc = voice[vlist[i]].sample;
-		if (spc->inst_type == INST_SF2 &&
-			spc->sample_type == SF_SAMPLETYPE_LEFT) {
+		if (spc->inst_type == INST_SF2
+				&& spc->sample_type == SF_SAMPLETYPE_LEFT) {
 			/* If it's left sample, there must be right sample. */
 			sample_link = spc->sf_sample_link;
-			for (j = 0, sp = splist; j < nsp; j++, sp++) {
-				if (sp->inst_type == INST_SF2 &&
-					sp->sample_type == SF_SAMPLETYPE_RIGHT &&
-					sp->sf_sample_index == sample_link) {
+			for (j = 0, sp = splist; j < nsp; j++, sp++)
+				if (sp->inst_type == INST_SF2
+						&& sp->sample_type == SF_SAMPLETYPE_RIGHT
+						&& sp->sf_sample_index == sample_link) {
 					/* right sample is found. */
-					if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
-						ratio = calc_st_ratio(st);
-						ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
-					} else {ft = f;}
-					ratio = get_play_note_ratio(ch, keynote);
-					if (ratio != 1.0f) {
-						ft = ft * ratio + 0.5;
-					}
+					/* SF2 - Scale Tuning */
+					if ((st = sp->scale_tuning) != 100) {
+						ratio = pow((double) f / sp->root_freq, st / 100.0);
+						ft = sp->root_freq * ratio + 0.5;
+					} else
+						ft = f;
+					if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+						ft *= ratio + 0.5;
 					k = vlist[nv] = find_voice(e);
 					voice[k].orig_frequency = ft;
 					MYCHECK(voice[k].orig_frequency);
@@ -2175,11 +2136,49 @@ static int select_play_sample(Sample *splist,
 					nv++;
 					break;
 				}
-			}
 		}
 	}
-
 	return nv;
+}
+
+static double get_play_note_ratio(int ch, int note)
+{
+	int i, nbank, nprog, play_note, def_play_note;
+	ToneBank *bank;
+	
+	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
+			&& (play_note = channel[ch].drums[note]->play_note) != -1) {
+		nbank = channel[ch].bank;
+		nprog = note;
+		instrument_map(channel[ch].mapID, &nbank, &nprog);
+		bank = drumset[nbank];
+		if (bank == NULL)
+			bank = drumset[0];
+		def_play_note = bank->tone[nprog].play_note;
+		if (def_play_note == -1)
+			return 1.0;
+		play_note -= def_play_note;
+		if (play_note >= 0)
+			return bend_coarse[play_note & 0x7f];
+		else
+			return 1.0 / bend_coarse[-play_note & 0x7f];
+	} else
+		return 1.0;
+}
+
+int32 get_note_freq(Sample *sp, int note)
+{
+	int32 f;
+	int16 st;
+	double ratio;
+	
+	f = freq_table[note];
+	/* SF2 - Scale Tuning */
+	if ((st = sp->scale_tuning) != 100) {
+		ratio = pow((double) f / sp->root_freq, st / 100.0);
+		f = sp->root_freq * ratio + 0.5;
+	}
+	return f;
 }
 
 static int find_samples(MidiEvent *e, int *vlist)
