@@ -159,8 +159,14 @@ extern int
 tmdy_getopt_long_only (int argc, char *const *argv, const char *options,
 		  const struct option *long_options, int *opt_index);
 
+/*
 #define getopt_long(c,v,o,l,i)  ({ tmdy_getopt_long(c,v,o,l,i); } )
 #define getopt_long_only(c,v,o,l,i) ({ tmdy_getopt_long_only(c,v,o,l,i); })
+*/
+
+#define getopt_long(c,v,o,l,i) tmdy_getopt_long(c,v,o,l,i)
+#define getopt_long_only(c,v,o,l,i) tmdy_getopt_long_only(c,v,o,l,i)
+
 
 #endif /* <getopt.h> */
 
