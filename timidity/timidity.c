@@ -173,15 +173,10 @@ enum {
 	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
-#ifdef AU_FLAC
 	TIM_OPT_FLAC_VERIFY,
 	TIM_OPT_FLAC_PADDING,
 	TIM_OPT_FLAC_COMPLEVEL,
-#ifdef AU_OGGFLAC
 	TIM_OPT_FLAC_OGGFLAC,
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
-#ifdef AU_SPEEX
 	TIM_OPT_SPEEX_QUALITY,
 	TIM_OPT_SPEEX_VBR,
 	TIM_OPT_SPEEX_ABR,
@@ -189,7 +184,6 @@ enum {
 	TIM_OPT_SPEEX_DTX,
 	TIM_OPT_SPEEX_COMPLEXITY,
 	TIM_OPT_SPEEX_NFRAMES,
-#endif /* AU_SPEEX */
 	TIM_OPT_OUTPUT_FILE,
 	TIM_OPT_PATCH_FILE,
 	TIM_OPT_POLYPHONY,
@@ -313,7 +307,7 @@ static const struct option longopts[] = {
 #ifdef AU_FLAC
 	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
 	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
-	{ "flac-compression-level", required_argument, NULL, TIM_OPT_FLAC_COMPLEVEL },
+	{ "flac-complevel",         required_argument, NULL, TIM_OPT_FLAC_COMPLEVEL },
 #ifdef AU_OGGFLAC
 	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
 #endif /* AU_OGGFLAC */
@@ -3638,6 +3632,34 @@ static inline int parse_opt_h(const char *arg)
 "                   n+1 point Gauss-like interpolation, n=1-34 (default 25)",
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
+#ifdef AU_FLAC
+"             --flac-verify (for Ogg FLAC only)",
+"               Verify a correct encoding",
+"             --flac-padding=n (for Ogg FLAC only)",
+"               Write a PADDING block of length n",
+"             --flac-complevel=n (for Ogg FLAC only)",
+"               Set compression level n:[0..8]",
+#ifdef AU_OGGFLAC
+"             --oggflac (for Ogg FLAC only)",
+"               Output OggFLAC stream (experimental)",
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
+#ifdef AU_SPEEX
+"             --speex-quality=n (for Ogg Speex only)",
+"               Encoding quality n:[0..10]",
+"             --speex-vbr (for Ogg Speex only)",
+"               Enable variable bit-rate (VBR)",
+"             --speex-abr=n (for Ogg Speex only)",
+"               Enable average bit-rate (ABR) at rate bps",
+"             --speex-vad (for Ogg Speex only)",
+"               Enable voice activity detection (VAD)",
+"             --speex-dtx (for Ogg Speex only)",
+"               Enable file-based discontinuous transmission (DTX)",
+"             --speex-complexity=n (for Ogg Speex only)",
+"               Set encoding complexity n:[0-10]",
+"             --speex-nframes=n (for Ogg Speex only)",
+"               Number of frames per Ogg packet n:[0-10]",
+#endif
 "  -o file    --output-file=file",
 "               Output to another file (or device/server) (Use \"-\" for stdout)",
 "  -P file    --patch-file=file",
@@ -3841,6 +3863,9 @@ static inline int parse_opt_h(const char *arg)
 	for (pmpp = play_mode_list; (pmp = *pmpp) != NULL; pmpp++)
 		fprintf(fp, "  -O%c          %s" NLS,
 				pmp->id_character, pmp->id_name);
+#ifdef AU_AO
+	show_ao_device_info(fp);
+#endif /* AU_AO */
 	fputs(NLS, fp);
 	fputs("Output format options (append to -O? option):" NLS
 "  `S'          stereo" NLS
@@ -3868,32 +3893,6 @@ static inline int parse_opt_h(const char *arg)
 "  --output-alaw" NLS
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
-#ifdef AU_AO
-	show_ao_device_info(fp);
-	fputs(NLS, fp);
-#endif /* AU_AO */
-#ifdef AU_FLAC
-	fputs("FLAC output format long options:" NLS
-"  --flac-verify                 Verify a correct encoding" NLS
-"  --flac-padding=n              Write a PADDING block of length n" NLS
-"  --flac-compression-level=n    Set compression level n:[0..8]" NLS, fp);
-#ifdef AU_OGGFLAC
-	fputs("  --oggflac                     Output OggFLAC stream "
-			"(experimental)" NLS, fp);
-#endif /* AU_OGGFLAC */
-	fputs(NLS, fp);
-#endif /* AU_FLAC */
-#ifdef AU_SPEEX
-	fputs("Speex output format long options:" NLS
-"  --speex-quality=n             Encoding quality n:[0..10]" NLS
-"  --speex-vbr                   Enable variable bit-rate (VBR)" NLS
-"  --speex-abr=n                 Enable average bit-rate (ABR) at rate bps" NLS
-"  --speex-vad                   Enable voice activity detection (VAD)" NLS
-"  --speex-dtx                   Enable file-based discontinuous transmission (DTX)" NLS
-"  --speex-complexity=n          Set encoding complexity n:[0-10]" NLS
-"  --speex-nframes=n             Number of frames per Ogg packet n:[0-10]" NLS, fp);
-	fputs(NLS, fp);
-#endif
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
 	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
@@ -4365,43 +4364,50 @@ static inline int parse_opt_flac_oggflac(const char *arg)
 #endif /* AU_FLAC */
 
 #ifdef AU_SPEEX
-extern void speex_set_option_quality(int quality);
-extern void speex_set_option_vbr(int vbr);
-extern void speex_set_option_abr(int rate);
-extern void speex_set_option_vad(int vad);
-extern void speex_set_option_dtx(int dtx);
-extern void speex_set_option_complexity(int complexity);
+extern void speex_set_option_quality(int);
+extern void speex_set_option_vbr(int);
+extern void speex_set_option_abr(int);
+extern void speex_set_option_vad(int);
+extern void speex_set_option_dtx(int);
+extern void speex_set_option_complexity(int);
+extern void speex_set_option_nframes(int);
 
 static inline int parse_opt_speex_quality(const char *arg)
 {
 	speex_set_option_quality(atoi(arg));
 	return 0;
 }
+
 static inline int parse_opt_speex_vbr(const char *arg)
 {
 	speex_set_option_vbr(1);
 	return 0;
 }
+
 static inline int parse_opt_speex_abr(const char *arg)
 {
 	speex_set_option_abr(atoi(arg));
 	return 0;
 }
+
 static inline int parse_opt_speex_vad(const char *arg)
 {
 	speex_set_option_vad(1);
 	return 0;
 }
+
 static inline int parse_opt_speex_dtx(const char *arg)
 {
 	speex_set_option_dtx(1);
 	return 0;
 }
+
 static inline int parse_opt_speex_complexity(const char *arg)
 {
 	speex_set_option_complexity(atoi(arg));
 	return 0;
 }
+
 static inline int parse_opt_speex_nframes(const char *arg)
 {
 	speex_set_option_nframes(atoi(arg));

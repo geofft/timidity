@@ -1,3 +1,9 @@
+2004-04-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1: Update
+	* timidity/timidity.c:
+	  Rename --flac-compression-level -> --flac-complevel
+
 2004-04-25  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1,
