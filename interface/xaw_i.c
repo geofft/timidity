@@ -432,8 +432,10 @@ static XtResource xaw_resources[] ={
    offset(trace_height), XtRImmediate, (XtPointer)TRACE_HEIGHT},
   {"menuWidth", "MenuWidth", XtRShort, sizeof(Dimension),
    offset(menu_width), XtRImmediate, (XtPointer)200},
+#if 0 /* FIXME: this will paint the file-selection list with all blacks.. */
   {"foreground", XtCForeground, XtRPixel, sizeof(Pixel),
    offset(common_fgcolor), XtRString, "black"},
+#endif
   {"background", XtCBackground, XtRPixel, sizeof(Pixel),
    offset(common_bgcolor), XtRString, COMMON_BGCOLOR},
   {"menubutton", "MenuButtonBackground", XtRPixel, sizeof(Pixel),
@@ -3343,6 +3345,13 @@ void a_start_interface(int pipe_in) {
 #ifdef I18N
     XFontsOfFontSet(ttitlefont,&fs_list,&ml);
     ttitlefont0 = fs_list[0];
+    if (! ttitlefont0->fid) {
+      ttitlefont0 = XLoadQueryFont(disp, ml[0]);
+      if (! ttitlefont0) {
+	fprintf(stderr, "can't load fonts %s\n", ml[0]);
+	exit(1);
+      }
+    }
     gcval.font = ttitlefont0->fid;
 #else
     gcval.font = ttitlefont->fid;
