@@ -70,6 +70,11 @@ PlayMode dpm = {
   acntl
 };
 
+#ifdef __W32G__
+extern char *w32g_output_dir;
+extern int w32g_auto_output_mode;
+#endif
+
 typedef struct {
   unsigned long in_bytes;
   unsigned long out_bytes;
@@ -452,7 +457,7 @@ static int auto_flac_output_open(const char *input_filename, const char *title)
 
 #ifdef AU_OGGFLAC
   if (flac_options.isogg) {
-#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+#ifndef __W32G__
   output_filename = create_auto_output_name(input_filename, "ogg", NULL, 0);
 #else
   output_filename = create_auto_output_name(input_filename, "ogg", w32g_output_dir, w32g_auto_output_mode);
@@ -461,7 +466,7 @@ static int auto_flac_output_open(const char *input_filename, const char *title)
   else
 #endif /* AU_OGGFLAC */
   {
-#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+#ifndef __W32G__
     output_filename = create_auto_output_name(input_filename, "flac", NULL, 0);
 #else
     output_filename = create_auto_output_name(input_filename, "flac", w32g_output_dir, w32g_auto_output_mode);
@@ -501,7 +506,7 @@ static int open_output(void)
   }
 #endif
 
-#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+#ifndef __W32G__
   if(dpm.name == NULL) {
     dpm.flag |= PF_AUTO_SPLIT_FILE;
     dpm.name = NULL;
