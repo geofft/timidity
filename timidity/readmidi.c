@@ -60,7 +60,7 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MARKER_END_CHAR		')'
 
 static uint8 rhythm_part[2];	/* for GS */
-static uint8 drum_setup_xg[4];	/* for XG */
+static uint8 drum_setup_xg[5];	/* for XG */
 
 enum
 {
@@ -995,7 +995,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x07:	/* Part Mode */
-			drum_setup_xg[*body] = p; 
+			drum_setup_xg[*body] = p;
 			SETMIDIEVENT(evm[num_events], 0, ME_DRUMPART, p, *body, SYSEX_TAG);
 			num_events++;
 		    break;
@@ -5056,7 +5056,7 @@ void readmidi_read_init(void)
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = rhythm_part[1] = 9;
-	for(i = 0; i < 4; i++) {drum_setup_xg[i] = 9;}
+	for(i = 0; i < 5; i++) {drum_setup_xg[i] = 9;}
 
     /* Put a do-nothing event first in the list for easier processing */
     evlist = current_midi_point = alloc_midi_event();

@@ -7022,6 +7022,8 @@ int play_event(MidiEvent *ev)
 			}
 #endif
 	ch = ev->channel;
+	while(ch >= MAX_CHANNELS)
+	  ch -= MAX_CHANNELS;
 
     switch(ev->type)
     {
