@@ -209,6 +209,14 @@ sub read_config_file
 					;
 				} elsif ($x eq 'modoffset') {
 					;
+				} elsif ($x eq 'envkeyf') {
+					;
+				} elsif ($x eq 'envvelf') {
+					;
+				} elsif ($x eq 'modkeyf') {
+					;
+				} elsif ($x eq 'modvelf') {
+					;
 				} elsif ($x eq 'trempitch') {
 					;
 				} elsif ($x eq 'tremfc') {

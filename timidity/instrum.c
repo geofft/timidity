@@ -492,6 +492,19 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 						sp->envelope_keyf[j] = tone->envkeyf[i][j];
 			}
 		}
+	if (tone->envvelfnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->envvelfnum == 1) {
+				for (j = 0; j < 6; j++)
+					if (tone->envvelf[0][j] != -1)
+						sp->envelope_velf[j] = tone->envvelf[0][j];
+			} else if (i < tone->envvelfnum) {
+				for (j = 0; j < 6; j++)
+					if (tone->envvelf[i][j] != -1)
+						sp->envelope_velf[j] = tone->envvelf[i][j];
+			}
+		}
 	if (tone->modenvkeyfnum)
 		for (i = 0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
@@ -516,19 +529,6 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 				for (j = 0; j < 6; j++)
 					if (tone->modenvvelf[i][j] != -1)
 						sp->modenv_velf[j] = tone->modenvvelf[i][j];
-			}
-		}
-	if (tone->envvelfnum)
-		for (i = 0; i < ip->samples; i++) {
-			sp = &ip->sample[i];
-			if (tone->envvelfnum == 1) {
-				for (j = 0; j < 6; j++)
-					if (tone->envvelf[0][j] != -1)
-						sp->envelope_velf[j] = tone->envvelf[0][j];
-			} else if (i < tone->envvelfnum) {
-				for (j = 0; j < 6; j++)
-					if (tone->envvelf[i][j] != -1)
-						sp->envelope_velf[j] = tone->envvelf[i][j];
 			}
 		}
 	if (tone->trempitchnum)
@@ -650,8 +650,8 @@ static Instrument *load_gus_instrument(char *name,
 			&& tone->tremnum == 0 && tone->vibnum == 0
 			&& tone->sclnotenum == 0 && tone->scltunenum == 0
 			&& tone->modenvratenum == 0 && tone->modenvofsnum == 0
-			&& tone->modenvkeyfnum == 0 && tone->modenvvelfnum == 0
 			&& tone->envkeyfnum == 0 && tone->envvelfnum == 0
+			&& tone->modenvkeyfnum == 0 && tone->modenvvelfnum == 0
 			&& tone->trempitchnum == 0 && tone->tremfcnum == 0
 			&& tone->modpitchnum == 0 && tone->modfcnum == 0
 			&& tone->fcnum == 0 && tone->resonum == 0)

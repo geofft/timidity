@@ -185,6 +185,38 @@ The format and values are fundamentally same as volume envelope.
 Except for some SoundFonts, even if it specifies only the option,
 nothing happens.
 .TP
+.BI envkeyf= attack:decay:sustain:release1:release2:release3[,...]
+Set the instrument's volume envelope key follow.  Based on
+\fBnote=60\fP, it changes envelope time according to note.  The unit
+is +\-cent/key.  For example, \fBenvkeyf=100\fP means that the attack
+time will double when it goes up by 1 octave.  The format is similar
+to \fBrate=\fP.  The parameter of \fIdecay\fP and \fIsustain\fP may be
+preset in some SoundFont.
+.TP
+.BI envvelf= attack:decay:sustain:release1:release2:release3[,...]
+Set the instrument's volume envelope velocity follow.  Based on
+\fBvelocity=64\fP, it changes envelope time according to velocity.
+The unit is +\-cent/velocity.  For example, \fBenvvelf=100\fP means
+that the attack time will 38 times at \fBvelocity=127\fP.  The format
+is similar to \fBrate=\fP.  In the future, the specification of this
+option may be changed.
+.TP
+.BI modkeyf= attack:decay:sustain:release1:release2:release3[,...]
+Set the instrument's modulation envelope key follow.  Based on
+\fBnote=60\fP, it changes envelope time according to note.  The unit
+is +\-cent/key.  For example, \fBmodkeyf=100\fP means that the attack
+time will double when it goes up by 1 octave.  The format is similar
+to \fBrate=\fP.  The parameter of \fIdecay\fP and \fIsustain\fP may be
+preset in some SoundFont.
+.TP
+.BI modvelf= attack:decay:sustain:release1:release2:release3[,...]
+Set the instrument's modulation envelope velocity follow.  Based on
+\fBvelocity=64\fP, it changes envelope time according to velocity.
+The unit is +\-cent/velocity.  For example, \fBmodvelf=100\fP means
+that the attack time will 38 times at \fBvelocity=127\fP.  The format
+is similar to \fBrate=\fP.  In the future, the specification of this
+option may be changed.
+.TP
 .BI trempitch= num[,...]
 Set the instrument's depth of changing pitch according to tremolo.
 The effect itself is same as vibrato, it uses to operate in another
@@ -215,18 +247,18 @@ similar to \fBrate=\fP.
 .BI fckeyf= num
 Set the instrument's filter key follow.  Based on \fBnote=60\fP, it
 change cutoff frequency according to note.  The unit is +\-cent/key.
- For example, \fBfckeyf=100\fP means that it change same as pitch.
+For example, \fBfckeyf=100\fP means that it changes same as pitch.
 .TP
 .BI fcvelf= num
 Set the instrument's filter velocity follow.  Based on
-\fBvelocity=127\fP, it change cutoff frequency according to velocity.
+\fBvelocity=127\fP, it changes cutoff frequency according to velocity.
 The unit is +\-cent.  In SoundFont, \fB\-2400\fP is set up as a
 characteristic value.
 .TP
 .BI qvelf= num
 Set the instrument's resonance velocity follow.  Based on
-\fBvelocity=0\fP, it change resonance according to velocity.  The unit
-is +\-cB.
+\fBvelocity=0\fP, it changes resonance according to velocity.  The
+unit is +\-cB.
 .RE
 .TP
 .BI "default " file
@@ -339,9 +371,9 @@ Set the standard value of changing amplification when processing Drum
 Instrument TVA Level of NRPN.  Unless Drum Instrument TVA Level is
 specified at playing, the amplification is no influenced.
 .TP
-.BI "#extension redamper " "progno " {0|1}
-Specifies whether redamper is enable (\fB1\fP) or disable (\fB0\fP) on
-\fIprogno\fP.
+.BI "#extension damper " "progno " {0|1}
+Specifies whether redamper and half-dumper are enable (\fB1\fP) or
+disable (\fB0\fP) on \fIprogno\fP.
 .TP
 .BI "#extension playnote " "progno note"
 Set the frequency of pronounce to \fBnote\fP.  If the frequency of

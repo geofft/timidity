@@ -186,6 +186,38 @@ WAV 形式または AIFF 形式のサンプルファイルの場合は，\fBnumber
 基本的にボリューム・エンベロープと同じです。一部の SoundFont を除けば，
 このオプションだけを指定しても何も起こりません。
 .TP
+.BI envkeyf= attack:decay:sustain:release1:release2:release3[,...]
+ボリューム・エンベロープ・キーフォローを設定します。\fBnote=60\fP を基
+準として，ノートに従いエンベロープ・タイムを変化させます。単位は
++\-cent/key です。例えば \fBenvkeyf=100\fP と指定すると，1 オクターブ上
+がるたびにアタック・タイムが 2 倍になります。\fBrate=\fP 同様，複数のサ
+ンプルに対する設定が可能です。一部の SoundFont では，\fIdecay\fPと
+\fIsustain\fP のパラメータが予め設定されている場合があります。
+.TP
+.BI envvelf= attack:decay:sustain:release1:release2:release3[,...]
+ボリューム・エンベロープ・ベロシティフォローを設定します。
+\fBvelocity=64\fP を基準として，ベロシティに従いエンベロープ・タイムを
+変化させます。単位は +\-cent/velocity です。例えば \fBenvvelf=100\fP と
+指定すると，\fBvelocity=127\fP でアタック・タイムが約 38 倍になります。
+\fBrate=\fP 同様，複数のサンプルに対する設定が可能です。このオプション
+は，近い将来仕様変更される可能性があります。
+.TP
+.BI modkeyf= attack:decay:sustain:release1:release2:release3[,...]
+モジュレーション・エンベロープ・キーフォローを設定します。\fBnote=60\fP
+を基準として，ノートに従いエンベロープ・タイムを変化させます。単位は
++\-cent/key です。例えば \fBmodkeyf=100\fP と指定すると，1 オクターブ上
+がるたびにアタック・タイムが 2 倍になります。\fBrate=\fP 同様，複数のサ
+ンプルに対する設定が可能です。一部の SoundFont では，\fIdecay\fPと
+\fIsustain\fP のパラメータが予め設定されている場合があります。
+.TP
+.BI modvelf= attack:decay:sustain:release1:release2:release3[,...]
+モジュレーション・エンベロープ・ベロシティフォローを設定します。
+\fBvelocity=64\fP を基準として，ベロシティに従いエンベロープ・タイムを
+変化させます。単位は +\-cent/velocity です。例えば \fBmodvelf=100\fP と
+指定すると，\fBvelocity=127\fP でアタック・タイムが約 38 倍になります。
+\fBrate=\fP 同様，複数のサンプルに対する設定が可能です。このオプション
+は，近い将来仕様変更される可能性があります。
+.TP
 .BI trempitch= num[,...]
 トレモロに従って，ピッチを変化させる深度を設定します。効果そのものはビ
 ブラートと一緒ですが，別系統で動作させたいときに利用します。単位は
@@ -339,9 +371,9 @@ NRPN の Drum Instrument TVA Level を処理する際，音量を変化させる基準と
 なる値を設定します。曲中で Drum Instrument TVA Level が指定されない限り，
 音量には一切影響しません。あくまで基準値です。
 .TP
-.BI "#extension redamper " "progno " {0|1}
-\fIprogno\fP でリダンパー効果を掛ける(\fB1\fP)，掛けない(\fB0\fP)を指定
-します。
+.BI "#extension damper " "progno " {0|1}
+\fIprogno\fP でリダンパー効果およびハーフダンパーを有効にする(\fB1\fP)，
+無効にする(\fB0\fP)を指定します。
 .TP
 .BI "#extension playnote " "progno note"
 ドラムセット音色の出音周波数を \fInote\fP とします。GS SysEx Play Note
