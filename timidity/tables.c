@@ -42,7 +42,7 @@
 
 int32 freq_table[128];
 int32 freq_table_tuning[128][128];
-int32 freq_table_pytha[24][128];
+int32 freq_table_pytha[12][128];
 int32 freq_table_meantone[24][128];
 int32 freq_table_pureint[24][128];
 int32 freq_table_user[4][24][128];
@@ -76,7 +76,6 @@ void init_freq_table_pytha(void)
 		 81.0 / 64,   4.0 /   3, 729.0 / 512,   3.0 /   2,
 		128.0 / 81,  27.0 /  16,  16.0 /   9, 243.0 / 128
 	};
-	static double syntonic = 80.0 / 81;
 	
 	for (i = 0; i < 12; i++)
 		for (j = -1; j < 11; j++) {
@@ -86,8 +85,6 @@ void init_freq_table_pytha(void)
 				if (l < 0 || l >= 128)
 					continue;
 				freq_table_pytha[i][l] = f * ratio[k] * 1000 + 0.5;
-				freq_table_pytha[i + 12][l] =
-						f * ratio[k] * syntonic * 1000 + 0.5;
 			}
 		}
 }
@@ -97,6 +94,7 @@ void init_freq_table_meantone(void)
 	int i, j, k, l;
 	double f;
 	static double major_ratio[12], minor_ratio[12];
+	static double syntonic = 80.0 / 81;
 	
 	major_ratio[0] = 1;
 	major_ratio[1] = 8 / pow(5.0, 5.0 / 4);
@@ -132,7 +130,7 @@ void init_freq_table_meantone(void)
 				freq_table_meantone[i][l] =
 						f * major_ratio[k] * 1000 + 0.5;
 				freq_table_meantone[i + 12][l] =
-						f * minor_ratio[k] * 1000 + 0.5;
+						f * minor_ratio[k] / syntonic * 1000 + 0.5;
 			}
 		}
 }
@@ -149,6 +147,7 @@ void init_freq_table_pureint(void)
 		 1.0 /  1, 25.0 / 24, 10.0 /  9, 6.0 / 5, 5.0 / 4,  4.0 / 3,
 		25.0 / 18,  3.0 /  2, 25.0 / 16, 5.0 / 3, 9.0 / 5, 15.0 / 8
 	};
+	static double syntonic = 80.0 / 81;
 	
 	for (i = 0; i < 12; i++)
 		for (j = -1; j < 11; j++) {
@@ -160,7 +159,7 @@ void init_freq_table_pureint(void)
 				freq_table_pureint[i][l] =
 						f * major_ratio[k] * 1000 + 0.5;
 				freq_table_pureint[i + 12][l] =
-						f * minor_ratio[k] * 1000 + 0.5;
+						f * minor_ratio[k] / syntonic * 1000 + 0.5;
 			}
 		}
 }
