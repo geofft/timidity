@@ -535,13 +535,16 @@ static int32 calc_rate(int diff, double msec)
  */
 static int32 calc_sustain(int sust_cB)
 {
-    double level;
+	if(sust_cB <= 0) {return 255;}
+	else if(sust_cB >= 1000) {return 0;}
+	return (1000 - sust_cB) * 255 / 1000;
+/*    double level;
     if(sust_cB <= 0)
 	return 255;
     level = (double)sust_cB;
     if(level >= 1000)
 	return 1;
-    return TO_VOLUME(level);
+    return TO_VOLUME(level);*/
 }
 
 static Instrument *load_from_file(SFInsts *rec, InstList *ip)

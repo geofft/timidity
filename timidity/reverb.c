@@ -147,34 +147,11 @@ void set_dry_signal(register int32 *buf, int32 n)
 #endif
 }
 
-#if OPT_MODE != 0
 void mix_dry_signal(register int32 *buf, int32 n)
 {
-    register int32  i;
-	register int32 count = n;
-	register int32 *dbuf = direct_buffer;
-
-    for(i=0;i<count;i++)
-    {
- 		buf[i] = dbuf[i];
-		dbuf[i] = 0;
-    }
+ 	memcpy(buf,direct_buffer,sizeof(int32) * n);
+	memset(direct_buffer,0,sizeof(int32) * n);
 }
-#else
-void mix_dry_signal(register int32 *buf, int32 n)
-{
-    register int32  i;
-	register int32 count = n;
-	register int32 *dbuf = direct_buffer;
-
-    for(i=0;i<count;i++)
-    {
- 		buf[i] = dbuf[i];
-		dbuf[i] = 0;
-    }
-}
-#endif
-
 
 void init_reverb(int32 output_rate)
 {

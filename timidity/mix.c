@@ -48,6 +48,8 @@
 #endif
 #endif
 
+#define OFFSET_MAX 1069547520.0f
+
 #if OPT_MODE != 0
 #define VOICE_LPF
 #endif
@@ -1083,12 +1085,12 @@ static inline int next_stage(int v)
 
 	vp->envelope_increment = rate;
 	vp->envelope_target = offset;
-	if (vp->envelope_target < vp->envelope_volume) {
+	if (vp->envelope_target < vp->envelope_volume)
 		vp->envelope_increment = -vp->envelope_increment;
+
+	if(stage > 2) {
 		vp->envelope_scale = vp->last_envelope_volume;
-		vp->inv_envelope_scale = (double)vp->sample->envelope_offset[0] / (double)vp->envelope_volume * 0x10000;
-	} else {
-		vp->envelope_scale = 1.0f;
+		vp->inv_envelope_scale = OFFSET_MAX / (double)vp->envelope_volume * 0x10000;
 	}
 
 	return 0;
@@ -1125,7 +1127,7 @@ static inline void update_tremolo(int v)
 
 int apply_envelope_to_amp(int v)
 {
-	FLOAT_T lamp = voice[v].left_amp, ramp, env;
+	FLOAT_T lamp = voice[v].left_amp, ramp;
 	FLOAT_T *v_table = voice[v].sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
 	int32 la, ra;
 	
@@ -1136,8 +1138,10 @@ int apply_envelope_to_amp(int v)
 			ramp *= voice[v].tremolo_volume;
 		}
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_increment < 0) {
+			if (voice[v].envelope_stage > 3) {
 				voice[v].last_envelope_volume = v_table[imuldiv16(voice[v].envelope_volume >> 23,voice[v].inv_envelope_scale)] * voice[v].envelope_scale;
+			} else if (voice[v].envelope_stage > 1) {
+				voice[v].last_envelope_volume = v_table[voice[v].envelope_volume >> 23];
 			} else {
 				voice[v].last_envelope_volume = attack_vol_table[voice[v].envelope_volume >> 23];
 			}
@@ -1162,8 +1166,10 @@ int apply_envelope_to_amp(int v)
 		if (voice[v].tremolo_phase_increment)
 			lamp *= voice[v].tremolo_volume;
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_increment < 0) {
+			if (voice[v].envelope_stage > 3) {
 				voice[v].last_envelope_volume = v_table[imuldiv16(voice[v].envelope_volume >> 23,voice[v].inv_envelope_scale)] * voice[v].envelope_scale;
+			} else if (voice[v].envelope_stage > 1) {
+				voice[v].last_envelope_volume = v_table[voice[v].envelope_volume >> 23];
 			} else {
 				voice[v].last_envelope_volume = attack_vol_table[voice[v].envelope_volume >> 23];
 			}

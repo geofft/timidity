@@ -4164,7 +4164,8 @@ static void DlgPlaylistSave(HWND hwnd)
 	ofn.lpstrInitialDir	= dir;
 	ofn.lpstrTitle	= "Save Playlist File";
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_HIDEREADONLY;
-	ofn.lpstrDefExt = 0;
+// ofn.lpstrDefExt = 0;
+	ofn.lpstrDefExt = "pls";
 	ofn.lCustData = 0;
 	ofn.lpfnHook = 0;
 	ofn.lpTemplateName= 0;

@@ -658,14 +658,18 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		break;
 	case CTLE_RESET:
 		TracerWndReset2();
+#if 0
 		if ( w32g_tracer_wnd.play_system_mode != play_system_mode ) {
+#endif
 			get_head_rc ( &rc, &w32g_tracer_wnd.rc_gm );
 			tracer_gm_draw ( &rc, play_system_mode == GM_SYSTEM_MODE ? 1 : 0 );
 			get_head_rc ( &rc, &w32g_tracer_wnd.rc_gs );
 			tracer_gs_draw ( &rc, play_system_mode == GS_SYSTEM_MODE ? 1 : 0 );
 			get_head_rc ( &rc, &w32g_tracer_wnd.rc_xg );
 			tracer_xg_draw ( &rc, play_system_mode == XG_SYSTEM_MODE ? 1 : 0 );
+#if 0
 		}
+#endif
 		w32g_tracer_wnd.play_system_mode = play_system_mode;
 		break;
 	case CTLE_SPEANA:

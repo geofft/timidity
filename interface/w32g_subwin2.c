@@ -169,34 +169,24 @@ static void wrd_graphic_update ( RECT *lprc, int lockflag );
 static void wrd_text_update ( int x_from, int y_from, int x_to, int y_to, int lockflag );
 
 static HANDLE volatile hMutexWrd = NULL;
-// static volatile lock_num = 0;
-static BOOL wrd_wnd_lock (void)
+static BOOL wrd_wnd_lock_ex ( DWORD timeout )
 {
 	if ( hMutexWrd == NULL ) {
-// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-// 		  "locking<%d %d>", GetCurrentThreadId(),lock_num );
-		CreateMutex ( NULL, TRUE, NULL );
-// lock_num++;
-// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-// 		  "lock<%d %d>", GetCurrentThreadId(),lock_num );
-	} else {
-		DWORD dwRes;
-// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-// 		  "locking<%d %d>", GetCurrentThreadId(),lock_num );
-		dwRes = WaitForSingleObject ( hMutexWrd, INFINITE );
-// lock_num++;
-// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-// 		  "lock<%d %d>", GetCurrentThreadId(),lock_num );
-		if ( dwRes == WAIT_TIMEOUT )
+		hMutexWrd = CreateMutex ( NULL, FALSE, NULL );
+		if ( hMutexWrd == NULL )
 			return FALSE;
+	}
+	if ( WaitForSingleObject ( hMutexWrd, timeout )== WAIT_FAILED ) {
+		return FALSE;
 	}
 	return TRUE;
 }
+static BOOL wrd_wnd_lock (void)
+{
+	return wrd_wnd_lock_ex ( INFINITE );
+}
 static void wrd_wnd_unlock (void)
 {
-// lock_num--;
-// ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-// 		  "unlock<%d %d>", GetCurrentThreadId(),lock_num );
 	ReleaseMutex ( hMutexWrd );
 }
 
@@ -1965,14 +1955,17 @@ void WrdWndPaintDo(int flag)
 	if ( flag ) InvalidateRect( w32g_wrd_wnd.hwnd,NULL, FALSE );
 	if ( GetUpdateRect(w32g_wrd_wnd.hwnd, &rc, FALSE) ) {
 		PAINTSTRUCT ps;
-		wrd_wnd_lock();
-		if ( GDI_LOCK_EX(0) == 0 ) {
-			w32g_wrd_wnd.hdc = BeginPaint(w32g_wrd_wnd.hwnd, &ps);
-			BitBlt(w32g_wrd_wnd.hdc,rc.left,rc.top,rc.right,rc.bottom,w32g_wrd_wnd.hmdc,rc.left,rc.top,SRCCOPY);
-			EndPaint(w32g_wrd_wnd.hwnd, &ps);
-			GDI_UNLOCK(); // gdi_lock
+		if ( wrd_wnd_lock ( 0 ) == TRUE ) {
+			if ( GDI_LOCK_EX(0) == 0 ) {
+				w32g_wrd_wnd.hdc = BeginPaint(w32g_wrd_wnd.hwnd, &ps);
+				BitBlt(w32g_wrd_wnd.hdc,rc.left,rc.top,rc.right,rc.bottom,w32g_wrd_wnd.hmdc,rc.left,rc.top,SRCCOPY);
+				EndPaint(w32g_wrd_wnd.hwnd, &ps);
+				GDI_UNLOCK(); // gdi_lock
+			} else {
+				InvalidateRect ( w32g_wrd_wnd.hwnd, &rc, FALSE );
+			}
 		} else {
-			InvalidateRect ( w32g_wrd_wnd.hwnd, &rc, FALSE );
+				InvalidateRect ( w32g_wrd_wnd.hwnd, &rc, FALSE );
 		}
 		wrd_wnd_unlock();
 	}

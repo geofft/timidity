@@ -957,6 +957,11 @@ void recompute_voice_filter(int v)
 	if(fc->freq < 20) {fc->freq = 20;}
 	else if(fc->freq > 20000) {fc->freq = 20000;}
 
+	if (fc->freq > play_mode->rate / 2) {
+		fc->freq = -1;
+		return;
+	}
+
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
@@ -2560,7 +2565,7 @@ static void adjust_channel_pressure(MidiEvent *e)
 	{
 	    if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	    {
-		voice[i].velocity = pressure;
+	/*	voice[i].velocity = pressure;*/
 		recompute_amp(i);
 		apply_envelope_to_amp(i);
 	    }
@@ -3475,6 +3480,8 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	break;
     }
 
+	drumflag = 0;
+	
     if(drumflag && midi_drumpart_change(ch, 1))
     {
 	midi_program_change(ch, channel[ch].program);
