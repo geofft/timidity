@@ -600,6 +600,137 @@ static int block_to_part(int block, int port)
 	return MERGE_CHANNEL_PORT2(p, port);
 }
 
+/* Map XG types onto GS types.  XG should eventually have its own tables */
+void set_xg_reverb_type(int msb, int lsb)
+{
+	int type = 4;
+
+	if ((msb == 0x00) ||
+	    (msb >= 0x05 && msb <= 0x0F) ||
+	    (msb >= 0x14))			/* NO EFFECT */
+	{
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Reverb Type (NO EFFECT %d %d)", msb, lsb);
+		return;
+	}
+
+	switch(msb)
+	{
+	    case 0x01:
+		type = 3;			/* Hall 1 */
+		break;
+	    case 0x02:
+		type = 0;			/* Room 1 */
+		break;
+	    case 0x03:
+		type = 3;			/* Stage 1 -> Hall 1 */
+	    case 0x04:
+		type = 5;			/* Plate */
+		break;
+	    default:
+		type = 4;			/* unsupported -> Hall 2 */
+	    break;
+	}
+	if (lsb == 0x01)
+	{
+	    switch(msb)
+	    {
+		case 0x01:
+		    type = 4;			/* Hall 2 */
+		    break;
+		case 0x02:
+		    type = 1;			/* Room 2 */
+		    break;
+		case 0x03:
+		    type = 4;			/* Stage 2 -> Hall 2 */
+		    break;
+		default:
+		    break;
+	    }
+	}
+	if (lsb == 0x02 && msb == 0x02)
+	    type = 2;				/* Room 3 */
+
+	set_reverb_macro(type);
+	recompute_reverb_status();	
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Reverb Type (%d)", type);
+}
+
+/* Map XG types onto GS types.  XG should eventually have its own tables */
+void set_xg_chorus_type(int msb, int lsb)
+{
+	int type = 2;
+
+	if ((msb >= 0x00 && msb <= 0x40) ||
+	    (msb >= 0x45 && msb <= 0x47) ||
+	    (msb >= 0x49))			/* NO EFFECT */
+	{
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Chorus Type (NO EFFECT %d %d)", msb, lsb);
+		return;
+	}
+
+	switch(msb)
+	{
+	    case 0x41:
+		type = 0;			/* Chorus 1 */
+		break;
+	    case 0x42:
+		type = 0;			/* Celeste 1 -> Chorus 1 */
+		break;
+	    case 0x43:
+		type = 5;			/* Flanger */
+		break;
+	    default:
+		type = 2;			/* unsupported -> Chorus 3 */
+	    break;
+	}
+	if (lsb == 0x01)
+	{
+	    switch(msb)
+	    {
+		case 0x41:
+		    type = 1;			/* Chorus 2 */
+		    break;
+		case 0x42:
+		    type = 1;			/* Celeste 2 -> Chorus 2 */
+		    break;
+		default:
+		    break;
+	    }
+	}
+	else if (lsb == 0x02)
+	{
+	    switch(msb)
+	    {
+		case 0x41:
+		    type = 2;			/* Chorus 3 */
+		    break;
+		case 0x42:
+		    type = 2;			/* Celeste 3 -> Chorus 3 */
+		    break;
+		default:
+		    break;
+	    }
+	}
+	else if (lsb == 0x08)
+	{
+	    switch(msb)
+	    {
+		case 0x41:
+		    type = 3;			/* Chorus 4 */
+		    break;
+		case 0x42:
+		    type = 3;			/* Celeste 4 -> Chorus 4 */
+		    break;
+		default:
+		    break;
+	    }
+	}
+
+	set_chorus_macro(type);
+	recompute_chorus_status();
+	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Set Chorus Type (%d)", type);
+}
+
 /* XG SysEx parsing function by Eric A. Welsh
  * Also handles GS patch+bank changes
  *
@@ -613,8 +744,10 @@ static int block_to_part(int block, int port)
 int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 {
     int num_events = 0;				/* Number of events added */
-	uint32 channel_tt;
-	int i, j;
+    uint32 channel_tt;
+    int i, j;
+    static uint8 xg_reverb_type_msb = 0x01, xg_reverb_type_lsb = 0x00;
+    static uint8 xg_chorus_type_msb = 0x41, xg_chorus_type_lsb = 0x00;
 
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
 	current_file_info->mid = val[0];
@@ -643,6 +776,24 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 	for (ent = val[7]; body <= body_end; body++, ent++) {
 	    switch(ent) {
+		case 0x00:	/* Reverb Type MSB */
+		    xg_reverb_type_msb = *body;
+		    break;
+
+		case 0x01:	/* Reverb Type LSB */
+		    xg_reverb_type_lsb = *body;
+		    set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+		    break;
+
+		case 0x20:	/* Chorus Type MSB */
+		    xg_chorus_type_msb = *body;
+		    break;
+
+		case 0x21:	/* Chorus Type LSB */
+		    xg_chorus_type_lsb = *body;
+		    set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+		    break;
+
 		case 0x0C:	/* Reverb Return */
 		    reverb_status.level = *body;
 		    recompute_reverb_status();
@@ -762,7 +913,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 
 		case 0x0E:	/* pan */
 		    if(*body == 0) {
-		    	SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
+			SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
 		    }
 		    else {
 			SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, 0);
@@ -824,8 +975,31 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		p = val[4];
 		ent = val[5];
 
+		/* set reverb/chorus type on both MSB and LSB events */
+		/* this will give the "intended" result even if the events are
+		   sent in the wrong order */
 		if(val[3] == 0x01) {	/* Effect 1 */
 			switch(ent) {
+				case 0x00:	/* Reverb Type MSB */
+				  xg_reverb_type_msb = val[6];
+				  set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  break;
+
+				case 0x01:	/* Reverb Type LSB */
+				  xg_reverb_type_lsb = val[6];
+				  set_xg_reverb_type(xg_reverb_type_msb, xg_reverb_type_lsb);
+				  break;
+
+				case 0x20:	/* Chorus Type MSB */
+				  xg_chorus_type_msb = val[6];
+				  set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  break;
+
+				case 0x21:	/* Chorus Type LSB */
+				  xg_chorus_type_lsb = val[6];
+				  set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
+				  break;
+
 				case 0x0C:	/* Reverb Return */
 				  SETMIDIEVENT(evm[0], 0,ME_SYSEX_XG_LSB,p,val[6],0x00);
 				  num_events++;
@@ -862,7 +1036,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x05:	/* mono/poly mode */
- 				  if(val[6] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[6], 0);}
+				  if(val[6] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO, p, val[6], 0);}
 				  else {SETMIDIEVENT(evm[0], 0, ME_POLY, p, val[6], 0);}
 				  num_events++;
 				  break;
@@ -3262,9 +3436,9 @@ MidiEvent *read_midi_file(struct timidity_file *tf, int32 *count, int32 *sp,
     if((mtype = get_module_type(fn)) > 0)
     {
 	readmidi_read_init();
-    	if(!IS_URL_SEEK_SAFE(tf->url))
-    	    tf->url = url_cache_open(tf->url, 1);
-  	err = load_module_file(tf, mtype);
+	if(!IS_URL_SEEK_SAFE(tf->url))
+	    tf->url = url_cache_open(tf->url, 1);
+	err = load_module_file(tf, mtype);
 	if(!err)
 	{
 	    current_file_info->format = 0;
@@ -3520,7 +3694,7 @@ struct timidity_file *open_midi_file(char *fn,
     /* smf convert */
     if(tf != NULL && opt_rcpcv_dll)
     {
-    	if(smfconv_w32(tf, fn))
+	if(smfconv_w32(tf, fn))
 	{
 	    close_file(tf);
 	    return NULL;
@@ -3805,7 +3979,7 @@ char *get_midi_title(char *filename)
 
     if(memcmp(tmp, "RCM-", 4) == 0 || memcmp(tmp, "COME", 4) == 0)
     {
-    	int i;
+	int i;
 	char local[0x40 + 1];
 	char *str;
 

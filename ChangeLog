@@ -1,3 +1,12 @@
+2003-11-05  mput <root@mput.dip.jp>
+
+	* timidity/readmidi.c: reindent.
+
+2003-11-04  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/readmidi.c (set_xg_reverb_type): Add.
+	(parse_sysex_event_multi): Support for XG SysEx. reverb/chorus types
+
 2003-11-01  Saito <saito2@digitalme.com>
 
 	* timidity/sndfont.c:
