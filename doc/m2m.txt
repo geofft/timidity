@@ -1,13 +1,11 @@
-m2m mod->midi file converter for TiMidity++
-Release 1.00
-May 2001
+m2m: mod->midi file converter for TiMidity++
 
 
 
 
 BRIEF SYNOPSIS:
 
-This adds the new -Om output mode to TiMidity++, which will read in a mod file
+This adds the new -OM output mode to TiMidity++, which will read in a mod file
 and output a midi file.  All parameters needed for the conversion are
 contained in a .m2m file of the same base name as the mod.  If this file can
 not be found, it will generate one for you.  Chord assignment and
@@ -21,13 +19,12 @@ need to assign drums, correct banks/programs, and tweak volume amps by hand.
 
 EXAMPLE USAGE:
 
-timidity -c c:\timidity\timidity.cfg -Om -idt foo.mod
+timidity -c c:\timidity\timidity.cfg -OM -V 2 -idt foo.mod
 
 This will try to read in foo.m2m as the config file for the conversion, and
-will output a file called foo.mid.  You can use the -o flag to specify any
-other output name you wish.  I haven't bothered to add an option for
-specifying a different .m2m file because I'm running out of letters in the
-alphabet for new flags :)
+will output a file called foo.mid.  -V 2 tells it to generate midi for use
+on a device that uses an X^2 volume curve (all GM/GS/XG hardware).  You can
+use the -o flag to specify any other output name you wish.
 
 If you don't have timidity installed, so that you don't have a valid
 timidity.cfg file, just create a 0 byte file and use it instead of the real
@@ -294,7 +291,7 @@ legal stuff, blah blah blah, etc..  You know the drill.
 
 
 
-Eric A. Welsh <ewelsh@gpc.wustl.edu>
+Eric A. Welsh <ewelsh@ccb.wustl.edu>
 Center for Molecular Design
 Center for Computational Biology
 Washington University

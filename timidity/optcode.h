@@ -205,19 +205,19 @@ static inline int32 imuldiv24(int32 a, int32 b)
 	     :"5"(a),"6"(b));
     return ret;
 }
-static inline int32 d2i(double frb)
-{
-    register int32 ret;
-    register double frt;
-    volatile double temp;
-    __asm__ ("fctiwz %1,%2\n\t"
-	     "stfd %1,%4\n\t"
-	     "lwz %0,4+%4"
-	     :"=r"(ret)
-	     :"f"(frt),"f"(frb),"r"(ret),"m"(temp)
-	     :"memory");
-    return ret;
-}
+/* static inline int32 d2i(double frb) */
+/* { */
+/*     register int32 ret; */
+/*     register double frt; */
+/*     volatile double temp; */
+/*     __asm__ ("fctiwz %1,%2\n\t" */
+/* 	     "stfd %1,%4\n\t" */
+/* 	     "lwz %0,4+%4" */
+/* 	     :"=r"(ret) */
+/* 	     :"f"(frt),"f"(frb),"r"(ret),"m"(temp) */
+/* 	     :"memory"); */
+/*     return ret; */
+/* } */
 
 #else
 /* Generic version of imuldiv. */

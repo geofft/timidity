@@ -189,6 +189,58 @@ static char vol_nonlin_to_lin[128][2] = {
     123, 126, 123, 127, 124, 126, 124, 127, 125, 127, 126, 126, 126, 127,
     127, 126, 127, 127 };
 
+/*
+ * Uses the volume curve specified by the -V or --volume-curve option.
+ *
+ * The resulting midi will sound correct on hardware / software that uses
+ * the volume curve selected by the user.
+ *
+ * -V 1.661, or (1/log10(4)), is the default timidity volume curve for GM/XG,
+ * and is thus the default for MOD->MIDI output as well, so that the
+ * resulting midi will sound correct when played using default timidity
+ * options.
+ *
+ * -V 2 should be used to generate midi for playback on MIDI hardware, since
+ * the GM/GS/XG standards all specify a volume curve of X^2
+ *
+ * -V 1.661 will still sound good on MIDI hardware, though, and should sound
+ * better than -V 2 on softsynths that (incorrectly) use linear volume curves
+ * (such as TiMidity++ versions <= 2.11.3).
+ *
+ * Use -V 1 if you want to generate midi ONLY for linear volume devices.
+ * It will sound bad when played with anything else.
+ */
+void fill_vol_nonlin_to_lin_table(void)
+{
+    int i;
+    int coarse, fine;
+    double power = 0;
+    double inverse;
+    double temp;
+    double log_127;
+
+    /* derive the power used to generate the user volume table */
+    log_127 = log(127);
+    for (i = 1; i <= 126; i++)
+    	power += (log(user_vol_table[i]) - log_127) / (log(i) - log_127);
+    power /= 126;
+
+    /* use the inverse of the power to generate the new table */
+    for (i = 1; i <= 127; i++)
+    {
+    	inverse = pow(i / 127.0, 1.0 / power);
+       	temp = 127 * inverse;
+
+    	coarse = floor(temp + 0.5);
+	if (coarse < temp) coarse += 1;
+
+	fine = floor(127 * temp / coarse + 0.5);
+
+	vol_nonlin_to_lin[i][0] = coarse;
+	vol_nonlin_to_lin[i][1] = fine;
+    }
+}
+
 /* generate the names of the output and cfg files from the input file */
 /* modified from auto_wav_output_open() in wave_a.c */
 static int auto_names(const char *input_filename)
@@ -1489,6 +1541,10 @@ void convert_mod_to_midi_file(MidiEvent * ev)
     int i;
 
     change_system_mode(DEFAULT_SYSTEM_MODE);
+
+    /* use user volume curve if specified, rather than the default */
+    if (opt_user_volume_curve)
+	fill_vol_nonlin_to_lin_table();
 
     initialize_m2m_stuff();
 

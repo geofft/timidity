@@ -1,3 +1,8 @@
+2004-02-13  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/m2m.c: new function fill_nonlin_to_lin_table()
+	* doc/m2m.txt: update
+
 2004-02-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/Makefile.{am,in}:
