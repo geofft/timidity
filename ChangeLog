@@ -1,3 +1,7 @@
+2003-08-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Add function prototypes
+
 2003-08-03 mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (parse_opt_223): Fix typo
@@ -8,7 +12,7 @@
 
 2003-08-02  mput <root@mput.dip.jp>
 
-	* timidity/timidity.c : Fix typo and so on
+	* timidity/timidity.c: Fix typo and so on
 
 2003-08-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -17,8 +21,8 @@
 2003-07-31  mput <root@mput.dip.jp>
 
 	* utils/tmdy_getopt.h: Moved from utils/getopt.h
-	* timidity/timidity.c,utils/getopt.c,utils/Makefile.am: Fix to fit
-	  above
+	* timidity/timidity.c, utils/Makefile.am, utils/getopt.c:
+	  Fix to fit above
 
 2003-07-31  mput <root@mput.dip.jp>
 
