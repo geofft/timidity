@@ -1,3 +1,8 @@
+2003-02-23  Tamuki <tamuki@linet.gr.jp>
+
+	* timidity/tables.[ch], timidity/timidity.c:
+	  Hack up attack_vol_table[] and sb_vol_table[]
+
 2003-02-22  Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
 
 	* interface/xaw_i.c: Hack up arround color resources

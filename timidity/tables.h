@@ -75,5 +75,7 @@ extern void init_freq_table2(void);
 extern void init_bend_fine(void);
 extern void init_bend_coarse(void);
 extern void init_tables(void);
+extern void init_attack_vol_table(void);
+extern void init_sb_vol_table(void);
 
 #endif /* ___TABLES_H_ */

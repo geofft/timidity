@@ -3322,6 +3322,8 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_bend_fine();
 	init_bend_coarse();
 	init_tables();
+	init_attack_vol_table();
+	init_sb_vol_table();
 #ifdef SUPPORT_SOCKET
 	url_news_connection_cache(URL_NEWS_CONN_CACHE);
 #endif /* SUPPORT_SOCKET */
