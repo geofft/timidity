@@ -183,7 +183,7 @@ int opt_insertion_effect = 0;	/* insertion effect control */
 int opt_sf_lpf = 0;	/* soundfont pre-lpf */
 int opt_drum_effect = 0;	/* drumpart effect control */
 int opt_random_expression = 0; /* expression randomize */
-double opt_drum_power = 1.0;		/* coef. of drum amplitude */
+int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
@@ -752,7 +752,7 @@ static void recompute_amp(int v)
 		if(channel[voice[v].channel].drums[voice[v].note] != NULL) {
 			tempamp *= channel[voice[v].channel].drums[voice[v].note]->drum_level;
 		}
-		tempamp *= opt_drum_power;
+		tempamp *= (double) opt_drum_power / 100;
 	}
 
 	if(!(play_mode->encoding & PE_MONO))

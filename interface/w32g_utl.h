@@ -155,8 +155,8 @@ typedef struct SETTING_TIMIDITY_ {
     char opt_qsize[16];		// q
     int32 modify_release;	// R
     int32 allocate_cache_size;	// S
-	double opt_drum_power;	// ?
-	int opt_amp_compensation;	// ?
+	int32 opt_drum_power;	// ?
+	int32 opt_amp_compensation;	// ?
 	int key_adjust;		// K
 	int8 opt_force_keysig;	// H
 	int opt_pure_intonation;	// Z

@@ -2872,13 +2872,19 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
         break;
 #endif
 
-      case 'A':
-	if(!strncmp(optarg,"auto",4))
-	    opt_amp_compensation = 1;
-	else if(set_value(&amplification, atoi(optarg), 0, MAX_AMPLIFICATION,
-		     "Amplification"))
-	    return 1;
-	break;
+	case 'A':	/* amplify volume by n percent */
+		if (*optarg != ',' && *optarg != 'a')
+			if (set_value(&amplification, atoi(optarg), 0,
+					MAX_AMPLIFICATION, "Amplification"))
+				return 1;
+		/* drum power */
+		if (strchr(optarg, ','))
+			if (set_value(&opt_drum_power, atoi(strchr(optarg, ',') + 1), 0,
+					MAX_AMPLIFICATION, "Drum power"))
+				return 1;
+		if (strchr(optarg, 'a'))
+			opt_amp_compensation = 1;
+		break;
 
       case 'a':
 	antialiasing_allowed = 1;
@@ -3170,7 +3176,7 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
 			opt_pure_intonation = 1;
 			if (*(optarg + 4)) {
 				if (set_value(&tmpi32, atoi(optarg + 4), -7, 7,
-						"Initial keysig (number of #(+)/b(-)[m(minor)]"))
+						"Initial keysig (number of #(+)/b(-)[m(minor)])"))
 					return 1;
 				if (strchr(optarg + 4, 'm'))
 					opt_init_keysig = tmpi32 + 16;

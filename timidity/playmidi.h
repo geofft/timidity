@@ -388,7 +388,7 @@ extern int8 opt_force_keysig;
 extern int key_adjust;
 extern int opt_pure_intonation;
 extern int current_freq_table;
-extern double opt_drum_power;
+extern int32 opt_drum_power;
 extern int opt_amp_compensation;
 
 extern int play_midi_file(char *fn);

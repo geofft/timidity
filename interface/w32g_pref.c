@@ -1136,8 +1136,7 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			while(i < 1) { *p++ = 'q'; i++; }
 
 			st_temp->control_ratio = GetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,NULL,FALSE);
-			GetDlgItemText(hwnd,IDC_EDIT_DRUM_POWER, tmp, sizeof(tmp));
-			st_temp->opt_drum_power = atof(tmp);
+			st_temp->opt_drum_power = GetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,NULL,FALSE);
 
 			DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
 
@@ -1197,8 +1196,7 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 							  char_count(st_temp->opt_ctl + 1, 'v') -
 							  char_count(st_temp->opt_ctl + 1, 'q') + 1, TRUE);
 			SetDlgItemInt(hwnd,IDC_EDIT_CONTROL_RATIO,st_temp->control_ratio,FALSE);
-			sprintf(tmp,"%f",st_temp->opt_drum_power);
-			SetDlgItemText(hwnd,IDC_EDIT_DRUM_POWER,tmp);
+			SetDlgItemInt(hwnd,IDC_EDIT_DRUM_POWER,st_temp->opt_drum_power,FALSE);
 			DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_AMP_COMPENSATION,st_temp->opt_amp_compensation);
 			break;
 		default:
