@@ -1,11 +1,17 @@
+2004-01-22  mput <root@mput.dip.jp>
+
+	* doc/C/timidity.cfg.5 : update to fit with ranvis' patch
+	* doc/ja_JP.ujis/timidity.cfg.5 : ditto
+
 2004-01-22  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/instrum.h, timidity/playmidi.c,
 	  timidity/readmidi.c, timidity/timidity.c:
-	  Removed GM2 default MSB support.
+	  Removed GM2 default MSB support.	
 	  Added new map 'gm2[drum]' (GM2) and 'sc8850[drum]' (GS LSB=4).
 	  Note that although GS LSB=4 indicates both SC-8820 and SC-8850
-	  and they're mapped identically, waveforms in the actual hardwares differ.
+	  and they're mapped identically, waveforms in the actual
+	  hardwares differ.
 
 2004-01-21  mput <root@mput.dip.jp>
 
