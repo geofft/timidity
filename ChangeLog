@@ -1,3 +1,8 @@
+2004-02-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Add help message for --module
+
 2004-02-04  Saito <saito2@digitalme.com>
 
 	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]:

@@ -190,9 +190,9 @@ enum {
 	TIM_OPT_WRD,
 	TIM_OPT_RCPCV_DLL,
 	TIM_OPT_CONFIG_STR,
-	TIM_OPT_MODULE,
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
+	TIM_OPT_MODULE,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -313,9 +313,9 @@ static const struct option longopts[] = {
 	{ "rcpcv-dll",              required_argument, NULL, TIM_OPT_RCPCV_DLL },
 #endif
 	{ "config-string",          required_argument, NULL, TIM_OPT_CONFIG_STR },
-	{ "module",					required_argument, NULL, TIM_OPT_MODULE },
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
+	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -376,7 +376,6 @@ static inline int parse_opt_reverb(const char *);
 static inline int parse_opt_voice_lpf(const char *);
 static inline int parse_opt_noise_shaping(const char *);
 static inline int parse_opt_resample(const char *);
-static inline int parse_opt_default_module(const char *);
 static inline int parse_opt_e(const char *);
 static inline int parse_opt_F(const char *);
 static inline int parse_opt_f(const char *);
@@ -438,6 +437,7 @@ static inline int parse_opt_x(char *);
 static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
+static inline int parse_opt_default_module(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
@@ -2684,12 +2684,12 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case TIM_OPT_CONFIG_STR:
 		return parse_opt_x(arg);
-	case TIM_OPT_MODULE:
-		return parse_opt_default_module(arg);
 	case TIM_OPT_FREQ_TABLE:
 		return parse_opt_Z(arg);
 	case TIM_OPT_PURE_INT:
 		return parse_opt_Z1(arg);
+	case TIM_OPT_MODULE:
+		return parse_opt_default_module(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3531,6 +3531,8 @@ static inline int parse_opt_h(const char *arg)
 "  pure<n>(m) --pure-intonation=n(m)",
 "               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)",
 "                 'm' stands for minor mode",
+"  --module=n",
+"               Set default module as n",
 		NULL
 	};
 	static char *help_args[3];
@@ -3958,14 +3960,6 @@ static inline int parse_opt_m(const char *arg)
 	min_sustain_time = atoi(arg);
 	if (min_sustain_time < 0)
 		min_sustain_time = 0;
-	return 0;
-}
-
-static inline int parse_opt_default_module(const char *arg)
-{
-	opt_default_module = atoi(arg);
-	if (opt_default_module < 0)
-		opt_default_module = 0;
 	return 0;
 }
 
@@ -4439,6 +4433,14 @@ static inline int parse_opt_Z1(const char *arg)
 		if (strchr(arg, 'm'))
 			opt_init_keysig += 16;
 	}
+	return 0;
+}
+
+static inline int parse_opt_default_module(const char *arg)
+{
+	opt_default_module = atoi(arg);
+	if (opt_default_module < 0)
+		opt_default_module = 0;
 	return 0;
 }
 
