@@ -980,7 +980,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		}
 		addr = (((int32)addr_h)<<16 | ((int32)addr_m)<<8 | (int32)addr_l);
 
-		switch(addr_h) {	
+		switch(addr_h) {
 		case 0x40:
 			if((addr & 0xFFF000) == 0x401000) {
 				switch(addr & 0xFF) {
@@ -2531,75 +2531,66 @@ static void free_midi_list(void)
 
 static void move_channels(int *chidx)
 {
-    int i, ch, maxch;
-    MidiEventList *e;
-
-    maxch = 0;
-    for(i = 0; i < 256; i++)
-	chidx[i] = -1;
-
-    /* check channels */
-    for(i = 0, e = evlist; i < event_count; i++, e = e->next)
-    {
-	if(!GLOBAL_CHANNEL_EVENT_TYPE(e->event.type))
-	{
-	    ch = e->event.channel;
-	    if(maxch < ch)
-		maxch = ch;
-	    if(ch < REDUCE_CHANNELS)
-		chidx[ch] = ch;
-	}
-    }
-
-    if(maxch < REDUCE_CHANNELS)
-    {
+	int i, ch, maxch, newch;
+	MidiEventList *e;
+	
+	for (i = 0; i < 256; i++)
+		chidx[i] = -1;
+	/* check channels */
+	for (i = maxch = 0, e = evlist; i < event_count; i++, e = e->next)
+		if (! GLOBAL_CHANNEL_EVENT_TYPE(e->event.type)) {
+			if ((ch = e->event.channel) < REDUCE_CHANNELS)
+				chidx[ch] = ch;
+			if (maxch < ch)
+				maxch = ch;
+		}
+	if (maxch >= REDUCE_CHANNELS)
+		/* Move channel if enable */
+		for (i = maxch = 0, e = evlist; i < event_count; i++, e = e->next)
+			if (! GLOBAL_CHANNEL_EVENT_TYPE(e->event.type)) {
+				if (chidx[ch = e->event.channel] != -1)
+					ch = e->event.channel = chidx[ch];
+				else {	/* -1 */
+					newch = ch % REDUCE_CHANNELS;
+					while (newch < ch && newch < MAX_CHANNELS) {
+						if (chidx[newch] == -1) {
+							ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+									"channel %d => %d", ch, newch);
+							ch = e->event.channel = chidx[ch] = newch;
+							break;
+						}
+						newch += REDUCE_CHANNELS;
+					}
+					if (chidx[ch] == -1) {
+						if (ch < MAX_CHANNELS)
+							chidx[ch] = ch;
+						else {
+							newch = ch % MAX_CHANNELS;
+							ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
+									"channel %d => %d (mixed)", ch, newch);
+							ch = e->event.channel = chidx[ch] = newch;
+						}
+					}
+				}
+				if (maxch < ch)
+					maxch = ch;
+			}
+	for (i = 0, e = evlist; i < event_count; i++, e = e->next)
+		if (e->event.type == ME_SYSEX_GS_LSB) {
+			if (e->event.b == 0x45 && e->event.a != 0x10) {
+				if (maxch < e->event.a)
+					maxch = e->event.a;
+			} else if (e->event.b == 0x46) {
+				if (maxch < e->event.a)
+					maxch = e->event.a;
+			}
+		} else if (e->event.type == ME_SYSEX_XG_LSB) {
+			if (e->event.b == 0x65 && e->event.a != 0x7f) {
+				if (maxch < e->event.a)
+					maxch = e->event.a;
+			}
+		}
 	current_file_info->max_channel = maxch;
-	return;
-    }
-
-    /* Move channel if enable */
-    maxch = 0;
-    for(i = 0, e = evlist; i < event_count; i++, e = e->next)
-    {
-	if(!GLOBAL_CHANNEL_EVENT_TYPE(e->event.type))
-	{
-	    ch = e->event.channel;
-	    if(chidx[ch] != -1)
-		ch = e->event.channel = chidx[ch];
-	    else /* -1 */
-	    {
-		int newch;
-
-		newch = ch % REDUCE_CHANNELS;
-		while(newch < ch && newch < MAX_CHANNELS)
-		{
-		    if(chidx[newch] == -1)
-		    {
-			ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-				  "channel %d => %d", ch, newch);
-			ch = e->event.channel = chidx[ch] = newch;
-			break;
-		    }
-		    newch += REDUCE_CHANNELS;
-		}
-		if(chidx[ch] == -1)
-		{
-		    if(ch < MAX_CHANNELS)
-			chidx[ch] = ch;
-		    else
-		    {
-			newch = ch % MAX_CHANNELS;
-			ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
-				  "channel %d => %d (mixed)", ch, newch);
-			ch = e->event.channel = chidx[ch] = newch;
-		    }
-		}
-	    }
-	    if(maxch < ch)
-		maxch = ch;
-	}
-    }
-    current_file_info->max_channel = maxch;
 }
 
 void change_system_mode(int mode)
@@ -4574,9 +4565,9 @@ void recompute_insertion_effect()
 /*! initialize channel layers. */
 void init_channel_layer(int ch)
 {
-	if(ch >= MAX_CHANNELS) {return;}
-
-	if(channel[ch].channel_layer != NULL) {
+	if (ch >= MAX_CHANNELS)
+		return;
+	if (channel[ch].channel_layer != NULL) {
 		free(channel[ch].channel_layer);
 		channel[ch].channel_layer = NULL;
 	}
@@ -4586,67 +4577,56 @@ void init_channel_layer(int ch)
 /*! add a new layer and remove an overlapping layer. */
 void add_channel_layer(int ch, int fromch)
 {
-	int i, j = 0;
+	int i, j;
 	int8 layer[MAX_CHANNELS];
-
-	if(fromch >= MAX_CHANNELS || ch >= MAX_CHANNELS) {return;}
-
+	
+	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
+		return;
 	/* delete an overlapping channel layer */
-	if(channel[fromch].channel_layer != NULL) {
-		memcpy(layer, channel[fromch].channel_layer, sizeof layer);
-		for(i = 0; i < MAX_CHANNELS; i++)
-		{
-			if(layer[i] == -1) {
-				channel[fromch].channel_layer[j] = -1;
-				break;
-			} else if(layer[i] != fromch) {
-				channel[fromch].channel_layer[j] = layer[i];
-				j++;
-			}
-		}
+	if (channel[fromch].channel_layer != NULL) {
+		memcpy(layer, channel[fromch].channel_layer, sizeof(layer));
+		for (i = j = 0; i < MAX_CHANNELS && layer[i] != -1; i++)
+			if (layer[i] != fromch)
+				channel[fromch].channel_layer[j++] = layer[i];
+		if (j < MAX_CHANNELS)
+			channel[fromch].channel_layer[j] = -1;
 	}
 	/* add a channel layer */
-	for(i = 0; i < MAX_CHANNELS; i++)
-	{
-		if(channel[ch].channel_layer == NULL || channel[ch].channel_layer[i] == -1) {
+	for (i = 0; i < MAX_CHANNELS; i++) {
+		if (channel[ch].channel_layer == NULL
+				|| channel[ch].channel_layer[i] == -1) {
 			if (channel[ch].channel_layer == NULL)
-				channel[ch].channel_layer = (int8 *)safe_malloc(sizeof(int8) * (MAX_CHANNELS + 1));
+				channel[ch].channel_layer = (int8 *)
+						safe_malloc((MAX_CHANNELS + 1) * sizeof(int8));
 			channel[ch].channel_layer[i] = fromch;
 			channel[ch].channel_layer[i + 1] = -1;
-			if(i > 0) {
-				ctl->cmsg(CMSG_INFO, VERB_NOISY, "Channel Layer (CH:%d -> CH:%d)", fromch, ch);
-			}
-			break;
-		} else if(channel[ch].channel_layer[i] == fromch) {
+			if (i > 0)
+				ctl->cmsg(CMSG_INFO, VERB_NOISY,
+						"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
 			break;
 		}
+		if (channel[ch].channel_layer[i] == fromch)
+			break;
 	}
 }
 
 /*! remove all layers for this channel. */
 void remove_channel_layer(int ch)
 {
-	int i, j, k;
+	int fromch, i, j;
 	int8 layer[MAX_CHANNELS];
-
-	if(ch >= MAX_CHANNELS) {return;}
-
-	for(k = 0; k < MAX_CHANNELS; k++)
-	{
-		j = 0;
+	
+	if (ch >= MAX_CHANNELS)
+		return;
+	for (fromch = 0; fromch < MAX_CHANNELS; fromch++)
 		/* remove channel layers */
-		if(channel[k].channel_layer != NULL) {
-			memcpy(layer, channel[k].channel_layer, sizeof layer);
-			for(i = 0; i < MAX_CHANNELS; i++)
-			{
-				if(layer[i] == -1) {
-					channel[k].channel_layer[j] = -1;
-					break;
-				} else if(layer[i] != ch) {
-					channel[k].channel_layer[j] = layer[i];
-					j++;
-				}
-			}
+		if (channel[fromch].channel_layer != NULL) {
+			memcpy(layer, channel[fromch].channel_layer, sizeof(layer));
+			for (i = j = 0; i < MAX_CHANNELS && layer[i] != -1; i++)
+				if (layer[i] != ch)
+					channel[fromch].channel_layer[j++] = layer[i];
+			if (j < MAX_CHANNELS)
+				channel[fromch].channel_layer[j] = -1;
 		}
-	}
 }
+

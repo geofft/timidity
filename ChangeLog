@@ -1,3 +1,8 @@
+2003-09-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Hack up around channel layer
+
 2003-09-26  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c: Replaced the previous patch mis-applied.
@@ -25,7 +30,7 @@
 	  Added the detect callback to output record.  It's used to
 	  check the availability of default device and fallback devices.
 
-2003-09-18  mput  <root@mput.dip.jp>
+2003-09-18  mput <root@mput.dip.jp>
 
 	* timidity/playmidi.c (note_off): Bug fix SEGV-ing for
 	  non-existent instrument

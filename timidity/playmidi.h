@@ -40,109 +40,108 @@ typedef struct {
 /* Midi events */
 enum midi_event_t
 {
-    ME_NONE,
-
-    /* MIDI events */
-    ME_NOTEOFF,
-    ME_NOTEON,
-    ME_KEYPRESSURE,
-    ME_PROGRAM,
-    ME_CHANNEL_PRESSURE,
-    ME_PITCHWHEEL,
-
-    /* Controls */
-    ME_TONE_BANK_MSB,
-    ME_TONE_BANK_LSB,
-    ME_MODULATION_WHEEL,
-    ME_BREATH,
-    ME_FOOT,
-    ME_MAINVOLUME,
-    ME_BALANCE,
-    ME_PAN,
-    ME_EXPRESSION,
-    ME_SUSTAIN,
-    ME_PORTAMENTO_TIME_MSB,
-    ME_PORTAMENTO_TIME_LSB,
-    ME_PORTAMENTO,
-    ME_PORTAMENTO_CONTROL,
-    ME_DATA_ENTRY_MSB,
-    ME_DATA_ENTRY_LSB,
-    ME_SOSTENUTO,
-    ME_SOFT_PEDAL,
+	ME_NONE,
+	
+	/* MIDI events */
+	ME_NOTEOFF,
+	ME_NOTEON,
+	ME_KEYPRESSURE,
+	ME_PROGRAM,
+	ME_CHANNEL_PRESSURE,
+	ME_PITCHWHEEL,
+	
+	/* Controls */
+	ME_TONE_BANK_MSB,
+	ME_TONE_BANK_LSB,
+	ME_MODULATION_WHEEL,
+	ME_BREATH,
+	ME_FOOT,
+	ME_MAINVOLUME,
+	ME_BALANCE,
+	ME_PAN,
+	ME_EXPRESSION,
+	ME_SUSTAIN,
+	ME_PORTAMENTO_TIME_MSB,
+	ME_PORTAMENTO_TIME_LSB,
+	ME_PORTAMENTO,
+	ME_PORTAMENTO_CONTROL,
+	ME_DATA_ENTRY_MSB,
+	ME_DATA_ENTRY_LSB,
+	ME_SOSTENUTO,
+	ME_SOFT_PEDAL,
 	ME_LEGATO_FOOTSWITCH,
 	ME_HOLD2,
-    ME_HARMONIC_CONTENT,
-    ME_RELEASE_TIME,
-    ME_ATTACK_TIME,
-    ME_BRIGHTNESS,
-    ME_REVERB_EFFECT,
-    ME_TREMOLO_EFFECT,
-    ME_CHORUS_EFFECT,
-    ME_CELESTE_EFFECT,
-    ME_PHASER_EFFECT,
-    ME_RPN_INC,
-    ME_RPN_DEC,
-    ME_NRPN_LSB,
-    ME_NRPN_MSB,
-    ME_RPN_LSB,
-    ME_RPN_MSB,
-    ME_ALL_SOUNDS_OFF,
-    ME_RESET_CONTROLLERS,
-    ME_ALL_NOTES_OFF,
-    ME_MONO,
-    ME_POLY,
-
-    /* TiMidity Extensionals */
+	ME_HARMONIC_CONTENT,
+	ME_RELEASE_TIME,
+	ME_ATTACK_TIME,
+	ME_BRIGHTNESS,
+	ME_REVERB_EFFECT,
+	ME_TREMOLO_EFFECT,
+	ME_CHORUS_EFFECT,
+	ME_CELESTE_EFFECT,
+	ME_PHASER_EFFECT,
+	ME_RPN_INC,
+	ME_RPN_DEC,
+	ME_NRPN_LSB,
+	ME_NRPN_MSB,
+	ME_RPN_LSB,
+	ME_RPN_MSB,
+	ME_ALL_SOUNDS_OFF,
+	ME_RESET_CONTROLLERS,
+	ME_ALL_NOTES_OFF,
+	ME_MONO,
+	ME_POLY,
+	
+	/* TiMidity Extensionals */
 #if 0
-    ME_VOLUME_ONOFF,		/* Not supported */
+	ME_VOLUME_ONOFF,		/* Not supported */
 #endif
-    ME_RANDOM_PAN,
-    ME_SET_PATCH,		/* Install special instrument */
-    ME_DRUMPART,
-    ME_KEYSHIFT,
-    ME_PATCH_OFFS,		/* Change special instrument sample position
-				 * Channel, LSB, MSB
-				 */
-
-    /* Global channel events */
-
-    ME_TEMPO,
-    ME_CHORUS_TEXT,
-    ME_LYRIC,
-    ME_GSLCD,	/* GS L.C.D. Exclusive message event */
-    ME_MARKER,
-    ME_INSERT_TEXT, /* for SC */
-    ME_TEXT,
-    ME_KARAOKE_LYRIC, /* for KAR format */
-    ME_MASTER_VOLUME,
-    ME_RESET,			/* Reset and change system mode */
-    ME_NOTE_STEP,
-
-    ME_TIMESIG,			/* Time signature */
-    ME_KEYSIG,			/* Key signature */
-    ME_SCALE_TUNING,		/* Scale tuning */
-    ME_BULK_TUNING_DUMP,	/* Bulk tuning dump */
-    ME_SINGLE_NOTE_TUNING,	/* Single-note tuning */
-    ME_TEMPER_KEYSIG,		/* Temperament key signature */
-    ME_TEMPER_TYPE,		/* Temperament type */
-    ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
-
-	ME_SYSEX_LSB,	/* Universal system exclusive message (LSB) */
-	ME_SYSEX_MSB,	/* Universal system exclusive message (MSB) */
-	ME_SYSEX_GS_LSB,	/* GS system exclusive message (LSB) */
-	ME_SYSEX_GS_MSB,	/* GS system exclusive message (MSB) */
-	ME_SYSEX_XG_LSB,	/* XG system exclusive message (LSB) */
-	ME_SYSEX_XG_MSB,	/* XG system exclusive message (MSB) */
-
-    ME_WRD,			/* for MIMPI WRD tracer */
-    ME_SHERRY,			/* for Sherry WRD tracer */
-    ME_BARMARKER,
-    ME_STEP,			/* for Metronome */
-
-    ME_LAST = 254,		/* Last sequence of MIDI list.
-				 * This event is reserved for realtime player.
-				 */
-    ME_EOT = 255		/* End of MIDI.  Finish to play */
+	ME_SCALE_TUNING,		/* Scale tuning */
+	ME_BULK_TUNING_DUMP,	/* Bulk tuning dump */
+	ME_SINGLE_NOTE_TUNING,	/* Single-note tuning */
+	ME_TEMPER_KEYSIG,		/* Temperament key signature */
+	ME_TEMPER_TYPE,			/* Temperament type */
+	ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
+	ME_RANDOM_PAN,
+	ME_SET_PATCH,			/* Install special instrument */
+	ME_DRUMPART,
+	ME_KEYSHIFT,
+	ME_PATCH_OFFS,			/* Change special instrument sample position
+							 * Channel, LSB, MSB
+							 */
+	
+	/* Global channel events */
+	ME_TEMPO,
+	ME_CHORUS_TEXT,
+	ME_LYRIC,
+	ME_GSLCD,				/* GS L.C.D. Exclusive message event */
+	ME_MARKER,
+	ME_INSERT_TEXT,			/* for SC */
+	ME_TEXT,
+	ME_KARAOKE_LYRIC,		/* for KAR format */
+	ME_MASTER_VOLUME,
+	ME_RESET,				/* Reset and change system mode */
+	ME_NOTE_STEP,
+	
+	ME_TIMESIG,				/* Time signature */
+	ME_KEYSIG,				/* Key signature */
+	
+	ME_SYSEX_LSB,			/* Universal system exclusive message (LSB) */
+	ME_SYSEX_MSB,			/* Universal system exclusive message (MSB) */
+	ME_SYSEX_GS_LSB,		/* GS system exclusive message (LSB) */
+	ME_SYSEX_GS_MSB,		/* GS system exclusive message (MSB) */
+	ME_SYSEX_XG_LSB,		/* XG system exclusive message (LSB) */
+	ME_SYSEX_XG_MSB,		/* XG system exclusive message (MSB) */
+	
+	ME_WRD,					/* for MIMPI WRD tracer */
+	ME_SHERRY,				/* for Sherry WRD tracer */
+	ME_BARMARKER,
+	ME_STEP,				/* for Metronome */
+	
+	ME_LAST = 254,			/* Last sequence of MIDI list.
+							 * This event is reserved for realtime player.
+							 */
+	ME_EOT = 255			/* End of MIDI.  Finish to play */
 };
 
 #define GLOBAL_CHANNEL_EVENT_TYPE(type)	\
