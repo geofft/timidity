@@ -1825,36 +1825,6 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 	return 0;
 }
 
-static int atoi_limited(const char *string, int v_min, int v_max)
-{
-	int value = atoi(string);
-	
-	if (value <= v_min)
-		value = v_min;
-	else if (value > v_max)
-		value = v_max;
-	return value;
-}
-
-static int get_range_string(const char *string_, int *start, int *end)
-{
-	const char *string = string_;
-	
-	if(isdigit(*string)) {
-		*start = atoi_limited(string, 0, 127);
-		while(isdigit(*++string)) ;
-	} else
-		*start = 0;
-	if (*string == '-') {
-		string++;
-		*end = isdigit(*string) ? atoi_limited(string, 0, 127) : 127;
-		if(*start > *end)
-			*end = *start;
-	} else
-		*end = *start;
-	return string != string_;
-}
-
 int32 control_ratio = 1;
 PlayMode dpm = {
     DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
@@ -2011,7 +1981,7 @@ int main(int argc, char **argv)
 					memset(mask, 0, sizeof mask);
 					mask_string = argv[2];
 					do {
-						if(get_range_string(mask_string, &start, &end)) {
+						if(string_to_7bit_range(mask_string, &start, &end)) {
 							for(i = start; i <= end; i++)
 								mask[i] = 1;
 						}
@@ -2019,7 +1989,7 @@ int main(int argc, char **argv)
 					} while(mask_string++ != NULL);
 					mask_string = argv[1];
 					do {
-						if(get_range_string(mask_string, &start, &end)) {
+						if(string_to_7bit_range(mask_string, &start, &end)) {
 							x_fft = 1;
 							while(start <= end) {
 								for(i = 0; i < 128; i++) {
