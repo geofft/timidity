@@ -11,6 +11,8 @@
 	  Rewrite Delay Effect.
 	* timidity/output.[ch]:
 	  Add some codes for 24-bit output.
+	* interface/w32g_pref.h:
+	  Fix around sampling-rate.
 
 2004-02-04  mput <root@mput.dip.jp>
 
