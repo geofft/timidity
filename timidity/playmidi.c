@@ -1627,7 +1627,7 @@ static int find_voice(MidiEvent *e)
 
 	for (j = 0; j < i; j++)
 		if (voice[j].status != VOICE_FREE && voice[j].channel == ch
-				&& (voice[j].status & status_check && voice[j].note == note
+				&& ((voice[j].status & status_check) && voice[j].note == note
 				|| mono_check
 				|| (altassign && find_altassign(altassign, voice[j].note))))
 			kill_note(j);
@@ -2083,7 +2083,7 @@ static void finish_note(int i)
 	recompute_envelope(i);
 	apply_envelope_to_amp(i);
 	ctl_note_event(i);
-    }
+	}
     else
     {
 	if(current_file_info->pcm_mode != PCM_MODE_NON)

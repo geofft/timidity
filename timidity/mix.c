@@ -968,7 +968,7 @@ int recompute_envelope(int v)
 	int stage, ch;
 	int32 rate;
 	Voice *vp = &voice[v];
-	
+
 	stage = vp->envelope_stage;
 	if (stage > 5) {
 		voice_ran_out(v);
@@ -979,6 +979,7 @@ int recompute_envelope(int v)
 		voice_ran_out(v);
 		return 1;
 	}
+
 	/* EAW -- Routine to decay the sustain envelope
 	 *
 	 * Disabled if !min_sustain_time or if there is no loop.
@@ -1079,10 +1080,17 @@ static inline int next_stage(int v)
 			tmp = ((stage < 2) ? 4 : 2) * 0x10000000;
 	}
 	rate = tmp;
+
 	vp->envelope_increment = rate;
 	vp->envelope_target = offset;
-	if (vp->envelope_target < vp->envelope_volume)
+	if (vp->envelope_target < vp->envelope_volume) {
 		vp->envelope_increment = -vp->envelope_increment;
+		vp->envelope_scale = vp->last_envelope_volume;
+		vp->inv_envelope_scale = (double)vp->sample->envelope_offset[0] / (double)vp->envelope_volume * 0x10000;
+	} else {
+		vp->envelope_scale = 1.0f;
+	}
+
 	return 0;
 }
 
@@ -1117,7 +1125,7 @@ static inline void update_tremolo(int v)
 
 int apply_envelope_to_amp(int v)
 {
-	FLOAT_T lamp = voice[v].left_amp, ramp;
+	FLOAT_T lamp = voice[v].left_amp, ramp, env;
 	FLOAT_T *v_table = voice[v].sample->inst_type == INST_SF2 ? sb_vol_table : vol_table;
 	int32 la, ra;
 	
@@ -1128,13 +1136,13 @@ int apply_envelope_to_amp(int v)
 			ramp *= voice[v].tremolo_volume;
 		}
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_stage > 1) {
-				lamp *= v_table[voice[v].envelope_volume >> 23];
-				ramp *= v_table[voice[v].envelope_volume >> 23];
+			if (voice[v].envelope_increment < 0) {
+				voice[v].last_envelope_volume = v_table[imuldiv16(voice[v].envelope_volume >> 23,voice[v].inv_envelope_scale)] * voice[v].envelope_scale;
 			} else {
-				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
-				ramp *= attack_vol_table[voice[v].envelope_volume >> 23];
+				voice[v].last_envelope_volume = attack_vol_table[voice[v].envelope_volume >> 23];
 			}
+			lamp *= voice[v].last_envelope_volume;
+			ramp *= voice[v].last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
 		if (la > MAX_AMP_VALUE)
@@ -1154,10 +1162,12 @@ int apply_envelope_to_amp(int v)
 		if (voice[v].tremolo_phase_increment)
 			lamp *= voice[v].tremolo_volume;
 		if (voice[v].sample->modes & MODES_ENVELOPE) {
-			if (voice[v].envelope_stage > 1)
-				lamp *= v_table[voice[v].envelope_volume >> 23];
-			else
-				lamp *= attack_vol_table[voice[v].envelope_volume >> 23];
+			if (voice[v].envelope_increment < 0) {
+				voice[v].last_envelope_volume = v_table[imuldiv16(voice[v].envelope_volume >> 23,voice[v].inv_envelope_scale)] * voice[v].envelope_scale;
+			} else {
+				voice[v].last_envelope_volume = attack_vol_table[voice[v].envelope_volume >> 23];
+			}
+			lamp *= voice[v].last_envelope_volume;
 		}
 		la = TIM_FSCALE(lamp, AMP_BITS);
 		if (la > MAX_AMP_VALUE)

@@ -308,6 +308,9 @@ typedef struct {
   int sample_panning_average;
 
   FilterCoefficients fc;
+
+  FLOAT_T envelope_scale, last_envelope_volume;
+  int32 inv_envelope_scale;
 } Voice;
 
 /* Voice status options: */
