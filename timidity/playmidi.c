@@ -265,6 +265,7 @@ int temper_type_mute;		/* For temperament type mute */
 static int mainvolume_max; /* maximum value of mainvolume */
 static double compensation_ratio = 1.0; /* compensation ratio */
 
+static int find_samples(MidiEvent *, int *);
 static int select_play_sample(Sample *, int, int, int *, MidiEvent *);
 static double get_play_note_ratio(int, int);
 static void update_portamento_controls(int ch);
@@ -826,7 +827,7 @@ void recompute_freq(int v)
 				f = freq_table_pureint[current_freq_table
 						+ ((temper_adj) ? 24 : 12)][note];
 			break;
-		default:	/* user-defined temperaments */
+		default:	/* user-defined temperament */
 			if ((tt -= 0x40) >= 0 && tt < 4) {
 				if (current_temper_keysig < 8)
 					f = freq_table_user[tt][current_freq_table
@@ -1996,6 +1997,68 @@ static int find_free_voice(void)
     return lowest;
 }
 
+static int find_samples(MidiEvent *e, int *vlist)
+{
+	int i, j, ch, bank, prog, note, nv;
+	SpecialPatch *s;
+	Instrument *ip;
+	
+	ch = e->channel;
+	if (channel[ch].special_sample > 0) {
+		if ((s = special_patch[channel[ch].special_sample]) == NULL) {
+			ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
+					"Strange: Special patch %d is not installed",
+					channel[ch].special_sample);
+			return 0;
+		}
+		note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
+		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
+		return select_play_sample(s->sample, s->samples, note, vlist, e);
+	}
+	bank = channel[ch].bank;
+	if (ISDRUMCHANNEL(ch)) {
+		note = e->a & 0x7f;
+		instrument_map(channel[ch].mapID, &bank, &note);
+		if (! (ip = play_midi_load_instrument(1, bank, note)))
+			return 0;	/* No instrument? Then we can't play. */
+		if (ip->type == INST_GUS && ip->samples != 1)
+			ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
+					"Strange: percussion instrument with %d samples!",
+					ip->samples);
+		/* "keynum" of SF2, and patch option "note=" */
+		if (ip->sample->note_to_use)
+			note = ip->sample->note_to_use;
+	} else {
+		if ((prog = channel[ch].program) == SPECIAL_PROGRAM)
+			ip = default_instrument;
+		else {
+			instrument_map(channel[ch].mapID, &bank, &prog);
+			if (! (ip = play_midi_load_instrument(0, bank, prog)))
+				return 0;	/* No instrument? Then we can't play. */
+		}
+		note = ((ip->sample->note_to_use) ? ip->sample->note_to_use : e->a)
+				+ channel[ch].key_shift + note_key_offset + key_adjust;
+		note = (note < 0) ? 0 : ((note > 127) ? 127 : note);
+	}
+	nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
+	/* Replace the sample if the sample is cached. */
+	if (! prescanning_flag) {
+		if (ip->sample->note_to_use)
+			note = MIDI_EVENT_NOTE(e);
+		for (i = 0; i < nv; i++) {
+			j = vlist[i];
+			if (! opt_realtime_playing && allocate_cache_size > 0
+					&& ! channel[ch].portamento) {
+				voice[j].cache = resamp_cache_fetch(voice[j].sample, note);
+				if (voice[j].cache)	/* cache hit */
+					voice[j].sample = voice[j].cache->resampled;
+			} else
+				voice[j].cache = NULL;
+		}
+	}
+	return nv;
+}
+
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
@@ -2008,9 +2071,9 @@ static int select_play_sample(Sample *splist,
 	double ratio;
 	int i, j, k, nv, nvc;
 	
-	if (ISDRUMCHANNEL(ch)) {
+	if (ISDRUMCHANNEL(ch))
 		f = fs = freq_table[note];
-	} else {
+	else {
 		if (opt_pure_intonation) {
 			if (current_keysig < 8)
 				f = freq_table_pureint[current_freq_table][note];
@@ -2062,7 +2125,6 @@ static int select_play_sample(Sample *splist,
 		else
 			fs = freq_table[note];
 	}
-
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
 		/* SF2 - Scale Tuning */
@@ -2073,8 +2135,9 @@ static int select_play_sample(Sample *splist,
 			fst = sp->root_freq * ratio + 0.5;
 		} else
 			ft = f, fst = fs;
-		if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
+		if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
+			if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel
 				&& ! (sp->inst_type == INST_SF2
@@ -2100,8 +2163,9 @@ static int select_play_sample(Sample *splist,
 				fst = sp->root_freq * ratio + 0.5;
 			} else
 				ft = f, fst = fs;
-			if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
+			if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
+				if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+					ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 			diff = abs(sp->root_freq - fst);
 			if (cdiff > diff) {
 				if (sp->inst_type == INST_SF2
@@ -2150,8 +2214,9 @@ static int select_play_sample(Sample *splist,
 						ft = sp->root_freq * ratio + 0.5;
 					} else
 						ft = f;
-					if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
-						ft = ft * ratio + 0.5;
+					if (ISDRUMCHANNEL(ch) && channel[ch].drums[kn] != NULL)
+						if ((ratio = get_play_note_ratio(ch, kn)) != 1.0)
+							ft = ft * ratio + 0.5;
 					k = vlist[nv] = find_voice(e);
 					voice[k].orig_frequency = ft;
 					MYCHECK(voice[k].orig_frequency);
@@ -2167,27 +2232,21 @@ static int select_play_sample(Sample *splist,
 
 static double get_play_note_ratio(int ch, int note)
 {
-	int i, nbank, nprog, play_note, def_play_note;
-	ToneBank *bank;
+	int play_note = channel[ch].drums[note]->play_note;
+	int bank = channel[ch].bank;
+	ToneBank *dbank;
+	int def_play_note;
 	
-	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
-			&& (play_note = channel[ch].drums[note]->play_note) != -1) {
-		nbank = channel[ch].bank;
-		nprog = note;
-		instrument_map(channel[ch].mapID, &nbank, &nprog);
-		bank = drumset[nbank];
-		if (bank == NULL)
-			bank = drumset[0];
-		def_play_note = bank->tone[nprog].play_note;
-		if (def_play_note == -1)
-			return 1.0;
-		play_note -= def_play_note;
-		if (play_note >= 0)
-			return bend_coarse[play_note & 0x7f];
-		else
-			return 1.0 / bend_coarse[-play_note & 0x7f];
-	} else
+	if (play_note != -1)
 		return 1.0;
+	instrument_map(channel[ch].mapID, &bank, &note);
+	dbank = (drumset[bank]) ? drumset[bank] : drumset[0];
+	if ((def_play_note = dbank->tone[note].play_note) == -1)
+		return 1.0;
+	if (play_note >= def_play_note)
+		return bend_coarse[play_note - def_play_note & 0x7f];
+	else
+		return 1 / bend_coarse[def_play_note - play_note & 0x7f];
 }
 
 int32 get_note_freq(Sample *sp, int note)
@@ -2203,112 +2262,6 @@ int32 get_note_freq(Sample *sp, int note)
 		f = sp->root_freq * ratio + 0.5;
 	}
 	return f;
-}
-
-static int find_samples(MidiEvent *e, int *vlist)
-{
-	Instrument *ip;
-	int i, nv, note, ch, prog, bk;
-
-	ch = e->channel;
-	if(channel[ch].special_sample > 0)
-	{
-	    SpecialPatch *s;
-
-	    s = special_patch[channel[ch].special_sample];
-	    if(s == NULL)
-	    {
-		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
-			  "Strange: Special patch %d is not installed",
-			  channel[ch].special_sample);
-		return 0;
-	    }
-	    note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
-
-	    if(note < 0)
-		note = 0;
-	    else if(note > 127)
-		note = 127;
-	    return select_play_sample(s->sample, s->samples, note, vlist, e);
-	}
-
-	bk = channel[ch].bank;
-	if(ISDRUMCHANNEL(ch))
-	{
-	    note = e->a & 0x7F;
-	    instrument_map(channel[ch].mapID, &bk, &note);
-	    if(!(ip = play_midi_load_instrument(1, bk, note)))
-		return 0;	/* No instrument? Then we can't play. */
-		/* "keynum" of SF2, and patch option "note=" */
-		if(ip->sample->note_to_use) {note = ip->sample->note_to_use;}
-		nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
-		/* Replace the sample if the sample is cached. */
-		if(!prescanning_flag)
-		{
-			if(ip->sample->note_to_use)
-			note = MIDI_EVENT_NOTE(e);
-				for(i = 0; i < nv; i++)
-			{
-				int j;
-				j = vlist[i];
-				if(!opt_realtime_playing && allocate_cache_size > 0 &&
-				   !channel[ch].portamento)
-				{
-					voice[j].cache = resamp_cache_fetch(voice[j].sample, note);
-					if(voice[j].cache) /* cache hit */
-					voice[j].sample = voice[j].cache->resampled;
-				}
-				else
-					voice[j].cache = NULL;
-			}
-		}
-		return nv;
-	}
-
-	prog = channel[ch].program;
-	if(prog == SPECIAL_PROGRAM)
-	    ip = default_instrument;
-	else
-	{
-	    instrument_map(channel[ch].mapID, &bk, &prog);
-	    if(!(ip = play_midi_load_instrument(0, bk, prog)))
-		return 0;	/* No instrument? Then we can't play. */
-	}
-
-	if(ip->sample->note_to_use)
-	    note = ip->sample->note_to_use + channel[ch].key_shift + note_key_offset + key_adjust;
-	else
-	    note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
-	if(note < 0)
-	    note = 0;
-	else if(note > 127)
-	    note = 127;
-
-	nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
-
-	/* Replace the sample if the sample is cached. */
-	if(!prescanning_flag)
-	{
-	    if(ip->sample->note_to_use)
-		note = MIDI_EVENT_NOTE(e);
-
-	    for(i = 0; i < nv; i++)
-	    {
-		int j;
-
-		j = vlist[i];
-		if(!opt_realtime_playing && allocate_cache_size > 0 &&
-		   !channel[ch].portamento)
-		{
-		    voice[j].cache = resamp_cache_fetch(voice[j].sample, note);
-		    if(voice[j].cache) /* cache hit */
-			voice[j].sample = voice[j].cache->resampled;
-		}
-		else
-		    voice[j].cache = NULL;
-	    }
-	}
-	return nv;
 }
 
 static int get_panning(int ch, int note,int v)
@@ -4581,7 +4534,7 @@ static void play_midi_prescan(MidiEvent *ev)
 		layered = ! IS_SYSEX_EVENT_TYPE(ev);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			offset = port_ch & ~15;
+			offset = port_ch & ~0xf;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
@@ -5129,7 +5082,7 @@ static void seek_forward(int32 until_time)
 		layered = ! IS_SYSEX_EVENT_TYPE(current_event);
 		for (j = 0; j < MAX_CHANNELS; j += 16) {
 			port_ch = (orig_ch + j) % MAX_CHANNELS;
-			offset = port_ch & ~15;
+			offset = port_ch & ~0xf;
 			for (k = offset; k < offset + 16; k++) {
 				if (! layered && (j || k != offset))
 					continue;
@@ -7035,7 +6988,7 @@ int play_event(MidiEvent *ev)
 	layered = ! IS_SYSEX_EVENT_TYPE(ev);
 	for (k = 0; k < MAX_CHANNELS; k += 16) {
 		port_ch = (orig_ch + k) % MAX_CHANNELS;
-		offset = port_ch & ~15;
+		offset = port_ch & ~0xf5;
 		for (l = offset; l < offset + 16; l++) {
 			if (! layered && (k || l != offset))
 				continue;
@@ -8410,3 +8363,4 @@ static int32 get_rx_drum(struct DrumParts *p, int32 rx)
 {
 	return (p->rx & rx);
 }
+

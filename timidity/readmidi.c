@@ -6722,8 +6722,9 @@ void remove_channel_layer(int ch)
 	if (ch >= MAX_CHANNELS)
 		return;
 	/* remove channel layers */
-	offset = ch & ~15;
+	offset = ch & ~0xf;
 	for (i = offset; i < offset + REDUCE_CHANNELS; i++)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
 }
+
