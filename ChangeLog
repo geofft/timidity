@@ -1,3 +1,10 @@
+2003-11-28  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch]:
+	  Fix around Chorus Effect.
+	* timidity/playmidi.c:
+	  Turn off opt_pan_delay in default.
+
 2003-11-27  Saito <saito2@digitalme.com>
 
 	* timidity/reverb.[ch], timidity/effect.c, timidity/readmidi.c:

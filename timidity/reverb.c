@@ -182,6 +182,100 @@ void mix_dry_signal(register int32 *buf, int32 n)
 	memset(direct_buffer,0,sizeof(int32) * n);
 }
 
+/*                    */
+/*  Effect Utitities  */
+/*                    */
+
+/* temporary variables */
+static int32 _output, _bufout;
+
+static void init_delay(delay *delay)
+{
+	memset(delay->buf, 0, sizeof(int32) * delay->size);
+}
+
+static void free_delay(delay *delay)
+{
+	if(delay->buf != NULL) {free(delay->buf);}
+}
+
+static void set_delay(delay *delay, int32 size)
+{
+	free_delay(delay);
+	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
+	if(delay->buf == NULL) {return;}
+	delay->index = 0;
+	delay->size = size;
+	init_delay(delay);
+}
+
+/*! simple delay */
+#define do_delay(_stream, _buf, _size, _index) \
+{ \
+	_output = _buf[_index];	\
+	_buf[_index] = _stream;	\
+	if(++_index >= _size) {	\
+		_index = 0;	\
+	}	\
+	_stream = _output;	\
+}
+
+/*! feedback delay */
+#if OPT_MODE != 0	/* fixed-point implementation */
+#define do_feedback_delay(_stream, _buf, _size, _index, _feedback) \
+{ \
+	_output = _buf[_index];	\
+	_buf[_index] = _stream + imuldiv24(_output, _feedback);	\
+	if(++_index >= _size) {	\
+		_index = 0;	\
+	}	\
+	_stream = _output;	\
+}
+#else	/* floating-point implementation */
+#define do_feedback_delay(_stream, _buf, _size, _index, _feedback) \
+{ \
+	_output = _buf[_index];	\
+	_buf[_index] = _stream + _output * _feedback;	\
+	if(++_index >= _size) {	\
+		_index = 0;	\
+	}	\
+	_stream = _output;	\
+}
+#endif	/* OPT_MODE != 0 */
+
+static void init_lfo(lfo *lfo, int32 cycle, int type)
+{
+	int32 i;
+
+	lfo->count = 0;
+	if(cycle < MIN_LFO_CYCLE_LENGTH) {cycle = MIN_LFO_CYCLE_LENGTH;}
+	lfo->cycle = cycle;
+	lfo->icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)cycle, 24) - 0.5;
+
+	if(lfo->type != type) {	/* generate waveform of LFO */
+		switch(type) {
+		case LFO_SINE:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
+				lfo->buf[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2.0, 16);
+			break;
+		case LFO_TRIANGULAR:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
+				lfo->buf[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2.0, 16);
+			break;
+		default:
+			for(i = 0; i < SINE_CYCLE_LENGTH; i++) {lfo->buf[i] = TIM_FSCALE(0.5, 16);}
+			break;
+		}
+	}
+}
+
+/*! LFO */
+/* returned value is between 0 and (1 << 16) */
+inline int32 do_lfo(lfo *lfo)
+{
+	return lfo->buf[imuldiv24(lfo->count++, lfo->icycle)];
+}
+
 #if OPT_MODE != 0
 #if _MSC_VER
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
@@ -779,14 +873,9 @@ static int32 chorus_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 static int32 chorus_buf0_L[CHORUS_BUFFER_SIZE + 1];
 static int32 chorus_buf0_R[CHORUS_BUFFER_SIZE + 1];
 static int32 chorus_rpt0 = CHORUS_BUFFER_SIZE;
-static int32 chorus_wpt0;
-static int32 chorus_wpt1;
-static int32 chorus_spt0;
-static int32 chorus_spt1;
-static int32 chorus_lfo0[SINE_CYCLE_LENGTH];
-static int32 chorus_lfo1[SINE_CYCLE_LENGTH];
-static int32 chorus_cyc0;
-static int32 chorus_cnt0;
+static int32 chorus_wpt0, chorus_wpt1, chorus_spt0, chorus_spt1;
+static int32 chorus_lfo0[SINE_CYCLE_LENGTH], chorus_lfo1[SINE_CYCLE_LENGTH];
+static int32 chorus_cyc0, chorus_cnt0, chorus_hist0, chorus_hist1;
 #endif /* USE_DSP_EFFECT */
 
 void init_chorus_lfo(void)
@@ -798,11 +887,11 @@ void init_chorus_lfo(void)
 	if(chorus_cyc0 == 0) {chorus_cyc0 = 1;}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo0[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2, 24);
+		chorus_lfo0[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2, 16);
 	}
 
 	for(i=0;i<SINE_CYCLE_LENGTH;i++) {
-		chorus_lfo1[i] = TIM_FSCALE((lookup_triangular(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 24);
+		chorus_lfo1[i] = TIM_FSCALE((lookup_sine(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2, 16);
 	}
 #endif /* USE_DSP_EFFECT */
 }
@@ -810,75 +899,83 @@ void init_chorus_lfo(void)
 void init_ch_chorus()
 {
 #ifdef USE_DSP_EFFECT
-	memset(chorus_buf0_L,0,sizeof(chorus_buf0_L));
-	memset(chorus_buf0_R,0,sizeof(chorus_buf0_R));
-	memset(chorus_effect_buffer,0,sizeof(chorus_effect_buffer));
-	memset(chorus_param.high_val,0,sizeof(chorus_param.high_val));
+	memset(chorus_buf0_L, 0, sizeof(chorus_buf0_L));
+	memset(chorus_buf0_R, 0, sizeof(chorus_buf0_R));
+	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
+	memset(chorus_param.high_val, 0, sizeof(chorus_param.high_val));
 
-	chorus_cnt0 = 0;
-	chorus_wpt0 = 0;
-	chorus_wpt1 = 0;
-	chorus_spt0 = 0;
-	chorus_spt1 = 0;
+	chorus_cnt0 = chorus_wpt0 = chorus_wpt1 = 0;
+	chorus_spt0 = chorus_spt1 = chorus_hist0 = chorus_hist1 = 0;
 #endif /* USE_DSP_EFFECT */
 }
 
 #ifdef USE_DSP_EFFECT
+/*! chorus effect for GS mode; but, in reality, it's used for GM and XG mode at present. */ 
 void do_stereo_chorus(int32* buf, register int32 count)
 {
 #if OPT_MODE != 0	/* fixed-point implementation */
-	register int32 i;
-	int32 level, feedback, send_reverb, send_delay, delay, depth, output, div, v1l, v1r, f0, f1;
+	int32 i, level, feedback, send_reverb, send_delay, pdelay,
+		depth, output, icycle, hist0, hist1, f0, f1, v0, v1;
 
 	level = TIM_FSCALE(chorus_param.level_ratio * MASTER_CHORUS_LEVEL, 24);
 	feedback = TIM_FSCALE(chorus_param.feedback_ratio, 24);
 	send_reverb = TIM_FSCALE(chorus_param.send_reverb_ratio * REV_INP_LEV, 24);
 	send_delay = TIM_FSCALE(chorus_param.send_delay_ratio, 24);
 	depth = chorus_param.depth_in_sample;
-	delay = chorus_param.delay_in_sample;
-	div = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)chorus_cyc0, 24) - 0.5;
+	pdelay = chorus_param.delay_in_sample;
+	icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)chorus_cyc0, 24) - 0.5;
+	hist0 = chorus_hist0, hist1 = chorus_hist1;
 
-	f0 = imuldiv16(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
-	chorus_spt0 = chorus_wpt0 - delay - (f0 >> 8);
-	f0 &= 0xFF;
+	/* LFO */
+	f0 = imuldiv24(chorus_lfo0[imuldiv24(chorus_cnt0, icycle)], depth);
+	chorus_spt0 = chorus_wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+	f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
 	if(chorus_spt0 < 0) {chorus_spt0 += chorus_rpt0;}
-	f1 = imuldiv16(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
-	chorus_spt1 = chorus_wpt0 - delay - (f1 >> 8);
-	f1 &= 0xFF;
+	f1 = imuldiv24(chorus_lfo1[imuldiv24(chorus_cnt0, icycle)], depth);
+	chorus_spt1 = chorus_wpt1 - pdelay - (f1 >> 8);	/* integral part of delay */
+	f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
 	if(chorus_spt1 < 0) {chorus_spt1 += chorus_rpt0;}
 	
-	for(i=0;i<count;i++) {
-		v1l = chorus_buf0_L[chorus_spt0];
-		v1r = chorus_buf0_R[chorus_spt1];
+	for(i = 0; i < count; i++) {
+		v0 = chorus_buf0_L[chorus_spt0];
+		v1 = chorus_buf0_R[chorus_spt1];
 
-		chorus_wpt1 = chorus_wpt0;
+		/* LFO */
 		if(++chorus_wpt0 == chorus_rpt0) {chorus_wpt0 = 0;}
-		f0 = imuldiv16(chorus_lfo0[imuldiv24(chorus_cnt0, div)], depth);
-		chorus_spt0 = chorus_wpt0 - delay - (f0 >> 8);
-		f0 &= 0xFF;
+		chorus_wpt1 = chorus_wpt0;
+		f0 = imuldiv24(chorus_lfo0[imuldiv24(chorus_cnt0, icycle)], depth);
+		chorus_spt0 = chorus_wpt0 - pdelay - (f0 >> 8);	/* integral part of delay */
+		f0 = 0xFF - (f0 & 0xFF);	/* (1 - frac) * 256 */
 		if(chorus_spt0 < 0) {chorus_spt0 += chorus_rpt0;}
-		f1 = imuldiv16(chorus_lfo1[imuldiv24(chorus_cnt0, div)], depth);
-		chorus_spt1 = chorus_wpt0 - delay - (f1 >> 8);
-		f1 &= 0xFF;
+		f1 = imuldiv24(chorus_lfo1[imuldiv24(chorus_cnt0, icycle)], depth);
+		chorus_spt1 = chorus_wpt1 - pdelay - (f1 >> 8);	/* integral part of delay */
+		f1 = 0xFF - (f1 & 0xFF);	/* (1 - frac) * 256 */
 		if(chorus_spt1 < 0) {chorus_spt1 += chorus_rpt0;}
 		if(++chorus_cnt0 == chorus_cyc0) {chorus_cnt0 = 0;}
 
-		output = v1l + imuldiv8(chorus_buf0_L[chorus_spt0] - v1l, f0);
-		chorus_buf0_L[chorus_wpt1] = chorus_effect_buffer[i] + imuldiv24(output, feedback);
+		/* left */
+		/* delay with all-pass interpolation */
+		output = hist0 = hist0 + imuldiv8(chorus_buf0_L[chorus_spt0] - v0, f0);
+		chorus_buf0_L[chorus_wpt0] = chorus_effect_buffer[i] + imuldiv24(output, feedback);
 		output = imuldiv24(output, level);
 		buf[i] += output;
+		/* send to other system effects (it's peculiar to GS) */
 		effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] += imuldiv24(output, send_delay);
 		chorus_effect_buffer[i] = 0;
 
-		output = v1r + imuldiv8(chorus_buf0_R[chorus_spt1] - v1r, f1);
+		/* right */
+		/* delay with all-pass interpolation */
+		output = hist1 = hist1 + imuldiv8(chorus_buf0_R[chorus_spt1] - v1, f1);
 		chorus_buf0_R[chorus_wpt1] = chorus_effect_buffer[++i] + imuldiv24(output, feedback);
 		output = imuldiv24(output, level);
 		buf[i] += output;
+		/* send to other system effects (it's peculiar to GS) */
 		effect_buffer[i] += imuldiv24(output, send_reverb);
 		delay_effect_buffer[i] += imuldiv24(output, send_delay);
 		chorus_effect_buffer[i] = 0;
 	}
+	chorus_hist0 = hist0, chorus_hist1 = hist1;
 #endif /* OPT_MODE != 0 */
 }
 
@@ -1241,14 +1338,6 @@ static void setbuf_allpass(allpass *allpass, int32 size)
 	allpass->size = size;
 }
 
-static void realloc_allpass(allpass *allpass)
-{
-	if(allpass->buf != NULL) {free(allpass->buf);}
-	allpass->buf = (int32 *)safe_malloc(sizeof(int32) * allpass->size);
-	if(allpass->buf == NULL) {return;}
-	allpass->index = 0;
-}
-
 static void init_allpass(allpass *allpass)
 {
 	memset(allpass->buf, 0, sizeof(int32) * allpass->size);
@@ -1275,15 +1364,6 @@ static void setbuf_comb(comb *comb, int32 size)
 	if(comb->buf == NULL) {return;}
 	comb->index = 0;
 	comb->size = size;
-	comb->filterstore = 0;
-}
-
-static void realloc_comb(comb *comb)
-{
-	if(comb->buf != NULL) {free(comb->buf);}
-	comb->buf = (int32 *)safe_malloc(sizeof(int32) * comb->size);
-	if(comb->buf == NULL) {return;}
-	comb->index = 0;
 	comb->filterstore = 0;
 }
 
@@ -1430,8 +1510,8 @@ static void recalc_reverb_buffer(revmodel_t *rev)
 		while(!isprime(tmpR)) tmpR++;
 		rev->combL[i].size = tmpL;
 		rev->combR[i].size = tmpR;
-		realloc_comb(&rev->combL[i]);
-		realloc_comb(&rev->combR[i]);
+		setbuf_comb(&rev->combL[i], rev->combL[i].size);
+		setbuf_comb(&rev->combR[i], rev->combR[i].size);
 	}
 
 	for(i = 0; i < numallpasses; i++)
@@ -1446,8 +1526,8 @@ static void recalc_reverb_buffer(revmodel_t *rev)
 		while(!isprime(tmpR)) tmpR++;
 		rev->allpassL[i].size = tmpL;
 		rev->allpassR[i].size = tmpR;
-		realloc_allpass(&rev->allpassL[i]);
-		realloc_allpass(&rev->allpassR[i]);
+		setbuf_allpass(&rev->allpassL[i], rev->allpassL[i].size);
+		setbuf_allpass(&rev->allpassR[i], rev->allpassR[i].size);
 	}
 }
 
@@ -1987,6 +2067,22 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 		buf[i] = do_right_panning(output1, pan1) + do_right_panning(output2, pan2);
 	}
 	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+}
+
+/*! Implementation Test: Chorus 1 (under construction... ) */
+void do_chorus1(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoChorus1 *info = (InfoChorus1 *)ef->info;
+	int32 i;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&info->buf0);
+		return;
+	}
+	for(i = 0; i < count; i++) {
+	}
 }
 
 /*! assign effect engine according to effect type. */

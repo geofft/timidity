@@ -38,9 +38,40 @@ extern int opt_effect_quality;
 extern void set_dry_signal(register int32 *, int32);
 extern void mix_dry_signal(register int32 *, int32);
 
-/*                                  */
-/* for Insertion / Variation Effect */
-/*                                  */
+/*                    */
+/*  Effect Utitities  */
+/*                    */
+/*! simple or feedback delay */
+typedef struct _delay {
+	int32 *buf, size, index;
+	double feedback;
+	int32 feedbacki;
+} delay;
+
+#ifndef SINE_CYCLE_LENGTH
+#define SINE_CYCLE_LENGTH 1024
+#endif
+#define MIN_LFO_CYCLE_LENGTH 1
+
+/*! LFO */
+typedef struct _lfo {
+	int32 buf[SINE_CYCLE_LENGTH];
+	int32 count, cycle;	/* in samples */
+	int32 icycle;	/* proportional to (SINE_CYCLE_LENGTH / cycle) */
+	int type;	/* current content of its buffer */
+} lfo;
+
+enum {
+	LFO_NONE = 0,
+	LFO_SINE,
+	LFO_COSINE,
+	LFO_TRIANGULAR,
+	LFO_WHITENOISE,
+};
+
+/*                                    */
+/* for Insertion and Variation Effect */
+/*                                    */
 enum {
 	EFFECT_NONE,
 	EFFECT_EQ2,
@@ -90,6 +121,15 @@ typedef struct {
 	double volume, pan1, level1, volume1, pan2, level2, volume2;
 	int32 max_volume1, max_volume2, type1, type2;
 } InfoOD1OD2;
+
+/*! Chorus 1 (under construction...) */
+typedef struct {
+	struct _delay buf0;
+	struct _lfo lfo0;
+	double depth, dry, wet, feedback, feedforward;
+	int32 depthi, dryi, weti, feedbacki, feedforwardi;
+	int32 pdelay;	/* in samples */
+} InfoChorus1;
 
 /*                                  */
 /*        for System Effects        */

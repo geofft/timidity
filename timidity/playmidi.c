@@ -208,7 +208,7 @@ int opt_drum_effect = 0;	/* drumpart effect control */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
 int opt_modulation_envelope = 0;
-int opt_pan_delay = 1;	/* phase difference between left ear and right ear. */
+int opt_pan_delay = 0;	/* phase difference between left ear and right ear. */
 int opt_user_volume_curve = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
