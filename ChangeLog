@@ -1,3 +1,13 @@
+2004-05-30  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* configure.in: ditto
+	* autoconf/Makefile.am (EXTRA_DIST): ditto
+	* autoconf/gtk-2.0.m4: add.
+
+2004-05-30  dai <dai@kip.iis.toyama-u.ac.jp>
+
+	* interface/gtk_i.c : GTK+ 2.x support
+
 2004-05-30  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
 
 	* configure.in 

@@ -20,6 +20,7 @@
     gtk_i.c - Glenn Trigg 29 Oct 1998
 
 */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H*/
@@ -94,6 +95,12 @@ static GtkItemFactoryEntry ife[] = {
     {"/Options/Clear All", "<control>C", clear_all_cb, 0, NULL}
 };
 
+#ifdef HAVE_GTK_2
+static GtkTextBuffer *textbuf;
+static GtkTextIter iter, start_iter, end_iter;
+static GtkTextMark *mark;
+#endif
+
 /*----------------------------------------------------------------------*/
 
 static void
@@ -125,10 +132,18 @@ open_file_cb(GtkWidget *widget, gpointer data)
 
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->ok_button),
 			   "clicked",
+#ifdef HAVE_GTK_2
+			   G_CALLBACK (filer_cb), (gpointer)1);
+#else
 			   GTK_SIGNAL_FUNC (filer_cb), (gpointer)1);
+#endif
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(filesel)->cancel_button),
 			   "clicked",
+#ifdef HAVE_GTK_2
+			   G_CALLBACK (filer_cb), (gpointer)0);
+#else
 			   GTK_SIGNAL_FUNC (filer_cb), (gpointer)0);
+#endif
     }
 
     gtk_widget_show(GTK_WIDGET(filesel));
@@ -140,7 +155,11 @@ filer_cb(GtkWidget *widget, gpointer data)
     gchar *filenames[2];
 #ifdef GLOB_BRACE
     int i;
+#ifdef HAVE_GTK_2
+    const gchar *patt;
+#else
     gchar *patt;
+#endif
     glob_t pglob;
 
     if((int)data == 1) {
@@ -374,7 +393,13 @@ Launch_Gtk_Process(int pipe_number)
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_win),GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
     gtk_widget_show(scrolled_win);
 
+#ifdef HAVE_GTK_2
+    text = gtk_text_view_new();
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(text), FALSE);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_WORD);
+#else
     text = gtk_text_new(NULL, NULL);
+#endif
     gtk_widget_show(text);
     gtk_container_add(GTK_CONTAINER(scrolled_win), text);
 
@@ -523,7 +548,11 @@ Launch_Gtk_Process(int pipe_number)
 
     button = create_button_with_pixmap(window, open_xpm, 0,
 				       "Open");
+#ifdef HAVE_GTK_2
+    gtk_signal_disconnect_by_func(GTK_OBJECT(button), G_CALLBACK(generic_cb), 0);
+#else
     gtk_signal_disconnect_by_func(GTK_OBJECT(button), generic_cb, 0);
+#endif
     gtk_signal_connect(GTK_OBJECT(button), "clicked",
 			      GTK_SIGNAL_FUNC(open_file_cb), 0);
     gtk_table_attach_defaults(GTK_TABLE(table), button,
@@ -613,7 +642,11 @@ create_menubar(void)
     GtkItemFactory	*ifactory;
     GtkAccelGroup	*ag;
 
+#ifdef HAVE_GTK_2
+    ag = gtk_accel_group_new();
+#else
     ag = gtk_accel_group_get_default();
+#endif
     ifactory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<Main>", ag);
     gtk_item_factory_create_items(ifactory,
 				  sizeof(ife) / sizeof(GtkItemFactoryEntry),
@@ -641,6 +674,7 @@ create_yellow_tooltips()
     /* First create a default Tooltip */
     tip = gtk_tooltips_new();
 
+#ifndef HAVE_GTK_2
     /* Try to get the colors */
     if ( gdk_color_parse("linen", t_back)){
 	if(gdk_colormap_alloc_color(gdk_colormap_get_system(),
@@ -649,6 +683,7 @@ create_yellow_tooltips()
 	    gtk_tooltips_set_colors(tip, t_back, NULL);
 	}
     }
+#endif
 
     return tip;
 }
@@ -723,11 +758,18 @@ handle_input(gpointer client_data, gint source, GdkInputCondition ic)
 	    gtk_window_set_title(GTK_WINDOW(window), title);
 
 	    /* Clear the text area. */
+#ifdef HAVE_GTK_2
+	    textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	    gtk_text_buffer_get_start_iter(textbuf, &start_iter);
+	    gtk_text_buffer_get_end_iter(textbuf, &end_iter);
+	    iter = start_iter;
+#else
 	    gtk_text_freeze(GTK_TEXT(text));
 	    gtk_text_set_point(GTK_TEXT(text), 0);
 	    gtk_text_forward_delete(GTK_TEXT(text),
 				    gtk_text_get_length(GTK_TEXT(text)));
 	    gtk_text_thaw(GTK_TEXT(text));
+#endif
 	}
 	break;
 
@@ -910,23 +952,56 @@ handle_input(gpointer client_data, gint source, GdkInputCondition ic)
 	{
 	    int type;
 	    char message[1000];
+#ifdef HAVE_GTK_2
+	    gchar *message_u8;
+#endif
 
 	    gtk_pipe_int_read(&type);
 	    gtk_pipe_string_read(message);
+#ifdef HAVE_GTK_2
+	    message_u8 = g_locale_to_utf8( message, -1, NULL, NULL, NULL );
+	    gtk_text_buffer_get_bounds(textbuf, &start_iter, &end_iter);
+	    gtk_text_buffer_insert(textbuf, &end_iter,
+			    message_u8, -1);
+	    gtk_text_buffer_insert(textbuf, &end_iter,
+			    "\n", 1);
+	    gtk_text_buffer_get_bounds(textbuf, &start_iter, &end_iter);
+
+	    mark = gtk_text_buffer_create_mark(textbuf, NULL, &end_iter, 1);
+	    gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text), mark, 0.0, 0, 0.0, 1.0);
+	    gtk_text_buffer_delete_mark(textbuf, mark);
+	    g_free( message_u8 );
+#else
 	    gtk_text_insert(GTK_TEXT(text), NULL, NULL, NULL,
 			    message, -1);
 	    gtk_text_insert(GTK_TEXT(text), NULL, NULL, NULL,
 			    "\n", 1);
+#endif
 	}
 	break;
     case LYRIC_MESSAGE:
 	{
 	    char message[1000];
+#ifdef HAVE_GTK_2
+	    gchar *message_u8;
+#endif
 
 	    gtk_pipe_string_read(message);
 
+#ifdef HAVE_GTK_2
+	    message_u8 = g_locale_to_utf8( message, -1, NULL, NULL, NULL );
+	    gtk_text_buffer_get_bounds(textbuf, &start_iter, &end_iter);
+	    gtk_text_buffer_insert(textbuf, &iter,
+			    message_u8, -1);
+	    gtk_text_buffer_get_bounds(textbuf, &start_iter, &end_iter);
+
+	    mark = gtk_text_buffer_create_mark(textbuf, NULL, &end_iter, 1);
+	    gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text), mark, 0.0, 0, 0.0, 1.0);
+	    gtk_text_buffer_delete_mark(textbuf, mark);
+#else
 	    gtk_text_insert(GTK_TEXT(text), NULL, NULL, NULL,
 			    message, -1);
+#endif
 	}
 	break;
     default:

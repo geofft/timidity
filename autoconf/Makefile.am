@@ -23,6 +23,7 @@ EXTRA_DIST = \
   arts.m4 \
   esd.m4 \
   gtk.m4 \
+  gtk-2.0.m4 \
   libFLAC.m4 \
   libOggFLAC.m4 \
   ogg.m4 \
