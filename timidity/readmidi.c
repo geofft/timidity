@@ -2699,27 +2699,28 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	}
     }
 
+    memset(warn_tonebank, 0, sizeof(warn_tonebank));
+    if (special_tonebank >= 0)
+	newbank = special_tonebank;
+    else
+	newbank = default_tonebank;
     for(j = 0; j < MAX_CHANNELS; j++)
     {
 	if(ISDRUMCHANNEL(j))
 	    current_set[j] = 0;
 	else
 	{
-	    if(special_tonebank >= 0)
-		current_set[j] = special_tonebank;
-	    else
-		current_set[j] = default_tonebank;
-	    if(tonebank[current_set[j]] == NULL)
+	    if (tonebank[newbank] == NULL)
 	    {
-		if(warn_tonebank[current_set[j]] == 0)
+		if (warn_tonebank[newbank] == 0)
 		{
 		    ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 			      "Tone bank %d is undefined", newbank);
-		    warn_tonebank[current_set[j]] = 1;
+		    warn_tonebank[newbank] = 1;
 		}
-		current_set[j] = 0;
+		newbank = 0;
 	    }
-
+	    current_set[j] = newbank;
 	}
 	bank_lsb[j] = bank_msb[j] = 0;
 	if(play_system_mode == XG_SYSTEM_MODE && j % 16 == 9)
@@ -2727,7 +2728,6 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	current_program[j] = default_program[j];
     }
 
-    memset(warn_tonebank, 0, sizeof(warn_tonebank));
     memset(warn_drumset, 0, sizeof(warn_drumset));
     tempo = 500000;
     compute_sample_increment(tempo, divisions);
@@ -4314,7 +4314,7 @@ void recompute_userdrum_altassign(int bank, int group)
 	
 	for(p = userdrum_first; p != NULL; p = p->next) {
 		if(p->assign_group == group) {
-			sprintf(param, "%d", group);
+			sprintf(param, "%d", p->prog);
 			params[number] = safe_strdup(param);
 			number++;
 		}

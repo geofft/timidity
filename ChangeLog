@@ -1,3 +1,7 @@
+2003-09-26  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/readmidi.c: Replaced the previous patch mis-applied.
+
 2003-09-24  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c, timidity/readmidi.c:
