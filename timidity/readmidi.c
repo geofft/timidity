@@ -990,7 +990,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events += 2;
 					break;
 				case 0x02:	/* Rx. Channel */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x45);
+					if (val[7] == 0x10) {
+						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+								block_to_part(val[5], midi_port_number),
+								block_to_part(val[7], 0x80),
+								0x45);
+					} else {
+						SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+								block_to_part(val[5], midi_port_number),
+								block_to_part(val[7], midi_port_number ^ port),
+								0x45);
+					}
 					num_events++;
 					break;
 				case 0x13:
@@ -4582,19 +4592,19 @@ void add_channel_layer(int ch, int fromch)
 		"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
 }
 
-/*! subtract an unused layer. */
-void sub_channel_layer(int ch, int fromch)
+/*! remove an unused layer. */
+void remove_channel_layer(int ch, int fromch)
 {
 	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
 		return;
-	/* subtract a channel layer */
+	/* remove a channel layer */
 	UNSET_CHANNELMASK(channel[ch].channel_layer, fromch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 		"Channel Layer (CH:%d -> CH:%d)", fromch, fromch);
 }
 
 /*! remove all layers for this channel. */
-void remove_channel_layer(int ch)
+void remove_all_channel_layer(int ch)
 {
 	int i;
 	

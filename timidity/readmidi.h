@@ -163,7 +163,7 @@ extern void free_userinst();
 
 extern void init_channel_layer(int);
 extern void add_channel_layer(int, int);
-extern void sub_channel_layer(int, int);
-extern void remove_channel_layer(int);
+extern void remove_channel_layer(int, int);
+extern void remove_all_channel_layer(int);
 
 #endif /* ___READMIDI_H_ */

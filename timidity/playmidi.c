@@ -3306,17 +3306,16 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			recompute_insertion_effect();
 			break;
 		case 0x45:	/* Rx. Channel */
-			if(val == 0x10) {
-				remove_channel_layer(ch);
-				init_channel_layer(ch);
-			} else
+			if(val == 0x80)
+				remove_all_channel_layer(ch);
+			else
 				add_channel_layer(val, ch);
 			break;
 		case 0x46:	/* Channel Msg Rx Port */
-			if ((val & 0x10 ^ ch & 0x10) & 0x10)
+			if (val & 0x10 ^ ch & 0x10)
 				add_channel_layer(val, ch);
 			else
-				sub_channel_layer(val + ((val < 0x10) ? 0x10 : -0x10), ch);
+				remove_channel_layer(val ^ 0x10, ch);
 			break;
 			
 			/* MOD PITCH CONTROL */
@@ -3339,10 +3338,9 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			recompute_chorus_status();
 			break;
 		case 0x65:	/* Rcv CHANNEL */
-			if (val == 0x7f) {
-				remove_channel_layer(ch);
-				init_channel_layer(ch);
-			} else
+			if (val == 0x7f)
+				remove_all_channel_layer(ch);
+			else
 				add_channel_layer(val, ch);
 			break;
 		default:
