@@ -1,3 +1,12 @@
+
+2003-06-04  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.[ch], timidity/readmidi.[ch],
+	  timidity/rcp.c, timidity/timidity.c, timidity/reverb.c,
+	  timidity/resample.c:
+	  Fix in channel layer.
+	  Change default -N to 0.
+
 2003-06-04  mput <root@mput.dip.jp>
 
 	* Makefile.am (dist-hook): Bug fix
@@ -20,14 +29,6 @@
 	* timidity/playmidi.c (new_chorus_voice_alternate): opt_surround
 	  update to work with the new effects
 	(adjust_panning): Hack to handle -EFchorus=2 in a "reasonable" way
-
-2003-06-04  Saito <timidity@flashmail.com>
-
-	* timidity/playmidi.[ch], timidity/readmidi.[ch],
-	  timidity/rcp.c, timidity/timidity.c, timidity/reverb.c,
-	  timidity/resample.c:
-	  Fix in channel layer.
-	  Change default -N to 0.
 
 2003-05-30  Kentaro Sato <kentaro@ps.catv.ne.jp>
 
