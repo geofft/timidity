@@ -1,3 +1,7 @@
+2003-07-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch]: Support for RPN tuning program select
+
 2003-07-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/alsaseq_c.c,

@@ -172,6 +172,8 @@ enum rpn_data_address_t /* NRPN/RPN */
     RPN_ADDR_0000,
     RPN_ADDR_0001,
     RPN_ADDR_0002,
+    RPN_ADDR_0003,
+    RPN_ADDR_0004,
     RPN_ADDR_7F7F,
     RPN_ADDR_FFFF,
     RPN_MAX_DATA_ADDR

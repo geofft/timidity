@@ -636,6 +636,7 @@ void recompute_freq(int v)
 	int32 tuning = 0;
 	int8 st = channel[ch].scale_tuning[note % 12];
 	int8 tt = channel[ch].temper_type;
+	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	int32 f;
 	int pb = channel[ch].pitchbend;
 	int32 tmp;
@@ -699,7 +700,7 @@ void recompute_freq(int v)
 	if (! opt_pure_intonation && voice[v].temper_instant) {
 		switch (tt) {
 		case 0:
-			f = freq_table_tuning[0][note];
+			f = freq_table_tuning[tp][note];
 			break;
 		case 1:
 			f = freq_table_pytha[current_freq_table][note];
@@ -1740,6 +1741,7 @@ static int select_play_sample(Sample *splist,
 {
 	int32 f, fs, cdiff, diff;
 	int8 tt = channel[e->channel].temper_type;
+	uint8 tp = channel[e->channel].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *closest;
 	int i, j, nv, vel;
 	
@@ -1751,7 +1753,7 @@ static int select_play_sample(Sample *splist,
 	} else
 		switch (tt) {
 		case 0:
-			f = freq_table_tuning[0][note];
+			f = freq_table_tuning[tp][note];
 			break;
 		case 1:
 			f = freq_table_pytha[current_freq_table][note];
@@ -1778,7 +1780,7 @@ static int select_play_sample(Sample *splist,
 				f = freq_table[note];
 			break;
 		}
-	fs = (tt) ? freq_table[note] : freq_table_tuning[0][note];
+	fs = (tt) ? freq_table[note] : freq_table_tuning[tp][note];
 	vel = e->b;
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++)
@@ -3541,279 +3543,334 @@ static int32 midi_cnv_vib_delay(int delay)
 
 static int last_rpn_addr(int ch)
 {
-    int lsb, msb, addr, i;
-    struct rpn_tag_map_t *addrmap;
-    struct rpn_tag_map_t
-    {
-	int addr, mask, tag;
-    };
-    static struct rpn_tag_map_t rpn_addr_map[] =
-    {
-	{0x0000, 0xFFFF, RPN_ADDR_0000},
-	{0x0001, 0xFFFF, RPN_ADDR_0001},
-	{0x0002, 0xFFFF, RPN_ADDR_0002},
-	{0x7F7F, 0xFFFF, RPN_ADDR_7F7F},
-	{0xFFFF, 0xFFFF, RPN_ADDR_FFFF},
-	{-1, -1}
-    };
-    static struct rpn_tag_map_t nrpn_addr_map[] =
-    {
-	{0x0108, 0xFFFF, NRPN_ADDR_0108},
-	{0x0109, 0xFFFF, NRPN_ADDR_0109},
-	{0x010A, 0xFFFF, NRPN_ADDR_010A},
-	{0x0120, 0xFFFF, NRPN_ADDR_0120},
-	{0x0121, 0xFFFF, NRPN_ADDR_0121},
-	{0x0163, 0xFFFF, NRPN_ADDR_0163},
-	{0x0164, 0xFFFF, NRPN_ADDR_0164},
-	{0x0166, 0xFFFF, NRPN_ADDR_0166},
-	{0x1400, 0xFF00, NRPN_ADDR_1400},
-	{0x1500, 0xFF00, NRPN_ADDR_1500},
-	{0x1600, 0xFF00, NRPN_ADDR_1600},
-	{0x1700, 0xFF00, NRPN_ADDR_1700},
-	{0x1800, 0xFF00, NRPN_ADDR_1800},
-	{0x1900, 0xFF00, NRPN_ADDR_1900},
-	{0x1A00, 0xFF00, NRPN_ADDR_1A00},
-	{0x1C00, 0xFF00, NRPN_ADDR_1C00},
-	{0x1D00, 0xFF00, NRPN_ADDR_1D00},
-	{0x1E00, 0xFF00, NRPN_ADDR_1E00},
-	{0x1F00, 0xFF00, NRPN_ADDR_1F00},
-	{-1, -1, 0}
-    };
-
-    if(channel[ch].nrpn == -1)
+	int lsb, msb, addr, i;
+	struct rpn_tag_map_t *addrmap;
+	struct rpn_tag_map_t {
+		int addr, mask, tag;
+	};
+	static struct rpn_tag_map_t nrpn_addr_map[] = {
+		{0x0108, 0xffff, NRPN_ADDR_0108},
+		{0x0109, 0xffff, NRPN_ADDR_0109},
+		{0x010a, 0xffff, NRPN_ADDR_010A},
+		{0x0120, 0xffff, NRPN_ADDR_0120},
+		{0x0121, 0xffff, NRPN_ADDR_0121},
+		{0x0163, 0xffff, NRPN_ADDR_0163},
+		{0x0164, 0xffff, NRPN_ADDR_0164},
+		{0x0166, 0xffff, NRPN_ADDR_0166},
+		{0x1400, 0xff00, NRPN_ADDR_1400},
+		{0x1500, 0xff00, NRPN_ADDR_1500},
+		{0x1600, 0xff00, NRPN_ADDR_1600},
+		{0x1700, 0xff00, NRPN_ADDR_1700},
+		{0x1800, 0xff00, NRPN_ADDR_1800},
+		{0x1900, 0xff00, NRPN_ADDR_1900},
+		{0x1a00, 0xff00, NRPN_ADDR_1A00},
+		{0x1c00, 0xff00, NRPN_ADDR_1C00},
+		{0x1d00, 0xff00, NRPN_ADDR_1D00},
+		{0x1e00, 0xff00, NRPN_ADDR_1E00},
+		{0x1f00, 0xff00, NRPN_ADDR_1F00},
+		{-1, -1, 0}
+	};
+	static struct rpn_tag_map_t rpn_addr_map[] = {
+		{0x0000, 0xffff, RPN_ADDR_0000},
+		{0x0001, 0xffff, RPN_ADDR_0001},
+		{0x0002, 0xffff, RPN_ADDR_0002},
+		{0x0003, 0xffff, RPN_ADDR_0003},
+		{0x0004, 0xffff, RPN_ADDR_0004},
+		{0x7f7f, 0xffff, RPN_ADDR_7F7F},
+		{0xffff, 0xffff, RPN_ADDR_FFFF},
+		{-1, -1}
+	};
+	
+	if (channel[ch].nrpn == -1)
+		return -1;
+	lsb = channel[ch].lastlrpn;
+	msb = channel[ch].lastmrpn;
+	if (lsb == 0xff || msb == 0xff)
+		return -1;
+	addr = (msb << 8 | lsb);
+	if (channel[ch].nrpn)
+		addrmap = nrpn_addr_map;
+	else
+		addrmap = rpn_addr_map;
+	for (i = 0; addrmap[i].addr != -1; i++)
+		if (addrmap[i].addr == (addr & addrmap[i].mask))
+			return addrmap[i].tag;
 	return -1;
-    lsb = channel[ch].lastlrpn;
-    msb = channel[ch].lastmrpn;
-    if(lsb == 0xff || msb == 0xff)
-	return -1;
-    addr = (msb << 8 | lsb);
-    if(channel[ch].nrpn)
-	addrmap = nrpn_addr_map;
-    else
-	addrmap = rpn_addr_map;
-    for(i = 0; addrmap[i].addr != -1; i++)
-	if(addrmap[i].addr == (addr & addrmap[i].mask))
-	    return addrmap[i].tag;
-    return -1;
 }
 
 static void update_channel_freq(int ch)
 {
-    int i, uv = upper_voices;
-    for(i = 0; i < uv; i++)
-	if(voice[i].status != VOICE_FREE && voice[i].channel == ch)
-	    recompute_freq(i);
+	int i, uv = upper_voices;
+	for (i = 0; i < uv; i++)
+		if (voice[i].status != VOICE_FREE && voice[i].channel == ch)
+	recompute_freq(i);
 }
 
 static void update_rpn_map(int ch, int addr, int update_now)
 {
-    int note, val, drumflag;
-
-    val = channel[ch].rpnmap[addr];
-    drumflag = 0;
-    switch(addr)
-    {
-      case NRPN_ADDR_0108: /* Vibrato Rate */
-    if(opt_nrpn_vibrato) {	/* from -10.72 Hz to +10.72 Hz. */
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Rate (CH:%d VAL:%d)", ch, val - 64);
-		channel[ch].vibrato_ratio = 168 * (val - 64) *
-		    (VIBRATO_RATE_TUNING * play_mode->rate) /
-			(2 * VIBRATO_SAMPLE_INCREMENTS);
-	}
-	if(update_now)
-	    update_channel_freq(ch);
-	break;
-      case NRPN_ADDR_0109: /* Vibrato Depth */
-    if(opt_nrpn_vibrato) {	/* from -10cents to +10cents. */
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth (CH:%d VAL:%d)", ch, val - 64);
-		channel[ch].vibrato_depth =  (double)(val - 64) * 0.15625 * 256 / 400;
-	}
-	if(update_now)
-	    update_channel_freq(ch);
-	break;
-      case NRPN_ADDR_010A: /* Vibrato Delay */
-    if(opt_nrpn_vibrato) {
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Delay (CH:%d VAL:%d)", ch, val);
-		channel[ch].vibrato_delay = play_mode->rate * delay_time_center_table[val] * 0.001;
-	}
-	if(update_now)
-	    update_channel_freq(ch);
-	break;
-      case NRPN_ADDR_0120:	/* Filter Cutoff Frequency */
-	if(opt_lpf_def) {
-		channel[ch].param_cutoff_freq = val - 64;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Filter Cutoff (CH:%d VAL:%d)",ch,channel[ch].param_cutoff_freq);
-	}
-	break;
-      case NRPN_ADDR_0121:	/* Filter Resonance */
-	if(opt_lpf_def) {
-		channel[ch].param_resonance = val - 64;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Filter Resonance (CH:%d VAL:%d)",ch,channel[ch].param_resonance);
-	}
-	break;
-      case NRPN_ADDR_0163:	/* Attack Time */
-	if(!opt_tva_attack) {break;}
-	set_envelope_time(ch,val,0);
-	break;
-      case NRPN_ADDR_0164:	/* EG Decay Time */
-	if(!opt_tva_decay) { break; }
-	set_envelope_time(ch,val,2);
-	break;
-      case NRPN_ADDR_0166:	/* EG Release Time */
-	if(!opt_tva_release) { break; }
-	set_envelope_time(ch,val,3);
-	break;
-      case NRPN_ADDR_1400:	/* Drum Filter Cutoff (XG) */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Filter Cutoff (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_cutoff_freq = val - 64;
-	break;
-      case NRPN_ADDR_1500:	/* Drum Filter Resonance (XG) */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Filter Resonance (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_resonance = val - 64;
-	break;
-      case NRPN_ADDR_1600:	/* Drum EG Attack Time (XG) */
-	drumflag = 1;
-	if(!opt_tva_attack) { break; }
-	val = val & 0x7F;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	val	-= 64;
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Drum Attack Time (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_envelope_rate[0] = val;
-	break;
-      case NRPN_ADDR_1700:	/* Drum EG Decay Time (XG) */
-    drumflag = 1;
-	if(!opt_tva_decay) { break; }
-	val = val & 0x7F;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	val	-= 64;
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Drum Decay Time (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_envelope_rate[2] = val;
-	break;
-      case NRPN_ADDR_1800:	/* Coarse Pitch of Drum (GS) */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
+	int val, drumflag, i, note;
 	
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-
-	if(current_event->b == 0x1) {
-		channel[ch].drums[note]->play_note = val;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Play Note (CH:%d NOTE:%d VALUE:%d)",ch,note,channel[ch].drums[note]->play_note);
-	} else {
-		channel[ch].drums[note]->coarse = val - 64;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VALUE:%d)",ch,note,channel[ch].drums[note]->coarse);
-	}
-	channel[ch].pitchfactor = 0;
-	break;
-      case NRPN_ADDR_1900:	/* Fine Pitch of Drum (XG) */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	channel[ch].drums[note]->fine = val - 64;
- 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument Pitch Fine (CH:%d NOTE:%d VALUE:%d)",ch,note,channel[ch].drums[note]->fine);
-	channel[ch].pitchfactor = 0;
-	break;
-      case NRPN_ADDR_1A00:	/* Level of Drum */	 
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Drum Instrument TVA Level (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_level = calc_drum_tva_level(ch,note,val);
-	break;
-      case NRPN_ADDR_1C00:	/* Panpot of Drum */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	if(val == 0) {
-	    val = int_rand(128);
-	    channel[ch].drums[note]->pan_random = 1;
-	}
-	else {
-	    channel[ch].drums[note]->pan_random = 0;
-	}
-	channel[ch].drums[note]->drum_panning = val;
-	if(update_now && adjust_panning_immediately && !channel[ch].pan_random) {
-	    adjust_drum_panning(ch, note);
-	}
-	break;
-      case NRPN_ADDR_1D00:	/* Reverb Send Level of Drum */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->reverb_level = val;
-	break;
-      case NRPN_ADDR_1E00:	/* Chorus Send Level of Drum */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;		
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->chorus_level = val;
-	break;
-      case NRPN_ADDR_1F00:	/* Variation Send Level of Drum */
-	drumflag = 1;
-	note = channel[ch].lastlrpn;
-
-	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
-	ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->delay_level = val;
-	break;
-      case RPN_ADDR_0000: /* Pitch bend sensitivity */
-	ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Pitch Bend Sensitivity (CH:%d VALUE:%d)",ch,val);
-	/* for mod2mid.c, arpeggio */
-	if(!IS_CURRENT_MOD_FILE && channel[ch].rpnmap[RPN_ADDR_0000] > 24) {
-		channel[ch].rpnmap[RPN_ADDR_0000] = 24;
-	} 
-	channel[ch].pitchfactor = 0;
-	break;
-      case RPN_ADDR_0001: /* Master Fine Tuning */
-	ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Master Fine Tuning (CH:%d VALUE:%d)",ch,val);
-	channel[ch].pitchfactor = 0;
-	break;
-      case RPN_ADDR_0002: /* Master Coarse Tuning */
-	ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Master Coarse Tuning (CH:%d VALUE:%d)",ch,val);
-	channel[ch].pitchfactor = 0;
-	break;
-      case RPN_ADDR_7F7F: /* RPN reset */
-	channel[ch].rpn_7f7f_flag = 1;
-	break;
-      case RPN_ADDR_FFFF: /* RPN initialize */
-	/* All reset to defaults */
-	channel[ch].rpn_7f7f_flag = 0;
-	memset(channel[ch].rpnmap, 0, sizeof(channel[ch].rpnmap));
-	channel[ch].lastlrpn = channel[ch].lastmrpn = 0;
-	channel[ch].nrpn = 0;
-	channel[ch].rpnmap[RPN_ADDR_0000] = 2;
-	channel[ch].rpnmap[RPN_ADDR_0001] = 0x40;
-	channel[ch].rpnmap[RPN_ADDR_0002] = 0x40;
-	channel[ch].pitchfactor = 0;
-	break;
-    }
-
+	val = channel[ch].rpnmap[addr];
 	drumflag = 0;
-	
-    if(drumflag && midi_drumpart_change(ch, 1))
-    {
-	midi_program_change(ch, channel[ch].program);
-	if(update_now)
-	    ctl_prog_event(ch);
-    }
+	switch (addr) {
+	case NRPN_ADDR_0108:	/* Vibrato Rate */
+		if (opt_nrpn_vibrato) {
+			/* from -10.72 Hz to +10.72 Hz. */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Vibrato Rate (CH:%d VAL:%d)", ch, val - 64);
+			channel[ch].vibrato_ratio = 168 * (val - 64)
+					* (VIBRATO_RATE_TUNING * play_mode->rate)
+					/ (2 * VIBRATO_SAMPLE_INCREMENTS);
+		}
+		if (update_now)
+			update_channel_freq(ch);
+		break;
+	case NRPN_ADDR_0109:	/* Vibrato Depth */
+		if (opt_nrpn_vibrato) {
+			/* from -10cents to +10cents. */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Vibrato Depth (CH:%d VAL:%d)", ch, val - 64);
+			channel[ch].vibrato_depth =
+					(double) (val - 64) * 0.15625 * 256 / 400;
+		}
+		if (update_now)
+			update_channel_freq(ch);
+		break;
+	case NRPN_ADDR_010A:	/* Vibrato Delay */
+		if (opt_nrpn_vibrato) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Vibrato Delay (CH:%d VAL:%d)", ch, val);
+			channel[ch].vibrato_delay =
+					play_mode->rate * delay_time_center_table[val] * 0.001;
+		}
+		if (update_now)
+			update_channel_freq(ch);
+		break;
+	case NRPN_ADDR_0120:	/* Filter Cutoff Frequency */
+		if (opt_lpf_def) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Filter Cutoff (CH:%d VAL:%d)", ch, val - 64);
+			channel[ch].param_cutoff_freq = val - 64;
+		}
+		break;
+	case NRPN_ADDR_0121:	/* Filter Resonance */
+		if (opt_lpf_def) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Filter Resonance (CH:%d VAL:%d)", ch, val - 64);
+			channel[ch].param_resonance = val - 64;
+		}
+		break;
+	case NRPN_ADDR_0163:	/* Attack Time */
+		if (opt_tva_attack) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"Attack Time (CH:%d VAL:%d)", ch, val);
+			set_envelope_time(ch, val, 0);
+		}
+		break;
+	case NRPN_ADDR_0164:	/* EG Decay Time */
+		if (opt_tva_decay) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"EG Decay Time (CH:%d VAL:%d)", ch, val);
+			set_envelope_time(ch, val, 2);
+		}
+		break;
+	case NRPN_ADDR_0166:	/* EG Release Time */
+		if (opt_tva_release) {
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"EG Release Time (CH:%d VAL:%d)", ch, val);
+			set_envelope_time(ch, val, 3);
+		}
+		break;
+	case NRPN_ADDR_1400:	/* Drum Filter Cutoff (XG) */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Filter Cutoff (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->drum_cutoff_freq = val - 64;
+		break;
+	case NRPN_ADDR_1500:	/* Drum Filter Resonance (XG) */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Filter Resonance (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->drum_resonance = val - 64;
+		break;
+	case NRPN_ADDR_1600:	/* Drum EG Attack Time (XG) */
+		drumflag = 1;
+		if (opt_tva_attack) {
+			val = val & 0x7f;
+			note = channel[ch].lastlrpn;
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			val	-= 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"XG Drum Attack Time (CH:%d NOTE:%d VALUE:%d)",
+					ch, note, val);
+			channel[ch].drums[note]->drum_envelope_rate[0] = val;
+		}
+		break;
+	case NRPN_ADDR_1700:	/* Drum EG Decay Time (XG) */
+		drumflag = 1;
+		if (opt_tva_decay) {
+			val = val & 0x7f;
+			note = channel[ch].lastlrpn;
+			if (channel[ch].drums[note] == NULL)
+				play_midi_setup_drums(ch, note);
+			val	-= 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+					"XG Drum Decay Time (CH:%d NOTE:%d VALUE:%d)",
+					ch, note, val);
+			channel[ch].drums[note]->drum_envelope_rate[2] = val;
+		}
+		break;
+	case NRPN_ADDR_1800:	/* Coarse Pitch of Drum (GS) */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		if (current_event->b == 0x01) {
+			channel[ch].drums[note]->play_note = val;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+			"Drum Instrument Play Note (CH:%d NOTE:%d VALUE:%d)",
+			ch, note, channel[ch].drums[note]->play_note);
+		} else {
+			channel[ch].drums[note]->coarse = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY,
+			"Drum Instrument Pitch Coarse (CH:%d NOTE:%d VALUE:%d)",
+			ch, note, channel[ch].drums[note]->coarse);
+		}
+		channel[ch].pitchfactor = 0;
+		break;
+	case NRPN_ADDR_1900:	/* Fine Pitch of Drum (XG) */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		channel[ch].drums[note]->fine = val - 64;
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument Pitch Fine (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, channel[ch].drums[note]->fine);
+		channel[ch].pitchfactor = 0;
+		break;
+	case NRPN_ADDR_1A00:	/* Level of Drum */	 
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Drum Instrument TVA Level (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->drum_level =
+				calc_drum_tva_level(ch, note, val);
+		break;
+	case NRPN_ADDR_1C00:	/* Panpot of Drum */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		if(val == 0) {
+			val = int_rand(128);
+			channel[ch].drums[note]->pan_random = 1;
+		} else
+			channel[ch].drums[note]->pan_random = 0;
+		channel[ch].drums[note]->drum_panning = val;
+		if (update_now && adjust_panning_immediately
+				&& ! channel[ch].pan_random)
+			adjust_drum_panning(ch, note);
+		break;
+	case NRPN_ADDR_1D00:	/* Reverb Send Level of Drum */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Reverb Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->reverb_level = val;
+		break;
+	case NRPN_ADDR_1E00:	/* Chorus Send Level of Drum */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Chorus Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->chorus_level = val;
+		break;
+	case NRPN_ADDR_1F00:	/* Variation Send Level of Drum */
+		drumflag = 1;
+		note = channel[ch].lastlrpn;
+		if (channel[ch].drums[note] == NULL)
+			play_midi_setup_drums(ch, note);
+		ctl->cmsg(CMSG_INFO, VERB_NOISY,
+				"Delay Send Level of Drum (CH:%d NOTE:%d VALUE:%d)",
+				ch, note, val);
+		channel[ch].drums[note]->delay_level = val;
+		break;
+	case RPN_ADDR_0000:		/* Pitch bend sensitivity */
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+				"Pitch Bend Sensitivity (CH:%d VALUE:%d)", ch, val);
+		/* for mod2mid.c, arpeggio */
+		if (! IS_CURRENT_MOD_FILE && channel[ch].rpnmap[RPN_ADDR_0000] > 24)
+			channel[ch].rpnmap[RPN_ADDR_0000] = 24;
+		channel[ch].pitchfactor = 0;
+		break;
+	case RPN_ADDR_0001:		/* Master Fine Tuning */
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+				"Master Fine Tuning (CH:%d VALUE:%d)", ch, val);
+		channel[ch].pitchfactor = 0;
+		break;
+	case RPN_ADDR_0002:		/* Master Coarse Tuning */
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+				"Master Coarse Tuning (CH:%d VALUE:%d)", ch, val);
+		channel[ch].pitchfactor = 0;
+		break;
+	case RPN_ADDR_0003:		/* Tuning Program Select */
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+				"Tuning Program Select (CH:%d VALUE:%d)", ch, val);
+		for (i = 0; i < upper_voices; i++)
+			if (voice[i].status != VOICE_FREE) {
+				voice[i].temper_instant = 1;
+				recompute_freq(i);
+			}
+		break;
+	case RPN_ADDR_0004:		/* Tuning Bank Select */
+		ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+				"Tuning Bank Select (CH:%d VALUE:%d)", ch, val);
+		for (i = 0; i < upper_voices; i++)
+			if (voice[i].status != VOICE_FREE) {
+				voice[i].temper_instant = 1;
+				recompute_freq(i);
+			}
+		break;
+	case RPN_ADDR_7F7F:		/* RPN reset */
+		channel[ch].rpn_7f7f_flag = 1;
+		break;
+	case RPN_ADDR_FFFF:		/* RPN initialize */
+		/* All reset to defaults */
+		channel[ch].rpn_7f7f_flag = 0;
+		memset(channel[ch].rpnmap, 0, sizeof(channel[ch].rpnmap));
+		channel[ch].lastlrpn = channel[ch].lastmrpn = 0;
+		channel[ch].nrpn = 0;
+		channel[ch].rpnmap[RPN_ADDR_0000] = 2;
+		channel[ch].rpnmap[RPN_ADDR_0001] = 0x40;
+		channel[ch].rpnmap[RPN_ADDR_0002] = 0x40;
+		channel[ch].pitchfactor = 0;
+		break;
+	}
+	drumflag = 0;
+	if (drumflag && midi_drumpart_change(ch, 1)) {
+		midi_program_change(ch, channel[ch].program);
+		if (update_now)
+			ctl_prog_event(ch);
+	}
 }
 
 static void seek_forward(int32 until_time)
