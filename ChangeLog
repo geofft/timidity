@@ -1,3 +1,8 @@
+2004-02-11  Kouji 'kekyo' Suzuki <k@kekyo.net>
+
+	* interface/w32g_syn.c, configs/msc7-project.zip:
+	  Support for TWSYNSRV.
+
 2004-02-11  Saito <saito2@digitalme.com>
         * timidity/output.[ch], timidity/wave_a.c,
           timidity/w32_a.c, timidity/aq.c,

@@ -42,6 +42,12 @@ int WINAPI timeKillEvent(UINT uTimerID);
 			 * <windowsx.h>
 			 */
 
+#ifdef TWSYNSRV
+#include <winsvc.h>
+//#include <lmcons.h>
+#include <stdarg.h>
+#endif
+
 #include "timidity.h"
 #include "common.h"
 #include "instrum.h"
@@ -49,12 +55,6 @@ int WINAPI timeKillEvent(UINT uTimerID);
 #include "readmidi.h"
 #include "output.h"
 #include "controls.h"
-
-#define HAVE_SYN_CONSOLE
-#ifdef HAVE_SYN_CONSOLE
-static HWND hConsoleWnd;
-void InitConsoleWnd(HWND hParentWnd);
-#endif
 
 #if defined(__CYGWIN32__) || defined(__MINGW32__)
 #define WIN32GCC
@@ -70,8 +70,10 @@ WINAPI void InitCommonControls(void);
 
 typedef struct w32g_syn_t_ {
 	UINT nid_uID;
+#ifndef TWSYNSRV
 	HWND nid_hWnd;
 	HICON hIcon;
+#endif
 	int argc;
 	char **argv;
 	HANDLE gui_hThread;
@@ -83,13 +85,6 @@ typedef struct w32g_syn_t_ {
 	int volatile quit_state;
 } w32g_syn_t;
 static w32g_syn_t w32g_syn;
-
-#define MYWM_NOTIFYICON (WM_USER+501)
-#define MYWM_QUIT (WM_USER+502)
-#define W32G_SYN_NID_UID 12301
-#define W32G_SYNWIN_CLASSNAME "TWSYNTH GUI"
-#define W32G_MUTEX_NAME "TWSYNTH GUI"
-#define W32G_SYN_TIP "TWSYNTH GUI"
 
 // 各種変数 (^^;;;
 HINSTANCE hInst = NULL;
@@ -138,12 +133,28 @@ int TraceGraphicFlag;
 int w32g_auto_output_mode = 0;
 char *w32g_output_dir = NULL;
 
-
 extern void CmdLineToArgv(LPSTR lpCmdLine, int *argc, CHAR ***argv);
 
-static LRESULT CALLBACK SynWinProc ( HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam );
 static int start_syn_thread ( void );
 static void WINAPI syn_thread ( void );
+
+
+#ifndef TWSYNSRV
+
+// Task tray version here
+
+static LRESULT CALLBACK SynWinProc ( HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam );
+static void VersionWnd(HWND hParentWnd);
+static void TiMidityWnd(HWND hParentWnd);
+
+static int w32g_syn_create_win ( void );
+
+#define HAVE_SYN_CONSOLE
+
+#define MYWM_NOTIFYICON (WM_USER+501)
+#define MYWM_QUIT (WM_USER+502)
+#define W32G_SYNWIN_CLASSNAME "TWSYNTH GUI"
+#define W32G_SYN_TIP "TWSYNTH GUI"
 
 // ポップアップメニュー
 #define IDM_NOTHING	100
@@ -175,6 +186,33 @@ static void WINAPI syn_thread ( void );
 #define IDM_VERSION 126
 #define IDM_TIMIDITY 127
 
+#ifdef HAVE_SYN_CONSOLE
+static HWND hConsoleWnd;
+void InitConsoleWnd(HWND hParentWnd);
+#endif // HAVE_SYN_CONSOLE
+
+#else  // !TWSYNSRV
+
+// Windows service version here
+
+#undef HAVE_SYN_CONSOLE
+
+static SERVICE_STATUS_HANDLE serviceStatusHandle;
+static DWORD currentServiceStatus;
+static const char *serviceName = "Timidity";
+static const char *serviceLongName = "Timidity version " TIMID_VERSION;
+static const char *serviceDescription = "Realtime synthesize midi message";
+static const char *regKeyTwSynSrv = "SYSTEM\\CurrentControlSet\\Services\\Timidity";
+
+static BOOL InstallService();
+static BOOL UninstallService();
+
+#endif	// !TWSYNSRV
+
+
+#define W32G_SYN_NID_UID 12301
+#define W32G_MUTEX_NAME "TWSYNTH MUTEX"
+
 #define W32G_SYN_MESSAGE_MAX 100
 #define W32G_SYN_NONE	0
 #define W32G_SYN_QUIT	10
@@ -188,6 +226,8 @@ static void WINAPI syn_thread ( void );
 #define W32G_SYN_CHANGE_XG_SYSTEM 26
 #define W32G_SYN_CHANGE_GM_SYSTEM 27
 #define W32G_SYN_CHANGE_DEFAULT_SYSTEM 28
+
+
 typedef struct w32g_syn_message_t_ {
 	int cmd;
 } w32g_syn_message_t;
@@ -198,6 +238,7 @@ static volatile enum { stop, run, quit, none } w32g_syn_status, w32g_syn_status_
 int w32g_syn_id_port[MAX_PORT];
 int w32g_syn_port_num = 2;
 
+extern int win_main(int argc, char **argv);
 extern int ctl_pass_playing_list2(int n, char *args[]);
 extern void winplaymidi(void);
 
@@ -212,9 +253,7 @@ DWORD syn_ThreadPriority;	// シンセスレッドのプライオリティ
 
 extern int volatile stream_max_compute;	// play_event() の compute_data() で計算を許す最大時間。
 
-static int w32g_syn_create_win ( void );
 static int w32g_syn_main ( void );
-static LRESULT CALLBACK SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 static int start_syn_thread ( void );
 static void WINAPI syn_thread ( void );
 static void terminate_syn_thread ( void );
@@ -225,39 +264,64 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] );
 int w32g_syn_do_before_pref_apply ( void );
 int w32g_syn_do_after_pref_apply ( void );
 
-static void VersionWnd(HWND hParentWnd);
-static void TiMidityWnd(HWND hParentWnd);
 
 /*
   構造
 	　メインスレッド：GUIのメッセージループ
 	　シンセサイザースレッド：発音部分
 */
-
-
 int WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 				LPSTR lpCmdLine, int nCmdShow)
 {
-	{ // 今のところ２重起動はできないようにしとく。
-		HANDLE hMutex = OpenMutex ( 0, FALSE, W32G_MUTEX_NAME );
-		if ( hMutex != NULL ) {
-			CloseHandle ( hMutex );
+	HANDLE hMutex;
+	int i;
+
+	// 今のところ２重起動はできないようにしとく。
+	hMutex = OpenMutex ( 0, FALSE, W32G_MUTEX_NAME );
+	if ( hMutex != NULL ) {
+		CloseHandle ( hMutex );
+		return 0;
+	}
+	w32g_syn.hMutex = CreateMutex ( NULL, TRUE, W32G_MUTEX_NAME );
+	if ( w32g_syn.hMutex == NULL ) {
+		return 0;
+	}
+
+	CmdLineToArgv(lpCmdLine, &w32g_syn.argc, &w32g_syn.argv);
+
+#ifdef TWSYNSRV
+	// Service install and uninstall handling
+	for (i = 1; i < w32g_syn.argc; i++)
+	{
+		if (stricmp(w32g_syn.argv[i], "/INSTALL") == 0)
+		{
+			InstallService();
+
+			ReleaseMutex ( w32g_syn.hMutex );
+			CloseHandle ( w32g_syn.hMutex );
+			
 			return 0;
 		}
-		w32g_syn.hMutex = CreateMutex ( NULL, TRUE, W32G_MUTEX_NAME );
-		if ( w32g_syn.hMutex == NULL ) {
+		else if (stricmp(w32g_syn.argv[i], "/UNINSTALL") == 0)
+		{
+			UninstallService();
+
+			ReleaseMutex ( w32g_syn.hMutex );
+			CloseHandle ( w32g_syn.hMutex );
+			
 			return 0;
 		}
 	}
-	
-	CmdLineToArgv ( lpCmdLine, &w32g_syn.argc, &w32g_syn.argv );
+#endif
+
 //	wrdt=wrdt_list[0];
 	
 	hInst = hInstance;
-	w32g_syn.gui_hThread = GetCurrentThread ();
-	w32g_syn.gui_dwThreadId = GetCurrentThreadId ();
+	w32g_syn.gui_hThread = GetCurrentThread();
+	w32g_syn.gui_dwThreadId = GetCurrentThreadId();
 	w32g_syn.quit_state = 0;
+
 	w32g_syn_main ();
 	
 	ReleaseMutex ( w32g_syn.hMutex );
@@ -265,6 +329,10 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	
 	return 0;
 }
+
+#ifndef TWSYNSRV
+
+// Task tray version here
 
 static int w32g_syn_create_win ( void )
 {
@@ -299,7 +367,7 @@ static int w32g_syn_main ( void )
 	int i;
 	MSG msg;
 
-  InitCommonControls();
+	InitCommonControls();
 
 	w32g_syn.nid_uID = W32G_SYN_NID_UID;
 	w32g_syn.nid_hWnd = NULL;
@@ -336,7 +404,6 @@ static VOID CALLBACK forced_exit ( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwT
 {
 	exit ( 0 );
 }
-
 
 static LRESULT CALLBACK
 SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
@@ -810,7 +877,6 @@ static int start_syn_thread ( void )
 	return 0;
 }
 
-extern int win_main(int argc, char **argv);
 static void WINAPI syn_thread ( void )
 {
 	syn_thread_started = 1;
@@ -837,6 +903,293 @@ static int wait_for_termination_of_syn_thread ( void )
 	}
 	return ok;
 }
+
+#else // !TWSYNSRV
+
+// Windows service version here
+
+// To debug output (Require attached debugger)
+static void OutputString(char *format, ...)
+{
+	char temp[256];
+	va_list va;
+
+	va_start(va, format);
+	vsnprintf(temp, sizeof(temp), format, va);
+	OutputDebugString(temp);
+	va_end(va);
+}
+
+void PutsConsoleWnd(char *str)
+{
+	OutputString("%s", str);
+}
+
+// To MessageBox Window (Require grant access windowstation)
+static void OutputWindow(char *format, ...)
+{
+	char temp[256];
+	va_list va;
+
+	va_start(va, format);
+	vsnprintf(temp, sizeof(temp), format, va);
+	MessageBox(NULL, temp, serviceName, MB_OK | MB_ICONEXCLAMATION);
+	va_end(va);
+}
+
+static void OutputLastError(char *message)
+{
+	LPVOID buffer;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, GetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&buffer, 0, NULL);
+	OutputDebugString(message);
+	OutputDebugString(" : ");
+	OutputDebugString(buffer);
+	OutputDebugString("\n");
+
+	LocalFree(buffer);
+}
+
+static void OutputWindowLastError(char *message)
+{
+	LPVOID buffer;
+	char *temp;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, GetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&buffer, 0, NULL);
+
+	temp = (char *)malloc(strlen((const char *)buffer) + strlen(message) + 10);
+	sprintf(temp, "%s : %s\n", message, buffer);
+
+	MessageBox(NULL, temp, serviceName, MB_OK | MB_ICONEXCLAMATION);
+
+	free(temp);
+	LocalFree(buffer);
+}
+
+// Report service status to service control manager
+static BOOL ReportStatusToSCM(DWORD newServiceStatus, DWORD checkPoint, DWORD waitHint,
+	DWORD win32ExitCode, DWORD serviceSpecificExitCode)
+{
+	BOOL result;
+	SERVICE_STATUS serviceStatus;
+
+	serviceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	currentServiceStatus = newServiceStatus;
+	serviceStatus.dwCurrentState = newServiceStatus;
+	serviceStatus.dwCheckPoint = checkPoint;
+	serviceStatus.dwWaitHint = waitHint;
+	serviceStatus.dwWin32ExitCode = win32ExitCode;
+	serviceStatus.dwServiceSpecificExitCode = serviceSpecificExitCode;
+	if (newServiceStatus == SERVICE_START_PENDING)
+	{
+		serviceStatus.dwControlsAccepted = 0;
+	}
+	else
+	{
+		serviceStatus.dwControlsAccepted =
+			SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_PAUSE_CONTINUE | SERVICE_ACCEPT_PARAMCHANGE;
+	}
+	result = SetServiceStatus(serviceStatusHandle, &serviceStatus);
+	if (result == FALSE)
+	{
+		OutputLastError("ReportStatusToSCM() == FALSE");
+	}
+	return result;
+}
+
+// Report service status to service control manager (Alternate version)
+static BOOL PingStatusToSCM(DWORD checkPoint, DWORD waitHint)
+{
+	return ReportStatusToSCM(currentServiceStatus, checkPoint, waitHint, NO_ERROR, NO_ERROR);
+}
+
+// Service control message from management interface (Callback from SCM)
+static void WINAPI ServiceCtrlHandler(DWORD state)
+{
+ 	switch (state)
+	{
+	case SERVICE_CONTROL_STOP: 
+		ReportStatusToSCM(SERVICE_STOP_PENDING, 1, 0, NO_ERROR, NO_ERROR);
+		w32g_message_set(W32G_SYN_QUIT);
+		break;
+	case SERVICE_CONTROL_PAUSE:
+		ReportStatusToSCM(SERVICE_PAUSE_PENDING, 1, 0, NO_ERROR, NO_ERROR);
+		w32g_message_set(W32G_SYN_STOP);
+		ReportStatusToSCM(SERVICE_PAUSED, 1, 0, NO_ERROR, NO_ERROR);
+		break;
+	case SERVICE_CONTROL_CONTINUE:
+		ReportStatusToSCM(SERVICE_CONTINUE_PENDING, 1, 0, NO_ERROR, NO_ERROR);
+		w32g_message_set(W32G_SYN_START);
+		ReportStatusToSCM(SERVICE_RUNNING, 1, 0, NO_ERROR, NO_ERROR);
+		break;
+	case SERVICE_CONTROL_INTERROGATE:
+		OutputString("ServiceCtrlHandler(), SERVICE_CONTROL_INTERROGATE : oops.\n");
+		break;
+	case SERVICE_CONTROL_SHUTDOWN:
+		OutputString("ServiceCtrlHandler(), SERVICE_CONTROL_SHUTDOWN : oops.\n");
+		break;
+	default:
+		OutputString("ServiceCtrlHandler(), default handler (%d) : oops.\n", state);
+		break;
+	}
+	PingStatusToSCM(0, 0);
+}
+
+// Register service control handler
+static SERVICE_STATUS_HANDLE RegisterCtrlHandler()
+{
+	SERVICE_STATUS_HANDLE ssh = RegisterServiceCtrlHandler(
+		serviceName, ServiceCtrlHandler);
+	if (ssh == 0)
+	{
+		OutputLastError("RegisterServiceCtrlHandler() == 0");
+		return NULL;
+	}
+	return ssh;
+}
+
+// Service entry function (Callback from SCM)
+static void WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
+{
+	serviceStatusHandle = RegisterCtrlHandler();
+	ReportStatusToSCM(SERVICE_RUNNING, 1, 0, NO_ERROR, NO_ERROR);
+
+	w32g_syn.syn_hThread = GetCurrentThread();
+	win_main(w32g_syn.argc, w32g_syn.argv);
+
+	ReportStatusToSCM(SERVICE_STOPPED, 1, 0, NO_ERROR, NO_ERROR);
+}
+
+// return
+// 0 : OK
+// -1 : FATAL ERROR
+static int w32g_syn_main ( void )
+{
+	int i;
+	BOOL result;
+	SERVICE_TABLE_ENTRY ServiceTable[2];
+
+	w32g_syn.nid_uID = W32G_SYN_NID_UID;
+	processPriority = NORMAL_PRIORITY_CLASS;
+	syn_ThreadPriority = THREAD_PRIORITY_NORMAL;
+	for ( i = 0; i <= MAX_PORT; i ++ ) {
+		w32g_syn_id_port[i] = i + 1;
+	}
+
+	ServiceTable[0].lpServiceName = (LPSTR)serviceName;
+	ServiceTable[0].lpServiceProc = ServiceMain;
+	ServiceTable[1].lpServiceName = 0;
+	ServiceTable[1].lpServiceProc = 0;
+
+	result = StartServiceCtrlDispatcher(ServiceTable);
+	if (result == FALSE)
+	{
+#if 0
+//		OutputLastError("StartServiceCtrlDispatcher() == FALSE");
+		OutputWindowLastError("StartServiceCtrlDispatcher() == FALSE");
+#else
+		ServiceMain(0, 0);
+#endif
+		return -1;
+	}
+	return 0;
+}
+
+// Service installer
+static BOOL InstallService()
+{
+	char twSynSrvPath[_MAX_PATH];
+	SC_HANDLE scm, sv;
+	HKEY srvKey;
+
+	GetModuleFileName(NULL, twSynSrvPath, _MAX_PATH);
+
+	scm = OpenSCManager(
+		NULL, SERVICES_ACTIVE_DATABASE, SC_MANAGER_CREATE_SERVICE);
+	if (scm == NULL)
+	{
+		OutputWindowLastError("OpenSCManager() == NULL");
+		return FALSE;
+	}
+
+	sv = CreateService(scm, serviceName, serviceLongName,
+		0, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START,
+		SERVICE_ERROR_IGNORE, twSynSrvPath, NULL, NULL, NULL, NULL, NULL);
+	if (sv == NULL)
+	{
+		OutputWindowLastError("CreateService() == NULL");
+		CloseServiceHandle(scm);
+		return FALSE;
+	}
+
+	CloseServiceHandle(sv);
+	CloseServiceHandle(scm);
+
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, regKeyTwSynSrv,
+		0, KEY_WRITE | KEY_READ, &srvKey) == ERROR_SUCCESS)
+	{
+		if (RegSetValueEx(srvKey, "Description", NULL, REG_SZ,
+			(const BYTE *)serviceDescription, strlen(serviceDescription)) != ERROR_SUCCESS)
+		{
+			OutputWindowLastError("RegSetValueEx() != ERROR_SUCCESS");
+			RegCloseKey(srvKey);
+			return FALSE;
+		}
+		RegCloseKey(srvKey);
+	}
+
+	OutputWindow("%s : Service install successful.", serviceLongName);
+
+	return TRUE;
+}
+
+// Service uninstaller
+static BOOL UninstallService()
+{
+	SC_HANDLE scm, sv;
+	
+	scm = OpenSCManager(
+		NULL, SERVICES_ACTIVE_DATABASE, SC_MANAGER_CONNECT);
+	if (scm == NULL)
+	{
+		OutputWindowLastError("OpenSCManager() == NULL");
+		return FALSE;
+	}
+
+	sv = OpenService(scm, serviceName, DELETE | SERVICE_STOP | SERVICE_QUERY_STATUS);
+	if (sv == NULL)
+	{
+		OutputWindowLastError("OpenService() == NULL");
+		CloseServiceHandle(scm);
+		return FALSE;
+	}
+
+	if (DeleteService(sv) == FALSE)
+	{
+		OutputWindowLastError("DeleteService() == FALSE");
+		CloseServiceHandle(sv);
+		CloseServiceHandle(scm);
+		return FALSE;
+	}
+
+	CloseServiceHandle(sv);
+	CloseServiceHandle(scm);
+
+	OutputWindow("%s : Service uninstall successful.", serviceLongName);
+
+	return TRUE;
+}
+
+#endif	// !TWSYNSRV
+
 
 // 可変長引数にする予定……
 // 0: 成功、1: 追加できなかった
@@ -1004,7 +1357,11 @@ void w32g_syn_doit(void)
 void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 {
 	int i;
+#ifndef TWSYNSRV
 	w32g_syn_status = syn_AutoStart ? run : stop;
+#else
+	w32g_syn_status = run;
+#endif
 	for (;;) {
 		int breakflag = 0;
 		switch ( w32g_syn_status ) {
@@ -1058,10 +1415,12 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 		if ( breakflag )
 			break;
 	}
+#ifndef TWSYNSRV
 	while ( w32g_syn.quit_state < 1 ) {
 		PostThreadMessage ( w32g_syn.gui_dwThreadId, MYWM_QUIT, 0, 0 );
 		Sleep ( 300 );
 	}
+#endif
 	if ( w32g_syn.quit_state < 2 ) w32g_syn.quit_state = 2;
 }
 
@@ -1450,6 +1809,6 @@ static void ConsoleWndVerbosityApplyIncDec(int num)
 	ConsoleWndVerbosityUpdate();
 }
 
-#endif
+#endif // HAVE_SYN_CONSOLE
 
 #endif // IA_W32G_SYN
