@@ -99,7 +99,7 @@ double newt_coeffs[58][58];		/* for start/end of samples */
 	}
 #elif defined(GAUSS_INTERPOLATION)
 float *gauss_table[(1<<FRACTION_BITS)] = {0};	/* don't need doubles */
-int gauss_n = 25;
+int gauss_n = 0/*25*/;
 # define INTERPVARS	int32 v1, v2; \
 			sample_t *sptr; \
 			double y, xd; \

@@ -3421,6 +3421,16 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	init_convex_vol_table();
 	init_def_vol_table();
 	init_gs_vol_table();
+
+#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
+    initialize_newton_coeffs();
+#endif
+#ifdef GAUSS_INTERPOLATION
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Initializing Gauss table...");
+    initialize_gauss_table(gauss_n);
+    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Done");
+#endif
+
 #ifdef SUPPORT_SOCKET
 	url_news_connection_cache(URL_NEWS_CONN_CACHE);
 #endif /* SUPPORT_SOCKET */
@@ -3946,15 +3956,6 @@ int main(int argc, char **argv)
 	return 1; /* problems with command line */
 #endif
     }
-
-#if defined(NEWTON_INTERPOLATION) || defined(GAUSS_INTERPOLATION)
-    initialize_newton_coeffs();
-#endif
-#ifdef GAUSS_INTERPOLATION
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Initializing Gauss table...");
-    initialize_gauss_table(gauss_n);
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Done");
-#endif
 
     timidity_init_player();
 

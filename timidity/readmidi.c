@@ -115,10 +115,6 @@ void init_insertion_effect_status();
 void set_insertion_effect_default_parameter();
 void recompute_insertion_effect();
 
-void init_channel_layer(int);
-void remove_channel_layer(int);
-void add_channel_layer(int, int);
-
 /* MIDI ports will be merged in several channels in the future. */
 int midi_port_number;
 
@@ -133,12 +129,6 @@ static int32 sample_increment, sample_correction; /*samples per MIDI delta-t*/
 #define MIDIEVENT(at, t, ch, pa, pb) \
     { MidiEvent event; SETMIDIEVENT(event, at, t, ch, pa, pb); \
       readmidi_add_event(&event); }
-
-#define MIDIEVENT_LAYER(at, t, ch, pa, pb) \
-    { MidiEvent event; int _layer_cnt; \
-	for(_layer_cnt = 0; channel[ch].channel_layer[_layer_cnt] != -1; _layer_cnt++) {	\
-	SETMIDIEVENT(event, at, t, channel[ch].channel_layer[_layer_cnt], pa, pb); \
-	readmidi_add_event(&event);}}
 
 #if MAX_CHANNELS <= 16
 #define MERGE_CHANNEL_PORT(ch) ((int)(ch))
@@ -290,13 +280,6 @@ void readmidi_add_ctl_event(int32 at, int ch, int a, int b)
     }
     else
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(Control ch=%d %d: %d)", ch, a, b);
-}
-
-void readmidi_add_ctl_event_layer(int32 at, int ch, int a, int b)
-{
-	int i;
-	for(i = 0; channel[ch].channel_layer[i] != -1; i++)
-		readmidi_add_ctl_event(at, channel[ch].channel_layer[i], a, b);
 }
 
 char *readmidi_make_string_event(int type, char *string, MidiEvent *ev,
@@ -756,12 +739,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		    break;
 
 		case 0x04:	/* Rcv CHANNEL */
-		    if(*body == 0x7F) {
-			remove_channel_layer(p);
-			init_channel_layer(p);
-		    } else {
-			add_channel_layer(*body, p);
-		    }
+			SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, *body, 0x65);
 		    break;
 
 		case 0x05:	/* mono/poly mode */
@@ -879,12 +857,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x04:	/* Rcv CHANNEL */
-				  if(val[6] == 0x7F) {
-					remove_channel_layer(p);
-				   	init_channel_layer(p);
-				  } else {
-					add_channel_layer(val[6], p);
-				  }
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, p, val[6], 0x65);
+				  num_events++;
 				  break;
 
 				case 0x05:	/* mono/poly mode */
@@ -1016,12 +990,8 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 					num_events += 2;
 					break;
 				case 0x02:	/* Rx. Channel */
-					if(val[7] == 0x10) {
-						remove_channel_layer(p);
-						init_channel_layer(p);
-					} else {
-						add_channel_layer(val[7], p);
-					}
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, p, val[7], 0x45);
+					num_events++;
 					break;
 				case 0x13:
 					if(val[7] == 0) {SETMIDIEVENT(evm[0], 0, ME_MONO,p,val[7],0);}
@@ -1589,10 +1559,12 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x00:	/* System */
 			switch(addr & 0xFFF0) {
 				case 0x0100:	/* Channel Msg Rx Port (A) */
-					add_channel_layer(block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 0));
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 0), 0x46);
+					num_events++;
 					break;
 				case 0x0110:	/* Channel Msg Rx Port (B) */
-					add_channel_layer(block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 1));
+					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB, block_to_part(addr & 0xF, val[7]), block_to_part(addr & 0xF, 1), 0x46);
+					num_events++;
 					break;
 				default:
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
@@ -2429,42 +2401,42 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 	    {
 	      case 0: /* Note off */
 		b = tf_getc(tf) & 0x7F;
-		MIDIEVENT_LAYER(smf_at_time, ME_NOTEOFF, lastchan, a,b);
+		MIDIEVENT(smf_at_time, ME_NOTEOFF, lastchan, a,b);
 		break;
 
 	      case 1: /* Note on */
 		b = tf_getc(tf) & 0x7F;
 		if(b)
 		{
-		    MIDIEVENT_LAYER(smf_at_time, ME_NOTEON, lastchan, a,b);
+		    MIDIEVENT(smf_at_time, ME_NOTEON, lastchan, a,b);
 		}
 		else /* b == 0 means Note Off */
 		{
-		    MIDIEVENT_LAYER(smf_at_time, ME_NOTEOFF, lastchan, a, 0);
+		    MIDIEVENT(smf_at_time, ME_NOTEOFF, lastchan, a, 0);
 		}
 		break;
 
 	      case 2: /* Key Pressure */
 		b = tf_getc(tf) & 0x7F;
-		MIDIEVENT_LAYER(smf_at_time, ME_KEYPRESSURE, lastchan, a, b);
+		MIDIEVENT(smf_at_time, ME_KEYPRESSURE, lastchan, a, b);
 		break;
 
 	      case 3: /* Control change */
 		b = tf_getc(tf);
-		readmidi_add_ctl_event_layer(smf_at_time, lastchan, a, b);
+		readmidi_add_ctl_event(smf_at_time, lastchan, a, b);
 		break;
 
 	      case 4: /* Program change */
-		MIDIEVENT_LAYER(smf_at_time, ME_PROGRAM, lastchan, a, 0);
+		MIDIEVENT(smf_at_time, ME_PROGRAM, lastchan, a, 0);
 		break;
 
 	      case 5: /* Channel pressure */
-		MIDIEVENT_LAYER(smf_at_time, ME_CHANNEL_PRESSURE, lastchan, a, 0);
+		MIDIEVENT(smf_at_time, ME_CHANNEL_PRESSURE, lastchan, a, 0);
 		break;
 
 	      case 6: /* Pitch wheel */
 		b = tf_getc(tf) & 0x7F;
-		MIDIEVENT_LAYER(smf_at_time, ME_PITCHWHEEL, lastchan, a, b);
+		MIDIEVENT(smf_at_time, ME_PITCHWHEEL, lastchan, a, b);
 		break;
 
 	      default: /* case 7: */
@@ -4544,6 +4516,8 @@ void recompute_insertion_effect()
 
 void init_channel_layer(int ch)
 {
+	if(ch >= MAX_CHANNELS) {return;}
+
 	if(channel[ch].channel_layer != NULL) {
 		free(channel[ch].channel_layer);
 		channel[ch].channel_layer = NULL;
@@ -4555,6 +4529,8 @@ void add_channel_layer(int ch, int fromch)
 {
 	int i, j = 0;
 	int8 layer[MAX_CHANNELS];
+
+	if(fromch >= MAX_CHANNELS || ch >= MAX_CHANNELS) {return;}
 
 	/* delete overlapping channel layer */
 	if(channel[fromch].channel_layer != NULL) {
@@ -4591,6 +4567,8 @@ void remove_channel_layer(int ch)
 {
 	int i, j, k;
 	int8 layer[MAX_CHANNELS];
+
+	if(ch >= MAX_CHANNELS) {return;}
 
 	for(k = 0; k < MAX_CHANNELS; k++)
 	{
