@@ -228,6 +228,12 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
+      "xwcc386_w "*)
+         WATCOM=yes
+         CFLAGS="$CFLAGS -5s -zk0 -bm -zp=16 -w=4 -D_MSC_VER -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         WATCOM_LDFLAGS=
+         EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib libcmt.lib"
+         ;;
       "xcl "*)
          test -n "$SHLD" || SHLD="link -dll" 
          VCPP_LDFLAGS="-nologo -incremental:no  -nodefaultlib:libc.lib -nodefaultlib:msvcrt.lib kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib libcmt.lib"
@@ -255,6 +261,12 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
+      "xwcc386_w "*)
+         WATCOM=yes
+         CFLAGS="$CFLAGS -5s -zk0 -bm -zp=16 -w=4 -D_MSC_VER -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         WATCOM_LDFLAGS=
+         EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib libcmt.lib"
+         ;;
       "xcl "*) 
          test -n "$SHLD" || SHLD="link -dll"
          VCPP=yes
@@ -315,7 +327,7 @@ AC_CHECK_LIB(m,sqrt)
 AC_CHECK_LIB(socket,socket)
 AC_CHECK_LIB(dl,dlopen,lib_dl_opt=-ldl)
 AC_CHECK_LIB(objc,NSLinkModule,lib_dl_opt=-lobjc) # Mac OS X need this.
-if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes"; then
+if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM" != "xyes"; then
 AC_CHECK_LIB(xpg4,setlocale) # Mac OS X (and maybe NetBSD) need this.
 fi
 AC_CHECK_FUNCS(gethostbyname,,[ AC_CHECK_LIB(nsl,gethostbyname) ])
@@ -378,7 +390,9 @@ dnl End of X configure
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
 AC_HEADER_SYS_WAIT
+if test "x$WATCOM" != xyes ; then
 AC_HEADER_TIME
+fi
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS( \
   [arpa/inet.h \
@@ -390,6 +404,7 @@ AC_CHECK_HEADERS( \
   inttypes.h \
   limits.h \
   machine/endian.h \
+  malloc.h \
   memory.h \
   netdb.h \
   netinet/in.h \
@@ -425,12 +440,11 @@ AC_CHECK_HEADERS(\
 #endif
   ])
 AC_CHECK_HEADER(string.h,, [ AC_DEFINE(NO_STRING_H,1,Define to 1 if you do not have <string.h>.)])
-if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes; then
-AC_CHECK_HEADERS([malloc.h])
-fi
 
 # Checks for typedefs, structures, and compiler characteristics.
+if test "x$WATCOM" != xyes ; then
 AC_C_BIGENDIAN
+fi
 AC_C_CHAR_UNSIGNED
 AC_C_CONST
 AC_C_INLINE
@@ -515,7 +529,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
 AC_TYPE_SIGNAL
-if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes; then
+if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM" != "xyes"; then
 AC_FUNC_VPRINTF
 fi
 AC_CHECK_FUNCS( \
@@ -552,7 +566,7 @@ AC_CHECK_FUNCS( \
   strstr \
   strtol \
   usleep])
-if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
   AC_DEFINE(RETSIGTYPE,int)
   AC_DEFINE(HAVE_GETCWD,int)
   AC_DEFINE(HAVE_GETHOSTBYNAME,1)
@@ -592,7 +606,7 @@ if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
     ;;
   esac
   if test "x$enable_network" = "xyes"; then
-  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
       EXTRALIBS="$EXTRALIBS  wsock32.lib"
       EXTRADEFS="$EXTRADEFS -DWINSOCK" 
     else
@@ -936,7 +950,7 @@ if test "x$au_enable_w32" = xyes; then
      ;;
   esac
   SYSEXTRAS="$SYSEXTRAS w32_a.c"
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
   	EXTRALIBS="$EXTRALIBS winmm.lib"
   else
     EXTRALIBS="$EXTRALIBS -lwinmm"
@@ -1450,7 +1464,7 @@ dnl configure must check ncurses header with -I/usr/include/ncurses option.
 		      enable_ncurses=no ])
 		  ;;
 		*)
-		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
 		    lib_curses_opt=libpdcurses.lib
 		    AC_DEFINE(USE_PDCURSES,1,Define to 1 if you use PDcurses)
 		  else
@@ -1720,17 +1734,22 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
                                                           (default is no)],
   ,
   [ 
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
     if test "x$VCPP" = xyes; then
-      VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
-    else
+	  VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
+	fi
+	if test "x$BORLANDC" = xyes; then
 	  BORLANDC_START='C0W32.OBJ'
-      CFLAGS="$CFLAGS -tW"
-      lib_w32gui_opt="-aa $lib_w32gui_opt"
-    fi
+	  CFLAGS="$CFLAGS -tW"
+	  lib_w32gui_opt="-aa $lib_w32gui_opt"
+	fi
+	if test "x$WATCOM" = xyes; then
+	  CFLAGS="$CFLAGS -bw"
+	  WATCOM_LDFLAGS="$WATCOM_LDFLAGS SYS nt_win"
+	fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
@@ -1746,16 +1765,21 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
   [  --enable-w32gui         Enable Windows GUI interface    (default is no)],
   ,
   [ 
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
     if test "x$VCPP" = xyes; then
 	  VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
-	else
+	fi
+	if test "x$BORLANDC" = xyes; then
 	  BORLANDC_START='C0W32.OBJ'
 	  CFLAGS="$CFLAGS -tW"
 	  lib_w32gui_opt="-aa $lib_w32gui_opt"
+	fi
+	if test "x$WATCOM" = xyes; then
+	  CFLAGS="$CFLAGS -bw"
+	  WATCOM_LDFLAGS="$WATCOM_LDFLAGS SYS nt_win"
 	fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1892,6 +1916,7 @@ AM_CONDITIONAL(CYGNUS, test "x$CYGNUS" = xyes)
 AM_CONDITIONAL(MSYS, test "x$MSYS" = xyes)
 AM_CONDITIONAL(VCPP, test "x$VCPP" = xyes)
 AM_CONDITIONAL(BORLANDC, test "x$BORLANDC" = xyes)
+AM_CONDITIONAL(WATCOM, test "x$WATCOM" = xyes)
 
 AM_CONDITIONAL(W32READDIR, test "x$W32READDIR" = "xyes")
 
@@ -1919,6 +1944,7 @@ AC_SUBST(BORLANDC_START)
 AC_SUBST(BORLANDC_LDFLAGS)
 AC_SUBST(SHELL)
 AC_SUBST(timidity_LDFLAGS)
+AC_SUBST(WATCOM_LDFLAGS)
 AC_SUBST(VCPP_LDFLAGS)
 AC_SUBST(SYSEXTRAS)
 AC_SUBST(EXTRALIBS)
