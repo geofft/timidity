@@ -1301,11 +1301,11 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
 	ToneBank **bank = (dr) ? drumset : tonebank;
 	Instrument *ip;
-	ToneBankElement *elm;
 	int load_success = 0;
-	
+
 	if (bank[bk] == NULL)
-		bk = 0;
+		alloc_instrument_bank(dr, bk);
+
 	if ((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT) {
 		if (ip = bank[bk]->tone[prog].instrument =
 				load_instrument(dr, bk, prog))
@@ -1325,11 +1325,9 @@ Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 				|| ip == MAGIC_LOAD_INSTRUMENT)
 			ip = bank[0]->tone[prog].instrument =
 					load_instrument(dr, 0, prog);
-		if (ip) {
-			/* duplicate tone bank parameter */
-			elm = &bank[bk]->tone[prog];
-			copy_tone_bank_element(elm, &bank[0]->tone[prog]);
-			elm->instrument = ip;
+		if (ip != NULL) {
+			copy_tone_bank_element(&bank[bk]->tone[prog], &bank[0]->tone[prog]);
+			bank[bk]->tone[prog].instrument = ip;
 			load_success = 1;
 		}
 	}

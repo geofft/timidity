@@ -1,7 +1,8 @@
 2004-02-13  Saito <saito2@digitalme.com>
 
-	* timidity/reverb.[ch]:
-	  Adjust freeverb.
+	* timidity/reverb.[ch], timidity/playmidi.c:
+	  Adjust Freeverb.
+	  Fix play_midi_load_instrument().
 
 2004-02-13  mput  <root@mput.dip.jp>
 

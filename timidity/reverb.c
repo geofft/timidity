@@ -1011,6 +1011,7 @@ static void init_freeverb_comb(comb *comb)
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
 #define fixedgain 0.025f
+#define combfbk 3.5f
 
 static inline int isprime(int val)
 {
@@ -1102,7 +1103,7 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 	int32 tmpL, tmpR;
 	double time, samplerate = play_mode->rate;
 
-	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) * 3.0f
+	time = reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character) * combfbk
 		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
 
 	for(i = 0; i < numcombs; i++)
@@ -1154,7 +1155,7 @@ static void update_freeverb(InfoFreeverb *rev)
 
 	for(i = 0; i < numcombs; i++)
 	{
-		rt = pow(10.0f, -3.0f * (double)combtunings[i] * rtbase);
+		rt = pow(10.0f, -combfbk * (double)combtunings[i] * rtbase);
 		rev->combL[i].feedback = rt;
 		rev->combR[i].feedback = rt;
 		rev->combL[i].damp1 = rev->damp1;
@@ -2249,7 +2250,7 @@ static inline int32 do_right_panning(int32 sample, int32 pan)
 }
 
 #define OD_BITS 28
-#define OD_MAX_NEG (1.0 / (double)(1 << OD_BITS))
+#define OD_MAX_NEG (1.0 / (double)(1L << OD_BITS))
 #define OVERDRIVE_DIST 4.0
 #define OVERDRIVE_RES 0.1
 #define OVERDRIVE_LEVEL 1.0
