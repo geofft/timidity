@@ -1,244 +1,399 @@
-.TH timidity.cfg 5 "Nov 24 1998" "1.0.0"
+.TH timidity.cfg 5 "Mmm dd 2004" "2.13.0"
 .SH NAME
 timidity.cfg \- configure file of TiMidity++
-
 .SH SYNOPSIS
 .TP
 .B /etc/timidity.cfg
 .TP
 .B /usr/local/share/timidity/timidity.cfg
-
 .P
 .SH DESCRIPTION
-The file \fItimidity.cfg\fP describes the runtime environments of 
-timidity(1) that are the path of sound font, instruments configrations 
+The file \fItimidity.cfg\fP describes the runtime environments of
+timidity(1) that are the path of sound font, instruments configrations
 or else.
 .br
-\fITiMidity\fP looks for the configuration file \fItimidity.cfg\fP at
-startup, before processing any options.  If  it  can't  be
-accessed, and the library path is changed with a \-L option
-on the command line, then the default file will be  sought
-again  along  the  new  library  path after processing all
-options, unless another configuration file  was  specified
-with the \-c option.
+\fITiMidity++\fP looks for the configuration file \fItimidity.cfg\fP
+at startup, before processing any options.  If it can't be accessed,
+and the library path is changed with a \-L option on the command line,
+then the default file will be sought again along the new library path
+after processing all options, unless another configuration file was
+specified with the \-c option.
 .sp
-Configuration files define the mapping of MIDI programs to
-instrument files. Multiple files may  be  specified, and
-statements in later ones will override earlier ones. 
-
-
-.P
-.SH FORMAT
+Configuration files define the mapping of MIDI programs to instrument
+files.  Multiple files may be specified, and statements in later ones
+will override earlier ones.
+.sp
 Following statements can be used in a configuration file:
-
 .TP
-.BI dir " directory"
-Adds \fIdirectory\fP to the search path in the same manner
-as the \fB\-L\fP command line option.
-.SH EXAMPLES
-Archive file are also allowed. For example:
+.BI "dir " directory
+Adds \fIdirectory\fP to the search path in the same manner as the
+\fB\-L\fP command line option.
+.br
+Archive file are also allowed.  For example:
+.sp
+Example:
 .br
 dir /usr/local/share/timidity/inst/foo.zip#
 .br
-.bank 0
+bank 0
+.br
+0 bar.pat
 .br
 1 baz.pat
 .br
 2 zoo.pat
-.br
-0 bar.pat
 .sp
-At first, \fBdir\fP specities the archive name (followed by '#') for the
-path of patch files same as directory name (in this case ,
-"/usr/local/share/timidity/inst/foo.zip").
-TiMidity recognize the path is an archive file if the expression has
-the last character '#', and also read the files contained in this
-archive file.
-In previouns example the patch files bar.pat, baz.pat and zoo.pat
-contained in the foo.zip are also installed.
-
+At first, \fBdir\fP specities the archive name (followed by '#') for
+the path of patch files same as directory name (in this case,
+"/usr/local/share/timidity/inst/foo.zip").  TiMidity recognize the
+path is an archive file if the expression has the last character '#',
+and also read the files contained in this archive file.  In previouns
+example the patch files bar.pat, baz.pat and zoo.pat contained in the
+foo.zip are also installed.
 .TP
-.BI source " file "
-Reads  another  configuration  file, then continues
-processing the current one.
-
+.BI "source " file
+Reads another configuration file, then continues processing the
+current one.
 .TP
-.BI bank " number"
-Selects the tone bank to  modify.   Patch  mappings
-that follow will affect this tone bank.
-
+.BI "bank " number
+Selects the tone bank to modify.  Patch mappings that follow will
+affect this tone bank.
 .TP
-.BI progbase " number"
-Sets and displays the tone number from \fInumber\fP to \fInumber+128\fP.
-If \fB progbase 1\fP are specified, tone numbers that follow are setted
-and displayed as the numbers from 1 to 128.
-
+.BI "progbase " number
+Sets and displays the tone number from \fInumber\fP to
+\fInumber+128\fP.  If \fB progbase 1\fP are specified, tone numbers
+that follow are setted and displayed as the numbers from 1 to 128.
 .TP
-.BI drumset " number"
-Selects  the  drum  set  to modify.  Patch mappings
-that follow will affect this drum set.
-
+.BI "drumset " number
+Selects the drum set to modify.  Patch mappings that follow will
+affect this drum set.
 .TP
-.BI number " file [options]"
-Specifies that the the MIDI program number in the
-current tone bank or drum set should be played
-using the patch file. options may be any of the
-following:
-
+.BI "number " "file [options]"
+.TP
+.BI "number %font " "file bank prog [key] [options]"
+.TP
+.BI "number %sample " "file [options]"
+Specifies that the MIDI program number in the current tone bank or
+drum set should be played using the patch file.  If \fIfile\fP is
+SoundFont, the specific instrument with \fIbank\fP, \fIprog\fP, and
+\fIkey\fP is taken out by the format of \fBnumber %font\fP.  If
+\fIfile\fP is linear AIFF or WAV sample data, the MIDI program number
+is specified by the format of \fBnumber %sample\fP.  Options may be
+any of the following:
 .RS
 .TP
 \fBamp=\fP\fIamplification\fP
-Amplifies the instrument's volume by \fIamplification\fP
-percent. If no value is specified,
-one will be automatically determined whenever
+Amplifies the instrument's volume by \fIamplification\fP percent.  If
+no value is specified, one will be automatically determined whenever
 the instrument is loaded.
-
 .TP
 \fBnote=\fP\fInote\fP
-Specifies a fixed  MIDI  note  to  use  when
-playing  the  instrument.  If \fInote\fP is 0, the
-instrument will be played at  whatever  note
-the  Note  On  event  triggering it has. For
-percussion instruments, if no value is specified
-in the configuration file, the default
-in the patch file will be used.
-
+Specifies a fixed MIDI note to use when playing the instrument.  If
+\fInote\fP is 0, the instrument will be played at whatever note the
+Note On event triggering it has.  For percussion instruments, if no
+value is specified in the configuration file, the default in the patch
+file will be used.
 .TP
 \fBpan=\fP\fIpanning\fP
-Sets the instrument's default panning. panning
-may be \fBleft\fP, \fBright\fP, \fBcenter\fP, or an
-nteger between \-100  and  100,  designating
-full  left  and full right respectively.  If
-no value is specified, the  default  in  the
-patch  file will be used.  Note that panning
-controls in MIDI files  will  override  this
-value.
-
+Sets the instrument's default panning.  Panning may be \fBleft\fP,
+\fBright\fP, \fBcenter\fP, or an integer between \-100 and 100,
+designating full left and full right respectively.  If no value is
+specified, the default in the patch file will be used.  Note that
+panning controls in MIDI files will override this value.
+.TP
+\fBtune=\fP\fItuning[,...]\fP
+Adjust the instrument's root frequency.  \fBtune=1\fP causes 1 half
+tone higher.  Since a fraction is available for \fItuning\fP, it is
+possible to do fine tuning such as \fBtune=-0.2\fP.  When two or more
+sample data is contained, the arguments after the second can specify
+different value respectively.
+.TP
+\fBrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+Set the instrument's ADSR rate.  Each value may be an integer between
+0 and 255.  When you set only sustain rate,
+.br
+6 GUS/hrpschrd.pat rate=::60
+.br
+is available.  When you set only attack time fasten,
+.br
+6 GUS/hrpschrd.pat rate=255
+.br
+is available.  When two or more sample data is contained, the
+arguments after the second can specify different value respectively.
+.TP
+\fBoffset=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+Set the instrument's ADSR offset.  Each value may be an integer
+between 0 and 255.  The format is same as \fBrate=\fP.
+.TP
+\fBtremolo=\fP\fIsweep_increment:control_ratio:depth[,...]\fP
+Set the instrument's tremolo.  Each value may be an integer
+between 0 and 255.  The format is similar to \fBrate=\fP.
+\fIsweep_increment\fP is the time until tremolo is started.
+\fIcontrol_ratio\fP is the rate changing amplification.
+\fIdepth\fP is the depth changing amplification.
+.TP
+\fBvibrato=\fP\fIsweep_increment:phase_increment:depth[,...]\fP
+Set the instrument's vibrato.  Each value may be an integer
+between 0 and 255.  The format is similar to \fBrate=\fP.
+\fIsweep_increment\fP is the time until vibrato is started.
+\fIphase_increment\fP is the rate changing frequency.
+\fIdepth\fP is the depth changing frequency.
+.TP
+\fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+.TP
+\fBmodoffset=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
+Set the instrument's behavior of change of modulation envelope.
+The format and values are fundamentally same as volume envelope.
+Except for some SoundFonts, even if it specifies only the option,
+nothing happens.
+.TP
+\fBtrempitch=\fP\fInum[,...]\fP
+Set the instrument's depth of changing pitch according to tremolo.
+The effect itself is same as vibrato, it uses to operate in another
+system.  The unit is +-cent.  The format is similar to \fBrate=\fP.
+\fBtremfc=\fP\fInum[,...]\fP
+Set the instrument's depth of changing cutoff frequency according to
+tremolo.  It can express the so-called glowl effect.  The unit, etc.
+are same as trempitch.
+.TP
+\fBmodpitch=\fP\fInum[,...]\fP
+Set the instrument's depth of changing pitch according to modulation
+envelope.  It can temporarily express raising pitch only for the
+attack stage.  The unit, etc. are same as trempitch.
+.TP
+\fBmodfc=\fP\fInum[,...]\fP
+Set the instrument's depth of changing cutoff frequency according to
+modulation envelope.  The unit, etc. are same as trempitch.
+.TP
+\fBfc=\fP\fInum[,...]\fP
+Set the instrument's standard of cutoff frequency.  The unit is Hz.
+The format is similar to \fBrate=\fP.
+.TP
+\fBq=\fP\fInum[,...]\fP
+Set the instrument's Q (resonance).  The unit is cB.  The format is
+similar to \fBrate=\fP.
+.TP
+\fBfckeyf=\fP\fInum\fP
+Set the instrument's filter key follow.  Based on note=60, it change
+cutoff frequency according to note.  The unit is +-cent/key.  For
+example, \fBfckeyf=100\fP means that it change same as pitch.
+.TP
+\fBfcvelf=\fP\fInum\fP
+Set the instrument's filter velocity follow.  Based on velocity=127,
+it change cutoff frequency according to velocity.  The unit is +-cent.
+In SoundFont, -2400 is set up as a characteristic value.
+.TP
+\fBqvelf=\fP\fInum\fP
+Set the instrument's resonance velocity follow.  Based on velocity=0,
+it change resonance according to velocity.  The unit is +-cB.
 .TP
 \fBkeep=\fP{\fBloop\fP|\fBenv\fP}
-By default, percussion instruments have
-their loop and envelope information
-stripped. Strangely shaped envelopes are
-removed automatically from melodic instruments
-as  well. \fBkeep\fP can be used to prevent
-stripping envelope or loop data.  For  example,
-the Short and Long Whistle percussion
-instruments (General Midi numbers 71 and 72)
-need to have `\fBkeep=loop keep=env\fP' specified
-in the configuration file.
-
+By default, percussion instruments have their loop and envelope
+information stripped.  Strangely shaped envelopes are removed
+automatically from melodic instruments as well.  \fBkeep\fP can be
+used to prevent stripping envelope or loop data.  For example, the
+Short and Long Whistle percussion instruments (General Midi numbers 71
+and 72) need to have `\fBkeep=loop keep=env\fP' specified in the
+configuration file.
 .TP
 \fBstrip=\fP{\fBloop\fP|\fBenv\fP|\fBtail\fP}
-Force removal of loop or envelope information 
-from all patches in the instrument, or
-strip the tail, i.e. all data after the
-loop.  Some third-party instruments have
-garbage after the loop, as evidenced by  a
-clicking noise whenever the instrument is
-played, so adding the strip=tail option will
-markedly improve sound quality.
-.RE
-
-The following statements are available only latest TiMidity.
-
+Force removal of loop or envelope information from all patches in the
+instrument, or strip the tail, i.e. all data after the loop.  Some
+third-party instruments have garbage after the loop, as evidenced by a
+clicking noise whenever the instrument is played, so adding the
+strip=tail option will markedly improve sound quality.
 .TP
-.BI "#extension altassign" " program1 program2 ..."
-Sets the alternate assign for drum set.
-For example, if you want to pronounce Hi-Hat cymbals (note number 42/44/46)
-in the drumset 0 exclusively to each others, specify:
+\fBcomm=\fP\fIcomment\fP
+Specifies the comment \fIcomment\fP.
+.RE
+.TP
+.BI "default " file
+When MIDI program appears, which is not mapped to instrument file,
+this file is pronounced as a substitute.
+.TP
+.BI "map " "MapID1 from-bank from-prog to-bank to-prog"
+The existing tone is assigned as a tone of GS/XG each map.
+\fBsc55\fP, \fBsc88\fP, \fBsc88pro\fP, \fBxg\fP and \fBxgsfx64\fP can
+be specified to be \fIMapID1\fP.
+.TP
+.BI "map " "MapID2 from-drumset from-keynote to-drumset to-keynote"
+The existing drum is assigned as a drum of GS/XG each map.
+\fBsc55drum\fP, \fBsc88drum\fP, \fBsc88prodrum\fP, \fBxgdrum\fP and
+\fBxgsfx126\fP can be specified to be \fIMapID2\fP.
+.TP
+.BI "soundfont " "file [options]"
+Read the whole SoundFont.  \fIoptions\fP may be any of the following:
+.RS
+.TP
+\fBorder=\fP\fInumber\fP
+Set the order of searching for instrument.  When \fBorder=0\fP, first
+read SoundFont, and then search for insufficient samples in GUS/patch.
+When \fBorder=1\fP, after reading GUS/patch, search for SoundFont.
+.TP
+\fBamp=\fP\fIamplification\fP
+set the amplification of the whole SoundFont as \fIamplification\fP%.
+If the value is not specified, it is set by 100%.
+.TP
+\fBcutoff=\fP\fInumber\fP
+Specify whether LPF in SoundFont is enable (1) or disable (0). If
+the value is not specified, it is considered to be enable.
+.TP
+\fBreso=\fP\fInumber\fP
+Specify whether resonance in SoundFont is enable (1) or disable (0).
+If the value is not specified, it is considered to be enable.
+.TP
+\fBremove\fP
+Cancel the target SoundFont from the memory.
+.RE
+.TP
+.BI "font exclude " "bank [prog [key]]"
+Suppress searching for SoundFont of \fIbank\fP, \fIprog\fP.
+If the sample is drumset, bank=128, drumset=prog, keynum=key.
+.TP
+.BI "font order " "number bank [prog [key]]"
+Set the order of searching for instrument individually.  The format is
+same as \fBfont exclude\fP.
+.LP
+.P
+The following statements are available only latest TiMidity.
+.TP
+.BI "#extension altassign " "program1 program2 ..."
+Sets the alternate assign for drum set.  For example, if you want to
+pronounce Hi-Hat cymbals (note number 42/44/46) in the drumset 0
+exclusively to each others, specify:
 .sp
 drumset 0
 .br
 altassign 42 44 46
 .sp
 Note that alternate assign of drumset 0 is used by default.
-
 .TP
-.BI "#extension comm" " program secound"
+.BI "#extension comm " "program comment"
 Specifies the comment \fIcomment\fP for the tone number \fIprogram\fP.
 These comments are displayed in the indicater line at the case
 TiMidity is booted with option \fB\-int\fP, \fB\-iTt\fP.
-
 .TP
-.BI "#extension timeout" " program secound"
-Specifies the time\-out value of the \fIprogram\fP. If any notes
-pronounced with the tone number \fIprogram\fP are suspended
-more than \fIsecond\fP seconds, TiMidity kills the notes.
-
+.BI "#extension timeout " "program secound"
+Specifies the time\-out value of the \fIprogram\fP.  If any notes
+pronounced with the tone number \fIprogram\fP are suspended more than
+\fIsecond\fP seconds, TiMidity kills the notes.
 .TP
-.BI "#extension copydrumset" " drumset"
+.BI "#extension copydrumset " drumset
 Copies all settings of the \fIdrumset\fP to the current drumset.
-
 .TP
-.BI "#extension copybank" " bank"
+.BI "#extension copybank " bank
 Copies all settings of the \fIbank\fP to the current bank.
-
 .TP
-.BI "#extension HTTPproxy" " hostname:port"
-Specifies the proxy of the HTTP protocol. \fIhostname\fP and 
+.BI "#extension HTTPproxy " hostname:port
+Specifies the proxy of the HTTP protocol.  \fIhostname\fP and
 \fIport\fB are of the proxy host's.
-
 .TP
-.BI "#extension FTPproxy" " hostname:port"
-Specifies the prox of the FTP protocol. Same as HTTP.
-
+.BI "#extension FTPproxy " hostname:port
+Specifies the prox of the FTP protocol.  Same as HTTP.
 .TP
-.BI "#extension mailaddr" " your\-mail\-address"
-Specifies user's mail address. This address is sended to the 
-FTP server if TiMidity access any file via FTp.
-
+.BI "#extension mailaddr " your\-mail\-address
+Specifies user's mail address.  This address is sended to the FTP
+server if TiMidity access any file via FTp.
 .TP
-.BI "#extension opt [\-]{option}" " [optarg]"
+.BI "#extension opt [\-]{option} " [optarg]
 Sets the value of boot\-time options.
-
 .TP
-.BI "#extension undef" " progno"
+.BI "#extension undef " progno
 Undefine the tone \fIprogno\fP of current tone bank.
-.RE
-
-These "#extension" statements are beginning with character '#' that 
-is the comment flag of old TiMidity(version 0.2i or earlier).
-So these statememts are treated as comment line.
+.TP
+.BI "#extension legato " "progno {0|1}"
+Specifies whether legato is enable (1) or disable (0) on \fIprogno\fP.
+.TP
+.BI "#extension level " "progno tva_level"
+Set the standard value of changing amplification when processing Drum
+Instrument TVA Level of NRPN.  Unless Drum Instrument TVA Level is
+specified at playing, the amplification is no influenced.
+.TP
+.BI "#extension redamper " "progno {0|1}"
+Specifies whether redamper is enable (1) or disable (0).
+.TP
+.BI "#extension playnote " "progno note"
+Set the frequency of pronounce to note.  If the frequency of pronounce
+is specified by GS SysEx Play Note, the pitch is changed appropriately
+according to the value.  \fIprogno\fP can carry out package
+specification by "," and/or [start]-[end].  An abbreviation of start
+and end considers that they are 0 and 127 respectively.
+.sp
+Example:
 .br
-The latest TiMidity treats "#extension" as white\-space. So you can omit
-it.
-
+drumset 0
+.br
+#extension playnote -37,39,44-46,55-60
+.TP
+.BI "#extension delaysend " "progno level"
+.TP
+.BI "#extension chorussend " "progno level"
+.TP
+.BI "#extension reverbsend " "progno level"
+Set the send level when drum part effect is enable.  All initial value
+are 127.  If one of delay, chorus and reverb is at least set up, the
+effect which is not set as the tone will become the initial value 0.
+.TP
+.BI "#extension rnddelay " "progno msec"
+For every pronunciation, it is random and less than a maximum of
+\fImsec\fP delay.  The distribution of randam value is pink noise
+(1/f fluctuation) rather than a white noise.
 .P
-If any \fIfile\-name\fP expression ended with character '|' (Ascii 0x7c),
-the file\-name is treated as command and outputs of the command
+These "#extension" statements are beginning with character '#' that
+is the comment flag of old TiMidity (version 0.2i or earlier).  So
+these statememts are treated as comment line.
+.br
+The latest TiMidity treats "#extension" as white\-space.  So you can
+omit it.
+.P
+If any \fIfile\-name\fP expression ended with character '|' (Ascii
+0x7c), the file\-name is treated as command and outputs of the command
 are also examined as arguments of statements.
-
+.br
+\fBsource\fP \fIcommand|\fP causes the output of \fIcommand\fP becomes
+the argument of \fBsource\fP.  It is convenient to choose settings of
+\fITiMidity++\fP according to environment.  In addition, if a space
+enters on the way like \fIcommand\fP \fI|\fP, it will be divided at
+the time of setting file reading, and will no longer be regarded as
+a command.  This function is applicable to all the places that can
+specify a file name.
+.P
+.RS
+timidity 'cat fild.mid|'
+.RE
+.P
+will read from the output of cat fild.mid.
+.P
+If \fIremove\fP is specified to be the option of \fIsoundfont\fP in
+*.cfg, the file will be undefined.
 .P
 .SH SEE ALSO
 timidity(1), lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1)
-
 .P
 .SH COPYRIGHT
-Copyright (C) 1999 Masanao Izumo <mo@goice.co.jp>
+Copyright (C) 2004 Masanao Izumo <iz@onicos.co.jp>
 Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 .P
 Original version was developed under the name of Tuukka Toivonen
-<tt@cgs.fi> until the version of TiMidity-0.2i. His development was
+<tt@cgs.fi> until the version of TiMidity-0.2i.  His development was
 discontinued because of his busy work.
 .P
 This program is free software; you can redistribute it and/or modify
-it under the terms of the \fIGNU General Public License\fP as published by
-the Free Software Foundation; either version 2 of the License, or (at
-your option) any later version.
+it under the terms of the \fIGNU General Public License\fP as
+published by the Free Software Foundation; either version 2 of the
+License, or (at your option) any later version.
 .P
 This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the \fIGNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \fIGNU
 General Public License\fP for more details.
 .P
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA
 .SH AVAILABILITY
 The latest release is available on the TiMidity++ Page,
 .br
-URL http://www.goice.co.jp/member/mo/timidity/
+URL http://www.timidity.jp/
 .br
-

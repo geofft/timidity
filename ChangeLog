@@ -1,8 +1,14 @@
+2004-01-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5:
+	  Update man page of timidity.cfg.5
+
 2004-01-21  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/aiff_a.c, common.c, mac_a.c, mac_main.c, mac_qt_a.c,
-	  mac_soundspec.c, mac_util.c, recache.c, wrd_read.c, interface/mac_c.c,
-	  mac_mag.c, mac_wrdwindow.c, wrdt_mac.c, libarc/arc_mime.c:
+	  mac_soundspec.c, mac_util.c, recache.c, wrd_read.c,
+	  interface/mac_c.c, mac_mag.c, mac_wrdwindow.c, wrdt_mac.c,
+	  libarc/arc_mime.c:
 	  Updated Mac interface to compile.
 
 2004-01-20  Kentaro Sato <kentaro@ranvis.com>
@@ -53,7 +59,8 @@
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c: Casting error fixed.
-	* timidity/sndfont.c: Added playnote calculation for cfgforsf (incomplete).
+	* timidity/sndfont.c:
+	  Added playnote calculation for cfgforsf (incomplete).
 
 2004-01-15  Daisuke Aoki <dai@sweetparty.ne.jp>
 
@@ -272,11 +279,12 @@
 	  Implement new algorithm for Distortion and Overdrive effect.
 	* timidity/mix.c:
 	  Fix a comment.
-	  
+
 2003-12-02  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/mix.c:
-	  Implement Moog VCF resonant lowpass filter; it sounds good, but slow.
+	  Implement Moog VCF resonant lowpass filter;
+	  it sounds good, but slow.
 	* timidity/mix.c:
 	  Fix typo.
 
@@ -284,7 +292,8 @@
 
 	* timidity/playmidi.[ch], timidity/tables.[ch],
 	  timidity/mix.c, timidity/sndfont.c:
-	  Implement Chamberlin's resonant lowpass filter; it's faster but narrow band.
+	  Implement Chamberlin's resonant lowpass filter;
+	  it's faster but narrow band.
 
 2003-11-30  Saito <saito2@digitalme.com>
 
@@ -327,7 +336,7 @@
 	            ll [fh fl bh bl aa bb cc dd ee ff] ... F7)
 
 2003-11-17  Takashi Iwai <tiwai@suse.de>
-	
+
 	* interface/alsaseq_c.c, timidity/alsa_a.c:  Fix the compilation
 	  with the latest ALSA 1.0.0.
 
