@@ -150,7 +150,7 @@ static pref_page_t pref_pages_en[] = {
 	{ 1, "Effect", (HWND)NULL, IDD_PREF_TIMIDITY1_EN, (DLGPROC) PrefTiMidity1DialogProc, 0 },
 	{ 2, "Misc", (HWND)NULL, IDD_PREF_TIMIDITY2_EN, (DLGPROC) PrefTiMidity2DialogProc, 0 },
 	{ 3, "Output", (HWND)NULL, IDD_PREF_TIMIDITY3_EN, (DLGPROC) PrefTiMidity3DialogProc, 0 },
-	{ 4, "Channle", (HWND)NULL, IDD_PREF_TIMIDITY4_EN, (DLGPROC) PrefTiMidity4DialogProc, 0 },
+	{ 4, "Channel", (HWND)NULL, IDD_PREF_TIMIDITY4_EN, (DLGPROC) PrefTiMidity4DialogProc, 0 },
 #ifdef IA_W32G_SYN
 	{ 5, "Synthesizer", (HWND)NULL, IDD_PREF_SYN1_EN, (DLGPROC) PrefSyn1DialogProc, 0 },
 #endif
