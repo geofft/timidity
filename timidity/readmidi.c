@@ -683,17 +683,17 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				switch(ent) {
 
 				case 0x01:	/* bank select MSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_MSB, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_MSB, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x02:	/* bank select LSB */
-				  SETMIDIEVENT(evm[0], 0, ME_TONE_BANK_LSB, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_TONE_BANK_LSB, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x03:	/* program number */
-				  SETMIDIEVENT(evm[0], 0, ME_PROGRAM, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_PROGRAM, p, *body, 0);
 				  num_events++;
 				  break;
 
@@ -715,39 +715,39 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x08:	/* note shift ? */
-				  SETMIDIEVENT(evm[0], 0, ME_KEYSHIFT, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_KEYSHIFT, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x0B:	/* volume */
-				  SETMIDIEVENT(evm[0], 0, ME_MAINVOLUME, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_MAINVOLUME, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x0E:	/* pan */
 				  if(*body == 0) {
-					SETMIDIEVENT(evm[0], 0, ME_RANDOM_PAN, p, 0, 0);
+					SETMIDIEVENT(evm[num_events], 0, ME_RANDOM_PAN, p, 0, 0);
 				  }
 				  else {
-					SETMIDIEVENT(evm[0], 0, ME_PAN, p, *body, 0);
+					SETMIDIEVENT(evm[num_events], 0, ME_PAN, p, *body, 0);
 				  }
 				  num_events++;
 				  break;
 
 				case 0x12:	/* chorus send */
-				  SETMIDIEVENT(evm[0], 0, ME_CHORUS_EFFECT, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_CHORUS_EFFECT, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x13:	/* reverb send */
-				  SETMIDIEVENT(evm[0], 0, ME_REVERB_EFFECT, p, *body, 0);
+				  SETMIDIEVENT(evm[num_events], 0, ME_REVERB_EFFECT, p, *body, 0);
 				  num_events++;
 				  break;
 
 				case 0x23:	/* bend pitch control */
-				  SETMIDIEVENT(evm[0], 0,ME_RPN_MSB,p,0,0);
-				  SETMIDIEVENT(evm[1], 0,ME_RPN_LSB,p,0,0);
-				  SETMIDIEVENT(evm[2], 0,ME_DATA_ENTRY_MSB,p,(*body - 0x40) & 0x7F,0);
+				  SETMIDIEVENT(evm[num_events], 0,ME_RPN_MSB,p,0,0);
+				  SETMIDIEVENT(evm[num_events+1], 0,ME_RPN_LSB,p,0,0);
+				  SETMIDIEVENT(evm[num_events+2], 0,ME_DATA_ENTRY_MSB,p,(*body - 0x40) & 0x7F,0);
 				  num_events += 3;
 				  break;
 
@@ -763,7 +763,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				case 0x4a:
 				case 0x4b:
 				case 0x4c:
-					SETMIDIEVENT(evm[0],
+					SETMIDIEVENT(evm[num_events],
 							0, ME_SCALE_TUNING, p, ent - 0x41, *body - 64);
 					num_events++;
 					ctl->cmsg(CMSG_INFO, VERB_NOISY,
@@ -1909,7 +1909,7 @@ static int read_sysex_event(int32 at, int me, int32 len,
 	ev.time = at;
 	readmidi_add_event(&ev);
     }
-	if (ne = parse_sysex_event_multi(val, len, evm))
+	if ((ne = parse_sysex_event_multi(val, len, evm)))
 		for (i = 0; i < ne; i++) {
 			evm[i].time = at;
 			readmidi_add_event(&evm[i]);
