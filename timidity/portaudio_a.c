@@ -28,7 +28,9 @@
 #endif /* HAVE_CONFIG_H */
 #define _GNU_SOURCE
 #include <stdio.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 #include <fcntl.h>
 
 #ifndef NO_STRING_H
@@ -49,13 +51,8 @@
 #include "playmidi.h"
 #include "miditrace.h"
 
-/* followings are only needed by w32g_util.c */
-volatile int data_block_num = 64;
-volatile int data_block_bits = DEFAULT_AUDIO_BUFFER_BITS;
-
 #define DATA_BLOCK_SIZE     (27648*4) /* WinNT Latency is 600 msec read pa_dsound.c */
-#define DATA_BLOCK_NUM      (dpm.extra_param[0])
-#define SAMPLE_RATE         (48000)
+#define SAMPLE_RATE         (44100)
 
 static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
@@ -148,76 +145,58 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 static int open_output(void)
 {
 	double rate;
-	int n, nrates;
-	PaSampleFormat SampleFormat,nativeSampleFormats;
+	int n, nrates, include_enc, exclude_enc;
+	PaSampleFormat SampleFormat, nativeSampleFormats;
 	
-	if(pa_active==0){
+	if(pa_active == 0){
 		err = Pa_Initialize();
 		if( err != paNoError ) goto error;
-		pa_active=1;
+		pa_active = 1;
 	}
-	if(first==1){
+	if(first == 1){
 		atexit(close_output);
-		first=0;
+		first = 0;
 	}
 
-	DeviceID=Pa_GetDefaultOutputDeviceID();
-	DeviceInfo=Pa_GetDeviceInfo( DeviceID);	
-	nativeSampleFormats=DeviceInfo->nativeSampleFormats;
+	DeviceID = Pa_GetDefaultOutputDeviceID();
+	DeviceInfo = Pa_GetDeviceInfo( DeviceID);	
+	nativeSampleFormats = DeviceInfo->nativeSampleFormats;
 
-	SampleFormat=paInt8;
-	if(dpm.encoding & PE_16BIT){
-		if(nativeSampleFormats & paInt16){ 
-			SampleFormat=paInt16;
-		}else{
-			SampleFormat=paInt8;
-			dpm.encoding &= ~((int32)PE_16BIT);
+	exclude_enc = PE_ULAW | PE_ALAW | PE_BYTESWAP;
+	include_enc = PE_SIGNED;
+	if (!(nativeSampleFormats & paInt16)) {exclude_enc |= PE_16BIT;}
+	if (!(nativeSampleFormats & paInt24)) {exclude_enc |= PE_24BIT;}
+    dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
+
+	if (dpm.encoding & PE_24BIT) {SampleFormat = paInt24;}
+	else if (dpm.encoding & PE_16BIT) {SampleFormat = paInt16;}
+	else {SampleFormat = paInt8;}
+
+	stereo = (dpm.encoding & PE_MONO) ? 1 : 2;
+	data_nbyte = (dpm.encoding & PE_16BIT) ? 2 : 1;
+	data_nbyte = (dpm.encoding & PE_24BIT) ? 3 : data_nbyte;
+
+	nrates = DeviceInfo->numSampleRates;
+	if (nrates == -1) {	/* range supported */
+		rate = dpm.rate;
+		if (dpm.rate < DeviceInfo->sampleRates[0]) rate = DeviceInfo->sampleRates[0];
+		if (dpm.rate > DeviceInfo->sampleRates[1]) rate = DeviceInfo->sampleRates[1];
+	} else {
+		rate = DeviceInfo->sampleRates[nrates-1];
+		for (n = nrates - 1; n >= 0; n--) {	/* find nearest sample rate */
+			if (dpm.rate <= DeviceInfo->sampleRates[n]) rate=DeviceInfo->sampleRates[n];
 		}
 	}
-	if(dpm.encoding & PE_24BIT){
-		if(nativeSampleFormats & paInt24){
-			SampleFormat=paInt24;
-		}else{
-			dpm.encoding &= ~((int32)PE_24BIT);
-			if(nativeSampleFormats & paInt16){
-				SampleFormat=paInt16;
-				dpm.encoding |= ((int32)PE_16BIT);
-			}else{
-				SampleFormat=paInt8;
-			}
-		}
-	}
-
-	dpm.encoding = dpm.encoding  & ~((int32)PE_ULAW) & ~((int32)PE_ALAW) & ~((int32)PE_BYTESWAP);
-	dpm.encoding = dpm.encoding|PE_SIGNED;
-	stereo=(dpm.encoding & PE_MONO)?1:2;
-	data_nbyte=(dpm.encoding & PE_16BIT)?2:1;
-	data_nbyte=(dpm.encoding & PE_24BIT)?3:data_nbyte;
-
-	nrates=DeviceInfo->numSampleRates;
-
-	if(nrates!=-1){
-		rate=DeviceInfo->sampleRates[nrates-1];
-		for(n=nrates-1;n>=0;n--){
-			if(dpm.rate <= DeviceInfo->sampleRates[n]) rate=DeviceInfo->sampleRates[n];
-		}
-	}else{
-		rate=dpm.rate;
-		if(dpm.rate < DeviceInfo->sampleRates[0]) rate=DeviceInfo->sampleRates[0];
-		if(dpm.rate > DeviceInfo->sampleRates[1]) rate=DeviceInfo->sampleRates[1];
-	}
-
-	dpm.rate=(int32)rate;
-
+	dpm.rate = (int32)rate;
 	
-	pa_data.samplesToGo=0;
-	pa_data.bufpoint=pa_data.buf;
-	pa_data.bufepoint=pa_data.buf;
-//	firsttime=1;
-	numBuffers=Pa_GetMinNumBuffers( framesPerBuffer, dpm.rate );
-	framesPerInBuffer=numBuffers*framesPerBuffer;
-	if(framesPerInBuffer<4096) framesPerInBuffer=4096;
-	bytesPerInBuffer=framesPerInBuffer*data_nbyte*stereo;
+	pa_data.samplesToGo = 0;
+	pa_data.bufpoint = pa_data.buf;
+	pa_data.bufepoint = pa_data.buf;
+//	firsttime = 1;
+	numBuffers = Pa_GetMinNumBuffers( framesPerBuffer, dpm.rate );
+	framesPerInBuffer = numBuffers * framesPerBuffer;
+	if (framesPerInBuffer < 4096) framesPerInBuffer = 4096;
+	bytesPerInBuffer = framesPerInBuffer * data_nbyte * stereo;
 //	printf("%d\n",framesPerInBuffer);
 //	printf("%d\n",dpm.rate);
 	err = Pa_OpenDefaultStream(
@@ -230,11 +209,11 @@ static int open_output(void)
     	numBuffers,              /* number of buffers, if zero then use default minimum */
     	paCallback, /* specify our custom callback */
     	&pa_data);   /* pass our data through to callback */
-	if( err != paNoError ) goto error;
+	if ( err != paNoError ) goto error;
 	return 0;
 
 error:
-	Pa_Terminate(); pa_active=0;
+	Pa_Terminate(); pa_active = 0;
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
