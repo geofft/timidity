@@ -1,3 +1,9 @@
+2003-10-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/readmidi.[ch]:
+	  Fix around channel layer
+	* timidity/newton_table.c: move to configs/msc-project.zip
+
 2003-10-07  Saito <saito2@digitalme.com>
 
 	* timidity/newton_table.c:
@@ -7,11 +13,7 @@
 
 2003-10-07  skeishi <s_keishi@mutt.freemail.ne.jp>
 
-	* timidity/resample.[ch], timidity/timidity.[ch],
-	  timidity/w32g_a.c, timidity/aRts.c, timidity/Makefile.[am,in],
-	  timidity/optcode.[ch], timidity/output.c, timidity/recache.c,
-	  timidity/playmidi.[ch], timidity/readmidi.[ch],
-	  utils/tmdy_getopt.h, utils/getopt.c:
+	* utils/getopt.c, utils/tmdy_getopt.h:
 	  Fix getopt_long's problem in MINGW environment.
 	* interface/rtsyn_winmm.c:
 	  Fix CPU usage rate of TWSYNTH.

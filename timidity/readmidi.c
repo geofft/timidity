@@ -1568,22 +1568,22 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			}
 			break;
 		case 0x00:	/* System */
-			switch(addr & 0xFFF0) {
-				case 0x0100:	/* Channel Msg Rx Port (A) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
-							block_to_part(addr & 0xf, 0),
-							block_to_part(addr & 0xf, val[7]), 0x46);
-					num_events++;
-					break;
-				case 0x0110:	/* Channel Msg Rx Port (B) */
-					SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
-							block_to_part(addr & 0xf, 1),
-							block_to_part(addr & 0xf, val[7]), 0x46);
-					num_events++;
-					break;
-				default:
-					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",addr_h,addr_m,addr_l,val[7],val[8]);
-					break;
+			switch (addr & 0xfff0) {
+			case 0x0100:	/* Channel Msg Rx Port (A) */
+				SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+						block_to_part(addr & 0xf, 0), val[7], 0x46);
+				num_events++;
+				break;
+			case 0x0110:	/* Channel Msg Rx Port (B) */
+				SETMIDIEVENT(evm[0], 0, ME_SYSEX_GS_LSB,
+						block_to_part(addr & 0xf, 1), val[7], 0x46);
+				num_events++;
+				break;
+			default:
+				ctl->cmsg(CMSG_INFO,VERB_NOISY, "Unsupported GS SysEx. "
+						"(ADDR:%02X %02X %02X VAL:%02X %02X)",
+						addr_h, addr_m, addr_l, val[7], val[8]);
+				break;
 			}
 			break;
 		}
@@ -4585,45 +4585,31 @@ void init_channel_layer(int ch)
 		return;
 	CLEAR_CHANNELMASK(channel[ch].channel_layer);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
+	channel[ch].port_select = (ch < REDUCE_CHANNELS) ? 0 : 1;
 }
 
 /*! add a new layer. */
-void add_channel_layer(int ch, int fromch)
+void add_channel_layer(int to_ch, int from_ch)
 {
-	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
+	if (to_ch >= MAX_CHANNELS || from_ch >= MAX_CHANNELS)
 		return;
 	/* add a channel layer */
-	SET_CHANNELMASK(channel[ch].channel_layer, fromch);
-	UNSET_CHANNELMASK(channel[fromch].channel_layer, fromch);
+	SET_CHANNELMASK(channel[from_ch].channel_layer, to_ch);
+	UNSET_CHANNELMASK(channel[to_ch].channel_layer, to_ch);
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
-		"Channel Layer (CH:%d -> CH:%d)", fromch, ch);
-}
-
-/*! remove an unused layer. */
-void remove_channel_layer(int ch, int fromch)
-{
-	if (ch >= MAX_CHANNELS || fromch >= MAX_CHANNELS)
-		return;
-	/* remove a channel layer */
-	UNSET_CHANNELMASK(channel[ch].channel_layer, fromch);
-	SET_CHANNELMASK(channel[fromch].channel_layer, fromch);
-	ctl->cmsg(CMSG_INFO, VERB_NOISY,
-		"Channel Layer (CH:%d -> CH:%d)", fromch, fromch);
+			"Channel Layer (CH:%d -> CH:%d)", from_ch, to_ch);
 }
 
 /*! remove all layers for this channel. */
-void remove_all_channel_layer(int ch)
+void remove_channel_layer(int ch)
 {
-	int i;
+	int i, offset;
 	
 	if (ch >= MAX_CHANNELS)
 		return;
 	/* remove channel layers */
-	if (ch < REDUCE_CHANNELS)
-		for (i = 0; i < REDUCE_CHANNELS; i++)
-			UNSET_CHANNELMASK(channel[i].channel_layer, ch);
-	else
-		for (i = REDUCE_CHANNELS; i < MAX_CHANNELS; i++)
-			UNSET_CHANNELMASK(channel[i].channel_layer, ch);
+	offset = (ch < REDUCE_CHANNELS) ? 0 : REDUCE_CHANNELS;
+	for (i = offset; i < offset + REDUCE_CHANNELS; i++)
+		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 }
 

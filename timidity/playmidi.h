@@ -280,6 +280,7 @@ typedef struct {
 	  paf_lfo2_pitch_depth, paf_lfo2_tvf_depth;	/* in cents */
 
   ChannelBitMask channel_layer;
+  int port_select;
 
   int8 sysex_gs_msb_addr, sysex_gs_msb_val,
 		sysex_xg_msb_addr, sysex_xg_msb_val, sysex_msb_addr, sysex_msb_val;

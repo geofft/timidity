@@ -3307,15 +3307,12 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			break;
 		case 0x45:	/* Rx. Channel */
 			if (val == 0x80)
-				remove_all_channel_layer(ch);
+				remove_channel_layer(ch);
 			else
-				add_channel_layer(val, ch);
+				add_channel_layer(ch, val);
 			break;
 		case 0x46:	/* Channel Msg Rx Port */
-			if (val & 0x10 ^ ch & 0x10)
-				add_channel_layer(val, ch);
-			else
-				remove_channel_layer(val ^ 0x10, ch);
+			channel[ch].port_select = val;
 			break;
 			
 			/* MOD PITCH CONTROL */
@@ -3339,9 +3336,9 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			break;
 		case 0x65:	/* Rcv CHANNEL */
 			if (val == 0x7f)
-				remove_all_channel_layer(ch);
+				remove_channel_layer(ch);
 			else
-				add_channel_layer(val, ch);
+				add_channel_layer(ch, val);
 			break;
 		default:
 			break;
@@ -3351,7 +3348,7 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 
 static void play_midi_prescan(MidiEvent *ev)
 {
-    int i, j, ch, orig_ch, layered;
+    int i, j, k, ch, orig_ch, port_ch, offset, layered;
     
     if(opt_amp_compensation) {mainvolume_max = 0;}
     else {mainvolume_max = 0x7f;}
@@ -3366,14 +3363,20 @@ static void play_midi_prescan(MidiEvent *ev)
 #ifndef SUPPRESS_CHANNEL_LAYER
 		orig_ch = ev->channel;
 		layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
-		for (j = 0; j < MAX_CHANNELS; j++) {
-			if (! layered && j)
+		for (j = 0; j < MAX_CHANNELS; j += 16) {
+			port_ch = (orig_ch + j) % MAX_CHANNELS;
+			if (layered && channel[port_ch].port_select ^ (orig_ch >= 16))
 				continue;
-			if (layered) {
-				if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j))
+			offset = (port_ch < 16) ? 0 : 16;
+			for (k = offset; k < offset + 16; k++) {
+				if (! layered && (j || k != offset))
 					continue;
-				ev->channel = j;
-			}
+				if (layered) {
+					if (! IS_SET_CHANNELMASK(
+							channel[port_ch].channel_layer, k))
+						continue;
+					ev->channel = k;
+				}
 #endif
 	ch = ev->channel;
 
@@ -3468,8 +3471,9 @@ static void play_midi_prescan(MidiEvent *ev)
 	    break;
 	}
 #ifndef SUPPRESS_CHANNEL_LAYER
-	}
-	ev->channel = orig_ch;
+			}
+		}
+		ev->channel = orig_ch;
 #endif
 	ev++;
     }
@@ -3838,7 +3842,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 static void seek_forward(int32 until_time)
 {
     int32 i;
-    int j, ch, orig_ch, layered;
+    int j, k, ch, orig_ch, port_ch, offset, layered;
 
     playmidi_seek_flag = 1;
     wrd_midi_event(WRD_START_SKIP, WRD_NOARG);
@@ -3846,14 +3850,20 @@ static void seek_forward(int32 until_time)
 #ifndef SUPPRESS_CHANNEL_LAYER
 		orig_ch = current_event->channel;
 		layered = ! IS_SYSEX_EVENT_TYPE(current_event->type);
-		for (j = 0; j < MAX_CHANNELS; j++) {
-			if (! layered && j)
+		for (j = 0; j < MAX_CHANNELS; j += 16) {
+			port_ch = (orig_ch + j) % MAX_CHANNELS;
+			if (layered && channel[port_ch].port_select ^ (orig_ch >=16))
 				continue;
-			if (layered) {
-				if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, j))
+			offset = (port_ch < 16) ? 0 : 16;
+			for (k = offset; k < offset + 16; k++) {
+				if (! layered && (j || k != offset))
 					continue;
-				current_event->channel = j;
-			}
+				if (layered) {
+					if (! IS_SET_CHANNELMASK(
+							channel[port_ch].channel_layer, k))
+						continue;
+					current_event->channel = k;
+				}
 #endif
 	ch = current_event->channel;
 	
@@ -4167,8 +4177,9 @@ static void seek_forward(int32 until_time)
 	    return;
 	}
 #ifndef SUPPRESS_CHANNEL_LAYER
-	}
-	current_event->channel = orig_ch;
+			}
+		}
+		current_event->channel = orig_ch;
 #endif
 	current_event++;
     }
@@ -5579,7 +5590,7 @@ static void update_legato_controls(int ch)
 int play_event(MidiEvent *ev)
 {
     int32 i, j, cet;
-    int k, ch, orig_ch, layered;
+    int k, l, ch, orig_ch, port_ch, offset, layered;
 
     if(play_mode->flag & PF_MIDI_EVENT)
 	return play_mode->acntl(PM_REQ_MIDI, ev);
@@ -5621,14 +5632,19 @@ int play_event(MidiEvent *ev)
 #ifndef SUPPRESS_CHANNEL_LAYER
 	orig_ch = ev->channel;
 	layered = ! IS_SYSEX_EVENT_TYPE(ev->type);
-	for (k = 0; k < MAX_CHANNELS; k++) {
-		if (! layered && k)
+	for (k = 0; k < MAX_CHANNELS; k += 16) {
+		port_ch = (orig_ch + k) % MAX_CHANNELS;
+		if (layered && channel[port_ch].port_select ^ (orig_ch >= 16))
 			continue;
-		if (layered) {
-			if (! IS_SET_CHANNELMASK(channel[orig_ch].channel_layer, k))
+		offset = (port_ch < 16) ? 0 : 16;
+		for (l = offset; l < offset + 16; l++) {
+			if (! layered && (k || l != offset))
 				continue;
-			ev->channel = k;
-		}
+			if (layered) {
+				if (! IS_SET_CHANNELMASK(channel[port_ch].channel_layer, l))
+					continue;
+				ev->channel = l;
+			}
 #endif
 	ch = ev->channel;
 
@@ -6118,6 +6134,7 @@ int play_event(MidiEvent *ev)
 	return midi_play_end();
     }
 #ifndef SUPPRESS_CHANNEL_LAYER
+		}
 	}
 	ev->channel = orig_ch;
 #endif
