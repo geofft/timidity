@@ -1232,8 +1232,10 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* set data length */
     vp->v.data_length = vp->len + 1;
-    if(vp->v.loop_end > vp->len + 1)
+    if (vp->v.loop_end > vp->len + 1)
 	vp->v.loop_end = vp->len + 1;
+	if (vp->v.loop_start > vp->len)
+	vp->v.loop_start = vp->len;
 
     /* Sample rate */
 	if(sp->samplerate > 50000) {sp->samplerate = 50000;}
