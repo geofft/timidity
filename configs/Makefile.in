@@ -246,7 +246,8 @@ w_so_libs = @w_so_libs@
 
 EXTRA_DIST = \
   msc-sjis.txt \
-  msc-project.zip
+  msc-project6.zip \
+  msc-project7.zip
 
 subdir = configs
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

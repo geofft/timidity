@@ -19,4 +19,5 @@
 
 EXTRA_DIST = \
   msc-sjis.txt \
-  msc-project.zip
+  msc-project6.zip \
+  msc-project7.zip
