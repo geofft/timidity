@@ -1,3 +1,9 @@
+2004-03-18  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c: Bug fix.
+	  Changed #extension level option's argument format.
+	* doc/C/timidity.cfg.5, doc/ja_JP.eucJP/timidity.cfg.5: Updated.
+
 2004-03-18  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/mix.c (recompute_envelope, recompute_modulation_envelope):
