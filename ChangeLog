@@ -1,3 +1,8 @@
+2003-08-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Fix around long options
+
 2003-07-31  mput <root@mput.dip.jp>
 
 	* utils/tmdy_getopt.h: Moved from utils/getopt.h
@@ -12,9 +17,9 @@
 2003-07-29  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (help): rewrite to fit with long options.
-	(set_tim_opt_short): Rename from set_tim_opt().
-	(set_tim_opt_long): Add.
-	(version): Add.
+	  (set_tim_opt_short): Rename from set_tim_opt().
+	  (set_tim_opt_long): Add.
+	  (version): Add.
 	* utils/getopt.[ch]: Add.
 	* utils/support.[ch]: Delete getopt()
 

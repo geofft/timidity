@@ -463,132 +463,278 @@ static void close_pager(FILE *fp)
 
 static void help(void)
 {
-    const char* const helpstr[] = {
-"TiMidity++", timidity_version, ", a MIDI to WAVE converter and player" NLS,
-NLS,
-
-"Usage: ", program_name, " [options]... [file"
-#ifdef SUPPORT_SOCKET
-" or URL"
-#endif
-"]..." NLS,
-NLS,
-
-"Overall options:" NLS,
-"    -h, --help                          Show this message" NLS,
-"    -v, --version                       Show version info" NLS,
-"        --background                    Go to background (\"daemonize\")" NLS,
+	PlayMode **pmp = play_mode_list;
+	ControlMode **cmp = ctl_list;
+	WRDTracer **wl = wrdt_list;
+	int i, j;
+	static char *help_args[3];
+	FILE *fp;
+	static char *help_list[] = {
+" TiMidity++ version %s (C) 1999-2003 Masanao Izumo <mo@goice.co.jp>",
+" The original version (C) 1995 Tuukka Toivonen <tt@cgs.fi>",
+" TiMidity is free software and comes with ABSOLUTELY NO WARRANTY.",
+"",
 #ifdef __W32__
-"    -e, --evil                          Go to evil mode (use with care!)" NLS,
+" Win32 version by Davide Moretti <dave@rimini.com>",
+"              and Daisuke Aoki <dai@y7.net>",
+"",
+#endif /* __W32__ */
+"Usage:",
+"  %s [options] filename [...]",
+"",
+#ifndef __W32__		/*does not work in Windows */
+"  Use \"-\" as filename to read a MIDI file from stdin",
+"",
 #endif
-"    -x, --exec=STR                      Evaluate configuration string" NLS,
-NLS,
-
-"File and directory options:" NLS,
-"    -L, --patch-path=PATH               Append PATH to patch search paths" NLS,
-#ifdef IA_DYNAMIC
-"    -d, --interface-path=PATH           Use PATH as the interface search path" NLS,
-#endif
-"    -M, --pcm-file=FILE                 Specify PCM file to be played" NLS,
-"    -P, --patch=FILE                    Use this patch file for all programs" NLS,
-"    -c, --config=FILE                   Read extra config file" NLS,
-"    -Z, --freq-table=FILE               Load frequency table" NLS,
-NLS,
-
-"Output options:" NLS,
-"    -o, --output-file=FILE              Output to file (or device or so on)" NLS,
-"    -O, --mode=MODE                     Select output mode" NLS,
-"        --bit-width=WIDTH               Sample bit width" NLS,
-"        --encoding=TYPE                 Output encoding" NLS,
-"        --output-[un]signed             Singed/unsigned output" NLS,
-"        --[no-]output-byte-swap         Byte swapped output" NLS,
-"    -t, --text-conversion=CODE          Output text conversion" NLS,
-NLS,
-
-"Interface options:" NLS,
-#ifdef SOPPORT_SOUNDSPEC
-"    -g, --spectrogram=SEC               Open sound spectrogram wondow" NLS,
-#endif
-"    -W, --wrd=TYPE                      Open WRD interface window" NLS,
-"        --wrd-read-opts=STR             Extra WRD reader optpions" NLS,
-"    -i, --interface=TYPE                Specify interface" NLS,
-"        --verbose[=N]                   Verbose output" NLS,
-"        --quiet[=N]                     Quiet output" NLS,
-"        --[no-]trace                    Trace playing" NLS,
-"        --[no-]loop                     Loop playing" NLS,
-"        --[no-]random                   Random playing" NLS,
-"        --[no-]uniq-list                Uniq the playlist" NLS,
-"        --[no-]sort-list                Sort play list by name" NLS,
-"        --[no-]refine-list              Auto Refine the playlist" NLS,
-"        --[no-]continue                 Continue" NLS,
-"        --[no-]drag-start               Drag to trigger playing" NLS,
-"        --[no-]auto-start               Auto play start" NLS,
-"        --[no-]auto-exit                Auto exit after play ends" NLS,
-NLS,
-
-"Parsing optoins:" NLS,
-"    -D, --drums=N                       Treat channel N as a drum channel" NLS,
-"    -K, --key=N                         Adjust key by N-half tone" NLS,
-"    -H, --keysig=N                      Force keysig number of #(+)/b(-)" NLS,
-"    -I, --default-program=N             Set default program to N" NLS,
-"        --default-bank=N                Set default tone bank to N" NLS,
-"        --force-bank=N                  Always use tone bank N" NLS,
-"        --mid=MID                       Set default manufacture ID to MID" NLS,
-"        --force-mid=MID                 Force using MID" NLS,
-"        --[no-]trace-text-meta          Trace text META events" NLS,
-NLS,
-
-"Rendering options:" NLS,
-"    -A, --volume=N                      Amplify volume by N%" NLS,
-"        --drum-power=N                  Amplify drum vplume by N%" NLS,
-"    -a, --[no-]anti-alias               Enable anti-aliasing filter" NLS,
-"    -Q, --mute=CH                       Ignore channel CH" NLS,
-"    -T, --tempo=N                       Adjust tempo to N%" NLS,
-"    -m, --deay-time=MSEC                Time for a sustained note to decay" NLS,
-"    -s, --sampling-freq=F               Set samping frequency" NLS,
-"    -p, --polyphony=N                   Allow N voice polyphony" NLS,
-"        --[no-]polyphony-reduction      Automatic polyphony reduction" NLS,
+"Options:",
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-"    -4, --[no-]4-point-interpolation    4 point interpolation" NLS,
+"  -4      Toggle 4-point interpolation (default on)",
+"          Linear interpolation is used if audio queue < 99%%",
 #endif
-#if defined(GAUSS_INTERPOLATTION) || defined(NEWTON_INTERPOLARION)
-"    -N, --interpolation=N               Enable N-point interpolation" NLS,
+"  -A n,m  Amplify volume by n percent (may cause clipping),",
+"          and amplify drum power by m percent",
+"     (a)  Toggle amplify compensation (disabled by default)",
+"  -a      Enable the antialiasing filter",
+"  -B n,m  Set number of buffer fragments(n), and buffer size(2^m)",
+"  -C n    Set ratio of sampling and control frequencies",
+"  -c file Read extra configuration file",
+"  -D n    Play drums on channel n",
+#ifdef IA_DYNAMIC
+"  -d dir  Set dynamic interface module directory",
+#endif /* IA_DYNAMIC */
+"  -E mode TiMidity sequencer extensional modes:",
+"            mode = w/W : Enable/Disable Modulation wheel.",
+"                   p/P : Enable/Disable Portamento.",
+"                   v/V : Enable/Disable NRPN Vibrato.",
+"                   s/S : Enable/Disable Channel pressure.",
+"                   l/L : Enable/Disable voice-by-voice LPF.",
+"                   e/E : Enable/Disable Modulation Envelope.",
+"                   t/T : Enable/Disable Trace Text Meta Event at playing",
+"                   o/O : Enable/Disable Overlapped voice",
+"                   m<HH>: Define default Manufacture ID <HH> in two hex",
+"                   b<n>: Use tone bank <n> as the default",
+"                   B<n>: Always use tone bank <n>",
+"                   F<args>: For effect.  See below for effect options.",
+"              default: -E "
+#ifdef MODULATION_WHEEL_ALLOW
+"w"
+#else
+"W"
+#endif /* MODULATION_WHEEL_ALLOW */
+#ifdef PORTAMENTO_ALLOW
+"p"
+#else
+"P"
+#endif /* PORTAMENTO_ALLOW */
+#ifdef NRPN_VIBRATO_ALLOW
+"v"
+#else
+"V"
+#endif /* NRPN_VIBRATO_ALLOW */
+#ifdef GM_CHANNEL_PRESSURE_ALLOW
+"s"
+#else
+"S"
+#endif /* GM_CHANNEL_PRESSURE_ALLOW */
+#ifdef VOICE_BY_VOICE_LPF_ALLOW
+"l"
+#else
+"L"
+#endif /* VOICE_BY_VOICE_LPF_ALLOW */
+#ifdef MODULATION_ENVELOPE_ALLOW
+"e"
+#else
+"E"
+#endif /* MODULATION_ENVELOPE_ALLOW */
+#ifdef ALWAYS_TRACE_TEXT_META_EVENT
+"t"
+#else
+"T"
+#endif /* ALWAYS_TRACE_TEXT_META_EVENT */
+#ifdef OVERLAP_VOICE_ALLOW
+"o"
+#else
+"O"
+#endif /* OVERLAP_VOICE_ALLOW */
+,
+#ifdef __W32__
+"  -e      Increase thread priority (evil) - be careful!",
 #endif
-"    -f, --[no-]fast-decay               Fast decay" NLS,
-"    -F, --[no-]fast-panning             Fast panning" NLS,
-"        --[no-]modulation-wheel         Modulation wheel" NLS,
-"        --[no-]modulation-envelope      Modulation envelope" NLS,
-"        --[no-]portamento               Portamento" NLS,
-"        --[no-]vibrato                  Vibrato" NLS,
-"        --[no-]channel-pressure         Channel pressure" NLS,
-"        --[no-]new-lpf                  Voice-by-voice LPF" NLS,
-"        --[no-]overlap                  Allow overlapped voices or not" NLS,
-"        --mono                          Monophonic" NLS,
-"        --stereo                        Stereo" NLS,
-"        --reverb=TYPE[,LEVEL]           Specify reverb type and level" NLS,
-"        --chorus=TYPE[,LEVEL]           Specify chorus type and level" NLS,
-"        --delay=TYPE[,LEVEL]            Specify delay type and level" NLS,
-"        --noise-shaper=LEVEL            Enable noise shaping" NLS,
-"        --temperament=TYPE              Specify temperament" NLS,
-NLS,
-
-"Process internal options:" NLS,
-"    -C, --sampling-freq=N               Set ratio of sampling frequencies" NLS,
-"    -B, --buffer-size=N                 Set the size of buffer" NLS,
-"        --buffer-bits=N                 Set the buffer bits" NLS,
-"    -j, --[no-]realtime-load            Disable instrument preloading" NLS,
-"    -q, --audio-buffer=M/N              Specify audio buffer in seconds" NLS,
-"    -k, --voice-queue=MSEC              Audio queue's limit to reduce voices" NLS,
-"    -S, --cache-size=N                  Specify memory cache size" NLS,
-"    -U, --[no-]unload-every-instruments Unload instruments between MIDI files" NLS,
-    };
-
-    FILE* fp = open_pager();
-    int i;
-    for(i=0;i<sizeof(helpstr)/sizeof(char*);i++) {
-	fputs(helpstr[i],fp);
-    }
-    close_pager(fp);
+"  -F      Disable/Enable fast panning (toggle on/off, default is on)",
+"  -f      "
+#ifdef FAST_DECAY
+"Disable"
+#else
+"Enable"
+#endif
+" fast decay mode (toggle)",
+#ifdef SUPPORT_SOUNDSPEC
+"  -g sec  Open Sound-Spectrogram Window.",
+#endif /* SUPPORT_SOUNDSPEC */
+"  -H n    Force keysig number of sHarp(+)/flat(-) (-7..7)",
+"  -h      Display this help message",
+"  -I n    Use program n as the default",
+"  -i mode Select user interface (see below for list)",
+"  -j      Realtime load instrument (toggle on/off)",
+"  -K n    Adjust key by n half tone (-24..24)",
+"  -k msec Specify audio queue time limit to reduce voice",
+"  -L dir  Append dir to search path",
+"  -M name Specify PCM filename (*.wav or *.aiff) to be played or:",
+"          \"auto\": Play *.mid.wav or *.mid.aiff",
+"          \"none\": Disable this feature (default)",
+"  -m msec Minimum time for a full volume sustained note to decay, 0 disables",
+#ifdef GAUSS_INTERPOLATION
+"  -N n    n+1 point Gauss-like interpolation, n=1-34 (default 25), 0 disables",
+"          Linear interpolation is used if audio queue < 99%%",
+#endif
+#ifdef NEWTON_INTERPOLATION
+"  -N n    n'th order Newton polynomial interpolation, n=1-57 odd, 0 disables",
+"          Linear interpolation is used if audio queue < 99%%",
+#endif
+"  -O mode Select output mode and format (see below for list)",
+"  -o file Output to another file (or device/server)  (Use \"-\" for stdout)",
+"  -P file Use patch file for all programs",
+"  -p n    Allow n-voice polyphony.  Optional auto polyphony reduction toggle.",
+"     (a)  Toggle automatic polyphony reduction.  Enabled by default.",
+"  -Q n    Ignore channel n (0 means ignore all, -n means resume channel n)",
+"     (t)  Quiet temperament type n (0..3: preset, 4..7: user-defined)",
+"  -q m/n  Specify audio buffer in seconds",
+"            m:Maxmum buffer, n:Filled to start   (default is 5.0/100%%)",
+"            (size of 100%% equals device buffer size)",
+"  -R n    Pseudo Reveb (set every instrument's release to n ms",
+"            if n=0, n is set to 800(default)",
+"  -S n    Cache size (0 means no cache)",
+"  -s f    Set sampling frequency to f (Hz or kHz)",
+"  -T n    Adjust tempo to n%%; 120=play MOD files with an NTSC Amiga's timing",
+"  -t code Output text language code:",
+"              code=auto  : Auto conversion by `LANG' environment variable",
+"                           (UNIX only)",
+"                   ascii : Convert unreadable characters to '.'(0x2e)",
+"                   nocnv : No conversion",
+"                   1251  : Convert from windows-1251 to koi8-r",
+#ifdef JAPANESE
+"                   euc   : EUC-japan",
+"                   jis   : JIS",
+"                   sjis  : shift JIS",
+#endif /* JAPANESE */
+"  -U      Unload instruments from memory between MIDI files",
+"  -W mode Select WRD interface (see below for list)",
+#ifdef __W32__
+"  -w mode Windows extensional modes:",
+"              mode=r/R : Enable/Disable rcpcv dll",
+#endif /* __W32__ */
+"  -x \"configuration-string\"",
+"          Read configuration from command line argument",
+"  -Z file Load frequency table (Use \"pure\" for pure intonation)",
+"     n    Initial keysig number of sharp(+)/flat(-) (-7..7)",
+"     (m)  Toggle minor mode",
+NULL
+};
+	
+	fp = open_pager();
+	j = 0; /* index of help_args */
+	help_args[0] = timidity_version;
+	help_args[1] = program_name;
+	help_args[2] = NULL;
+	for (i = 0; help_list[i]; i++) {
+		char *h, *p;
+		
+		h = help_list[i];
+		if ((p = strchr(h, '%')) != NULL) {
+			if (*(p + 1) != '%')
+				fprintf(fp, h, help_args[j++]);
+			else
+				fprintf(fp, h);
+		} else
+			fputs(h, fp);
+		fputs(NLS, fp);
+	}
+	fputs(NLS, fp);
+	fputs("Available WRD interfaces (-W option):" NLS, fp);
+	while (*wl) {
+		fprintf(fp, "  -W%c     %s" NLS, (*wl)->id, (*wl)->name);
+		wl++;
+	}
+	fputs(NLS, fp);
+	fputs("Available output modes (-O option):" NLS, fp);
+	while (*pmp) {
+		fprintf(fp, "  -O%c     %s" NLS,
+				(*pmp)->id_character, (*pmp)->id_name);
+		pmp++;
+	}
+	fputs(NLS, fp);
+	fputs("Output format options (append to -O? option):" NLS
+"   `8'    8-bit sample width" NLS
+"   `1'    16-bit sample width" NLS
+"   `U'    U-Law encoding" NLS
+"   `A'    A-Law encoding" NLS
+"   `l'    linear encoding" NLS
+"   `M'    monophonic" NLS
+"   `S'    stereo" NLS
+"   `s'    signed output" NLS
+"   `u'    unsigned output" NLS
+"   `x'    byte-swapped output" NLS, fp);
+	fputs(NLS, fp);
+	fputs("Available interfaces (-i option):" NLS, fp);
+	while (*cmp) {
+#ifdef IA_DYNAMIC
+		if ((*cmp)->id_character != dynamic_interface_id)
+			fprintf(fp, "  -i%c     %s" NLS,
+					(*cmp)->id_character, (*cmp)->id_name);
+#else
+		fprintf(fp, "  -i%c     %s" NLS,
+				(*cmp)->id_character, (*cmp)->id_name);
+#endif /* IA_DYNAMIC */
+		cmp++;
+	}
+#ifdef IA_DYNAMIC
+	fprintf(fp, "Supported dynamic load interfaces (%s):" NLS,
+			dynamic_lib_root);
+	{
+		char mark[128];
+		
+		memset(mark, 0, sizeof(mark));
+		for (cmp = ctl_list; *cmp; cmp++)
+			mark[(int)(*cmp)->id_character] = 1;
+		if (dynamic_interface_id != 0)
+			mark[(int) dynamic_interface_id] = 0;
+		list_dyna_interface(fp, dynamic_lib_root, mark);
+	}
+#endif /* IA_DYNAMIC */
+	fputs(NLS, fp);
+	fputs("Interface options (append to -i? option):" NLS
+"   `v'    more verbose (cumulative)" NLS
+"   `q'    quieter (cumulative)" NLS
+"   `t'    trace playing" NLS
+"   `l'    loop playing (some interface ignore this option)" NLS
+"   `r'    randomize file list arguments before playing" NLS
+"   `s'    sorting file list arguments before playing" NLS
+"   `D'    daemonize timidity++ in background (for alsaseq only)" NLS, fp);
+	fputs(NLS, fp);
+	fputs("Effect options:" NLS
+"  -EFdelay=l : Left delay" NLS
+"  -EFdelay=r : Right delay" NLS
+"  -EFdelay=b : Rotate left & right" NLS
+"  -EFdelay=0 : Disabled delay effect" NLS
+"  -EFchorus=0 : Disable MIDI chorus effect control" NLS
+"  -EFchorus=1[,level] : Enable MIDI chorus effect control" NLS
+"                        `level' is optional to specify chorus level [0..127]" NLS
+"                        (default)" NLS
+"  -EFchorus=2[,level] : Surround sound, chorus detuned to a lesser degree." NLS
+"                        `level' is optional to specify chorus level [0..127]" NLS
+"  -EFreverb=0 : Disable MIDI reverb effect control" NLS
+"  -EFreverb=1[,level] : Enable MIDI reverb effect control" NLS
+"                        `level' is optional to specify reverb level [0..127]" NLS
+"                        This effect is only available in stereo" NLS
+"  -EFreverb=2 : Global reverb effect" NLS
+"  -EFreverb=3 : Enable NEW MIDI reverb effect control (freeverb)" NLS
+"                This effect is only available in stereo" NLS
+"                (default)" NLS
+"  -EFns=n : Enable the n th degree noise shaping filter." NLS
+"            n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
+"            n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
+	fputs(NLS, fp);
+	close_pager(fp);
 }
 
 static inline void version(void) {
@@ -3273,16 +3419,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
     return 0;
 }
 /* -------- getopt_long -------- */
-#define tm_ensure_range(var,min,max,name)		     \
-if( var<min || var>max ) {				     \
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,			     \
-	      "%s out of range: must be between %d and %d",  \
-	      name, (int)min, (int)max);		     \
-    return false;					     \
-}							     \
-else /* closure comes */
-
- __attribute__((pure))
+__attribute__((pure))
 static inline bool y_or_n_p(const char* const arg)
 {
     if(arg) {
@@ -3322,9 +3459,10 @@ static inline bool parse_opt_4(const char* const arg)
 static inline bool parse_opt_A(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,0,MAX_AMPLIFICATION,"Amplification") {
-	amplification = val;
-    }
+	
+	if (set_value(&amplification, val, 0, MAX_AMPLIFICATION,
+			"Amplification"))
+		return false;
     if(strchr(arg,'a')) {
 	opt_amp_compensation = true;
     }
@@ -3334,9 +3472,10 @@ static inline bool parse_opt_A(const char* const arg)
 static inline bool parse_opt_227(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,0,MAX_AMPLIFICATION,"Drum power") {
-	opt_drum_power = val;
-    }
+	
+	if (set_value(&opt_drum_power, val, 0, MAX_AMPLIFICATION,
+			"Drum power"))
+		return false;
     return true;
 }
 
@@ -3350,9 +3489,10 @@ static inline bool parse_opt_228(const char* const arg)
 {
     /* --buffer-bits */
     int val = atoi(arg);
-    tm_ensure_range(val,1,AUDIO_BUFFER_BITS,"Buffer bits") {
-	audio_buffer_bits = val;
-    }
+	
+	if (set_value(&audio_buffer_bits, val, 1, AUDIO_BUFFER_BITS,
+			"Buffer bits"))
+		return false;
     return true;
 }
 
@@ -3360,9 +3500,10 @@ static inline bool parse_opt_B(const char* const arg)
 {
     const char* arg2;
     int fragments = atoi(arg);
-    tm_ensure_range(fragments,0,1000,"Buffer Fragments") {
-	opt_buffer_fragments = fragments;
-    }
+	
+	if (set_value(&opt_buffer_fragments, fragments, 0, 1000,
+			"Buffer Fragments"))
+		return false;
     if(arg2 = strchr(arg,',')) {
 	/* --buffer-size can take the second parameter `bits' for
              backward compatibility, but this feature has never been
@@ -3382,9 +3523,10 @@ static inline bool parse_opt_b(const char* const arg)
 static inline bool parse_opt_C(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,0,MAX_CONTROL_RATIO,"Control ratio") {
-	opt_drum_power = val;
-    }
+	
+	if (set_value(&opt_control_ratio, val, 0, MAX_CONTROL_RATIO,
+			"Control ratio"))
+		return false;
     return true;
 }
 
@@ -3512,9 +3654,10 @@ static inline bool parse_opt_211(const char* const arg)
 {
     /* --default-bank */
     int val = atoi(arg);
-    tm_ensure_range(val,0,0x7f,"Bank number") {
-	default_tonebank = val;
-    }
+	
+	if (set_value(&default_tonebank, val, 0, 0x7f,
+			"Bank number"))
+		return false;
     return true;
 }
 
@@ -3522,9 +3665,10 @@ static inline bool parse_opt_212(const char* const arg)
 {
     /* --force-bank */
     int val = atoi(arg);
-    tm_ensure_range(val,0,0x7f,"Bank number") {
-	special_tonebank = val;
-    }
+	
+	if (set_value(&special_tonebank, val, 0, 0x7f,
+			"Bank number"))
+		return false;
     return true;
 }
 
@@ -3591,14 +3735,15 @@ static inline bool parse_opt_222(const char* const arg)
     if(lv = strchr(arg,',')) {
 	int val = atoi(lv);
 	if(arg[0] == 'p' || arg[0] == 'P') {
-	    tm_ensure_range(val,0,MAX_MREL,"Modify release") {
-		modify_release = val;
-	    }
+		if (set_value(&modify_release, val, 0, MAX_MREL,
+				"Modify release"))
+			return false;
 	}
 	else {
-	    tm_ensure_range(val,0,0x7f,"Reverb level") {
+		if (set_value(&val, val, 0, 0x7f,
+				"Reverb level"))
+			return false;
 		opt_reverb_control = -val;
-	    }
 	}
     }
     return true;
@@ -3641,9 +3786,11 @@ static inline bool parse_opt_223(const char* const arg)
     }
     if(lv = strchr(arg,',')) {
 	int val = atoi(lv);
-	tm_ensure_range(val,0,0x7f,"Chorus level") {
-	    opt_chorus_control = -val;
-	}
+	
+	if (set_value(&val, val, 0, 0x7f,
+			"Chorus level"))
+		return false;
+	opt_chorus_control = -val;
     }
     return true;
 }
@@ -3652,9 +3799,10 @@ static inline bool parse_opt_225(const char* const arg)
 {
     /* --noise-shaper */
     int val = atoi(arg);
-    tm_ensure_range(val,0,4,"Noise shaper type") {
-	noise_sharp_type = val;
-    }
+	
+	if (set_value(&noise_sharp_type, val, 0, 4,
+			"Noise shaper type"))
+		return false;
     return true;
 }
 
@@ -3699,10 +3847,10 @@ static inline bool parse_opt_g(const char* const arg)
 static inline bool parse_opt_H(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,-7,7,
-		    "Key Signature -- number of sharp(+)/flat(-)") {
-	opt_force_keysig = val;
-    }
+	
+	if (set_value(&opt_force_keysig, val, -7, 7,
+			"Key Signature -- number of sharp(+)/flat(-)"))
+		return false;
     return true;
 }
 
@@ -3876,9 +4024,10 @@ static inline bool parse_opt_j(const char* const arg)
 static inline bool parse_opt_K(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,-24,24,"Key adjust") {
-	key_adjust = val;
-    }
+	
+	if (set_value(&key_adjust, val, -24, 24,
+			"Key adjust"))
+		return false;
     return true;
 }
 
@@ -3914,9 +4063,9 @@ static inline bool parse_opt_N(const char* const arg)
 {
     int val = atoi(arg);
     if(val) {
-	tm_ensure_range(val,1,34,"Gauss interpolation -N value") {
-	    gauss_n = val;
-	}
+		if (set_value(&gauss_n, val, 1, 34,
+				"Gauss interpolation -N value"))
+			return false;
     }
     else {
 	gauss_n = 5;
@@ -3930,16 +4079,14 @@ static inline bool parse_opt_N(const char* const arg)
 {
     int val = atoi(arg);
     if(val) {
-	tm_ensure_range(val,1,56,"Key adjust") {
-	    if(val % 2) {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "Newton -N value must be even");
-		return false;
-	    }
-	    else {
-		newt_n = val;
-	    }
-	}
+		if (set_value(&newt_n, val, 1, 56,
+				"Newton interpolation -N value"))
+			return false;
+		if (newt_n % 2) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Newton -N value must be even");
+			return false;
+		}
     }
     else {
 	newt_n = 5;
@@ -4102,9 +4249,10 @@ static inline bool parse_opt_P(const char* const arg)
 static inline bool parse_opt_p(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,1,MAX_VOICES,"Polyphony") {
-	voices = val;
-    }
+	
+	if (set_value(&voices, val, 1, MAX_VOICES,
+			"Polyphony"))
+		return false;
     return true;
 }
 
@@ -4120,10 +4268,11 @@ static inline bool parse_opt_Q(const char* const arg)
     if(isdigit(arg[0]) || arg[0] == '-') {
 	int val = atoi(arg);
 	if(strchr(arg,'t')) {
-	    tm_ensure_range(val,0,7,"Quiet temperament") {
+		if (set_value(&val, val, 0, 7,
+				"Quiet temperament"))
+			return false;
 		temper_type_mute |= 1 << val;
 		return true;
-	    }
 	}
 	else {
 	    return ! set_channel_flag(&quietchannels,val,"Quiet channel");
@@ -4191,15 +4340,17 @@ static inline bool parse_opt_s(const char* const arg)
 {
     double val = atof(arg);
     if(val < 100) {
-	tm_ensure_range(val,4.0,65.0,"Frequency") {
-	    /* Hey, what's this 0.5? -- mput */
-	    opt_output_rate = (int32)(val * 1000 + 0.5);
-	}
+		if (set_value(&val, val, 4, 65,
+				"Frequency"))
+			return false;
+		/* Hey, what's this 0.5? -- mput */
+		opt_output_rate = val * 1000 + 0.5;
     }
     else {
-	tm_ensure_range(val,MIN_OUTPUT_RATE,MAX_OUTPUT_RATE,"Frequency") {
-	    opt_output_rate = d2i(val);
-	}
+		if (set_value(&val, val, MIN_OUTPUT_RATE, MAX_OUTPUT_RATE,
+				"Frequency"))
+			return false;
+		opt_output_rate = d2i(val);
     }
     return true;
 }
@@ -4207,9 +4358,11 @@ static inline bool parse_opt_s(const char* const arg)
 static inline bool parse_opt_T(const char* const arg)
 {
     int val = atoi(arg);
-    tm_ensure_range(val,10,400,"Tempo adjust") {
+	
+	if (set_value(&val, val, 10, 400,
+			"Tempo adjust"))
+		return false;
 	tempo_adjust = 100.0 / val;
-    }
     return true;
 }
 
@@ -4277,14 +4430,14 @@ static inline bool parse_opt_226(const char* const arg)
 	opt_pure_intonation = true;
 	if (arg[4] != '\0') {
 	    int val = atoi(arg + 4);
-	    tm_ensure_range(val,-7, 7,
-			    "Initial keysig (number of #(+)/b(-)[m(minor)])")
-	    {
+		
+		if (set_value(&val, val, -7, -7,
+				"Initial keysig (number of #(+)/b(-)[m(minor)])"))
+			return false;
 		if (strchr(arg + 4, 'm'))
-		    opt_init_keysig = val + 16;
+			opt_init_keysig = val + 16;
 		else
-		    opt_init_keysig = val;
-	    }
+			opt_init_keysig = val;
 	}
     }
 }
@@ -4297,8 +4450,6 @@ static inline bool parse_opt_666(const char* const arg)
 	      "Could not understand option : try --help");
     exit(1);
 }
-
-#undef tm_ensure_range
 
 MAIN_INTERFACE bool set_tim_opt_long(int c, const char* const optarg, int index)
 {
