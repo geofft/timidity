@@ -707,7 +707,7 @@ void w32_tracer_ctl_event(CtlEvent *e)
 		break;
 	case CTLE_PROGRAM:
 		v1 = (int)e->v1; v2 = (int)e->v2;
-		tracer_ch_program_draw ( v1, -1, v2, channel_instrum_name(v1), -1, TRUE );
+		tracer_ch_program_draw ( v1, -1, v2, (char *)e->v3, -1, TRUE );
 		break;
 	case CTLE_DRUMPART:
 		break;
