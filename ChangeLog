@@ -1,3 +1,7 @@
+2004-09-15  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/resample.c: Reimplement bounds cheking
+
 2004-09-09  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* interface/gtk_c.c (ctl_total_time): ditto.

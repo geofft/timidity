@@ -49,6 +49,8 @@ static float newt_coeffs[58][58] = {
 #include "newton_table.c"
 };
 
+int sample_bounds_min, sample_bounds_max; /* min/max bounds for sample data */
+
 /* 4-point interpolation by cubic spline curve. */
 
 static resample_t resample_cspline(sample_t *src, splen_t ofs, resample_rec_t *rec)
@@ -74,7 +76,8 @@ static resample_t resample_cspline(sample_t *src, splen_t ofs, resample_rec_t *r
 			 ofsf >> FRACTION_BITS) * (ofsf - (2L << FRACTION_BITS))
 			>> FRACTION_BITS)) * ((1L << FRACTION_BITS) - ofsf)) + v2)
 	    / (6L << FRACTION_BITS);
-	return v1;
+	return ((v1 > sample_bounds_max) ? sample_bounds_max :
+		((v1 < sample_bounds_min) ? sample_bounds_min : v1));
     }
 }
 
@@ -113,7 +116,8 @@ static resample_t resample_lagrange(sample_t *src, splen_t ofs, resample_rec_t *
 	v3 *= ofsf;
 	v3 >>= FRACTION_BITS;
 	v3 += v0;
-	return v3;
+	return ((v3 > sample_bounds_max) ? sample_bounds_max :
+		((v3 < sample_bounds_min) ? sample_bounds_min : v3));
     }
 }
 
@@ -171,7 +175,8 @@ static resample_t resample_gauss(sample_t *src, splen_t ofs, resample_rec_t *rec
 	    y *= xd - --ii;
 	}
 	y += *sptr;
-	return y;
+	return ((y > sample_bounds_max) ? sample_bounds_max :
+		((y < sample_bounds_min) ? sample_bounds_min : y));
     } else {
 	float *gptr, *gend;
 	float y;
@@ -217,7 +222,8 @@ static resample_t resample_gauss(sample_t *src, splen_t ofs, resample_rec_t *rec
 		y += *(sptr++) * *(gptr++);
 	    } while (gptr <= gend);
 	}
-	return y;
+	return ((y > sample_bounds_max) ? sample_bounds_max :
+		((y < sample_bounds_min) ? sample_bounds_min : y));
     }
 }
 
@@ -313,7 +319,8 @@ static resample_t resample_newton(sample_t *src, splen_t ofs, resample_rec_t *re
 	newt_old_src = src;
 	newt_old_trunc_x = (ofs>>FRACTION_BITS);
     }
-    return y;
+    return ((y > sample_bounds_max) ? sample_bounds_max :
+    	    ((y < sample_bounds_min) ? sample_bounds_min : y));
 }
 
 
@@ -493,6 +500,19 @@ void initialize_resampler_coeffs(void)
     /* initialize_newton_coeffs(); */
     initialize_gauss_table(gauss_n);
     /* we don't have to initialize newton table any more */
+
+    /* bounds checking values for the appropriate sample types */
+    /* this is as good a place as any to initialize them */
+    if (play_mode->encoding & PE_24BIT)
+    {
+    	sample_bounds_min = -8388608;
+    	sample_bounds_max = 8388607;
+    }
+    else /* 16-bit */
+    {
+    	sample_bounds_min = -32768;
+    	sample_bounds_max = 32767;
+    }
 }
 
 /* change the parameter for the current resampling algorithm */
