@@ -722,7 +722,6 @@ void recompute_freq(int v)
 
 		/* MIDI controllers LFO pitch depth */
 		if (opt_channel_pressure || opt_modulation_wheel) {
-			
 			if (vp->sample->vibrato_depth < 0) {
 				vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
 				vp->vibrato_depth -= get_midi_controller_pitch_depth(&(channel[ch].mod))
@@ -747,9 +746,11 @@ void recompute_freq(int v)
 		/* fill parameters for modulation wheel */
 		if (channel[ch].mod.val > 0) {
 			if(vp->vibrato_control_ratio == 0) {
-				vp->vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
+				vp->vibrato_control_ratio = 
+					vp->orig_vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
 			}
 			vp->vibrato_delay = 0;
+			vp->vibrato_control_counter = vp->vibrato_phase = 0;
 		}
 
 		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
@@ -1246,6 +1247,18 @@ void dup_tone_bank_element(int dr, int bk, int prog)
 	if (elm->resonum)
 		elm->reso = (float *) memdup(
 				elm->reso, elm->resonum * sizeof(int16));
+	if (elm->trempitchnum)
+		elm->trempitch = (float *) memdup(
+				elm->trempitch, elm->trempitchnum * sizeof(int16));
+	if (elm->tremfcnum)
+		elm->tremfc = (float *) memdup(
+				elm->tremfc, elm->tremfcnum * sizeof(int16));
+	if (elm->modpitchnum)
+		elm->modpitch = (float *) memdup(
+				elm->modpitch, elm->modpitchnum * sizeof(int16));
+	if (elm->modfcnum)
+		elm->modfc = (float *) memdup(
+				elm->modfc, elm->modfcnum * sizeof(int16));
 	if (elm->envratenum) {
 		elm->envrate = (int **) memdup(
 				elm->envrate, elm->envratenum * sizeof(int *));
@@ -1307,6 +1320,22 @@ void free_tone_bank_element(int dr, int bk, int prog)
 	if (elm->reso) {
 		free(elm->reso);
 		elm->reso = NULL;
+	}
+	if (elm->trempitch) {
+		free(elm->trempitch);
+		elm->trempitch = NULL;
+	}
+	if (elm->tremfc) {
+		free(elm->tremfc);
+		elm->tremfc = NULL;
+	}
+	if (elm->modpitch) {
+		free(elm->modpitch);
+		elm->modpitch = NULL;
+	}
+	if (elm->modfc) {
+		free(elm->modfc);
+		elm->modfc = NULL;
 	}
 	if (elm->envratenum) {
 		free_ptr_list(elm->envrate, elm->envratenum);

@@ -110,6 +110,8 @@ typedef struct {
   int16 *fc;
   int resonum;
   int16 *reso;
+  int trempitchnum, tremfcnum, modpitchnum, modfcnum;
+  int16 *trempitch, *tremfc, *modpitch, *modfc;
 	int envratenum, envofsnum;
 	int **envrate, **envofs;
 	int modenvratenum, modenvofsnum;

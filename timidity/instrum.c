@@ -364,6 +364,42 @@ static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
 				sp->resonance = adjust_reso(tone->reso[i]);
 			}
 		}
+	if (tone->trempitchnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->trempitchnum == 1) {
+				sp->tremolo_to_pitch = tone->trempitch[0];
+			} else if (i < tone->trempitchnum) {
+				sp->tremolo_to_pitch = tone->trempitch[i];
+			}
+		}
+	if (tone->tremfcnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->tremfcnum == 1) {
+				sp->tremolo_to_fc = tone->tremfc[0];
+			} else if (i < tone->tremfcnum) {
+				sp->tremolo_to_fc = tone->tremfc[i];
+			}
+		}
+	if (tone->modpitchnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modpitchnum == 1) {
+				sp->modenv_to_pitch = tone->modpitch[0];
+			} else if (i < tone->modpitchnum) {
+				sp->modenv_to_pitch = tone->modpitch[i];
+			}
+		}
+	if (tone->modfcnum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->modfcnum == 1) {
+				sp->modenv_to_fc = tone->modfc[0];
+			} else if (i < tone->modfcnum) {
+				sp->modenv_to_fc = tone->modfc[i];
+			}
+		}
 	if (tone->envratenum)
 		for (i =0; i < ip->samples; i++) {
 			sp = &ip->sample[i];
@@ -516,7 +552,9 @@ static Instrument *load_gus_instrument(char *name,
 	if (tone && tone->tunenum == 0 && tone->fcnum == 0 && tone->resonum == 0
 			&& tone->envratenum == 0 && tone->envofsnum == 0
 			&& tone->modenvratenum == 0 && tone->modenvofsnum == 0
-			&& tone->tremnum == 0 && tone->vibnum == 0) {
+			&& tone->tremnum == 0 && tone->vibnum == 0
+			&& tone->tremfcnum && tone->trempitchnum
+			&& tone->modfcnum && tone->modpitchnum) {
     if((ip = search_instrument_cache(name, panning, amp, note_to_use,
 				     strip_loop, strip_envelope, strip_tail))
        != NULL)

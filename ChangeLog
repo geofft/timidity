@@ -5,6 +5,7 @@
 	  Fix typo.
 	  Fix modulation envelope.
 	  Fix GS SysEx. Drum Instrument Play Note.
+	  Fix modulation wheel.
 	  Add #extension playnote.
 	  Add some patch options.
 
