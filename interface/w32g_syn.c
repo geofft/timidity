@@ -348,13 +348,13 @@ static int w32g_syn_create_win ( void )
 	wndclass.lpszMenuName  = NULL;
 	wndclass.lpszClassName =  W32G_SYNWIN_CLASSNAME;
 	RegisterClass(&wndclass);
-	w32g_syn.nid_hWnd = CreateWindowEx ( WS_EX_DLGMODALFRAME, W32G_SYNWIN_CLASSNAME, 0,
-		WS_SYSMENU,
+	w32g_syn.nid_hWnd = CreateWindowEx ( WS_EX_TOOLWINDOW, W32G_SYNWIN_CLASSNAME, 0,
+		WS_CLIPCHILDREN,
 		CW_USEDEFAULT,0, 10, 10,0,0,hInst,0 );
 	if ( w32g_syn.nid_hWnd == NULL ) {
 		return -1;
 	}
-	ShowWindow ( w32g_syn.nid_hWnd, SW_HIDE );
+	ShowWindow ( w32g_syn.nid_hWnd, SW_SHOW );
 	UpdateWindow ( w32g_syn.nid_hWnd );		// 必要ないと思うんだけど。
 	return 0;
 }
@@ -405,29 +405,52 @@ static VOID CALLBACK forced_exit ( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwT
 	exit ( 0 );
 }
 
+// Add the icon into the status area of the task bar.
+BOOL AddTasktrayIcon(HWND hwnd)
+{
+	BOOL bRes;
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof ( NOTIFYICONDATA );
+	nid.hWnd = w32g_syn.nid_hWnd = hwnd; 
+	nid.uID = w32g_syn.nid_uID; 
+	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+	nid.uCallbackMessage = MYWM_NOTIFYICON; 
+	nid.hIcon = w32g_syn.hIcon; 
+	strcpy ( nid.szTip, W32G_SYN_TIP );
+	bRes = Shell_NotifyIcon ( NIM_ADD, &nid );
+	return bRes;
+}
+
+// Delete the icon from the status area of the task bar.
+void DeleteTasktrayIcon(HWND hwnd)
+{
+	BOOL bRes;
+	NOTIFYICONDATA nid;
+	int i;
+	nid.cbSize = sizeof ( NOTIFYICONDATA );
+	nid.hWnd = w32g_syn.nid_hWnd; 
+	nid.uID = w32g_syn.nid_uID; 
+	for ( i = 1; i <= 10; i ++ ) {
+		bRes = Shell_NotifyIcon ( NIM_DELETE, &nid );
+		if ( bRes == TRUE )
+			break;
+		if ( i >= 10 ) {
+			MessageBox ( NULL, "Fatal Error", "ERROR", MB_OK );
+		}
+	}
+}
+
 static LRESULT CALLBACK
 SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 {
-	BOOL bRes;
 	static int have_popupmenu = 0;
 	switch (uMess) {
 	case WM_CREATE:
-		{ // Add the icon into the status area of the task bar.
-			NOTIFYICONDATA nid;
-			nid.cbSize = sizeof ( NOTIFYICONDATA );
-			nid.hWnd = w32g_syn.nid_hWnd = hwnd; 
-			nid.uID = w32g_syn.nid_uID; 
-			nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
-			nid.uCallbackMessage = MYWM_NOTIFYICON; 
-			nid.hIcon = w32g_syn.hIcon; 
-			strcpy ( nid.szTip, W32G_SYN_TIP );
-			bRes = Shell_NotifyIcon ( NIM_ADD, &nid );
-			if ( bRes == FALSE ) {
-				MessageBox ( NULL, "Fatal Error", "ERROR", MB_OK );
-				DestroyWindow ( hwnd );
-			  PostQuitMessage ( 0 );
-				return -1;
-			}
+		if ( AddTasktrayIcon(hwnd) == FALSE ) {
+			MessageBox ( NULL, "Fatal Error", "ERROR", MB_OK );
+			DestroyWindow ( hwnd );
+			PostQuitMessage ( 0 );
+			return -1;
 		}
 		start_syn_thread ();
 		break;
@@ -440,21 +463,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					break;
 			}
 		}
-		{ // Delete the icon from the status area of the task bar.
-			NOTIFYICONDATA nid;
-			int i;
-			nid.cbSize = sizeof ( NOTIFYICONDATA );
-			nid.hWnd = w32g_syn.nid_hWnd; 
-			nid.uID = w32g_syn.nid_uID; 
-			for ( i = 1; i <= 10; i ++ ) {
-				bRes = Shell_NotifyIcon ( NIM_DELETE, &nid );
-				if ( bRes == TRUE )
-					break;
-				if ( i >= 10 ) {
-					MessageBox ( NULL, "Fatal Error", "ERROR", MB_OK );
-				}
-			}
-		}
+		DeleteTasktrayIcon(hwnd);
 	  PostQuitMessage ( 0 );
 	  break;
 	case MYWM_NOTIFYICON:
@@ -609,7 +618,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "コンソール");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "バージョン情報");
-					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "TiMidity について");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "TiMidity++ について");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "終了");
 				} else {
@@ -685,7 +694,7 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "Console");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "Version Info");
-					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "About TiMidity");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "About TiMidity++");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "Quit");
 				}
@@ -851,6 +860,10 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	default:
+		if (uMess == RegisterWindowMessage("TaskbarCreated")) {
+			AddTasktrayIcon(hwnd);
+			return 0;
+		}
 	  return DefWindowProc ( hwnd, uMess, wParam, lParam );
 	}
 	return 0L;

@@ -1,3 +1,8 @@
+2004-02-24  Saito <saito2@digitalme.com>
+
+	* interface/w32g_syn.c, interface/w32g_i.c:
+	  Improve bahaviour around taskbar.
+
 2004-02-24  mput <root@mput.dip.jp>
 
 	* configure.in: avoid warning

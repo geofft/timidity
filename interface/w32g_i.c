@@ -355,34 +355,32 @@ void OnQuit(void)
 // 使う予定ではあったがぜんぜん使用されていない。単に親ウインドウ
 // であるだけ。
 
-#define STARTWND_XSIZE 100
-#define STARTWND_YSIZE 100
-static char StartWndClassName[] = "TiMidity_Win32GUI";
+#define STARTWND_XSIZE 0
+#define STARTWND_YSIZE 0
+static char StartWndClassName[] = "TiMidity++ Win32GUI";
 
 static LRESULT CALLBACK StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 void InitStartWnd(int nCmdShow)
 {
 	WNDCLASS wndclass ;
 
-	if ( hStartWnd != NULL )
-		DestroyWindow ( hStartWnd );
+	if (hStartWnd != NULL) {DestroyWindow (hStartWnd);}
 
-	wndclass.style         = CS_HREDRAW | CS_VREDRAW | CS_CLASSDC;
-	wndclass.lpfnWndProc   = StartWinProc ;
-	wndclass.cbClsExtra    = 0 ;
-	wndclass.cbWndExtra    = 0 ;
-	wndclass.hInstance     = hInst ;
+	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
+	wndclass.lpfnWndProc   = StartWinProc;
+	wndclass.cbClsExtra    = 0;
+	wndclass.cbWndExtra    = 0;
+	wndclass.hInstance     = hInst;
 	wndclass.hIcon         = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
-	wndclass.hCursor       = LoadCursor(0,IDC_ARROW) ;
+	wndclass.hCursor       = LoadCursor(0, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_SCROLLBAR + 1);
 	wndclass.lpszMenuName  = NULL;
-	wndclass.lpszClassName =  StartWndClassName;
+	wndclass.lpszClassName = StartWndClassName;
 
-	RegisterClass(&wndclass);
-	hStartWnd = CreateWindowEx(WS_EX_DLGMODALFRAME,StartWndClassName,0,
-		WS_OVERLAPPED  | WS_MINIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN ,
-		CW_USEDEFAULT,0,STARTWND_XSIZE,STARTWND_YSIZE,0,0,hInst,0);
-	ShowWindow(hStartWnd,SW_HIDE);
+	if (!RegisterClass(&wndclass)) {return;}
+	hStartWnd = CreateWindowEx(WS_EX_TOOLWINDOW, StartWndClassName, 0,
+		WS_CLIPCHILDREN, CW_USEDEFAULT, 0, STARTWND_XSIZE,STARTWND_YSIZE, 0, 0, hInst, 0);
+	ShowWindow(hStartWnd, SW_SHOW);
 	UpdateWindow(hStartWnd);
 	InitMainWnd(hStartWnd);
 	InitConsoleWnd(hStartWnd);
@@ -410,6 +408,12 @@ StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	    PostQuitMessage(0);
 	    break;
 	  default:
+		if (uMess == RegisterWindowMessage("TaskbarCreated")) {
+			ShowWindow(hwnd, SW_RESTORE);
+			ShowWindow(hwnd, SW_SHOWNORMAL);
+			ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+			return 0;
+		}
 	    return DefWindowProc(hwnd,uMess,wParam,lParam);
 	}
 	return 0L;
