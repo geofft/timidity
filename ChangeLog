@@ -1,5 +1,9 @@
 2004-03-04  mput <root@mput.dip.jp>
 
+	* timidity/readmidi.c (set_xg_chorus_type): Re-activate flanger
+
+2004-03-04  mput <root@mput.dip.jp>
+
 	* timidity/reverb.h: Fix undeclared type error
 
 2004-03-03  Saito <saito@intaa.net>
