@@ -54,8 +54,8 @@ static double REV_INP_LEV = 1.0;
 /*              */
 /*  Dry Signal  */
 /*              */
-static int32  direct_buffer[AUDIO_BUFFER_SIZE * 2];
-static int32  direct_bufsize = sizeof(direct_buffer);
+static int32 direct_buffer[AUDIO_BUFFER_SIZE * 2];
+static int32 direct_bufsize = sizeof(direct_buffer);
 
 #if OPT_MODE != 0 && _MSC_VER
 void set_dry_signal(int32 *buf, int32 count)
@@ -89,7 +89,7 @@ void set_dry_signal(register int32 *buf, int32 n)
     register int32 i;
 	register int32 *dbuf = direct_buffer;
 
-    for(i = n-1; i >= 0; i--)
+    for(i = n - 1; i >= 0; i--)
     {
         dbuf[i] += buf[i];
     }
@@ -99,6 +99,7 @@ void set_dry_signal(register int32 *buf, int32 n)
 }
 #endif
 
+/* XG has "dry level". */
 #if OPT_MODE != 0	/* fixed-point implementation */
 #if _MSC_VER
 void set_dry_signal_xg(int32 *buf, int32 count, int32 level)
@@ -137,7 +138,7 @@ void set_dry_signal_xg(register int32 *sbuffer, int32 n, int32 level)
 	if(!level) {return;}
 	level = level * 65536 / 127;
 
-	for(i= n - 1; i >= 0; i--) {buf[i] += imuldiv16(sbuffer[i], level);}
+	for(i = n - 1; i >= 0; i--) {buf[i] += imuldiv16(sbuffer[i], level);}
 }
 #endif	/* _MSC_VER */
 #else	/* floating-point implementation */
@@ -161,11 +162,11 @@ void mix_dry_signal(register int32 *buf, int32 n)
 	memset(direct_buffer, 0, sizeof(int32) * n);
 }
 
+
 /*                    */
 /*  Effect Utitities  */
 /*                    */
-
-/* temporary variables */
+/* general-purpose temporary variables for macros */
 static int32 _output, _bufout, _temp1, _temp2, _temp3;
 
 /*! delay */
@@ -248,7 +249,7 @@ static void free_mod_delay(mod_delay *delay)
 
 static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
 {
-	int32 size = ndelay + depth;
+	int32 size = ndelay + depth + 1;
 	free_mod_delay(delay);
 	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
 	if(delay->buf == NULL) {return;}
@@ -285,7 +286,7 @@ static void free_mod_allpass(mod_allpass *delay)
 
 static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, double feedback)
 {
-	int32 size = ndelay + depth;
+	int32 size = ndelay + depth + 1;
 	free_mod_allpass(delay);
 	delay->buf = (int32 *)safe_malloc(sizeof(int32) * size);
 	if(delay->buf == NULL) {return;}
@@ -688,7 +689,7 @@ static int32  buf2_L[REV_BUF2], buf2_R[REV_BUF2];
 static int32  buf3_L[REV_BUF3], buf3_R[REV_BUF3];
 
 static int32  reverb_effect_buffer[AUDIO_BUFFER_SIZE * 2];
-static int32  effect_bufsize = sizeof(reverb_effect_buffer);
+static int32  reverb_effect_bufsize = sizeof(reverb_effect_buffer);
 
 static int32  ta, tb;
 static int32  HPFL, HPFR;
@@ -740,7 +741,7 @@ void set_ch_reverb(int32 *buf, int32 count, int32 level)
 	if(!level) {return;}
     level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
-	for(i=count-1;i>=0;i--) {dbuf[i] += imuldiv24(buf[i], level);}
+	for(i = count - 1; i >= 0; i--) {dbuf[i] += imuldiv24(buf[i], level);}
 }
 #endif	/* _MSC_VER */
 #else
@@ -1012,14 +1013,14 @@ static int allpasstunings[numallpasses] = {225, 341, 441, 556};
 
 static inline int isprime(int val)
 {
-  int i;
-  if (val == 2) {return 1;}
-  if (val & 1) {
-	for (i=3; i<(int)sqrt((double)val)+1; i+=2) {
-		if ((val%i) == 0) {return 0;}
-	}
-	return 1; /* prime */
-  } else {return 0;} /* even */
+	int i;
+	if (val == 2) {return 1;}
+	if (val & 1) {
+		for (i = 3; i < (int)sqrt((double)val) + 1; i += 2) {
+			if ((val % i) == 0) {return 0;}
+		}
+		return 1; /* prime */
+	} else {return 0;} /* even */
 }
 
 static double gs_revchar_to_roomsize(int character)
@@ -1121,8 +1122,6 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 	{
 		tmpL = allpasstunings[i] * samplerate * time / 44100.0;
 		tmpR = (allpasstunings[i] + stereospread) * samplerate * time / 44100.0;
-		tmpL *= samplerate / 44100.0;
-		tmpR *= samplerate / 44100.0;
 		if(tmpL < 10) tmpL = 10;
 		if(tmpR < 10) tmpR = 10;
 		while(!isprime(tmpL)) tmpL++;
@@ -1137,24 +1136,26 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 static void update_freeverb(InfoFreeverb *rev)
 {
 	int i;
-	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase;
+	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase, rt;
 
-	rev->wet = (double)reverb_status.level / 127.0 * gs_revchar_to_level(reverb_status.character);
+	rev->wet = (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
 	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
 	rev->width = gs_revchar_to_width(reverb_status.character);
 
-	rev->wet1 = rev->width / 2 + 0.5f;
-	rev->wet2 = (1 - rev->width) / 2;
+	rev->wet1 = rev->width / 2.0f + 0.5f;
+	rev->wet2 = (1.0f - rev->width) / 2.0f;
 	rev->roomsize1 = rev->roomsize;
 	rev->damp1 = rev->damp;
 
 	realloc_freeverb_buf(rev);
+
 	rtbase = 1.0 / (44100.0 * reverb_time_table[reverb_status.time] * gs_revchar_to_rt(reverb_status.character));
 
 	for(i = 0; i < numcombs; i++)
 	{
-		rev->combL[i].feedback = pow(10, -3 * (double)combtunings[i] * rtbase);
-		rev->combR[i].feedback = pow(10, -3 * (double)(combtunings[i] /*+ stereospread*/) * rtbase);
+		rt = pow(10.0f, -3.0f * (double)combtunings[i] * rtbase);
+		rev->combL[i].feedback = rt;
+		rev->combR[i].feedback = rt;
 		rev->combL[i].damp1 = rev->damp1;
 		rev->combR[i].damp1 = rev->damp1;
 		rev->combL[i].damp2 = 1 - rev->damp1;
@@ -1194,41 +1195,18 @@ static void init_freeverb(InfoFreeverb *rev)
 
 static void alloc_freeverb_buf(InfoFreeverb *rev)
 {
+	int i;
 	if(rev->alloc_flag) {return;}
-	set_freeverb_comb(&rev->combL[0], combtunings[0]);
-	set_freeverb_comb(&rev->combR[0], combtunings[0] + stereospread);
-	set_freeverb_comb(&rev->combL[1], combtunings[1]);
-	set_freeverb_comb(&rev->combR[1], combtunings[1] + stereospread);
-	set_freeverb_comb(&rev->combL[2], combtunings[2]);
-	set_freeverb_comb(&rev->combR[2], combtunings[2] + stereospread);
-	set_freeverb_comb(&rev->combL[3], combtunings[3]);
-	set_freeverb_comb(&rev->combR[3], combtunings[3] + stereospread);
-	set_freeverb_comb(&rev->combL[4], combtunings[4]);
-	set_freeverb_comb(&rev->combR[4], combtunings[4] + stereospread);
-	set_freeverb_comb(&rev->combL[5], combtunings[5]);
-	set_freeverb_comb(&rev->combR[5], combtunings[5] + stereospread);
-	set_freeverb_comb(&rev->combL[6], combtunings[6]);
-	set_freeverb_comb(&rev->combR[6], combtunings[6] + stereospread);
-	set_freeverb_comb(&rev->combL[7], combtunings[7]);
-	set_freeverb_comb(&rev->combR[7], combtunings[7] + stereospread);
-
-	set_freeverb_allpass(&rev->allpassL[0], allpasstunings[0]);
-	set_freeverb_allpass(&rev->allpassR[0], allpasstunings[0] + stereospread);
-	set_freeverb_allpass(&rev->allpassL[1], allpasstunings[1]);
-	set_freeverb_allpass(&rev->allpassR[1], allpasstunings[1] + stereospread);
-	set_freeverb_allpass(&rev->allpassL[2], allpasstunings[2]);
-	set_freeverb_allpass(&rev->allpassR[2], allpasstunings[2] + stereospread);
-	set_freeverb_allpass(&rev->allpassL[3], allpasstunings[3]);
-	set_freeverb_allpass(&rev->allpassR[3], allpasstunings[3] + stereospread);
-
-	rev->allpassL[0].feedback = initialallpassfbk;
-	rev->allpassR[0].feedback = initialallpassfbk;
-	rev->allpassL[1].feedback = initialallpassfbk;
-	rev->allpassR[1].feedback = initialallpassfbk;
-	rev->allpassL[2].feedback = initialallpassfbk;
-	rev->allpassR[2].feedback = initialallpassfbk;
-	rev->allpassL[3].feedback = initialallpassfbk;
-	rev->allpassR[3].feedback = initialallpassfbk;
+	for (i = 0; i < numcombs; i++) {
+		set_freeverb_comb(&rev->combL[i], combtunings[i]);
+		set_freeverb_comb(&rev->combR[i], combtunings[i] + stereospread);
+	}
+	for (i = 0; i < numallpasses; i++) {
+		set_freeverb_allpass(&rev->allpassL[i], allpasstunings[i]);
+		set_freeverb_allpass(&rev->allpassR[i], allpasstunings[i] + stereospread);
+		rev->allpassL[i].feedback = initialallpassfbk;
+		rev->allpassR[i].feedback = initialallpassfbk;
+	}
 
 	rev->wet = initialwet * scalewet;
 	rev->damp = initialdamp * scaledamp;
@@ -1457,33 +1435,13 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 		info->wet = PLATE_WET * (double)reverb_status.level / 127.0;
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
-		free_delay(pd);
-		free_delay(td1);
-		free_delay(td1d);
-		free_delay(td2);
-		free_delay(td2d);
-		free_delay(od1l);
-		free_delay(od2l);
-		free_delay(od3l);
-		free_delay(od4l);
-		free_delay(od5l);
-		free_delay(od6l);
-		free_delay(od7l);
-		free_delay(od1r);
-		free_delay(od2r);
-		free_delay(od3r);
-		free_delay(od4r);
-		free_delay(od5r);
-		free_delay(od6r);
-		free_delay(od7r);
-		free_allpass(ap1);
-		free_allpass(ap2);
-		free_allpass(ap3);
-		free_allpass(ap4);
-		free_allpass(ap6);
-		free_allpass(ap6d);
-		free_mod_allpass(ap5);
-		free_mod_allpass(ap5d);
+		free_delay(pd);	free_delay(td1); free_delay(td1d); free_delay(td2);
+		free_delay(td2d); free_delay(od1l); free_delay(od2l); free_delay(od3l);
+		free_delay(od4l); free_delay(od5l); free_delay(od6l); free_delay(od7l);
+		free_delay(od1r); free_delay(od2r);	free_delay(od3r); free_delay(od4r);
+		free_delay(od5r); free_delay(od6r);	free_delay(od7r); free_allpass(ap1);
+		free_allpass(ap2); free_allpass(ap3); free_allpass(ap4); free_allpass(ap6);
+		free_allpass(ap6d);	free_mod_allpass(ap5); free_mod_allpass(ap5d);
 		return;
 	}
 
@@ -1597,8 +1555,8 @@ void init_reverb(int32 output_rate)
 		rev_memset(buf2_R);
 		rev_memset(buf3_L);
 		rev_memset(buf3_R);
-		if (output_rate > 65000) {output_rate = 65000;}
-		else if (output_rate < 4000) {output_rate = 4000;}
+		if (output_rate > MAX_OUTPUT_RATE) {output_rate = MAX_OUTPUT_RATE;}
+		else if (output_rate < MIN_OUTPUT_RATE) {output_rate = MAX_OUTPUT_RATE;}
 		def_rpt0 = rpt0 = REV_VAL0 * output_rate / 1000;
 		def_rpt1 = rpt1 = REV_VAL1 * output_rate / 1000;
 		def_rpt2 = rpt2 = REV_VAL2 * output_rate / 1000;
@@ -1613,7 +1571,7 @@ void init_reverb(int32 output_rate)
 		while (! isprime(rpt3))	{rpt3++;}
 		REV_INP_LEV = 1.0;
 	}
-	memset(reverb_effect_buffer, 0, effect_bufsize);
+	memset(reverb_effect_buffer, 0, reverb_effect_bufsize);
 	memset(direct_buffer, 0, direct_bufsize);
 }
 
@@ -1636,44 +1594,21 @@ void do_ch_reverb(int32 *buf, int32 count)
 	}
 }
 
-
-/*                             */
-/*   Delay (Celeste) Effect    */
-/*                             */
-#ifdef USE_DSP_EFFECT
+/*                   */
+/*   Delay Effect    */
+/*                   */
 static int32 delay_effect_buffer[AUDIO_BUFFER_SIZE * 2];
-/* circular buffers and pointers */
-#define DELAY_BUFFER_SIZE 48000 + 1
-static int32 delay_buf0_L[DELAY_BUFFER_SIZE + 1];
-static int32 delay_buf0_R[DELAY_BUFFER_SIZE + 1];
-static int32 delay_rpt0 = DELAY_BUFFER_SIZE;
-static int32 delay_wpt0;
-static int32 delay_spt0;
-static int32 delay_spt1;
-static int32 delay_spt2;
-#endif /* USE_DSP_EFFECT */
+static void do_ch_3tap_delay(int32, int32, InfoDelay3 *);
+static void do_ch_cross_delay(int32, int32, InfoDelay3 *);
+static void do_ch_normal_delay(int32, int32, InfoDelay3 *);
 
-void do_basic_delay(int32* buf, int32 count);
-void do_cross_delay(int32* buf, int32 count);
-void do_3tap_delay(int32* buf, int32 count);
-
-void init_ch_delay()
+void init_ch_delay(void)
 {
-#ifdef USE_DSP_EFFECT
-	memset(delay_buf0_L, 0, sizeof(delay_buf0_L));
-	memset(delay_buf0_R, 0, sizeof(delay_buf0_R));
 	memset(delay_effect_buffer, 0, sizeof(delay_effect_buffer));
-	/* clear delay-line of LPF */
 	init_filter_lowpass1(&(delay_status.lpf));
-
-	delay_wpt0 = 0;
-	delay_spt0 = 0;
-	delay_spt1 = 0;
-	delay_spt2 = 0;
-#endif /* USE_DSP_EFFECT */
+	do_ch_3tap_delay(NULL, MAGIC_INIT_EFFECT_INFO, &(delay_status.info_delay));
 }
 
-#ifdef USE_DSP_EFFECT
 void do_ch_delay(int32 *buf, int32 count)
 {
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
@@ -1682,13 +1617,13 @@ void do_ch_delay(int32 *buf, int32 count)
 		do_filter_lowpass1_stereo(delay_effect_buffer, count, &(delay_status.lpf));
 	switch (delay_status.type) {
 	case 1:
-		do_3tap_delay(buf, count);
+		do_ch_3tap_delay(buf, count, &(delay_status.info_delay));
 		break;
 	case 2:
-		do_cross_delay(buf, count);
+		do_ch_cross_delay(buf, count, &(delay_status.info_delay));
 		break;
 	default:
-		do_basic_delay(buf, count);
+		do_ch_normal_delay(buf, count, &(delay_status.info_delay));
 		break;
 	}
 }
@@ -1731,234 +1666,175 @@ void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 	if(!level) {return;}
 	level = level * 65536 / 127;
 
-	for(i=n-1;i>=0;i--) {buf[i] += imuldiv16(sbuffer[i], level);}
+	for(i = n - 1; i >= 0; i--) {buf[i] += imuldiv16(sbuffer[i], level);}
 }
 #endif	/* _MSC_VER */
 #else
 void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
-	register int32 count = n;
 	if(!level) {return;}
-    FLOAT_T send_level = (FLOAT_T)level / 127.0;
+    FLOAT_T send_level = (FLOAT_T)level / 127.0f;
 
-    for(i=0;i<count;i++)
+    for(i = 0; i < n; i++)
     {
         delay_effect_buffer[i] += sbuffer[i] * send_level;
     }
 }
 #endif /* OPT_MODE != 0 */
 
-#if OPT_MODE != 0
-void do_basic_delay(int32* buf, int32 count)
+/*! initialize Delay Effect; this implementation is specialized for system effect. */
+static void init_ch_3tap_delay(InfoDelay3 *info)
 {
-	register int32 i;
-	register int32 n = count;
-	int32 level,feedback,output,send_reverb;
+	int32 i, x;
 
-	level = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
-	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
-
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_L[delay_spt0], feedback);
-		output = imuldiv24(delay_buf0_L[delay_spt0], level);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_R[delay_spt0], feedback);
-		output = imuldiv24(delay_buf0_R[delay_spt0], level);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output, send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
+	info->size[0] = delay_status.sample_c;
+	info->size[1] = delay_status.sample_l;
+	info->size[2] = delay_status.sample_r;
+	x = info->size[0];	/* find maximum value */
+	for (i = 1; i < 3; i++) {
+		if (info->size[i] > x) {x = info->size[i];}
 	}
+	x += 1;	/* allowance */
+	set_delay(&(info->delayL), x);
+	set_delay(&(info->delayR), x);
+	for (i = 0; i < 3; i++) {	/* set start-point */
+		info->index[i] = x - info->size[i];
+	}
+	info->level[0] = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
+	info->level[1] = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
+	info->level[2] = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
+	info->feedback = delay_status.feedback_ratio;
+	info->send_reverb = delay_status.send_reverb_ratio * REV_INP_LEV;
+	for (i = 0; i < 3; i++) {
+		info->leveli[i] = TIM_FSCALE(info->level[i], 24);
+	}
+	info->feedbacki = TIM_FSCALE(info->feedback, 24);
+	info->send_reverbi = TIM_FSCALE(info->send_reverb, 24);
 }
-#else
-void do_basic_delay(int32* buf, int32 count)
+
+static void free_ch_3tap_delay(InfoDelay3 *info)
 {
-	register int32 i;
-	register int32 n = count;
-	FLOAT_T level,feedback;
-
-	level = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
-	feedback = delay_status.feedback_ratio;
-
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + delay_buf0_L[delay_spt0] * feedback;
-		buf[i] += delay_buf0_L[delay_spt0] * level;
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + delay_buf0_R[delay_spt0] * feedback;
-		buf[i] += delay_buf0_R[delay_spt0] * level;
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
-	}
+	free_delay(&(info->delayL));
+	free_delay(&(info->delayR));
 }
-#endif /* OPT_MODE != 0 */
 
-#if OPT_MODE != 0
-void do_cross_delay(int32* buf, int32 count)
+/*! 3-Tap Stereo Delay Effect; this implementation is specialized for system effect. */
+static void do_ch_3tap_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
-	register int32 i;
-	register int32 n = count;
-	int32 feedback,level_c,level_l,level_r,send_reverb,output;
+	int32 i, x;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], index1 = info->index[1], index2 = info->index[2];
+	int32 level0i = info->leveli[0], level1i = info->leveli[1], level2i = info->leveli[2],
+		feedbacki = info->feedbacki, send_reverbi = info->send_reverbi;
 
-	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	level_c = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
-	level_l = TIM_FSCALE(delay_status.level_ratio_l * MASTER_DELAY_LEVEL, 24);
-	level_r = TIM_FSCALE(delay_status.level_ratio_r * MASTER_DELAY_LEVEL, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
-
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-	delay_spt1 = delay_wpt0 - delay_status.sample_l;
-	if(delay_spt1 < 0) {delay_spt1 += delay_rpt0;}
-	delay_spt2 = delay_wpt0 - delay_status.sample_r;
-	if(delay_spt2 < 0) {delay_spt2 += delay_rpt0;}
-
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_R[delay_spt0],feedback);
-		output = imuldiv24(delay_buf0_L[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1],level_l);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_L[delay_spt0],feedback);
-		output = imuldiv24(delay_buf0_R[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2],level_r);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_spt1 == delay_rpt0) {delay_spt1 = 0;}
-		if(++delay_spt2 == delay_rpt0) {delay_spt2 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_ch_3tap_delay(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_ch_3tap_delay(info);
+		return;
 	}
+
+	for (i = 0; i < count; i++)
+	{
+		bufL[buf_index] = delay_effect_buffer[i] + imuldiv24(bufL[index0], feedbacki);
+		x = imuldiv24(bufL[index0], level0i) + imuldiv24(bufL[index1] + bufR[index1], level1i);
+		buf[i] += x;
+		reverb_effect_buffer[i] += imuldiv24(x, send_reverbi);
+
+		bufR[buf_index] = delay_effect_buffer[++i] + imuldiv24(bufR[index0], feedbacki);
+		x = imuldiv24(bufR[index0], level0i) + imuldiv24(bufL[index2] + bufR[index2], level2i);
+		buf[i] += x;
+		reverb_effect_buffer[i] += imuldiv24(x, send_reverbi);
+
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++index1 == buf_size) {index1 = 0;}
+		if (++index2 == buf_size) {index2 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
+	}
+	memset(delay_effect_buffer, 0, sizeof(int32) * count);
+	info->index[0] = index0, info->index[1] = index1, info->index[2] = index2;
+	delayL->index = delayR->index = buf_index;
 }
-#else
-void do_cross_delay(int32* buf, int32 count)
+
+/*! Cross Delay Effect; this implementation is specialized for system effect. */
+static void do_ch_cross_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
-	register int32 i;
-	register int32 n = count;
-	FLOAT_T feedback,level_c,level_l,level_r;
+	int32 i, l, r;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], level0i = info->leveli[0],
+		feedbacki = info->feedbacki, send_reverbi = info->send_reverbi;
 
-	feedback = delay_status.feedback_ratio;
-	level_c = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
-	level_l = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
-	level_r = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
-
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-	delay_spt1 = delay_wpt0 - delay_status.sample_l;
-	if(delay_spt1 < 0) {delay_spt1 += delay_rpt0;}
-	delay_spt2 = delay_wpt0 - delay_status.sample_r;
-	if(delay_spt2 < 0) {delay_spt2 += delay_rpt0;}
-
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + delay_buf0_R[delay_spt0] * feedback;
-		buf[i] += delay_buf0_L[delay_spt0] * level_c + (delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1]) * level_l;
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + delay_buf0_L[delay_spt0] * feedback;
-		buf[i] += delay_buf0_R[delay_spt0] * level_c + (delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2]) * level_r;
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_spt1 == delay_rpt0) {delay_spt1 = 0;}
-		if(++delay_spt2 == delay_rpt0) {delay_spt2 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_ch_3tap_delay(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_ch_3tap_delay(info);
+		return;
 	}
-}
-#endif /* OPT_MODE != 0 */
 
-#if OPT_MODE != 0
-void do_3tap_delay(int32* buf, int32 count)
+	for (i = 0; i < count; i++)
+	{
+		bufL[buf_index] = delay_effect_buffer[i] + imuldiv24(bufR[index0], feedbacki);
+		l = imuldiv24(bufL[index0], level0i);
+		bufR[buf_index] = delay_effect_buffer[i + 1] + imuldiv24(bufL[index0], feedbacki);
+		r = imuldiv24(bufR[index0], level0i);
+
+		buf[i] += r;
+		reverb_effect_buffer[i] += imuldiv24(r, send_reverbi);
+		buf[++i] += l;
+		reverb_effect_buffer[i] += imuldiv24(l, send_reverbi);
+
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
+	}
+	memset(delay_effect_buffer, 0, sizeof(int32) * count);
+	info->index[0] = index0;
+	delayL->index = delayR->index = buf_index;
+}
+
+/*! Normal Delay Effect; this implementation is specialized for system effect. */
+static void do_ch_normal_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
-	register int32 i;
-	register int32 n = count;
-	int32 feedback,level_c,level_l,level_r,output,send_reverb;
+	int32 i, x;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 buf_index = delayL->index, buf_size = delayL->size;
+	int32 index0 = info->index[0], level0i = info->leveli[0],
+		feedbacki = info->feedbacki, send_reverbi = info->send_reverbi;
 
-	feedback = TIM_FSCALE(delay_status.feedback_ratio, 24);
-	level_c = TIM_FSCALE(delay_status.level_ratio_c * MASTER_DELAY_LEVEL, 24);
-	level_l = TIM_FSCALE(delay_status.level_ratio_l * MASTER_DELAY_LEVEL, 24);
-	level_r = TIM_FSCALE(delay_status.level_ratio_r * MASTER_DELAY_LEVEL, 24);
-	send_reverb = TIM_FSCALE(delay_status.send_reverb_ratio * REV_INP_LEV, 24);
-
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-	delay_spt1 = delay_wpt0 - delay_status.sample_l;
-	if(delay_spt1 < 0) {delay_spt1 += delay_rpt0;}
-	delay_spt2 = delay_wpt0 - delay_status.sample_r;
-	if(delay_spt2 < 0) {delay_spt2 += delay_rpt0;}
-
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + imuldiv24(delay_buf0_L[delay_spt0],feedback);
-		output = imuldiv24(delay_buf0_L[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1],level_l);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + imuldiv24(delay_buf0_R[delay_spt0],feedback);
-		output = imuldiv24(delay_buf0_R[delay_spt0],level_c) + imuldiv24(delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2],level_r);
-		buf[i] += output;
-		reverb_effect_buffer[i] += imuldiv24(output,send_reverb);
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_spt1 == delay_rpt0) {delay_spt1 = 0;}
-		if(++delay_spt2 == delay_rpt0) {delay_spt2 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_ch_3tap_delay(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_ch_3tap_delay(info);
+		return;
 	}
-}
-#else
-void do_3tap_delay(int32* buf, int32 count)
-{
-	register int32 i;
-	register int32 n = count;
-	FLOAT_T feedback,level_c,level_l,level_r;
 
-	feedback = delay_status.feedback_ratio;
-	level_c = delay_status.level_ratio_c * MASTER_DELAY_LEVEL;
-	level_l = delay_status.level_ratio_l * MASTER_DELAY_LEVEL;
-	level_r = delay_status.level_ratio_r * MASTER_DELAY_LEVEL;
+	for (i = 0; i < count; i++)
+	{
+		bufL[buf_index] = delay_effect_buffer[i] + imuldiv24(bufL[index0], feedbacki);
+		x = imuldiv24(bufL[index0], level0i);
+		buf[i] += x;
+		reverb_effect_buffer[i] += imuldiv24(x, send_reverbi);
 
-	delay_spt0 = delay_wpt0 - delay_status.sample_c;
-	if(delay_spt0 < 0) {delay_spt0 += delay_rpt0;}
-	delay_spt1 = delay_wpt0 - delay_status.sample_l;
-	if(delay_spt1 < 0) {delay_spt1 += delay_rpt0;}
-	delay_spt2 = delay_wpt0 - delay_status.sample_r;
-	if(delay_spt2 < 0) {delay_spt2 += delay_rpt0;}
+		bufR[buf_index] = delay_effect_buffer[++i] + imuldiv24(bufR[index0], feedbacki);
+		x = imuldiv24(bufR[index0], level0i);
+		buf[i] += x;
+		reverb_effect_buffer[i] += imuldiv24(x, send_reverbi);
 
-	for(i=0;i<n;i++) {
-		delay_buf0_L[delay_wpt0] = delay_effect_buffer[i] + delay_buf0_L[delay_spt0] * feedback;
-		buf[i] += delay_buf0_L[delay_spt0] * level_c + (delay_buf0_L[delay_spt1] + delay_buf0_R[delay_spt1]) * level_l;
-		delay_effect_buffer[i] = 0;
-
-		delay_buf0_R[delay_wpt0] = delay_effect_buffer[++i] + delay_buf0_R[delay_spt0] * feedback;
-		buf[i] += delay_buf0_R[delay_spt0] * level_c + (delay_buf0_L[delay_spt2] + delay_buf0_R[delay_spt2]) * level_r;
-		delay_effect_buffer[i] = 0;
-
-		if(++delay_spt0 == delay_rpt0) {delay_spt0 = 0;}
-		if(++delay_spt1 == delay_rpt0) {delay_spt1 = 0;}
-		if(++delay_spt2 == delay_rpt0) {delay_spt2 = 0;}
-		if(++delay_wpt0 == delay_rpt0) {delay_wpt0 = 0;}
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
 	}
+	memset(delay_effect_buffer, 0, sizeof(int32) * count);
+	info->index[0] = index0;
+	delayL->index = delayR->index = buf_index;
 }
-#endif /* OPT_MODE != 0 */
-#endif /* USE_DSP_EFFECT */
-
 
 /*                             */
 /*        Chorus Effect        */
@@ -2615,7 +2491,7 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
     lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
-#define HEXA_CHORUS_WET_LEVEL 0.3
+#define HEXA_CHORUS_WET_LEVEL 0.2
 #define HEXA_CHORUS_DEPTH_DEV (1.0 / (20.0 + 1.0))
 #define HEXA_CHORUS_DELAY_DEV (1.0 / (20.0 * 3.0))
 
@@ -2641,7 +2517,7 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 		v0, v1, v2, v3, v4, v5, f0, f1, f2, f3, f4, f5;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		set_delay(buf0, 9600);
+		set_delay(buf0, (int32)(9600.0f * play_mode->rate / 44100.0f));
 		init_lfo(lfo, lfo->freq, LFO_TRIANGULAR);
 		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
 		info->weti = TIM_FSCALE(info->level * info->wet * HEXA_CHORUS_WET_LEVEL, 24);
@@ -2792,5 +2668,6 @@ void free_effect_buffers(void)
 {
 	free_freeverb_buf(&(reverb_status.info_freeverb));
 	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
+	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status.info_delay));
 	free_effect_list(ie_gs.ef);
 }

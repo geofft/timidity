@@ -5,8 +5,10 @@
 
 2004-02-04  Saito <saito2@digitalme.com>
 
-	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]:
+	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]
+	  timidity/reverb.[ch]:
 	  Add --module=n option.
+	  Rewrite Delay Effect.
 	* timidity/output.[ch]:
 	  Add some codes for 24-bit output.
 

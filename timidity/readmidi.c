@@ -6048,20 +6048,17 @@ void init_delay_status_gs(void)
 void recompute_delay_status_gs(void)
 {
 	struct delay_status_t *p = &delay_status;
-	p->sample_c = p->time_center * play_mode->rate / 1000;
+	p->sample_c = p->time_center * play_mode->rate / 1000.0f;
 	p->sample_l = p->sample_c * p->time_ratio_left;
 	p->sample_r = p->sample_c * p->time_ratio_right;
-	if(p->sample_c > play_mode->rate) {p->sample_c = play_mode->rate;}
-	if(p->sample_l > play_mode->rate) {p->sample_l = play_mode->rate;}
-	if(p->sample_r > play_mode->rate) {p->sample_r = play_mode->rate;}
-	p->level_ratio_c = (double)p->level * (double)p->level_center / 16129.0;
-	p->level_ratio_l = (double)p->level * (double)p->level_left / 16129.0;
-	p->level_ratio_r = (double)p->level * (double)p->level_right / 16129.0;
-	p->feedback_ratio = (double)(p->feedback - 64) * 0.763f * 2.0f / 100.0f;
-	p->send_reverb_ratio = (double)p->send_reverb * 0.787f / 100.0f;
+	p->level_ratio_c = (double)p->level * (double)p->level_center / (127.0f * 127.0f);
+	p->level_ratio_l = (double)p->level * (double)p->level_left / (127.0f * 127.0f);
+	p->level_ratio_r = (double)p->level * (double)p->level_right / (127.0f * 127.0f);
+	p->feedback_ratio = (double)(p->feedback - 64) * (0.763f * 2.0f / 100.0f);
+	p->send_reverb_ratio = (double)p->send_reverb * (0.787f / 100.0f);
 
-	if(p->level_left || p->level_right && p->type == 0) {
-		p->type = 1;
+	if(p->level_left != 0 || p->level_right != 0 && p->type == 0) {
+		p->type = 1;	/* it needs 3-tap delay effect. */
 	}
 
 	if(p->pre_lpf) {
@@ -6074,7 +6071,7 @@ void recompute_delay_status_gs(void)
 void set_delay_macro_gs(int macro)
 {
 	struct delay_status_t *p = &delay_status;
-	if(macro > 3) {p->type = 2;}
+	if(macro >= 4) {p->type = 2;}	/* cross delay */
 	macro *= 10;
 	p->time_center = delay_time_center_table[delay_macro_presets[macro + 1]];
 	p->time_ratio_left = (double)delay_macro_presets[macro + 2] / 24;

@@ -256,6 +256,14 @@ typedef struct {
 	int8 alloc_flag;
 } InfoFreeverb;
 
+/*! 3-Tap Stereo Delay Effect */
+typedef struct {
+	delay delayL, delayR;
+	int32 size[3], index[3];
+	double level[3], feedback, send_reverb;
+	int32 leveli[3], feedbacki, send_reverbi;
+} InfoDelay3;
+
 /*                             */
 /*        System Effect        */
 /*                             */
@@ -338,6 +346,7 @@ struct delay_status_t
 		feedback_ratio, send_reverb_ratio;
 
 	filter_lowpass1 lpf;
+	InfoDelay3 info_delay;
 } delay_status;
 
 /* GS parameters of channel EQ */
