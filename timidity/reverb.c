@@ -3481,16 +3481,108 @@ static void do_delay_lr(int32 *buf, int32 count, EffectList *ef)
 	delayL->index = indexl, delayR->index = indexr;
 }
 
+static void conv_xg_echo(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoEcho *info = (InfoEcho *)ef->info;
+	int val;
+
+	val = st->param_msb[0] * 128 + st->param_lsb[0];
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
+	info->ldelay1 = (double)val / 10.0f;
+	info->lfeedback = (double)(st->param_lsb[1] - 64) * (0.763f * 2.0f / 100.0f);
+	val = st->param_msb[2] * 128 + st->param_lsb[2];
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
+	info->rdelay1 = (double)val / 10.0f;
+	info->rfeedback = (double)(st->param_lsb[3] - 64) * (0.763f * 2.0f / 100.0f);
+	val = st->param_lsb[4];
+	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
+	info->high_damp = (double)val / 10.0f;
+	val = st->param_msb[5] * 128 + st->param_lsb[5];
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
+	info->ldelay2 = (double)val / 10.0f;
+	val = st->param_msb[6] * 128 + st->param_lsb[6];
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
+	info->rdelay2 = (double)val / 10.0f;
+	info->level = (double)st->param_lsb[7] / 127.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void do_echo(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x, y;
+	InfoEcho *info = (InfoEcho *)ef->info;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	filter_lowpass1 *lpf = &(info->lpf);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 indexl = delayL->index, sizel = delayL->size,
+		indexr = delayR->index, sizer = delayR->size;
+	int32 index0 = info->index[0], index1 = info->index[1],
+		x1l = lpf->x1l, x1r = lpf->x1r;
+	int32 lfeedbacki = info->lfeedbacki, rfeedbacki = info->rfeedbacki, leveli = info->leveli,
+		dryi = info->dryi, weti = info->weti, ai = lpf->ai, iai = lpf->iai;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		info->size[0] = info->ldelay2 * play_mode->rate / 1000.0f;
+		x = info->ldelay1 * play_mode->rate / 1000.0f;
+		if (info->size[0] > x) {info->size[0] = x;}
+		x++;
+		set_delay(&(info->delayL), x);
+		info->index[0] = x - info->size[0];
+		info->size[1] = info->rdelay2 * play_mode->rate / 1000.0f;
+		x = info->rdelay1 * play_mode->rate / 1000.0f;
+		if (info->size[1] > x) {info->size[1] = x;}
+		x++;
+		set_delay(&(info->delayR), x);
+		info->index[1] = x - info->size[1];
+		info->lfeedbacki = TIM_FSCALE(info->lfeedback, 24);
+		info->rfeedbacki = TIM_FSCALE(info->rfeedback, 24);
+		info->leveli = TIM_FSCALE(info->level, 24);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		lpf->a = (1.0f - info->high_damp) * 44100.0f / play_mode->rate;
+		init_filter_lowpass1(lpf);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		y = bufL[indexl] + imuldiv24(bufL[index0], leveli);
+		x = imuldiv24(bufL[indexl], lfeedbacki);
+		do_filter_lowpass1(x, x1l, ai, iai);
+		bufL[indexl] = buf[i] + x;
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(y, weti);
+
+		y = bufR[indexr] + imuldiv24(bufR[index1], leveli);
+		x = imuldiv24(bufR[indexr], rfeedbacki);
+		do_filter_lowpass1(x, x1r, ai, iai);
+		bufR[indexr] = buf[++i] + x;
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(y, weti);
+
+		if (++index0 == sizel) {index0 = 0;}
+		if (++index1 == sizer) {index1 = 0;}
+		if (++indexl == sizel) {indexl = 0;}
+		if (++indexr == sizer) {indexr = 0;}
+	}
+	info->index[0] = index0, info->index[1] = index1;
+	lpf->x1l = x1l, lpf->x1r = x1r;
+	delayL->index = indexl, delayR->index = indexr;
+}
+
 static void conv_xg_cross_delay(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoCrossDelay *info = (InfoCrossDelay *)ef->info;
 	int val;
 
 	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
 	info->lrdelay = (double)val / 10.0f;
 	val = st->param_msb[1] * 128 + st->param_lsb[1];
-	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	val = (val > 7430) ? 7430 : (val < 1) ? 1 : val;
 	info->rldelay = (double)val / 10.0f;
 	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
 	info->input_select = st->param_lsb[3];
@@ -3565,6 +3657,7 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_OD_EQ3, "2-Band EQ (XG OD built-in)", do_eq3, NULL, conv_xg_od_eq3, sizeof(InfoEQ3),
 	EFFECT_DELAY_LCR, "Delay L,C,R", do_delay_lcr, NULL, conv_xg_delay_lcr, sizeof(InfoDelayLCR),
 	EFFECT_DELAY_LR, "Delay L,R", do_delay_lr, NULL, conv_xg_delay_lr, sizeof(InfoDelayLR),
+	EFFECT_ECHO, "Echo", do_echo, NULL, conv_xg_echo, sizeof(InfoEcho),
 	EFFECT_CROSS_DELAY, "Cross Delay", do_cross_delay, NULL, conv_xg_cross_delay, sizeof(InfoCrossDelay),
 	EFFECT_DELAY_EQ2, "2-Band EQ (XG Delay built-in)", do_eq2, NULL, conv_xg_delay_eq2, sizeof(InfoEQ2),
 	-1, "EOF", NULL, NULL, NULL, 0, 
@@ -3577,6 +3670,8 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	0x05, 0x03, 0x08, 0x08, 74, 100, 10, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
 	0x06, 0, "DELAY L,R", 0x13, 0x1D, 0x1D, 0x1D, 0, 0, 0, 0, 0, 0,
 	0x44, 0x26, 0x28, 0x26, 87, 10, 0, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
+	0x07, 0, "ECHO", 0x0D, 0, 0x0D, 0, 0, 0x0D, 0x0D, 0, 0, 0,
+	0x24, 80, 0x74, 80, 10, 0x24, 0x74, 0, 0, 40, 0, 0, 28, 64, 46, 64, 9,
 	0x08, 0, "CROSS DELAY", 0x0D, 0x0D, 0, 0, 0, 0, 0, 0, 0, 0,
 	0x24, 0x56, 111, 1, 10, 0, 0, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
 	0x41, 0, "CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

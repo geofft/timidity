@@ -363,14 +363,18 @@ static void ns_shaping16(int32 *lp, int32 c)
 		ns_shaping16_trad(lp, c);
 		break;
 	case 2:
+	case 3:
+	case 4:
 		ns_shaping16_9(lp, c);
 		break;
-	case 3:
+	default: break;
+/* omitted */
+/*	case 3:
 		ns_shaping16_9_with_soft_clipping(lp, c, 0.5);
 		break;
 	case 4:
 		ns_shaping16_9_with_soft_clipping(lp, c, 0.75);
-		break;
+		break; */
 	}
 }
 

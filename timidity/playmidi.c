@@ -5663,7 +5663,11 @@ static void seek_forward(int32 until_time)
 		if(opt_delay_control) {
 			if (ISDRUMCHANNEL(ch) && channel[ch].delay_level != current_event->a) {channel[ch].drum_effect_flag = 0;}
 			channel[ch].delay_level = current_event->a;
-			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send (CH:%d LEVEL:%d)",ch,current_event->a);
+			if (play_system_mode == XG_SYSTEM_MODE) {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send (CH:%d LEVEL:%d)",ch,current_event->a);
+			} else {
+				ctl->cmsg(CMSG_INFO,VERB_NOISY,"Variation Send (CH:%d LEVEL:%d)",ch,current_event->a);
+			}
 		}
 	    break;
 
@@ -7592,7 +7596,11 @@ int play_event(MidiEvent *ev)
 	if(opt_delay_control) {
 		if (ISDRUMCHANNEL(ch) && channel[ch].delay_level != ev->a) {channel[ch].drum_effect_flag = 0;}
 		channel[ch].delay_level = ev->a;
-		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send (CH:%d LEVEL:%d)",ch,ev->a);
+		if (play_system_mode == XG_SYSTEM_MODE) {
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Variation Send (CH:%d LEVEL:%d)",ch,ev->a);
+		} else {
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send (CH:%d LEVEL:%d)",ch,ev->a);
+		}
 	}
 	break;
 

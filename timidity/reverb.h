@@ -187,6 +187,7 @@ enum {
 	EFFECT_HEXA_CHORUS,
 	EFFECT_DELAY_LCR,
 	EFFECT_DELAY_LR,
+	EFFECT_ECHO,
 	EFFECT_CROSS_DELAY,
 	EFFECT_DELAY_EQ2,
 };
@@ -397,6 +398,16 @@ typedef struct {
 	int32 dryi, weti, feedbacki;
 	filter_lowpass1 lpf;
 } InfoDelayLR;
+
+/*! Echo */
+typedef struct {
+	delay delayL, delayR;
+	int32 index[2], size[2];	/* L1,R1 */
+	double rdelay1, ldelay1, rdelay2, ldelay2;	/* in ms */
+	double dry, wet, lfeedback, rfeedback, high_damp, level;
+	int32 dryi, weti, lfeedbacki, rfeedbacki, leveli;
+	filter_lowpass1 lpf;
+} InfoEcho;
 
 /*! Cross Delay */
 typedef struct {

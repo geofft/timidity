@@ -6622,6 +6622,11 @@ void realloc_effect_xg(struct effect_xg_t *st)
 		st->ef = push_effect(st->ef, EFFECT_DELAY_LR);
 		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
 		break;
+	case 0x07:
+		st->use_msb = 1;
+		st->ef = push_effect(st->ef, EFFECT_ECHO);
+		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
+		break;
 	case 0x08:
 		st->use_msb = 1;
 		st->ef = push_effect(st->ef, EFFECT_CROSS_DELAY);

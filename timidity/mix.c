@@ -1578,8 +1578,7 @@ static inline int next_stage(int v)
 				/ vp->sample->envelope_offset[EG_GUS_ATTACK];
 		/* calculating current envelope scale and a inverted value for optimization */
 		vp->envelope_scale = vp->last_envelope_volume;
-		vp->inv_envelope_scale
-			= TIM_FSCALE(OFFSET_MAX	/ (double)vp->envelope_volume, 16);
+		vp->inv_envelope_scale = TIM_FSCALE(OFFSET_MAX / (double)vp->envelope_volume, 16);
 	}
 
 	/* regularizing envelope */
@@ -1681,8 +1680,8 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> 20,
-						vp->inv_envelope_scale)]
+						imuldiv16(vp->envelope_volume,
+						vp->inv_envelope_scale) >> 20]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
@@ -1713,8 +1712,8 @@ int apply_envelope_to_amp(int v)
 		if (vp->sample->modes & MODES_ENVELOPE) {
 			if (vp->envelope_stage > 3)
 				vp->last_envelope_volume = v_table[
-						imuldiv16(vp->envelope_volume >> 20,
-						vp->inv_envelope_scale)]
+						imuldiv16(vp->envelope_volume,
+						vp->inv_envelope_scale) >> 20]
 						* vp->envelope_scale;
 			else if (vp->envelope_stage > 1)
 				vp->last_envelope_volume = v_table[
