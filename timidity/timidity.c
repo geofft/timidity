@@ -3787,6 +3787,7 @@ int main(int argc, char **argv)
     int nfiles;
     char **files;
     int main_ret;
+    int mode_set = 0;
 
 #if defined(DANGEROUS_RENICE) && !defined(__W32__) && !defined(main)
     /*
@@ -3885,6 +3886,27 @@ int main(int argc, char **argv)
     }
 #endif
 
+#ifdef AU_ARTS
+    if(arts_init()==0) {
+	    arts_free();
+	    set_play_mode("k");
+	    mode_set=1;
+    }
+#endif
+#ifdef AU_ESD
+    if(!mode_set) {
+	    if(!access("/usr/lib/libesd.so.0", R_OK)) {
+		    setenv("ESD_NO_SPAWN", "1", 0);
+		    set_play_mode("e");
+		    mode_set=1;
+	    }
+    }
+#endif
+#ifdef AU_OSS
+    if(!mode_set)
+	    set_play_mode("d");
+#endif
+    
     if((err = timidity_pre_load_configuration()) != 0)
 	return err;
 
