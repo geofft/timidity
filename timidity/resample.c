@@ -102,7 +102,7 @@ static resample_t resample_lagrange(sample_t *src, splen_t ofs, resample_rec_t *
     } else {
 	v0 = (int32)src[ofsi - 1];
 	v3 = (int32)src[ofsi + 2];
-	ofsf = ofs & FRACTION_MASK;
+	ofsf = (ofs & FRACTION_MASK) + (1<<FRACTION_BITS);
 	v3 += -3*v2 + 3*v1 - v0;
 	v3 *= (ofsf - (2<<FRACTION_BITS)) / 6;
 	v3 >>= FRACTION_BITS;
