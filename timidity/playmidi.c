@@ -3974,23 +3974,26 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"EQ HIGH GAIN (%d dB)",val - 0x40);
 			break;
 		case 0x05:	/* Reverb Macro */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Macro (%d)",val);
 			set_reverb_macro_gs(val);
 			recompute_reverb_status_gs();
 			init_reverb(play_mode->rate);
 			break;
 		case 0x06:	/* Reverb Character */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Character (%d)",val);
-			if(reverb_status.character != val) {
+			if (reverb_status.character != val) {
 				reverb_status.character = val;
 				recompute_reverb_status_gs();
 				init_reverb(play_mode->rate);
 			}
 			break;
 		case 0x07:	/* Reverb Pre-LPF */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Pre-LPF (%d)",val);
 			if(reverb_status.pre_lpf != val) {
-				reverb_status.pre_lpf = val & 0x7;
+				reverb_status.pre_lpf = val;
 				recompute_reverb_status_gs();
 			}
 			break;
@@ -4025,6 +4028,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			}
 			break;
 		case 0x0D:	/* Chorus Macro */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Macro (%d)",val);
 			init_ch_chorus();
 			set_chorus_macro_gs(val);
@@ -4032,8 +4036,9 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			init_chorus_lfo();
 			break;
 		case 0x0E:	/* Chorus Pre-LPF */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Pre-LPF (%d)",val);
-			chorus_param.chorus_pre_lpf = val & 0x7;
+			chorus_param.chorus_pre_lpf = val;
 			recompute_chorus_status_gs();
 			break;
 		case 0x0F:	/* Chorus Level */
@@ -4076,12 +4081,14 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			recompute_chorus_status_gs();
 			break;
 		case 0x16:	/* Delay Macro */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Macro (%d)",val);
 			init_ch_delay();
 			set_delay_macro_gs(val);
 			recompute_delay_status_gs();
 			break;
 		case 0x17:	/* Delay Pre-LPF */
+			if (val > 7) {val = 7;}
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Pre-LPF (%d)",val);
 			delay_status.pre_lpf = val & 0x7;
 			recompute_delay_status_gs();

@@ -1,3 +1,8 @@
+2004-01-16  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c:
+	  Fix SysEx.
+
 2004-01-15  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/common.[ch], sndfont.c, timidity.c:
