@@ -3,11 +3,25 @@
 
 double newt_coeffs[58][58];
 
-int main()
+int main(int argc, const char *argv[])
 {
     int i, j, n = 57;
     int sign;
+	FILE *fp;
 
+#ifdef WIN32
+	if (argc != 2)
+	{
+		fprintf(stderr, "usage: calcnewt <filename>\n");
+		return 1;
+	}
+	fp = fopen(argv[1], "w");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "cannot open file:%s\n", argv[1]);
+		return 2;
+	}
+#endif
     newt_coeffs[0][0] = 1;
     for (i = 0; i <= n; i++)
     {
@@ -32,9 +46,15 @@ int main()
     	for (j = 0, sign = pow(-1, i); j <= i; j++, sign *= -1)
     	    newt_coeffs[i][j] *= sign;
 
-
+#ifndef WIN32
     for (i = 0; i <= n; i++)
 	for (j = 0; j <= n; j++)
 	    printf("%2.32g,\n", newt_coeffs[i][j]);
+#else
+    for (i = 0; i <= n; i++)
+	for (j = 0; j <= n; j++)
+	    fprintf(fp, "(float)%2.32g,\n", newt_coeffs[i][j]);
+	fclose(fp);
+#endif
     return 0;
 }

@@ -18,6 +18,7 @@
 # USA
 
 EXTRA_DIST = \
-  msc-sjis.txt \
-  msc-project6.zip \
-  msc-project7.zip
+  msc6-project.zip \
+  msc6-sjis.txt \
+  msc7-project.zip \
+  msc7-sjis.txt

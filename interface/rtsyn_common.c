@@ -294,7 +294,7 @@ void rtsyn_init(void){
 #ifdef __W32__
 	timeBeginPeriod(1);
 	{
-		DWORD data;
+		DWORD data = 0;
 		UINT delay;
 		delay=(1000/TICKTIME_HZ);
 		 
