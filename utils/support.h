@@ -84,3 +84,7 @@ int stat(const char *filename, struct stat *st);
 #endif /* __W32__ */
 #endif /* HAVE_SYS_STAT_H*/
 #endif /* ___SUPPORT_H_ */
+#ifndef S_ISDIR
+#define S_ISDIR(mode) (((mode)&0xF000) == 0x4000)
+#endif /* S_ISDIR */
+

@@ -1,5 +1,8 @@
 2004-09-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* timidity/timidity.c : Fix for linkage error in W32
+	* utils/support.h (S_ISDIR): define S_ISDIR for platforms without
+	  S_ISDIR
 	* interface/xaw_i.c: avoid all-black file selector when tracer is
 	  not enabled, thanks to hmh@debian.org
 
