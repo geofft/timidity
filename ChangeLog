@@ -1,3 +1,8 @@
+2004-02-03  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c:
+	  Fixed copybank bug.
+
 2004-02-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1,

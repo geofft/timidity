@@ -568,7 +568,6 @@ static void copybank(ToneBank *to, ToneBank *from, int mapid, int bankmapfrom, i
 		    continue;
 		copy_tone_bank_element(toelm, fromelm);
 		toelm->instrument = NULL;
-		toelm->instype = 0;
 		if (mapid != INST_NO_MAP)
 		    set_instrument_map(mapid, bankmapfrom, i, bankno, i);
 	}
