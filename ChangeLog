@@ -1,3 +1,8 @@
+2003-09-09  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (new_chorus_voice_alternate) : Revert
+	  surround chorus delay back to the value (0.002) used in v2.11.3.
+
 2003-09-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.c:

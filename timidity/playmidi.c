@@ -2340,7 +2340,7 @@ static void new_chorus_voice_alternate(int v1, int level)
 
     MYCHECK(voice[v2].orig_frequency);
 
-    delay = 0.0025;
+    delay = 0.002;
 
     /* Try to keep the delayed voice from cancelling out the other voice */
     /* Don't bother with trying to figure out drum pitches... */
@@ -2370,7 +2370,7 @@ static void new_chorus_voice_alternate(int v1, int level)
     	    	delay += (0.5 - frac) * (1.0 - labs(64 - pan) / 63.0) / freq;
     	}
     	else
-	    delay = 0.0025;
+	    delay = 0.002;
     }
 
     /* set panning & delay for pseudo-surround effect */
