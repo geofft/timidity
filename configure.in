@@ -51,7 +51,7 @@ dnl		  (such as -fPIC)
 # AC_PREREQ(2.56)
 
 # "AC_INIT(timidity/timidity.c)" is obsolate yet.
-AC_INIT([TiMidity++],[current],[root@mput.dip.jp],[TiMidity++])
+AC_INIT([TiMidity++],[2.13.1],[root@mput.dip.jp],[TiMidity++])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([gnu dist-bzip2])
