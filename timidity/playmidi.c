@@ -214,6 +214,7 @@ int opt_amp_compensation = 0;
 int opt_modulation_envelope = 0;
 int opt_pan_delay = 0;	/* phase difference between left ear and right ear. */
 int opt_user_volume_curve = 0;
+int opt_default_module = MODULE_GENERIC_GS;
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -514,9 +515,44 @@ static void reset_drum_controllers(struct DrumParts *d[], int note)
     }
 }
 
+static void reset_module_dependent_controllers(int c)
+{
+	switch(opt_default_module) {	/* TONE MAP-0 NUMBER */
+	case MODULE_SC55:
+		channel[c].tone_map0_number = 1;
+		break;
+	case MODULE_SC88:
+		channel[c].tone_map0_number = 2;
+		break;
+	case MODULE_SC88PRO:
+		channel[c].tone_map0_number = 3;
+		break;
+	case MODULE_SC8850:
+		channel[c].tone_map0_number = 4;
+		break;
+	default:
+		channel[c].tone_map0_number = 0;
+		break;
+	}
+	switch(opt_default_module) {	/* MIDI Controllers */
+	case MODULE_SC55:
+		channel[c].mod.lfo1_pitch_depth = 10;
+		break;
+	case MODULE_SC88:
+		channel[c].mod.lfo1_pitch_depth = 10;
+		break;
+	case MODULE_SC88PRO:
+		channel[c].mod.lfo1_pitch_depth = 10;
+		break;
+	default:
+		channel[c].mod.lfo1_pitch_depth = 50;
+		break;
+	}
+}
+
 static void reset_nrpn_controllers(int c)
 {
-  int i,j;
+  int i, j;
 
   /* NRPN */
   reset_drum_controllers(channel[c].drums, -1);
@@ -528,24 +564,22 @@ static void reset_nrpn_controllers(int c)
   channel[c].cutoff_freq_coef = 1.0;
   channel[c].resonance_dB = 0;
 
-  /* GS & XG System Exclusive */
+  /* System Exclusive */
   channel[c].dry_level = 127;
   channel[c].eq_gs = 1;
   channel[c].insertion_effect = 0;
   channel[c].velocity_sense_depth = 0x40;
   channel[c].velocity_sense_offset = 0x40;
   channel[c].pitch_offset_fine = 0;
-  channel[c].legato = 0;
-  channel[c].redamper = 0;
-  channel[c].loop_timeout = 0;
-  if(play_system_mode == XG_SYSTEM_MODE) {
+  if(play_system_mode == GS_SYSTEM_MODE) {channel[c].assign_mode = 1;}
+  else {
 	  if(ISDRUMCHANNEL(c)) {channel[c].assign_mode = 1;}
 	  else {channel[c].assign_mode = 2;}
-  } else {channel[c].assign_mode = 1;}
-	for (i = 0; i < 12; i++)
-		channel[c].scale_tuning[i] = 0;
-	channel[c].prev_scale_tuning = 0;
-	channel[c].temper_type = 0;
+  }
+  for (i = 0; i < 12; i++)
+	  channel[c].scale_tuning[i] = 0;
+  channel[c].prev_scale_tuning = 0;
+  channel[c].temper_type = 0;
 
   init_channel_layer(c);
   init_part_eq_xg(&(channel[c].eq_xg));
@@ -558,7 +592,6 @@ static void reset_nrpn_controllers(int c)
   init_midi_controller(&(channel[c].cc1)); 
   init_midi_controller(&(channel[c].cc2)); 
   channel[c].bend.pitch = 2;
-  channel[c].mod.lfo1_pitch_depth = 50;
 
   init_rx(c);
   channel[c].note_limit_high = 127;
@@ -568,6 +601,10 @@ static void reset_nrpn_controllers(int c)
 
   free_drum_effect(c);
 
+  channel[c].legato = 0;
+  channel[c].redamper = 0;
+  channel[c].loop_timeout = 0;
+
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
 	channel[c].sysex_xg_msb_addr = channel[c].sysex_xg_msb_val =
 	channel[c].sysex_msb_addr = channel[c].sysex_msb_val = 0;
@@ -576,7 +613,7 @@ static void reset_nrpn_controllers(int c)
 /* Process the Reset All Controllers event */
 static void reset_controllers(int c)
 {
-  int i,j;
+  int i, j;
     /* Some standard says, although the SCC docs say 0. */
     
   if(play_system_mode == XG_SYSTEM_MODE)
@@ -639,6 +676,7 @@ static void reset_midi(int playing)
 	for (i = 0; i < MAX_CHANNELS; i++) {
 		reset_controllers(i);
 		reset_nrpn_controllers(i);
+		reset_module_dependent_controllers(i);
 		/* The rest of these are unaffected
 		 * by the Reset All Controllers event
 		 */
@@ -656,7 +694,6 @@ static void reset_midi(int playing)
 				channel[i].bank = default_tonebank;
 		}
 		channel[i].bank_lsb = channel[i].bank_msb = 0;
-		channel[i].tone_map0_number = 3;	/* SC-88Pro MAP */
 		if (play_system_mode == XG_SYSTEM_MODE && i % 16 == 9)
 			channel[i].bank_msb = 127;	/* Use MSB=127 for XG */
 		update_rpn_map(i, RPN_ADDR_FFFF, 0);
@@ -3207,19 +3244,15 @@ void midi_program_change(int ch, int prog)
 			break;
 		case 1:
 			channel[ch].mapID = (dr) ? SC_55_DRUM_MAP : SC_55_TONE_MAP;
-			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 2:
 			channel[ch].mapID = (dr) ? SC_88_DRUM_MAP : SC_88_TONE_MAP;
-			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 3:
 			channel[ch].mapID = (dr) ? SC_88PRO_DRUM_MAP : SC_88PRO_TONE_MAP;
-			channel[ch].mod.lfo1_pitch_depth = 10;
 			break;
 		case 4:
 			channel[ch].mapID = (dr) ? SC_8850_DRUM_MAP : SC_8850_TONE_MAP;
-			channel[ch].mod.lfo1_pitch_depth = 50;
 			break;
 		default:
 			break;
@@ -3227,7 +3260,6 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_msb;
 		break;
 	case XG_SYSTEM_MODE:	/* XG */
-		channel[ch].mod.lfo1_pitch_depth = 50;
 		switch (channel[ch].bank_msb) {
 		case 0:		/* Normal */
 			if (ch == 9 && channel[ch].bank_lsb == 127
@@ -3255,12 +3287,10 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_lsb;
 		break;
 	case GM2_SYSTEM_MODE:	/* GM2 */
-		channel[ch].mod.lfo1_pitch_depth = 50;
 		channel[ch].mapID = (dr) ? GM2_DRUM_MAP : GM2_TONE_MAP;
 		newbank = channel[ch].bank_lsb;
 		break;
 	default:
-		channel[ch].mod.lfo1_pitch_depth = 50;
 		newbank = channel[ch].bank_msb;
 		break;
 	}

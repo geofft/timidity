@@ -13,6 +13,7 @@
 	  Change implementation of #extension timeout.
 	  Fix some initializations.
 	  Fix some free() functions.
+	  Implement opt_default_module.
 
 2004-02-02  Kentaro Sato <kentaro@ranvis.com>
 
