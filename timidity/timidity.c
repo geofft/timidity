@@ -2106,7 +2106,6 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    alloc_instrument_bank(1, i);
 
 	    if(words == 2)
 	    {
@@ -2178,7 +2177,6 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
-	    alloc_instrument_bank(0, i);
 
 	    if(words == 2)
 	    {
