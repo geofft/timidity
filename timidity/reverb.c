@@ -262,7 +262,7 @@ static void set_mod_delay(mod_delay *delay, int32 ndelay, int32 depth)
 	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
 	if(_rindex < 0) {_rindex += _size;}	\
 	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
+	_hist = _temp1 + imuldiv8(_buf[_rindex] - _hist, _temp2);	\
 	_buf[_windex] = _stream;	\
 	_stream = _hist;	\
 }
@@ -299,7 +299,7 @@ static void set_mod_allpass(mod_allpass *delay, int32 ndelay, int32 depth, doubl
 	_rindex = _windex - _ndelay - (_temp2 >> 8);	\
 	if(_rindex < 0) {_rindex += _size;}	\
 	_temp2 = 0xFF - (_temp2 & 0xFF);	\
-	_hist = _hist + imuldiv8(_buf[_rindex] - _temp1, _temp2);	\
+	_hist = _temp1 + imuldiv8(_buf[_rindex] - _hist, _temp2);	\
 	_buf[_windex] = _temp3;	\
 	_stream = _hist - imuldiv24(_temp3, _feedback);	\
 }
@@ -1978,7 +1978,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 
 		/* left */
 		/* delay with all-pass interpolation */
-		output = hist0 = hist0 + imuldiv8(chorus_buf0_L[chorus_spt0] - v0, f0);
+		output = hist0 = v0 + imuldiv8(chorus_buf0_L[chorus_spt0] - hist0, f0);
 		chorus_buf0_L[chorus_wpt0] = chorus_effect_buffer[i] + imuldiv24(output, feedback);
 		output = imuldiv24(output, level);
 		buf[i] += output;
@@ -1989,7 +1989,7 @@ void do_stereo_chorus(int32* buf, register int32 count)
 
 		/* right */
 		/* delay with all-pass interpolation */
-		output = hist1 = hist1 + imuldiv8(chorus_buf0_R[chorus_spt1] - v1, f1);
+		output = hist1 = v1 + imuldiv8(chorus_buf0_R[chorus_spt1] - hist1, f1);
 		chorus_buf0_R[chorus_wpt1] = chorus_effect_buffer[++i] + imuldiv24(output, feedback);
 		output = imuldiv24(output, level);
 		buf[i] += output;
@@ -2654,12 +2654,12 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 
 		/* chorus effect */
 		/* all-pass interpolation */
-		hist0 = hist0 + imuldiv8(ebuf[spt0] - v0, f0);
-		hist1 = hist1 + imuldiv8(ebuf[spt1] - v1, f1);
-		hist2 = hist2 + imuldiv8(ebuf[spt2] - v2, f2);
-		hist3 = hist3 + imuldiv8(ebuf[spt3] - v3, f3);
-		hist4 = hist4 + imuldiv8(ebuf[spt4] - v4, f4);
-		hist5 = hist5 + imuldiv8(ebuf[spt5] - v5, f5);
+		hist0 = v0 + imuldiv8(ebuf[spt0] - hist0, f0);
+		hist1 = v1 + imuldiv8(ebuf[spt1] - hist1, f1);
+		hist2 = v2 + imuldiv8(ebuf[spt2] - hist2, f2);
+		hist3 = v3 + imuldiv8(ebuf[spt3] - hist3, f3);
+		hist4 = v4 + imuldiv8(ebuf[spt4] - hist4, f4);
+		hist5 = v5 + imuldiv8(ebuf[spt5] - hist5, f5);
 		ebuf[index] = imuldiv24(buf[i] + buf[i + 1], weti);
 
 		/* mixing */

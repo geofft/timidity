@@ -1144,9 +1144,13 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
     sp = (SampleList *)SFMalloc(current_sfrec, sizeof(SampleList));
     memset(sp, 0, sizeof(SampleList));
 
-    if(bank == 128)
-	sp->v.note_to_use = keynote;
-    sp->v.high_vel = 127;
+    if(bank == 128) {
+		if(tbl->set[SF_keynum]) {
+			sp->v.note_to_use = tbl->val[SF_keynum];
+		} else {
+			sp->v.note_to_use = keynote;
+		}
+	}
     make_info(sf, sp, tbl);
 
     /* add a sample */
@@ -1314,15 +1318,17 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     vp->v.high_freq = freq_table[(int)vp->high];
 
     /* velocity range */
-    if(tbl->set[SF_velRange])
-    {
-	vp->v.low_vel = LOWNUM(tbl->val[SF_velRange]);
-	vp->v.high_vel = HIGHNUM(tbl->val[SF_velRange]);
-    }
+    if(tbl->set[SF_velRange]) {
+		vp->v.low_vel = LOWNUM(tbl->val[SF_velRange]);
+		vp->v.high_vel = HIGHNUM(tbl->val[SF_velRange]);
+    } else {
+		vp->v.low_vel = 0;
+		vp->v.high_vel = 127;
+	}
 
     /* fixed key & velocity */
     if(tbl->set[SF_keynum])
-	vp->v.note_to_use = tbl->val[SF_keynum];
+		vp->v.note_to_use = tbl->val[SF_keynum];
 	if(tbl->set[SF_velocity] && tbl->val[SF_velocity] != 0) {
 		ctl->cmsg(CMSG_INFO,VERB_DEBUG,"error: fixed-velocity is not supported.");
 	}

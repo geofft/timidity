@@ -1,3 +1,9 @@
+2003-12-31  Saito <saito2@digitalme.com>
+
+	* timidity/sndfont.c, timidity/reverb.c:
+	  Fix delay modulation.
+	  Fix about SoundFont.
+
 2003-12-30  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch]:
