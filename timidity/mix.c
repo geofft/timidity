@@ -54,7 +54,11 @@
 #define VOICE_LPF
 #endif
 
+#ifdef VOICE_LPF
 typedef int32 mix_t;
+#else
+typedef sample_t mix_t;
+#endif
 
 #ifdef LOOKUP_HACK
 #define MIXATION(a) *lp++ += mixup[(a << 8) | (uint8) s]
@@ -68,9 +72,11 @@ typedef int32 mix_t;
 	if (++pan_delay_wpt == PAN_DELAY_BUF_MAX) {pan_delay_wpt = 0;}
 
 void mix_voice(int32 *, int, int32);
+#ifdef VOICE_LPF
 static inline int do_voice_filter(int, resample_t*, mix_t*, int32);
 static inline void recalc_voice_resonance(int);
 static inline void recalc_voice_fc(int);
+#endif
 static inline void ramp_out(mix_t *, int32 *, int, int32);
 static inline void mix_mono_signal(mix_t *, int32 *, int, int);
 static inline void mix_mono(mix_t *, int32 *, int, int);

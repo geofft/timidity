@@ -61,7 +61,8 @@ static MBlockList hash_entry_pool;
 #define CACHE_RESAMPLING_OK	0
 #define CACHE_RESAMPLING_NOTOK	1
 
-#define RESAMPLATION_CACHE dest[i] = do_resamplation(src, ofs, &resrc)
+#define RESAMPLATION_CACHE _x = do_resamplation(src, ofs, &resrc);	\
+	dest[i] = (int16)((_x > 32767) ? 32767: ((_x < -32768) ? -32768 : _x))
 
 static struct
 {
@@ -318,7 +319,7 @@ static int cache_resampling(struct cache_hash *p)
     Sample *sp, *newsp;
     sample_t *src, *dest;
     splen_t newlen, ofs, le, ls, ll, xls, xle;
-    int32 i, incr;
+    int32 i, incr, _x;
     resample_rec_t resrc;
     double a;
 

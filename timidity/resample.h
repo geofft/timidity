@@ -27,6 +27,8 @@
 #include "config.h"
 #endif
 
+typedef int32 resample_t;
+
 enum {
 	RESAMPLE_CSPLINE,
 	RESAMPLE_LAGRANGE,
@@ -47,9 +49,9 @@ typedef struct resample_rec {
 	splen_t data_length;
 } resample_rec_t;
 
-extern sample_t do_resamplation(sample_t *src, splen_t ofs, resample_rec_t *rec);
+extern resample_t do_resamplation(sample_t *src, splen_t ofs, resample_rec_t *rec);
 
-extern sample_t *resample_voice(int v, int32 *countptr);
+extern resample_t *resample_voice(int v, int32 *countptr);
 extern void pre_resample(Sample *sp);
 
 #endif /* ___RESAMPLE_H_ */
