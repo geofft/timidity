@@ -187,7 +187,7 @@ void mix_voice(int32 *buf, int v, int32 c)
 static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 {
 	FilterCoefficients *fc = &(voice[v].fc);
-	int32 i, f, q, scale, low, high, band;
+	int32 i, f, q, p, b0, b1, b2, b3, b4, t1, t2, x;
 	
 	if(fc->type == 0) {	/* copy without change.	*/
 		/* (FIXME: It's absolutely essential that converting int16 sp[] to int32 lp[],
@@ -199,14 +199,29 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 	} else if(fc->type == 1) {	/* copy with applying voice-by-voice lowpass filter. */
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
-		f = fc->f, q = fc->q, low = fc->low, high = fc->high, band = fc->band;
+		f = fc->f, q = fc->q, b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
 		for(i = 0; i < count; i++) {
-			low = low + imuldiv24(band, f);
-			high = sp[i] - low - imuldiv24(band, q);
-			band = imuldiv24(high, f) + band;
-			lp[i] = low;
+			b0 = b0 + imuldiv24(b2, f);
+			b1 = sp[i] - b0 - imuldiv24(b2, q);
+			b2 = imuldiv24(b1, f) + b2;
+			lp[i] = b0;
 		}
-		fc->low = low, fc->high = high, fc->band = band;
+		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2;
+		return;
+	} else if(fc->type == 2) {	/* copy with applying voice-by-voice lowpass filter. */
+		recalc_voice_resonance(v);
+		recalc_voice_fc(v);
+		f = fc->f, q = fc->q, p = fc->p, b0 = fc->b0, b1 = fc->b1,
+			b2 = fc->b2, b3 = fc->b3, b4 = fc->b4;
+		for(i = 0; i < count; i++) {
+			x = sp[i] - imuldiv24(q, b4);	/* feedback */
+			t1 = b1;  b1 = imuldiv24(x + b0, p) - imuldiv24(b1, f);
+			t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
+			t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);
+			lp[i] = b4 = imuldiv24(b3 + t1, p) - imuldiv24(b4, f);
+			b0 = x;
+		}
+		fc->b0 = b0, fc->b1 = b1, fc->b2 = b2, fc->b3 = b3, fc->b4 = b4;
 		return;
 	}
 }
@@ -216,24 +231,38 @@ static inline void recalc_voice_resonance(int v)
 	double q;
 	FilterCoefficients *fc = &(voice[v].fc);
 	
-	if (fc->reso_dB != fc->last_reso_dB || fc->q == 0) {
+	if (fc->reso_dB != fc->last_reso_dB) {
 		fc->last_reso_dB = fc->reso_dB;
-		q = 1.0 / chamberlin_filter_db_to_q_table[(int)(fc->reso_dB * 4)];
-		fc->q = TIM_FSCALE(q, 24);
-		if(fc->q <= 0) {fc->q = 1;}	/* must never be 0. */
+		if(fc->type == 1) {
+			q = 1.0 / chamberlin_filter_db_to_q_table[(int)(fc->reso_dB * 4)];
+			fc->q = TIM_FSCALE(q, 24);
+			if(fc->q <= 0) {fc->q = 1;}	/* must never be 0. */
+		} else if(fc->type == 2) {
+			fc->reso_lin = pow(10, (fc->reso_dB - 96) / 20);
+		}
 		fc->last_freq = -1;
 	}
 }
 
 static inline void recalc_voice_fc(int v)
 {
-	int16 freq;
-	double f;
+	double f, p, q, freq;
 	FilterCoefficients *fc = &(voice[v].fc);
 
 	if (fc->freq != fc->last_freq) {
-		f = 2.0 * sin(M_PI * (double)fc->freq / (double)play_mode->rate);
-		fc->f = TIM_FSCALE(f, 24);
+		if(fc->type == 1) {
+			f = 2.0 * sin(M_PI * (double)fc->freq / (double)play_mode->rate);
+			fc->f = TIM_FSCALE(f, 24);
+		} else if(fc->type == 2) {
+			freq = 2.0 * (double)fc->freq / (double)play_mode->rate;
+			q = 1.0 - freq;
+			p = freq + 0.8 * freq * q;
+			f = p + p - 1.0;
+			q = fc->reso_lin * (1.0 + 0.5 * q * (1.0 - q + 5.6 * q * q));
+			fc->f = TIM_FSCALE(f, 24);
+			fc->p = TIM_FSCALE(p, 24);
+			fc->q = TIM_FSCALE(q, 24);
+		}
 		fc->last_freq = fc->freq;
 	}
 }

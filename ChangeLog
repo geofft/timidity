@@ -1,3 +1,8 @@
+2003-12-02  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/mix.c:
+	  Implement Moog VCF resonant lowpass filter; it sounds good, but slow.
+
 2003-12-01  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.[ch], timidity/tables.[ch],

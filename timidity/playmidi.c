@@ -1020,6 +1020,8 @@ void recompute_voice_filter(int v)
 	if(fc->type == 1) {	/* Chamberlin filter */
 		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
 		if(fc->reso_dB > 24.0) {fc->reso_dB = 24.0;}
+	} else if(fc->type == 2) {	/* Moog VCF */
+		/* if necessary... */
 	}
 }
 
