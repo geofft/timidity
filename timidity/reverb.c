@@ -382,6 +382,11 @@ static inline void do_allpass(int32 *stream, int32 *buf, int32 size, int32 *inde
 	*stream = bufout + imuldiv24(output, feedback);
 }
 
+static void init_filter_moog(filter_moog *svf)
+{
+	svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
+}
+
 /*! calculate Moog VCF coefficients */
 void calc_filter_moog(filter_moog *svf)
 {
@@ -391,9 +396,7 @@ void calc_filter_moog(filter_moog *svf)
 	else if(svf->freq < 20) {svf->freq = 20;}
 
 	if(svf->freq != svf->last_freq || svf->res_dB != svf->last_res_dB) {
-		if(svf->last_freq == 0) {	/* clear delay-line */
-			svf->b0 = svf->b1 = svf->b2 = svf->b3 = svf->b4 = 0;
-		}
+		if(svf->last_freq == 0) {init_filter_moog(svf);}
 		svf->last_freq = svf->freq, svf->last_res_dB = svf->res_dB;
 
 		res = pow(10, (svf->res_dB - 96) / 20);
@@ -529,6 +532,40 @@ static inline void do_filter_lpf18(double *stream, double *ay1, double *ay2, dou
 	*ay2 = kp1h * (*ay1 + ay11) - kp * *ay2;
 	*aout = kp1h * (*ay2 + ay31) - kp * *aout;
 	*stream = tanh(*aout * value);
+}
+
+#define WS_AMP_MAX	((int32) 0x0fffffff)
+#define WS_AMP_MIN	((int32)-0x0fffffff)
+
+static void do_dummy_clipping(int32 *stream, int32 d) {}
+
+static void do_hard_clipping(int32 *stream, int32 d)
+{
+	int32 x;
+	x = imuldiv24(*stream, d);
+	x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+			: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
+	*stream = x;
+}
+
+static void do_soft_clipping1(int32 *stream, int32 d)
+{
+	int32 x, ai = TIM_FSCALE(1.5f, 24), bi = TIM_FSCALE(0.5f, 24);
+	x = imuldiv24(*stream, d);
+	x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+			: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
+	x = imuldiv24(x, ai) - imuldiv24(imuldiv28(imuldiv28(x, x), x), bi);
+	*stream = x;
+}
+
+static void do_soft_clipping2(int32 *stream, int32 d)
+{
+	int32 x;
+	x = imuldiv24(*stream, d);
+	x = (x > WS_AMP_MAX) ? WS_AMP_MAX
+			: (x < WS_AMP_MIN) ? WS_AMP_MIN : x;
+	x = signlong(x) * ((abs(x) << 1) - imuldiv28(x, x));
+	*stream = x;
 }
 
 /*! 1st order lowpass filter */
@@ -2581,6 +2618,8 @@ static inline int32 do_right_panning(int32 sample, int32 pan)
 
 #define OD_BITS 28
 #define OD_MAX_NEG (1.0 / (double)(1L << OD_BITS))
+#define OD_DRIVE_GS 4.0
+#define OD_LEVEL_GS 0.5
 #define STEREO_OD_BITS 27
 #define STEREO_OD_MAX_NEG (1.0 / (double)(1L << STEREO_OD_BITS))
 #define OVERDRIVE_DIST 4.0
@@ -2592,67 +2631,60 @@ static inline int32 do_right_panning(int32 sample, int32 pan)
 #define DISTORTION_LEVEL 0.2
 #define DISTORTION_OFFSET 0
 
+static inline double calc_gs_drive(int val)
+{
+	return (OD_DRIVE_GS * (double)val / 127.0 + 1.0f);
+}
+
 /*! GS 0x0110: Overdrive 1 */
 void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoOverdrive1 *info = (InfoOverdrive1 *)ef->info;
 	filter_moog *svf = &(info->svf);
-	int32 t1, t2, f = svf->f, q = svf->q, p = svf->p, b0 = svf->b0,
-		b1 = svf->b1, b2 = svf->b2, b3 = svf->b3, b4 = svf->b4;
-	filter_lpf18 *lpf = &(info->lpf18);
-	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
-		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
-	int32 i, input, high, low, leveli = info->leveli, leveldi = info->leveldi,
-		pan = info->pan;
-	double sig;
+	filter_biquad *lpf1 = &(info->lpf1);
+	void (*do_amp_sim)(int32 *, int32) = info->amp_sim;
+	int32 i, input, high, leveli = info->leveli, di = info->di,
+		pan = info->pan, asdi = TIM_FSCALE(1.0f, 24);
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		/* set parameters of decompositor */
+		/* decompositor */
 		svf->freq = 500;
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
-		/* set parameters of waveshaper */
-		lpf->freq = 6000;
-		lpf->res = OVERDRIVE_RES;
-		lpf->dist = OVERDRIVE_DIST * sqrt((double)info->drive / 127.0) + OVERDRIVE_OFFSET;
-		calc_filter_lpf18(lpf);
-		init_filter_lpf18(lpf);
-		info->leveli = TIM_FSCALE(info
-			->level * OVERDRIVE_LEVEL, 24);
-		info->leveldi = TIM_FSCALE(info->level, 24);
+		init_filter_moog(svf);
+		/* amp simulator */
+		info->amp_sim = do_dummy_clipping;
+		if (info->amp_sw == 1) {
+			if (info->amp_type <= 3) {info->amp_sim = do_soft_clipping2;}
+		}
+		/* waveshaper */
+		info->di = TIM_FSCALE(calc_gs_drive(info->drive), 24);
+		info->leveli = TIM_FSCALE(info->level * OD_LEVEL_GS, 24);
+		/* anti-aliasing */
+		lpf1->freq = 8000.0f;
+		lpf1->q = 1.0f;
+		calc_filter_biquad_low(lpf1);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		input = buf[i] + buf[i + 1];
+		input = (buf[i] + buf[i + 1]) >> 1;
+		/* amp simulation */
+		do_amp_sim(&input, asdi);
 		/* decomposition */
-		input -= imuldiv24(q, b4);
-		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
-		t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
-		t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);
-		low = b4 = imuldiv24(b3 + t1, p) - imuldiv24(b4, f);
-		b0 = input;
-		high = input - b4;
+		do_filter_moog(&input, &high, svf->f, svf->p, svf->q,
+			&svf->b0, &svf->b1, &svf->b2, &svf->b3, &svf->b4);
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
-		ax1 = lastin;
-		ay11 = ay1;
-		ay31 = ay2;
-		lastin = sig - tanh(kres * aout);
-		ay1 = kp1h * (lastin + ax1) - kp * ay1;
-		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
-		aout = kp1h * (ay2 + ay31) - kp * aout;
-		sig = tanh(aout * value);
-		high = TIM_FSCALE(sig, OD_BITS);
+		do_soft_clipping1(&high, di);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1l, &lpf1->x2l, &lpf1->y1l, &lpf1->y2l);
 		/* mixing */
-		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
+		input = imuldiv24(high + input, leveli);
 		buf[i] = do_left_panning(input, pan);
 		buf[i + 1] = do_right_panning(input, pan);
 		++i;
 	}
-	svf->b0 = b0, svf->b1 = b1, svf->b2 = b2, svf->b3 = b3, svf->b4 = b4;
-    lpf->ay1 = ay1, lpf->ay2 = ay2, lpf->aout = aout, lpf->lastin = lastin;
 }
 
 /*! GS 0x0111: Distortion 1 */
@@ -2660,122 +2692,102 @@ void do_distortion1(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoOverdrive1 *info = (InfoOverdrive1 *)ef->info;
 	filter_moog *svf = &(info->svf);
-	int32 t1, t2, f = svf->f, q = svf->q, p = svf->p, b0 = svf->b0,
-		b1 = svf->b1, b2 = svf->b2, b3 = svf->b3, b4 = svf->b4;
-	filter_lpf18 *lpf = &(info->lpf18);
-	double ay1 = lpf->ay1, ay2 = lpf->ay2, aout = lpf->aout, lastin = lpf->lastin,
-		kres = lpf->kres, value = lpf->value, kp = lpf->kp, kp1h = lpf->kp1h, ax1, ay11, ay31;
-	int32 i, input, high, low, leveli = info->leveli, leveldi = info->leveldi,
-		pan = info->pan;
-	double sig;
+	filter_biquad *lpf1 = &(info->lpf1);
+	void (*do_amp_sim)(int32 *, int32) = info->amp_sim;
+	int32 i, input, high, leveli = info->leveli, di = info->di,
+		pan = info->pan, asdi = TIM_FSCALE(1.0f, 24);
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		/* set parameters of decompositor */
+		/* decompositor */
 		svf->freq = 500;
 		svf->res_dB = 0;
 		calc_filter_moog(svf);
-		/* set parameters of waveshaper */
-		lpf->freq = 6000;
-		lpf->res = DISTORTION_RES;
-		lpf->dist = DISTORTION_DIST * sqrt((double)info->drive / 127.0) + DISTORTION_OFFSET;
-		calc_filter_lpf18(lpf);
-		init_filter_lpf18(lpf);
-		info->leveli = TIM_FSCALE(info->level * DISTORTION_LEVEL, 24);
-		info->leveldi = TIM_FSCALE(info->level, 24);
+		init_filter_moog(svf);
+		/* amp simulator */
+		info->amp_sim = do_dummy_clipping;
+		if (info->amp_sw == 1) {
+			if (info->amp_type <= 3) {info->amp_sim = do_soft_clipping2;}
+		}
+		/* waveshaper */
+		info->di = TIM_FSCALE(calc_gs_drive(info->drive), 24);
+		info->leveli = TIM_FSCALE(info->level * OD_LEVEL_GS, 24);
+		/* anti-aliasing */
+		lpf1->freq = 8000.0f;
+		lpf1->q = 1.0f;
+		calc_filter_biquad_low(lpf1);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	for(i = 0; i < count; i++) {
-		input = buf[i] + buf[i + 1];
+		input = (buf[i] + buf[i + 1]) >> 1;
+		/* amp simulation */
+		do_amp_sim(&input, asdi);
 		/* decomposition */
-		input -= imuldiv24(q, b4);
-		t1 = b1;  b1 = imuldiv24(input + b0, p) - imuldiv24(b1, f);
-		t2 = b2;  b2 = imuldiv24(b1 + t1, p) - imuldiv24(b2, f);
-		t1 = b3;  b3 = imuldiv24(b2 + t2, p) - imuldiv24(b3, f);
-		low = b4 = imuldiv24(b3 + t1, p) - imuldiv24(b4, f);
-		b0 = input;
-		high = input - b4;
+		do_filter_moog(&input, &high, svf->f, svf->p, svf->q,
+			&svf->b0, &svf->b1, &svf->b2, &svf->b3, &svf->b4);
 		/* waveshaping */
-		sig = (double)high * OD_MAX_NEG;
-		ax1 = lastin;
-		ay11 = ay1;
-		ay31 = ay2;
-		lastin = sig - tanh(kres * aout);
-		ay1 = kp1h * (lastin + ax1) - kp * ay1;
-		ay2 = kp1h * (ay1 + ay11) - kp * ay2;
-		aout = kp1h * (ay2 + ay31) - kp * aout;
-		sig = tanh(aout * value);
-		high = TIM_FSCALE(sig, OD_BITS);
+		do_hard_clipping(&high, di);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1l, &lpf1->x2l, &lpf1->y1l, &lpf1->y2l);
 		/* mixing */
-		input = imuldiv24(high, leveli) + imuldiv24(low, leveldi);
+		input = imuldiv24(high + input, leveli);
 		buf[i] = do_left_panning(input, pan);
 		buf[i + 1] = do_right_panning(input, pan);
 		++i;
 	}
-	svf->b0 = b0, svf->b1 = b1, svf->b2 = b2, svf->b3 = b3, svf->b4 = b4;
-    lpf->ay1 = ay1, lpf->ay2 = ay2, lpf->aout = aout, lpf->lastin = lastin;
 }
 
 /*! GS 0x1103: OD1 / OD2 */
 void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoOD1OD2 *info = (InfoOD1OD2 *)ef->info;
-	filter_moog *svfl = &(info->svfl);
-	int32 t1l, t2l, f = svfl->f, q = svfl->q, p = svfl->p, b0l = svfl->b0,
-		b1l = svfl->b1, b2l = svfl->b2, b3l = svfl->b3, b4l = svfl->b4;
-	filter_moog *svfr = &(info->svfr);
-	int32 t1r, t2r, b0r = svfr->b0,
-		b1r = svfr->b1, b2r = svfr->b2, b3r = svfr->b3, b4r = svfr->b4;
-	filter_lpf18 *lpfl = &(info->lpf18l);
-	double ay1l = lpfl->ay1, ay2l = lpfl->ay2, aoutl = lpfl->aout, lastinl = lpfl->lastin,
-		kresl = lpfl->kres, valuel = lpfl->value, kp = lpfl->kp, kp1h = lpfl->kp1h, ax1l, ay11l, ay31l;
-	filter_lpf18 *lpfr = &(info->lpf18r);
-	double ay1r = lpfr->ay1, ay2r = lpfr->ay2, aoutr = lpfr->aout, lastinr = lpfr->lastin,
-		kresr = lpfr->kres, valuer = lpfr->value, ax1r, ay11r, ay31r;
-	int32 i, inputl, inputr, high, low, levelli = info->levelli, levelri = info->levelri,
-		leveldli = info->leveldli, leveldri = info->leveldri, panl = info->panl, panr = info->panr;
-	double sig;
+	filter_moog *svfl = &(info->svfl), *svfr = &(info->svfr);
+	filter_biquad *lpf1 = &(info->lpf1);
+	void (*do_amp_siml)(int32 *, int32) = info->amp_siml,
+		(*do_amp_simr)(int32 *, int32) = info->amp_simr,
+		(*do_odl)(int32 *, int32) = info->odl,
+		(*do_odr)(int32 *, int32) = info->odr;
+	int32 i, inputl, inputr, high, levelli = info->levelli, levelri = info->levelri,
+		dli = info->dli, dri = info->dri, panl = info->panl, panr = info->panr, asdi = TIM_FSCALE(1.0f, 24);
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		/* left */
-		/* set parameters of decompositor */
+		/* decompositor */
 		svfl->freq = 500;
 		svfl->res_dB = 0;
 		calc_filter_moog(svfl);
-		/* set parameters of waveshaper */
-		lpfl->freq = 6000;
-		if(info->typel == 0) {	/* Overdrive */
-			lpfl->res = OVERDRIVE_RES;
-			lpfl->dist = OVERDRIVE_DIST * sqrt((double)info->drivel / 127.0) + OVERDRIVE_OFFSET;
-			info->levelli = TIM_FSCALE(info->levell * info->level * OVERDRIVE_LEVEL, 24);
-		} else {	/* Distortion */
-			lpfl->res = DISTORTION_RES;
-			lpfl->dist = DISTORTION_DIST * sqrt((double)info->drivel / 127.0) + DISTORTION_OFFSET;
-			info->levelli = TIM_FSCALE(info->levell * info->level * DISTORTION_LEVEL, 24);
+		init_filter_moog(svfl);
+		/* amp simulator */
+		info->amp_siml = do_dummy_clipping;
+		if (info->amp_swl == 1) {
+			if (info->amp_typel <= 3) {info->amp_siml = do_soft_clipping2;}
 		}
-		info->leveldli = TIM_FSCALE(info->levell * info->level, 24);
-		calc_filter_lpf18(lpfl);
-		init_filter_lpf18(lpfl);
+		/* waveshaper */
+		if(info->typel == 0) {info->odl = do_soft_clipping1;}
+		else {info->odl = do_hard_clipping;}
+		info->dli = TIM_FSCALE(calc_gs_drive(info->drivel), 24);
+		info->levelli = TIM_FSCALE(info->levell * OD_LEVEL_GS, 24);
 		/* right */
-		/* set parameters of decompositor */
+		/* decompositor */
 		svfr->freq = 500;
 		svfr->res_dB = 0;
 		calc_filter_moog(svfr);
-		/* set parameters of waveshaper */
-		lpfr->freq = 6000;
-		if(info->typer == 0) {	/* Overdrive */
-			lpfr->res = OVERDRIVE_RES;
-			lpfr->dist = OVERDRIVE_DIST * sqrt((double)info->driver / 127.0) + OVERDRIVE_OFFSET;
-			info->levelri = TIM_FSCALE(info->levelr * info->level * OVERDRIVE_LEVEL, 24);
-		} else {	/* Distortion */
-			lpfr->res = DISTORTION_RES;
-			lpfr->dist = DISTORTION_DIST * sqrt((double)info->driver / 127.0) + DISTORTION_OFFSET;
-			info->levelri = TIM_FSCALE(info->levelr * info->level * DISTORTION_LEVEL, 24);
+		init_filter_moog(svfr);
+		/* amp simulator */
+		info->amp_simr = do_dummy_clipping;
+		if (info->amp_swr == 1) {
+			if (info->amp_typer <= 3) {info->amp_simr = do_soft_clipping2;}
 		}
-		info->leveldri = TIM_FSCALE(info->levelr * info->level, 24);
-		calc_filter_lpf18(lpfr);
-		init_filter_lpf18(lpfr);
+		/* waveshaper */
+		if(info->typer == 0) {info->odr = do_soft_clipping1;}
+		else {info->odr = do_hard_clipping;}
+		info->dri = TIM_FSCALE(calc_gs_drive(info->driver), 24);
+		info->levelri = TIM_FSCALE(info->levelr * OD_LEVEL_GS, 24);
+		/* anti-aliasing */
+		lpf1->freq = 8000.0f;
+		lpf1->q = 1.0f;
+		calc_filter_biquad_low(lpf1);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -2783,58 +2795,34 @@ void do_dual_od(int32 *buf, int32 count, EffectList *ef)
 	for(i = 0; i < count; i++) {
 		/* left */
 		inputl = buf[i];
+		/* amp simulation */
+		do_amp_siml(&inputl, asdi);
 		/* decomposition */
-		inputl -= imuldiv24(q, b4l);
-		t1l = b1l;  b1l = imuldiv24(inputl + b0l, p) - imuldiv24(b1l, f);
-		t2l = b2l;  b2l = imuldiv24(b1l + t1l, p) - imuldiv24(b2l, f);
-		t1l = b3l;  b3l = imuldiv24(b2l + t2l, p) - imuldiv24(b3l, f);
-		low = b4l = imuldiv24(b3l + t1l, p) - imuldiv24(b4l, f);
-		b0l = inputl;
-		high = inputl - b4l;
+		do_filter_moog(&inputl, &high, svfl->f, svfl->p, svfl->q,
+			&svfl->b0, &svfl->b1, &svfl->b2, &svfl->b3, &svfl->b4);
 		/* waveshaping */
-		sig = (double)high * STEREO_OD_MAX_NEG;
-		ax1l = lastinl;
-		ay11l = ay1l;
-		ay31l = ay2l;
-		lastinl = sig - tanh(kresl * aoutl);
-		ay1l = kp1h * (lastinl + ax1l) - kp * ay1l;
-		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
-		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
-		sig = tanh(aoutl * valuel);
-		high = TIM_FSCALE(sig, STEREO_OD_BITS);
-		inputl = imuldiv24(high, levelli) + imuldiv24(low, leveldli);
+		do_odl(&high, dli);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1l, &lpf1->x2l, &lpf1->y1l, &lpf1->y2l);
+		inputl = imuldiv24(high + inputl, levelli);
 
 		/* right */
 		inputr = buf[++i];
+		/* amp simulation */
+		do_amp_siml(&inputr, asdi);
 		/* decomposition */
-		inputr -= imuldiv24(q, b4r);
-		t1r = b1r;  b1r = imuldiv24(inputr + b0r, p) - imuldiv24(b1r, f);
-		t2r = b2r;  b2r = imuldiv24(b1r + t1r, p) - imuldiv24(b2r, f);
-		t1r = b3r;  b3r = imuldiv24(b2r + t2r, p) - imuldiv24(b3r, f);
-		low = b4r = imuldiv24(b3r + t1r, p) - imuldiv24(b4r, f);
-		b0r = inputr;
-		high = inputr - b4r;
+		do_filter_moog(&inputr, &high, svfr->f, svfr->p, svfr->q,
+			&svfr->b0, &svfr->b1, &svfr->b2, &svfr->b3, &svfr->b4);
 		/* waveshaping */
-		sig = (double)high * STEREO_OD_MAX_NEG;
-		ax1r = lastinr;
-		ay11r = ay1r;
-		ay31r = ay2r;
-		lastinr = sig - tanh(kresr * aoutr);
-		ay1r = kp1h * (lastinr + ax1r) - kp * ay1r;
-		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
-		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
-		sig = tanh(aoutr * valuer);
-		high = TIM_FSCALE(sig, STEREO_OD_BITS);
-		inputr = imuldiv24(high, levelri) + imuldiv24(low, leveldri);
+		do_odr(&high, dri);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1r, &lpf1->x2r, &lpf1->y1r, &lpf1->y2r);
+		inputr = imuldiv24(high + inputr, levelri);
 
-		/* mixing */
+		/* panning */
 		buf[i - 1] = do_left_panning(inputl, panl) + do_left_panning(inputr, panr);
 		buf[i] = do_right_panning(inputl, panl) + do_right_panning(inputr, panr);
 	}
-	svfl->b0 = b0l, svfl->b1 = b1l, svfl->b2 = b2l, svfl->b3 = b3l, svfl->b4 = b4l;
-    lpfl->ay1 = ay1l, lpfl->ay2 = ay2l, lpfl->aout = aoutl, lpfl->lastin = lastinl;
-	svfr->b0 = b0r, svfr->b1 = b1r, svfr->b2 = b2r, svfr->b3 = b3r, svfr->b4 = b4r;
-    lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
 #define HEXA_CHORUS_WET_LEVEL 0.2
@@ -3028,24 +3016,30 @@ static void conv_gs_overdrive1(struct insertion_effect_gs_t *ieffect, EffectList
 {
 	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
 	
-	od->level = (double)ieffect->parameter[19] / 127.0;
 	od->drive = ieffect->parameter[0];
+	od->amp_type = ieffect->parameter[1];
+	od->amp_sw = ieffect->parameter[2];
 	od->pan = ieffect->parameter[18];
+	od->level = (double)ieffect->parameter[19] / 127.0;
 }
 
 static void conv_gs_dual_od(struct insertion_effect_gs_t *ieffect, EffectList *ef)
 {
 	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
 
-	od->level = (double)ieffect->parameter[19] / 127.0;
-	od->levell = (double)ieffect->parameter[16] / 127.0;
-	od->levelr = (double)ieffect->parameter[18] / 127.0;
-	od->drivel = ieffect->parameter[1];
-	od->driver = ieffect->parameter[6];
-	od->panl = ieffect->parameter[15];
-	od->panr = ieffect->parameter[17];
 	od->typel = ieffect->parameter[0];
+	od->drivel = ieffect->parameter[1];
+	od->amp_typel = ieffect->parameter[2];
+	od->amp_swl = ieffect->parameter[3];
 	od->typer = ieffect->parameter[5];
+	od->driver = ieffect->parameter[6];
+	od->amp_typer = ieffect->parameter[7];
+	od->amp_swr = ieffect->parameter[8];
+	od->panl = ieffect->parameter[15];
+	od->levell = (double)ieffect->parameter[16] / 127.0;
+	od->panr = ieffect->parameter[17];
+	od->levelr = (double)ieffect->parameter[18] / 127.0;
+	od->level = (double)ieffect->parameter[19] / 127.0;
 }
 
 static double calc_dry_gs(int val)
@@ -3363,7 +3357,7 @@ static void conv_xg_overdrive(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoStereoOD *info = (InfoStereoOD *)ef->info;
 
-	info->type = 0;
+	info->od = do_soft_clipping1;
 	info->drive = (double)st->param_lsb[0] / 127.0f;
 	info->cutoff = eq_freq_table_xg[clip_int(st->param_lsb[3], 34, 60)];
 	info->level = (double)st->param_lsb[4] / 127.0f;
@@ -3375,7 +3369,7 @@ static void conv_xg_distortion(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoStereoOD *info = (InfoStereoOD *)ef->info;
 
-	info->type = 1;
+	info->od = do_hard_clipping;
 	info->drive = (double)st->param_lsb[0] / 127.0f;
 	info->cutoff = eq_freq_table_xg[clip_int(st->param_lsb[3], 34, 60)];
 	info->level = (double)st->param_lsb[4] / 127.0f;
@@ -3383,48 +3377,43 @@ static void conv_xg_distortion(struct effect_xg_t *st, EffectList *ef)
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
 }
 
+static void conv_xg_amp_simulator(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoStereoOD *info = (InfoStereoOD *)ef->info;
+
+	info->od = do_soft_clipping2;
+	info->drive = (double)st->param_lsb[0] / 127.0f;
+	info->cutoff = eq_freq_table_xg[clip_int(st->param_lsb[2], 34, 60)];
+	info->level = (double)st->param_lsb[3] / 127.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
 static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoStereoOD *info = (InfoStereoOD *)ef->info;
-	filter_moog *svfl = &(info->svfl);
-	int32 t1l, t2l, f = svfl->f, q = svfl->q, p = svfl->p, b0l = svfl->b0,
-		b1l = svfl->b1, b2l = svfl->b2, b3l = svfl->b3, b4l = svfl->b4;
-	filter_moog *svfr = &(info->svfr);
-	int32 t1r, t2r, b0r = svfr->b0,
-		b1r = svfr->b1, b2r = svfr->b2, b3r = svfr->b3, b4r = svfr->b4;
-	filter_lpf18 *lpfl = &(info->lpf18l);
-	double ay1l = lpfl->ay1, ay2l = lpfl->ay2, aoutl = lpfl->aout, lastinl = lpfl->lastin,
-		kresl = lpfl->kres, valuel = lpfl->value, kp = lpfl->kp, kp1h = lpfl->kp1h, ax1l, ay11l, ay31l;
-	filter_lpf18 *lpfr = &(info->lpf18r);
-	double ay1r = lpfr->ay1, ay2r = lpfr->ay2, aoutr = lpfr->aout, lastinr = lpfr->lastin,
-		kresr = lpfr->kres, valuer = lpfr->value, ax1r, ay11r, ay31r;
-	int32 i, inputl, inputr, high, low, weti = info->weti, dryi = info->dryi, wetdi = info->wetdi;
-	double sig;
+	filter_moog *svfl = &(info->svfl), *svfr = &(info->svfr);
+	filter_biquad *lpf1 = &(info->lpf1);
+	void (*do_od)(int32 *, int32) = info->od;
+	int32 i, inputl, inputr, high, weti = info->weti, dryi = info->dryi, di = info->di;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		/* left */
-		/* set parameters of decompositor */
-		svfl->freq = svfr->freq = 800;
-		svfl->res_dB = svfr->res_dB = 0;
+		/* decompositor */
+		svfl->freq = 500;
+		svfl->res_dB = 0;
 		calc_filter_moog(svfl);
+		init_filter_moog(svfl);
+		svfr->freq = 500;
+		svfr->res_dB = 0;
 		calc_filter_moog(svfr);
-		/* set parameters of waveshaper */
-		lpfl->freq = lpfr->freq = info->cutoff;
-		if(info->type == 0) {	/* Overdrive */
-			lpfl->res = lpfr->res = OVERDRIVE_RES;
-			lpfl->dist = lpfr->dist = OVERDRIVE_DIST * sqrt(info->drive) + OVERDRIVE_OFFSET;
-			info->weti = TIM_FSCALE(info->wet * info->level * OVERDRIVE_LEVEL, 24);
-		} else {	/* Distortion */
-			lpfl->res = lpfr->res = DISTORTION_RES;
-			lpfl->dist = lpfr->dist = DISTORTION_DIST * sqrt(info->drive) + DISTORTION_OFFSET;
-			info->weti = TIM_FSCALE(info->wet * info->level * DISTORTION_LEVEL, 24);
-		}
-		info->wetdi = TIM_FSCALE(info->wet * info->level, 24);
+		init_filter_moog(svfr);
+		/* anti-aliasing */
+		lpf1->freq = info->cutoff;
+		lpf1->q = 1.0f;
+		calc_filter_biquad_low(lpf1);
+		info->weti = TIM_FSCALE(info->wet * info->level, 24);
 		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
-		calc_filter_lpf18(lpfl);
-		init_filter_lpf18(lpfl);
-		calc_filter_lpf18(lpfr);
-		init_filter_lpf18(lpfr);
+		info->di = TIM_FSCALE(calc_gs_drive(info->drive), 24);
 		return;
 	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
@@ -3433,53 +3422,25 @@ static void do_stereo_od(int32 *buf, int32 count, EffectList *ef)
 		/* left */
 		inputl = buf[i];
 		/* decomposition */
-		inputl -= imuldiv24(q, b4l);
-		t1l = b1l;  b1l = imuldiv24(inputl + b0l, p) - imuldiv24(b1l, f);
-		t2l = b2l;  b2l = imuldiv24(b1l + t1l, p) - imuldiv24(b2l, f);
-		t1l = b3l;  b3l = imuldiv24(b2l + t2l, p) - imuldiv24(b3l, f);
-		low = b4l = imuldiv24(b3l + t1l, p) - imuldiv24(b4l, f);
-		b0l = inputl;
-		high = inputl - b4l;
+		do_filter_moog(&inputl, &high, svfl->f, svfl->p, svfl->q,
+			&svfl->b0, &svfl->b1, &svfl->b2, &svfl->b3, &svfl->b4);
 		/* waveshaping */
-		sig = (double)high * STEREO_OD_MAX_NEG;
-		ax1l = lastinl;
-		ay11l = ay1l;
-		ay31l = ay2l;
-		lastinl = sig - tanh(kresl * aoutl);
-		ay1l = kp1h * (lastinl + ax1l) - kp * ay1l;
-		ay2l = kp1h * (ay1l + ay11l) - kp * ay2l;
-		aoutl = kp1h * (ay2l + ay31l) - kp * aoutl;
-		sig = tanh(aoutl * valuel);
-		high = TIM_FSCALE(sig, STEREO_OD_BITS);
-		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
+		do_od(&high, di);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1l, &lpf1->x2l, &lpf1->y1l, &lpf1->y2l);
+		buf[i] = imuldiv24(high + inputr, weti) + imuldiv24(buf[i], dryi);
 
 		/* right */
 		inputr = buf[++i];
 		/* decomposition */
-		inputr -= imuldiv24(q, b4r);
-		t1r = b1r;  b1r = imuldiv24(inputr + b0r, p) - imuldiv24(b1r, f);
-		t2r = b2r;  b2r = imuldiv24(b1r + t1r, p) - imuldiv24(b2r, f);
-		t1r = b3r;  b3r = imuldiv24(b2r + t2r, p) - imuldiv24(b3r, f);
-		low = b4r = imuldiv24(b3r + t1r, p) - imuldiv24(b4r, f);
-		b0r = inputr;
-		high = inputr - b4r;
+		do_filter_moog(&inputr, &high, svfr->f, svfr->p, svfr->q,
+			&svfr->b0, &svfr->b1, &svfr->b2, &svfr->b3, &svfr->b4);
 		/* waveshaping */
-		sig = (double)high * STEREO_OD_MAX_NEG;
-		ax1r = lastinr;
-		ay11r = ay1r;
-		ay31r = ay2r;
-		lastinr = sig - tanh(kresr * aoutr);
-		ay1r = kp1h * (lastinr + ax1r) - kp * ay1r;
-		ay2r = kp1h * (ay1r + ay11r) - kp * ay2r;
-		aoutr = kp1h * (ay2r + ay31r) - kp * aoutr;
-		sig = tanh(aoutr * valuer);
-		high = TIM_FSCALE(sig, STEREO_OD_BITS);
-		buf[i] = imuldiv24(high, weti) + imuldiv24(low, wetdi) + imuldiv24(buf[i], dryi);
+		do_od(&high, di);
+		/* anti-aliasing */
+		do_filter_biquad(&high, lpf1->a1, lpf1->a2, lpf1->b1, lpf1->b02, &lpf1->x1r, &lpf1->x2r, &lpf1->y1r, &lpf1->y2r);
+		buf[i] = imuldiv24(high + inputr, weti) + imuldiv24(buf[i], dryi);
 	}
-	svfl->b0 = b0l, svfl->b1 = b1l, svfl->b2 = b2l, svfl->b3 = b3l, svfl->b4 = b4l;
-    lpfl->ay1 = ay1l, lpfl->ay2 = ay2l, lpfl->aout = aoutl, lpfl->lastin = lastinl;
-	svfr->b0 = b0r, svfr->b1 = b1r, svfr->b2 = b2r, svfr->b3 = b3r, svfr->b4 = b4r;
-    lpfr->ay1 = ay1r, lpfr->ay2 = ay2r, lpfr->aout = aoutr, lpfr->lastin = lastinr;
 }
 
 static void do_delay_lcr(int32 *buf, int32 count, EffectList *ef)
@@ -4145,6 +4106,7 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_CHORUS_EQ3, "3-Band EQ (XG Chorus built-in)", do_eq3, NULL, conv_xg_chorus_eq3, sizeof(InfoEQ3),
 	EFFECT_STEREO_OVERDRIVE, "Stereo Overdrive", do_stereo_od, NULL, conv_xg_overdrive, sizeof(InfoStereoOD),
 	EFFECT_STEREO_DISTORTION, "Stereo Distortion", do_stereo_od, NULL, conv_xg_distortion, sizeof(InfoStereoOD),
+	EFFECT_STEREO_AMP_SIMULATOR, "Amp Simulator", do_stereo_od, NULL, conv_xg_amp_simulator, sizeof(InfoStereoOD),
 	EFFECT_OD_EQ3, "2-Band EQ (XG OD built-in)", do_eq3, NULL, conv_xg_od_eq3, sizeof(InfoEQ3),
 	EFFECT_DELAY_LCR, "Delay L,C,R", do_delay_lcr, NULL, conv_xg_delay_lcr, sizeof(InfoDelayLCR),
 	EFFECT_DELAY_LR, "Delay L,R", do_delay_lr, NULL, conv_xg_delay_lr, sizeof(InfoDelayLR),
@@ -4216,6 +4178,10 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	29, 24, 68, 45, 55, 0, 41, 72, 10, 127, 104, 0, 0, 0, 0, 0, 0, 
 	0x4A, 0x08, "STEREO OVERDRIVE", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	10, 24, 69, 46, 105, 0, 41, 66, 10, 127, 104, 0, 0, 0, 0, 0, 0, 
+	0x4B, 0, "AMP SIMULATOR", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	39, 1, 48, 55, 0, 0, 0, 0, 0, 127, 112, 0, 0, 0, 0, 0, 0, 
+	0x4B, 0x08, "STEREO AMP SIMULATOR", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	16, 2, 46, 119, 0, 0, 0, 0, 0, 127, 106, 0, 0, 0, 0, 0, 0, 
 	0x4C, 0, "3-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	70, 34, 60, 10, 70, 28, 46, 0, 0, 127, 0, 0, 0, 0, 0, 0, -1, 
 	0x4D, 0, "2-BAND EQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

@@ -199,6 +199,7 @@ enum {
 	EFFECT_CHORUS_EQ3,
 	EFFECT_STEREO_OVERDRIVE,
 	EFFECT_STEREO_DISTORTION,
+	EFFECT_STEREO_AMP_SIMULATOR,
 	EFFECT_OD_EQ3,
 	EFFECT_HEXA_CHORUS,
 	EFFECT_DELAY_LCR,
@@ -308,20 +309,22 @@ typedef struct {
 /*! Overdrive 1 / Distortion 1 */
 typedef struct {
 	double level;
-	int32 leveli, leveldi;	/* in fixed-point */
-	int8 drive, pan;
+	int32 leveli, di;	/* in fixed-point */
+	int8 drive, pan, amp_sw, amp_type;
 	filter_moog svf;
-	filter_lpf18 lpf18;
+	filter_biquad lpf1;
+	void (*amp_sim)(int32 *, int32);
 } InfoOverdrive1;
 
 /*! OD1 / OD2 */
 typedef struct {
 	double level, levell, levelr;
-	int32 levelli, levelri, leveldli, leveldri;	/* in fixed-point */
-	int8 drivel, driver, panl, panr;
+	int32 levelli, levelri, dli, dri;	/* in fixed-point */
+	int8 drivel, driver, panl, panr, typel, typer, amp_swl, amp_swr, amp_typel, amp_typer;
 	filter_moog svfl, svfr;
-	filter_lpf18 lpf18l, lpf18r;
-	int32 typel, typer;
+	filter_biquad lpf1;
+	void (*amp_siml)(int32 *, int32), (*amp_simr)(int32 *, int32);
+	void (*odl)(int32 *, int32), (*odr)(int32 *, int32);
 } InfoOD1OD2;
 
 /*! HEXA-CHORUS */
@@ -405,11 +408,11 @@ typedef struct {
 
 /*! Stereo Overdrive / Distortion */
 typedef struct {
-	int8 type;
 	double level, dry, wet, drive, cutoff;
-	int32 dryi, weti, wetdi;
+	int32 dryi, weti, di;
 	filter_moog svfl, svfr;
-	filter_lpf18 lpf18l, lpf18r;
+	filter_biquad lpf1;
+	void (*od)(int32 *, int32);
 } InfoStereoOD;
 
 /*! Delay L,C,R */

@@ -1,3 +1,9 @@
+2004-03-20  Saito <saito@intaa.net>
+
+	* timidity/reverb.[ch], timidity/readmidi.c:
+	  Implement XG Amp Simulator (incomplete).
+	  Change algorithm of Overdrive / Distortion.
+
 2004-03-20  Takaya Nogami <t-nogami@happy.email.ne.jp>
 
 	* timidity/darwin_a.c: 24bit output support

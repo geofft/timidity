@@ -6654,6 +6654,9 @@ void realloc_effect_xg(struct effect_xg_t *st)
 		st->ef = push_effect(st->ef, EFFECT_STEREO_OVERDRIVE);
 		st->ef = push_effect(st->ef, EFFECT_OD_EQ3);
 		break;
+	case 0x4B:
+		st->ef = push_effect(st->ef, EFFECT_STEREO_AMP_SIMULATOR);
+		break;
 	case 0x4C:
 		st->ef = push_effect(st->ef, EFFECT_EQ3);
 		break;
