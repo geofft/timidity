@@ -1,16 +1,21 @@
-2004-09-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* timidity/readmidi.c (check_midi_file): Fix to recognize .rmi & .mfi
-	  (Fix for [timidity-bugs-en:00030])
+	* freq.c: mostly rewritten
+	  New pitch and chord detection algorithm that is much more
+	  robust and accurate than before.
+	* sndfont.c (main): CFG_FOR_SF_SUPPORT_FFT related code
+	  modified to work with new freq.c
 
-2004-09-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-03  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c: add null_play_mode
 	  (fix for [timidity-bugs-en:00031])
 	* timidity/timidity.c (parse_opt_h): add prototype for
 	  show_ao_device_info()
+	* timidity/readmidi.c (check_midi_file): Fix to recognize .rmi & .mfi
+	  (Fix for [timidity-bugs-en:00030])
 
-2004-09-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-09-01  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c : Fix for linkage error in W32
 	* utils/support.h (S_ISDIR): define S_ISDIR for platforms without

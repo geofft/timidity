@@ -18,8 +18,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#define NUM_WIDE_PEAKS_TO_KEEP 99999	/* keep only the first n humps */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
@@ -33,16 +31,14 @@
 #include "freq.h"
 #include "fft4g.h"
 
-static float *floatdata, *magdata, *logmagdata, *cepstrum;
-static int *ip;
-static float *w;
-static uint32 oldfftsize = 0;
-static float pitchmags[129];
-static double pitchbins[129];
-static double pitchbins_cepstrum[129];
-static int *fft1_bin_to_pitch;
-
-
+float *floatdata, *magdata, *prunemagdata;
+int *ip;
+float *w;
+uint32 oldfftsize = 0;
+float pitchmags[129];
+double pitchbins[129];
+double new_pitchbins[129];
+int *fft1_bin_to_pitch;
 
 /* middle C = pitch 60 = 261.6 Hz
    freq     = 13.75 * exp((pitch - 9) / 12 * log(2))
@@ -86,76 +82,58 @@ float pitch_freq_table[129] = {
 
 
 
+/* center_pitch + 0.49999 */
 float pitch_freq_ub_table[129] = {
-    8.41536811, 8.91577194, 9.44593133, 10.0076156, 10.6026994, 11.2331687,
-    11.9011277, 12.6088056, 13.3585642, 14.1529058, 14.9944813, 15.8860996,
-
-    16.8307362, 17.8315439, 18.8918627, 20.0152313, 21.2053988, 22.4663375,
-    23.8022554, 25.2176112, 26.7171284, 28.3058115, 29.9889626, 31.7721992,
-
-    33.6614724, 35.6630878, 37.7837253, 40.0304625, 42.4107977, 44.9326750,
-    47.6045109, 50.4352224, 53.4342568, 56.6116230, 59.9779253, 63.5443983,
-
-    67.3229449, 71.3261755, 75.5674506, 80.0609251, 84.8215954, 89.8653499,
-    95.2090217, 100.870445, 106.868514, 113.223246, 119.955851, 127.088797,
-
-    134.645890, 142.652351, 151.134901, 160.121850, 169.643191, 179.730700,
-    190.418043, 201.740890, 213.737027, 226.446492, 239.911701, 254.177593,
-
-    269.291780, 285.304702, 302.269802, 320.243700, 339.286382, 359.461400,
-    380.836087, 403.481779, 427.474054, 452.892984, 479.823402, 508.355187,
-
-    538.583559, 570.609404, 604.539605, 640.487400, 678.572763, 718.922799,
-    761.672174, 806.963558, 854.948108, 905.785968, 959.646805, 1016.71037,
-
-    1077.16712, 1141.21881, 1209.07921, 1280.97480, 1357.14553, 1437.84560,
-    1523.34435, 1613.92712, 1709.89622, 1811.57194, 1919.29361, 2033.42075,
-
-    2154.33424, 2282.43762, 2418.15842, 2561.94960, 2714.29105, 2875.69120,
-    3046.68869, 3227.85423, 3419.79243, 3623.14387, 3838.58722, 4066.84149,
-
-    4308.66847, 4564.87523, 4836.31684, 5123.89920, 5428.58211, 5751.38240,
-    6093.37739, 6455.70846, 6839.58487, 7246.28775, 7677.17444, 8133.68299,
-
-    8617.33694, 9129.75046, 9672.63368, 10247.7984, 10857.1642, 11502.7648,
-    12186.7548, 12911.4169, 13679.1697
+    8.41536325, 8.91576679, 9.44592587, 10.0076099, 10.6026933, 11.2331623,
+    11.9011208, 12.6087983, 13.3585565, 14.1528976, 14.9944727, 15.8860904,
+    16.8307265, 17.8315336, 18.8918517, 20.0152197, 21.2053866, 22.4663245,
+    23.8022417, 25.2175966, 26.7171129, 28.3057952, 29.9889453, 31.7721808,
+    33.6614530, 35.6630672, 37.7837035, 40.0304394, 42.4107732, 44.9326490,
+    47.6044834, 50.4351932, 53.4342259, 56.6115903, 59.9778907, 63.5443616,
+    67.3229060, 71.3261343, 75.5674070, 80.0608788, 84.8215464, 89.8652980,
+    95.2089667, 100.870386, 106.868452, 113.223181, 119.955781, 127.088723,
+    134.645812, 142.652269, 151.134814, 160.121758, 169.643093, 179.730596,
+    190.417933, 201.740773, 213.736904, 226.446361, 239.911563, 254.177446,
+    269.291624, 285.304537, 302.269628, 320.243515, 339.286186, 359.461192,
+    380.835867, 403.481546, 427.473807, 452.892723, 479.823125, 508.354893,
+    538.583248, 570.609074, 604.539256, 640.487030, 678.572371, 718.922384,
+    761.671734, 806.963092, 854.947614, 905.785445, 959.646250, 1016.70979,
+    1077.16650, 1141.21815, 1209.07851, 1280.97406, 1357.14474, 1437.84477,
+    1523.34347, 1613.92618, 1709.89523, 1811.57089, 1919.29250, 2033.41957,
+    2154.33299, 2282.43630, 2418.15702, 2561.94812, 2714.28948, 2875.68954,
+    3046.68693, 3227.85237, 3419.79046, 3623.14178, 3838.58500, 4066.83914,
+    4308.66598, 4564.87260, 4836.31405, 5123.89624, 5428.57897, 5751.37907,
+    6093.37387, 6455.70474, 6839.58092, 7246.28356, 7677.17000, 8133.67829,
+    8617.33197, 9129.74519, 9672.62809, 10247.7925, 10857.1579, 11502.7581,
+    12186.7477, 12911.4095, 13679.1618
 };
 
 
 
+/* center_pitch - 0.49999 */
 float pitch_freq_lb_table[129] = {
-    7.94304979, 8.41536811, 8.91577194, 9.44593133, 10.0076156, 10.6026994,
-    11.2331687, 11.9011277, 12.6088056, 13.3585642, 14.1529058, 14.9944813,
-
-    15.8860996, 16.8307362, 17.8315439, 18.8918627, 20.0152313, 21.2053988,
-    22.4663375, 23.8022554, 25.2176112, 26.7171284, 28.3058115, 29.9889626,
-
-    31.7721992, 33.6614724, 35.6630878, 37.7837253, 40.0304625, 42.4107977,
-    44.9326750, 47.6045109, 50.4352224, 53.4342568, 56.6116230, 59.9779253,
-
-    63.5443983, 67.3229449, 71.3261755, 75.5674506, 80.0609251, 84.8215954,
-    89.8653499, 95.2090217, 100.870445, 106.868514, 113.223246, 119.955851,
-
-    127.088797, 134.645890, 142.652351, 151.134901, 160.121850, 169.643191,
-    179.730700, 190.418043, 201.740890, 213.737027, 226.446492, 239.911701,
-
-    254.177593, 269.291780, 285.304702, 302.269802, 320.243700, 339.286382,
-    359.461400, 380.836087, 403.481779, 427.474054, 452.892984, 479.823402,
-
-    508.355187, 538.583559, 570.609404, 604.539605, 640.487400, 678.572763,
-    718.922799, 761.672174, 806.963558, 854.948108, 905.785968, 959.646805,
-
-    1016.71037, 1077.16712, 1141.21881, 1209.07921, 1280.97480, 1357.14553,
-    1437.84560, 1523.34435, 1613.92712, 1709.89622, 1811.57194, 1919.29361,
-
-    2033.42075, 2154.33424, 2282.43762, 2418.15842, 2561.94960, 2714.29105,
-    2875.69120, 3046.68869, 3227.85423, 3419.79243, 3623.14387, 3838.58722,
-
-    4066.84149, 4308.66847, 4564.87523, 4836.31684, 5123.89920, 5428.58211,
-    5751.38240, 6093.37739, 6455.70846, 6839.58487, 7246.28775, 7677.17444,
-
-    8133.68299, 8617.33694, 9129.75046, 9672.63368, 10247.7984, 10857.1642,
-    11502.7648, 12186.7548, 12911.4169
+    7.94305438, 8.41537297, 8.91577709, 9.44593678, 10.0076214, 10.6027055,
+    11.2331752, 11.9011346, 12.6088129, 13.3585719, 14.1529139, 14.9944900,
+    15.8861088, 16.8307459, 17.8315542, 18.8918736, 20.0152428, 21.2054111,
+    22.4663505, 23.8022692, 25.2176258, 26.7171438, 28.3058279, 29.9889800,
+    31.7722175, 33.6614919, 35.6631084, 37.7837471, 40.0304857, 42.4108222,
+    44.9327009, 47.6045384, 50.4352515, 53.4342876, 56.6116557, 59.9779599,
+    63.5444350, 67.3229838, 71.3262167, 75.5674943, 80.0609713, 84.8216444,
+    89.8654018, 95.2090767, 100.870503, 106.868575, 113.223311, 119.955920,
+    127.088870, 134.645968, 142.652433, 151.134989, 160.121943, 169.643289,
+    179.730804, 190.418153, 201.741006, 213.737151, 226.446623, 239.911840,
+    254.177740, 269.291935, 285.304867, 302.269977, 320.243885, 339.286578,
+    359.461607, 380.836307, 403.482012, 427.474301, 452.893246, 479.823680,
+    508.355480, 538.583870, 570.609734, 604.539954, 640.487770, 678.573155,
+    718.923215, 761.672614, 806.964024, 854.948602, 905.786491, 959.647359,
+    1016.71096, 1077.16774, 1141.21947, 1209.07991, 1280.97554, 1357.14631,
+    1437.84643, 1523.34523, 1613.92805, 1709.89720, 1811.57298, 1919.29472,
+    2033.42192, 2154.33548, 2282.43893, 2418.15982, 2561.95108, 2714.29262,
+    2875.69286, 3046.69045, 3227.85610, 3419.79441, 3623.14597, 3838.58944,
+    4066.84384, 4308.67096, 4564.87787, 4836.31963, 5123.90216, 5428.58524,
+    5751.38572, 6093.38091, 6455.71219, 6839.58882, 7246.29193, 7677.17887,
+    8133.68768, 8617.34192, 9129.75574, 9672.63927, 10247.8043, 10857.1705,
+    11502.7714, 12186.7618, 12911.4244
 };
 
 
@@ -166,72 +144,109 @@ float pitch_freq_lb_table[129] = {
    (f)ifth,		rotate back 1,	rotate back 2
 */
 int chord_table[4][3][3] = {
-    {{ 0, 4, 7 },     { -5, 0, 4 },     { -8, -5, 0 }},
-    {{ 0, 3, 7 },     { -5, 0, 3 },     { -9, -5, 0 }},
-    {{ 0, 3, 6 },     { -6, 0, 3 },     { -9, -6, 0 }},
-    {{ 0, 5, 7 },     { -5, 0, 5 },     { -7, -5, 0 }}
+    0, 4, 7,     -5, 0, 4,     -8, -5, 0,
+    0, 3, 7,     -5, 0, 3,     -9, -5, 0,
+    0, 3, 6,     -6, 0, 3,     -9, -6, 0,
+    0, 5, 7,     -5, 0, 5,     -7, -5, 0
 };
 
-
-
 /* write the chord type to *chord, returns the root note of the chord */
-int assign_chord(double *pitchbins, int *chord)
+int assign_chord(double *pitchbins, int *chord,
+		 int min_guesspitch, int max_guesspitch, int root_pitch)
 {
 
     int type, subtype;
-    int pitches[3];
-    int i, j, n;
-    double val;
+    int pitches[19] = {0};
+    int prune_pitches[10] = {0};
+    int i, j, k, n, n2;
+    double val, cutoff, max;
     int start = 0;
+    int root_flag;
 
     *chord = -1;
 
-    /* count local maxima, take first 3 */
-    for (i = LOWEST_PITCH, n = 0; n < 3 && i <= HIGHEST_PITCH; i++)
+    if (root_pitch - 9 > min_guesspitch)
+    	min_guesspitch = root_pitch - 9;
+
+    if (min_guesspitch <= LOWEST_PITCH)
+    	min_guesspitch = LOWEST_PITCH + 1;
+
+    if (root_pitch + 9 < max_guesspitch)
+    	max_guesspitch = root_pitch + 9;
+
+    if (max_guesspitch >= HIGHEST_PITCH)
+    	max_guesspitch = HIGHEST_PITCH - 1;
+
+    /* keep only local maxima */
+    for (i = min_guesspitch, n = 0; i <= max_guesspitch; i++)
     {
 	val = pitchbins[i];
 	if (val)
 	{
-	    /* reached the end of a wide peak */
-	    if (i == HIGHEST_PITCH || !pitchbins[i + 1])
-	    {
-		for (j = start; j <= i; j++)
-		{
-		    /* throw out all but local maxima */
-		    val = pitchbins[j];
-		    if (j && pitchbins[j - 1] < val &&
-			j < HIGHEST_PITCH && pitchbins[j + 1] < val)
-		    {
-			pitches[n++] = j;
-			if (n == 3)
-			    break;
-		    }
-		}
-	    }
+	    if (pitchbins[i-1] < val && pitchbins[i+1] < val)
+		pitches[n++] = i;
 	}
-	else
-	    start = i + 1;
     }
 
-    for (subtype = 0; subtype < 3; subtype++)
-    {
-	for (type = 0; type < 4; type++)
-	{
-	    for (i = 0, n = 0; i < 3; i++)
-	    {
-		if (i == subtype)
-		    continue;
+    if (n < 3)
+    	return -1;
 
-		if (pitches[i] - pitches[subtype] ==
-		    chord_table[type][subtype][i])
-			n++;
-	    }
-	    if (n == 2)
+    /* find largest peak */
+    max = -1;
+    for (i = 0; i < n; i++)
+    {
+    	val = pitchbins[pitches[i]];
+    	if (val > max)
+    	    max = val;
+    }
+
+    /* discard any peaks below cutoff */
+    cutoff = 0.2 * max;
+    for (i = 0, n2 = 0, root_flag = 0; i < n; i++)
+    {
+    	val = pitchbins[pitches[i]];
+    	if (val >= cutoff)
+    	{
+    	    prune_pitches[n2++] = pitches[i];
+    	    if (pitches[i] == root_pitch)
+    	    	root_flag = 1;
+    	}
+    }
+    
+    if (!root_flag || n2 < 3)
+    	return -1;
+
+    /* search for a chord, must contain root pitch */
+    for (i = 0; i < n2; i++)
+    {
+    	for (subtype = 0; subtype < 3; subtype++)
+    	{
+    	    if (i + subtype >= n2)
+    	    	continue;
+
+	    for (type = 0; type < 4; type++)
 	    {
-		*chord = 3 * type + subtype;
-		return pitches[subtype];
-	    }
-	}
+    	    	for (j = 0, n = 0, root_flag = 0; j < 3; j++)
+    	    	{
+		    k = i + j;
+
+    	    	    if (k >= n2)
+    	    	    	continue;
+    	    	    
+    	    	    if (prune_pitches[k] == root_pitch)
+    	    	    	root_flag = 1;
+
+		    if (prune_pitches[k] - prune_pitches[i+subtype] ==
+		    	chord_table[type][subtype][j])
+			    n++;
+    	    	}
+	    	if (root_flag && n == 3)
+	    	{
+		    *chord = 3 * type + subtype;
+		    return prune_pitches[i+subtype];
+	    	}
+    	    }
+    	}
     }
 
     return -1;
@@ -243,7 +258,7 @@ int assign_chord(double *pitchbins, int *chord)
 int freq_initialize_fft_arrays(Sample *sp)
 {
 
-    uint32 i, padding;
+    uint32 i;
     uint32 length, newlength;
     unsigned int rate;
     sample_t *origdata;
@@ -258,25 +273,15 @@ int freq_initialize_fft_arrays(Sample *sp)
 	floatdata[i] = origdata[i];
 
     /* length must be a power of 2 */
-    /* set it to smallest power of 2 >= rate */
-    /* if you make it bigger than this, freq magnitudes get too difused for
-       good cepstrum weighting */
-    newlength = pow(2, ceil(log(length) / log(2)));
-    if (newlength > length)
+    /* set it to smallest power of 2 >= 1.4*rate */
+    /* at least 1.4*rate is required for decent resolution of low notes */
+    newlength = pow(2, ceil(log(1.4*rate) / log(2)));
+    if (length < newlength)
     {
 	floatdata = safe_realloc(floatdata, newlength * sizeof(float));
 	memset(floatdata + length, 0, (newlength - length) * sizeof(float));
     }
     length = newlength;
-    if (length < rate)
-    {
-	padding = pow(2, ceil(log(rate) / log(2))) - length;
-	floatdata = safe_realloc(floatdata, (length + padding) * sizeof(float));
-	memset(floatdata + length, 0, padding * sizeof(float));
-	length += padding;
-    }
-    else if (length > pow(2, ceil(log(rate) / log(2))))
-	length = pow(2, ceil(log(rate) / log(2)));
 
     /* allocate FFT arrays */
     /* calculate sin/cos and fft1_bin_to_pitch tables */
@@ -287,15 +292,13 @@ int freq_initialize_fft_arrays(Sample *sp)
         if (oldfftsize > 0)
         {
             free(magdata);
-            free(logmagdata);
-            free(cepstrum);
+            free(prunemagdata);
             free(ip);
             free(w);
             free(fft1_bin_to_pitch);
         }
         magdata = (float *) safe_malloc(length * sizeof(float));
-        logmagdata = (float *) safe_malloc(length * sizeof(float));
-        cepstrum = (float *) safe_malloc(length * sizeof(float));
+        prunemagdata = (float *) safe_malloc(length * sizeof(float));
         ip = (int *) safe_malloc(2 + sqrt(length) * sizeof(int));
         *ip = 0;
         w = (float *) safe_malloc((length >> 1) * sizeof(float));
@@ -310,8 +313,8 @@ int freq_initialize_fft_arrays(Sample *sp)
     /* zero out arrays that need it */
     memset(pitchmags, 0, 129 * sizeof(float));
     memset(pitchbins, 0, 129 * sizeof(double));
-    memset(pitchbins_cepstrum, 0, 129 * sizeof(double));
-    memset(logmagdata, 0, length * sizeof(float));
+    memset(new_pitchbins, 0, 129 * sizeof(double));
+    memset(prunemagdata, 0, length * sizeof(float));
 
     return(length);
 }
@@ -319,8 +322,8 @@ int freq_initialize_fft_arrays(Sample *sp)
 
 
 /* return the frequency of the sample */
-/* max of 1.0 - 2.0 seconds of audio is analyzed, depending on sample rate */
-/* samples < 1 second are padded to the max length for higher fft accuracy */
+/* max of 1.4 - 2.0 seconds of audio is analyzed, depending on sample rate */
+/* samples < 1.4 seconds are padded to max length for higher fft accuracy */
 float freq_fourier(Sample *sp, int *chord)
 {
 
@@ -328,20 +331,20 @@ float freq_fourier(Sample *sp, int *chord)
     int32 maxoffset, minoffset, minoffset1, minoffset2;
     int32 minbin, maxbin;
     int32 bin, bestbin, largest_peak;
-    int32 i, n;
+    int32 i, j, n, total;
     unsigned int rate;
-    int dist, bestdist;
-    int pitch, minpitch, maxpitch;
+    int pitch, bestpitch, minpitch, maxpitch, maxpitch2;
     sample_t *origdata;
     float f0, mag, maxmag;
-    sample_t amp, oldamp, maxamp;
+    int16 amp, oldamp, maxamp;
     int32 maxpos;
     double sum, weightsum, maxsum;
-    double maxcepstrum;
-    float refinedbin;
-    float freq;
-    float minfreq, maxfreq, newminfreq, newmaxfreq;
-
+    double sum_bestfreq;
+    double f0_inv;
+    int num_maxsum;
+    float freq, newfreq, bestfreq, freq_inc;
+    float minfreq, maxfreq, minfreq2, maxfreq2;
+    float min_guessfreq, max_guessfreq;
 
     rate = sp->sample_rate;
     length = length0 = sp->data_length >> FRACTION_BITS;
@@ -351,9 +354,10 @@ float freq_fourier(Sample *sp, int *chord)
 
     /* base frequency of the FFT */
     f0 = (float) rate / length;
+    f0_inv = 1.0 / f0;
 
     /* get maximum amplitude */
-    maxamp = 0;
+    maxamp = -1;
     for (i = 0; i < length0; i++)
     {
 	amp = abs(origdata[i]);
@@ -364,45 +368,81 @@ float freq_fourier(Sample *sp, int *chord)
 	}
     }
 
-    /* go out 2 zero crossings starting from maxpos */
+    /* go out 2 zero crossings in both directions, starting at maxpos */
+    /* find the peaks after the 2nd crossing */
     minoffset1 = 0;
-    for (n = 0, oldamp = maxamp, i = maxpos - 1; i >= 0 && n < 2; i--)
+    for (n = 0, oldamp = origdata[maxpos], i = maxpos - 1; i >= 0 && n < 2; i--)
     {
 	amp = origdata[i];
-	if ((amp * oldamp < 0) ||
-	    (maxamp * amp > 0 && !oldamp) || (maxamp * oldamp > 0 && !amp))
-		n++;
+	if ((oldamp && amp == 0) || (oldamp > 0 && amp < 0) ||
+	    (oldamp < 0 && amp > 0))
+	    n++;
 	oldamp = amp;
     }
-    if (n == 2)
-	minoffset1 = maxpos - i;
+    minoffset1 = i;
+    maxamp = labs(origdata[i]);
+    while (i >= 0)
+    {
+	amp = origdata[i];
+	if ((oldamp && amp == 0) || (oldamp > 0 && amp < 0) ||
+	    (oldamp < 0 && amp > 0))
+	{
+	    break;
+	}
+	oldamp = amp;
+
+	amp = labs(amp);
+	if (amp > maxamp)
+	{
+	    maxamp = amp;
+	    minoffset1 = i;
+	}
+	i--;
+    }
+
     minoffset2 = 0;
-    for (n = 0, oldamp = maxamp, i = maxpos + 1; i < length0 && n < 2; i++)
+    for (n = 0, oldamp = origdata[maxpos], i = maxpos + 1; i < length0 && n < 2; i++)
     {
 	amp = origdata[i];
-	if ((amp * oldamp < 0) ||
-	    (maxamp * amp > 0 && !oldamp) || (maxamp * oldamp > 0 && !amp))
-		n++;
+	if ((oldamp && amp == 0) || (oldamp > 0 && amp < 0) ||
+	    (oldamp < 0 && amp > 0))
+	    n++;
 	oldamp = amp;
     }
-    if (n == 2)
-	minoffset2 = i - maxpos;
+    minoffset2 = i;
+    maxamp = labs(origdata[i]);
+    while (i < length0)
+    {
+	amp = origdata[i];
+	if ((oldamp && amp == 0) || (oldamp > 0 && amp < 0) ||
+	    (oldamp < 0 && amp > 0))
+	{
+	    break;
+	}
+	oldamp = amp;
 
-    minoffset = minoffset1;
-    if (minoffset2 > minoffset1)
-	minoffset = minoffset2;
+	amp = labs(amp);
+	if (amp > maxamp)
+	{
+	    maxamp = amp;
+	    minoffset2 = i;
+	}
+	i++;
+    }
 
-    if (minoffset < 2)
-	minoffset = 2;
-    maxoffset = rate / pitch_freq_table[LOWEST_PITCH] + 2;
+    /* upper bound on the detected frequency */
+    /* distance between the two peaks is at most 2 periods */
+    minoffset = (minoffset2 - minoffset1);
+    if (minoffset < 4)
+	minoffset = 4;
+    max_guessfreq = (float) rate / (minoffset * 0.5);
+    if (max_guessfreq >= (rate >> 1)) max_guessfreq = (rate >> 1) - 1;
 
-    /* don't go beyond the end of the sample */
+    /* lower bound on the detected frequency */
+    maxoffset = rate / pitch_freq_lb_table[LOWEST_PITCH] + 0.5;
     if (maxoffset > (length >> 1))
 	maxoffset = (length >> 1);
-
-    minfreq = (float) rate / maxoffset;
-    maxfreq = (float) rate / minoffset;
-    if (maxfreq >= (rate >> 1)) maxfreq = (rate >> 1) - 1;
+    min_guessfreq = (float) rate / maxoffset;
 
     /* perform the in place FFT */
     rdft(length, 1, floatdata, ip, w);
@@ -416,21 +456,40 @@ float freq_fourier(Sample *sp, int *chord)
 	magdata[i >> 1] = sqrt(mag);
     }
 
-    /* bin the pitches */
+    /* find max mag */
     maxmag = 0;
     for (i = 1; i < (length >> 1); i++)
     {
 	mag = magdata[i];
 
 	pitch = fft1_bin_to_pitch[i];
-	pitchbins[pitch] += mag;
 	if (pitch && mag > maxmag)
 	    maxmag = mag;
+    }
+    
+    /* Apply non-linear scaling to the magnitudes
+     * I don't know why this improves the pitch detection, but it does
+     * The best choice of power seems to be between 1.64 - 1.68
+     */
+    for (i = 1; i < (length >> 1); i++)
+	magdata[i] = maxmag * pow(magdata[i] / maxmag, 1.66);
+
+    /* bin the pitches */
+    for (i = 1; i < (length >> 1); i++)
+    {
+	mag = magdata[i];
+
+	pitch = fft1_bin_to_pitch[i];
+	pitchbins[pitch] += mag;
+
 	if (mag > pitchmags[pitch])
 	    pitchmags[pitch] = mag;
     }
 
-    /* ingore lowest pitch when determinging largest peak */
+    /* zero out lowest pitch, since it contains all lower frequencies too */
+    pitchbins[LOWEST_PITCH] = 0;
+
+    /* find the largest peak */
     for (i = LOWEST_PITCH + 1, maxsum = -42; i <= HIGHEST_PITCH; i++)
     {
 	sum = pitchbins[i];
@@ -441,231 +500,220 @@ float freq_fourier(Sample *sp, int *chord)
 	}
     }
 
+    minpitch = assign_pitch_to_freq(min_guessfreq);
+    if (minpitch > HIGHEST_PITCH) minpitch = HIGHEST_PITCH;
+
+    /* zero out any peak below minpitch */
+    for (i = LOWEST_PITCH + 1; i < minpitch; i++)
+	pitchbins[i] = 0;
+
     /* remove all pitches below threshold */
-    for (i = LOWEST_PITCH; i <= HIGHEST_PITCH; i++)
+    for (i = minpitch; i <= HIGHEST_PITCH; i++)
     {
-	if (pitchbins[i] / maxsum < 0.1 || pitchmags[i] / maxmag < 0.2)
+	if (pitchbins[i] / maxsum < 0.01 && pitchmags[i] / maxmag < 0.01)
 	    pitchbins[i] = 0;
     }
 
-    /* zero out any peak that has LOWEST_PITCH in it */
-    for (i = LOWEST_PITCH; pitchbins[i] && i <= HIGHEST_PITCH; i++)
+    /* keep local maxima */
+    for (i = LOWEST_PITCH + 1; i < HIGHEST_PITCH; i++)
     {
-	pitchbins[i] = 0;
+    	double temp;
+
+	temp = pitchbins[i];
+	    
+    	/* also keep significant bands to either side */
+    	if (temp && pitchbins[i-1] < temp && pitchbins[i+1] < temp)
+    	{
+    	    new_pitchbins[i] = temp;
+
+    	    temp *= 0.5;
+    	    if (pitchbins[i-1] >= temp)
+    	    	new_pitchbins[i-1] = pitchbins[i-1];
+    	    if (pitchbins[i+1] >= temp)
+    	    	new_pitchbins[i+1] = pitchbins[i-1];
+    	}
+    }
+    memcpy(pitchbins, new_pitchbins, 129 * sizeof(double));
+
+    /* find lowest and highest pitches */
+    minpitch = LOWEST_PITCH;
+    while (minpitch < HIGHEST_PITCH && !pitchbins[minpitch])
+    	minpitch++;
+    maxpitch = HIGHEST_PITCH;
+    while (maxpitch > LOWEST_PITCH && !pitchbins[maxpitch])
+    	maxpitch--;
+
+    /* uh oh, no pitches left...
+     * best guess is middle C
+     * return 260 Hz, since exactly 260 Hz is never returned except on error
+     * this should only occur on blank/silent samples
+     */
+    if (maxpitch < minpitch)
+    {
+    	free(floatdata);
+    	return 260.0;
     }
 
-    /* keep only the first NUM_WIDE_PEAKS_TO_KEEP wide peaks */
-    newminfreq = minfreq;
-    newmaxfreq = maxfreq;
-    minpitch = -1;
-    for (i = LOWEST_PITCH, n = 0; i <= HIGHEST_PITCH; i++)
-    {
-	if (pitchbins[i])
-	{
-	    if (n < NUM_WIDE_PEAKS_TO_KEEP)
-	    {
-		if (i == HIGHEST_PITCH || !pitchbins[i + 1])
-		    n++;
-		if (minpitch < 0)
-		{
-		    freq = pitch_freq_lb_table[i];
-		    if (freq > minfreq)
-			newminfreq = freq;
-		    minpitch = i;
-		}
-		freq = pitch_freq_ub_table[i];
-		if (freq < maxfreq)
-		    newmaxfreq = freq;
-		maxpitch = i;
-	    }
-	    else
-		pitchbins[i] = 0;
-	}
-    }
+    /* pitch assignment bounds based on zero crossings and pitches kept */
+    if (pitch_freq_lb_table[minpitch] > min_guessfreq)
+    	min_guessfreq = pitch_freq_lb_table[minpitch];
+    if (pitch_freq_ub_table[maxpitch] < max_guessfreq)
+    	max_guessfreq = pitch_freq_ub_table[maxpitch];
 
-    minfreq = newminfreq;
-    maxfreq = newmaxfreq;
+    minfreq = pitch_freq_lb_table[minpitch];
+    if (minfreq >= (rate >> 1)) minfreq = (rate >> 1) - 1;
+    
+    maxfreq = pitch_freq_ub_table[maxpitch];
+    if (maxfreq >= (rate >> 1)) maxfreq = (rate >> 1) - 1;
 
     minbin = minfreq / f0;
     if (!minbin)
 	minbin = 1;
     maxbin = ceil(maxfreq / f0);
-
-    /* skip ahead to final freq refinement if it is a chord */
-    if ((pitch = assign_chord(pitchbins, chord)) >= 0)
-    {
-	minfreq = pitch_freq_lb_table[pitch];
-	maxfreq = pitch_freq_ub_table[pitch];
-	largest_peak = pitch;
-	goto fourier_refine_bin;
-    }
+    if (maxbin >= (length >> 1))
+    	maxbin = (length >> 1) - 1;
 
     /* filter out all "noise" from magnitude array */
-    /* save it into where we will take the logs */
     for (i = minbin, n = 0; i <= maxbin; i++)
     {
 	pitch = fft1_bin_to_pitch[i];
 	if (pitchbins[pitch])
 	{
-	    logmagdata[i] = magdata[i];
+	    prunemagdata[i] = magdata[i];
 	    n++;
 	}
     }
 
-    /* whoa!, there aren't any strong peaks at all !!! bomb early */
-    #ifndef CFG_FOR_SF
-    if (!n)
-	return 260;
-	#else
-	if (!n)
-	return -1;
-	#endif
-
-    /* check for remaining points */
-    for (i = maxbin, n = 0; i >= minbin; i--)
-	if (logmagdata[i] && i * f0 <= maxfreq)
-	    n++;
-
-    /* uh oh, this is not a well behaved sample */
+    /* whoa!, there aren't any strong peaks at all !!! bomb early
+     * best guess is middle C
+     * return 260 Hz, since exactly 260 Hz is never returned except on error
+     * this should only occur on blank/silent samples
+     */
     if (!n)
     {
-	/* set maxfreq to highest peak */
-	for (i = HIGHEST_PITCH; i >= 0; i--)
+    	free(floatdata);
+	return 260.0;
+    }
+
+    memset(new_pitchbins, 0, 129 * sizeof(double));
+
+    maxsum = -1;
+    minpitch = assign_pitch_to_freq(min_guessfreq);
+    maxpitch = assign_pitch_to_freq(max_guessfreq);
+    maxpitch2 = assign_pitch_to_freq(max_guessfreq) + 9;
+    if (maxpitch2 > HIGHEST_PITCH) maxpitch2 = HIGHEST_PITCH;
+
+    /* initial guess is first local maximum */
+    bestfreq = pitch_freq_table[minpitch];
+    if (minpitch < HIGHEST_PITCH &&
+    	pitchbins[minpitch+1] > pitchbins[minpitch])
+    	    bestfreq = pitch_freq_table[minpitch+1];
+
+    /* find best fundamental */
+    for (i = minpitch; i <= maxpitch2; i++)
+    {
+	if (!pitchbins[i])
+	    continue;
+
+    	minfreq2 = pitch_freq_lb_table[i];
+    	maxfreq2 = pitch_freq_ub_table[i];
+    	freq_inc = (maxfreq2 - minfreq2) * 0.1;
+    	if (minfreq2 >= (rate >> 1)) minfreq2 = (rate >> 1) - 1;
+    	if (maxfreq2 >= (rate >> 1)) maxfreq2 = (rate >> 1) - 1;
+
+	/* look for harmonics */
+	for (freq = minfreq2; freq <= maxfreq2; freq += freq_inc)
 	{
-	    if (pitchbins[i])
-		break;
-	}
-	maxfreq = pitch_freq_ub_table[i];
-    }
+	    double ratio;
+	
+    	    n = total = 0;
+    	    sum = weightsum = 0;
 
-    /* take the log10 of all the magnitudes */
-    for (i = minbin; i <= maxbin; i++)
-    {
-	if (!logmagdata[i])
-	    logmagdata[i] = 0;
-	else
-	    logmagdata[i] = log10(logmagdata[i]);
-    }
+	    for (j = 1; j <= 32 && (newfreq = j*freq) <= maxfreq; j++)
+    	    {
+    	    	pitch = assign_pitch_to_freq(newfreq);
 
-    /* take FFT of the log magnitude array */
-    rdft(length, 1, logmagdata, ip, w);
+    	    	if (pitchbins[pitch])
+    	    	{
+    	    	    sum += pitchbins[pitch];
+    	    	    n++;
+    	    	    total = j;
+    	  	}
+    	    }
 
-    minbin = ceil(rate / maxfreq);
-    if (!minbin)
-	minbin = 1;
-    maxbin = rate / minfreq;
-
-    /* uh oh, bin bounds are switched due to poor resolution */
-    if (maxbin < minbin)
-    {
-	bin = minbin;
-	minbin = maxbin;
-	maxbin = bin;
-    }
-
-    /* calculate the cepstrum, find maximum */
-    for (i = (minbin << 1), maxcepstrum = -42; i <= (maxbin << 1); i++)
-    {
-	mag = logmagdata[i++];
-	mag *= mag;
-	mag += logmagdata[i] * logmagdata[i];
-	cepstrum[i >> 1] = mag;
-
-	if (mag > maxcepstrum)
-	{
-	    maxcepstrum = mag;
-	    bestbin = i >> 1;
-	}
-    }
-
-    /* sum up cepstrum pitch peak areas */
-    for (i = minbin, n = 0; i <= maxbin; i++)
-    {
-	freq = (float) rate / i;
-	pitch = assign_pitch_to_freq(freq);
-
-	if (pitchbins[pitch] && freq >= minfreq && freq <= maxfreq)
-	{
-	    pitchbins_cepstrum[pitch] += cepstrum[i];
-	    n++;
-	}
-    }
-
-    /* uh oh, no good cepstrum peaks, might be bad FFT resolution? */
-    /* just choose the pitch closest to the biggest one */
-    if (!n)
-    {
-	pitch = assign_pitch_to_freq((float) rate / bestbin);
-	for (i = minpitch, bestdist = 129; i <= maxpitch; i++)
-	{
-	    if (!pitchbins[i])
-		continue;
-
-	    dist = abs(i - pitch);
-	    if (dist < bestdist)
+	    /* only pitches with good harmonics are assignment candidates */
+	    if (n > 1)
 	    {
-		bestdist = dist;
-		largest_peak = i;
-	    }
-	}
-	minfreq = pitch_freq_lb_table[largest_peak];
-	maxfreq = pitch_freq_ub_table[largest_peak];
-	goto fourier_refine_bin;
+	    	double ratio;
+	    	
+	    	ratio = (double) n / total;
+	    	if (ratio >= 0.333333)
+	    	{
+	    	    weightsum = ratio * sum;
+	    	    pitch = assign_pitch_to_freq(freq);
+
+		    /* use only these pitches for chord detection */
+	    	    if (pitch <= HIGHEST_PITCH && pitchbins[pitch])
+	    	    	new_pitchbins[pitch] = weightsum;
+
+		    if (pitch > maxpitch)
+		    	continue;
+
+    	    	    if (n < 2 || weightsum > maxsum)
+    	    	    {
+    	    	    	maxsum = weightsum;
+    	    	    	bestfreq = freq;
+    	    	    }
+    	    	}
+    	    }
+    	}
     }
 
-    /* weight cepstrum pitch peaks by the maximum magnitude of the pitch */
-    /* this doesn't work so well when fft length > 2*rate, which is why
-       only a maximum of 2 seconds of audio is analyzed */
-    for (i = minpitch; i <= maxpitch; i++)
-    {
-	if (pitchbins_cepstrum[i])
-	    pitchbins_cepstrum[i] *= pitchmags[i];
-    }
+    bestpitch = assign_pitch_to_freq(bestfreq);
 
-    /* find largest cepstrum pitch peak */
-    for (i = minpitch, maxsum = -42; i <= maxpitch; i++)
+    /* assign chords */
+    if ((pitch = assign_chord(new_pitchbins, chord,
+    	bestpitch - 9, maxpitch2, bestpitch)) >= 0)
+    	    bestpitch = pitch;
+
+    bestfreq = pitch_freq_table[bestpitch];
+
+    /* tune based on the fundamental and harmonics up to +5 octaves */
+    sum = weightsum = 0;
+    for (i = 1; i <= 32 && (freq = i*bestfreq) <= maxfreq; i++)
     {
-	sum = pitchbins_cepstrum[i];
-	if (sum > maxsum)
+	double tune;
+
+	minfreq2 = pitch_freq_lb_table[bestpitch];
+	maxfreq2 = pitch_freq_ub_table[bestpitch];
+
+	minbin = minfreq2 * f0_inv;
+	if (!minbin) minbin = 1;
+	maxbin = ceil(maxfreq2 * f0_inv);
+	if (maxbin >= (length>>1))
+	    maxbin = (length>>1) - 1;
+
+	for (bin = minbin; bin <= maxbin; bin++)
 	{
-	    maxsum = sum;
-	    largest_peak = i;
+	    tune = -36.37631656 + 17.31234049 * log(bin*f0) - bestpitch;
+	    sum += magdata[bin];
+	    weightsum += magdata[bin] * tune;
 	}
     }
 
-  fourier_refine_bin:;
+    bestfreq = 13.75 * exp(((bestpitch + weightsum / sum) - 9) /
+    	       12 * log(2));
 
-    minbin = minfreq / f0;
-    if (!minbin)
-	minbin = 1;
-    maxbin = ceil(maxfreq / f0);
-
-    /* do a weighted average of the frequencies within the pitch peak */
-    weightsum = sum = 0;
-    for (i = minbin, maxmag = -42; i <= maxbin; i++)
-    {
-	pitch = fft1_bin_to_pitch[i];
-	if (pitch == largest_peak)
-	{
-	    mag = magdata[i];
-	    if (mag > maxmag)
-	    {
-		maxmag = mag;
-		bestbin = i;
-	    }
-	    sum += mag;
-	    weightsum += i * mag;
-	}
-	else if (pitch > largest_peak)
-	    break;
-    }
-    refinedbin = weightsum / sum;
-
-    freq = refinedbin * f0;
+    /* Since we are using exactly 260 Hz as an error code, fudge the freq
+     * on the extremely unlikely chance that the detected pitch is exactly
+     * 260 Hz.
+     */
+    if (bestfreq == 260.0)
+    	bestfreq += 1E-5;
 
     free(floatdata);
 
-    return (freq);
+    return bestfreq;
 }
 
 
