@@ -1536,13 +1536,7 @@ extern int32 modify_release;
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 {
 	double attack, hold, delay, to_fc;
-#ifdef SF_EMULATE_SBLIVE
-	attack = to_msec(tbl->val[SF_attackEnv2]);
-	if(attack < 6) {attack = 6;}
-	vp->attack  = calc_rate(65535, attack);
-#else
     vp->attack  = to_rate(65535, tbl->val[SF_attackEnv2]);
-#endif
     vp->hold    = to_rate(1, tbl->val[SF_holdEnv2]);
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
     vp->decay   = to_rate(65533 - vp->sustain, tbl->val[SF_decayEnv2]);

@@ -1,3 +1,8 @@
+2003-06-28  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Fix volume bug of drum instruments.
+
 2003-06-26  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (reduce_voice_CPU): Bug fix (this is
