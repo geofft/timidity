@@ -359,6 +359,7 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #define write _write
 #define lseek _lseek
 #define unlink _unlink
+#pragma warning( 4 : 4305 4244 )
 #endif /* _MSC_VER */
 
 #define SAFE_CONVERT_LENGTH(len) (6 * (len) + 1)
