@@ -84,6 +84,9 @@ static inline void mix_single(mix_t *, int32 *, int, int);
 static inline int update_signal(int);
 static inline int update_envelope(int);
 int recompute_envelope(int);
+static inline int update_modulation_envelope(int);
+int apply_modulation_envelope(int);
+int recompute_modulation_envelope(int);
 static inline void voice_ran_out(int);
 static inline int next_stage(int);
 static inline void update_tremolo(int);
@@ -230,6 +233,7 @@ static inline void recalc_voice_fc(int v)
 		fc->a1 = TIM_FSCALE(a1, 24), fc->a2 = TIM_FSCALE(a2, 24);
 		fc->b0 = TIM_FSCALE(b0, 24), fc->b1 = TIM_FSCALE(b1, 24),
 		fc->b2 = TIM_FSCALE(b2, 24);
+		fc->hist1 = fc->hist2 = 0;
 	}
 }
 #endif
@@ -938,6 +942,8 @@ static inline int update_signal(int v)
 		return 1;
 	if (vp->tremolo_phase_increment)
 		update_tremolo(v);
+	if (opt_modulation_envelope)
+		update_modulation_envelope(v);
 	return apply_envelope_to_amp(v);
 }
 
@@ -1040,11 +1046,15 @@ static inline int next_stage(int v)
 	
 	stage = vp->envelope_stage++;
 	offset = vp->sample->envelope_offset[stage];
+	rate = vp->sample->envelope_rate[stage];
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
+	else if(stage == 0 && rate > (1 << 30)) {	/* instantaneous attack */
+		vp->envelope_volume = offset;
+		recompute_envelope(v);
+	}
 	ch = vp->channel;
-	rate = vp->sample->envelope_rate[stage];
 
 	/* envelope generator (see also playmidi.c) */
 	if (ISDRUMCHANNEL(ch))
@@ -1055,7 +1065,7 @@ static inline int next_stage(int v)
 		/* envelope key-follow */
 		if (vp->sample->envelope_keyf[stage])
 			rate *= pow(2.0, (double) (voice[v].note - 60)
-					* vp->sample->envelope_keyf[stage]);
+					* (double)vp->sample->envelope_keyf[stage] / 1200.0f);
 		val = channel[ch].envelope_rate[stage];
 	}
 	if (val != -1)
@@ -1064,7 +1074,7 @@ static inline int next_stage(int v)
 	/* envelope velocity-follow */
 	if (vp->sample->envelope_velf[stage])
 		rate *= pow(2.0, (double) (voice[v].velocity - 64)
-				* vp->sample->envelope_velf[stage]);
+				* (double)vp->sample->envelope_velf[stage] / 1200.0f);
 
 	/* just before release phase, some modifications are necessary */
 	if (stage > 2 /* && vp->sample->inst_type == INST_SF2 */) {
@@ -1131,11 +1141,6 @@ static inline void update_tremolo(int v)
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'
 	 *  volumes on average the lower the higher the tremolo amplitude.
 	 */
-
-	/* right tremolo volume is reserved temporarily. */
-/*	vp->tremolo_volume_right = 1.0 - TIM_FSCALENEG(
-			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
-			* depth * TREMOLO_AMPLITUDE_TUNING, 17);*/
 }
 
 int apply_envelope_to_amp(int v)
@@ -1241,4 +1246,157 @@ static inline void compute_mix_smoothing(Voice *vp)
 }
 #endif
 
+static inline int update_modulation_envelope(int v)
+{
+	Voice *vp = &voice[v];
+	
+	vp->modenv_volume += vp->modenv_increment;
+	if ((vp->modenv_increment < 0)
+			^ (vp->modenv_volume > vp->modenv_target)) {
+		vp->modenv_volume = vp->modenv_target;
+		if (recompute_modulation_envelope(v)) {
+			apply_modulation_envelope(v);
+			return 1;
+		}
+	}
 
+	apply_modulation_envelope(v);
+	
+	return 0;
+}
+
+int apply_modulation_envelope(int v)
+{
+	Voice *vp = &voice[v];
+
+	if(!opt_modulation_envelope) {return 0;}
+
+	if (vp->sample->modes & MODES_ENVELOPE) {
+		if (vp->modenv_stage > 3)
+			vp->last_modenv_volume = (double)vp->modenv_volume
+					* vp->modenv_scale / (double)(1 << 30);
+		else if (vp->modenv_stage > 1)
+			vp->last_modenv_volume = (double)vp->modenv_volume / (double)(1 << 30);
+		else
+			vp->last_modenv_volume = 1.0 - sb_vol_table[1024 - (vp->modenv_volume >> 20)];
+	}
+
+	recompute_voice_filter(v);
+	if(!(vp->porta_control_ratio && vp->porta_control_counter == 0)) {
+		recompute_freq(v);
+	}
+	return 0;
+}
+
+static inline int modenv_next_stage(int v)
+{
+	int stage, ch;
+	int32 offset, val;
+	FLOAT_T rate;
+	Voice *vp = &voice[v];
+	
+	stage = vp->modenv_stage++;
+	offset = vp->sample->modenv_offset[stage];
+	rate = vp->sample->modenv_rate[stage];
+	if (vp->modenv_volume == offset
+			|| (stage > 2 && vp->modenv_volume < offset))
+		return recompute_modulation_envelope(v);
+	else if(stage == 0 && rate > (1 << 30)) {	/* instantaneous attack */
+		vp->modenv_volume = offset;
+		recompute_modulation_envelope(v);
+	}
+
+	ch = vp->channel;
+
+	/* envelope generator (see also playmidi.c) */
+	if (ISDRUMCHANNEL(ch))
+		val = (channel[ch].drums[vp->note] != NULL)
+				? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
+				: -1;
+	else {
+		/* envelope key-follow */
+		if (vp->sample->modenv_keyf[stage])
+			rate *= pow(2.0, (double) (voice[v].note - 60)
+					* (double)vp->sample->modenv_keyf[stage] / 1200.0f);
+		val = channel[ch].envelope_rate[stage];
+	}
+	if (val != -1)
+		rate *= envelope_coef[val & 0x7f];
+
+	/* just before release phase, some modifications are necessary */
+	if (stage > 2) {
+		/* adjust release rate for consistent release time */
+		rate *= (double) vp->modenv_volume
+				/ vp->sample->modenv_offset[0];
+		/* calculate current envelope scale and a value for optimization */
+		vp->modenv_scale = vp->last_modenv_volume;
+	}
+
+	/* avoid too fast envelope speed */
+	if (offset < vp->modenv_volume) {	/* decaying phase */
+		if(rate > vp->modenv_volume - offset) {
+			rate = -vp->modenv_volume + offset - 1;
+		} else {
+			rate = -rate;
+		}
+	} else {	/* attacking phase */
+		if(rate > offset - vp->modenv_volume) {
+			rate = offset - vp->modenv_volume + 1;
+		}
+	}
+	
+	vp->modenv_increment = (int32)rate;
+	vp->modenv_target = offset;
+
+	return 0;
+}
+
+int recompute_modulation_envelope(int v)
+{
+	int stage, ch;
+	int32 rate;
+	Voice *vp = &voice[v];
+
+	if(!opt_modulation_envelope) {return 0;}
+
+	stage = vp->modenv_stage;
+	if (stage > 5) {return 1;}
+	else if (stage > 2 && vp->modenv_volume <= 0) {
+		return 1;
+	}
+
+	if (stage == 3 && vp->sample->modes & MODES_ENVELOPE
+			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+		/* Default behavior */
+		if (min_sustain_time <= 0)
+			/* Freeze envelope until note turns off */
+			vp->modenv_increment = 0;
+		else if (vp->status & VOICE_SUSTAINED
+				&& vp->sample->modes & MODES_LOOPING
+				&& vp->sample_offset - vp->sample->loop_start >= 0) {
+			if (min_sustain_time == 1)
+				/* The sustain stage is ignored. */
+				return modenv_next_stage(v);
+			/* Calculate the release phase speed. */
+			rate = -0x3fffffff * (double) control_ratio * 1000
+					/ (min_sustain_time * play_mode->rate);
+			ch = vp->channel;
+			vp->modenv_increment = -vp->sample->modenv_rate[2];
+			/* use the slower of the two rates */
+			if (vp->modenv_increment < rate)
+				vp->modenv_increment = rate;
+			if (! vp->modenv_increment)
+				/* Avoid freezing */
+				vp->modenv_increment = -1;
+			vp->modenv_target = 0;
+		/* it's not decaying, so freeze it */
+		} else {
+			/* tiny value to make other functions happy, freeze note */
+			vp->modenv_increment = 1;
+			/* this will cause update_envelope(v) to undo the +1 inc. */
+			vp->modenv_target = vp->modenv_volume;
+		}
+		return 0;
+	}
+	return modenv_next_stage(v);
+}

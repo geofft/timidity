@@ -284,7 +284,7 @@ void seq_play_event(MidiEvent *);
 void seq_set_time(MidiEvent *);
 static void stop_playing(void);
 static void doit(void);
-static void server_reset(void);
+void server_reset(void);
 void play_one_data (void);
 void winplaymidi(void);
 void CALLBACK MidiInProc(HMIDIIN,UINT,DWORD,DWORD,DWORD);
@@ -592,18 +592,21 @@ static void doit(void)
 				break;
 
 				case 'm':
+					server_reset();
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
 					seq_play_event(&ev);
 				break;
 
 				case 's':
+					server_reset();
 					ev.type=ME_RESET;
 					ev.a=GS_SYSTEM_MODE;
 					seq_play_event(&ev);
 				break;
 
 				case 'x':
+					server_reset();
 					ev.type=ME_RESET;
 					ev.a=XG_SYSTEM_MODE;
 					ev.time=0;
@@ -611,12 +614,14 @@ static void doit(void)
 				break;
 
 				case 'c':
+					server_reset();
 					ev.type=ME_RESET;
 					ev.a=system_mode;
 					seq_play_event(&ev);
 				break;
 
 				case 'M':
+					server_reset();
 					system_mode=GM_SYSTEM_MODE;
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
@@ -625,6 +630,7 @@ static void doit(void)
 				break;
 
 				case 'S':
+					server_reset();
 					system_mode=GS_SYSTEM_MODE;
 					ev.type=ME_RESET;
 					ev.a=GS_SYSTEM_MODE;
@@ -633,6 +639,7 @@ static void doit(void)
 				break;
 
 				case 'X':
+					server_reset();
 					system_mode=XG_SYSTEM_MODE;
 					ev.type=ME_RESET;
 					ev.a=XG_SYSTEM_MODE;
@@ -641,6 +648,7 @@ static void doit(void)
 				break;
 
 				case 'N':
+					server_reset();
 					system_mode=DEFAULT_SYSTEM_MODE;
 					ev.type=ME_RESET;
 					ev.a=GS_SYSTEM_MODE;
@@ -661,7 +669,7 @@ static void doit(void)
 }
 #endif
 
-static void server_reset(void)
+void server_reset(void)
 {
 	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
 	play_mode->open_output();	// but w32_a.c does not have it.

@@ -92,7 +92,7 @@ typedef struct _SampleList {
 	int32 start;
 	int32 len;
 	int32 cutoff_freq;
-	double resonance_dB;
+	int16 resonance;
 	int16 scaleTuning;	/* pitch scale tuning(%), normally 100 */
 	int16 root, tune;
 	char low, high;		/* key note range */
@@ -105,6 +105,12 @@ typedef struct _SampleList {
 	int32 sustain;
 	double decay;
 	double release;
+
+	double modattack;
+	double modhold;
+	int32 modsustain;
+	double moddecay;
+	double modrelease;
 } SampleList;
 
 typedef struct _InstList {
@@ -504,7 +510,7 @@ static int32 calc_rate(int32 diff, double msec)
 {
     double rate;
 
-    if(msec < 6) {msec = 6;}
+    if(msec == 0) {return (diff << 14) + 1;}
     if(diff <= 0) {diff = 1;}
     diff <<= 14;
     rate = ((double)diff / play_mode->rate) * control_ratio * 1000.0 / msec;
@@ -590,6 +596,25 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		sample->envelope_offset[5] = 0;
 		sample->envelope_rate[5] = sample->envelope_rate[3];
 
+		/* convert modulation envelope parameters */
+		sample->modenv_offset[0] = to_offset(65535);
+		sample->modenv_rate[0] = calc_rate(65535, sp->modattack);
+
+		sample->modenv_offset[1] = to_offset(65534);
+		sample->modenv_rate[1] = calc_rate(1, sp->modhold);
+
+		sample->modenv_offset[2] = to_offset(sp->modsustain);
+		sample->modenv_rate[2] = calc_rate(65533 - sp->modsustain, sp->moddecay);
+
+		sample->modenv_offset[3] = 0;
+		sample->modenv_rate[3] = calc_rate(65535, sp->modrelease);
+
+		sample->modenv_offset[4] = 0;
+		sample->modenv_rate[4] = sample->modenv_rate[3];
+
+		sample->modenv_offset[5] = 0;
+		sample->modenv_rate[5] = sample->modenv_rate[3];
+
 		if(i > 0 && (!sample->note_to_use ||
 			     (sample->modes & MODES_LOOPING)))
 		{
@@ -605,7 +630,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 			if(sp->start == sps->start)
 			{
 			    if(sp->cutoff_freq != sps->cutoff_freq ||
-			       sp->resonance_dB != sps->resonance_dB)
+			       sp->resonance != sps->resonance)
 				continue;
 			    if(antialiasing_allowed)
 			    {
@@ -658,7 +683,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 
 		/* #extension cutoff / resonance */
 		if(sp->cutoff_freq > 0) {sample->cutoff_freq = sp->cutoff_freq;}
-		if(sp->resonance_dB > 0) {sample->resonance_dB = sp->resonance_dB;}
+		if(sp->resonance > 0) {sample->resonance = sp->resonance;}
 
 		if (antialiasing_allowed)
 		    antialiasing((int16 *)sample->data,
@@ -1291,10 +1316,17 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	}
 
 	if(tbl->set[SF_autoHoldEnv2]) {
-		vp->v.envelope_keyf[1] = (FLOAT_T)tbl->val[SF_autoHoldEnv2] / 1200.0f;
+		vp->v.envelope_keyf[1] = (int16)tbl->val[SF_autoHoldEnv2];
 	}
 	if(tbl->set[SF_autoDecayEnv2]) {
-		vp->v.envelope_keyf[2] = (FLOAT_T)tbl->val[SF_autoDecayEnv2] / 1200.0f;
+		vp->v.envelope_keyf[2] = (int16)tbl->val[SF_autoDecayEnv2];
+	}
+
+	if(tbl->set[SF_autoHoldEnv1]) {
+		vp->v.modenv_keyf[1] = (int16)tbl->val[SF_autoHoldEnv1];
+	}
+	if(tbl->set[SF_autoDecayEnv1]) {
+		vp->v.modenv_keyf[2] = (int16)tbl->val[SF_autoDecayEnv1];
 	}
 
 #ifndef CFG_FOR_SF
@@ -1318,10 +1350,12 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	val = abscent_to_Hz(val);
 
-	if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
-	{
-	    val *= pow(2.0,(double)tbl->val[SF_env1ToFilterFc] / 1200.0f);
-		if(val > 20000) {val = 20000;}
+	if(!opt_modulation_envelope) {
+		if(tbl->set[SF_env1ToFilterFc] && tbl->val[SF_env1ToFilterFc] > 0)
+		{
+			val *= pow(2.0,(double)tbl->val[SF_env1ToFilterFc] / 1200.0f);
+			if(val > 20000) {val = 20000;}
+		}
 	}
 
 	vp->cutoff_freq = val;
@@ -1331,7 +1365,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(current_sfrec->def_resonance_allowed && tbl->set[SF_initialFilterQ])
     {
 	val = tbl->val[SF_initialFilterQ];
-	vp->resonance_dB = (FLOAT_T)val / 10.0;
+	vp->resonance = val;
 	}
 
 #if 0 /* Not supported */
@@ -1390,11 +1424,14 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
       vp->root -= 60;
 
     /* correct tune with the sustain level of modulation envelope */
-    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
+	if(!opt_modulation_envelope) {
+	    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
+	}
 
-    /* correct tune */
-    vp->tune += (int)tbl->val[SF_lfo1ToPitch];
-    vp->tune += (int)tbl->val[SF_lfo2ToPitch];
+	vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
+	vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
+	vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
+	vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
 }
 
 static void set_rootfreq(SampleList *vp)
@@ -1463,6 +1500,16 @@ static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
     else
 	vp->release = to_msec(tbl->val[SF_releaseEnv2]);
 
+    vp->modattack  = to_msec(tbl->val[SF_attackEnv1]);
+    vp->modhold    = to_msec(tbl->val[SF_holdEnv1]);
+    vp->modsustain = calc_sustain(tbl->val[SF_sustainEnv1]);
+	if(vp->modsustain > 65533) {vp->sustain = 65533;}
+    vp->moddecay   = to_msec(tbl->val[SF_decayEnv1]);
+    if(modify_release) /* Pseudo Reverb */
+	vp->modrelease = modify_release;
+    else
+	vp->modrelease = to_msec(tbl->val[SF_releaseEnv1]);
+
     vp->v.modes |= MODES_ENVELOPE;
 }
 
@@ -1479,15 +1526,8 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
     if(!tbl->set[SF_lfo1ToVolume])
 	return;
 
-    level = tbl->val[SF_lfo1ToVolume];
-    level = (level * 0x80) / 120;
-    if(level < -128)
-	level = -128;
-    if(level > 127)
-	level = 127;
-    if(level < 0)
-	level += 0x100;
-    vp->v.tremolo_depth = (uint8)level;
+    level = abs(tbl->val[SF_lfo1ToVolume]);
+    vp->v.tremolo_depth = 512 * cb_to_amp_table[960 - level];
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo1])
@@ -1500,7 +1540,8 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 
     /* convert mHz to sine table increment; 1024<<rate_shift=1wave */
     vp->v.tremolo_phase_increment = (freq * 1024) << RATE_SHIFT;
-    vp->v.tremolo_sweep_increment = 0;
+    vp->v.tremolo_sweep_increment = (double)(1 << SWEEP_SHIFT) * control_ratio / play_mode->rate
+		/ pow(2.0, (double)tbl->val[SF_delayLfo1] / 1200.0);
 }
 #endif
 
@@ -1520,6 +1561,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 
     /* cents to linear; 400cents = 256 */
     shift = shift * 256 / 400;
+	if(shift > 255) {shift = 255;}
     if(shift < 0)
       shift = -shift;
     vp->v.vibrato_depth = (uint8)shift;
@@ -1533,7 +1575,8 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 	freq = TO_MHZ(freq);
     }
     vp->vibrato_freq = freq;
-    vp->v.vibrato_sweep_increment = 0;
+    vp->v.vibrato_sweep_increment = (double)(1 << SWEEP_SHIFT) * control_ratio / play_mode->rate
+		/ pow(2.0, (double)tbl->val[SF_delayLfo2] / 1200.0);
 }
 #endif
 

@@ -613,6 +613,7 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
+		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_MOD_ENV,st_temp->opt_modulation_envelope);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
 		DLG_FLAG_TO_CHECKBUTTON(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);
@@ -745,6 +746,7 @@ PrefTiMidity1DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_PDELAY,st_temp->opt_delay_control);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_LPF_DEF,st_temp->opt_lpf_def);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_DRUM_EFFECT,st_temp->opt_drum_effect);
+		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_MOD_ENV,st_temp->opt_modulation_envelope);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_EQ,st_temp->opt_eq_control);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_IEFFECT,st_temp->opt_insertion_effect);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_SRCHORUS,st_temp->opt_surround_chorus);

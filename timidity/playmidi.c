@@ -190,9 +190,9 @@ int opt_delay_control = 0;	/* CC#94 delay(celeste) effect control */
 int opt_eq_control = 0;		/* channel equalizer control */
 int opt_insertion_effect = 0;	/* insertion effect control */
 int opt_drum_effect = 0;	/* drumpart effect control */
-int opt_random_expression = 0; /* expression randomize */
 int32 opt_drum_power = 100;		/* coef. of drum amplitude */
 int opt_amp_compensation = 0;
+int opt_modulation_envelope = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -652,6 +652,16 @@ void recompute_freq(int v)
 			|| channel[ch].drums[note]->coarse))
 		tuning += (channel[ch].drums[note]->fine
 				+ channel[ch].drums[note]->coarse * 64) << 7;
+	if(opt_modulation_envelope) {
+		if(voice[v].sample->tremolo_to_pitch) {
+			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
+				* (double)voice[v].sample->tremolo_to_pitch * (1 << 13) / 100.0f;
+		}
+		if(voice[v].sample->modenv_to_pitch) {
+			tuning += voice[v].last_modenv_volume
+				* (double)voice[v].sample->modenv_to_pitch * (1 << 13) / 100.0f;
+		}
+	}
 	/* Scale Tuning */
 	if (! ISDRUMCHANNEL(ch)) {
 		tuning += (st << 13) / 100.0 + 0.5;
@@ -881,6 +891,17 @@ void recompute_voice_filter(int v)
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	}
+	if(opt_modulation_envelope) {
+		if(voice[v].sample->tremolo_to_fc) {
+			coef += coef * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
+				* pow(2.0, (double)voice[v].sample->tremolo_to_fc / 1200.0f);
+		}
+		if(voice[v].sample->modenv_to_fc) {
+			coef += coef * voice[v].last_modenv_volume
+				* pow(2.0, (double)voice[v].sample->modenv_to_fc / 1200.0f);
+		}
+	}
+
 	freq = (double)fc->orig_freq * coef;
 
 	/* in this case, it's not necessary to do lowpass filter */
@@ -1954,7 +1975,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   memset(&(voice[i].fc),0,sizeof(FilterCoefficients));
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
-	  voice[i].fc.orig_reso_dB = voice[i].sample->resonance_dB;
+	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
 	  recompute_voice_filter(i);
   } else {
 	  voice[i].fc.freq = -1;
@@ -2019,10 +2040,15 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].control_counter=0;
       recompute_envelope(i);
       apply_envelope_to_amp(i);
+	  voice[i].modenv_stage = 0;
+      voice[i].modenv_volume = 0;
+      recompute_modulation_envelope(i);
+      apply_modulation_envelope(i);
     }
   else
     {
       voice[i].envelope_increment=0;
+	  voice[i].modenv_increment=0;
       apply_envelope_to_amp(i);
     }
 
@@ -2040,6 +2066,9 @@ static void finish_note(int i)
 	voice[i].status=VOICE_OFF;
 	voice[i].envelope_stage=3;
 	recompute_envelope(i);
+	voice[i].modenv_stage=3;
+	recompute_modulation_envelope(i);
+	apply_modulation_envelope(i);
 	apply_envelope_to_amp(i);
 	ctl_note_event(i);
 	}

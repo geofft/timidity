@@ -45,11 +45,14 @@ typedef struct _Sample {
     vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
-  int32 cutoff_freq;/*,resonance;*/
-  FLOAT_T resonance_dB;
+  int32 cutoff_freq;
+  int16 resonance;	/* in centibels, [-960 ~ 960] */
+  int16 tremolo_to_pitch, tremolo_to_fc,
+	  modenv_to_pitch, modenv_to_fc;
   int32
-    mod_envelope_rate[6], mod_envelope_offset[6];
-  FLOAT_T envelope_keyf[6], envelope_velf[6];
+    modenv_rate[6], modenv_offset[6];
+  int16 envelope_keyf[6], envelope_velf[6];
+  int16 modenv_keyf[6];
   int8 inst_type;
 } Sample;
 

@@ -42,6 +42,7 @@
 #define IDC_CHECKBOX_LPF_DEF            1012
 #define IDC_CHECKBOX_CH06               1013
 #define IDC_CHECKBOX_INIT_MI            1013
+#define IDC_CHECKBOX_MOD_ENV            1013
 #define IDC_CHECKBOX_CH07               1014
 #define IDC_CHECKBOX_CH08               1015
 #define IDC_CHECKBOX_CH09               1016

@@ -276,7 +276,9 @@ BEGIN
     CONTROL         "Drumpart Effect Control",IDC_CHECKBOX_DRUM_EFFECT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,103,118,85,10
     GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,93,152
-    GROUPBOX        "Special",IDC_STATIC,100,3,116,130
+    GROUPBOX        "Special",IDC_STATIC,100,3,116,139
+    CONTROL         "Modulation Envelope",IDC_CHECKBOX_MOD_ENV,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,103,128,76,10
 END
 
 IDD_PREF_TIMIDITY2_EN DIALOG DISCARDABLE  0, 0, 223, 186
@@ -958,9 +960,11 @@ BEGIN
     CONTROL         "ドラムパート・エフェクト",IDC_CHECKBOX_DRUM_EFFECT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,160,80,10
     GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,94,212
-    GROUPBOX        "特殊",IDC_STATIC,97,3,113,173
+    GROUPBOX        "特殊",IDC_STATIC,97,3,113,188
     CONTROL         "LPF / レゾナンス",IDC_CHECKBOX_LPF_DEF,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,145,66,10
+    CONTROL         "モジュレーション・エンベロープ",IDC_CHECKBOX_MOD_ENV,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,175,100,10
 END
 
 IDD_PREF_TIMIDITY2 DIALOG DISCARDABLE  0, 0, 211, 217

@@ -812,24 +812,28 @@ void w32g_syn_doit(void)
 				sleep_time = 100;
 				break;
 			case W32G_SYN_GM_SYSTEM_RESET:
+					server_reset();
 					ev.type=ME_RESET;
 					ev.a=GM_SYSTEM_MODE;
 					seq_play_event(&ev);
 					sleep_time = 100;
 				break;
 			case W32G_SYN_GS_SYSTEM_RESET:
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
 				seq_play_event(&ev);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_XG_SYSTEM_RESET:
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
 				seq_play_event(&ev);
 				sleep_time = 100;
 				break;
 			case W32G_SYN_SYSTEM_RESET:
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=system_mode;
 				seq_play_event(&ev);
@@ -837,6 +841,7 @@ void w32g_syn_doit(void)
 				break;
 			case W32G_SYN_CHANGE_GM_SYSTEM:
 				system_mode=GM_SYSTEM_MODE;
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=GM_SYSTEM_MODE;
 				seq_play_event(&ev);
@@ -845,6 +850,7 @@ void w32g_syn_doit(void)
 				break;
 			case W32G_SYN_CHANGE_GS_SYSTEM:
 				system_mode=GS_SYSTEM_MODE;
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
 				seq_play_event(&ev);
@@ -853,6 +859,7 @@ void w32g_syn_doit(void)
 				break;
 			case W32G_SYN_CHANGE_XG_SYSTEM:
 				system_mode=XG_SYSTEM_MODE;
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=XG_SYSTEM_MODE;
 				seq_play_event(&ev);
@@ -861,6 +868,7 @@ void w32g_syn_doit(void)
 				break;
 			case W32G_SYN_CHANGE_DEFAULT_SYSTEM:
 				system_mode=DEFAULT_SYSTEM_MODE;
+				server_reset();
 				ev.type=ME_RESET;
 				ev.a=GS_SYSTEM_MODE;
 				seq_play_event(&ev);

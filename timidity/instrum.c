@@ -872,6 +872,10 @@ static Instrument *load_gus_instrument(char *name,
 	}
     }
 
+	sp->cutoff_freq = sp->resonance = sp->tremolo_to_pitch = 
+		sp->tremolo_to_fc = sp->modenv_to_pitch = sp->modenv_to_fc = 0;
+	sp->inst_type = INST_GUS;
+
   close_file(tf);
   store_instrument_cache(ip, name, panning, amp, note_to_use,
 			 strip_loop, strip_envelope, strip_tail);

@@ -296,7 +296,7 @@ typedef struct {
 #endif
 
   FLOAT_T
-    left_amp, right_amp, tremolo_volume, tremolo_volume_right;
+    left_amp, right_amp, tremolo_volume;
   int32
     vibrato_sample_increment[VIBRATO_SAMPLE_INCREMENTS], vibrato_delay;
   int
@@ -322,6 +322,11 @@ typedef struct {
 
   FLOAT_T envelope_scale, last_envelope_volume;
   int32 inv_envelope_scale;
+
+  int modenv_stage;
+  int32
+    modenv_volume, modenv_target, modenv_increment;
+  FLOAT_T modenv_scale, last_modenv_volume;
 } Voice;
 
 /* Voice status options: */
@@ -371,7 +376,7 @@ extern int opt_eq_control;
 extern int opt_insertion_effect;
 extern int opt_drum_effect;
 extern int opt_env_attack;
-extern int opt_random_expression;
+extern int opt_modulation_envelope;
 extern int noise_sharp_type;
 extern int32 current_play_tempo;
 extern int opt_realtime_playing;
@@ -423,5 +428,7 @@ extern int play_event(MidiEvent *ev);
 
 extern void dup_tone_bank_element(int,int,int);
 extern void free_tone_bank_element(int,int,int);
+
+extern void recompute_voice_filter(int);
 
 #endif /* ___PLAYMIDI_H_ */
