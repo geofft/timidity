@@ -1,4 +1,9 @@
-	  
+
+2003-05-17  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c:
+	  Bug fix.
+
 2003-05-15  Saito <timidity@flashmail.com>
 
 	* timidity/rcp.c, timidity/playmidi.[ch], timidity/readmidi.[ch],

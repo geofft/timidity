@@ -1456,7 +1456,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 #ifndef CFG_FOR_SF
     /* correct tune with the sustain level of modulation envelope */
-	if(!opt_modulation_envelope && tbl->set[SF_env1ToPitch] && tbl->set[SF_sustainEnv1]) {
+	if(!opt_modulation_envelope) {
 	    vp->tune += ((int)tbl->val[SF_env1ToPitch] * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
 	}
 #endif
@@ -1618,6 +1618,7 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
     {
 	freq = tbl->val[SF_freqLfo2];
 	freq = TO_MHZ(freq);
+	if(freq == 0) {freq = 1;}
 	/* convert mHz to control ratio */
 	vp->v.vibrato_control_ratio = (1000 * play_mode->rate) /
 			(freq * 2 * VIBRATO_SAMPLE_INCREMENTS);
