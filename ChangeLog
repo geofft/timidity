@@ -1,12 +1,12 @@
 2004-02-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/timidity.c:
-	  Add help message for --module
+	* timidity/timidity.c: Add help message for --module
+	* INSTALL(.ja), README(.ja): Beautify
 
 2004-02-04  Saito <saito2@digitalme.com>
 
 	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]:
-	  Add --module [n] option.
+	  Add --module=n option.
 	* timidity/output.[ch]:
 	  Add some codes for 24-bit output.
 
@@ -61,8 +61,7 @@
 
 2004-02-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/sndfont.c:
-	  Fix around scale tuning
+	* timidity/sndfont.c: Fix around scale tuning
 
 2004-02-01  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -114,8 +113,7 @@
 
 2004-01-27  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/wrd_read.c:
-	  Fix bug
+	* timidity/wrd_read.c: Fix bug
 
 2004-01-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -642,8 +640,7 @@
 
 2003-10-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/readmidi.c:
-	  Fix around channel layer
+	* timidity/readmidi.c: Fix around channel layer
 
 2003-10-12  Kentaro Sato <kentaro@ranvis.com>
 
@@ -766,8 +763,7 @@
 
 2003-09-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* configure.in:
-	  Change order of Tcl/Tk library version
+	* configure.in: Change order of Tcl/Tk library version
 
 2003-09-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -827,8 +823,7 @@
 
 2003-09-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/timidity.c:
-	  Rewrite help a little
+	* timidity/timidity.c: Rewrite help a little
 
 2003-09-13  Kentaro Sato <kentaro@ranvis.com>
 
