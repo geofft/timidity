@@ -1,0 +1,631 @@
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
+
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+@SET_MAKE@
+
+# TiMidity++ -- MIDI to WAVE converter and player
+# Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+# Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
+transform = @program_transform_name@
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+ALSA_CFLAGS = @ALSA_CFLAGS@
+ALSA_LIBS = @ALSA_LIBS@
+AMTAR = @AMTAR@
+AWK = @AWK@
+CC = @CC@
+DEPDIR = @DEPDIR@
+ELFILES = @ELFILES@
+EMACS = @EMACS@
+ESD_CFLAGS = @ESD_CFLAGS@
+ESD_CONFIG = @ESD_CONFIG@
+ESD_LIBS = @ESD_LIBS@
+EXEEXT = @EXEEXT@
+EXTRALIBS = @EXTRALIBS@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_CONFIG = @GTK_CONFIG@
+GTK_LIBS = @GTK_LIBS@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+INTERFACE_SRCS = @INTERFACE_SRCS@
+LN_S = @LN_S@
+NETSRCS = @NETSRCS@
+OBJEXT = @OBJEXT@
+OGG_CFLAGS = @OGG_CFLAGS@
+OGG_LIBS = @OGG_LIBS@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+SHCFLAGS = @SHCFLAGS@
+SHLD = @SHLD@
+SYSEXTRAS = @SYSEXTRAS@
+VERSION = @VERSION@
+VORBISENC_LIBS = @VORBISENC_LIBS@
+VORBISFILE_LIBS = @VORBISFILE_LIBS@
+VORBIS_CFLAGS = @VORBIS_CFLAGS@
+VORBIS_LIBS = @VORBIS_LIBS@
+WISH = @WISH@
+X_CFLAGS = @X_CFLAGS@
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+X_LIBS = @X_LIBS@
+X_PRE_LIBS = @X_PRE_LIBS@
+am__include = @am__include@
+am__quote = @am__quote@
+dynamic_targets = @dynamic_targets@
+install_sh = @install_sh@
+lispdir = @lispdir@
+program_transform_name = @program_transform_name@
+so = @so@
+tcltk_dep = @tcltk_dep@
+timidity_LDFLAGS = @timidity_LDFLAGS@
+
+INCLUDES = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/libarc \
+	-I$(top_srcdir)/libunimod \
+	-I$(top_srcdir)/interface \
+	-I$(top_srcdir)/utils \
+	$(EXTRAINCS)
+
+
+bin_PROGRAMS = timidity
+
+timidity_SOURCES = \
+	aenc.h \
+	aiff_a.c \
+	aq.c \
+	aq.h \
+	au_a.c \
+	audio_cnv.c \
+	audio_cnv.h \
+	common.c \
+	common.h \
+	controls.c \
+	controls.h \
+	dlutils.h \
+	effect.c \
+	filter.c \
+	filter.h \
+	freq.c \
+	freq.h \
+	instrum.c \
+	instrum.h \
+	list_a.c \
+	loadtab.c \
+	m2m.c \
+	mid-j.defs \
+	mid.defs \
+	miditrace.c \
+	miditrace.h \
+	mix.c \
+	mix.h \
+	mod.c \
+	mod.h \
+	mod2midi.c \
+	mod2midi.h \
+	modmid_a.c \
+	output.c \
+	output.h \
+	playmidi.c \
+	playmidi.h \
+	raw_a.c \
+	rcp.c \
+	readmidi.c \
+	readmidi.h \
+	recache.c \
+	recache.h \
+	resample.c \
+	resample.h \
+	reverb.c \
+	reverb.h \
+	sbkconv.c \
+	sffile.c \
+	sffile.h \
+	sfitem.c \
+	sfitem.h \
+	sflayer.h \
+	smfconv.c \
+	smfconv.h \
+	sndfont.c \
+	tables.c \
+	tables.h \
+	timidity.c \
+	timidity.h \
+	version.c \
+	wave_a.c \
+	wrd.h \
+	wrd_read.c \
+	wrdt.c
+
+
+EXTRA_timidity_SOURCES = \
+	alsa_a.c \
+	audriv.h \
+	audriv_a.c \
+	audriv_al.c \
+	audriv_mme.c \
+	audriv_none.c \
+	dl_w32.c \
+	dl_dld.c \
+	dl_dlopen.c \
+	dl_hpux.c \
+	bsd20_a.c \
+	esd_a.c \
+	hpux_a.c \
+	hpux_d_a.c \
+	oss_a.c \
+	mac_a.c \
+	mac_qt_a.c \
+	mac_com.h \
+	mac_dlog.c \
+	mac_main.c \
+	mac_main.h \
+	mac_soundspec.c \
+	mfnode.c \
+	mfnode.h \
+	nas_a.c \
+	sun_a.c \
+	vorbis_a.c \
+	w32_a.c \
+	w32g_a.c \
+	timpp32g.ini \
+	w32_gogo.c \
+	w32_gogo.h \
+	gogo_a.h \
+	gogo_a.c \
+	w32g_vorbisenc_dll.c \
+	w32g_vorbis_dll.c \
+	w32g_ogg_dll.c
+
+
+@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.o) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+
+
+timidity_dep = $(SYSEXTRAS:.c=.o) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+
+subdir = timidity
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/interface.h
+CONFIG_CLEAN_FILES =
+bin_PROGRAMS = timidity$(EXEEXT)
+PROGRAMS = $(bin_PROGRAMS)
+
+am_timidity_OBJECTS = aiff_a.$(OBJEXT) aq.$(OBJEXT) au_a.$(OBJEXT) \
+	audio_cnv.$(OBJEXT) common.$(OBJEXT) controls.$(OBJEXT) \
+	effect.$(OBJEXT) filter.$(OBJEXT) freq.$(OBJEXT) \
+	instrum.$(OBJEXT) list_a.$(OBJEXT) loadtab.$(OBJEXT) \
+	m2m.$(OBJEXT) miditrace.$(OBJEXT) mix.$(OBJEXT) mod.$(OBJEXT) \
+	mod2midi.$(OBJEXT) modmid_a.$(OBJEXT) output.$(OBJEXT) \
+	playmidi.$(OBJEXT) raw_a.$(OBJEXT) rcp.$(OBJEXT) \
+	readmidi.$(OBJEXT) recache.$(OBJEXT) resample.$(OBJEXT) \
+	reverb.$(OBJEXT) sbkconv.$(OBJEXT) sffile.$(OBJEXT) \
+	sfitem.$(OBJEXT) smfconv.$(OBJEXT) sndfont.$(OBJEXT) \
+	tables.$(OBJEXT) timidity.$(OBJEXT) version.$(OBJEXT) \
+	wave_a.$(OBJEXT) wrd_read.$(OBJEXT) wrdt.$(OBJEXT)
+timidity_OBJECTS = $(am_timidity_OBJECTS)
+@ENABLE_W32GUI_TRUE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_TRUE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_TRUE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_TRUE@	$(top_builddir)/utils/libutils.a \
+@ENABLE_W32GUI_TRUE@	$(top_builddir)/interface/w32g_res.res
+@ENABLE_W32GUI_FALSE@timidity_DEPENDENCIES = \
+@ENABLE_W32GUI_FALSE@	$(top_builddir)/interface/libinterface.a \
+@ENABLE_W32GUI_FALSE@	$(top_builddir)/libarc/libarc.a \
+@ENABLE_W32GUI_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@ENABLE_W32GUI_FALSE@	$(top_builddir)/utils/libutils.a
+
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/aiff_a.Po $(DEPDIR)/alsa_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/aq.Po $(DEPDIR)/au_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/audio_cnv.Po $(DEPDIR)/audriv_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/audriv_al.Po $(DEPDIR)/audriv_mme.Po \
+@AMDEP_TRUE@	$(DEPDIR)/audriv_none.Po $(DEPDIR)/bsd20_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/common.Po $(DEPDIR)/controls.Po \
+@AMDEP_TRUE@	$(DEPDIR)/dl_dld.Po $(DEPDIR)/dl_dlopen.Po \
+@AMDEP_TRUE@	$(DEPDIR)/dl_hpux.Po $(DEPDIR)/dl_w32.Po \
+@AMDEP_TRUE@	$(DEPDIR)/effect.Po $(DEPDIR)/esd_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/filter.Po $(DEPDIR)/freq.Po \
+@AMDEP_TRUE@	$(DEPDIR)/gogo_a.Po $(DEPDIR)/hpux_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/hpux_d_a.Po $(DEPDIR)/instrum.Po \
+@AMDEP_TRUE@	$(DEPDIR)/list_a.Po $(DEPDIR)/loadtab.Po \
+@AMDEP_TRUE@	$(DEPDIR)/m2m.Po $(DEPDIR)/mac_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mac_dlog.Po $(DEPDIR)/mac_main.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mac_qt_a.Po $(DEPDIR)/mac_soundspec.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mfnode.Po $(DEPDIR)/miditrace.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mix.Po $(DEPDIR)/mod.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mod2midi.Po $(DEPDIR)/modmid_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/nas_a.Po $(DEPDIR)/oss_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/output.Po $(DEPDIR)/playmidi.Po \
+@AMDEP_TRUE@	$(DEPDIR)/raw_a.Po $(DEPDIR)/rcp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/readmidi.Po $(DEPDIR)/recache.Po \
+@AMDEP_TRUE@	$(DEPDIR)/resample.Po $(DEPDIR)/reverb.Po \
+@AMDEP_TRUE@	$(DEPDIR)/sbkconv.Po $(DEPDIR)/sffile.Po \
+@AMDEP_TRUE@	$(DEPDIR)/sfitem.Po $(DEPDIR)/smfconv.Po \
+@AMDEP_TRUE@	$(DEPDIR)/sndfont.Po $(DEPDIR)/sun_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/tables.Po $(DEPDIR)/timidity.Po \
+@AMDEP_TRUE@	$(DEPDIR)/version.Po $(DEPDIR)/vorbis_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32_a.Po $(DEPDIR)/w32_gogo.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_a.Po $(DEPDIR)/w32g_ogg_dll.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_vorbis_dll.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_vorbisenc_dll.Po $(DEPDIR)/wave_a.Po \
+@AMDEP_TRUE@	$(DEPDIR)/wrd_read.Po $(DEPDIR)/wrdt.Po
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+DIST_SOURCES = $(timidity_SOURCES) $(EXTRA_timidity_SOURCES)
+DIST_COMMON = Makefile.am Makefile.in
+SOURCES = $(timidity_SOURCES) $(EXTRA_timidity_SOURCES)
+
+all: all-am
+
+.SUFFIXES:
+.SUFFIXES: .c .o .obj
+$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  timidity/Makefile
+Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	  ; then \
+	    f=`echo $$p1|sed '$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f"; \
+	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f $(DESTDIR)$(bindir)/$$f"; \
+	  rm -f $(DESTDIR)$(bindir)/$$f; \
+	done
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT) core *.core
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/aiff_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/alsa_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/aq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/au_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/audio_cnv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/audriv_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/audriv_al.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/audriv_mme.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/audriv_none.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/bsd20_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/controls.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dl_dld.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dl_dlopen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dl_hpux.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dl_w32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/effect.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/esd_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/filter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/freq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/gogo_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/hpux_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/hpux_d_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/instrum.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/list_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/loadtab.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/m2m.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_dlog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_qt_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_soundspec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mfnode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/miditrace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mod2midi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/modmid_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/nas_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/oss_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/output.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/playmidi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/raw_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rcp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/readmidi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/recache.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/resample.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/reverb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sbkconv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sffile.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sfitem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/smfconv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sndfont.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sun_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tables.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/timidity.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/version.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/vorbis_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32_gogo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_ogg_dll.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_vorbis_dll.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_vorbisenc_dll.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wave_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrd_read.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt.Po@am__quote@
+
+distclean-depend:
+	-rm -rf $(DEPDIR)
+
+.c.o:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `test -f $< || echo '$(srcdir)/'`$<
+
+.c.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `cygpath -w $<`
+CCDEPMODE = @CCDEPMODE@
+uninstall-info-am:
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	mkid -fID $$unique $(LISP)
+
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || etags $(ETAGS_ARGS) $$tags  $$unique $(LISP)
+
+GTAGS:
+	here=`CDPATH=: && cd $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
+
+distclean-tags:
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
+
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+
+top_distdir = ..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
+	  if test -d $$d/$$file; then \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
+	  fi; \
+	done
+check-am: all-am
+check: check-am
+all-am: Makefile $(PROGRAMS)
+
+installdirs:
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+
+installcheck: installcheck-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
+clean: clean-am
+
+clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+
+distclean: distclean-am
+
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-tags
+
+dvi: dvi-am
+
+dvi-am:
+
+info: info-am
+
+info-am:
+
+install-data-am:
+
+install-exec-am: install-binPROGRAMS
+
+install-info: install-info-am
+
+install-man:
+
+installcheck-am:
+
+maintainer-clean: maintainer-clean-am
+
+maintainer-clean-am: distclean-am maintainer-clean-generic
+
+mostlyclean: mostlyclean-am
+
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
+
+uninstall-am: uninstall-binPROGRAMS uninstall-info-am
+
+.PHONY: GTAGS all all-am check check-am clean clean-binPROGRAMS \
+	clean-generic distclean distclean-compile distclean-depend \
+	distclean-generic distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-binPROGRAMS install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic tags uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-info-am
+
+
+include $(top_builddir)/common.makefile
+
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
+	@rm -f timidity$(EXEEXT)
+	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
+
+version.o: version.c ../configure
+	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
+
+$(top_builddir)/interface/libinterface.a $(W32GUI_RES):
+	cd $(top_builddir)/interface; $(MAKE)
+
+$(top_builddir)/libarc/libarc.a:
+	cd $(top_builddir)/libarc; $(MAKE)
+
+$(top_builddir)/libunimod/libunimod.a:
+	cd $(top_builddir)/libunimod; $(MAKE)
+
+$(top_builddir)/utils/libutils.a:
+	cd $(top_builddir)/utils; $(MAKE)
+
+objs: $(timidity_OBJECTS) $(timidity_DEPENDENCIES)
+	@:
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

@@ -1,0 +1,177 @@
+# TiMidity++ -- MIDI to WAVE converter and player
+# Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+# Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+include $(top_builddir)/common.makefile
+
+INCLUDES = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/libarc \
+	-I$(top_srcdir)/libunimod \
+	-I$(top_srcdir)/interface \
+	-I$(top_srcdir)/utils \
+	$(EXTRAINCS)
+
+bin_PROGRAMS = timidity
+
+timidity_SOURCES = \
+	aenc.h \
+	aiff_a.c \
+	aq.c \
+	aq.h \
+	au_a.c \
+	audio_cnv.c \
+	audio_cnv.h \
+	common.c \
+	common.h \
+	controls.c \
+	controls.h \
+	dlutils.h \
+	effect.c \
+	filter.c \
+	filter.h \
+	freq.c \
+	freq.h \
+	instrum.c \
+	instrum.h \
+	list_a.c \
+	loadtab.c \
+	m2m.c \
+	mid-j.defs \
+	mid.defs \
+	miditrace.c \
+	miditrace.h \
+	mix.c \
+	mix.h \
+	mod.c \
+	mod.h \
+	mod2midi.c \
+	mod2midi.h \
+	modmid_a.c \
+	output.c \
+	output.h \
+	playmidi.c \
+	playmidi.h \
+	raw_a.c \
+	rcp.c \
+	readmidi.c \
+	readmidi.h \
+	recache.c \
+	recache.h \
+	resample.c \
+	resample.h \
+	reverb.c \
+	reverb.h \
+	sbkconv.c \
+	sffile.c \
+	sffile.h \
+	sfitem.c \
+	sfitem.h \
+	sflayer.h \
+	smfconv.c \
+	smfconv.h \
+	sndfont.c \
+	tables.c \
+	tables.h \
+	timidity.c \
+	timidity.h \
+	version.c \
+	wave_a.c \
+	wrd.h \
+	wrd_read.c \
+	wrdt.c
+
+EXTRA_timidity_SOURCES = \
+	alsa_a.c \
+	audriv.h \
+	audriv_a.c \
+	audriv_al.c \
+	audriv_mme.c \
+	audriv_none.c \
+	dl_w32.c \
+	dl_dld.c \
+	dl_dlopen.c \
+	dl_hpux.c \
+	bsd20_a.c \
+	esd_a.c \
+	hpux_a.c \
+	hpux_d_a.c \
+	oss_a.c \
+	mac_a.c \
+	mac_qt_a.c \
+	mac_com.h \
+	mac_dlog.c \
+	mac_main.c \
+	mac_main.h \
+	mac_soundspec.c \
+	mfnode.c \
+	mfnode.h \
+	nas_a.c \
+	sun_a.c \
+	vorbis_a.c \
+	w32_a.c \
+	w32g_a.c \
+	timpp32g.ini \
+	w32_gogo.c \
+	w32_gogo.h \
+	gogo_a.h \
+	gogo_a.c \
+	w32g_vorbisenc_dll.c \
+	w32g_vorbis_dll.c \
+	w32g_ogg_dll.c
+
+if ENABLE_W32GUI
+W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+endif
+
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.o) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+
+timidity_dep = $(SYSEXTRAS:.c=.o) \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(W32GUI_RES)
+
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep)
+	@rm -f timidity$(EXEEXT)
+	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
+
+
+version.o: version.c ../configure
+	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
+
+$(top_builddir)/interface/libinterface.a $(W32GUI_RES):
+	cd $(top_builddir)/interface; $(MAKE)
+
+$(top_builddir)/libarc/libarc.a:
+	cd $(top_builddir)/libarc; $(MAKE)
+
+$(top_builddir)/libunimod/libunimod.a:
+	cd $(top_builddir)/libunimod; $(MAKE)
+
+$(top_builddir)/utils/libutils.a:
+	cd $(top_builddir)/utils; $(MAKE)
+
+objs: $(timidity_OBJECTS) $(timidity_DEPENDENCIES)
+	@:

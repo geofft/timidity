@@ -1,0 +1,845 @@
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
+
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+@SET_MAKE@
+
+# TiMidity++ -- MIDI to WAVE converter and player
+# Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+# Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
+transform = @program_transform_name@
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+ALSA_CFLAGS = @ALSA_CFLAGS@
+ALSA_LIBS = @ALSA_LIBS@
+AMTAR = @AMTAR@
+AWK = @AWK@
+CC = @CC@
+DEPDIR = @DEPDIR@
+EMACS = @EMACS@
+ESD_CFLAGS = @ESD_CFLAGS@
+ESD_CONFIG = @ESD_CONFIG@
+ESD_LIBS = @ESD_LIBS@
+EXEEXT = @EXEEXT@
+EXTRALIBS = @EXTRALIBS@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_CONFIG = @GTK_CONFIG@
+GTK_LIBS = @GTK_LIBS@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+INTERFACE_SRCS = @INTERFACE_SRCS@
+LN_S = @LN_S@
+NETSRCS = @NETSRCS@
+OBJEXT = @OBJEXT@
+OGG_CFLAGS = @OGG_CFLAGS@
+OGG_LIBS = @OGG_LIBS@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+SHCFLAGS = @SHCFLAGS@
+SHLD = @SHLD@
+SYSEXTRAS = @SYSEXTRAS@
+VERSION = @VERSION@
+VORBISENC_LIBS = @VORBISENC_LIBS@
+VORBISFILE_LIBS = @VORBISFILE_LIBS@
+VORBIS_CFLAGS = @VORBIS_CFLAGS@
+VORBIS_LIBS = @VORBIS_LIBS@
+WISH = @WISH@
+X_CFLAGS = @X_CFLAGS@
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+X_LIBS = @X_LIBS@
+X_PRE_LIBS = @X_PRE_LIBS@
+am__include = @am__include@
+am__quote = @am__quote@
+install_sh = @install_sh@
+lispdir = @lispdir@
+program_transform_name = @program_transform_name@
+so = @so@
+tcltk_dep = @tcltk_dep@
+timidity_LDFLAGS = @timidity_LDFLAGS@
+
+ELFILES = @ELFILES@
+@ENABLE_EMACS_TRUE@ELFILES = @ELFILES@
+
+
+#BRCC32 = c:/borland/bcc55/bin/brcc32.exe
+#BRCC32_FLAGS = -ic:/mingw/include
+#w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+#	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
+#	$(BRCC32) $(BRCC32_FLAGS) w32g_res.rc
+#	windres -o tmp.res -O coff w32g_res.RES
+#	mv tmp.res w32g_res.res
+
+###
+### For dynamic interfaces
+###
+dynamic_targets = @dynamic_targets@
+@NEEDDLOPEN_TRUE@dynamic_targets = @dynamic_targets@
+
+SUFFIXES = .ptcl .tcl .@so@
+
+SUBDIRS = motif_bitmaps bitmaps pixmaps
+
+INCLUDES = \
+	-I$(top_srcdir)/timidity \
+	-I$(top_srcdir)/libarc \
+	-I$(top_srcdir)/utils
+
+
+noinst_LIBRARIES = libinterface.a
+
+libinterface_a_SOURCES = \
+	dumb_c.c \
+	wrdt_dumb.c \
+	wrdt_tty.c
+
+
+EXTRA_libinterface_a_SOURCES = \
+	ncurs_c.c \
+	slang_c.c \
+	motif.h \
+	motif_c.c \
+	motif_i.c \
+	motif_p.c \
+	tk_c.c \
+	emacs_c.c \
+	vt100.h \
+	vt100.c \
+	vt100_c.c \
+	xaw.h \
+	xaw_c.c \
+	xaw_i.c \
+	xaw_redef.c \
+	xskin.h \
+	xskin_c.c \
+	xskin_i.c \
+	xskin_loadBMP.c \
+	xskin_spectrum.c \
+	wrdt_x.c \
+	x_sherry.c \
+	x_sherry.h \
+	x_wrdwindow.c \
+	x_wrdwindow.h \
+	VTPrsTbl.c \
+	VTparse.h \
+	x_mag.c \
+	x_mag.h \
+	dynamic_c.c \
+	mac_c.c \
+	mac_c.h \
+	mac_mag.c \
+	mac_mag.h \
+	mac_trace.c \
+	mac_wrdwindow.c \
+	mac_wrdwindow.h \
+	wrdt_mac.c \
+	wrdt_wcon.c \
+	gtk_c.c \
+	gtk_h.h \
+	gtk_i.c \
+	gtk_p.c \
+	soundspec.c \
+	soundspec.h \
+	x_sherry.c \
+	x_sherry.h \
+	check.xbm \
+	arrow.xbm \
+	on.xbm \
+	off.xbm \
+	server_c.c \
+	server_defs.h \
+	alsaseq_c.c \
+	w32g.h \
+	w32g_c.c \
+	w32g_ini.c \
+	w32g_rec.h \
+	w32g_res.h \
+	w32g_res.rc \
+	w32g_utl.c \
+	w32g_utl.h \
+	w32g_ut2.c \
+	w32g_ut2.h \
+	w32g_i.c \
+	w32g_playlist.c \
+	w32g_pref.c \
+	w32g_pref.h \
+	w32g_subwin.c \
+	w32g_subwin.h \
+	w32g_btn.bmp \
+	w32g_icon.ico \
+	w32g_sleep.bmp \
+	w32g_subbtn.bmp
+
+
+@ENABLE_WRD_TRUE@WRD_OBJS = \
+@ENABLE_WRD_TRUE@	wrdt_x.o \
+@ENABLE_WRD_TRUE@	x_wrdwindow.o \
+@ENABLE_WRD_TRUE@	VTPrsTbl.o \
+@ENABLE_WRD_TRUE@	x_mag.o \
+@ENABLE_WRD_TRUE@	x_sherry.o
+
+
+@CYGNUS_TRUE@WRD_WINCON_OBJS = wrdt_wcon.o
+
+@NEEDDLOPEN_TRUE@DYNAMIC_OBJS = dynamic_c.o
+
+@ENABLE_SOUND_SPEC_TRUE@SOUND_SPEC_OBJS = \
+@ENABLE_SOUND_SPEC_TRUE@	soundspec.o
+
+
+@ENABLE_W32GUI_TRUE@W32GUI_DEPS = w32g_res.res
+
+INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.o)
+
+libinterface_a_LIBADD = \
+	$(INTERFACE_OBJS) \
+	$(WRD_OBJS) \
+	$(WRD_WINCON_OBJS) \
+	$(DYNAMIC_OBJS) \
+	$(SOUND_SPEC_OBJS)
+
+
+libinterface_dep = \
+	$(top_builddir)/interface.h \
+	$(libinterface_a_LIBADD) \
+	$(tcltk_dep) \
+	$(W32GUI_DEPS)
+
+
+# Tcl interface sources
+TCLSRCS = tkmidity.ptcl tkpanel.tcl browser.tcl misc.tcl
+# Tcl/Tk sources
+TCLF = tkmidity.tcl tkpanel.tcl browser.tcl misc.tcl
+ALLTCLF = $(TCLF) tclIndex
+
+EXTRA_DIST = \
+	tkmidity.ptcl \
+	tkpanel.tcl \
+	browser.tcl \
+	misc.tcl \
+	timidity.el \
+	tclIndex \
+	interface_T.txt \
+	interface_a.txt \
+	interface_e.txt \
+	interface_g.txt \
+	interface_i.txt \
+	interface_m.txt \
+	interface_n.txt \
+	interface_s.txt
+
+
+@ENABLE_DYNAMIC_TCLTK_TRUE@install_tk = install.tk
+@ENABLE_TCLTK_TRUE@install_tk = install.tk
+
+@ENABLE_DYNAMIC_XAW_TRUE@install_xaw = install.xaw
+@ENABLE_XAW_TRUE@install_xaw = install.xaw
+@ENABLE_EMACS_TRUE@install_el = install.el
+@NEEDDLOPEN_TRUE@install_dynamics = install.dynamics
+@NEEDDLOPEN_TRUE@n_so_libs = @n_so_libs@
+@NEEDDLOPEN_TRUE@s_so_libs = @s_so_libs@
+@NEEDDLOPEN_TRUE@m_so_libs = @m_so_libs@
+@NEEDDLOPEN_TRUE@k_so_libs = @k_so_libs@
+@NEEDDLOPEN_TRUE@e_so_libs = @e_so_libs@
+@NEEDDLOPEN_TRUE@T_so_libs = @T_so_libs@
+@NEEDDLOPEN_TRUE@a_so_libs = @a_so_libs@
+@NEEDDLOPEN_TRUE@i_so_libs = @i_so_libs@
+@NEEDDLOPEN_TRUE@g_so_libs = @g_so_libs@
+subdir = interface
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/interface.h
+CONFIG_CLEAN_FILES =
+LIBRARIES = $(noinst_LIBRARIES)
+
+libinterface_a_AR = $(AR) cru
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	dynamic_c.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES =
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_x.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_wrdwindow.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	VTPrsTbl.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_mag.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_sherry.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	dynamic_c.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_x.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_wrdwindow.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	VTPrsTbl.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_mag.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_sherry.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	dynamic_c.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	soundspec.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@	soundspec.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_x.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_wrdwindow.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	VTPrsTbl.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_mag.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_sherry.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	dynamic_c.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	soundspec.o
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_x.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_wrdwindow.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	VTPrsTbl.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_mag.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_sherry.o \
+@CYGNUS_FALSE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	soundspec.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	dynamic_c.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@	wrdt_wcon.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_x.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_wrdwindow.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	VTPrsTbl.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_mag.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_sherry.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	dynamic_c.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_x.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_wrdwindow.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	VTPrsTbl.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_mag.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_sherry.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_FALSE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_wcon.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	dynamic_c.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_TRUE@	soundspec.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_FALSE@@NEEDDLOPEN_FALSE@	soundspec.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_x.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_wrdwindow.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	VTPrsTbl.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_mag.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	x_sherry.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	dynamic_c.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_TRUE@	soundspec.o
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@libinterface_a_DEPENDENCIES = \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_x.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_wrdwindow.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	VTPrsTbl.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_mag.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	x_sherry.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	wrdt_wcon.o \
+@CYGNUS_TRUE@@ENABLE_SOUND_SPEC_TRUE@@ENABLE_WRD_TRUE@@NEEDDLOPEN_FALSE@	soundspec.o
+am_libinterface_a_OBJECTS = dumb_c.$(OBJEXT) wrdt_dumb.$(OBJEXT) \
+	wrdt_tty.$(OBJEXT)
+libinterface_a_OBJECTS = $(am_libinterface_a_OBJECTS)
+
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/VTPrsTbl.Po $(DEPDIR)/alsaseq_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/dumb_c.Po $(DEPDIR)/dynamic_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/emacs_c.Po $(DEPDIR)/gtk_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/gtk_i.Po $(DEPDIR)/gtk_p.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mac_c.Po $(DEPDIR)/mac_mag.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mac_trace.Po $(DEPDIR)/mac_wrdwindow.Po \
+@AMDEP_TRUE@	$(DEPDIR)/motif_c.Po $(DEPDIR)/motif_i.Po \
+@AMDEP_TRUE@	$(DEPDIR)/motif_p.Po $(DEPDIR)/ncurs_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/server_c.Po $(DEPDIR)/slang_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/soundspec.Po $(DEPDIR)/tk_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/vt100.Po $(DEPDIR)/vt100_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_c.Po $(DEPDIR)/w32g_i.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_ini.Po $(DEPDIR)/w32g_playlist.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_pref.Po $(DEPDIR)/w32g_subwin.Po \
+@AMDEP_TRUE@	$(DEPDIR)/w32g_ut2.Po $(DEPDIR)/w32g_utl.Po \
+@AMDEP_TRUE@	$(DEPDIR)/wrdt_dumb.Po $(DEPDIR)/wrdt_mac.Po \
+@AMDEP_TRUE@	$(DEPDIR)/wrdt_tty.Po $(DEPDIR)/wrdt_wcon.Po \
+@AMDEP_TRUE@	$(DEPDIR)/wrdt_x.Po $(DEPDIR)/x_mag.Po \
+@AMDEP_TRUE@	$(DEPDIR)/x_sherry.Po $(DEPDIR)/x_wrdwindow.Po \
+@AMDEP_TRUE@	$(DEPDIR)/xaw_c.Po $(DEPDIR)/xaw_i.Po \
+@AMDEP_TRUE@	$(DEPDIR)/xaw_redef.Po $(DEPDIR)/xskin_c.Po \
+@AMDEP_TRUE@	$(DEPDIR)/xskin_i.Po $(DEPDIR)/xskin_loadBMP.Po \
+@AMDEP_TRUE@	$(DEPDIR)/xskin_spectrum.Po
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+DIST_SOURCES = $(libinterface_a_SOURCES) $(EXTRA_libinterface_a_SOURCES)
+
+RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
+	uninstall-info-recursive all-recursive install-data-recursive \
+	install-exec-recursive installdirs-recursive install-recursive \
+	uninstall-recursive check-recursive installcheck-recursive
+DIST_COMMON = Makefile.am Makefile.in
+DIST_SUBDIRS = $(SUBDIRS)
+SOURCES = $(libinterface_a_SOURCES) $(EXTRA_libinterface_a_SOURCES)
+
+all: all-recursive
+
+.SUFFIXES:
+.SUFFIXES: .ptcl .tcl .@so@ .c .o .obj
+$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  interface/Makefile
+Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+
+AR = ar
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT) core *.core
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/VTPrsTbl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/alsaseq_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dumb_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dynamic_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/emacs_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/gtk_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/gtk_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/gtk_p.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_mag.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_trace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mac_wrdwindow.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/motif_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/motif_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/motif_p.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ncurs_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/server_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/slang_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/soundspec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tk_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/vt100.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/vt100_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_ini.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_playlist.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_pref.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_subwin.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_ut2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/w32g_utl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt_dumb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt_mac.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt_tty.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt_wcon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wrdt_x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/x_mag.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/x_sherry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/x_wrdwindow.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xaw_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xaw_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xaw_redef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xskin_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xskin_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xskin_loadBMP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/xskin_spectrum.Po@am__quote@
+
+distclean-depend:
+	-rm -rf $(DEPDIR)
+
+.c.o:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `test -f $< || echo '$(srcdir)/'`$<
+
+.c.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `cygpath -w $<`
+CCDEPMODE = @CCDEPMODE@
+uninstall-info-am:
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+$(RECURSIVE_TARGETS):
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	rev=''; for subdir in $$list; do \
+	  if test "$$subdir" = "."; then :; else \
+	    rev="$$subdir $$rev"; \
+	  fi; \
+	done; \
+	rev="$$rev ."; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	mkid -fID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || etags $(ETAGS_ARGS) $$tags  $$unique $(LISP)
+
+GTAGS:
+	here=`CDPATH=: && cd $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
+
+distclean-tags:
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
+
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+
+top_distdir = ..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
+	  if test -d $$d/$$file; then \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    (cd $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$(top_distdir)" \
+	        distdir=../$(distdir)/$$subdir \
+	        distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+check-am: all-am
+check: check-recursive
+all-am: Makefile $(LIBRARIES)
+installdirs: installdirs-recursive
+installdirs-am:
+
+install: install-recursive
+install-exec: install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+
+installcheck: installcheck-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
+clean: clean-recursive
+
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
+
+distclean: distclean-recursive
+
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-tags
+
+dvi: dvi-recursive
+
+dvi-am:
+
+info: info-recursive
+
+info-am:
+
+install-data-am:
+
+install-exec-am: install-exec-local
+
+install-info: install-info-recursive
+
+install-man:
+
+installcheck-am:
+
+maintainer-clean: maintainer-clean-recursive
+
+maintainer-clean-am: distclean-am maintainer-clean-generic
+
+mostlyclean: mostlyclean-recursive
+
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
+
+uninstall-am: uninstall-info-am
+
+uninstall-info: uninstall-info-recursive
+
+.PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-am clean \
+	clean-generic clean-noinstLIBRARIES clean-recursive distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-recursive distclean-tags distdir dvi dvi-am \
+	dvi-recursive info info-am info-recursive install install-am \
+	install-data install-data-am install-data-recursive \
+	install-exec install-exec-am install-exec-local \
+	install-exec-recursive install-info install-info-am \
+	install-info-recursive install-man install-recursive \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am installdirs-recursive maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-recursive \
+	tags tags-recursive uninstall uninstall-am uninstall-info-am \
+	uninstall-info-recursive uninstall-recursive
+
+
+include $(top_builddir)/common.makefile
+
+libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
+	-rm -f libinterface.a
+	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
+	$(RANLIB) libinterface.a
+
+.ptcl.tcl:
+	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
+clean:
+	rm -f tkmidity.tcl
+	rm -f *.o
+	rm -f *.$(so)
+
+tclIndex: $(TCLSRCS)
+	rm -f tclIndex
+	echo 'auto_mkindex . *.tcl; exit' | $(WISH)
+
+install.tk: $(ALLTCLF) install.bitmaps
+	test -d $(DESTDIR)$(TCL_DIR) || mkdir -p $(DESTDIR)$(TCL_DIR)
+	for f in $(ALLTCLF) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(TCL_DIR);; esac; done
+
+install.xaw: install.bitmaps
+
+install.bitmaps:
+	cd bitmaps; $(MAKE) install.bitmaps
+
+install.el: $(ELFILES)
+	test -d $(DESTDIR)$(ELISP_DIR) || mkdir -p $(DESTDIR)$(ELISP_DIR)
+	for f in $(ELFILES) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(ELISP_DIR);; esac; done
+
+w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
+	windres -o $@ -O coff w32g_res.rc
+
+@NEEDDLOPEN_TRUE@all-am: $(dynamic_targets)
+
+@NEEDDLOPEN_TRUE@install.dynamics: $(dynamic_targets)
+@NEEDDLOPEN_TRUE@	test -d $(DESTDIR)$(SHLIB_DIR) || mkdir -p $(DESTDIR)$(SHLIB_DIR)
+@NEEDDLOPEN_TRUE@	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR);; esac; done
+
+@NEEDDLOPEN_TRUE@.c.$(so):
+@NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -c $< -o $@
+
+@NEEDDLOPEN_TRUE@bitset.$(so): $(top_srcdir)/utils/bitset.c
+@NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -o $@ -c $<
+
+@NEEDDLOPEN_TRUE@timer.$(so): $(top_srcdir)/utils/timer.c
+@NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -o $@ -c $<
+
+@NEEDDLOPEN_TRUE@url_buff.$(so): $(top_srcdir)/libarc/url_buff.c
+@NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -o $@ -c $<
+
+@NEEDDLOPEN_TRUE@support.$(so): $(top_srcdir)/utils/support.c
+@NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -o $@ -c $<
+
+@NEEDDLOPEN_TRUE@interface_n.$(so): ncurs_c.$(so) support.$(so) bitset.$(so) timer.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ ncurs_c.$(so) support.$(so) bitset.$(so) timer.$(so) $(n_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_s.$(so): slang_c.$(so) support.$(so) timer.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ slang_c.$(so) support.$(so) timer.$(so) $(s_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_m.$(so): motif_c.$(so) support.$(so) motif_i.$(so) motif_p.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ motif_c.$(so) support.$(so) motif_i.$(so) motif_p.$(so) $(m_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_k.$(so): tk_c.$(so) support.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ tk_c.$(so) support.$(so) $(k_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_e.$(so): emacs_c.$(so) support.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ emacs_c.$(so) support.$(so) $(e_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_T.$(so): vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so) $(T_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_a.$(so): xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so) $(a_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_i.$(so): xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so) $(i_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_g.$(so): gtk_c.$(so) support.$(so) gtk_i.$(so) gtk_p.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ gtk_c.$(so) support.$(so) gtk_i.$(so) gtk_p.$(so) $(g_so_libs)
+
+@NEEDDLOPEN_TRUE@interface_r.$(so): server_c.$(so) support.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ server_c.$(so) support.$(so)
+
+@NEEDDLOPEN_TRUE@interface_A.$(so): alsaseq_c.$(so) support.$(so)
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ alsaseq_c.$(so) support.$(so)
+
+clean-compile:
+	-rm -f *.$(so)
+	-rm -f *.res
+	-rm -f *.RES
+
+install-exec-local: $(install_tk) $(install_xaw) $(install_el) $(install_dynamics)
+########## End of Makefile
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
