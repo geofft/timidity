@@ -1,3 +1,17 @@
+2004-01-31  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/instrum.[ch], timidity/playmidi.[ch],
+	  timidity/readmidi.c, timidity/timidity.c:
+	  New syntax of *.cfg:
+	    (bank|drumset) <mapid> <num>
+	    #extension copymap <tomap> <frommap>
+	  Besides, 'copybank' now copies tunes, envelopes, etc.
+	  That should be what it is expected to do.
+	* timidity/sysdep.h
+	  Fixed a compilation error with MAX_CHANNELS > 32.
+	* timidity/freq.c, timidity/sndfont.c
+	  Changed error handling of freq_fourier() with cfgforsf.
+
 2004-01-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5,
