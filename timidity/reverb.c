@@ -153,11 +153,10 @@ void mix_dry_signal(register int32 *buf, int32 n)
     register int32  i;
 	register int32 count = n;
 	register int32 *dbuf = direct_buffer;
-    int32 level = REV_INP_LEV * 0x100;
 
     for(i=0;i<count;i++)
     {
- 		buf[i] = imuldiv8(dbuf[i],level);
+ 		buf[i] = dbuf[i];
 		dbuf[i] = 0;
     }
 }
@@ -167,11 +166,10 @@ void mix_dry_signal(register int32 *buf, int32 n)
     register int32  i;
 	register int32 count = n;
 	register int32 *dbuf = direct_buffer;
-    FLOAT_T level = REV_INP_LEV;
 
     for(i=0;i<count;i++)
     {
- 		buf[i] = dbuf[i] * level;
+ 		buf[i] = dbuf[i];
 		dbuf[i] = 0;
     }
 }
@@ -211,7 +209,7 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 	register int32 count = n;
 	register int32 *ebuf = effect_buffer;
 
-    int32 send_level = (int32)((FLOAT_T)level * REV_INP_LEV / 127.0 * reverb_status.level_ratio * 0x100);
+    int32 send_level = (int32)((FLOAT_T)level / 127.0 * reverb_status.level_ratio * 0x100);
 
     for(i=0;i<count;i++)
     {
@@ -222,7 +220,7 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32  i;
-    FLOAT_T send_level = (FLOAT_T)level * (REV_INP_LEV/127.0) * reverb_status.level_ratio;
+    FLOAT_T send_level = (FLOAT_T)level / 127.0 * reverb_status.level_ratio;
 	
 	for(i = 0; i < n; i++)
     {
@@ -354,7 +352,7 @@ void do_reverb(int32 *comp, int32 n)
     for(i = 0; i < n; i++)
     {
         /* L */
-        fixp = comp[i] * REV_INP_LEV;
+        fixp = comp[i];
 
         LPFL = LPFL*REV_LPF_LEV + (buf2_L[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
         ta = buf3_L[spt3];
@@ -372,7 +370,7 @@ void do_reverb(int32 *comp, int32 n)
         comp[i] = ta + EPFL + fixp;
 
         /* R */
-        fixp = comp[++i] * REV_INP_LEV;
+        fixp = comp[++i];
 
         LPFR = LPFR*REV_LPF_LEV + (buf2_R[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
         ta = buf3_R[spt3];
@@ -1057,19 +1055,6 @@ void do_ch_eq(int32* buf,int32 n)
 {
 	register int32 i;
 	register int32 count = n;
-	int32 level = REV_INP_LEV * 0x100;
-
-#if OPT_MODE != 0
-	for(i=0;i<count;i++)
-    {
-        eq_buffer[i] = imuldiv8(eq_buffer[i],level);
-    }
-#else
-	for(i=0;i<count;i++)
-    {
-        eq_buffer[i] = eq_buffer[i] * REV_INP_LEV;
-    }
-#endif
 
 	do_eq(eq_buffer,count,eq_status.low_coef,eq_status.low_val);
 	do_eq(eq_buffer,count,eq_status.high_coef,eq_status.high_val);

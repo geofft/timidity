@@ -237,10 +237,10 @@ void mix_voice(int32 *buf, int v, int32 c)
 					mix_single(sp, buf, v, c);
 			}
 		}
-#ifdef VOICE_LPF
-		finish_voice_filter(v);
-#endif
 	}
+#ifdef VOICE_LPF
+	finish_voice_filter(v);
+#endif
 }
 
 /* Ramp a note out in c samples */

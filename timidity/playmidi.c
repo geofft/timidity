@@ -722,7 +722,13 @@ static void recompute_amp(int v)
 		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
 		   voice[v].sample->volume *
 		   sc_vol_table[channel[voice[v].channel].volume] *
-		   sc_vol_table[channel[voice[v].channel].expression] * 1.63); /* 21 bits */
+		   sc_vol_table[channel[voice[v].channel].expression] * 1.63f); /* 21 bits */
+
+	if((opt_reverb_control || opt_chorus_control
+			|| opt_delay_control || (opt_eq_control && (eq_status.low_gain != 0x40 || eq_status.high_gain != 0x40)) || opt_insertion_effect
+			|| opt_resonance) && !(play_mode->encoding & PE_MONO)) {
+		tempamp *= 0.55f;
+	}
 
 	/* Level of Drum Instrument */
 	if(ISDRUMCHANNEL(voice[v].channel)) {
@@ -951,9 +957,9 @@ void recompute_voice_filter(int v)
 	else if(fc->freq > 20000) {fc->freq = 20000;}
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
-	fc->reso_dB -= 3.01f;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
+	fc->reso_dB -= 3.01f;
 }
 
 FLOAT_T calc_drum_tva_level(int ch,int note,int level)

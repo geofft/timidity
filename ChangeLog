@@ -67,14 +67,14 @@
 	* 
 	  Bug fixed MAP behavior
 
-2002-07-27  mput <mput@dip.jp>
-	* 
+2002-07-27  mput <root@mput.dip.jp>
+	* timidity/optcode.c
 	  Support MMX extension for powerpc (--with-simd)
 
-2002-07-25  mput <mput@dip.jp>
-	* 
-	  Arrange and divide timidity/timidity.h
-	  Create timidity/sysdep.h and timidity/optcode.[ch]
+2002-07-25  mput <root@mput.dip.jp>
+	* timidity/{timidity.h,sysdep.h,optcode.c,optcode.h}:
+  	  Arrange and divide timidity/timidity.h
+  	  Create timidity/sysdep.h and timidity/optcode.[ch]
 
 2002-07-22  Saito <timidity@flashmail.com>
 	* 
@@ -96,9 +96,9 @@
 	* 
 	  Support ME_TIMESIG/ME_KEYSIG for RCP/R36/G18/G36 MIDI data
 
-2002-07-06  mput <mput@dip.jp>
-	* 
-	  Rewrite configure.in
+2002-07-06  mput <root@mput.dip.jp>
+	* configure.in:
+  	  Rewrite configure.in
 
 2002-07-06  Tamuki <tamuki@linet.gr.jp>
 	* 
