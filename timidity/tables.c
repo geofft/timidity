@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,19 +15,16 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     The 8-bit uLaw to 16-bit PCM and the 13-bit-PCM to 8-bit uLaw
     tables were lifted from the rsynth-2.0 sources.  The README says:
 
- >
- > This is a text to speech system produced by integrating various pieces
- > of code and tables of data, which are all (I believe) in the public domain.
- >
- > The bulk of the intergration was done by myself, that is Nick Ing-Simmons.
- > I can be reached via my employer at nik@tiuk.ti.com.
- >
+    This is a text to speech system produced by integrating various pieces
+    of code and tables of data, which are all (I believe) in the public domain.
 
+    The bulk of the intergration was done by myself, that is Nick Ing-Simmons.
+    I can be reached via my employer at nik@tiuk.ti.com.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -41,6 +38,7 @@
 #include "tables.h"
 
 int32 freq_table[128];
+int32 freq_table_zapped[128];
 int32 freq_table_tuning[128][128];
 int32 freq_table_pytha[24][128];
 int32 freq_table_meantone[48][128];
@@ -51,8 +49,10 @@ void init_freq_table(void)
 {
 	int i;
 	
-	for (i = 0; i < 128; i++)
+	for (i = 0; i < 128; i++) {
 		freq_table[i] = 440 * pow(2.0, (i - 69) / 12.0) * 1000 + 0.5;
+		freq_table_zapped[i] = freq_table[i];
+	}
 }
 
 void init_freq_table_tuning(void)
@@ -60,9 +60,11 @@ void init_freq_table_tuning(void)
 	int p, i;
 	double f;
 	
+	for (i = 0; i < 128; i++)
+			freq_table_tuning[0][i] = freq_table_zapped[i];
 	for (i = 0; i < 128; i++) {
 		f = 440 * pow(2.0, (i - 69) / 12.0);
-		for (p = 0; p < 128; p++)
+		for (p = 1; p < 128; p++)
 			freq_table_tuning[p][i] = f * 1000 + 0.5;
 	}
 }

@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     loadtab.c - written by Nando Santagata <lac0658@iperbole.bologna.it>
 */
@@ -40,35 +40,29 @@
 
 int load_table(char *file)
 {
-  FILE *fp;
-  char tmp[1024];
-  char *value;
-  int  i = 0;
+	FILE *fp;
+	char tmp[1024], *value;
+	int i = 0;
 	
-	if((fp = fopen(file, "r")) == NULL){
+	if ((fp = fopen(file, "r")) == NULL) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "Can't read %s %s\n", file, strerror(errno));
+				"Can't read %s %s\n", file, strerror(errno));
 		return -1;
 	}
-
-	while(fgets(tmp, sizeof(tmp), fp)){
-		if(! strchr(tmp, '#')){
-			if((value = strtok(tmp, ", \n")) != NULL){
-				freq_table[i++] = atoi(value);
-				if(i == 128){
-					fclose(fp);
-					return 0;
-				}
-				while((value = strtok(NULL, ", \n")) != NULL){
-					freq_table[i++] = atoi(value);
-					if(i == 128){
-						fclose(fp);
-						return 0;
-					}
-				}
+	while (fgets(tmp, sizeof(tmp), fp)) {
+		if (strchr(tmp, '#'))
+			continue;
+		if (! (value = strtok(tmp, ", \n")))
+			continue;
+		do {
+			freq_table_zapped[i++] = atoi(value);
+			if (i == 128) {
+				fclose(fp);
+				return 0;
 			}
-		}
+		} while (value = strtok(NULL, ", \n"));
 	}
 	fclose(fp);
 	return 0;
 }
+
