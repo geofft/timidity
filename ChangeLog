@@ -1,8 +1,14 @@
+2004-01-03  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c:
+	  Fix NRPN Resonance and Harmonic Content.
+	* timidity/tables.c:
+	  Change modulation delay table of Chorus Effect.
+
 2004-01-02  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.c:
 	  Fix around modulation wheel.
-	  Fix NRPN Resonance and Harmonic Content.
 	* timidity/sndfont.c:
 	  Fix around SoundFont.
 
