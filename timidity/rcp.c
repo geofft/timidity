@@ -50,11 +50,15 @@ struct NoteList
 
 struct RCPNoteTracer
 {
-    int gfmt;
-    int32 at;			/* current time */
-    struct NoteList *notes;	/* note list */
-    MBlockList pool;		/* memory pool for notes */
-    struct NoteList *freelist;
+    int gfmt;			/*! RCP format (1 if G36 or G18) */
+    int32 at;			/*! current time */
+    int32 tempo;		/*! current tempo (sync with current_tempo) */
+    int32 tempo_to;		/*! tempo gradate to */
+    int tempo_grade;		/*! tempo gradation slope */
+    int tempo_step;		/*! tempo gradation step */
+    struct NoteList *notes;	/*! note list */
+    MBlockList pool;		/*! memory pool for notes */
+    struct NoteList *freelist;	/*! free note list */
 };
 
 #define SETMIDIEVENT(e, at, t, ch, pa, pb) \
@@ -69,7 +73,7 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt);
 static int preprocess_sysex(uint8* ex, int ch, int gt, int vel);
 
 /* Note Tracer */
-static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at);
+static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at, int init_tempo);
 static void ntr_end(struct RCPNoteTracer *ntr);
 static void ntr_incr(struct RCPNoteTracer *ntr, int step);
 static void ntr_note_on(struct RCPNoteTracer *ntr,
@@ -83,6 +87,9 @@ static uint8 user_exclusive_data[8][USER_EXCLUSIVE_LENGTH];
 static int32 init_tempo;
 static int32 init_keysig;
 static int play_bias;
+
+#define TEMPO_GRADATION_SKIP		2
+#define TEMPO_GRADATION_GRADE		600
 
 int read_rcp_file(struct timidity_file *tf, char *magic0, char *fn)
 {
@@ -320,14 +327,35 @@ int read_rcp_file(struct timidity_file *tf, char *magic0, char *fn)
     return 0;
 }
 
-static void rcp_tempo_change(int32 at, int32 tempo)
+static void rcp_tempo_set(int32 at, int32 tempo)
 {
-    int c, a, b;
+    int lo, mid, hi;
+    
+    lo = (tempo & 0xff);
+    mid = ((tempo >> 8) & 0xff);
+    hi = ((tempo >> 16) & 0xff);
+    MIDIEVENT(at, ME_TEMPO, lo, hi, mid);
+}
 
-    c = (tempo & 0xff);
-    a = ((tempo >> 8) & 0xff);
-    b = ((tempo >> 16) & 0xff);
-    MIDIEVENT(at, ME_TEMPO, c, b, a);
+static int32 rcp_tempo_change(struct RCPNoteTracer *ntr, int a, int b)
+{
+    int32 tempo;
+    
+    tempo = (int32)((uint32)60000000 * 64 / (init_tempo * a));	/* 6*10^7 / (ini*a/64) */
+    ntr->tempo_grade = b;
+    if (b != 0)
+    {
+	ntr->tempo_to = tempo;
+	ntr->tempo_step = 0;
+	ntr->tempo_grade *= TEMPO_GRADATION_GRADE * TEMPO_GRADATION_SKIP;
+	tempo = ntr->tempo;	/* unchanged */
+    }
+    else
+    {
+	ntr->tempo = tempo;
+	rcp_tempo_set(ntr_at(*ntr), tempo);
+    }
+    return tempo;
 }
 
 static void rcp_timesig_change(int32 at)
@@ -568,10 +596,11 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
      */
 
     sp = 0;
-    ntr_init(&ntr, gfmt, readmidi_set_track(trackno, 1));
-    current_tempo = (int32)(60000000.0 / init_tempo);
-    if(trackno == 0 && current_tempo != 500000)
-	rcp_tempo_change(ntr_at(ntr), current_tempo);
+    ntr_init(&ntr, gfmt, readmidi_set_track(trackno, 1), 64);
+    if(trackno == 0 && init_tempo != 120)
+	current_tempo = rcp_tempo_change(&ntr, 64, 0);
+    else
+	ntr->tempo = current_tempo = 60000000 / init_tempo;
 	if (trackno == 0) {
 		rcp_timesig_change(ntr_at(ntr));
 		rcp_keysig_change(ntr_at(ntr), init_keysig);
@@ -860,22 +889,13 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    break;
 
 	  case 0xe7:	/* tempo change */
-	    if(b != 0)
-	    {
-		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
-			  "tempo graduation is not supported: (%d,%d)", a, b);
-		ntr_incr(&ntr, step);
-		break;
-	    }
 	    if(a == 0)
 	    {
 		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 			  "Invalid tempo change\n");
 		a = 64;
 	    }
-
-	    current_tempo = (int32)(60000000.0 / (init_tempo * a / 64.0));
-	    rcp_tempo_change(ntr_at(ntr), current_tempo);
+	    current_tempo = rcp_tempo_change(&ntr, a, b);
 	    ntr_incr(&ntr, step);
 	    break;
 
@@ -1252,12 +1272,14 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
     return ret;
 }
 
-static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at)
+static void ntr_init(struct RCPNoteTracer *ntr, int gfmt, int32 at, int tempo)
 {
     memset(ntr, 0, sizeof(*ntr));
     init_mblock(&ntr->pool);
     ntr->gfmt = gfmt;
     ntr->at = at;
+    ntr->tempo = ntr->tempo_to = tempo;
+    ntr->tempo_grade = 0;
 }
 
 static void ntr_end(struct RCPNoteTracer *ntr)
@@ -1300,6 +1322,37 @@ static void ntr_note_on(struct RCPNoteTracer *ntr,
     ntr_add(ntr, ch, note, gate);
 }
 
+static void rcp_tempo_gradate(struct RCPNoteTracer *ntr, int step)
+{
+    int tempo_grade, tempo_step, tempo, diff, sign, at;
+    
+    if (step <= 0 || (tempo_grade = ntr->tempo_grade) == 0)
+    	return;
+    tempo_step = ntr->tempo_step - step;
+    if (tempo_step <= 0)
+    {
+	tempo = ntr->tempo;
+	diff = ntr->tempo_to - tempo;
+	sign = (diff < 0) ? -1 : 1;
+	diff *= sign;	/* abs(diff) */
+	at = ntr_at(*ntr);
+	while (tempo_step <= 0 && diff != 0)
+	{
+	    if (tempo_grade > diff)
+		tempo_grade = diff;
+	    tempo += sign * tempo_grade;
+	    diff -= tempo_grade;
+	    rcp_tempo_set(at, tempo);
+	    at += TEMPO_GRADATION_SKIP;
+	    tempo_step += TEMPO_GRADATION_SKIP;
+	}
+	ntr->tempo = tempo;
+	if (diff == 0)
+	    ntr->tempo_grade = 0;
+    }
+    ntr->tempo_step = tempo_step;
+}
+
 static void ntr_incr(struct RCPNoteTracer *ntr, int step)
 {
     if(step < 0) {
@@ -1309,6 +1362,8 @@ static void ntr_incr(struct RCPNoteTracer *ntr, int step)
 	    p->gate -= step;
 	return;
     }
+
+    rcp_tempo_gradate(ntr, step);
 
     while(step >= 0)
     {
@@ -1396,6 +1451,7 @@ static void ntr_wait_all_off(struct RCPNoteTracer *ntr)
 	ntr->notes = q;
 	for(p = ntr->notes; p != NULL; p = p->next)
 	    p->gate -= mingate;
+	rcp_tempo_gradate(ntr, mingate);
 	ntr->at += mingate;
     }
 }
