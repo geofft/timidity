@@ -293,7 +293,7 @@ SaveIniFile(SETTING_PLAYER *sp,  SETTING_TIMIDITY *st)
 #endif
     IniPutKeyIntArray(INI_SEC_TIMIDITY,"default_program",st->default_program,MAX_CHANNELS);
     IniPutKeyStringN(INI_SEC_TIMIDITY,"opt_ctl",st->opt_ctl,sizeof(st->opt_ctl));
-    IniPutKeyInt32(INI_SEC_TIMIDITY,"opt_drum_power",st->opt_drum_power);
+    IniPutKeyInt32(INI_SEC_TIMIDITY,"opt_drum_power",&(st->opt_drum_power));
 	IniPutKeyInt(INI_SEC_TIMIDITY,"opt_amp_compensation",&(st->opt_amp_compensation));
     IniPutKeyInt(INI_SEC_TIMIDITY,"opt_realtime_playing",&(st->opt_realtime_playing));
     IniPutKeyInt(INI_SEC_TIMIDITY,"reduce_voice_threshold",&(st->reduce_voice_threshold));

@@ -246,7 +246,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,6,155,80,10
     CONTROL         "Static Chorus Level",IDC_CHECKBOX_CHORUS_LEVEL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,12,70,10
-    EDITTEXT        IDC_EDIT_CHORUS,177,12,24,12,ES_NUMBER
+    EDITTEXT        IDC_EDIT_CHORUS,177,11,24,12,ES_NUMBER
     CONTROL         "Static Reverb Level",IDC_CHECKBOX_REVERB_LEVEL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,23,69,10
     EDITTEXT        IDC_EDIT_REVERB,177,23,24,12,ES_NUMBER
@@ -271,65 +271,81 @@ BEGIN
     EDITTEXT        IDC_EDIT_NOISESHARPING,177,89,28,12,ES_NUMBER
     CONTROL         "Surround Chorus",IDC_CHECKBOX_SRCHORUS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,98,65,10
-    CONTROL         "LPF / Resonance",IDC_CHECKBOX_RESONANCE,"Button",
+    CONTROL         "LPF / Resonance",IDC_CHECKBOX_LPF_DEF,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,108,71,10
-    CONTROL         "Soundfont Pre-LPF",IDC_CHECKBOX_SF_LPF,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,101,119,71,10
     CONTROL         "Drumpart Effect Control",IDC_CHECKBOX_DRUM_EFFECT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,130,83,10
-    LTEXT           "Attack Env. (0..3)",IDC_STATIC,101,142,53,8,NOT 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,101,118,83,10
+    LTEXT           "Attack Env. (0..3)",IDC_STATIC,101,130,53,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_ENV_ATTACK,162,141,28,12
-    LTEXT           "Verocity Table (0..2)",IDC_STATIC,101,155,60,8,NOT 
+    EDITTEXT        IDC_EDIT_ENV_ATTACK,162,129,28,12
+    LTEXT           "Verocity Table (0..4)",IDC_STATIC,101,143,60,8,NOT 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_VELOCITYTABLE,162,153,28,12,WS_DISABLED
+    EDITTEXT        IDC_EDIT_VELOCITYTABLE,162,141,28,12
     GROUPBOX        "GM/GS/XG",IDC_STATIC,1,3,91,165
-    GROUPBOX        "Special",IDC_STATIC,98,3,113,165
+    GROUPBOX        "Special",IDC_STATIC,98,3,111,155
 END
 
-IDD_PREF_TIMIDITY2_EN DIALOG DISCARDABLE  0, 0, 210, 190
+IDD_PREF_TIMIDITY2_EN DIALOG DISCARDABLE  0, 0, 223, 186
 STYLE DS_SYSMODAL | DS_3DLOOK | DS_CONTROL | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | 
     WS_POPUP | WS_VISIBLE | WS_CAPTION
 FONT 9, "Times New Roman"
 BEGIN
-    GROUPBOX        "Play",IDC_STATIC,1,3,107,133
-    LTEXT           "Maxmum Voices",IDC_STATIC,6,19,71,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_VOICES,78,19,24,12,ES_NUMBER
-    LTEXT           "Amplification(%)",IDC_STATIC,6,34,47,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_AMPLIFICATION,78,32,24,12
+    GROUPBOX        "Play",IDC_STATIC,1,3,117,114
+    LTEXT           "Maxmum Voices",IDC_STATIC,6,15,50,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_VOICES,63,14,24,12,ES_NUMBER
+    LTEXT           "Amplification(%)",IDC_STATIC,6,31,53,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_AMPLIFICATION,63,29,24,12
     CONTROL         "Antialiasing instrument",IDC_CHECKBOX_ANTIALIAS,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,6,49,97,
+                    BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,6,46,78,
                     10
     CONTROL         "Load Instruments While Playing",
                     IDC_CHECKBOX_LOADINST_PLAYING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,63,99,10
+                    WS_TABSTOP,6,56,101,10
     CONTROL         "Unload Instruments between files",
                     IDC_CHECKBOX_FREE_INST,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | WS_TABSTOP,6,75,92,10
+                    BS_LEFT | BS_TOP | WS_TABSTOP,6,66,107,10
     CONTROL         "Auto Reduction Voice",IDC_CHECKBOX_REDUCE_VOICE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,89,98,8
-    GROUPBOX        "Default MIDI Type",IDC_GROUPBOX_DEFAULT_MIDI_TYPE,6,105,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,76,75,8
+    GROUPBOX        "Default MIDI Type",IDC_GROUPBOX_DEFAULT_MIDI_TYPE,6,87,
                     87,27
     CONTROL         "GM",IDC_RADIOBUTTON_GM,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,14,117,22,8
+                    WS_TABSTOP,14,99,22,8
     CONTROL         "GS",IDC_RADIOBUTTON_GS,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,39,117,20,8
+                    WS_TABSTOP,39,99,20,8
     CONTROL         "XG",IDC_RADIOBUTTON_XG,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,63,117,20,8
-    GROUPBOX        "Others",IDC_STATIC,111,3,100,119
-    LTEXT           "Resample Cache",IDC_STATIC,117,19,50,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_CACHE_SIZE,169,17,36,12
-    LTEXT           "Default tonebank",IDC_STATIC,117,37,50,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_DEFAULT_TONEBANK,173,35,24,12
+                    WS_TABSTOP,63,99,20,8
+    GROUPBOX        "Others",IDC_STATIC,121,3,100,114
+    LTEXT           "Resample Cache",IDC_STATIC,127,15,50,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_CACHE_SIZE,179,13,36,12
+    LTEXT           "Default tonebank",IDC_STATIC,127,28,50,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_DEFAULT_TONEBANK,183,26,24,12
     CONTROL         "All tonebank",IDC_CHECKBOX_SPECIAL_TONEBANK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,117,54,54,8
-    EDITTEXT        IDC_EDIT_SPECIAL_TONEBANK,173,52,24,12
-    LTEXT           "Control Ratio",IDC_STATIC,117,72,40,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_CONTROL_RATIO,173,70,24,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,127,42,54,8
+    EDITTEXT        IDC_EDIT_SPECIAL_TONEBANK,183,40,24,12
+    LTEXT           "Control Ratio",IDC_STATIC,127,56,40,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_CONTROL_RATIO,183,54,24,12
     CONTROL         "Trace Playing",IDC_CHECKBOX_CTL_TRACE_PLAYING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,117,88,86,8
-    LTEXT           "Console Verbosity",IDC_STATIC,117,105,55,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_CTL_VEBOSITY,175,103,20,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,127,68,53,8
+    LTEXT           "Console Verbosity",IDC_STATIC,127,79,55,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_CTL_VEBOSITY,185,77,20,12
+    LTEXT           "Drum Power(%)",IDC_STATIC,127,93,47,10,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_DRUM_POWER,185,92,21,12
+    CONTROL         "Amplitude Compensation",IDC_CHECKBOX_AMP_COMPENSATION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,127,107,86,6
+    GROUPBOX        "Musical grammar",IDC_STATIC,1,118,179,66
+    CONTROL         "Pure intonation(-Zpure)",IDC_CHECKBOX_PURE_INTONATION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,90,8
+    LTEXT           "Initial tonality",IDC_STATIC,19,138,42,9,NOT WS_GROUP
+    COMBOBOX        IDC_COMBO_INIT_KEYSIG,63,138,62,53,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Minor key",IDC_CHECKBOX_INIT_MI,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,129,138,44,8
+    LTEXT           "Key shift(-Kn)",IDC_STATIC,6,153,45,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_KEY_ADJUST,54,152,21,11
+    CONTROL         "Fix key signature(-Hn)",IDC_CHECKBOX_FORCE_KEYSIG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,169,76,8
+    COMBOBOX        IDC_COMBO_FORCE_KEYSIG,83,168,80,53,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_PREF_TIMIDITY3_EN DIALOG DISCARDABLE  0, 0, 210, 190
@@ -993,8 +1009,8 @@ BEGIN
                     WS_TABSTOP,6,203,113,8
     COMBOBOX        IDC_COMBO_FORCE_KEYSIG,122,200,80,53,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "ÉhÉâÉÄâπó ï‚ê≥",IDC_STATIC,117,108,46,8,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT_DRUM_POWER,165,106,40,12
+    LTEXT           "ÉhÉâÉÄâπó ï‚ê≥(%)",IDC_STATIC,117,108,54,8,NOT WS_GROUP
+    EDITTEXT        IDC_EDIT_DRUM_POWER,175,106,21,12
     CONTROL         "âπó é©ìÆï‚ê≥",IDC_CHECKBOX_AMP_COMPENSATION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,117,123,54,8
 END
