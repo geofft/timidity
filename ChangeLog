@@ -1,3 +1,11 @@
+2004-04-12  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/common.[ch], timidity/timidity.c:
+	  New syntax of *.cfg: $VARIABLE / ${VARIABLE}
+	  They are replaced with the specific string before tokenizing.
+	  $basedir is the only implemented one, which represents the base
+	  directory of the cfg file being parsed.
+
 2004-03-31  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: Change version to 'current' (timidity:3161)

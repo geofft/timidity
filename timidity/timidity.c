@@ -1065,22 +1065,94 @@ static int strip_trailing_comment(char *string, int next_token_index)
     return next_token_index;
 }
 
+static char *expand_variables(char *string, MBlockList *varbuf, const char *basedir)
+{
+	char *p, *expstr;
+	const char *copystr;
+	int limlen, copylen, explen, varlen, braced;
+	
+	if ((p = strchr(string, '$')) == NULL)
+		return string;
+	varlen = strlen(basedir);
+	explen = limlen = 0;
+	expstr = NULL;
+	copystr = string;
+	copylen = p - string;
+	string = p;
+	for(;;)
+	{
+		if (explen + copylen + 1 > limlen)
+		{
+			limlen += copylen + 128;
+			expstr = memcpy(new_segment(varbuf, limlen), expstr, explen);
+		}
+		memcpy(&expstr[explen], copystr, copylen);
+		explen += copylen;
+		if (*string == '\0')
+			break;
+		else if (*string == '$')
+		{
+			braced = *++string == '{';
+			if (braced)
+			{
+				if ((p = strchr(string + 1, '}')) == NULL)
+					p = string;	/* no closing brace */
+				else
+					string++;
+			}
+			else
+				for(p = string; isalnum(*p) || *p == '_'; p++) ;
+			if (p == string)	/* empty */
+			{
+				copystr = "$";
+				copylen = 1;
+			}
+			else
+			{
+				if (p - string == 7 && memcmp(string, "basedir", 7) == 0)
+				{
+					copystr = basedir;
+					copylen = varlen;
+				}
+				else	/* undefined variable */
+					copylen = 0;
+				string = p + braced;
+			}
+		}
+		else	/* search next */
+		{
+			p = strchr(string, '$');
+			if (p == NULL)
+				copylen = strlen(string);
+			else
+				copylen = p - string;
+			copystr = string;
+			string += copylen;
+		}
+	}
+	expstr[explen] = '\0';
+	return expstr;
+}
+
 #define MAXWORDS 130
 #define CHECKERRLIMIT \
   if(++errcnt >= 10) { \
     ctl->cmsg(CMSG_ERROR, VERB_NORMAL, \
       "Too many errors... Give up read %s", name); \
+    reuse_mblock(&varbuf); \
     close_file(tf); return 1; }
 
 MAIN_INTERFACE int read_config_file(char *name, int self)
 {
     struct timidity_file *tf;
-    char tmp[1024], *w[MAXWORDS + 1], *cp;
+    char buf[1024], *tmp, *w[MAXWORDS + 1], *cp;
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
     int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0x7FFFFFFF;
     int extension_flag, param_parse_err;
+    MBlockList varbuf;
+    char *basedir, *sep;
 
     if(rcf_count > 50)
     {
@@ -1099,11 +1171,37 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
     if(tf == NULL)
 	return 1;
 
+	init_mblock(&varbuf);
+	if (!self)
+	{
+		basedir = strdup_mblock(&varbuf, current_filename);
+		if (is_url_prefix(basedir))
+			sep = strrchr(basedir, '/');
+		else
+			sep = pathsep_strrchr(basedir);
+	}
+	else
+		sep = NULL;
+	if (sep == NULL)
+	{
+		#ifndef __MACOS__
+		basedir = "." PATH_STRING;
+		#else
+		basedir = PATH_STRING;
+		#endif
+	}
+	else
+	{
+		if ((cp = strchr(sep, '#')) != NULL)
+			sep = cp;
+		sep[1] = '\0';
+	}
+
     errno = 0;
-    while(tf_gets(tmp, sizeof(tmp), tf))
+    while(tf_gets(buf, sizeof(buf), tf))
     {
 	line++;
-	if(strncmp(tmp, "#extension", 10) == 0) {
+	if(strncmp(buf, "#extension", 10) == 0) {
 	    extension_flag = 1;
 	    i = 10;
 	}
@@ -1113,10 +1211,11 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    i = 0;
 	}
 
-	while(isspace(tmp[i]))			/* skip /^\s*(?#)/ */
+	while(isspace(buf[i]))			/* skip /^\s*(?#)/ */
 	    i++;
-	if (tmp[i] == '#' || tmp[i] == '\0')	/* /^#|^$/ */
+	if (buf[i] == '#' || buf[i] == '\0')	/* /^#|^$/ */
 	    continue;
+	tmp = expand_variables(buf, &varbuf, basedir);
 	j = strcspn(tmp + i, " \t\r\n\240");
 	if (j == 0)
 		j = strlen(tmp + i);
@@ -2019,6 +2118,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		rcf_count--;
 		if(status == 2)
 		{
+		    reuse_mblock(&varbuf);
 		    close_file(tf);
 		    return 2;
 		}
@@ -2211,6 +2311,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		  "Can't read %s: %s", name, strerror(errno));
 	errcnt++;
     }
+    reuse_mblock(&varbuf);
     close_file(tf);
     return errcnt != 0;
 }
