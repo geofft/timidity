@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,11 +15,10 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-    server_c.c - TiMidity server written by Masanao Izumo <mo@goice.co.jp>
+    server_c.c - TiMidity server written by Masanao Izumo <iz@onicos.co.jp>
         Mon Apr 5 1999: Initial created.
-
 
     Launch TiMidity server: (example)
     % timidity -ir 7777
@@ -29,16 +28,15 @@
     TiMidity server has 2 TCP/IP connection.  They are control port and
     data port.
     Control port:
-	ASCII text protocol like FTP control port. See command_help for
-	control protocol in this source code.
+        ASCII text protocol like FTP control port. See command_help for
+        control protocol in this source code.
     Data port:
-	One way Binary stream data from client to server. The format of
-	stream is same as OSS sequencer stream.
-
+        One way Binary stream data from client to server. The format of
+        stream is same as OSS sequencer stream.
 
     TODO:
-	Protocol specification to be documented.
-    */
+        Protocol specification to be documented.
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

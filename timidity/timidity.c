@@ -3783,37 +3783,36 @@ static inline int parse_opt_h(const char *arg)
 "                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
 "                 n:[0..4] (for 16-bit linear encoding, default is 4)" NLS, fp);
 #ifndef FIXED_RESAMPLATION
-	fputs(
-"  -EFresamp=d  Disable resamplation"
-#if DEFAULT_RESAMPLATION == resample_none
-			" (default)"
+#ifdef HAVE_STRINGIZE
+#define tim_str_internal(x) #x
+#define tim_str(x) tim_str_internal(x)
+#else
+#define tim_str(x) "x"
 #endif
-			NLS
-"  -EFresamp=l  Enable Linear resample algorithm"
-#if DEFAULT_RESAMPLATION == resample_linear
-			" (default)"
-#endif
-			NLS
-"  -EFresamp=c  Enable C-spline resample algorithm"
-#if DEFAULT_RESAMPLATION == resample_cspline
-			" (default)"
-#endif
-			NLS
-"  -EFresamp=L  Enable Lagrange resample algorithm"
-#if DEFAULT_RESAMPLATION == resample_lagrange
-			" (default)"
-#endif
-			NLS
-"  -EFresamp=n  Enable Newton resample algorithm"
-#if DEFAULT_RESAMPLATION == resample_newton
-			" (default)"
-#endif
-			NLS
-"  -EFresamp=g  Enable Gauss-like resample algorithm"
-#if DEFAULT_RESAMPLATION == resample_gauss
-			" (default)"
-#endif
-			NLS
+	fputs("  -EFresamp=d  Disable resamplation", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_none"))
+		fputs(" (default)", fp);
+	fputs(NLS, fp);
+	fputs("  -EFresamp=l  Enable Linear resample algorithm", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_linear"))
+		fputs(" (default)", fp);
+	fputs(NLS, fp);
+	fputs("  -EFresamp=c  Enable C-spline resample algorithm", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_cspline"))
+		fputs(" (default)", fp);
+	fputs(NLS, fp);
+	fputs("  -EFresamp=L  Enable Lagrange resample algorithm", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_lagrange"))
+		fputs(" (default)", fp);
+	fputs(NLS, fp);
+	fputs("  -EFresamp=n  Enable Newton resample algorithm", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_newton"))
+		fputs(" (default)", fp);
+	fputs(NLS, fp);
+	fputs("  -EFresamp=g  Enable Gauss-like resample algorithm", fp);
+	if (! strcmp(tim_str(DEFAULT_RESAMPLATION), "resample_gauss"))
+		fputs(" (default)", fp);
+	fputs(NLS
 "                 -EFresamp affects the behavior of -N option" NLS, fp);
 #endif
 	fputs(NLS, fp);
