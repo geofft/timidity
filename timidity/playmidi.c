@@ -983,8 +983,7 @@ FLOAT_T calc_drum_tva_level(int ch,int note,int level)
 
 	def_level = bank->tone[nprog].tva_level;
 
-	if(def_level == -1) {def_level = 127;}
-	else if(def_level <= 0) {def_level = 1;}
+	if(def_level == -1 || def_level == 0) {def_level = 127;}
 	else if(def_level > 127) {def_level = 127;}
 
 	return ((FLOAT_T)level / (FLOAT_T)def_level);
@@ -1630,7 +1629,7 @@ static int find_voice(MidiEvent *e)
 		if (voice[j].status != VOICE_FREE && voice[j].channel == ch
 				&& (voice[j].status & status_check && voice[j].note == note
 				|| mono_check
-				|| altassign && find_altassign(altassign, voice[j].note)))
+				|| (altassign && find_altassign(altassign, voice[j].note))))
 			kill_note(j);
 		else if (voice[j].status != VOICE_FREE && voice[j].channel == ch
 				&& voice[j].note == note && ((channel[ch].assign_mode == 1
@@ -2123,7 +2122,7 @@ static void set_envelope_time(int ch,int val,int stage)
 	case 0:	// Attack
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Time (CH:%d VALUE:%d)",ch,val);
 		break;
-	case 1: // Decay
+	case 2: // Decay
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Decay Time (CH:%d VALUE:%d)",ch,val);
 		break;
 	case 3:	// Release
@@ -2388,6 +2387,7 @@ static void note_on(MidiEvent *e)
 	if(opt_resonance) {recompute_channel_lpf(ch,note,e->b);}
 	recompute_bank_parameter(ch,note);
 	recompute_channel_filter(e);
+	calc_sample_panning_average(nv, vlist);
 
     for(i = 0; i < nv; i++)
     {
@@ -2401,7 +2401,6 @@ static void note_on(MidiEvent *e)
 	    channel[ch].panning = int_rand(128);
 	    ctl_mode_event(CTLE_PANNING, 1, ch, channel[ch].panning);
 	}
-	calc_sample_panning_average(nv, vlist);
 	start_note(e, v, vid, nv - i - 1);
 #ifdef SMOOTH_MIXING
 	voice[v].old_left_mix = voice[v].old_right_mix =
@@ -3318,7 +3317,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	break;
       case NRPN_ADDR_0164:	/* EG Decay Time */
 	if(!opt_tva_decay) { break; }
-	set_envelope_time(ch,val,1);
+	set_envelope_time(ch,val,2);
 	break;
       case NRPN_ADDR_0166:	/* EG Release Time */
 	if(!opt_tva_release) { break; }
@@ -3360,7 +3359,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	if(channel[ch].drums[note] == NULL) {play_midi_setup_drums(ch, note);}
 	val	-= 64;
 	ctl->cmsg(CMSG_INFO,VERB_NOISY,"XG Drum Decay Time (CH:%d NOTE:%d VALUE:%d)",ch,note,val);
-	channel[ch].drums[note]->drum_envelope_rate[1] = val;
+	channel[ch].drums[note]->drum_envelope_rate[2] = val;
 	break;
       case NRPN_ADDR_1800:	/* Coarse Pitch of Drum (GS) */
 	drumflag = 1;

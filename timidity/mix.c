@@ -1053,6 +1053,7 @@ static inline int next_stage(int v)
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
+
 	ch = vp->channel;
 	tmp = vp->sample->envelope_rate[stage];
 	if (vp->sample->modes & MODES_ENVELOPE) {
@@ -1142,7 +1143,7 @@ int apply_envelope_to_amp(int v)
 		if (ra > MAX_AMP_VALUE)
 			ra = MAX_AMP_VALUE;
 		if ((voice[v].status & (VOICE_OFF | VOICE_SUSTAINED))
-				&& (la | ra) <= MIN_AMP_VALUE) {
+				&& (la | ra) <= 0/* <= MIN_AMP_VALUE*/) {
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
@@ -1162,7 +1163,7 @@ int apply_envelope_to_amp(int v)
 		if (la > MAX_AMP_VALUE)
 		la = MAX_AMP_VALUE;
 		if ((voice[v].status & (VOICE_OFF | VOICE_SUSTAINED))
-				&& la <= MIN_AMP_VALUE) {
+				&& la <= 0/*<= MIN_AMP_VALUE*/) {
 			free_voice(v);
 			ctl_note_event(v);
 			return 1;
