@@ -3148,7 +3148,7 @@ MAIN_INTERFACE int set_tim_opt(int c, char *optarg)
 
 	case 'Q':
 		if (strchr(optarg, 't')) {
-			if (set_value(&tmpi32, atoi(optarg), 0, 3, "Quiet temperament"))
+			if (set_value(&tmpi32, atoi(optarg), 0, 7, "Quiet temperament"))
 				return 1;
 			temper_type_mute |= 1 << tmpi32;
 		} else
@@ -3411,6 +3411,7 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	    url_add_module(url_module_list[i]);
 	init_string_table(&opt_config_string);
 	init_freq_table();
+	init_freq_table_tuning();
 	init_freq_table_pytha();
 	init_freq_table_meantone();
 	init_freq_table_pureint();

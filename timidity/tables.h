@@ -34,6 +34,7 @@ extern FLOAT_T lookup_log(int x);
 
 #define SINE_CYCLE_LENGTH 1024
 extern int32 freq_table[];
+extern int32 freq_table_tuning[][128];
 extern int32 freq_table_pytha[][128];
 extern int32 freq_table_meantone[][128];
 extern int32 freq_table_pureint[][128];
@@ -75,6 +76,7 @@ extern FLOAT_T cb_to_amp_table[];
 extern FLOAT_T reverb_time_table[];
 
 extern void init_freq_table(void);
+extern void init_freq_table_tuning(void);
 extern void init_freq_table_pytha(void);
 extern void init_freq_table_meantone(void);
 extern void init_freq_table_pureint(void);

@@ -1,3 +1,12 @@
+2003-07-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c, timidity/tables.[ch],
+	  timidity/timidity.c:
+	  Support for single-note tuning change
+	  Support for channel mute by user-defined temperament type
+	  Fix around temperament type redrawing on ME_RESET
+	  Fix around channel mute by temperament type on ME_RESET
+
 2003-07-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.[ch], timidity/timidity.c:

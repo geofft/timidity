@@ -552,8 +552,8 @@ int convert_midi_control_change(int chn, int type, int val, MidiEvent *ev_ret)
       case  65: type = ME_PORTAMENTO; break;
       case  66: type = ME_SOSTENUTO; break;
       case  67: type = ME_SOFT_PEDAL; break;
-	  case  68: type = ME_LEGATO_FOOTSWITCH; break;
-	  case  69: type = ME_HOLD2; break;
+      case  68: type = ME_LEGATO_FOOTSWITCH; break;
+      case  69: type = ME_HOLD2; break;
       case  71: type = ME_HARMONIC_CONTENT; break;
       case  72: type = ME_RELEASE_TIME; break;
       case  73: type = ME_ATTACK_TIME; break;
@@ -613,7 +613,7 @@ static int block_to_part(int block, int port)
 int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 {
     int num_events = 0;				/* Number of events added */
-	uint16 channel_st;
+	uint16 channel_tt;
 	int i, j;
 
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
@@ -1593,15 +1593,26 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			break;
 		case 0x08:	/* MIDI Tuning Standard */
 			switch (val[3]) {
+			case 0x02:
+				SETMIDIEVENT(evm[0], 0, ME_SINGLE_NOTE_TUNING,
+						0, val[4], 0);
+				for (i = 0; i < val[5]; i++) {
+					SETMIDIEVENT(evm[i * 2 + 1], 0, ME_SINGLE_NOTE_TUNING,
+							1, val[6], val[7]);
+					SETMIDIEVENT(evm[i * 2 + 2], 0, ME_SINGLE_NOTE_TUNING,
+							2, val[8], val[9]);
+				}
+				num_events = val[5] * 2 + 1;
+				break;
 			case 0x0b:
-				channel_st = val[4] << 14 | val[5] << 7 | val[6];
+				channel_tt = val[4] << 14 | val[5] << 7 | val[6];
 				if (val[1] == 0x7f) {
 					SETMIDIEVENT(evm[0], 0, ME_MASTER_TEMPER_TYPE,
 							0, val[7], (val[0] == 0x7f) ? 1 : 0);
 					num_events++;
 				} else {
 					for (i = 0, j = 0; i < 16; i++)
-						if (channel_st & 1 << i) {
+						if (channel_tt & 1 << i) {
 							SETMIDIEVENT(evm[j], 0, ME_TEMPER_TYPE,
 									MERGE_CHANNEL_PORT(i),
 									val[7], (val[0] == 0x7f) ? 1 : 0);
@@ -2927,7 +2938,7 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	    bank_lsb[ch] = meep->event.a;
 	    break;
 
-	  case ME_CHORUS_TEXT:		  		  
+	  case ME_CHORUS_TEXT:
 	  case ME_LYRIC:
 	  case ME_MARKER:
 	  case ME_INSERT_TEXT:

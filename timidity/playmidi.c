@@ -254,6 +254,7 @@ static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
 static void update_channel_freq(int ch);
+static void set_single_note_tuning(int, int, int);
 
 #define IS_SYSEX_EVENT_TYPE(type) ((type) == ME_NONE || (type) >= ME_RANDOM_PAN)
 
@@ -332,6 +333,7 @@ static char *event_name(int type)
 	EVENT_NAME(ME_TIMESIG);
 	EVENT_NAME(ME_KEYSIG);
 	EVENT_NAME(ME_SCALE_TUNING);
+	EVENT_NAME(ME_SINGLE_NOTE_TUNING);
 	EVENT_NAME(ME_TEMPER_KEYSIG);
 	EVENT_NAME(ME_TEMPER_TYPE);
 	EVENT_NAME(ME_MASTER_TEMPER_TYPE);
@@ -543,6 +545,9 @@ static void redraw_controllers(int c)
     ctl_mode_event(CTLE_MOD_WHEEL, 1, c, channel[c].modulation_wheel);
     ctl_mode_event(CTLE_PITCH_BEND, 1, c, channel[c].pitchbend);
     ctl_prog_event(c);
+    ctl_mode_event(CTLE_TEMPER_TYPE, 1, c, channel[c].temper_type);
+    ctl_mode_event(CTLE_MUTE, 1,
+    		c, (IS_SET_CHANNELMASK(channel_mute, c)) ? 1 : 0);
     ctl_mode_event(CTLE_CHORUS_EFFECT, 1, c, get_chorus_level(c));
     ctl_mode_event(CTLE_REVERB_EFFECT, 1, c, get_reverb_level(c));
 }
@@ -585,6 +590,12 @@ static void reset_midi(int playing)
     }
 	if (playing) {
 		kill_all_voices();
+		if (temper_type_mute) {
+			if (temper_type_mute & 1)
+				FILL_CHANNELMASK(channel_mute);
+			else
+				CLEAR_CHANNELMASK(channel_mute);
+		}
 		for (i = 0; i < MAX_CHANNELS; i++)
 			redraw_controllers(i);
 		if (midi_streaming && free_instruments_afterwards) {
@@ -600,6 +611,7 @@ static void reset_midi(int playing)
 
     master_volume_ratio = 0xFFFF;
     adjust_amplification();
+    init_freq_table_tuning();
     if(current_file_info)
     {
 	COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
@@ -686,7 +698,7 @@ void recompute_freq(int v)
 	if (! opt_pure_intonation && voice[v].temper_instant) {
 		switch (tt) {
 		case 0:
-			f = freq_table[note];
+			f = freq_table_tuning[0][note];
 			break;
 		case 1:
 			f = freq_table_pytha[current_freq_table][note];
@@ -710,7 +722,7 @@ void recompute_freq(int v)
 				else
 					f = freq_table_user[tt][current_freq_table + 12][note];
 			} else
-				f = freq_table[note];
+				f = freq_table_tuning[0][note];
 			break;
 		}
 		voice[v].orig_frequency = f;
@@ -1738,7 +1750,7 @@ static int select_play_sample(Sample *splist, int nsp,
 	} else
 		switch (tt) {
 		case 0:
-			f = freq_table[note];
+			f = freq_table_tuning[0][note];
 			break;
 		case 1:
 			f = freq_table_pytha[current_freq_table][note];
@@ -1762,7 +1774,7 @@ static int select_play_sample(Sample *splist, int nsp,
 				else
 					f = freq_table_user[tt][current_freq_table + 12][note];
 			} else
-				f = freq_table[note];
+				f = freq_table_tuning[0][note];
 			break;
 		}
 	fs = freq_table[note];
@@ -4100,6 +4112,10 @@ static void seek_forward(int32 until_time)
 		channel[ch].scale_tuning[current_event->a] = current_event->b;
 		break;
 
+	case ME_SINGLE_NOTE_TUNING:
+		set_single_note_tuning(ch, current_event->a, current_event->b);
+		break;
+
 	case ME_TEMPER_KEYSIG:
 		current_temper_keysig = current_event->a;
 		break;
@@ -5987,6 +6003,15 @@ int play_event(MidiEvent *ev)
 		adjust_pitch(ch);
 		break;
 
+	case ME_SINGLE_NOTE_TUNING:
+		set_single_note_tuning(ch, current_event->a, current_event->b);
+		for (i = 0; i < upper_voices; i++)
+			if (voice[i].status != VOICE_FREE) {
+				voice[i].temper_instant = 1;
+				recompute_freq(i);
+			}
+		break;
+
 	case ME_TEMPER_KEYSIG:
 		current_temper_keysig = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
@@ -6007,6 +6032,7 @@ int play_event(MidiEvent *ev)
 	case ME_TEMPER_TYPE:
 		channel[ch].temper_type = current_event->a;
 		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
+		current_event->a -= (current_event->a >= 0x40) ? 0x3c : 0;
 		if (temper_type_mute) {
 			if (temper_type_mute & 1 << current_event->a) {
 				SET_CHANNELMASK(channel_mute, ch);
@@ -6029,6 +6055,7 @@ int play_event(MidiEvent *ev)
 			channel[i].temper_type = current_event->a;
 			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
 		}
+		current_event->a -= (current_event->a >= 0x40) ? 0x3c : 0;
 		if (temper_type_mute) {
 			if (temper_type_mute & 1 << current_event->a) {
 				FILL_CHANNELMASK(channel_mute);
@@ -6089,6 +6116,31 @@ int play_event(MidiEvent *ev)
 #endif
 
     return RC_NONE;
+}
+
+static void set_single_note_tuning(int part, int a, int b)
+{
+	static int tp;	/* tuning program number */
+	static int kn;	/* MIDI key number */
+	static int st;	/* the nearest equal-tempered semitone */
+	double f, fst;	/* fraction of seminote */
+	
+	switch (part) {
+	case 0:
+		tp = a;
+		break;
+	case 1:
+		kn = a;
+		st = b;
+		break;
+	case 2:
+		if (st == 0x7f && a == 0x7f && b == 0x7f)	/* no change */
+			break;
+		f = 440 * pow(2.0, (st - 69) / 12.0);
+		fst = pow(2.0, (a << 7 | b | ((a & 0x40) ? 0xc000 : 0)) / 98304.0);
+		freq_table_tuning[tp][kn] = f * fst * 1000 + 0.5;
+		break;
+	}
 }
 
 static int play_midi(MidiEvent *eventlist, int32 samples)

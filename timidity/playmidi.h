@@ -121,6 +121,7 @@ enum midi_event_t
     ME_TIMESIG,			/* Time signature */
     ME_KEYSIG,			/* Key signature */
     ME_SCALE_TUNING,		/* Scale tuning */
+    ME_SINGLE_NOTE_TUNING,	/* Single-note tuning */
     ME_TEMPER_KEYSIG,		/* Temperament key signature */
     ME_TEMPER_TYPE,		/* Temperament type */
     ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */

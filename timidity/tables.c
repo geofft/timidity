@@ -41,6 +41,7 @@
 #include "tables.h"
 
 int32 freq_table[128];
+int32 freq_table_tuning[128][128];
 int32 freq_table_pytha[12][128];
 int32 freq_table_meantone[24][128];
 int32 freq_table_pureint[24][128];
@@ -52,6 +53,18 @@ void init_freq_table(void)
 	
 	for (i = 0; i < 128; i++)
 		freq_table[i] = 440 * pow(2.0, (i - 69) / 12.0) * 1000 + 0.5;
+}
+
+void init_freq_table_tuning(void)
+{
+	int p, i;
+	double f;
+	
+	for (i = 0; i < 128; i++) {
+		f = 440 * pow(2.0, (i - 69) / 12.0);
+		for (p = 0; p < 128; p++)
+			freq_table_tuning[p][i] = f * 1000 + 0.5;
+	}
 }
 
 void init_freq_table_pytha(void)
