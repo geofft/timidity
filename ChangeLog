@@ -1,3 +1,11 @@
+2003-06-02  mput <root@mput.dip.jp>
+
+	* bootstrap.sh: Fix to use make
+	* configure.in: Fix to fit the adding files
+	* autoconf/Makefile.am, autoconf/Makefile.boot,
+	  autoconf/Makefile.in, configs/Makefile.am, configs/Makefile.in:
+	  Add.
+
 2003-06-01  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/effect.c (do_effect): Do not do reverb or chorus if

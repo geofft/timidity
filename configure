@@ -15980,7 +15980,7 @@ SHLD="$SHLD $SHLDFLAGS"
 
 
 
-                                                                                                                                            ac_config_files="$ac_config_files Makefile common.makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile utils/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.ujis/Makefile script/Makefile"
+                                                                                                                                                                ac_config_files="$ac_config_files Makefile autoconf/Makefile common.makefile configs/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.ujis/Makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile utils/Makefile script/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -16797,7 +16797,12 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "autoconf/Makefile" ) CONFIG_FILES="$CONFIG_FILES autoconf/Makefile" ;;
   "common.makefile" ) CONFIG_FILES="$CONFIG_FILES common.makefile" ;;
+  "configs/Makefile" ) CONFIG_FILES="$CONFIG_FILES configs/Makefile" ;;
+  "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
+  "doc/C/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/C/Makefile" ;;
+  "doc/ja_JP.ujis/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/ja_JP.ujis/Makefile" ;;
   "interface/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/Makefile" ;;
   "interface/motif_bitmaps/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/motif_bitmaps/Makefile" ;;
   "interface/bitmaps/Makefile" ) CONFIG_FILES="$CONFIG_FILES interface/bitmaps/Makefile" ;;
@@ -16806,9 +16811,6 @@ do
   "libunimod/Makefile" ) CONFIG_FILES="$CONFIG_FILES libunimod/Makefile" ;;
   "timidity/Makefile" ) CONFIG_FILES="$CONFIG_FILES timidity/Makefile" ;;
   "utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES utils/Makefile" ;;
-  "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
-  "doc/C/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/C/Makefile" ;;
-  "doc/ja_JP.ujis/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/ja_JP.ujis/Makefile" ;;
   "script/Makefile" ) CONFIG_FILES="$CONFIG_FILES script/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;

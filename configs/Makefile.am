@@ -1,4 +1,3 @@
-#!/bin/sh
 # TiMidity++ -- MIDI to WAVE converter and player
 # Copyright (C) 1999-2003 Masanao Izumo <is@onicos.co.jp>
 # Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
@@ -18,39 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-# bootstrap script: use me instead of autoreconf
-if [ "x$1" = "x-f" -o "x$1" = "x--force" ]; then
-
-    set -x;
-
-    # Force re-construct the whole autotools.
-    # May take much time than usual.
-
-    # for Mac OS X + Fink:
-    #aclocal -I /usr/share/aclocal -I /sw/share/aclocal -I /sw/share/aclocal-1.6 -I autoconf \
-       aclocal -I /usr/share/aclocal -I autoconf \
-    && autoheader \
-    && for dir in \
-	. \
-	autoconf \
-	config \
-	doc \
-	doc/C \
-	doc/ja_JP.ujis \
-	interface \
-	interface/bitmaps \
-	interface/motif_bitmaps \
-	interface/pixmaps \
-	libarc \
-	libunimod \
-	script \
-	timidity \
-	utils; \
-       do \
-	automake --gnu $dir/Makefile; \
-       done \
-    && autoconf;
-
-else
-    make -f autoconf/Makefile.boot
-fi
+EXTRA_DIST = \
+  msc-config.h \
+  msc-config.h.in \
+  msc-interface.h \
+  msc-sjis.txt \
+  msc-twsyn-interface.h

@@ -239,32 +239,26 @@ timidity_LDFLAGS = @timidity_LDFLAGS@
 w_so_libs = @w_so_libs@
 
 SUBDIRS = \
+	autoconf \
+	configs \
+	doc \
+	script \
 	utils \
 	libarc \
-	interface \
 	libunimod \
-	timidity \
-	doc \
-	script
+	interface \
+	timidity
 
 
 EXTRA_DIST = \
-	autoconf \
-	AUTHORS \
-	COPYING \
-	ChangeLog \
 	ChangeLog.1 \
-	INSTALL \
 	INSTALL.jp \
-	NEWS \
-	README \
 	README.jp \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad \
 	TiMidity.ad \
-	bootstrap.sh \
-	configs
+	bootstrap.sh
 
 
 TOOLSDIR = timidity-tools
@@ -296,7 +290,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  ./Makefile
+	  $(AUTOMAKE) --gnu  Makefile
 Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)
 

@@ -1679,7 +1679,12 @@ AC_SUBST(pkglibdir)
 
 AC_CONFIG_FILES([
   Makefile
+  autoconf/Makefile
   common.makefile
+  configs/Makefile
+  doc/Makefile
+  doc/C/Makefile
+  doc/ja_JP.ujis/Makefile
   interface/Makefile
   interface/motif_bitmaps/Makefile
   interface/bitmaps/Makefile
@@ -1688,9 +1693,6 @@ AC_CONFIG_FILES([
   libunimod/Makefile
   timidity/Makefile
   utils/Makefile
-  doc/Makefile
-  doc/C/Makefile
-  doc/ja_JP.ujis/Makefile
   script/Makefile
 ])
 AC_OUTPUT

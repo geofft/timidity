@@ -19,31 +19,25 @@
 # This Makefile is known to work with GNU make.
 
 SUBDIRS = \
+	autoconf \
+	configs \
+	doc \
+	script \
 	utils \
 	libarc \
-	interface \
 	libunimod \
-	timidity \
-	doc \
-	script
+	interface \
+	timidity
 
 EXTRA_DIST = \
-	autoconf \
-	AUTHORS \
-	COPYING \
-	ChangeLog \
 	ChangeLog.1 \
-	INSTALL \
 	INSTALL.jp \
-	NEWS \
-	README \
 	README.jp \
 	timidity.ide \
 	timidity.mak \
 	TiMidity-uj.ad \
 	TiMidity.ad \
-	bootstrap.sh \
-	configs
+	bootstrap.sh
 
 TOOLSDIR = timidity-tools
 UMPDIR = ump
