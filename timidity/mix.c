@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#define OFFSET_MAX 0x3fc00000
+#define OFFSET_MAX 0x40000000
 
 #if OPT_MODE != 0
 #define VOICE_LPF
@@ -1094,7 +1094,7 @@ static inline int next_stage(int v)
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
 		return recompute_envelope(v);
-	else if(rate > (1L << 30)) {	/* instantaneous attack */
+	else if(stage == 0 && rate > OFFSET_MAX) {	/* instantaneous attack */
 		vp->envelope_volume = offset;
 		recompute_envelope(v);
 	} 
@@ -1130,8 +1130,8 @@ static inline int next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate)
-		rate =  512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate;
+	if (rate < 512 * 44100 / play_mode->rate * control_ratio)
+		rate =  512 * 44100 / play_mode->rate * control_ratio;
 	if (offset < vp->envelope_volume) {	/* decay-phase */
 		if(rate > vp->envelope_volume - offset) {	/* fastest decay */
 			rate = -vp->envelope_volume + offset - 1;
@@ -1343,7 +1343,7 @@ static inline int modenv_next_stage(int v)
 	if (vp->modenv_volume == offset
 			|| (stage > 2 && vp->modenv_volume < offset))
 		return recompute_modulation_envelope(v);
-	else if(stage == 0 && rate > (1L << 30)) {	/* instantaneous attack */
+	else if(stage == 0 && rate > OFFSET_MAX) {	/* instantaneous attack */
 			vp->modenv_volume = offset;
 			recompute_modulation_envelope(v);
 	}
@@ -1377,8 +1377,8 @@ static inline int modenv_next_stage(int v)
 	}
 
 	/* regularizing envelope */
-	if (rate < 512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate)
-		rate =  512.0f * (double)control_ratio * 44100.0f / (double)play_mode->rate;
+	if (rate < 512 * 44100 / play_mode->rate * control_ratio)
+		rate =  512 * 44100 / play_mode->rate * control_ratio;
 	if (offset < vp->modenv_volume) {	/* decay-phase */
 		if(rate > vp->modenv_volume - offset) {	/* fastest decay */
 			rate = -vp->modenv_volume + offset - 1;

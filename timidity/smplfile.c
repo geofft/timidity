@@ -1094,6 +1094,12 @@ static void initialize_sample(Instrument *inst, int frames, int sample_bits, int
 		sample->envelope_velf_bpo = sample->modenv_velf_bpo =
 			sample->vel_to_fc_threshold = 64;
 		sample->key_to_fc_bpo = 60;
+		memset(sample->envelope_velf, 0, sizeof(sample->envelope_velf));
+		memset(sample->envelope_keyf, 0, sizeof(sample->envelope_keyf));
+		memset(sample->modenv_velf, 0, sizeof(sample->modenv_velf));
+		memset(sample->modenv_keyf, 0, sizeof(sample->modenv_keyf));
+		memset(sample->modenv_rate, 0, sizeof(sample->modenv_rate));
+		memset(sample->modenv_offset, 0, sizeof(sample->modenv_offset));
 		sample->inst_type = INST_PCM;
 	}
 	if (samples <= 6 && (panning = gen_pan_list[samples - 1]) != NULL)

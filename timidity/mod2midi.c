@@ -569,7 +569,7 @@ void shrink_huge_sample (Sample *sp)
 
 void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 {
-    int i;
+    int i, j;
 
     for(i = 1; numsamples--; i++, s++)
     {
@@ -651,6 +651,12 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	sp->envelope_velf_bpo = sp->modenv_velf_bpo =
 		sp->vel_to_fc_threshold = 64;
 	sp->key_to_fc_bpo = 60;
+	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
+	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));
+	memset(sp->modenv_velf, 0, sizeof(sp->modenv_velf));
+	memset(sp->modenv_keyf, 0, sizeof(sp->modenv_keyf));
+	memset(sp->modenv_rate, 0, sizeof(sp->modenv_rate));
+	memset(sp->modenv_offset, 0, sizeof(sp->modenv_offset));
 
 	if (sp->data_length >= (1 << (31 - FRACTION_BITS)) - 1)
 	    shrink_huge_sample(sp);

@@ -1,4 +1,12 @@
 
+2003-05-01  Saito <timidity@flashmail.com>
+
+	* timidity/sndfont.c, timidity/instrum.c,
+	  timidity/mod2midi.c, timidity/smplfile.c:
+	  Fix around initialization.
+	* timidity/mix.c:
+	  Bug fix in envelope generator.
+
 2003-04-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/ncurs_c.c, interface/w32g_subwin3.c,

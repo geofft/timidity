@@ -157,6 +157,8 @@ void clear_magic_instruments(void)
     }
 }
 
+#define GUS_ENVRATE_MAX (int32)(0x40000000 >> 9)
+
 static int32 convert_envelope_rate(uint8 rate)
 {
   int32 r;
@@ -166,8 +168,9 @@ static int32 convert_envelope_rate(uint8 rate)
   r = (int32)(rate & 0x3f) << r; /* 6.9 fixed point */
 
   /* 15.15 fixed point. */
-  return (((r * 44100) / play_mode->rate) * control_ratio)
-    << ((fast_decay) ? 10 : 9);
+  r = r * 44100 / play_mode->rate * control_ratio * (1 << fast_decay);
+  if(r > GUS_ENVRATE_MAX) {r = GUS_ENVRATE_MAX;}
+  return (r << 9);
 }
 
 static int32 convert_envelope_offset(uint8 offset)
@@ -830,7 +833,12 @@ static Instrument *load_gus_instrument(char *name,
       /* The sample must be padded out by 1 extra sample, so that
          round off errors in the offsets used in interpolation will not
          cause a "pop" by reading random data beyond data_length */
-      sp->data[sp->data_length] = sp->data[sp->data_length-1];
+      sp->data[sp->data_length] = sp->data[sp->data_length - 1];
+
+	  if(!(sp->modes & MODES_LOOPING)) {	/* remove abnormal loops */
+		  sp->loop_start = sp->data_length - 1;
+		  sp->loop_end = sp->data_length;
+	  }
 
       /* Then fractional samples */
       sp->data_length <<= FRACTION_BITS;
@@ -878,6 +886,13 @@ static Instrument *load_gus_instrument(char *name,
 	sp->envelope_velf_bpo = sp->modenv_velf_bpo = sp->vel_to_fc_threshold = 64;
 	sp->key_to_fc_bpo = 60;
 	sp->inst_type = INST_GUS;
+
+	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
+	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));
+	memset(sp->modenv_velf, 0, sizeof(sp->modenv_velf));
+	memset(sp->modenv_keyf, 0, sizeof(sp->modenv_keyf));
+	memset(sp->modenv_rate, 0, sizeof(sp->modenv_rate));
+	memset(sp->modenv_offset, 0, sizeof(sp->modenv_offset));
 
   close_file(tf);
   store_instrument_cache(ip, name, panning, amp, note_to_use,

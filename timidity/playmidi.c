@@ -487,7 +487,6 @@ static void reset_nrpn_controllers(int c)
   channel[c].caf_pitch_depth1 = 0.5;
   channel[c].caf_cutoff_ctl = 0.25;
   channel[c].caf_amp_ctl = 1.0;
-
 }
 
 /* Process the Reset All Controllers event */

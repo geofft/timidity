@@ -100,17 +100,17 @@ typedef struct _SampleList {
 
 	/* Depend on play_mode->rate */
 	int32 vibrato_freq;
-	double attack;
-	double hold;
+	int32 attack;
+	int32 hold;
 	int32 sustain;
-	double decay;
-	double release;
+	int32 decay;
+	int32 release;
 
-	double modattack;
-	double modhold;
+	int32 modattack;
+	int32 modhold;
 	int32 modsustain;
-	double moddecay;
-	double modrelease;
+	int32 moddecay;
+	int32 modrelease;
 } SampleList;
 
 typedef struct _InstList {
@@ -192,9 +192,8 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl);
 static int abscent_to_Hz(int abscents);
 static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl);
 static void set_rootfreq(SampleList *vp);
-static double to_msec(int timecent);
 static int32 to_offset(int32 offset);
-static int32 calc_rate(int32 diff, double msec);
+static int32 to_rate(int32 diff, int timecent);
 static int32 calc_sustain(int sust_cB);
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl);
 static void convert_tremolo(SampleList *vp, LayerTable *tbl);
@@ -489,32 +488,30 @@ static FLOAT_T calc_volume(LayerTable *tbl)
 	return cb_to_amp_table[v];
 }
 
-/*
- * convert timecents to sec
- */
-static double to_msec(int timecent)
-{
-    return 1000.0 * pow(2.0, (double)timecent / 1200.0);
-}
-
 /* convert from 16bit value to fractional offset (15.15) */
 static int32 to_offset(int32 offset)
 {
 	return offset << 14;
 }
 
+#define SF_ENVRATE_MAX (double)((int32)0x40000000)
+#define SF_ENVRATE_MIN (double)(1L)
+
 /* calculate ramp rate in fractional unit;
- * diff = 16bit, time = msec
+ * diff = 16bit, timecent
  */
-static int32 calc_rate(int32 diff, double msec)
+static int32 to_rate(int32 diff, int timecent)
 {
     double rate;
 
-    if(msec == 0) {return (diff << 14) + 1;}
+    if(timecent == -12000)	/* instantaneous attack */
+	{return (int32)SF_ENVRATE_MAX + 1;}
     if(diff <= 0) {diff = 1;}
     diff <<= 14;
-    rate = ((double)diff / play_mode->rate) * control_ratio * 1000.0 / msec;
+    rate = ((double)diff / play_mode->rate) * control_ratio / pow(2.0, (double)timecent / 1200.0);
     if(fast_decay) {rate *= 2;}
+	if(rate > SF_ENVRATE_MAX) {rate = SF_ENVRATE_MAX;}
+	else if(rate < SF_ENVRATE_MIN) {rate = SF_ENVRATE_MIN;}
     return (int32)rate;
 }
 
@@ -525,9 +522,9 @@ static int32 calc_rate(int32 diff, double msec)
  */
 static int32 calc_sustain(int sust_cB)
 {
-	if(sust_cB <= 0) {return 65535;}
+	if(sust_cB <= 0) {return 65533;}
 	else if(sust_cB >= 1000) {return 0;}
-	else {return (1000 - sust_cB) * 65535 / 1000;}
+	else {return (1000 - sust_cB) * 65533 / 1000;}
 }
 
 static Instrument *load_from_file(SFInsts *rec, InstList *ip)
@@ -579,41 +576,41 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 
 		/* convert envelope parameters */
 		sample->envelope_offset[0] = to_offset(65535);
-		sample->envelope_rate[0] = calc_rate(65535, sp->attack);
+		sample->envelope_rate[0] = sp->attack;
 
 		sample->envelope_offset[1] = to_offset(65534);
-		sample->envelope_rate[1] = calc_rate(1, sp->hold);
+		sample->envelope_rate[1] = sp->hold;
 
 		sample->envelope_offset[2] = to_offset(sp->sustain);
-		sample->envelope_rate[2] = calc_rate(65533 - sp->sustain, sp->decay);
+		sample->envelope_rate[2] = sp->decay;
 
 		sample->envelope_offset[3] = 0;
-		sample->envelope_rate[3] = calc_rate(65535, sp->release);
+		sample->envelope_rate[3] = sp->release;
 
 		sample->envelope_offset[4] = 0;
-		sample->envelope_rate[4] = sample->envelope_rate[3];
+		sample->envelope_rate[4] = sp->release;
 
 		sample->envelope_offset[5] = 0;
-		sample->envelope_rate[5] = sample->envelope_rate[3];
+		sample->envelope_rate[5] = sp->release;
 
 		/* convert modulation envelope parameters */
 		sample->modenv_offset[0] = to_offset(65535);
-		sample->modenv_rate[0] = calc_rate(65535, sp->modattack);
+		sample->modenv_rate[0] = sp->modattack;
 
 		sample->modenv_offset[1] = to_offset(65534);
-		sample->modenv_rate[1] = calc_rate(1, sp->modhold);
+		sample->modenv_rate[1] = sp->modhold;
 
 		sample->modenv_offset[2] = to_offset(sp->modsustain);
-		sample->modenv_rate[2] = calc_rate(65533 - sp->modsustain, sp->moddecay);
+		sample->modenv_rate[2] = sp->modsustain, sp->moddecay;
 
 		sample->modenv_offset[3] = 0;
-		sample->modenv_rate[3] = calc_rate(65535, sp->modrelease);
+		sample->modenv_rate[3] = sp->modrelease;
 
 		sample->modenv_offset[4] = 0;
-		sample->modenv_rate[4] = sample->modenv_rate[3];
+		sample->modenv_rate[4] = sp->modrelease;
 
 		sample->modenv_offset[5] = 0;
-		sample->modenv_rate[5] = sample->modenv_rate[3];
+		sample->modenv_rate[5] = sp->modrelease;
 
 		if(i > 0 && (!sample->note_to_use ||
 			     (sample->modes & MODES_LOOPING)))
@@ -1194,6 +1191,7 @@ static void make_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
+	int i;
 
     /* set sample position */
     vp->start = (tbl->val[SF_startAddrsHi] << 15)
@@ -1262,8 +1260,8 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	vp->v.envelope_velf_bpo = vp->v.modenv_velf_bpo =
 		vp->v.vel_to_fc_threshold = 64;
 	vp->v.key_to_fc_bpo = 60;
-	memset(vp->v.modenv_velf, 0, sizeof(vp->v.modenv_velf));
 	memset(vp->v.envelope_velf, 0, sizeof(vp->v.envelope_velf));
+	memset(vp->v.modenv_velf, 0, sizeof(vp->v.modenv_velf));
 
 	vp->v.inst_type = INST_SF2;
 }
@@ -1273,7 +1271,7 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 /* set global information */
 static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
-    int val,pan;
+    int val, pan, i;
     SFSampleInfo *sample;
     sample = &sf->sample[tbl->val[SF_sampleId]];
 
@@ -1324,14 +1322,13 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	}
 
 	memset(vp->v.envelope_keyf, 0, sizeof(vp->v.envelope_keyf));
+	memset(vp->v.modenv_keyf, 0, sizeof(vp->v.modenv_keyf));
 	if(tbl->set[SF_autoHoldEnv2]) {
 		vp->v.envelope_keyf[1] = (int16)tbl->val[SF_autoHoldEnv2];
 	}
 	if(tbl->set[SF_autoDecayEnv2]) {
 		vp->v.envelope_keyf[2] = (int16)tbl->val[SF_autoDecayEnv2];
 	}
-
-	memset(vp->v.modenv_keyf, 0, sizeof(vp->v.modenv_keyf));
 	if(tbl->set[SF_autoHoldEnv1]) {
 		vp->v.modenv_keyf[1] = (int16)tbl->val[SF_autoHoldEnv1];
 	}
@@ -1441,6 +1438,9 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	}
 #endif
 
+	vp->v.tremolo_to_pitch = vp->v.tremolo_to_fc = 
+	vp->v.modenv_to_pitch = vp->v.modenv_to_fc = 0;
+
 	if(tbl->set[SF_lfo1ToPitch])
 		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
 	if(tbl->set[SF_lfo1ToFilterFc])
@@ -1507,25 +1507,23 @@ extern int32 modify_release;
 /* volume envelope parameters */
 static void convert_volume_envelope(SampleList *vp, LayerTable *tbl)
 {
-    vp->attack  = to_msec(tbl->val[SF_attackEnv2]);
-    vp->hold    = to_msec(tbl->val[SF_holdEnv2]);
+    vp->attack  = to_rate(65535, tbl->val[SF_attackEnv2]);
+    vp->hold    = to_rate(1, tbl->val[SF_holdEnv2]);
     vp->sustain = calc_sustain(tbl->val[SF_sustainEnv2]);
-	if(vp->sustain > 65533) {vp->sustain = 65533;}
-    vp->decay   = to_msec(tbl->val[SF_decayEnv2]);
+    vp->decay   = to_rate(65533 - vp->sustain, tbl->val[SF_decayEnv2]);
     if(modify_release) /* Pseudo Reverb */
 	vp->release = modify_release;
     else
-	vp->release = to_msec(tbl->val[SF_releaseEnv2]);
+	vp->release = to_rate(65535, tbl->val[SF_releaseEnv2]);
 
-    vp->modattack  = to_msec(tbl->val[SF_attackEnv1]);
-    vp->modhold    = to_msec(tbl->val[SF_holdEnv1]);
+    vp->modattack  = to_rate(65535, tbl->val[SF_attackEnv1]);
+    vp->modhold    = to_rate(1, tbl->val[SF_holdEnv1]);
     vp->modsustain = calc_sustain(tbl->val[SF_sustainEnv1]);
-	if(vp->modsustain > 65533) {vp->sustain = 65533;}
-    vp->moddecay   = to_msec(tbl->val[SF_decayEnv1]);
+    vp->moddecay   = to_rate(65533 - vp->modsustain, tbl->val[SF_decayEnv1]);
     if(modify_release) /* Pseudo Reverb */
 	vp->modrelease = modify_release;
     else
-	vp->modrelease = to_msec(tbl->val[SF_releaseEnv1]);
+	vp->modrelease = to_rate(65535, tbl->val[SF_releaseEnv1]);
 
     vp->v.modes |= MODES_ENVELOPE;
 }
