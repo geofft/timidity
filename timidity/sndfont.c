@@ -93,7 +93,6 @@ typedef struct _SampleList {
 	int32 len;
 	int32 cutoff_freq;
 	int16 resonance;
-	int16 scaleTuning;	/* pitch scale tuning(%), normally 100 */
 	int16 root, tune;
 	char low, high;		/* key note range */
 	int8 reverb_send,chorus_send;
@@ -1323,9 +1322,9 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     /* fixed key & velocity */
     if(tbl->set[SF_keynum])
 	vp->v.note_to_use = tbl->val[SF_keynum];
-#if 0 /* Not supported */
-    vp->fixvel = tbl->val[SF_velocity];
-#endif
+	if(tbl->set[SF_velocity] && tbl->val[SF_velocity] != 0) {
+		ctl->cmsg(CMSG_INFO,VERB_NOISY,"error: fixed-velocity is not supported.");
+	}
 
 	/* panning position: 0 to 127 */
 	val = (int)tbl->val[SF_panEffectsSend];
@@ -1336,7 +1335,6 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.panning = 127;
 		else
 		vp->v.panning = (int8)((val + 500) * 127 / 1000);
-		/* vp->fixpan = -1; */
 	} else if(sample->sampletype == 2) {	/* rightSample = 2 */
 		vp->v.panning = 127;
 	} else if(sample->sampletype == 4) {	/* leftSample = 4 */
@@ -1419,7 +1417,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
 
     /* scale tuning */
-    vp->scaleTuning = tbl->val[SF_scaleTuning];
+	vp->v.scale_tuning = tbl->val[SF_scaleTuning];
 
     /* set initial root key & fine tune */
     if(sf->version == 1 && tbl->set[SF_samplePitch])
@@ -1432,7 +1430,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	    vp->root++;
 	    vp->tune = 100 + vp->tune;
 	}
-	if(vp->scaleTuning == 50)
+	if(vp->v.scale_tuning == 50)
 	    vp->tune /= 2;
     }
     else
@@ -1448,8 +1446,8 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(tbl->set[SF_rootKey])
 	vp->root += tbl->val[SF_rootKey] - sp->originalPitch;
 
-    vp->tune += tbl->val[SF_coarseTune] * vp->scaleTuning +
-	(int)tbl->val[SF_fineTune] * (int)vp->scaleTuning / 100;
+    vp->tune += tbl->val[SF_coarseTune] * 100 +
+	(int)tbl->val[SF_fineTune];
 
     /* correct too high pitch */
     if(vp->root >= vp->high + 60)
@@ -1570,8 +1568,8 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl)
 	return;
 
     level = abs(tbl->val[SF_lfo1ToVolume]);
-    vp->v.tremolo_depth = 512 - 512 * pow(10.0, (double)level / -200.0);
-	if(tbl->val[SF_lfo1ToVolume] < 0) {level = -level;}
+    vp->v.tremolo_depth = 512 * (1.0 - pow(10.0, (double)level / -200.0));
+	if(tbl->val[SF_lfo1ToVolume] < 0) {vp->v.tremolo_depth = -vp->v.tremolo_depth;}
 
     /* frequency in mHz */
     if(!tbl->set[SF_freqLfo1])

@@ -67,6 +67,7 @@ extern FLOAT_T sc_pan_table[];
 extern FLOAT_T sc_drum_level_table[];
 extern FLOAT_T sb_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
+extern FLOAT_T reverb_time_table[];
 
 extern void init_freq_table(void);
 extern void init_freq_table_pytha(void);

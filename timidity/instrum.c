@@ -887,6 +887,7 @@ static Instrument *load_gus_instrument(char *name,
 	sp->key_to_fc_bpo = 60;
 	sp->envelope_delay = sp->modenv_delay =
 		sp->tremolo_delay = sp->vibrato_delay = 0;
+	sp->scale_tuning = 100;
 	sp->inst_type = INST_GUS;
 
 	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));

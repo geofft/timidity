@@ -80,15 +80,11 @@ int usleep(unsigned int useconds);
 #define PLAY_INTERLEAVE_SEC		1.0
 #define PORTAMENTO_TIME_TUNING		(1.0 / 5000.0)
 #define PORTAMENTO_CONTROL_RATIO	256	/* controls per sec */
-/*#define DEFAULT_CHORUS_DELAY1		0.02
-#define DEFAULT_CHORUS_DELAY2		0.003*/
-double DEFAULT_CHORUS_DELAY1 = 0.02;
-double DEFAULT_CHORUS_DELAY2 = 0.003;
+#define DEFAULT_CHORUS_DELAY1		0.02
+#define DEFAULT_CHORUS_DELAY2		0.003
 #define CHORUS_OPPOSITE_THRESHOLD	32
-/*#define CHORUS_VELOCITY_TUNING1		0.7
-#define CHORUS_VELOCITY_TUNING2		0.6*/
-double CHORUS_VELOCITY_TUNING1 = 0.7;
-double CHORUS_VELOCITY_TUNING2 = 0.6;
+#define CHORUS_VELOCITY_TUNING1		0.7
+#define CHORUS_VELOCITY_TUNING2		0.6
 #define EOT_PRESEARCH_LEN		32
 #define SPEED_CHANGE_RATE		1.0594630943592953  /* 2^(1/12) */
 
@@ -484,10 +480,8 @@ static void reset_nrpn_controllers(int c)
 	channel[c].temper_type = 0;
 
   /* channel pressure & polyphonic key pressure control */
-  channel[c].caf_rate_ctl1 = 0.25;
-  channel[c].caf_pitch_depth1 = 0.5;
-  channel[c].caf_cutoff_ctl = 0.25;
-  channel[c].caf_amp_ctl = 1.0;
+  channel[c].caf_lfo1_rate_ctl = 0;
+
 }
 
 /* Process the Reset All Controllers event */
@@ -657,15 +651,18 @@ void recompute_freq(int v)
 	if(opt_modulation_envelope) {
 		if(voice[v].sample->tremolo_to_pitch) {
 			tuning += lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT)
-				* (double)voice[v].sample->tremolo_to_pitch * (1L << 13) / 100.0f;
+				* (double)voice[v].sample->tremolo_to_pitch * (1L << 13) / 100.0f + 0.5;
 		}
 		if(voice[v].sample->modenv_to_pitch) {
 			tuning += voice[v].last_modenv_volume
-				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f;
+				* (double)voice[v].sample->modenv_to_pitch * (1L << 13) / 100.0f + 0.5;
 		}
 	}
-	/* Scale Tuning */
-	if (! ISDRUMCHANNEL(ch)) {
+	if(voice[v].sample->scale_tuning != 100) {	/* SF2 - Scale Tuning */
+		tuning += (double)(voice[v].sample->scale_tuning - 100) * (1L << 13)
+			* (note - 60) / 100.0f + 0.5;
+	}
+	if (! ISDRUMCHANNEL(ch)) {	/* GS - Scale Tuning */
 		tuning += (st << 13) / 100.0 + 0.5;
 		if (st != channel[ch].prev_scale_tuning) {
 			channel[ch].pitchfactor = 0;
@@ -2025,7 +2022,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].panning = get_panning(ch, note, i);
 
   voice[i].porta_control_counter = 0;
-  if(channel[ch].legato && channel[ch].note_on) {
+  if(channel[ch].legato && channel[ch].legato_flag) {
 	  update_legato_controls(ch);
   }
   else if(channel[ch].portamento && !channel[ch].porta_control_ratio)
@@ -2423,7 +2420,7 @@ static void note_on(MidiEvent *e)
 #endif /* NEW_CHORUS */
 	}
 
-	channel[ch].note_on = 1;
+	channel[ch].legato_flag = 1;
 }
 
 static void set_voice_timeout(Voice *vp, int ch, int note)
@@ -2488,7 +2485,7 @@ static void note_off(MidiEvent *e)
 	      finish_note(i);
       }
 
-	  channel[ch].note_on = 0;
+	  channel[ch].legato_flag = 0;
 }
 
 /* Process the All Notes Off event */
@@ -3257,6 +3254,9 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			insertion_effect.send_eq_switch = val;
 			recompute_insertion_effect();
 			break;
+		case 0x45:	/* MOD PITCH CONTROL */
+			/* 0x45~ MOD, CAF, PAF */
+			break;
 		default:
 			break;
 		}
@@ -3504,9 +3504,9 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	    update_channel_freq(ch);
 	break;
       case NRPN_ADDR_0109: /* Vibrato Depth */
-    if(opt_nrpn_vibrato) {	/* from -25cents to +25cents. */
+    if(opt_nrpn_vibrato) {	/* from -10cents to +10cents. */
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth (CH:%d VAL:%d)", ch, val - 64);
-		channel[ch].vibrato_depth =  (double)(val - 64) * 0.39 * 256 / 400;
+		channel[ch].vibrato_depth =  (double)(val - 64) * 0.15625 * 256 / 400;
 	}
 	if(update_now)
 	    update_channel_freq(ch);

@@ -1188,11 +1188,11 @@ static inline void update_tremolo(int v)
 
 	if(depth < 0) {
 	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
+			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
 			* -depth * TREMOLO_AMPLITUDE_TUNING, 17);
 	} else {
 	vp->tremolo_volume = 1.0 - TIM_FSCALENEG(
-			(lookup_sine(vp->tremolo_phase >> RATE_SHIFT) + 1.0)
+			(1.0 - lookup_sine(vp->tremolo_phase >> RATE_SHIFT))
 			* depth * TREMOLO_AMPLITUDE_TUNING, 17);
 	}
 	/* I'm not sure about the +1.0 there -- it makes tremoloed voices'

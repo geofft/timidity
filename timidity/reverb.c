@@ -172,7 +172,7 @@ void mix_dry_signal(register int32 *buf, int32 n)
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = effect_buffer;
-	level = TIM_FSCALE(level * reverb_status.level / 16129.0 * REV_INP_LEV, 24);
+	level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	_asm {
 		mov		ecx, [count]
@@ -200,7 +200,7 @@ L2:
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
     int32 i, *dbuf = effect_buffer;
-    level = TIM_FSCALE(level * reverb_status.level / 16129.0 * REV_INP_LEV, 24);
+    level = TIM_FSCALE(level / 127.0 * REV_INP_LEV, 24);
 
 	for(i=count-1;i>=0;i--) {dbuf[i] += imuldiv24(buf[i], level);}
 }
@@ -1454,7 +1454,7 @@ static void init_comb(comb *comb)
 #define initialdamp 0.5f
 #define initialwet 1 / scalewet
 #define initialdry 0
-#define initialwidth 1
+#define initialwidth 0.5f
 #define initialallpassfbk 0.5f
 #define stereospread 23
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
@@ -1497,7 +1497,8 @@ static void recalc_reverb_buffer(revmodel_t *rev)
 	int32 tmpL, tmpR;
 	double time;
 
-	time = pow(4.0, (double)(reverb_status.time - 64) / 64);
+	time = reverb_time_table[reverb_status.time]
+		/ (60 * combtunings[numcombs - 1] / (-20 * log10(rev->roomsize1) * 44100.0));
 
 	for(i = 0; i < numcombs; i++)
 	{
@@ -1530,20 +1531,52 @@ static void recalc_reverb_buffer(revmodel_t *rev)
 	}
 }
 
+static double gs_revchar_to_roomsize(int character)
+{
+	double rs;
+	switch(character) {
+	case 0: rs = 0.5;	break;	/* Room 1 */
+	case 1: rs = 0.3;	break;	/* Room 2 */
+	case 2: rs = 0.4;	break;	/* Room 3 */
+	case 3: rs = 0.8;	break;	/* Hall 1 */
+	case 4: rs = 0.7;	break;	/* Hall 2 */
+	default: rs = 0.5;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return rs;
+}
+
+static double gs_revchar_to_width(int character)
+{
+	double width;
+	switch(character) {
+	case 0: width = 0.5;	break;	/* Room 1 */
+	case 1: width = 0.5;	break;	/* Room 2 */
+	case 2: width = 0.5;	break;	/* Room 3 */
+	case 3: width = 0.5;	break;	/* Hall 1 */
+	case 4: width = 0.5;	break;	/* Hall 2 */
+	default: width = 0.5;	break;	/* Plate, Delay, Panning Delay */
+	}
+	return width;
+}
+
 static void update_revmodel(revmodel_t *rev)
 {
 	int i;
-	rev->wet1 = rev->wet * (rev->width / 2 + 0.5f);
-	rev->wet2 = rev->wet * ((1 - rev->width) / 2);
+
+	rev->wet = (double)reverb_status.level * scalewet / 127.0;
+	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
+	rev->width = gs_revchar_to_width(reverb_status.character);
+
+	rev->wet1 = rev->width / 2 + 0.5f;
+	rev->wet2 = (1 - rev->width) / 2;
 	rev->roomsize1 = rev->roomsize;
 	rev->damp1 = rev->damp;
 
 	recalc_reverb_buffer(rev);
-
 	for(i = 0; i < numcombs; i++)
 	{
-		rev->combL[i].feedback = rev->roomsize1;
-		rev->combR[i].feedback = rev->roomsize1;
+		rev->combL[i].feedback = pow(10, -3 * (double)combtunings[i] / 44100.0 / reverb_time_table[reverb_status.time]);
+		rev->combR[i].feedback = pow(10, -3 * (double)(combtunings[i] /*+ stereospread*/) / 44100.0 / reverb_time_table[reverb_status.time]);
 		rev->combL[i].damp1 = rev->damp1;
 		rev->combR[i].damp1 = rev->damp1;
 		rev->combL[i].damp2 = 1 - rev->damp1;
@@ -1775,7 +1808,7 @@ void init_reverb(int32 output_rate)
 		init_revmodel(revmodel);
 		memset(effect_buffer, 0, effect_bufsize);
 		memset(direct_buffer, 0, direct_bufsize);
-		REV_INP_LEV = fixedgain * (1.0 + (double)(opt_effect_quality - 2) * 0.1);
+		REV_INP_LEV = fixedgain * (1.0 + (double)(opt_effect_quality - 2) * 0.1) * revmodel->wet;
 	} else {
 		ta = 0; tb = 0;
 		HPFL = 0; HPFR = 0;

@@ -249,16 +249,29 @@ typedef struct {
   int8 scale_tuning[12], prev_scale_tuning;
   int8 temper_type;
 
-  int8 soft_pedal;	/* for CC# Soft */
+  int8 soft_pedal;
 
-  int8 tone_map0_number;	/* for GS SysEx. */
+  int8 tone_map0_number;
   FLOAT_T pitch_offset_fine;	/* in Hz */
   int8 assign_mode;
 
-  int8 legato;	/* legato */
-  int8 note_on;	/* note on flag for legato */
+  int8 legato;	/* legato footswitch */
+  int8 legato_flag;	/* note-on flag for legato */
 
-  FLOAT_T caf_rate_ctl1, caf_pitch_depth1, caf_cutoff_ctl, caf_amp_ctl;
+  int8 mod_pitch_ctl;	/* in semitones */
+  int8 mod_amp_ctl, mod_lfo1_rate_ctl, mod_lfo2_rate_ctl, mod_lfo2_tva_depth;
+  int16 mod_tvf_cutoff_ctl, mod_lfo1_pitch_depth,
+	  mod_lfo2_pitch_depth, mod_lfo2_tvf_depth;	/* in cents */
+
+  int8 caf_pitch_ctl;	/* in semitones */
+  int8 caf_amp_ctl, caf_lfo1_rate_ctl, caf_lfo2_rate_ctl, caf_lfo2_tva_depth;
+  int16 caf_tvf_cutoff_ctl, caf_lfo1_pitch_depth,
+	  caf_lfo2_pitch_depth, caf_lfo2_tvf_depth;	/* in cents */
+
+  int8 paf_pitch_ctl;	/* in semitones */
+  int8 paf_amp_ctl, paf_lfo1_rate_ctl, paf_lfo2_rate_ctl, paf_lfo2_tva_depth;
+  int16 paf_tvf_cutoff_ctl, paf_lfo1_pitch_depth,
+	  paf_lfo2_pitch_depth, paf_lfo2_tvf_depth;	/* in cents */
 } Channel;
 
 /* Causes the instrument's default panning to be used. */
@@ -331,6 +344,8 @@ typedef struct {
   FLOAT_T modenv_scale, last_modenv_volume;
   int32 tremolo_delay, modenv_delay;
   int32 prev_tuning;
+
+  int8 key_pressure;
 } Voice;
 
 /* Voice status options: */

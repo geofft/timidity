@@ -1,4 +1,16 @@
 
+2003-05-10  Saito <timidity@flashmail.com>
+
+	* timidity/instrum.c, timidity/smplfile.c, timidity/mod2midi.c:
+	  Fix fatal bug about scaleTuning.
+
+	* timidity/sndfont.c, timidity/tables.[ch], timidity/mix.c,
+	  timidity/playmidi.[ch], timidity/instrum.[ch], timidity/reverb.c:
+	  Fix about tremolo again.
+	  Fix in reverb parameters.
+	  Fix about envelope for SoundFont.
+	  Support for SF2 scaleTuning.
+	  
 2003-05-08  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c:

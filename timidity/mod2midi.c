@@ -651,6 +651,7 @@ void load_module_samples (SAMPLE * s, int numsamples, int ntsc)
 	sp->envelope_velf_bpo = sp->modenv_velf_bpo =
 		sp->vel_to_fc_threshold = 64;
 	sp->key_to_fc_bpo = 60;
+	sp->scale_tuning = 100;
 	memset(sp->envelope_velf, 0, sizeof(sp->envelope_velf));
 	memset(sp->envelope_keyf, 0, sizeof(sp->envelope_keyf));
 	memset(sp->modenv_velf, 0, sizeof(sp->modenv_velf));

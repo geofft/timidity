@@ -56,6 +56,7 @@ typedef struct _Sample {
   int8 envelope_velf_bpo, modenv_velf_bpo,
 	  key_to_fc_bpo, vel_to_fc_threshold;	/* in notes */
   int32 vibrato_delay, tremolo_delay, envelope_delay, modenv_delay;	/* in samples */
+  int16 scale_tuning;	/* in cents/key */
   int8 inst_type;
 } Sample;
 
