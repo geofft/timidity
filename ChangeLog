@@ -1,4 +1,10 @@
 
+2003-05-21  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/tables.c, timidity/reverb.c:
+	  Fix new Reverberation Effect.
+	  Fix tables for envelope generator.
+
 2003-05-20  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/tables.[ch],

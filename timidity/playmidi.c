@@ -2966,34 +2966,48 @@ static void process_sysex_event(int ev,int ch,int val,int b)
 			break;
 		case 0x06:	/* Reverb Character */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Character (%d)",val);
-			reverb_status.character = val;
-			recompute_reverb_status();
+			if(reverb_status.character != val) {
+				reverb_status.character = val;
+				recompute_reverb_status();
+				init_reverb(play_mode->rate);
+			}
 			break;
 		case 0x07:	/* Reverb Pre-LPF */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Pre-LPF (%d)",val);
-			reverb_status.pre_lpf = val;
-			recompute_reverb_status();
+			if(reverb_status.pre_lpf != val) {
+				reverb_status.pre_lpf = val;
+				recompute_reverb_status();
+			}
 			break;
 		case 0x08:	/* Reverb Level */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Level (%d)",val);
-			reverb_status.level = val;
-			recompute_reverb_status();
+			if(reverb_status.level != val) {
+				reverb_status.level = val;
+				recompute_reverb_status();
+				init_reverb(play_mode->rate);
+			}
 			break;
 		case 0x09:	/* Reverb Time */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Time (%d)",val);
-			reverb_status.time = val;
-			recompute_reverb_status();
-			init_reverb(play_mode->rate);
+			if(reverb_status.time != val) {
+				reverb_status.time = val;
+				recompute_reverb_status();
+				init_reverb(play_mode->rate);
+			}
 			break;
 		case 0x0A:	/* Reverb Delay Feedback */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Delay Feedback (%d)",val);
-			reverb_status.delay_feedback = val;
-			recompute_reverb_status();
+			if(reverb_status.delay_feedback != val) {
+				reverb_status.delay_feedback = val;
+				recompute_reverb_status();
+			}
 			break;
 		case 0x0C:	/* Reverb Predelay Time */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Predelay Time (%d)",val);
-			reverb_status.pre_delay_time = val;
-			recompute_reverb_status();
+			if(reverb_status.pre_delay_time != val) {
+				reverb_status.pre_delay_time = val;
+				recompute_reverb_status();
+			}
 			break;
 		case 0x0D:	/* Chorus Macro */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Macro (%d)",val);
