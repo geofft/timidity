@@ -472,6 +472,13 @@ static void reset_nrpn_controllers(int c)
 		  channel[c].scale_tuning[i] = 0;
 	  }
   }
+
+  /* channel pressure control */
+  channel[c].caf_rate_ctl1 = 0.25;
+  channel[c].caf_pitch_depth1 = 0.5;
+  channel[c].caf_cutoff_ctl = 1.0;
+  channel[c].caf_amp_ctl = 0.25;
+
 }
 
 /* Process the Reset All Controllers event */
@@ -2569,17 +2576,31 @@ static void adjust_channel_pressure(MidiEvent *e)
     if(opt_channel_pressure)
     {
 	int i, uv = upper_voices;
-	int ch, pressure;
+	int ch;
+	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl;
 
 	ch = e->channel;
-	pressure = e->a;
+	pressure = (FLOAT_T)e->a / 127.0f;
+	amp_ctl = channel[ch].caf_amp_ctl * pressure + 1.0f;
+	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
+	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
+	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
+	  
 	for(i = 0; i < uv; i++)
 	{
 	    if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	    {
-	/*	voice[i].velocity = pressure;*/
 		recompute_amp(i);
+		voice[i].left_amp *= amp_ctl;
+		voice[i].right_amp *= amp_ctl;
 		apply_envelope_to_amp(i);
+		voice[i].vibrato_control_ratio *= rate_ctl1;
+		voice[i].vibrato_depth *= pitch_depth1;
+		recompute_freq(i);
+		if(!opt_resonance && voice[i].sample->cutoff_freq) {
+			voice[i].fc.orig_freq *= cutoff_ctl;
+			recompute_voice_filter(i);
+		}
 	    }
 	}
     }

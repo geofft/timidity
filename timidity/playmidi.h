@@ -254,6 +254,8 @@ typedef struct {
 
   int8 legato;	/* Legato: 0 or 1 */
   int8 note_on;	/* for Legato */
+
+  FLOAT_T caf_rate_ctl1, caf_pitch_depth1, caf_cutoff_ctl, caf_amp_ctl;
 } Channel;
 
 /* Causes the instrument's default panning to be used. */
