@@ -1,0 +1,698 @@
+==============================================================================
+	TiMidity++インストールガイド
+
+					出雲正尚
+					<iz@onicos.co.jp>
+					2004年1月25日
+					バージョン2.13.0以降
+==============================================================================
+
+この文章では TiMidity++ を UNIX　ライクな環境にインストールするための方法につい
+て説明しています。
+
+Windows 上では、　Cygwin を使うことで、この文章の手順に従い timidity.exe を生成
+できます。 Windows 環境の人はまず　Cygwin (または mingw) を入手してください。
+
+今日の　Macintosh はユーザーランドが　FreeBSD なので、この文章の通りにやればう
+まくいくはずです。古い Macintosh ("Classic") でのインストールのしかたはこの文章
+には説明されていません。
+
+==============================================================================
+基本的な手順
+==============================================================================
+
+TiMidity++ は GNU autotools を使っています。したがって、一番簡単なインストール
+方法は:
+
+ 1. ソースコードのあるディレクトリに "cd" して、　"./configure" と入力してパッ
+    ケージを設定します(この作業はしばらく時間がかかります)。 System V の古いバ
+    ージョンを使っている場合は "/bin/sh ./configure" としないといけないかもしれ
+    ません。
+ 2. "make" とタイプするとコンパイルが始まります (GNU make が必要です。 GNU make
+    が "gmake" という名前でインストールされている環境では、代わりに "gmake" と
+    タイプしてください)
+ 3. make が終わったら "make install" とタイプして、所定の場所に TiMidity++ をイ
+    ンストールしてください。
+
+==============================================================================
+より詳細な説明
+==============================================================================
+
+インストールの完全な手順は
+
+ 1. configre を実行する
+ 2. 必要があれば　common.makefile, Makefile と timidity.h を編集する
+ 3. コンパイル
+ 4. インストール
+ 5. 音源ファイルの設定
+
+です。以下、順に説明します。以下の説明では "%" をプロンプトとして使っていますの
+で注意してください。
+
+==============================================================================
+configure
+==============================================================================
+
+まず、以下のコマンドを実行してみてください。
+
+ % /bin/sh ./configure --help
+
+configure のオプションがたくさん表示されたと思います。このうち、 --help や
+--prefix=PREFIX のような多くのオプションは、典型的な他のプロジェクトにおけるも
+のと同じ意味/用法です。一方 TiMidity++ 独自のオプションもあります
+
+--enable-debug
+    デバッグフラグが有効になります
+--without-x
+    TiMidity++ は、標準状態で X を利用するようになっていますので、 X のライブラ
+    リとリンクしたくない場合は明示的に --without-x を指定しないといけません。
+--enable-audio[=audio_list]
+    オーディオ出力の形式を指定します。 --enable-audio=no の場合は、 TiMidity++
+    はただの MIDI-to-WAVE 変換機となります。
+
+このオプションに指定できる値は、
+
+ ・ default: 自動判別
+ ・ oss: OSS /dev/dsp
+ ・ sun: SunOS /dev/audio
+ ・ hpux: hp-ux /dev/audio
+ ・ irix: IRIX audio library
+ ・ mme: OSF/1 MME
+ ・ sb_dsp: BSD/OS 2.0 /dev/sb_dsp
+ ・ w32: Windows MMS
+ ・ darwin: darwin(Mac OS X) の CoreAudio frameowrk
+ ・ alsa: ALSA pcm device
+ ・ alib: hp-ux network audio (Alib)
+ ・ nas: NAS
+ ・ portaudio: PortAudio
+ ・ jack: JACK
+ ・ arts: aRts
+ ・ esd: EsounD
+ ・ vorbis: ogg vorbis
+ ・ gogo: mp3 午後のこーだ (Windows only)
+
+です。
+
+--enable-interface[=interface_list]
+--enable-dynamic[=interface_list]
+    使用するインターフォースを指定します。 --enable-dynamic を使うと、インター
+    フェースは動的リンクモジュールとしてコンパイルされます(生成されるバイナリの
+    サイズが小さくなります)
+
+このオプションに指定できる値は、
+
+ ・ ncurses: Ncurses インターフェース
+ ・ slang: slang インターフェース
+ ・ motif: Motif インターフェース (lestiff でも動きます)
+ ・ tcltk: Tcl/Tk インターフェース
+ ・ emacs: Emacs フロントエンド(M-x timidity)
+ ・ vt100: VT100 インターフェース
+ ・ xaw: X Athena Widgets インターフェース
+ ・ xskin: X skin インターフェース
+ ・ gtk: GTK+ インターフェース
+ ・ w32gui: Windows GUI 版としてコンパイル
+ ・ winsyn: TiMidity++ Windows Synthesizer server ("twsynth") としてコンパイル
+ ・ alsaseq: ALSA シーケンサインターフェース
+
+です。ここで、
+
+   --enable-interface=INTERFACE1,INTERFACE2,...
+
+という指定が
+
+   --enable-INTERFACE1=yes --enable-INTERFACE2=yes ...
+
+という指定と同じ意味で、同様に
+
+   --enable-dynamic=INTERFACE1,INTERFACE2,...
+
+という指定が
+
+   --enable-INTERFACE1=dynamic --enable-INTERFACE2=dynamic ...
+
+という指定と同じ意味だということに注意してください。
+
+--enable-network
+    ネットワークサポートを有効にします。 TiMidity++ に URL を渡すとネットワーク
+    越しの MIDI ファイルを演奏することが可能になります。
+--enable-spectrogram
+    生成した PCM 音声のスペクトログラムをリアルタイム表示できるようにするオプシ
+    ョンです。
+--enable-wrd
+    WRD 対応を有効にします。
+
+configure と環境変数
+
+MIDI ファイルによってはレンダリングにとっても CPU パワーが必要な場合があります
+。適切な最適化方法が指定できれば、そのような MIDI ファイルもスムーズに演奏でき
+るようになるかもしれません。
+
+configure は以下の環境変数を(設定されていれば)認識します。
+
+CC
+    C コンパイラ。例 "/usr/bin/gcc"
+CFLAGS
+    ${CC} に渡すフラグ。例 "-O2 -pipe"
+LDFLAGS
+    リンカに渡すフラグ。例 "-L/usr/gnu/lib"
+CPPFLAGS
+    プリプロセッサに渡すフラグ。例 "-traditional-cpp"
+
+コンパイラにはたくさんの最適化フラグがあると思います。たとえば ultrasparc/gcc
+の場合だと:
+
+% env CFLAGS='-O3 -Wall -mv8 -funroll-all-loops -fomit-frame-pointer -mcpu=ultrasparc' /bin/sh configure [configure-options]...
+
+などと指定することで(多分)高速なバイナリが生成されると思います。
+
+==============================================================================
+ファイルの編集
+==============================================================================
+
+このままの状態ではコンパイルが通らないときがあります。そんなときには、手動で
+common.makefile や Makefile、あるいは timidity.h を編集するとうまくいく場合があ
+ります。
+
+timidity.h に記載されているパラメータ
+
+TiMidity++ には、バイナリにハードコードされているオプションがいくつかあります。
+これらのパラメータは、 timidity.h に #define で記述されています。
+
+以下の記述で「コマンドラインから変更できますから」と書いてあるものもあります。
+それらのオプションはコマンドラインで指定されなかった場合のデフォルト値を指定し
+ています。いずれにしろこれらをわざわざ変更する必要性は薄いと思いますので、放っ
+ておいてもいいんじゃないでしょうか。 -- mput
+
+CONFIG_FILE
+
+必要に応じてCONFIG_FILEを定義してください。デフォルトでは
+
+#define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
+
+となっています。DEFAULT_PATHは，Makefileで定義したTIMID_DIRと同じです。もし，ど
+うしても他の場所に置きたいなら
+
+#define CONFIG_FILE "/etc/timidity.cfg"
+
+のように定義します。
+
+DECOMPRESSOR_LIST
+
+ファイル展開コマンドの設定です。この設定はWindowsでは無視してください。デフォル
+トでは
+
+#define DECOMPRESSOR_LIST { \
+                ".gz", "gunzip -c %s", \
+                ".bz2", "bunzip2 -c %s", \
+                ".Z", "zcat %s", \
+                ".zip", "unzip -p %s", \
+                ".lha", "lha -pq %s", \
+                ".lzh", "lha -pq %s", \
+                ".shn", "shorten -x %s -", \
+                0 }
+
+となっています。オリジナルのTiMidityでは，上記で指定した拡張子に対応したコマン
+ドを利用して，ファイルを展開して読み込むことができます。一方，TiMidity++では幾
+つかの形式については，TiMidityが自前で展開してファイルを読み込みます。しかし，
+すべての形式はサポートしていないので，サポートされていない形式には，上記で指定
+したコマンドが利用されます。
+
+PATCH_CONVERTERS
+
+パッチファイルの変換コマンドに関する設定です。この設定はWindowsでは無視してくだ
+さい。デフォルトでは
+
+#define PATCH_CONVERTERS { \
+                ".wav", "wav2pat %s", \
+                0 }
+
+となっています。
+
+PATCH_EXT_LIST
+
+GUS/patchファイルの拡張子の指定です。ここに指定した拡張子は*.cfg内のファイル名
+で省略できます。デフォルトでは
+
+#define PATCH_EXT_LIST { \
+                ".pat", \
+                ".shn", ".pat.shn", \
+                ".gz", ".pat.gz", \
+                ".bz2", ".pat.bz2", \
+                0 }
+
+となっています。
+
+DEFAULT_PROGRAM
+
+デフォルトのinstrumentの設定です。
+
+#define DEFAULT_PROGRAM 0
+
+となっています。MIDIのProgram Changeイベントがない場合に，この値が利用されます
+。通常，0番はピアノです。
+
+このオプションはコマンドラインから指定できるので、このままでよいでしょう。
+
+DEFAULT_DRUMCHANNELS
+
+ドラムチャンネルの設定です。デフォルトでは
+
+#define DEFAULT_DRUMCHANNELS {10, -1}
+
+となっています。これは，コマンドラインオプションで変更できるので，このままで良
+いと思います。変更する場合は，ドラムチャンネルのリストを複数指定し，-1で終了し
+ます。もし，10と16チャンネルをデフォルトでドラムチャンネルにしたいならば，
+
+#define DEFAULT_DRUMCHANNELS {10, 16, -1}
+
+とします。
+
+FLOAT_T
+
+浮動小数点数の型の指定です。
+
+ ・ typedef double FLOAT_T;
+ ・ typedef float FLOAT_T;
+
+のどちらかを選んでください。double精度のFPUを搭載しているマシンでは，floatより
+doubleの方が高速です。sparcやSGI/IPなどは，doubleの方が高速です。最近のFPUは，
+たいていの場合はdouble精度の方が高速です。ただし，一部のマシンやパソコンでは，
+floatの方が高速になるかも知れません。
+
+(MAX|MIN)_OUTPUT_RATE
+
+再生サンプルレートの下限，上限の設定です。デフォルトでは
+
+#define MIN_OUTPUT_RATE 4000
+#define MAX_OUTPUT_RATE 65000
+
+となっています。これは特に変更する必要はないでしょう。
+
+DEFAULT_AMPLIFICATION
+
+マスターボリュームのデフォルト値の設定です。デフォルトでは
+
+#define DEFAULT_AMPLIFICATION 70
+
+となっています。この値はパーセント値で指定します。デフォルトの70%はわりと良い値
+なので，これも特に変更しなくても良いでしょう。コマンドラインオプションで変更す
+ることもできます。
+
+DEFAULT_RATE
+
+デフォルトの再生サンプルレートの設定です。デフォルトでは
+
+#define DEFAULT_RATE 44100
+
+となっています。この値は，コンパイラオプション-DDEFAULT_RATE=<rate>のように指定
+しても良いです。パワーのあるマシンで，DAT品質並みのGUS/patchを使って快適な音を
+聞きたい場合は
+
+#define DEFAULT_RATE    48000
+
+とするのも良いです。
+
+DEFAULT_VOICES
+
+同時発音数に関する設定です。デフォルトでは
+
+#define DEFAULT_VOICES 256
+
+となっています。DEFAULT_VOICESは起動時の同時発音数で，この値は-pオプションを用
+いて1からメモリが許されるまでの数を設定することができます。-inインターフェース
+では，実行時に変化させることもできます。パワーのあるマシンなら，デフォルトの同
+時発音数を増やして
+
+#define DEFAULT_VOICES 512
+
+のようにするのも良いです。しかしながら，経験上128重音あれば，大抵のMIDIファイル
+が快適に聞けます。また，256重音を越えるMIDIファイルはほとんど存在しなく(極希に
+ありますが)，256重音以上を処理するにはかなり高性能なCPU(例えばR10000とか)であっ
+ても負荷が高いです。そのため，DEFAULT_VOICESは極端に増やしてもあまり意味がない
+ので，256くらいを上限にするのが妥当です。
+
+AUDIO_BUFFER_BITS
+
+内部バッファの大きさの設定です。デフォルトでは
+
+#define AUDIO_BUFFER_BITS 12
+
+となっています。ここは特に変更することはないでしょう。
+
+CONTROLS_PER_SECOND
+
+TiMidityでは，エンベロープの音量計算を1サンプルごとに計算するのではなく，ある程
+度まとめて計算します。この値を大きくすればするほど細かく計算するため，音の質は
+よくなりますが，逆にCPU負荷が高くなります。デフォルトでは
+
+#define CONTROLS_PER_SECOND 1000
+
+となっています。コマンドラインオプションで変更もできるので，このままにしときま
+しょう。
+
+DEFAULT_RESAMPLATION
+
+リサンプル時における補完の設定です。デフォルトでは，
+
+#define DEFAULT_RESAMPLATION resample_gauss
+
+となっています。これを定義すると，リサンプル時にガウス風補完を行い，音質が向上
+します。その反面，CPU負荷が上がります。非力なマシンでない限り定義しておきましょ
+う。補完アルゴリズムとして，下記のものが使用可能です(処理の軽い順)。
+
+#define DEFAULT_RESAMPLATION resample_none
+#define DEFAULT_RESAMPLATION resample_linear
+#define DEFAULT_RESAMPLATION resample_lagrange
+#define DEFAULT_RESAMPLATION resample_cspline
+#define DEFAULT_RESAMPLATION resample_gauss
+#define DEFAULT_RESAMPLATION resample_newton
+
+補完アルゴリズムは，コマンドラインオプションで変更もできます。ユーザによって変
+更できなくするには
+
+#define FIXED_RESAMPLATION
+
+のコメントアウトを外してください。
+
+USE_DSP_EFFECT
+
+DSPエフェクトに関する設定です。デフォルトでは
+
+#define USE_DSP_EFFECT
+
+となっています。コーラス，ディレイ，EQおよびインサーションエフェクトの性能を向
+上させるもので，これは特に変更する必要はないでしょう。
+
+LOOKUP_HACK
+
+デフォルトでは
+
+/* #define LOOKUP_HACK */
+/* #define LOOKUP_INTERPOLATION */
+
+と未定義になっています。このマクロを定義すると，多少高速に動作します。ただし，
+16ビットのサンプルを8ビットで計算するので音質が劣化します。非力なマシンで演奏処
+理が追い付かないなら定義してみましょう。
+
+SMOOTH_MIXING
+
+ミキシングの段階で、急激な音量変化がおこると、ポッピング・ノイズが発生すること
+があります。これを指定しておくとポッピング・ノイズの軽減に効果があります。デフ
+ォルトは
+
+#define SMOOTH_MIXING
+
+で有効です。コメントアウトすると若干高速になります。
+
+FAST_DECAY
+
+エンベロープの変化速度を設定します。デフォルトでは
+
+/* #define FAST_DECAY */
+
+と未定義になっています。これを定義するとエンベロープステージを2倍速く進めるよう
+になります。結果として，高速化につながるのですが，その反面，音の長さが短くなり
+，迫力に欠けてきます。この設定はコマンドラインからon/offできるので，これは未定
+義のままで良いでしょう。
+
+FRACTION_BITS
+
+TiMidityでは，音の音程変換に浮動小数点数を用いずに，32ビット固定小数点数を用い
+て計算しています。デフォルトでは
+
+#define FRACTION_BITS 12
+
+となっており、これはこのままで良いでしょう。
+
+ADJUST_SAMPLE_VOLUMES
+
+自動GUS/patch音量調節の設定です。デフォルトでは
+
+#define ADJUST_SAMPLE_VOLUMES
+
+と定義されています。これを定義しておくと，GUS/patchの音量を自動的に調節して同じ
+音の大きさにします。もし，小さい音のGUS/patchは小さいままに，大きい音のGUS/
+patchは大きいままにしたいなら未定義にしてください。正確にチューニングされている
+GUS/patchセットのみを用いるなら未定義でも良いです。しかし，他の様々なGUS/patch
+を利用する場合に，音量が不揃いになってしまうので，このマクロは定義しておく方が
+良いでしょう。
+
+DENGEROUS_RENICE
+
+UNIX系システムでevilモードを有効にする設定です。デフォルトでは
+
+/* #define DANGEROUS_RENICE -15 */
+
+と未定義になっています。setuid rootのTiMidityで，プロセスのプライオリティを上げ
+て実行したい場合は，このマクロを定義してください。UNIXのみで有効です。このマク
+ロを定義してTiMidityをインストールした後は，
+
+# chown root /usr/local/bin/timidity
+# chmod u+s /usr/local/bin/timidity
+
+のようにします。
+
+注意：DANGEROUS_RENICEを定義していない場合は，setuidプログラムにしないでくださ
+い。
+
+MAX_DIE_TIME
+
+モノラルパートの音程がA->Bと移るとき，Aの音を瞬時に消してしまうとクリックノイズ
+が出てしまいます。このパラメータで，瞬時に消すべき音にクリックノイズが出ないよ
+うにコントロールします。デフォルトでは
+
+#define MAX_DIE_TIME 20
+
+となっています。あまり小さな数にすると，クリックノが顕著になります。この値はこ
+のままで良いでしょう。
+
+LOOKUP_SINE
+
+正弦関数テーブル参照に関する設定です。デフォルトでは
+
+#define LOOKUP_SINE
+
+となっています。幾つかの環境(特に数値演算プロセッサを持たないPCなど)では，正弦
+関数値をテーブル参照した方が，その都度計算するよりかなり高速になります。
+
+こんにちのPCは、CPUの演算速度がどんどん速くなる一方で、メインメモリのアクセス時
+間はさして高速化されていません(容量は増えたけど)。テーブルを引くという行為は当
+然メインメモリへのアクセスを生じるので、ここでかなりのキャッシュミスヒット、ひ
+いてはパイプラインストールが発生します。現在の段階ですと、テーブル参照をするの
+と、しないのでは、ほとんど速度的な差が生じていません*1。数年後には、毎回計算し
+た方が高速になると予想されます。
+
+PRECALC_LOOPS
+
+リサンプリング最適化に関する設定です。デフォルトでは
+
+#define PRECALC_LOOPS
+
+となっています。が、この最適化は環境によって効いたり効かなかったりしますので、
+場合によっては未定義にした方が高速かもしれません。
+
+USE_LDEXP
+
+ldexp()を使うかどうかの設定です。デフォルトでは
+
+/* #define USE_LDEXP */
+
+と未定義になっています。浮動小数点数の掛け算が，ldexp()を用いた方が速いマシンの
+場合は定義してください。どっちにしろ大差ないとは思いますが。
+
+DEFAULT_CACHE_DATA_SIZE
+
+キャッシュの大きさです。デフォルトでは
+
+#define DEFAULT_CACHE_DATA_SIZE (2*1024*1024)
+
+と2Mになっています。TiMidity++では，MIDIイベントを演奏前にスキャンして，一部の
+音をあらかじめリサンプリングします。そのリサンプリングのバッファの大きさを指定
+してください。大きくするほど高速になりますが，その分メモリを浪費します。2M以上
+に増やしても，あまり顕著に高速化しなく，またコマンドラインオプションからも変更
+できるので，ここはデフォルトのままで良いでしょう。
+
+ネットワーク関連設定群
+
+TiMidity++では，URLを用いてネットワークを介してファイルにアクセスすることが可能
+になっています(configure で --enable-network を指定した場合)。以下のマクロを設
+定してください。
+
+MAIL_DOMAIN
+
+メールアドレスのドメイン名を指定してください。例えば，メールアドレスが
+iz@onicos.co.jpだとすると，
+
+#define MAIL_DOMAIN "@onicos.co.jp"
+
+と記述します。
+
+MAIL_NAME
+
+UNIXでは未定義にしてください。Windowsではメール名を定義してください。例えば，メ
+ールアドレスがiz@onicos.co.jpだとすると，
+
+#define MAIL_NAME "iz"
+
+と記述します。
+
+TMPDIR
+
+一時ファイルの置場所を指定します。デフォルトでは
+
+/* #define TMPDIR "/var/tmp" */
+
+と未定義になっています。UNIXでは，このマクロを未定義にしておくとTMPDIR環境変数
+で定義されているディレクトリに一時ファイルを作成します。TMPDIRマクロもTMPDIR環
+境変数もどちらとも未定義の場合は，/tmpに一時ファイルが作成されます。Windowsでは
+，TMPDIR環境変数は無視されますので，TMPDIRマクロを定義してください。
+
+GS_DRUMPART
+
+GSのドラムパートの認識に関する設定です。
+
+#define GS_DRUMPART
+
+と定義すれば，GSのエクスクルーシッブメッセージからドラムパートを認識します。
+
+/* #define GS_DRUMPART */
+
+と未定義にすればこの機能は無効になります。
+
+日本語処理関連
+
+日本語処理のためのオプションがいくつかあります。
+
+JAPANESE
+
+日本語環境では
+
+#define JAPANESE
+
+と定義してください。日本語環境でない場合は，
+
+/* #define JAPANESE */
+
+とコメントアウトしてください。
+
+OUTPUT_TEXT_CODE
+
+出力コードを指定します。以下の文字列が有効です*2。
+
+AUTO
+    LANG 環境変数から自動的に決定
+ASCII
+    非印字文字をピリオドに変換
+NOCNV
+    無変換モード
+EUC
+    eucJPで出力
+JIS
+    JISで出力
+SJIS
+    shift-JISで出力
+
+UNIX上の日本語環境では，上記すべて有効です。Windows日本語環境では，"ASCII"，
+"NOCNV"，"SJIS" のどれかを指定してください。日本語環境でない場合は，"ASCII"，
+"NOCNV"のどちらかを指定してください。
+
+この設定はコマンドラインからも可能です。
+
+MODULATION_WHEEL_ALLOW
+
+PORTAMENTO_ALLOW
+
+NRPN_VIBRATO_ALLOW
+
+REVERB_CONTROL_ALLOW
+
+FREEVERB_CONTROL_ALLOW
+
+CHORUS_CONTROL_ALLOW
+
+SURROUND_CHORUS_ALLOW
+
+GM_CHANNEL_PRESSURE_ALLOW
+
+VOICE_CHAMBERLIN_LPF_ALLOW
+
+VOICE_MOOG_LPF_ALLOW
+
+MODULATION_ENVELOPE_ALLOW
+
+ALWAYS_TRACE_TEXT_META_EVENT
+
+OVERLAP_VOICE_ALLOW
+
+TEMPER_CONTROL_ALLOW
+
+MIDIの制御に関する設定です。デフォルトは
+
+#define MODULATION_WHEEL_ALLOW
+#define PORTAMENTO_ALLOW
+#define NRPN_VIBRATO_ALLOW
+/* #define REVERB_CONTROL_ALLOW */
+#define FREEVERB_CONTROL_ALLOW
+#define CHORUS_CONTROL_ALLOW
+/* #define SURROUND_CHORUS_ALLOW */
+/* #define GM_CHANNEL_PRESSURE_ALLOW */
+#define VOICE_CHAMBERLIN_LPF_ALLOW
+/* #define VOICE_MOOG_LPF_ALLOW */
+/* #define MODULATION_ENVELOPE_ALLOW */
+/* #define ALWAYS_TRACE_TEXT_META_EVENT */
+#define OVERLAP_VOICE_ALLOW
+#define TEMPER_CONTROL_ALLOW
+
+となっています。これらは，コマンドラインオプションで変更することができますので
+，このままで良いと思います。
+
+==============================================================================
+make
+==============================================================================
+
+コンパイルは単に "make" とタイプするだけです。 GNU make が "make" 以外の名前で
+導入されている環境では、そちらを使ってください。
+
+==============================================================================
+インストール
+==============================================================================
+
+"make install" でインストールされます。また、以下のターゲットが指定できます。
+
+install.bin
+    実行ファイルだけインストール
+install.tk
+    Tcl/Tk インターフェースだけインストール
+install.el
+    Emacs インターフェースだけインストール
+install.man
+    man ページだけインストール
+install
+    全部インストール
+
+インストールの際には -n オプションを渡して、何が起こるか確認してからの方がいい
+と思います。
+
+% make -n install
+
+==============================================================================
+音声データを探す
+==============================================================================
+
+TiMidity++ は単体では音を鳴らすことができません。かならず音声データが必要になり
+ます。音声データとしては GUS/patch か SoundFont (か両方)が使えます。なので、ま
+ずこれらのファイルを入手して、設定ファイルに指定する必要があります。 TiMidity++
+の設定ファイルは、デフォルトでは /usr/local/share/timidity/timidity.cfg
+(Windows では C:\WINDOWS\TIMIDITY.CFG)　にあります。
+
+音声ファイルはインターネット上にたくさん存在しています。一部は以下の URL からた
+どることができるでしょう。
+
+ ・ http://www.onicos.com/staff/iz/timidity/link.html#gus
+ ・ http://www.onicos.com/staff/iz/timidity/dist/cfg/ (Some sample *.cfg's)
+ ・ http://www.i.h.kyoto-u.ac.jp/~shom/timidity/ (10M and 4M patches)
+ ・ ftp://ftp.cdrom.com/pub/gus/sound/patches/files/ (GUS site)
+ 
+==============================================================================
+*1 すくなくとも私の環境では -- mput
+*2 "1251"が抜けてるけど、記述ミスなのか? -- mput

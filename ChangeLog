@@ -1,3 +1,10 @@
+2004-01-31  mput <root@mput.dip.jp>
+
+	* INSTALL.jp: Move to INSTALL.ja
+	* README.jp: Move to README.ja
+	* INSTALL: update.
+	* README: update.
+
 2004-01-31  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/instrum.[ch], timidity/playmidi.[ch],
