@@ -3,6 +3,7 @@
 	* timidity/reverb.[ch], timidity/readmidi.c, timidity/playmidi.c:
 	  Fix about Insertion Effect.
 	  Sort out codes.
+	  Fix lowpass filter for system effect.
 
 2003-12-16  Saito <saito2@digitalme.com>
 

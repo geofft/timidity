@@ -3119,7 +3119,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		case 0x07:	/* Reverb Pre-LPF */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Pre-LPF (%d)",val);
 			if(reverb_status.pre_lpf != val) {
-				reverb_status.pre_lpf = val;
+				reverb_status.pre_lpf = val & 0x7;
 				recompute_reverb_status_gs();
 			}
 			break;
@@ -3162,7 +3162,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x0E:	/* Chorus Pre-LPF */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Pre-LPF (%d)",val);
-			chorus_param.chorus_pre_lpf = val;
+			chorus_param.chorus_pre_lpf = val & 0x7;
 			recompute_chorus_status_gs();
 			break;
 		case 0x0F:	/* Chorus Level */
@@ -3212,7 +3212,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x17:	/* Delay Pre-LPF */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Pre-LPF (%d)",val);
-			delay_status.pre_lpf = val;
+			delay_status.pre_lpf = val & 0x7;
 			recompute_delay_status_gs();
 			break;
 		case 0x18:	/* Delay Time Center */
