@@ -1,3 +1,7 @@
+2005-04-03  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/sndfont.c: Fixed to compile cfgforsf.
+
 2004-12-22  Ed Catmur  <ed@catmur.co.uk>
 
 	* interface/gtk_i.c (Launch_Gtk_Process): Fix assertion error in

@@ -1014,7 +1014,7 @@ static int sanity_range(LayerTable *tbl)
  *----------------------------------------------------------------*/
 
 #ifdef CFG_FOR_SF
-int opt_reverb_control;	/* to avoid warning. */
+int opt_reverb_control, opt_surround_chorus;	/* to avoid warning. */
 static int cfg_for_sf_scan(char *name, int x_bank, int x_preset, int x_keynote_from, int x_keynote_to, int romflag);
 #endif
 
