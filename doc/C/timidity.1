@@ -43,8 +43,8 @@ certain MIDI file in the archive, append \fB#<MIDI\-filename>\fP to
 the archive name.  The expression after `#' can use regular
 expressions (case insensitive).
 .br
-ここで，\fB\\xHH\fP という表現は，16 進数 `HH' で表した ASCII 文字列に
-マッチします。
+You can use escape sequence \fB\xHH\fP, where \fIHH\fP is a ASCII
+number in hexadecimal integer.
 .sp
 For example:
 .RS
@@ -73,9 +73,8 @@ can use this syntax even in the MS Windows environment.
 .B lzh (*.lzh, *.lha)
 (lh0, lh1, lh2, lh3, lh4, lh5, lh6, lzs, lz4 and lz5 are available)
 .LP
-なお，これ以外でも，拡張子に対してその展開コマンドがコンパイル時に定義
-されている場合，\fBTiMidity++\fP は指定された展開コマンドにファイルをパ
-イプで流しこみ，展開します。
+Other archives can be expanded if expander command is specified on the
+compile phase.  \fBTiMidity++\fP will pipe that command.
 .RE
 .TP
 .B news://news\-server[:port]/Message\-ID
@@ -88,11 +87,10 @@ newsgroup is specified TiMidity plays all MIDI files found in any
 article posted to that newsgroup.
 .br
 \fBTiMidity++\fP parses MIME Multi\-part messages.
-\fBnews://*\fP で指定したファイルは MIME の Multi Part を認識し，そこに
-投稿されている MIDI ファイルを展開して演奏することができます。また通常
-のファイルであっても，*.mime という拡張子で保存するか，あるいはファイル
-名に \fBmime:\fP というプレフィックスを指定して入力すると MIME を認識し
-ます。
+\fBTiMidity++\fP recognizes MIME multi part in case of \fBnews://*\fP
+scheme, extracts MIDI file that was post to that group, or in case of
+normal file, you can explicitly handle MIME documents by naming that
+file with *.mime extension, or prefix that file with \fBmime:\fP
 .sp
 The following MIME\-types are allowed:
 .RS
@@ -141,8 +139,8 @@ Standard MIDI File
 .B .rcp, .r36, .g18, .g36 (Recomposer formats)
 The Windows version converts these with rcpcv.dll.
 .TP
-.B .mfi (MFi \- i モード用メロディ形式)
-最近流行りの携帯電話の着メロも再生できます。
+.B .mfi (MFi \- Melody Format for i\-Mode)
+i\-Mode is Japanese local mobile phone
 .TP
 .B .kar (Karaoke format)
 Displays the lyrics as a Lyric Meta Event message.
@@ -169,16 +167,13 @@ The following command line options are accepted by \fBTiMidity++\fP:
 Multiplies the master volume by \fIn\fP%.  Default value is 70%.
 Higher amplification makes louder sounds.  The allowed values of
 amplification range from \fB0\fP to \fB800\fP.
-全体の音量を \fIn\fP% にします。デフォルトでは \fB70\fP です。大きな値
-を指定するほど大きな音になります。また，通常音色の音量とドラム音色の音
-量の比率(ドラムパワー)を \fIm\fP% にします。デフォルトでは \fB100\fP で
-す。それぞれ，\fB0\fP (無音)から \fB800\fP までの値が有効です。
 .br
-さらに，\fB\-a\fP オプションに `a' の文字を付加するか，
-\fB\-\-volume\-compensation\fP オプションを指定することにより，音量自動
-補正機能を有効にします。この機能は，MIDI データの MAINVOLUME を最大音量
-(0x7f)に正規化するもので，できるだけダイナミックレンジを稼ぐ，曲間での
-音量格差を小さくする，などの目的で使用されます。
+You can specify the drum power, ratio of drum volume from the other
+channels. It also ranges from 0(no drum) to 800.
+.br
+Optionally to put `a' character along with \fB-a\fP option, or to use
+\fB--volume-compensation\fP , instructs \fBTiMidity++\fP to regularize
+the volume.  You can easily gain dynamic range.
 .sp
 For example:
 .RS
@@ -254,7 +249,7 @@ Enable/disable NRPM vibration.
 Enable/disable channel pressure controlling.
 .TP
 .B e/E, \-\-[no\-]mod\-envelope
-モジュレーションエンベロープを有効/無効にします。
+Enable/disable modulation envelope controlling.
 .TP
 .B t/T, \-\-[no\-]trace\-text\-meta
 Enable/disable tracing all Text Meta Events.
@@ -263,7 +258,7 @@ Enable/disable tracing all Text Meta Events.
 Accept/reject pronouncing multiple same notes.
 .TP
 .B z/Z, \-\-[no\-]temper\-control
-MIDI Tuning Standard の音律制御を有効/無効にします。
+Enable/disable MIDI Tuning Standard temperament controling.
 .TP
 .BI "m, \-\-default\-mid " HH
 Sets the manufacturer ID to \fIHH\fP (where \fIHH\fP are two
@@ -273,10 +268,11 @@ hex-digits).
 understood as \fI41\fP, \fI43\fP and \fI7e\fP respectively.
 .TP
 .BI "M, \-\-system\-mid " HH
-システムマニュファクチュア ID を 2 桁の16進数 \fIHH\fP で指定します。
-.br
-このオプションで指定されたマニュファクチュア ID は固定され，入力ファイ
-ルからのマニュファクチュア ID は無視されます。
+Sets the system manufacturer ID to \fIHH\fP (where \fIHH\fP are two
+hex-digits).
+
+In this option, the manufacuture ID is set unchangable. Manufacuture
+ID from the input file would be ignored.
 .TP
 .BI "b, \-\-default\-bank " n
 Use tone bank \fIn\fP as the default.
@@ -287,22 +283,12 @@ Sets the bank number of all channels to \fIbank\fP.
 .BI "i, \-\-default\-program " n[/m]
 Use the program number as the default instrument.  Any Program Change
 events in MIDI files will override this option.
-デフォルトのプログラム番号を \fIn\fP にします。デフォルトでは \fIn\fP
-は \fB0\fP(通常はピアノ)となっています。
 .br
 If \fIn\fP is followed by \fI/m\fP the default program number of the
 channel \fIm\fP is specified by \fIn\fP.
-また，\fIn\fP の後に \fI/m\fP を付けると，チャンネル \fIm\fP のデフォル
-トのプログラム番号を指定することができます。\fI/m\fP を省略した場合には，
-全チャンネルに対する指定となります。
 .TP
 .BI "I, \-\-force\-program " n[/m]
-プログラム番号を常に \fIn\fP にします。この設定は，MIDI の Program
-change メッセージを受け取っても変更されません。
-.br
-また，\fIn\fP の後に \fI/m\fP を付けると，チャンネル \fIm\fP のプログラ
-ム番号を指定することができます。\fI/m\fP を省略した場合には，全チャンネ
-ルに対する指定となります。
+Similar to ``--default-progrm'' but this ignores all program changes.
 .TP
 .B "F " args
 For effects.  See below.  In \fIargs\fP option, you can specify
@@ -310,7 +296,7 @@ following effect options:
 .RS
 .TP
 .BI "delay=, \-\-delay " (d|l|r|b)[,msec]
-イヤホンで聞いた時の音の臨場感を出すようにします。
+Sets delay type.
 .RS
 .TP
 .B d, 0
@@ -325,14 +311,14 @@ Right delay.
 .B b, 3
 Swap left & right.
 .LP
-\fImsec\fP は左右のディレイタイムを指定するオプションです。
+Optional \fImsec\fP is the delay time
 .RE
 .TP
 .BI "chorus=, \-\-chorus " (d|n|s)[,level]
 .RS
 .TP
 .B d, 0
-コーラスを無効(Disable)にします。
+Disable this effect.
 .TP
 .B n, 1
 Enable MIDI chorus effect control.
@@ -352,16 +338,16 @@ Disable MIDI reverb effect control.
 .TP
 .B n, 1
 Enable MIDI reverb effect control.  This effect is only available in
-stereo (default).
+stereo.
 .TP
 .B g, 2
 Global reverb effect.
 .TP
 .B f, 3
-Freeverb MIDI リバーブ制御を有効にします(デフォルト)。
+Freeverb MIDI reverb effect control (default).
 .TP
 .B G, 4
-グローバル Freeverb MIDI リバーブ制御を有効にします。
+Global freeberb
 .LP
 The optional parameter \fIlevel\fP specifies the reverb level \fB0\fP
 to \fB127\fP.
@@ -371,48 +357,41 @@ to \fB127\fP.
 .RS
 .TP
 .B d, 0
-ボイス単位 LPF を無効(Disable)にします。
+Disable this effect
 .TP
 .B c, 1
-Chamberlin レゾナント LPF (12dB/oct)を有効にします(デフォルト)。
+Chamberlin resonant LPF (12dB/oct)(default).
 .TP
 .B m, 2
-Moog レゾナントローパス VCF (24dB/oct)を有効にします。
+Moog resonant low-pass VCF (24dB/oct)
 .RE
 .TP
 .BI "ns=, \-\-noise\-shaping " n
 Enable the \fIn\fP th degree noiseshaping filter.  Valid values of n
 are in the interval from \fI0\fP (min) to \fI4\fP (max).[0..4].
-\fIn\fP 次ノイズシェーピングフィルタを有効にします。ディケイでの歪みが
-改善されますが，ノイズが高域にシフトし聴感上のノイズも増えます。8 ビッ
-ト線形符号化のとき，\fIn\fP には \fB0\fP から \fB4\fP までの値を指定す
-ることができます。\fB0\fP のときフィルタは機能せず，\fB4\fP のとき最大
-の効き方となります。デフォルトでは \fB4\fP です。16 ビット線形符号化の
-とき，\fIn\fP には \fB0\fP から \fB2\fP までの値を指定することができま
-す。デフォルトでは \fB2\fP です。
 .TP
 .BI "resamp=, \-\-resample " (d|l|c|L|n|g)
 .RS
 .TP
 .B d, 0
-補完処理を無効(Disable)にします。
+No interpolation
 .TP
 .B l, 1
-線形(Linear)補完アルゴリズムを有効にします。
+Linear interpolation
 .TP
 .B c, 2
-C スプライン補完アルゴリズムを有効にします。
+Cubic spline interpolation
 .TP
 .B L, 3
-ラグランジュ(Lagrange)補完アルゴリズムを有効にします。
+Lagrange method
 .TP
 .B n, 4
-ニュートン(Newton)補完アルゴリズムを有効にします。
+Newton polynomial interpolation
 .TP
 .B g, 5
-ガウス(Gauss)風補完アルゴリズムを有効にします(デフォルト)。
+Modified Gauss effect (default).
 .LP
-\fB\-EFresamp\fP は \fB\-N\fP オプションの挙動に影響します。
+This option affects the behavior of \fB\-N\fP option.
 .RE
 .RE
 .RE
@@ -440,12 +419,7 @@ Open the Sound-Spectrogram window.  This option is activated if the
 system has support for the X Window System.
 .TP
 .BI "\-H, \-\-force\-keysig " n
-調号の数を指定します。\fIn\fP が正の場合は♯(シャープ)の数，\fIn\fP が
-負の場合は♭(フラット)の数のキーに転調ながら，MIDI ファイルを演奏します。
-\fIn\fP には \fB\-7\fP から \fB7\fP までの値を指定することができます。
-例えば，\fIn\fP に \fB\-1\fP を与えると，いかなる調性の MIDI ファイルで
-あっても，♭(フラット)が 1 個のヘ長調あるいはニ短調に転調しながら演奏す
-るので，演奏しやすい調性で楽器を練習するときの伴奏などに使うと便利です。
+Forces keysig. Specify the number of sharps(+) or flats(-).
 .TP
 .B \-h, \-\-help
 Show the help message.
@@ -499,7 +473,16 @@ Launch timidity as MIDI server.
 Launch timidity as ALSA sequencer client.
 .TP
 .B \-iW
-Windodws シンセサイザインタフェース
+Windodws synthesizer interface
+.TP
+.B \-iP
+PortMIDI synthesizer interface
+.TP
+.B \-iw
+Windodws GUI interface
+.TP
+.B \-ip
+UMP interface
 .TP
 .B Interface options
 Option characters may be added immediately after the interface
@@ -528,7 +511,14 @@ Randomize file list arguments before playing
 Sort file list arguments before playing
 .TP
 .B D, \-\-[no\-]background
-\fBTiMidity++\fP をバックグラウンドでデーモン化します(alsaseq のみ)。
+Daemonize TiMidity++ in background (for alsaseq only)
+.TP
+.B \-\-realtime\-priority=n
+Set the realtime priority (for alsaseq only)
+.TP
+.B \-\-sequencer\-ports=n
+Set the number of opened sequencer ports, default = 4 (for alsaseq
+only)
 .RE
 .RE
 .TP
@@ -536,8 +526,7 @@ Sort file list arguments before playing
 Enable the loading of patch files during play.
 .TP
 .BI "\-K, \-\-adjust\-key " n
-\fIn\fP 半音単位でキーを調節します。\fIn\fP には \fB\-24\fP から
-\fB24\fP までの値を指定することができます。
+Adjusts key by n half tone. Ranges to -24 to 24.
 .TP
 .BI "\-k, \-\-voice\-queue " msec
 Specify audio queue time limit to reduce voices.  If the remaining
@@ -553,10 +542,10 @@ searched first.  Note that the current directory is always searched
 first before the library path.
 .TP
 .BI "\-M, \-\-pcm\-file " name
-演奏する PCM ファイル名(*.wav または *.aiff)を指定します。\fIname\fP に
-\fBauto\fP を指定すると，*.mid.wav または *.mid.aiff を演奏します。
-\fIname\fP に \fBnone\fP を指定すると，この機能を無効にします(デフォル
-ト)。
+TiMidity++ can play a PCM file instead of a MIDI file. If `auto' is
+specified, TiMidity++ tries to open foo.mid.wav or foo.mid.aiff when
+playing foo.mid. If 'none' is specified, this feature is
+disabled. Otherwise just plays \fIname\fP.
 .TP
 .BI "\-m, \-\-decay\-time " msec
 Modify envelope volume decay time.  \fImsec\fP is the minimum number
@@ -577,23 +566,22 @@ decay even longer).  Softer notes will of course die sooner.
 .RE
 .TP
 .BI "\-N, \-\-interpolation " n
-補完パラメータを指定します。\fB\-N\fP オプションの挙動は
-\fB\-EFresamp\fP オプション指定に依存します。
+Sets interpolation parameter. This option depends on the --resample
+option's value.
 .RS
 .TP
 .B cspline, lagrange
-4 点補完を指定します。デフォルトでは有効です。
+Toggles 4-point linear interpolation (default on).
 .TP
 .B newton
-\fIn\fP 次のニュートン補完を指定します。\fIn\fP には \fB1\fP から
-\fB57\fP までの奇数を指定することができます。
+n+1 point interpolation using Newton polynomials. \fIn\fP must be an odd
+number from 1 to 57 *2.
 .TP
 .B gauss
-\fIn+1\fP 点ガウス風補完を指定します。\fIn\fP には \fB1\fP から
-\fB34\fP までの整数を指定することができます。デフォルトでは \fB25\fP で
-す。
+n+1 point modified Gauss interpolation. ranges 0(disable) to 34(max),
+default to 0.
 .LP
-オーディオキューが 99% 以下のときは，線形補完が使われます。
+In either way, linear interpolation is used if audio queue < 99%
 .RE
 .TP
 .BI "\-O, \-\-output\-mode " mode
@@ -607,7 +595,7 @@ available in all versions:
 Outputs via audio device (default)
 .TP
 .B \-Os
-ALSA オーディオデバイスに出力します。
+Output to ALSA
 .TP
 .B \-Or
 Generate raw waveform data.  All format options are supported.  Common
@@ -639,10 +627,28 @@ is able to read such malformed files, so you can pipe data directly to
 sox for on\-the\-fly conversion to other formats.
 .TP
 .B \-Ol
-MIDI イベントのリストを出力します。
+List MIDI events
 .TP
 .B \-OM
-MOD ファイルから MIDI ファイルに変換して出力します。
+MOD -> MIDI conversion
+.TP
+.B \-Oe
+EsounD
+.TP
+.B \-Op
+PortAudio
+.TP
+.B \-Oj
+JACK
+.TP
+.B \-Or
+aRts
+.TP
+.B \-OA
+Alib
+.TP
+.B \-Ov
+ogg vorbis
 .TP
 .B Format options
 Option characters may be added immediately after the mode identifier
@@ -674,7 +680,7 @@ Linear encoding
 uLaw (8-bit) encoding
 .TP
 .B A, \-\-output\-alaw
-A\-Law 符合化
+A\-Law encoding
 .TP
 .B x, \-\-[no\-]output\-swab
 Byte-swapped output
@@ -706,10 +712,9 @@ Use patch file for all programs.
 Sets polyphony (maximum number of simultaneous voices) to
 \fIn\fP.
 .br
-Toggle automatic polyphony reduction.
-さらに，\fB\-p\fP オプションに `a' の文字を付加するか，
-\fB\-\-polyphony\-reduction\fP オプションを指定することにより，自動で発
-音数の減少させることを可能にします。デフォルトでは有効です。
+Optionally to put 'a' character along with \fB-p\fP option, or to use
+\fB--polyphony-reduction\fP , instructs \fBTiMidity++\fP to enable
+automatic polyphony reduction algorithm.
 .TP
 .BI "\-Q " n[,...](t)
 .br
@@ -724,11 +729,9 @@ Causes channel \fIn\fP to be quiet.  If channel \fIn\fP is negative,
 channel \fI\-n\fP is turned back on.  If \fIn\fP is 0, all channels
 are turned off.
 .br
-一方，\fB\-Q\fP オプションに `t' の文字を付加するか，
-\fB\-\-temper\-mute\fP オプションを指定することにより，音律種別
-\fIn\fP をミュートします。\fIn\fP には プリセット音律種別として
-\fB0\fP から \fB3\fP までの値を，ユーザ定義音律種別として \fB4\fP から
-\fB7\fP までの値を指定することができます。
+On the other hand, to put 't' character after \-Q option or to use
+\-\-temper\-mute describes temperament mute. This mutes channels of
+the specific temperament. n can range 0 to 7.
 .TP
 .BI "\-q, \-\-audio\-buffer " seq/n
 Specify audio buffer in seconds.  m: maximum size of buffer, n:
@@ -784,12 +787,13 @@ Unload all instruments from memory between MIDI files.  This can
 reduce memory requirements when playing many files in succession.
 .TP
 .BI "-V, \-\-volume\-curve " power
-ベロシティ/ボリューム/エクスプレッションカーブを amp=vol^\fIpower\fP で
-\fIpower\fP の値が \fB0\fP で自動，\fB1\fP で線形，約 \fB1.661\fP で理
-想，約 \fB2\fP で GS 設定となります。
+Set the power of volume curve. The total amplification becomes
+volume^power.  0 (default) uses the regular tables. Any non-zero value
+causes all midi to use the new user defined velocity/volume/expression
+curve (linear: 1, ideal: ~1.661, GS: ~2).
 .TP
 .B -v, \-\-version
-\fBTiMidity++\fP のバージョン情報を表示します。
+Show the version string
 .TP
 .BI "\-W, \-\-wrd " mode
 Play WRD file.
@@ -801,7 +805,7 @@ Allowed values of \fImode\fP are:
 X Window System mode
 .TP
 .B w
-Windows コンソール上に WRD を表示します。
+Windows console mode
 .TP
 .B t
 TTY mode
@@ -833,9 +837,6 @@ only emulate some bugs (default)
 .TP
 .B -WRd=2
 emulate all known bugs
-.LP
-エミュレートレベルをあげると，今までタイミングが合っていたものがずれる
-可能性があります。
 .RE
 .TP
 .B F=file
@@ -878,18 +879,12 @@ as carriage return.
 Cause the table of frequencies to be read from \fIfile\fP.  This is
 useful to define a tuning different from the occidental temperate
 scale.
-周波数テーブルを読み込みます。\fIfile\fP に ``pure'' を指定すると，簡易
-純正律で演奏します。
 .RS
 .TP
 .BI "\-Zpure, \-\-pure\-intonation " [n(m)]
-MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
-奏します。MIDI ファイルに Key Signature メタイベントが含まれていない場
-合は，初期の調性として \fIn(m)\fP を指定することで，正しい純正律演奏が
-可能となります。\fIn\fP は調号の数で，♯(シャープ)の場合は正の数，♭(フ
-ラット)の場合は負の数を指定します。\fIn\fP には \fB\-7\fP から \fB7\fP
-までの値を指定することができます。さらに，短調の場合は `m' の文字を付加
-します。
+Simple just intonation playing by Key Signature meta-event in the MIDI
+file.  you can specify the keysig by hand, in case the MIDI file does
+not contains the meta-event.
 .RE
 .SH SEE ALSO
 lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1),

@@ -500,6 +500,15 @@ ALSA シーケンサインタフェース
 .B \-iW
 Windodws シンセサイザインタフェース
 .TP
+.B \-iP
+PortMIDI シンセサイザインタフェース
+.TP
+.B \-iw
+Windodws GUI インターフェース
+.TP
+.B \-ip
+UMP インターフェース
+.TP
 .B インタフェースオプション
 上記オプションに続けて，以下の文字列を追加することができます(複数指定化)。
 .RS
@@ -524,6 +533,12 @@ Windodws シンセサイザインタフェース
 .TP
 .B D, \-\-[no\-]background
 \fBTiMidity++\fP をバックグラウンドでデーモン化します(alsaseq のみ)。
+.TP
+.B \-\-realtime\-priority=n
+(alsaseq のみ)リアルタイム・プライオリティの指定。
+.TP
+.B \-\-sequencer\-ports=n
+(alsaseq のみ)シーケンサのポート数を指定(デフォルトは4)。
 .RE
 .RE
 .TP
@@ -616,16 +631,34 @@ ALSA オーディオデバイスに出力します。
 Sun Audio (au)ファイルを出力します。
 .TP
 .B \-Oa
-Macintosh AIFF ファイルを出力します。
+AIFF(Audio Interchange File Format) ファイルを出力します。
 .TP
 .B \-Ow
-Windows RIFF WAVE ファイルを出力します。
+RIFF WAVE ファイルを出力します。
 .TP
 .B \-Ol
 MIDI イベントのリストを出力します。
 .TP
 .B \-OM
 MOD ファイルから MIDI ファイルに変換して出力します。
+.TP
+.B \-Oe
+EsounD
+.TP
+.B \-Op
+PortAudio
+.TP
+.B \-Oj
+JACK
+.TP
+.B \-Or
+aRts
+.TP
+.B \-OA
+Alib
+.TP
+.B \-Ov
+ogg vorbis
 .TP
 .B フォーマットオプション
 上記オプションに続けて，以下の文字を追加することで出力フォーマットを指
