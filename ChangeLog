@@ -1,3 +1,11 @@
+2004-02-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1,
+	  doc/C/timidity.cfg.5, doc/ja_JP.ujis/timidity.cfg.5:
+	  Beautify man pages
+	* timidity/sndfont.c:
+	  Hack up around set_rootkey() and set_rootfreq()
+
 2004-02-03  Saito <saito2@digitalme.com>
 
 	* timidity/mix.c, timidity/timidity.c, timidity/playmidi.[ch],

@@ -1,4 +1,4 @@
-.TH timidity 1 "2004年01月25日" "2.13.0"
+.TH timidity 1 "2004年02月03日" "2.13.0"
 .SH 名前
 TiMidity++ \- MIDI_to_WAVE変換およびプレーヤー
 .SH 書式
@@ -83,7 +83,7 @@ shell の正規表現とは少し異なり，大文字/小文字は区別されません。
 .ns
 .TP
 .B news://news\-server[:port]/newsgroup[/first\-last]
-\fInews-server\fP に保存されている MIDI ファイルを演奏します。
+\fInews\-server\fP に保存されている MIDI ファイルを演奏します。
 \fInewsgroup\fP を指定すると，そのグループに投稿されている MIDI ファイ
 ルを演奏します。
 .br
@@ -241,12 +241,12 @@ Lyric Meta Event と同じように，歌詞が表示されます。
 ダイナミックリンクインタフェースモジュールがインストールされているディ
 レクトリを \fIdir\fP で指定します。
 .TP
-.BI "\-E, --ext " mode
+.BI "\-E, \-\-ext " mode
 \fBTiMidity++\fP シーケンサの拡張モードを指定します(複数指定可)。以下の
 \fImode\fP が指定できます。
 .RS
 .TP
-.B w/W, \-\-[no\-]mod-wheel
+.B w/W, \-\-[no\-]mod\-wheel
 モジュレーションホイール制御を有効/無効にします。
 .TP
 .B p/P, \-\-[no\-]portamento
@@ -478,7 +478,7 @@ dumb インタフェース
 ncurses インタフェース
 .TP
 .B \-is
-S-Lang インタフェース
+S\-Lang インタフェース
 .TP
 .B \-ia
 X Athena Widget インタフェース
@@ -627,7 +627,7 @@ ALSA オーディオデバイスに出力します。
 .RS
 .TP
 .B \-OrU
-μ-Law
+μ\-Law
 .TP
 .B \-Or1sl
 16 ビット符号あり線形符号化
@@ -769,14 +769,14 @@ Linux PCM デバイスに対しては使用できません。
 キャッシュされません。\fB0\fP を指定すると，まったくキャッシュしません。
 デフォルトでは \fIn\fP は \fB2097152\fP (2MB)となっています。
 .TP
-.BI "-s, \-\-sampling\-freq " freq
+.BI "\-s, \-\-sampling\-freq " freq
 再生サンプルレート(Hz または kHz)を指定します。
 .TP
 .BI "\-T, \-\-adjust\-tempo " n
 テンポを \fIn\fP% に調節します。\fIn\fP を \fB120\fP にすると，MOD ファ
 イルを NTSC Amiga のタイミングで演奏します。
 .TP
-.BI "-t, \-\-output\-charset " code
+.BI "\-t, \-\-output\-charset " code
 テキストの出力文字コードを指定します。以下の \fIcode\fP が指定可能です
 (大文字小文字は区別されません)。
 .RS
@@ -791,7 +791,7 @@ LANG 環境変数によってコードが決まります。
 出力文字コードを変換しません。
 .TP
 .B 1251
-windows-1251 から koi8-r に変換して出力します。
+windows\-1251 から koi8\-r に変換して出力します。
 .TP
 .B euc
 EUC コード(japan)で出力します。
@@ -807,12 +807,12 @@ SJIS コードで出力します。
 このオプションを有効にすると，演奏ごとに毎回，パッチに割り当てられてい
 たメモリを解放します。
 .TP
-.BI "-V, \-\-volume\-curve " power
+.BI "\-V, \-\-volume\-curve " power
 ベロシティ/ボリューム/エクスプレッションカーブを amp=vol^\fIpower\fP で
 \fIpower\fP の値が \fB0\fP で自動，\fB1\fP で線形，約 \fB1.661\fP で理
 想，約 \fB2\fP で GS 設定となります。
 .TP
-.B -v, \-\-version
+.B \-v, \-\-version
 \fBTiMidity++\fP のバージョン情報を表示します。
 .TP
 .BI "\-W, \-\-wrd " mode
@@ -850,13 +850,13 @@ WRD 読み込み時のオプションを指定します。\fIan\fP にオプション名，
 す。以下のオプションでエミュレートレベルを変更できます。
 .RS
 .TP
-.B -WRd=0
+.B \-WRd=0
 MIMPI のバグをエミュレートしないで，規格通りに動作します。
 .TP
-.B -WRd=1
+.B \-WRd=1
 おそらく間違いないと思われるバグのみをエミュレートします(デフォルト)。
 .TP
-.B -WRd=2
+.B \-WRd=2
 怪しいバグまでエミュレートします。
 .LP
 エミュレートレベルをあげると，今までタイミングが合っていたものがずれる
@@ -915,12 +915,12 @@ MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
 lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1),
 timidity.cfg(5)
 .SH 著作権
-Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+Copyright (C) 1999\-2004 Masanao Izumo <iz@onicos.co.jp>
 .br
 Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 .LP
 The original version was developed by Tuukka Toivonen <tt@cgs.fi>
-until the release of TiMidity-0.2i.  His development was discontinued
+until the release of TiMidity\-0.2i.  His development was discontinued
 because of his being busy with work.
 .LP
 This program is free software; you can redistribute it and/or modify
@@ -935,7 +935,7 @@ General Public License\fP for more details.
 .LP
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111\-1307
 USA
 .SH 入手元
 \fBTiMidity++\fP は 改良版 TiMidity のページ
@@ -952,7 +952,7 @@ Tuukka Toivonen <toivonen@clinet.fi>
 .br
 Vincent Pagel <pagel@loria.fr>
 .br
-Takashi Iwai <iwai@dragon.mm.t.u-tokyo.ac.jp>
+Takashi Iwai <iwai@dragon.mm.t.u\-tokyo.ac.jp>
 .br
 Davide Moretti <dmoretti@iper.net>
 .br
@@ -963,31 +963,31 @@ Riccardo Facchetti <riccardo@cdc8g5.cdc.polimi.it>
 .B TiMidity++:
 出雲正尚 (IZUMO Masanao) <mo@goice.co.jp>
 .br
-原田智和 (HARADA Tomokazu) <harada@prince.pe.u-tokyo.ac.jp>
+原田智和 (HARADA Tomokazu) <harada@prince.pe.u\-tokyo.ac.jp>
 .br
-山手圭一郎 (YAMATE Keiichirou) <keiich-y@is.aist-nara.ac.jp>
+山手圭一郎 (YAMATE Keiichirou) <keiich\-y@is.aist\-nara.ac.jp>
 .br
 木竜雅樹 (KIRYU Masaki) <mkiryu@usa.net>
 .br
 青木大輔 (AOKI Daisuke) <dai@y7.net>
 .br
-松本庄司 (MATSUMOTO Shoji) <shom@i.h.kyoto-u.ac.jp>
+松本庄司 (MATSUMOTO Shoji) <shom@i.h.kyoto\-u.ac.jp>
 .br
 小柳雅明 (KOYANAGI Masaaki) <koyanagi@okilab.oki.co.jp>
 .br
-今井邦彦 (IMAI Kunihiko) <imai@leo.ec.t.kanazawa-u.ac.jp>
+今井邦彦 (IMAI Kunihiko) <imai@leo.ec.t.kanazawa\-u.ac.jp>
 .br
-野上貴哉 (NOGAMI Takaya) <t-nogami@happy.email.ne.jp>
+野上貴哉 (NOGAMI Takaya) <t\-nogami@happy.email.ne.jp>
 .br
-渡辺尊紀 (WATANABE Takanori) <takawata@shidahara1.planet.kobe-u.ac.jp>
+渡辺尊紀 (WATANABE Takanori) <takawata@shidahara1.planet.kobe\-u.ac.jp>
 .br
 竹川視野 (TAKEKAWA Hiroshi) <sian@big.or.jp>
 .br
 長野大介 (NAGANO Daisuke) <breeze.geo@geocities.co.jp> 
 .br
-山幡為佐久 (YAMAHATA Isaku) <yamahata@kusm.kyoto-u.ac.jp>
+山幡為佐久 (YAMAHATA Isaku) <yamahata@kusm.kyoto\-u.ac.jp>
 .br
-木下浩介 (KINOSHITA Kosuke) <kino@krhm.jvc-victor.co.jp>
+木下浩介 (KINOSHITA Kosuke) <kino@krhm.jvc\-victor.co.jp>
 .br
 荒井良重 (ARAI Yoshishige) <ryo2@on.rim.or.jp>
 .br
@@ -1001,7 +1001,7 @@ Glenn Trigg <ggt@netspace.net.au>
 WRDで使用される端末ターミナルエミュレーションのコードは X Consotium
 等の kterm のコードの一部を取り込み，またそれを参考に実装を行いました。
 .LP
-和訳は松本庄司(MATSUMOTO Shoji <shom@i.h.kyoto-u.ac.jp>)。この和訳は正
+和訳は松本庄司(MATSUMOTO Shoji <shom@i.h.kyoto\-u.ac.jp>)。この和訳は正
 確かどうかは保証できません。あなたがこの和訳の使用でいかなる損害を受け
 ても責任は持ちません。
 .LP
@@ -1009,4 +1009,4 @@ WRDで使用される端末ターミナルエミュレーションのコードは X Consotium
 Masanao <mo@goice.co.jp>)が，
 .br
 その nroff 化，およびマニュアルのリライトは長野大介(NAGANO Daisuke
-<nagano@i.kyushu-u.ac.jp>)が行いました。
+<nagano@i.kyushu\-u.ac.jp>)が行いました。

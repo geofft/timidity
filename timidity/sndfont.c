@@ -1434,113 +1434,70 @@ static int abscent_to_Hz(int abscents)
 /* calculate root key & fine tune */
 static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
-    SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
+	SFSampleInfo *sp = &sf->sample[tbl->val[SF_sampleId]];
 	int val, temp;
-
+	
 	/* scale factor */
 	vp->v.scale_factor = 1024 * (double) tbl->val[SF_scaleTuning] / 100 + 0.5;
-
-    /* set initial root key & fine tune */
-    if(sf->version == 1 && tbl->set[SF_samplePitch])
-    {
-	/* set from sample pitch */
-	vp->root = (int)tbl->val[SF_samplePitch] / 100;
-	vp->tune = -(int)tbl->val[SF_samplePitch] % 100;
-	if(vp->tune <= -50)
-	{
-	    vp->root++;
-	    vp->tune = 100 + vp->tune;
+	/* set initial root key & fine tune */
+	if (sf->version == 1 && tbl->set[SF_samplePitch]) {
+		/* set from sample pitch */
+		vp->root = tbl->val[SF_samplePitch] / 100;
+		vp->tune = -tbl->val[SF_samplePitch] % 100;
+		if (vp->tune <= -50)
+			vp->root++, vp->tune += 100;
+	} else {
+		/* from sample info */
+		vp->root = sp->originalPitch;
+		vp->tune = (int8) sp->pitchCorrection;
 	}
-    }
-    else
-    {
-	/* from sample info */
-	vp->root = sp->originalPitch;
-	vp->tune = sp->pitchCorrection;
-	if (vp->tune >= 0x80)
-		vp->tune -= 0x100; /* correct sign */
-    }
-
-    /* orverride root key */
-    if(tbl->set[SF_rootKey]) {
-		vp->root = (int)tbl->val[SF_rootKey];
-	} else if(vp->bank == 128 && vp->v.scale_factor != 0) {
+	/* orverride root key */
+	if (tbl->set[SF_rootKey])
+		vp->root = tbl->val[SF_rootKey];
+	else if (vp->bank == 128 && vp->v.scale_factor != 0)
 		vp->tune += (vp->keynote - sp->originalPitch)
 				* 100 * (double) vp->v.scale_factor / 1024;
-	}
-
-	vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
-	(int)tbl->val[SF_fineTune];
-
-    /* correct too high pitch */
-    if(vp->root >= vp->high + 60)
-      vp->root -= 60;
-
-	vp->v.tremolo_to_pitch = vp->v.tremolo_to_fc = 
-	vp->v.modenv_to_pitch = vp->v.modenv_to_fc = 0;
-
-	if(tbl->set[SF_lfo1ToPitch])
-		vp->v.tremolo_to_pitch = (int)tbl->val[SF_lfo1ToPitch];
-	if(tbl->set[SF_lfo1ToFilterFc])
-		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
-	if(tbl->set[SF_env1ToPitch]) {
-		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
-		if (vp->v.modenv_to_pitch > 1200) {vp->v.modenv_to_pitch = 1200;}
-		/* correct tune with the sustain level of modulation envelope */
-		temp = ((int)vp->v.modenv_to_pitch * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
-		vp->tune += temp;
-		vp->v.modenv_to_pitch -= temp;
-	}
-	if(tbl->set[SF_env1ToFilterFc])
-		vp->v.modenv_to_fc = (int)tbl->val[SF_env1ToFilterFc];
+	vp->tune += tbl->val[SF_coarseTune] * 100 + tbl->val[SF_fineTune];
+	/* correct too high pitch */
+	if (vp->root >= vp->high + 60)
+		vp->root -= 60;
+	vp->v.tremolo_to_pitch =
+			(tbl->set[SF_lfo1ToPitch]) ? tbl->val[SF_lfo1ToPitch] : 0;
+	vp->v.tremolo_to_fc =
+			(tbl->set[SF_lfo1ToFilterFc]) ? tbl->val[SF_lfo1ToFilterFc] : 0;
+	vp->v.modenv_to_pitch =
+			(tbl->set[SF_env1ToPitch]) ? tbl->val[SF_env1ToPitch] : 0;
+	if (vp->v.modenv_to_pitch > 1200)
+		vp->v.modenv_to_pitch = 1200;
+	/* correct tune with the sustain level of modulation envelope */
+	temp = vp->v.modenv_to_pitch
+			* (double) (1000 - tbl->val[SF_sustainEnv1]) / 1000 + 0.5;
+	vp->tune += temp, vp->v.modenv_to_pitch -= temp;
+	vp->v.modenv_to_fc =
+			(tbl->set[SF_env1ToFilterFc]) ? tbl->val[SF_env1ToFilterFc] : 0;
 }
 
 static void set_rootfreq(SampleList *vp)
 {
-    int root, tune;
-
-    root = vp->root;
-    tune = vp->tune;
-
-#if 1
-    while(tune <= -100)
-    {
-	root++;
-	tune += 100;
-    }
-    while(tune > 0)
-    {
-	root--;
-	tune -= 100;
-    }
-    /* -100 < tune <= 0 */
-
-    tune = (-tune * 256) / 100;
-#else
-
-    while (tune < 0) {
-      root--;
-      tune += 100;
-    }
-    while (tune >= 100) {
-      root++;
-      tune -= 100;
-    }
-    tune = (tune * 256) / 100;
-
-#endif
-
-    if (root > 127) {
-	vp->v.root_freq = (int32)((FLOAT_T)freq_table[127] *
-				  bend_coarse[root - 127] * bend_fine[tune]);
-	vp->v.scale_freq = 127;	/* scale freq */
-	} else if (root < 0) {
-	vp->v.root_freq = (int32)((FLOAT_T)freq_table[0] /
-				  bend_coarse[-root] * bend_fine[tune]);
-	vp->v.scale_freq = 0;	/* scale freq */
+	int root = vp->root;
+	int tune = 0.5 - 256 * (double) vp->tune / 100;
+	
+	/* 0 <= tune < 255 */
+	while (tune < 0)
+		root--, tune += 256;
+	while (tune > 255)
+		root++, tune -= 256;
+	if (root < 0) {
+		vp->v.root_freq = freq_table[0] * (double) bend_fine[tune]
+				/ bend_coarse[-root] + 0.5;
+		vp->v.scale_freq = 0;		/* scale freq */
+	} else if (root > 127) {
+		vp->v.root_freq = freq_table[127] * (double) bend_fine[tune]
+				* bend_coarse[root - 127] + 0.5;
+		vp->v.scale_freq = 127;		/* scale freq */
 	} else {
-	vp->v.root_freq = (int32)((FLOAT_T)freq_table[root] * bend_fine[tune]);
-	vp->v.scale_freq = root;	/* scale freq */
+		vp->v.root_freq = freq_table[root] * (double) bend_fine[tune] + 0.5;
+		vp->v.scale_freq = root;	/* scale freq */
 	}
 }
 
