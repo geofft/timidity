@@ -1,3 +1,10 @@
+2003-11-01  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (parse_opt_h): Fix in help message
+	(parse_opt_j): Enforce returning a int value
+	(parse_opt_Z1): ditto
+	(parse_opt_fail): Change exit status to EXIT_FAILURE
+
 2003-10-31  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.c:

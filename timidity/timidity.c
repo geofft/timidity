@@ -3292,7 +3292,7 @@ static inline int parse_opt_h(const char *arg)
 "               Use patch file for all programs",
 "  -p n       --polyphony=n",
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
-"     (a)     --[no-]auto-poly-reduction",
+"     (a)     --[no-]polyphony-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
 "  -Q n[,...] --mute=n",
 "               Ignore channel n (0: ignore all, -n: resume channel n)",
@@ -3728,6 +3728,7 @@ static inline int parse_opt_seq_ports(const char *arg)
 static inline int parse_opt_j(const char *arg)
 {
 	opt_realtime_playing = y_or_n_p(arg);
+	return 0;
 }
 
 static inline int parse_opt_K(const char *arg)
@@ -4221,6 +4222,7 @@ static inline int parse_opt_Z1(const char *arg)
 		if (strchr(arg, 'm'))
 			opt_init_keysig += 16;
 	}
+	return 0;
 }
 
 __attribute__((noreturn))
@@ -4229,7 +4231,7 @@ static inline int parse_opt_fail(const char *arg)
 	/* getopt_long failed to recognize any options */
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			"Could not understand option : try --help");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 static inline int set_value(int *param, int i, int low, int high, char *name)
