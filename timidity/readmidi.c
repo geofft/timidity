@@ -5136,6 +5136,7 @@ void readmidi_read_init(void)
 	init_eq_status_gs();
 	init_insertion_effect_gs();
 	init_multi_eq_xg();
+	if (play_system_mode == XG_SYSTEM_MODE) {init_all_effect_xg();}
 	init_userdrum();
 	init_userinst();
 	rhythm_part[0] = rhythm_part[1] = 9;
@@ -6614,6 +6615,16 @@ void realloc_effect_xg(struct effect_xg_t *st)
 	case 0x05:
 		st->use_msb = 1;
 		st->ef = push_effect(st->ef, EFFECT_DELAY_LCR);
+		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
+		break;
+	case 0x06:
+		st->use_msb = 1;
+		st->ef = push_effect(st->ef, EFFECT_DELAY_LR);
+		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
+		break;
+	case 0x08:
+		st->use_msb = 1;
+		st->ef = push_effect(st->ef, EFFECT_CROSS_DELAY);
 		st->ef = push_effect(st->ef, EFFECT_DELAY_EQ2);
 		break;
 	case 0x41:

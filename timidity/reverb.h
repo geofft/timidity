@@ -186,6 +186,8 @@ enum {
 	EFFECT_OD_EQ3,
 	EFFECT_HEXA_CHORUS,
 	EFFECT_DELAY_LCR,
+	EFFECT_DELAY_LR,
+	EFFECT_CROSS_DELAY,
 	EFFECT_DELAY_EQ2,
 };
 
@@ -208,7 +210,7 @@ enum {
 };
 
 #define XG_INSERTION_EFFECT_NUM 2
-#define XG_VARIATION_EFFECT_NUM 2
+#define XG_VARIATION_EFFECT_NUM 1
 
 struct effect_xg_t insertion_effect_xg[XG_INSERTION_EFFECT_NUM],
 	variation_effect_xg[XG_VARIATION_EFFECT_NUM], reverb_status_xg, chorus_status_xg;
@@ -385,6 +387,25 @@ typedef struct {
 	int32 dryi, weti, feedbacki, cleveli;
 	filter_lowpass1 lpf;
 } InfoDelayLCR;
+
+/*! Delay L,R */
+typedef struct {
+	delay delayL, delayR;
+	int32 index[2], size[2];	/* L,R */
+	double rdelay, ldelay, fdelay1, fdelay2;	/* in ms */
+	double dry, wet, feedback, high_damp;
+	int32 dryi, weti, feedbacki;
+	filter_lowpass1 lpf;
+} InfoDelayLR;
+
+/*! Cross Delay */
+typedef struct {
+	delay delayL, delayR;
+	double lrdelay, rldelay;	/* in ms */
+	double dry, wet, feedback, high_damp;
+	int32 dryi, weti, feedbacki, input_select;
+	filter_lowpass1 lpf;
+} InfoCrossDelay;
 
 /*                             */
 /*        System Effect        */

@@ -3373,16 +3373,16 @@ static void conv_xg_delay_lcr(struct effect_xg_t *st, EffectList *ef)
 	int val;
 
 	val = st->param_msb[0] * 128 + st->param_lsb[0];
-	val = (val < 1) ? 1 : val;
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
 	info->ldelay = (double)val / 10.0f;
 	val = st->param_msb[1] * 128 + st->param_lsb[1];
-	val = (val < 1) ? 1 : val;
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
 	info->rdelay = (double)val / 10.0f;
 	val = st->param_msb[2] * 128 + st->param_lsb[2];
-	val = (val < 1) ? 1 : val;
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
 	info->cdelay = (double)val / 10.0f;
 	val = st->param_msb[3] * 128 + st->param_lsb[3];
-	val = (val < 1) ? 1 : val;
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
 	info->fdelay = (double)val / 10.0f;
 	info->feedback = (double)(st->param_lsb[4] - 64) * (0.763f * 2.0f / 100.0f);
 	info->clevel = (double)st->param_lsb[5] / 127.0f;
@@ -3391,6 +3391,160 @@ static void conv_xg_delay_lcr(struct effect_xg_t *st, EffectList *ef)
 	info->high_damp = (double)val / 10.0f;
 	info->dry = calc_dry_xg(st->param_lsb[9], st);
 	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void conv_xg_delay_lr(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoDelayLR *info = (InfoDelayLR *)ef->info;
+	int val;
+
+	val = st->param_msb[0] * 128 + st->param_lsb[0];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->ldelay = (double)val / 10.0f;
+	val = st->param_msb[1] * 128 + st->param_lsb[1];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->rdelay = (double)val / 10.0f;
+	val = st->param_msb[2] * 128 + st->param_lsb[2];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->fdelay1 = (double)val / 10.0f;
+	val = st->param_msb[3] * 128 + st->param_lsb[3];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->fdelay2 = (double)val / 10.0f;
+	info->feedback = (double)(st->param_lsb[4] - 64) * (0.763f * 2.0f / 100.0f);
+	val = st->param_lsb[5];
+	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
+	info->high_damp = (double)val / 10.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void do_delay_lr(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, x;
+	InfoDelayLR *info = (InfoDelayLR *)ef->info;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	filter_lowpass1 *lpf = &(info->lpf);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 indexl = delayL->index, sizel = delayL->size,
+		indexr = delayR->index, sizer = delayR->size;
+	int32 index0 = info->index[0], index1 = info->index[1],
+		x1l = lpf->x1l, x1r = lpf->x1r;
+	int32 feedbacki = info->feedbacki, 
+		dryi = info->dryi, weti = info->weti, ai = lpf->ai, iai = lpf->iai;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		info->size[0] = info->ldelay * play_mode->rate / 1000.0f;
+		x = info->fdelay1 * play_mode->rate / 1000.0f;
+		if (info->size[0] > x) {info->size[0] = x;}
+		x++;
+		set_delay(&(info->delayL), x);
+		info->index[0] = x - info->size[0];
+		info->size[1] = info->rdelay * play_mode->rate / 1000.0f;
+		x = info->fdelay2 * play_mode->rate / 1000.0f;
+		if (info->size[1] > x) {info->size[1] = x;}
+		x++;
+		set_delay(&(info->delayR), x);
+		info->index[1] = x - info->size[1];
+		info->feedbacki = TIM_FSCALE(info->feedback, 24);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		lpf->a = (1.0f - info->high_damp) * 44100.0f / play_mode->rate;
+		init_filter_lowpass1(lpf);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		x = imuldiv24(bufL[indexl], feedbacki);
+		do_filter_lowpass1(x, x1l, ai, iai);
+		bufL[indexl] = buf[i] + x;
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(bufL[index0], weti);
+
+		x = imuldiv24(bufR[indexr], feedbacki);
+		do_filter_lowpass1(x, x1r, ai, iai);
+		bufR[indexr] = buf[++i] + x;
+		buf[i] = imuldiv24(buf[i], dryi) + imuldiv24(bufR[index1], weti);
+
+		if (++index0 == sizel) {index0 = 0;}
+		if (++index1 == sizer) {index1 = 0;}
+		if (++indexl == sizel) {indexl = 0;}
+		if (++indexr == sizer) {indexr = 0;}
+	}
+	info->index[0] = index0, info->index[1] = index1;
+	lpf->x1l = x1l, lpf->x1r = x1r;
+	delayL->index = indexl, delayR->index = indexr;
+}
+
+static void conv_xg_cross_delay(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoCrossDelay *info = (InfoCrossDelay *)ef->info;
+	int val;
+
+	val = st->param_msb[0] * 128 + st->param_lsb[0];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->lrdelay = (double)val / 10.0f;
+	val = st->param_msb[1] * 128 + st->param_lsb[1];
+	val = (val > 14860) ? 14860 : (val < 1) ? 1 : val;
+	info->rldelay = (double)val / 10.0f;
+	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
+	info->input_select = st->param_lsb[3];
+	val = st->param_lsb[4];
+	val = (val > 10) ? 10 : (val < 1) ? 1 : val;
+	info->high_damp = (double)val / 10.0f;
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+}
+
+static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
+{
+	int32 i, lfb, rfb, lout, rout;
+	InfoCrossDelay *info = (InfoCrossDelay *)ef->info;
+	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	filter_lowpass1 *lpf = &(info->lpf);
+	int32 *bufL = delayL->buf, *bufR = delayR->buf;
+	int32 indexl = delayL->index, sizel = delayL->size,
+		indexr = delayR->index, sizer = delayR->size,
+		x1l = lpf->x1l, x1r = lpf->x1r;
+	int32 feedbacki = info->feedbacki, 
+		dryi = info->dryi, weti = info->weti, ai = lpf->ai, iai = lpf->iai;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		set_delay(&(info->delayL), info->lrdelay * play_mode->rate / 1000.0f);
+		set_delay(&(info->delayR), info->rldelay * play_mode->rate / 1000.0f);
+		info->feedbacki = TIM_FSCALE(info->feedback, 24);
+		info->dryi = TIM_FSCALE(info->dry, 24);
+		info->weti = TIM_FSCALE(info->wet, 24);
+		lpf->a = (1.0f - info->high_damp) * 44100.0f / play_mode->rate;
+		init_filter_lowpass1(lpf);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_delay(&(info->delayL));
+		free_delay(&(info->delayR));
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		lfb = imuldiv24(bufL[indexl], feedbacki);
+		do_filter_lowpass1(lfb, x1l, ai, iai);
+		lout = imuldiv24(buf[i], dryi) + imuldiv24(bufL[indexl], weti);
+		rfb = imuldiv24(bufR[indexr], feedbacki);
+		do_filter_lowpass1(rfb, x1r, ai, iai);
+		rout = imuldiv24(buf[i + 1], dryi) + imuldiv24(bufR[indexr], weti);
+		bufL[indexl] = buf[i] + rfb;
+		buf[i] = lout;
+		bufR[indexr] = buf[++i] + lfb;
+		buf[i] = rout;
+
+		if (++indexl == sizel) {indexl = 0;}
+		if (++indexr == sizer) {indexr = 0;}
+	}
+	lpf->x1l = x1l, lpf->x1r = x1r;
+	delayL->index = indexl, delayR->index = indexr;
 }
 
 struct _EffectEngine effect_engine[] = {
@@ -3408,6 +3562,8 @@ struct _EffectEngine effect_engine[] = {
 	EFFECT_STEREO_DISTORTION, "Stereo Distortion", do_stereo_od, NULL, conv_xg_distortion, sizeof(InfoStereoOD),
 	EFFECT_OD_EQ3, "2-Band EQ (XG OD built-in)", do_eq3, NULL, conv_xg_od_eq3, sizeof(InfoEQ3),
 	EFFECT_DELAY_LCR, "Delay L,C,R", do_delay_lcr, NULL, conv_xg_delay_lcr, sizeof(InfoDelayLCR),
+	EFFECT_DELAY_LR, "Delay L,R", do_delay_lr, NULL, conv_xg_delay_lr, sizeof(InfoDelayLR),
+	EFFECT_CROSS_DELAY, "Cross Delay", do_cross_delay, NULL, conv_xg_cross_delay, sizeof(InfoCrossDelay),
 	EFFECT_DELAY_EQ2, "2-Band EQ (XG Delay built-in)", do_eq2, NULL, conv_xg_delay_eq2, sizeof(InfoEQ2),
 	-1, "EOF", NULL, NULL, NULL, 0, 
 };
@@ -3417,6 +3573,10 @@ struct effect_parameter_xg_t effect_parameter_xg[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0x05, 0, "DELAY L,C,R", 0x1A, 0x0D, 0x27, 0x27, 0, 0, 0, 0, 0, 0,
 	0x05, 0x03, 0x08, 0x08, 74, 100, 10, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
+	0x06, 0, "DELAY L,R", 0x13, 0x1D, 0x1D, 0x1D, 0, 0, 0, 0, 0, 0,
+	0x44, 0x26, 0x28, 0x26, 87, 10, 0, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
+	0x08, 0, "CROSS DELAY", 0x0D, 0x0D, 0, 0, 0, 0, 0, 0, 0, 0,
+	0x24, 0x56, 111, 1, 10, 0, 0, 0, 0, 32, 0, 0, 28, 64, 46, 64, 9,
 	0x41, 0, "CHORUS 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	6, 54, 77, 106, 0, 28, 64, 46, 64, 64, 46, 64, 10, 0, 0, 0, 9,
 	0x43, 0, "FLANGER 1", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

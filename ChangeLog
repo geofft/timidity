@@ -3,7 +3,7 @@
 	* timidity/sndfont.c:
 	  Fix for Soundfonts with strange loop points.
 	* timidity/playmidi.c, timidity/readmidi.[ch], timidity/reverb.[ch]:
-	  Support for XG variation effect: Delay L,C,R.
+	  Support for XG variation effect: Delay L,C,R, Delay L,R, Cross Delay.
 
 2004-03-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
