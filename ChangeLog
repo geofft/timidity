@@ -1,7 +1,8 @@
 2003-07-31  mput <root@mput.dip.jp>
 
 	* utils/tmdy_getopt.h: Moved from utils/getopt.h
-	* timidity/timidity.c,utils/getopt.c: Fix to fit above
+	* timidity/timidity.c,utils/getopt.c,utils/Makefile.am: Fix to fit
+	  above
 
 2003-07-31  mput <root@mput.dip.jp>
 

@@ -29,7 +29,7 @@ libutils_a_SOURCES = \
 	bitset.h \
 	fft4g.c \
 	fft4g.h \
-	getopt.h \
+	tmdy_getopt.h \
 	mblock.c \
 	mblock.h \
 	memb.c \
