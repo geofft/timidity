@@ -7916,16 +7916,10 @@ int play_event(MidiEvent *ev)
 		current_keysig = current_event->a + current_event->b * 16;
 		ctl_mode_event(CTLE_KEYSIG, 1, current_keysig, 0);
 		if (opt_force_keysig != 8) {
-			i = current_keysig + ((current_keysig < 8) ? 7 : -6);
-			note_key_offset -= floor(note_key_offset / 12.0) * 12;
-			for (j = 0; j < note_key_offset; j++)
-				i += (i > 10) ? -5 : 7;
-			j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
-			while (i != j && i != j + 12) {
-				if (++note_key_offset > 6)
-					note_key_offset -= 12;
-				i += (i > 10) ? -5 : 7;
-			}
+			i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
+			while (i != opt_force_keysig)
+				i += (i > 0) ? -5 : 7, j++;
+			note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 			kill_all_voices();
 			ctl_mode_event(CTLE_KEY_OFFSET, 1, note_key_offset, 0);
 		}
@@ -7956,7 +7950,7 @@ int play_event(MidiEvent *ev)
 		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_event->a, 0);
 		i = current_temper_keysig + ((current_temper_keysig < 8) ? 7 : -9);
 		j = 0;
-		while (i != 7 && i != 19)
+		while (i != 7)
 			i += (i < 7) ? 5 : -7, j++;
 		j += note_key_offset, j -= floor(j / 12.0) * 12;
 		current_temper_freq_table = j;
@@ -8488,13 +8482,10 @@ int play_midi_file(char *fn)
 	ctl_mode_event(CTLE_KEYSIG, 0, current_keysig, 0);
 	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, 0, 0);
 	if (opt_force_keysig != 8) {
-		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
-		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
-		while (i != j && i != j + 12) {
-			if (++note_key_offset > 6)
-				note_key_offset -= 12;
-			i += (i > 10) ? -5 : 7;
-		}
+		i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
+		while (i != opt_force_keysig)
+			i += (i > 0) ? -5 : 7, j++;
+		note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 	}
 	ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;

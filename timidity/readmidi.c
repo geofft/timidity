@@ -5202,8 +5202,8 @@ static void insert_note_steps(void)
 				meas++, beat = 0;
 			num = timesig[n].a, denom = timesig[n].b, n++;
 		}
-		a = meas & 0xff;
-		b = ((meas >> 8) & 0x0f) + ((beat + 1) << 4);
+		a = (meas + 1) & 0xff;
+		b = (((meas + 1) >> 8) & 0x0f) + ((beat + 1) << 4);
 		MIDIEVENT(at, ME_NOTE_STEP, 0, a, b);
 		if (++beat == num)
 			meas++, beat = 0;

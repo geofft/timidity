@@ -383,13 +383,10 @@ static void ctl_pass_playing_list(int n, char *args[])
 	signal(SIGHUP, sig_reset);
 
 	if (opt_force_keysig != 8) {
-		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
-		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
-		while (i != j && i != j + 12) {
-			if (++note_key_offset > 6)
-				note_key_offset -= 12;
-			i += (i > 10) ? -5 : 7;
-		}
+		i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
+		while (i != opt_force_keysig)
+			i += (i > 0) ? -5 : 7, j++;
+		note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 	}
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
 	while (i != 7)

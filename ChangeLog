@@ -1,8 +1,11 @@
 2004-06-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/alsaseq_c.c, interface/rtsyn_common.c,
-	  timidity/playmidi.[ch], timidity/timidity.[ch]:
+	  timidity/playmidi.[ch], timidity/readmidi.c,
+	  timidity/timidity.[ch]:
 	  Interlock interfaces with -K and -T command options
+	  Hack up force keysig calculation
+	  Change the base of measure (bar) as 1 (was 0)
 
 2004-06-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
