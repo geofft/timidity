@@ -1,27 +1,30 @@
+2004-04-20  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix a little
+
 2004-04-19  Saito <saito@intaa.net>
 
-	* timidity/flac_a.c:
-	  Fix for VC++ environments.
+	* timidity/flac_a.c: Fix for VC++ environments.
 
-2004-04-18  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-04-18  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: fix for libAO detection
-	* autoconf/libFLAC.m4, autoconf/libOggFLAC.m4 : Add.
-	* configure.in : Change to use above
-	* autoconf/Makefile.am : ditto
+	* autoconf/libFLAC.m4, autoconf/libOggFLAC.m4: Add.
+	* configure.in: Change to use above
+	* autoconf/Makefile.am: ditto
 
 2004-04-18  Iwata <b6330015@ipc.kit.jp>
 
-	* timidity/flac_a.c : Add
+	* timidity/flac_a.c: Add
 	* configure.in, timidity/output.c, timidity/timidity.c,
-	  timidity/Makefile.am, : Add libFLAC supert
+	  timidity/Makefile.am: Add libFLAC support
 
 2004-04-14  Kentaro Sato <kentaro@ranvis.com>
 
 	* libarc/arc.c, timidity/timidity.c:
 	  Removed trailing directory separator from $basedir.
 
-2004-04-13  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-04-13  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* autoconf/ao.m4: Add.
 	* configure.in: Change to use ao.m4
@@ -43,7 +46,7 @@
 	  $basedir is the only implemented one, which represents the base
 	  directory of the cfg file being parsed.
 
-2004-03-31  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2004-03-31  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: Change version to 'current' (timidity:3161)
 
@@ -52,6 +55,6 @@
 	* Makefile.am (EXTRA_DIST): Add entry for ChangeLog.2
 	* configure.in: Change version to 'development'
 	* ChangeLog.2: Add
-	* ChangeLog : Wipe
+	* ChangeLog: Wipe
 
 For the changes before 2.13.0, see ChangeLog.2

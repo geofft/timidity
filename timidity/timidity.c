@@ -173,6 +173,14 @@ enum {
 	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
+#ifdef AU_FLAC
+	TIM_OPT_FLAC_VERIFY,
+	TIM_OPT_FLAC_PADDING,
+	TIM_OPT_FLAC_COMPLEVEL,
+#ifdef AU_OGGFLAC
+	TIM_OPT_FLAC_OGGFLAC,
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	TIM_OPT_OUTPUT_FILE,
 	TIM_OPT_PATCH_FILE,
 	TIM_OPT_POLYPHONY,
@@ -193,14 +201,6 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
-#ifdef AU_FLAC
-	TIM_OPT_FLAC_VERIFY,
-	TIM_OPT_FLAC_PADDING,
-	TIM_OPT_FLAC_COMPRESSION_LEVEL,
-#ifdef AU_OGGFLAC
-	TIM_OPT_FLAC_OGGFLAC,
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -301,6 +301,14 @@ static const struct option longopts[] = {
 	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "no-output-swab",         no_argument,       NULL, TIM_OPT_OUTPUT_SWAB },
 	{ "output-swab",            optional_argument, NULL, TIM_OPT_OUTPUT_SWAB },
+#ifdef AU_FLAC
+	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
+	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
+	{ "flac-compression-level", required_argument, NULL, TIM_OPT_FLAC_COMPLEVEL },
+#ifdef AU_OGGFLAC
+	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	{ "output-file",            required_argument, NULL, TIM_OPT_OUTPUT_FILE },
 	{ "patch-file",             required_argument, NULL, TIM_OPT_PATCH_FILE },
 	{ "polyphony",              required_argument, NULL, TIM_OPT_POLYPHONY },
@@ -325,14 +333,6 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
-#ifdef AU_FLAC
-	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
-	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
-	{ "flac-compression-level", required_argument, NULL, TIM_OPT_FLAC_COMPRESSION_LEVEL },
-#ifdef AU_OGGFLAC
-	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -430,6 +430,14 @@ static inline int parse_opt_output_signed(const char *);
 static inline int parse_opt_output_bitwidth(const char *);
 static inline int parse_opt_output_format(const char *);
 static inline int parse_opt_output_swab(const char *);
+#ifdef AU_FLAC
+static inline int parse_opt_flac_verify(const char *);
+static inline int parse_opt_flac_padding(const char *);
+static inline int parse_opt_flac_complevel(const char *);
+#ifdef AU_OGGFLAC
+static inline int parse_opt_flac_oggflac(const char *);
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 static inline int parse_opt_o(char *);
 static inline int parse_opt_P(const char *);
 static inline int parse_opt_p(const char *);
@@ -455,14 +463,6 @@ static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
 static inline int parse_opt_default_module(const char *);
-#ifdef AU_FLAC
-static inline int parse_opt_flac_verify(const char *);
-static inline int parse_opt_flac_padding(const char *);
-static inline int parse_opt_flac_compression_level(const char *);
-#ifdef AU_OGGFLAC
-static inline int parse_opt_flac_oggflac(const char *);
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
@@ -2758,6 +2758,18 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_output_format(arg);
 	case TIM_OPT_OUTPUT_SWAB:
 		return parse_opt_output_swab(arg);
+#ifdef AU_FLAC
+	case TIM_OPT_FLAC_VERIFY:
+		return parse_opt_flac_verify(arg);
+	case TIM_OPT_FLAC_PADDING:
+		return parse_opt_flac_padding(arg);
+	case TIM_OPT_FLAC_COMPLEVEL:
+		return parse_opt_flac_complevel(arg);
+#ifdef AU_OGGFLAC
+	case TIM_OPT_FLAC_OGGFLAC:
+		return parse_opt_flac_oggflac(arg);
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
 	case TIM_OPT_OUTPUT_FILE:
 		return parse_opt_o(arg);
 	case TIM_OPT_PATCH_FILE:
@@ -2800,18 +2812,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
-#ifdef AU_FLAC
-	case TIM_OPT_FLAC_VERIFY:
-		return parse_opt_flac_verify(arg);
-	case TIM_OPT_FLAC_PADDING:
-		return parse_opt_flac_padding(arg);
-	case TIM_OPT_FLAC_COMPRESSION_LEVEL:
-		return parse_opt_flac_compression_level(arg);
-#ifdef AU_OGGFLAC
-	case TIM_OPT_FLAC_OGGFLAC:
-		return parse_opt_flac_oggflac(arg);
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3825,25 +3825,25 @@ static inline int parse_opt_h(const char *arg)
 "  --output-alaw" NLS
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
-	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
-	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
-		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
-	fputs(NLS, fp);
 #ifdef AU_AO
 	show_ao_device_info(fp);
 	fputs(NLS, fp);
 #endif /* AU_AO */
-	fputs(NLS, fp);
 #ifdef AU_FLAC
 	fputs("FLAC output format long options:" NLS
 "  --flac-verify                 Verify a correct encoding" NLS
 "  --flac-padding=n              Write a PADDING block of length n" NLS
-"  --flac-compression-level=n    Set compression level n:[0..8]" NLS
+"  --flac-compression-level=n    Set compression level n:[0..8]" NLS, fp);
 #ifdef AU_OGGFLAC
-"  --oggflac                     Output OggFLAC stream(experimental)" NLS
+	fputs("  --oggflac                     Output OggFLAC stream "
+			"(experimental)" NLS, fp);
 #endif /* AU_OGGFLAC */
-, fp);
+	fputs(NLS, fp);
 #endif /* AU_FLAC */
+	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
+	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
+		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
+	fputs(NLS, fp);
 	close_pager(fp);
 	exit(EXIT_SUCCESS);
 }
@@ -4276,6 +4276,40 @@ static inline int parse_opt_output_swab(const char *arg)
 	return 0;
 }
 
+#ifdef AU_FLAC
+extern void flac_set_option_verify(int);
+extern void flac_set_option_padding(int);
+extern void flac_set_compression_level(int);
+
+static inline int parse_opt_flac_verify(const char *arg)
+{
+	flac_set_option_verify(1);
+	return 0;
+}
+
+static inline int parse_opt_flac_padding(const char *arg)
+{
+	flac_set_option_padding(atoi(arg));
+	return 0;
+}
+
+static inline int parse_opt_flac_complevel(const char *arg)
+{
+	flac_set_compression_level(atoi(arg));
+	return 0;
+}
+
+#ifdef AU_OGGFLAC
+extern void flac_set_option_oggflac(int);
+
+static inline int parse_opt_flac_oggflac(const char *arg)
+{
+	flac_set_option_oggflac(1);
+	return 0;
+}
+#endif /* AU_OGGFLAC */
+#endif /* AU_FLAC */
+
 static inline int parse_opt_o(char *arg)
 {
 	if (opt_output_name)
@@ -4605,37 +4639,6 @@ static inline int parse_opt_default_module(const char *arg)
 		opt_default_module = 0;
 	return 0;
 }
-
-#ifdef AU_FLAC
-extern void flac_set_option_verify(int verify);
-extern void flac_set_option_padding(int padding);
-extern void flac_compression_level_preset(int compression_level);
-
-static inline int parse_opt_flac_verify(const char *arg)
-{
-	flac_set_option_verify(1);
-	return 0;
-}
-static inline int parse_opt_flac_padding(const char *arg)
-{
-	flac_set_option_padding(atoi(arg));
-	return 0;
-}
-static inline int parse_opt_flac_compression_level(const char *arg)
-{
-	flac_set_compression_level(atoi(arg));
-	return 0;
-}
-#ifdef AU_OGGFLAC
-extern void flac_set_option_oggflac();
-
-static inline int parse_opt_flac_oggflac(const char *arg)
-{
-	flac_set_option_oggflac(1);
-	return 0;
-}
-#endif /* AU_OGGFLAC */
-#endif /* AU_FLAC */
 
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *arg)
@@ -5000,9 +5003,8 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 
 #else
     /* UNIX */
-    if(!read_config_file(CONFIG_FILE, 0)) {
+    if(!read_config_file(CONFIG_FILE, 0))
 		got_a_configuration = 1;
-	}
 #endif
 
     /* Try read configuration file which is in the
@@ -5014,8 +5016,6 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
     if(read_user_config_file())
 	ctl->cmsg(CMSG_INFO, VERB_NOISY,
 		  "Warning: Can't read ~/.timidity.cfg correctly");
-    else
-	got_a_configuration = 1;
     return 0;
 }
 
