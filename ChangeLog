@@ -2,6 +2,7 @@
 
 	* configs/msc[67]-project.zip: Fix for PortAudio DLL.
 	* timidity/w32g_pref.c: Fix typo.
+	* timidity/mix/c: Fix around envelope.
 
 2004-05-14  Daisuke Aoki <dai@sweetparty.ne.jp>
 
