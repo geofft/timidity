@@ -69,6 +69,7 @@ extern FLOAT_T concave_table[];
 extern FLOAT_T convex_table[];
 extern FLOAT_T sb_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
+extern int8 bitshift_table[];
 
 extern void init_freq_table2(void);
 extern void init_tables(void);

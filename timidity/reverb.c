@@ -38,6 +38,7 @@
 #endif
 #include "timidity.h"
 #include "controls.h"
+#include "tables.h"
 #include "reverb.h"
 #include <math.h>
 
@@ -135,10 +136,9 @@ void set_dry_signal(register int32 *buf, int32 n)
   } else {
 #endif
     register int32 i;
-    register int32 count = n;
 	register int32 *dbuf = direct_buffer;
 
-    for(i=0;i<count;i++)
+    for(i=n-1;i>=0;i--)
     {
         dbuf[i] += buf[i];
     }
@@ -183,15 +183,21 @@ void init_reverb(int32 output_rate)
 void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
-	register int32 count = n;
-	register int32 *ebuf = effect_buffer;
+	int32 *buf = effect_buffer;
+	int8 shift;
+    level = level * reverb_status.level / 128;
+	shift = bitshift_table[level & 0x7F];
 
-    int32 send_level = (int32)((FLOAT_T)level / 127.0 * reverb_status.level_ratio * 0x100);
-
-    for(i=0;i<count;i++)
-    {
-		ebuf[i] += imuldiv8(sbuffer[i],send_level);
-    }
+	switch(shift) {
+	case 0: 
+		level *= 2;
+		for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i],level);}
+		break;
+	case -1: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i];}
+		break;
+	default: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i] >> shift;}
+		break;
+	}
 }
 #else
 void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
@@ -481,13 +487,19 @@ void do_ch_delay(int32* buf, int32 count)
 void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
 {
     register int32 i;
-	register int32 count = n;
-    int32 send_level = (int32)((FLOAT_T)level * DELAY_INP_LEV / 127.0 * 256);
+	int32 *buf = delay_effect_buffer;
+	int8 shift = bitshift_table[level & 0x7F];
 
-    for(i=0;i<count;i++)
-    {
-        delay_effect_buffer[i] += imuldiv8(sbuffer[i],level);
-    }
+	switch(shift) {
+	case 0: 
+		level *= 2;
+		for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i],level);}
+		break;
+	case -1: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i];}
+		break;
+	default: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i] >> shift;}
+		break;
+	}
 }
 #else
 void set_ch_delay(register int32 *sbuffer, int32 n, int32 level)
@@ -864,13 +876,19 @@ void do_stereo_chorus(int32* buf,int32 count)
 void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 {
     register int32 i;
-    register int32 count = n;
-    int32 send_level = (int32)((FLOAT_T)level * CHORUS_INP_LEV / 127.0 * 256);
+	int32 *buf = chorus_effect_buffer;
+	int8 shift = bitshift_table[level & 0x7F];
 
-    for(i=0;i<count;i++)
-    {
-		chorus_effect_buffer[i] += imuldiv8(sbuffer[i],send_level);
-    }
+	switch(shift) {
+	case 0: 
+		level *= 2;
+		for(i=n-1;i>=0;i--) {buf[i] += imuldiv8(sbuffer[i],level);}
+		break;
+	case -1: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i];}
+		break;
+	default: for(i=n-1;i>=0;i--) {buf[i] += sbuffer[i] >> shift;}
+		break;
+	}
 }
 #else
 void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
@@ -1046,9 +1064,8 @@ void do_ch_eq(int32* buf,int32 n)
 void set_ch_eq(register int32 *buf, int32 n)
 {
     register int32 i;
-	register int32 count = n;
 
-    for(i=0;i<count;i++)
+    for(i=n-1;i>=0;i--)
     {
         eq_buffer[i] += buf[i];
     }
