@@ -221,6 +221,22 @@ static inline int32 imuldiv24(int32 a, int32 b)
     return ret;
 }
 
+static inline int32 imuldiv28(int32 a, int32 b)
+{
+    register int32 ret,rah,ral,rlh,rll;
+    __asm__ ("mulhw %0,%7,%8\n\t"
+	     "mullw %1,%7,%8\n\t"
+	     "rlwinm %2,%0,4,0,27\n\t"
+	     "rlwinm %3,%1,4,28,31\n\t"
+	     "or %4,%2,%3"
+	     :"=r"(rah),"=r"(ral),
+	      "=r"(rlh),"=r"(rll),
+	      "=r"(ret),
+	      "=r"(a),"=r"(b)
+	     :"5"(a),"6"(b));
+    return ret;
+}
+
 #else
 /* Generic version of imuldiv. */
 #define imuldiv8(a, b) \
