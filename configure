@@ -10502,7 +10502,7 @@ fi;
 # audio section
 #
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis gogo portaudio jack'
 
 
 # Check whether --with-nas-library or --without-nas-library was given.
@@ -11954,6 +11954,19 @@ echo "${ECHO_T}yes" >&6
   SYSEXTRAS="$SYSEXTRAS portaudio_a.c"
   EXTRALIBS="$EXTRALIBS -lportaudio"
   EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO"
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+echo "$as_me:$LINENO: checking enable_audio=jack" >&5
+echo $ECHO_N "checking enable_audio=jack... $ECHO_C" >&6
+if test "x$au_enable_jack" = xyes; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  SYSEXTRAS="$SYSEXTRAS jack_a.c"
+  EXTRALIBS="$EXTRALIBS $(pkg-config --libs jack)"
+  EXTRADEFS="$EXTRADEFS -DAU_JACK $(pkg-config --cflags jack)"
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
