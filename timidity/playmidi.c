@@ -824,7 +824,8 @@ void recompute_channel_filter(MidiEvent *e)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, reso, diff;
+	double coef = 1.0, reso;
+	int32 freq;
 	FilterCoefficients *fc = &(voice[v].fc);
 
 	if(fc->freq == -1) {return;}
@@ -840,15 +841,16 @@ void recompute_voice_filter(int v)
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	}
-	fc->freq = fc->orig_freq * coef;
+	freq = (double)fc->orig_freq * coef;
 
 	/* in this case, it's not necessary to do lowpass filter */
-	if (fc->freq > play_mode->rate / 2) {
+	if (freq > play_mode->rate / 2) {
 		fc->freq = -1;
 		return;
 	}
-	else if(fc->freq < 20) {fc->freq = 20;}
-	else if(fc->freq > 20000) {fc->freq = 20000;}
+	else if(freq < 20) {freq = 20;}
+	else if(freq > 20000) {freq = 20000;}
+	fc->freq = freq;
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}

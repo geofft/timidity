@@ -3689,6 +3689,17 @@ char *get_midi_title(char *filename)
 	goto end_of_parse;
     }
 
+	  if(strncmp(tmp, "RIFF", 4) == 0)
+	  {
+	/* RIFF MIDI file */
+	skip(tf, 20 - 4);
+  if(tf_read(tmp, 1, 4, tf) != 4)
+    {
+	close_file(tf);
+	return NULL;
+    }
+	  }
+
     if(strncmp(tmp, "MThd", 4) != 0)
     {
 	close_file(tf);

@@ -180,7 +180,6 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 		for(i=0;i<count;i++) {
 			lp[i] = sp[i];
 		}
-		lp[count] = 0;	/* add null sample */
 		return;
 	} else {
 		recalc_voice_resonance(v);
@@ -194,7 +193,6 @@ static inline void do_voice_filter(int v, sample_t *sp, mix_t *lp, int32 count)
 				+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2));
 			hist2 = hist1, hist1 = centernode;
 		}
-		lp[count] = 0;	/* add null sample */
 		fc->hist1 = hist1, fc->hist2 = hist2;
 		return;
 	}

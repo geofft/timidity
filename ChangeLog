@@ -1,4 +1,14 @@
 
+2003-03-28  Saito <timidity@flashmail.com>
+	* timidity/mix.c:
+	  Fix aborting in do_voice_filter() function.
+	* timidity/playmidi.c:
+	  Fix around voice-by-voice LPF.
+
+2003-03-28  Daisuke Aoki <dai@sweetparty.ne.jp>
+	* interface/w32g_i.c, timidity/readmidi.c:
+	  Enhance support for .rmi files.
+
 2003-03-27  Kentaro Sato <kentaro@ps.catv.ne.jp>
 	* timidity/playmidi.c:
 	  Fix behaviour of user drumset.
