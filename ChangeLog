@@ -1,5 +1,10 @@
 2004-03-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
+	* timidity/playmidi.c (midi_program_change): Fix for a drum
+	  channel turns back into a melody channel
+
+2004-03-07  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
 	* timidity/playmidi.c (note_off): Fix for remapped drum.
 
 2004-03-07  TAMUKI Shoichi <tamuki@linet.gr.jp>

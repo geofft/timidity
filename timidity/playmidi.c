@@ -3291,18 +3291,22 @@ void midi_program_change(int ch, int prog)
 				break;
 			midi_drumpart_change(ch, 0);
 			channel[ch].mapID = XG_NORMAL_MAP;
+			dr = ISDRUMCHANNEL(ch);
 			break;
 		case 64:	/* SFX voice */
 			midi_drumpart_change(ch, 0);
 			channel[ch].mapID = XG_SFX64_MAP;
+			dr = ISDRUMCHANNEL(ch);
 			break;
 		case 126:	/* SFX kit */
 			midi_drumpart_change(ch, 1);
 			channel[ch].mapID = XG_SFX126_MAP;
+			dr = ISDRUMCHANNEL(ch);
 			break;
 		case 127:	/* Drumset */
 			midi_drumpart_change(ch, 1);
 			channel[ch].mapID = XG_DRUM_MAP;
+			dr = ISDRUMCHANNEL(ch);
 			break;
 		default:
 			break;
