@@ -862,11 +862,6 @@ void recompute_channel_filter(MidiEvent *e)
 		coef *= pow(1.26, (double)(channel[ch].param_cutoff_freq) / 8.0f);
 		/* NRPN Resonance */
 		reso = (double)channel[ch].param_resonance * 0.5f;
-	} else if(channel[ch].drums[note] != NULL) {
-		/* NRPN Drum Instrument Filter Cutoff */
-		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
-		/* NRPN Drum Instrument Filter Resonance */
-		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	}
 
 	channel[ch].cutoff_freq_coef = coef;
@@ -887,6 +882,13 @@ void recompute_voice_filter(int v)
 	if(fc->freq == -1) {return;}
 
 	coef = channel[ch].cutoff_freq_coef;
+
+	if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL) {
+		/* NRPN Drum Instrument Filter Cutoff */
+		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
+		/* NRPN Drum Instrument Filter Resonance */
+		reso += (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+	}
 
 	if(sp->vel_to_fc) {	/* velocity to filter cutoff frequency */
 		if(voice[v].velocity > sp->vel_to_fc_threshold)
@@ -1784,7 +1786,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 			  channel[ch].special_sample);
 		return 0;
 	    }
-	    note = e->a + note_key_offset + key_adjust;
+	    note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
 
 	    if(note < 0)
 		note = 0;
@@ -1852,9 +1854,9 @@ static int find_samples(MidiEvent *e, int *vlist)
 	}
 
 	if(ip->sample->note_to_use)
-	    note = ip->sample->note_to_use + note_key_offset + key_adjust;
+	    note = ip->sample->note_to_use + channel[ch].key_shift + note_key_offset + key_adjust;
 	else
-	    note = e->a + note_key_offset + key_adjust;
+	    note = e->a + channel[ch].key_shift + note_key_offset + key_adjust;
 	if(note < 0)
 	    note = 0;
 	else if(note > 127)

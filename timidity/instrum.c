@@ -747,7 +747,7 @@ static Instrument *load_gus_instrument(char *name,
       }
 
       /* Then read the sample data */
-      sp->data = (sample_t *)safe_malloc(sp->data_length+2);
+      sp->data = (sample_t *)safe_malloc(sp->data_length+4);
       sp->data_alloced = 1;
       if ((j = tf_read(sp->data, 1, sp->data_length, tf)) != sp->data_length)
       {
@@ -760,7 +760,7 @@ static Instrument *load_gus_instrument(char *name,
 	  int32 i = sp->data_length, j;
 	  uint8 *cp = (uint8 *)sp->data;
 	  uint16 *tmp, *new;
-	  tmp = new = (uint16 *)safe_malloc(sp->data_length*2+2);
+	  tmp = new = (uint16 *)safe_malloc(sp->data_length*2+4);
 	  for(j = 0; j < i; j++)
 	      tmp[j] = (uint16)(cp[j]) << 8;
 	  cp=(uint8 *)(sp->data);
@@ -848,15 +848,15 @@ static Instrument *load_gus_instrument(char *name,
       sp->loop_start /= 2;
       sp->loop_end /= 2;
 
-      /* The sample must be padded out by 1 extra sample, so that
+      /* The sample must be padded out by 2 extra sample, so that
          round off errors in the offsets used in interpolation will not
          cause a "pop" by reading random data beyond data_length */
-      sp->data[sp->data_length] = sp->data[sp->data_length - 1];
+      sp->data[sp->data_length] = sp->data[sp->data_length + 1] = 0;
 
-	  /* Remove abnormal loops that cause pop noise in long sustain stage */
-	  if(!(sp->modes & MODES_LOOPING) && sp->modes & MODES_ENVELOPE) {
-		  sp->loop_start = sp->data_length - 1;
-		  sp->loop_end = sp->data_length;
+	  /* Remove abnormal loops which cause pop noise in long sustain stage */
+	  if(!(sp->modes & MODES_LOOPING)) {
+		  sp->loop_start = sp->data_length;
+		  sp->loop_end = sp->data_length + 1;
 	  }
 
       /* Then fractional samples */

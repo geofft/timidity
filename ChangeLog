@@ -1,4 +1,11 @@
 
+2003-05-20  Saito <timidity@flashmail.com>
+
+	* timidity/playmidi.c, timidity/tables.[ch],
+	  timidity/instrum.c, timidity/playmidi.c, timidity/mix.c:
+	  Support for transpose (key shift).
+	  Strengthen new Reverberation Effect.
+
 2003-05-19  Saito <timidity@flashmail.com>
 
 	* timidity/playmidi.c, timidity/tables.[ch],

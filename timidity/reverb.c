@@ -1459,7 +1459,7 @@ static void init_comb(comb *comb)
 #define stereospread 23
 static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
-#define fixedgain 0.015f
+#define fixedgain 0.375f/*0.015f*/
 
 typedef struct _revmodel_t {
 	double roomsize, roomsize1;
