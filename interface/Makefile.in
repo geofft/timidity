@@ -166,7 +166,11 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTERFACE_SRCS = @INTERFACE_SRCS@
 LDFLAGS = @LDFLAGS@
+LIBFLAC_CFLAGS = @LIBFLAC_CFLAGS@
+LIBFLAC_LIBS = @LIBFLAC_LIBS@
 LIBOBJS = @LIBOBJS@
+LIBOGGFLAC_CFLAGS = @LIBOGGFLAC_CFLAGS@
+LIBOGGFLAC_LIBS = @LIBOGGFLAC_LIBS@
 LIBS = @LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -472,12 +476,12 @@ EXTRA_DIST = \
 	interface_n.txt \
 	interface_s.txt
 
-@ENABLE_DYNAMIC_TCLTK_TRUE@install_tk = install.tk
 
 @ENABLE_TCLTK_TRUE@install_tk = install.tk
-@ENABLE_DYNAMIC_XAW_TRUE@install_xaw = install.xaw
+@ENABLE_DYNAMIC_TCLTK_TRUE@install_tk = install.tk
 
 @ENABLE_XAW_TRUE@install_xaw = install.xaw
+@ENABLE_DYNAMIC_XAW_TRUE@install_xaw = install.xaw
 
 # ELFILES = @ELFILES@ # autoconf already define this
 @ENABLE_EMACS_TRUE@install_el = install.el

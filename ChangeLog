@@ -1,6 +1,9 @@
 2004-04-18  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: fix for libAO detection
+	* autoconf/libFLAC.m4, autoconf/libOggFLAC.m4 : Add.
+	* configure.in : Change to use above
+	* autoconf/Makefile.am : ditto
 
 2004-04-18  Iwata <b6330015@ipc.kit.jp>
 
