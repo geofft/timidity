@@ -14046,7 +14046,7 @@ echo "$as_me: error: tcltk: --with-x option must be specified" >&2;}
 
     tcl_lib=
     tk_lib=
-    for l in tcl tcl8.0jp tcl7.6jp tcl80jp tcl76jp tcl8.0 tcl7.6 tcl80 tcl76 tcl8.3 tcl8.4; do
+    for l in tcl tcl8.4 tcl8.3 tcl8.0jp tcl7.6jp tcl80jp tcl76jp tcl8.0 tcl7.6 tcl80 tcl76; do
       case "x$tcl_lib" in x) as_ac_Lib=`echo "ac_cv_lib_$l''_Tcl_Init" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for Tcl_Init in -l$l" >&5
 echo $ECHO_N "checking for Tcl_Init in -l$l... $ECHO_C" >&6
@@ -14108,7 +14108,7 @@ fi
 ;; esac
     done
     LIBS="$LIBS $tcl_lib"
-    for l in tk tk8.0jp tk4.2jp tk80jp tk42jp tk8.0 tk4.2 tk80 tk42 tk8.3 tk8.4; do
+    for l in tk tk8.4 tk8.3 tk8.0jp tk4.2jp tk80jp tk42jp tk8.0 tk4.2 tk80 tk42; do
       case "x$tk_lib" in x) as_ac_Lib=`echo "ac_cv_lib_$l''_Tk_Init" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for Tk_Init in -l$l" >&5
 echo $ECHO_N "checking for Tk_Init in -l$l... $ECHO_C" >&6
