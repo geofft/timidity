@@ -1262,22 +1262,22 @@ void dup_tone_bank_element(int dr, int bk, int prog)
 		elm->tune = (float *) memdup(
 				elm->tune, elm->tunenum * sizeof(float));
 	if (elm->fcnum)
-		elm->fc = (float *) memdup(
+		elm->fc = (int16 *) memdup(
 				elm->fc, elm->fcnum * sizeof(int16));
 	if (elm->resonum)
-		elm->reso = (float *) memdup(
+		elm->reso = (int16 *) memdup(
 				elm->reso, elm->resonum * sizeof(int16));
 	if (elm->trempitchnum)
-		elm->trempitch = (float *) memdup(
+		elm->trempitch = (int16 *) memdup(
 				elm->trempitch, elm->trempitchnum * sizeof(int16));
 	if (elm->tremfcnum)
-		elm->tremfc = (float *) memdup(
+		elm->tremfc = (int16 *) memdup(
 				elm->tremfc, elm->tremfcnum * sizeof(int16));
 	if (elm->modpitchnum)
-		elm->modpitch = (float *) memdup(
+		elm->modpitch = (int16 *) memdup(
 				elm->modpitch, elm->modpitchnum * sizeof(int16));
 	if (elm->modfcnum)
-		elm->modfc = (float *) memdup(
+		elm->modfc = (int16 *) memdup(
 				elm->modfc, elm->modfcnum * sizeof(int16));
 	if (elm->envratenum) {
 		elm->envrate = (int **) memdup(
@@ -3363,7 +3363,7 @@ static void make_drum_effect(int ch)
 			de->reverb_send = (int32)drum->reverb_level * (int32)get_reverb_level(ch) / 127;
 			de->chorus_send = (int32)drum->chorus_level * (int32)channel[ch].chorus_level / 127;
 			de->delay_send = (int32)drum->delay_level * (int32)channel[ch].delay_level / 127;
-			de->buf = (char *)safe_malloc(AUDIO_BUFFER_SIZE * 8);
+			de->buf = (int32 *)safe_malloc(AUDIO_BUFFER_SIZE * 8);
 			memset(de->buf, 0, AUDIO_BUFFER_SIZE * 8);
 		}
 
