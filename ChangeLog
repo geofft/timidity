@@ -1,9 +1,16 @@
+2003-08-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Fix wrong branch between set_tim_opt_{long,short}
+	  Fix typo around long options
+	  Hack up around interface option parser
+
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Some option renamed
 	  --mid          -> default-mid
 	  --noise-shaper -> noise-shaping
-	  Hack up around parser of effect option
+	  Hack up around effect option parser
 
 2003-08-04  mput <root@mput.dip.jp>
 

@@ -153,10 +153,38 @@ static const struct option longopts[] = {
     { "reverb"                  , required_argument, NULL, 222 << 8 },
     { "chorus"                  , required_argument, NULL, 223 << 8 },
     { "noise-shaping"           , required_argument, NULL, 225 << 8 },
+    { "evil"                    , required_argument, NULL, 'e' << 8 },
     { "no-fast-panning"         ,       no_argument, NULL, 'F' << 8 },
     { "fast-panning"            , optional_argument, NULL, 'F' << 8 },
+    { "no-fast-decay"           ,       no_argument, NULL, 'f' << 8 },
+    { "fast-decay"              , optional_argument, NULL, 'f' << 8 },
+    { "spectrogram"             , required_argument, NULL, 'g' << 8 },
     { "force-keysig"            , required_argument, NULL, 'H' << 8 },
+    { "help"                    , optional_argument, NULL, 'h' << 8 },
     { "default-program"         , required_argument, NULL, 'I' << 8 },
+    { "interface"               , required_argument, NULL, 'i' << 8 },
+    { "verbose"                 , optional_argument, NULL, 205 << 8 },
+    { "quiet"                   , optional_argument, NULL, 206 << 8 },
+    { "no-trace"                ,       no_argument, NULL, 207 << 8 },
+    { "trace"                   , optional_argument, NULL, 207 << 8 },
+    { "no-loop"                 ,       no_argument, NULL, 208 << 8 },
+    { "loop"                    , optional_argument, NULL, 208 << 8 },
+    { "no-random"               ,       no_argument, NULL, 209 << 8 },
+    { "random"                  , optional_argument, NULL, 209 << 8 },
+    { "no-sort-list"            ,       no_argument, NULL, 210 << 8 },
+    { "sort-list"               , optional_argument, NULL, 210 << 8 },
+    { "no-auto-start"           ,       no_argument, NULL, 230 << 8 },
+    { "auto-start"              , optional_argument, NULL, 230 << 8 },
+    { "no-auto-exit"            ,       no_argument, NULL, 231 << 8 },
+    { "auto-exit"               , optional_argument, NULL, 231 << 8 },
+    { "no-drag-start"           ,       no_argument, NULL, 232 << 8 },
+    { "drag-start"              , optional_argument, NULL, 232 << 8 },
+    { "no-uniq-list"            ,       no_argument, NULL, 233 << 8 },
+    { "uniq-list"               , optional_argument, NULL, 233 << 8 },
+    { "no-refine-list"          ,       no_argument, NULL, 234 << 8 },
+    { "refine-list"             , optional_argument, NULL, 234 << 8 },
+    { "no-continue"             ,       no_argument, NULL, 235 << 8 },
+    { "continue"                , optional_argument, NULL, 235 << 8 },
     { "adjust-key"              , required_argument, NULL, 'K' << 8 },
     { "patch-path"              , required_argument, NULL, 'L' << 8 },
     { "pcm-file"                , required_argument, NULL, 'M' << 8 },
@@ -172,12 +200,6 @@ static const struct option longopts[] = {
     { "unload-instruments"      , optional_argument, NULL, 'U' << 8 },
     { "freq-table"              , required_argument, NULL, 'Z' << 8 },
     { "wrd"                     , required_argument, NULL, 'W' << 8 },
-    { "evil"                    , required_argument, NULL, 'e' << 8 },
-    { "no-fast-decay"           ,       no_argument, NULL, 'f' << 8 },
-    { "fast-decay"              , optional_argument, NULL, 'f' << 8 },
-    { "spectrogram"             , required_argument, NULL, 'g' << 8 },
-    { "help"                    , optional_argument, NULL, 'h' << 8 },
-    { "interface"               , required_argument, NULL, 'i' << 8 },
     { "no-realtime-load"        ,       no_argument, NULL, 'j' << 8 },
     { "realtime-load"           , optional_argument, NULL, 'j' << 8 },
     { "voice-queue"             , required_argument, NULL, 'k' << 8 },
@@ -193,36 +215,14 @@ static const struct option longopts[] = {
     { "encoding"                , required_argument, NULL, 201 << 8 },
     { "output-signed"           , optional_argument, NULL, 202 << 8 },
     { "output-unsigned"         ,       no_argument, NULL, 202 << 8 },
-    { "no-output-byte-swap"     , optional_argument, NULL, 203 << 8 },
-    { "output-byte-swap"        ,       no_argument, NULL, 203 << 8 },
+    { "no-output-byte-swap"     ,       no_argument, NULL, 203 << 8 },
+    { "output-byte-swap"        , optional_argument, NULL, 203 << 8 },
     { "temper-mute"             , required_argument, NULL, 204 << 8 },
-    { "verbose"                 , optional_argument, NULL, 205 << 8 },
-    { "quiet"                   , optional_argument, NULL, 206 << 8 },
-    { "no-trace"                ,       no_argument, NULL, 207 << 8 },
-    { "trace"                   , optional_argument, NULL, 207 << 8 },
-    { "no-loop"                 ,       no_argument, NULL, 208 << 8 },
-    { "loop"                    , optional_argument, NULL, 208 << 8 },
-    { "no-random"               ,       no_argument, NULL, 209 << 8 },
-    { "random"                  , optional_argument, NULL, 209 << 8 },
-    { "no-sort-list"            ,       no_argument, NULL, 210 << 8 },
-    { "sort-list"               , optional_argument, NULL, 210 << 8 },
     { "no-polyphony-reduction"  ,       no_argument, NULL, 215 << 8 },
     { "polyphony-reduction"     , optional_argument, NULL, 215 << 8 },
     { "temperament"             , required_argument, NULL, 226 << 8 },
     { "stereo"                  , optional_argument, NULL, 229 << 8 },
     { "mono"                    , optional_argument, NULL, 229 << 8 },
-    { "no-auto-start"           ,       no_argument, NULL, 230 << 8 },
-    { "auto-start"              , optional_argument, NULL, 230 << 8 },
-    { "no-auto-exit"            ,       no_argument, NULL, 231 << 8 },
-    { "auto-exit"               , optional_argument, NULL, 231 << 8 },
-    { "no-drag-start"           ,       no_argument, NULL, 232 << 8 },
-    { "drag-start"              , optional_argument, NULL, 232 << 8 },
-    { "no-uniq-list"            ,       no_argument, NULL, 233 << 8 },
-    { "uniq-list"               , optional_argument, NULL, 233 << 8 },
-    { "no-refine-list"          ,       no_argument, NULL, 234 << 8 },
-    { "refine-list"             , optional_argument, NULL, 234 << 8 },
-    { "no-continue"             ,       no_argument, NULL, 235 << 8 },
-    { "continue"                , optional_argument, NULL, 235 << 8 },
     { "wrd-read-opts"           , required_argument, NULL, 238 << 8 },
     { NULL                      ,       no_argument, NULL, '\0'     }
 };
@@ -288,18 +288,18 @@ __attribute__((noreturn))
 static inline bool parse_opt_h(const char *);
 static inline bool parse_opt_I(char *);
 static inline bool parse_opt_i(const char *);
-static inline bool parse_opt_205(const char *);	/* --verbose */
-static inline bool parse_opt_206(const char *);	/* --quiet */
-static inline bool parse_opt_207(const char *);	/* --[no-]trace */
-static inline bool parse_opt_208(const char *);	/* --[no-]loop */
-static inline bool parse_opt_209(const char *);	/* --[no-]random */
-static inline bool parse_opt_210(const char *);	/* --[no-]sort */
-static inline bool parse_opt_230(const char *);	/* --[no-]auto-start */
-static inline bool parse_opt_231(const char *);	/* --[no-]auto-exit */
-static inline bool parse_opt_232(const char *);	/* --[no-]drag-start */
-static inline bool parse_opt_233(const char *);	/* --[no-]uniq */
-static inline bool parse_opt_234(const char *);	/* --[no-]refine */
-static inline bool parse_opt_235(const char *);	/* --[no-]continue */
+static inline bool parse_opt_i1(const char *);
+static inline bool parse_opt_i2(const char *);
+static inline bool parse_opt_i3(const char *);
+static inline bool parse_opt_i4(const char *);
+static inline bool parse_opt_i5(const char *);
+static inline bool parse_opt_i6(const char *);
+static inline bool parse_opt_i7(const char *);
+static inline bool parse_opt_i8(const char *);
+static inline bool parse_opt_i9(const char *);
+static inline bool parse_opt_ia(const char *);
+static inline bool parse_opt_ib(const char *);
+static inline bool parse_opt_ic(const char *);
 static inline bool parse_opt_j(const char *);
 static inline bool parse_opt_K(const char *);
 static inline bool parse_opt_k(const char *);
@@ -920,34 +920,30 @@ static int set_value(int32 *param, int32 i, int32 low, int32 high, char *name)
 
 MAIN_INTERFACE int set_default_prog(char *opt)
 {
-    int prog, ch;
-    char *p;
-
-    prog = atoi(opt);
-    if(prog < 0 || prog > 127)
-    {
-      	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		  "Default program must be between 0 and 127");
-	return -1;
-    }
-
-    p = strchr(opt, '/');
-    if(p == NULL)
-	for(ch = 0; ch < MAX_CHANNELS; ch++)
-	    default_program[ch] = prog;
-    else
-    {
-	ch = atoi(p + 1) - 1;
-	if(ch < 0 || ch >= MAX_CHANNELS)
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "Default program channel must be between 1 and %d",
-		      MAX_CHANNELS);
-	    return -1;
+	int prog, ch;
+	char *p;
+	
+	prog = atoi(opt);
+	if (prog < 0 || prog > 127) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"Default program must be between 0 and 127");
+		return -1;
 	}
-	default_program[ch] = prog;
-    }
-    return 0;
+	p = strchr(opt, '/');
+	if (p == NULL)
+		for (ch = 0; ch < MAX_CHANNELS; ch++)
+			default_program[ch] = prog;
+	else {
+		ch = atoi(p + 1) - 1;
+		if (ch < 0 || ch >= MAX_CHANNELS) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Default program channel must be between 1 and %d",
+					MAX_CHANNELS);
+			return -1;
+		}
+		default_program[ch] = prog;
+	}
+	return 0;
 }
 
 int set_play_mode(char *cp)
@@ -1013,123 +1009,88 @@ int set_play_mode(char *cp)
 
 int set_ctl(char *cp)
 {
-    ControlMode *cmp, **cmpp = ctl_list;
-
-    while((cmp = *cmpp++))
-    {
-	if(cmp->id_character == *cp)
-	{
-	    ctl = cmp;
-
-#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-	    cmp->verbosity = 1;
-	    cmp->trace_playing = 0;
-	    cmp->flags = 0;
-#endif /* IA_W32GUI */
-
-	    while(*(++cp))
-	    {
-		switch(*cp)
-		{
-		  case 'v': cmp->verbosity++; break;
-		  case 'q': cmp->verbosity--; break;
-		  case 't': /* toggle */
-		    cmp->trace_playing = !cmp->trace_playing;
-		    break;
-		  case 'l':
-		    cmp->flags ^= CTLF_LIST_LOOP;
-		    break;
-		  case 'r':
-		    cmp->flags ^= CTLF_LIST_RANDOM;
-		    break;
-		  case 's':
-		    cmp->flags ^= CTLF_LIST_SORT;
-		    break;
-		  case 'a':
-		    cmp->flags ^= CTLF_AUTOSTART;
-		    break;
-		  case 'x':
-		    cmp->flags ^= CTLF_AUTOEXIT;
-		    break;
-		  case 'd':
-		    cmp->flags ^= CTLF_DRAG_START;
-		    break;
-		  case 'D':
-		    cmp->flags ^= CTLF_DAEMONIZE;
-		    break;
-		  case 'u':
-		    cmp->flags ^= CTLF_AUTOUNIQ;
-		    break;
-		  case 'R':
-		    cmp->flags ^= CTLF_AUTOREFINE;
-		    break;
-		  case 'C':
-		    cmp->flags ^= CTLF_NOT_CONTINUE;
-		    break;
-		  default:
-		    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			      "Unknown interface option `%c'", *cp);
-		    return 1;
-		}
-	    }
-	    return 0;
-	}
-#ifdef IA_DYNAMIC
-	else if(cmp->id_character == dynamic_interface_id) /* Dynamic interface loader */
-	{
-	    if(dynamic_interface_module(*cp) != NULL)
-	    {
-		ctl = cmp;
-		if(dynamic_interface_id != *cp)
-		{
-		    cmp->verbosity = 1;
-		    cmp->trace_playing = 0;
-		    cmp->flags = 0;
-		    cmp->id_character = dynamic_interface_id = *cp;
-		}
-		while (*(++cp))
-		{
-		    switch(*cp)
-		    {
-		      case 'v': cmp->verbosity++; break;
-		      case 'q': cmp->verbosity--; break;
-		      case 't': /* toggle */
-			cmp->trace_playing = !cmp->trace_playing;
+	ControlMode *cmp, **cmpp;
+	int found = 0;
+	
+	for (cmpp = ctl_list; cmp = *cmpp; cmpp++) {
+		if (cmp->id_character == *cp) {
+			found = 1;
+			ctl = cmp;
+#if defined(IA_W32GUI) || defined(IA_W32G_SYN)
+			cmp->verbosity = 1;
+			cmp->trace_playing = 0;
+			cmp->flags = 0;
+#endif	/* IA_W32GUI */
 			break;
-		      case 'l':
+		}
+#ifdef IA_DYNAMIC
+		if (cmp->id_character == dynamic_interface_id
+				&& dynamic_interface_module(*cp)) {
+			/* Dynamic interface loader */
+			found = 1;
+			ctl = cmp;
+			if (dynamic_interface_id != *cp) {
+				cmp->id_character = dynamic_interface_id = *cp;
+				cmp->verbosity = 1;
+				cmp->trace_playing = 0;
+				cmp->flags = 0;
+			}
+			break;
+		}
+#endif	/* IA_DYNAMIC */
+	}
+	if (! found) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"Interface `%c' is not compiled in.", *cp);
+		return 1;
+	}
+	while (*(++cp))
+		switch (*cp) {
+		case 'v':
+			cmp->verbosity++;
+			break;
+		case 'q':
+			cmp->verbosity--;
+			break;
+		case 't':	/* toggle */
+			cmp->trace_playing = ! cmp->trace_playing;
+			break;
+		case 'l':
 			cmp->flags ^= CTLF_LIST_LOOP;
 			break;
-		      case 'r':
+		case 'r':
 			cmp->flags ^= CTLF_LIST_RANDOM;
 			break;
-		      case 's':
+		case 's':
 			cmp->flags ^= CTLF_LIST_SORT;
 			break;
-		      case 'a':
+		case 'a':
 			cmp->flags ^= CTLF_AUTOSTART;
 			break;
-		      case 'x':
+		case 'x':
 			cmp->flags ^= CTLF_AUTOEXIT;
 			break;
-		      case 'D':
+		case 'd':
+			cmp->flags ^= CTLF_DRAG_START;
+			break;
+		case 'u':
+			cmp->flags ^= CTLF_AUTOUNIQ;
+			break;
+		case 'R':
+			cmp->flags ^= CTLF_AUTOREFINE;
+			break;
+		case 'C':
+			cmp->flags ^= CTLF_NOT_CONTINUE;
+			break;
+		case 'D':
 			cmp->flags ^= CTLF_DAEMONIZE;
 			break;
-
-		      default:
+		default:
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				  "Unknown interface option `%c'", *cp);
+					"Unknown interface option `%c'", *cp);
 			return 1;
-		    }
 		}
-		return 0;
-	    }
-	}
-#endif /* IA_DYNAMIC */
-    }
-
-    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	      "Interface `%c' is not compiled in.", *cp);
-    return 1;
+	return 0;
 }
 
 int set_wrd(char *w)
@@ -3430,186 +3391,183 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 /* -------- getopt_long -------- */
 MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 {
-	if (isalnum(c))
-		return set_tim_opt_short(c, optarg);
-	else if (c <= 0xff)
-		/* getopt_long failed parsing */
+	const struct option *the_option = &(longopts[index]);
+	char *arg;
+	
+	if (c == '?')	/* getopt_long failed parsing */
 		parse_opt_666(optarg);
-	else {
-		const struct option *the_option = &(longopts[index]);
-		char *arg;
-		
-		if (! strncmp(the_option->name, "no-", 3))
-			arg = "no";		/* `reverse' switch */
-		else if (! strncmp(the_option->name, "output-un", 9))
-			arg = "no";		/* --output-unsigned == --output-signed=no */
-		else if (! strcmp(the_option->name, "mono"))
-			/* --mono == --stereo=no */
-			arg = (y_or_n_p(optarg)) ? "no" : "yes";
-		else
-			arg = optarg;
-		switch (c >> 8) {
+	else if (isalnum((uint8) c))
+		return set_tim_opt_short(c, optarg);
+	if (! strncmp(the_option->name, "no-", 3))
+		arg = "no";		/* `reverse' switch */
+	else if (! strncmp(the_option->name, "output-un", 9))
+		arg = "no";		/* --output-unsigned == --output-signed=no */
+	else if (! strcmp(the_option->name, "mono"))
+		/* --mono == --stereo=no */
+		arg = (y_or_n_p(optarg)) ? "no" : "yes";
+	else
+		arg = optarg;
+	switch (c >> 8) {
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
-		case '4':
-			return parse_opt_4(arg);
+	case '4':
+		return parse_opt_4(arg);
 #endif
-		case 'A':
-			return parse_opt_A(arg);
-		case 227:
-			return parse_opt_A1(arg);
-		case 228:
-			return parse_opt_A2(arg);
-		case 'a':
-			return parse_opt_a(arg);
-		case 'B':
-			return parse_opt_B(arg);
-		case 'b':
-			return parse_opt_b(arg);
-		case 'C':
-			return parse_opt_C(arg);
-		case 'c':
-			return parse_opt_c(arg);
-		case 'D':
-			return parse_opt_D(arg);
-		case 'd':
-			return parse_opt_d(arg);
-		case 'E':
-			return parse_opt_E(arg);
-		case 216:
-			return parse_opt_E1(arg);
-		case 217:
-			return parse_opt_E2(arg);
-		case 218:
-			return parse_opt_E3(arg);
-		case 219:
-			return parse_opt_E4(arg);
-		case 220:
-			return parse_opt_E5(arg);
-		case 236:
-			return parse_opt_E6(arg);
-		case 214:
-			return parse_opt_E7(arg);
-		case 221:
-			return parse_opt_E8(arg);
-		case 213:
-			return parse_opt_E9(arg);
-		case 237:
-			return parse_opt_EA(arg);
-		case 211:
-			return parse_opt_EB(arg);
-		case 212:
-			return parse_opt_EC(arg);
-		case 224:
-			return parse_opt_ED(arg);
-		case 222:
-			return parse_opt_EE(arg);
-		case 223:
-			return parse_opt_EF(arg);
-		case 225:
-			return parse_opt_EG(arg);
-		case 'F':
-			return parse_opt_F(arg);
-		case 'H':
-			return parse_opt_H(arg);
-		case 'I':
-			return parse_opt_I(arg);
-		case 'K':
-			return parse_opt_K(arg);
-		case 'L':
-			return parse_opt_L(arg);
-		case 'M':
-			return parse_opt_M(arg);
+	case 'A':
+		return parse_opt_A(arg);
+	case 227:
+		return parse_opt_A1(arg);
+	case 228:
+		return parse_opt_A2(arg);
+	case 'a':
+		return parse_opt_a(arg);
+	case 'B':
+		return parse_opt_B(arg);
+	case 'b':
+		return parse_opt_b(arg);
+	case 'C':
+		return parse_opt_C(arg);
+	case 'c':
+		return parse_opt_c(arg);
+	case 'D':
+		return parse_opt_D(arg);
+	case 'd':
+		return parse_opt_d(arg);
+	case 'E':
+		return parse_opt_E(arg);
+	case 216:
+		return parse_opt_E1(arg);
+	case 217:
+		return parse_opt_E2(arg);
+	case 218:
+		return parse_opt_E3(arg);
+	case 219:
+		return parse_opt_E4(arg);
+	case 220:
+		return parse_opt_E5(arg);
+	case 236:
+		return parse_opt_E6(arg);
+	case 214:
+		return parse_opt_E7(arg);
+	case 221:
+		return parse_opt_E8(arg);
+	case 213:
+		return parse_opt_E9(arg);
+	case 237:
+		return parse_opt_EA(arg);
+	case 211:
+		return parse_opt_EB(arg);
+	case 212:
+		return parse_opt_EC(arg);
+	case 224:
+		return parse_opt_ED(arg);
+	case 222:
+		return parse_opt_EE(arg);
+	case 223:
+		return parse_opt_EF(arg);
+	case 225:
+		return parse_opt_EG(arg);
+	case 'e':
+		return parse_opt_e(arg);
+	case 'F':
+		return parse_opt_F(arg);
+	case 'f':
+		return parse_opt_f(arg);
+	case 'g':
+		return parse_opt_g(arg);
+	case 'H':
+		return parse_opt_H(arg);
+	case 'h':
+		return parse_opt_h(arg);
+	case 'I':
+		return parse_opt_I(arg);
+	case 'i':
+		return parse_opt_i(arg);
+	case 205:
+		return parse_opt_i1(arg);
+	case 206:
+		return parse_opt_i2(arg);
+	case 207:
+		return parse_opt_i3(arg);
+	case 208:
+		return parse_opt_i4(arg);
+	case 209:
+		return parse_opt_i5(arg);
+	case 210:
+		return parse_opt_i6(arg);
+	case 230:
+		return parse_opt_i7(arg);
+	case 231:
+		return parse_opt_i8(arg);
+	case 232:
+		return parse_opt_i9(arg);
+	case 233:
+		return parse_opt_ia(arg);
+	case 234:
+		return parse_opt_ib(arg);
+	case 235:
+		return parse_opt_ic(arg);
+	case 'K':
+		return parse_opt_K(arg);
+	case 'L':
+		return parse_opt_L(arg);
+	case 'M':
+		return parse_opt_M(arg);
 #if defined(GAUSS_INTERPOLATION) || defined(NEWTON_INTERPOLATION)
-		case 'N':
-			return parse_opt_N(arg);
+	case 'N':
+		return parse_opt_N(arg);
 #endif
-		case 'O':
-			return parse_opt_O(arg);
-		case 'P':
-			return parse_opt_P(arg);
-		case 'S':
-			return parse_opt_S(arg);
-		case 'T':
-			return parse_opt_T(arg);
-		case 'U':
-			return parse_opt_U(arg);
-		case 'W':
-			return parse_opt_W(arg);
-		case 'Z':
-			return parse_opt_Z(arg);
-		case 'e':
-			return parse_opt_e(arg);
-		case 'f':
-			return parse_opt_f(arg);
-		case 'g':
-			return parse_opt_g(arg);
-		case 'h':
-			return parse_opt_h(arg);
-		case 'i':
-			return parse_opt_i(arg);
-		case 'j':
-			return parse_opt_j(arg);
-		case 'k':
-			return parse_opt_k(arg);
-		case 'm':
-			return parse_opt_m(arg);
-		case 'o':
-			return parse_opt_o(arg);
-		case 'p':
-			return parse_opt_p(arg);
-		case 'q':
-			return parse_opt_q(arg);
-		case 's':
-			return parse_opt_s(arg);
-		case 'v':
-			return parse_opt_v(arg);
-		case 'x':
-			return parse_opt_x(arg);
-		case 200:
-			return parse_opt_200(arg);
-		case 201:
-			return parse_opt_201(arg);
-		case 202:
-			return parse_opt_202(arg);
-		case 203:
-			return parse_opt_203(arg);
-		case 204:
-			return parse_opt_204(arg);
-		case 205:
-			return parse_opt_205(arg);
-		case 206:
-			return parse_opt_206(arg);
-		case 207:
-			return parse_opt_207(arg);
-		case 208:
-			return parse_opt_208(arg);
-		case 209:
-			return parse_opt_209(arg);
-		case 210:
-			return parse_opt_210(arg);
-		case 215:
-			return parse_opt_215(arg);
-		case 226:
-			return parse_opt_226(arg);
-		case 229:
-			return parse_opt_229(arg);
-		case 230:
-			return parse_opt_230(arg);
-		case 231:
-			return parse_opt_231(arg);
-		case 232:
-			return parse_opt_232(arg);
-		case 233:
-			return parse_opt_233(arg);
-		case 234:
-			return parse_opt_234(arg);
-		case 235:
-			return parse_opt_235(arg);
-		default:
-			ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
-					"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
-			abort();
-		}
+	case 'O':
+		return parse_opt_O(arg);
+	case 'P':
+		return parse_opt_P(arg);
+	case 'S':
+		return parse_opt_S(arg);
+	case 'T':
+		return parse_opt_T(arg);
+	case 'U':
+		return parse_opt_U(arg);
+	case 'W':
+		return parse_opt_W(arg);
+	case 'Z':
+		return parse_opt_Z(arg);
+	case 'j':
+		return parse_opt_j(arg);
+	case 'k':
+		return parse_opt_k(arg);
+	case 'm':
+		return parse_opt_m(arg);
+	case 'o':
+		return parse_opt_o(arg);
+	case 'p':
+		return parse_opt_p(arg);
+	case 'q':
+		return parse_opt_q(arg);
+	case 's':
+		return parse_opt_s(arg);
+	case 'v':
+		return parse_opt_v(arg);
+	case 'x':
+		return parse_opt_x(arg);
+	case 200:
+		return parse_opt_200(arg);
+	case 201:
+		return parse_opt_201(arg);
+	case 202:
+		return parse_opt_202(arg);
+	case 203:
+		return parse_opt_203(arg);
+	case 204:
+		return parse_opt_204(arg);
+	case 215:
+		return parse_opt_215(arg);
+	case 226:
+		return parse_opt_226(arg);
+	case 229:
+		return parse_opt_229(arg);
+	default:
+		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
+				"[BUG] Inconceivable case branch %d('%c')", c, c >> 8);
+		abort();
 	}
 }
 
@@ -4020,8 +3978,21 @@ static inline bool parse_opt_h(const char *arg)
 
 static inline bool parse_opt_I(char *arg)
 {
-	if (set_default_prog(arg))
+	int32 tmpi32;
+	int prog, i;
+	char *p;
+	
+	if (set_value(&tmpi32, atoi(arg), 0, 0x7f, "Default program"))
 		return 1;
+	prog = tmpi32;
+	if (p = strchr(arg, '/')) {
+		if (set_value(&tmpi32, atoi(arg), 1, MAX_CHANNELS,
+				"Default program channel"))
+			return 1;
+		default_program[tmpi32 - 1] = prog;
+	} else
+		for (i = 0; i < MAX_CHANNELS; i++)
+			default_program[i] = prog;
 	return 0;
 }
 
@@ -4032,133 +4003,139 @@ static inline bool parse_opt_i(const char *arg)
 		const int id;
 	} name2id[] = {
 		{ "dumb", 'd' },
-		{ "ALSA", 'A' },
 		{ "ncurses", 'n' },
+		{ "vt100", 'T' },
 		{ "slang", 's' },
-		{ "Motif", 'm' },
-		{ "tcktk", 'k' },
-		{ "Tcl/Tk", 'k' },	/* synonym */
+		{ "motif", 'm' },
+		{ "tk", 'k' },
 		{ "emacs", 'e' },
-		{ "VT100", 'T' },
 		{ "xaw", 'a' },
 		{ "xskin", 'i' },
-		{ "GTK", 'g' },
-		{ "server", 'r' },
-		{ "twsynth", 'W' },
-		{ "twsyng", 'W' },
-		{ "portminisyn", 'P' },
+		{ "kmidi", 'q' },
+		{ "gtk", 'g' },
+		{ "mac", 'm' },
 		{ "w32gui", 'w' },
-		{ "UMP", 'p' },
-		{ NULL, '\0' }		/* terminator */
+		{ "winsyn", 'W' },
+		{ "server", 'r' },
+		{ "alsaseq", 'A' },
+		{ "portmidisyn", 'P' },
+		{ "dynamic", '\0' }
 	};
-	int id;
-	ControlMode *cp;
-	ControlMode **cpp = ctl_list;
+	int i, id, found = 0;
+	ControlMode *cmp, **cmpp;
 	
 	if (strlen(arg) == 1)
 		id = arg[0];
-	else {
-		int i;
-		
+	else
 		for (i = 0; name2id[i].name; i++)
 			if (! strcasecmp(name2id[i].name, arg)) {
 				id = name2id[i].id;
 				break;
 			}
-	}
-	while (cp = *cpp++) {
-		if (cp->id_character == id) {
-			ctl = cp;
-			return 0;
+	for (cmpp = ctl_list; cmp = *cmpp; cmpp++) {
+		if (cmp->id_character == id) {
+			found = 1;
+			ctl = cmp;
+#if defined(IA_W32GUI) || defined(IA_W32G_SYN)
+			cmp->verbosity = 1;
+			cmp->trace_playing = 0;
+			cmp->flags = 0;
+#endif	/* IA_W32GUI */
+			break;
 		}
 #ifdef IA_DYNAMIC
-		else if ((cp->id_character == dynamic_interface_id)
-				&& (dynamic_interface_module(id) !=NULL)) {
-			ctl = cp;
+		if (cmp->id_character == dynamic_interface_id
+				&& dynamic_interface_module(id)) {
+			/* Dynamic interface loader */
+			found = 1;
+			ctl = cmp;
 			if (dynamic_interface_id != id) {
-				ctl->verbosity = 1;
-				ctl->trace_playing = 0;
-				ctl->flags = 0;
-				ctl->id_character = dynamic_interface_id = id;
+				cmp->id_character = dynamic_interface_id = id;
+				cmp->verbosity = 1;
+				cmp->trace_playing = 0;
+				cmp->flags = 0;
 			}
-			return 0;
+			break;
 		}
-#endif
+#endif	/* IA_DYNAMIC */
 	}
-	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Interface `%s' not found.", arg);
-	return 1;
+	if (! found) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Interface `%s' not found.", arg);
+		return 1;
+	}
+	return 0;
 }
 
-static inline bool parse_opt_205(const char *arg)
+static inline bool parse_opt_i1(const char *arg)
 {
 	/* --verbose */
 	ctl->verbosity += (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline bool parse_opt_206(const char *arg)
+static inline bool parse_opt_i2(const char *arg)
 {
 	/* --quiet */
 	ctl->verbosity -= (arg) ? atoi(arg) : 1;
 	return 0;
 }
 
-static inline bool parse_opt_207(const char *arg)
+static inline bool parse_opt_i3(const char *arg)
 {
 	/* --[no-]trace */
 	ctl->trace_playing = y_or_n_p(arg);
 	return 0;
 }
 
-static inline bool parse_opt_208(const char *arg)
+static inline bool parse_opt_i4(const char *arg)
 {
 	/* --[no-]loop */
 	return set_flag(&(ctl->flags), CTLF_LIST_LOOP, arg);
 }
 
-static inline bool parse_opt_209(const char *arg)
+static inline bool parse_opt_i5(const char *arg)
 {
 	/* --[no-]random */
 	return set_flag(&(ctl->flags), CTLF_LIST_RANDOM, arg);
 }
 
-static inline bool parse_opt_210(const char *arg)
+static inline bool parse_opt_i6(const char *arg)
 {
 	/* --[no-]sort */
 	return set_flag(&(ctl->flags), CTLF_LIST_SORT, arg);
 }
 
-static inline bool parse_opt_230(const char *arg)
+static inline bool parse_opt_i7(const char *arg)
 {
 	/* --[no-]auto-start */
 	return set_flag(&(ctl->flags), CTLF_AUTOSTART, arg);
 }
 
-static inline bool parse_opt_231(const char *arg)
+static inline bool parse_opt_i8(const char *arg)
 {
 	/* --[no-]auto-exit */
 	return set_flag(&(ctl->flags), CTLF_AUTOEXIT, arg);
 }
 
-static inline bool parse_opt_232(const char *arg)
+static inline bool parse_opt_i9(const char *arg)
 {
 	/* --[no-]drag-start */
 	return set_flag(&(ctl->flags), CTLF_DRAG_START, arg);
 }
 
-static inline bool parse_opt_233(const char *arg)
+static inline bool parse_opt_ia(const char *arg)
 {
 	/* --[no-]uniq */
 	return set_flag(&(ctl->flags), CTLF_AUTOUNIQ, arg);
 }
 
-static inline bool parse_opt_234(const char *arg)
+static inline bool parse_opt_ib(const char *arg)
 {
 	/* --[no-]refine */
 	return set_flag(&(ctl->flags), CTLF_AUTOREFINE, arg);
 }
 
-static inline bool parse_opt_235(const char *arg)
+static inline bool parse_opt_ic(const char *arg)
 {
 	/* --[no-]continue */
 	if (y_or_n_p(arg))
@@ -4207,7 +4184,7 @@ static inline bool parse_opt_M(const char *arg)
 
 static inline bool parse_opt_m(const char *arg)
 {
-	min_sustain_time = atoi(optarg);
+	min_sustain_time = atoi(arg);
 	if (min_sustain_time < 0)
 		min_sustain_time = 0;
 	return 0;
