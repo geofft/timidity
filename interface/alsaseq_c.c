@@ -425,8 +425,12 @@ inline static long queue_time_to_position(const snd_seq_real_time_t *t)
  */
 static long get_current_queue_position(struct seq_context *ctxp)
 {
+#if HAVE_SND_SEQ_PORT_INFO_SET_TIMESTAMPING
 	snd_seq_get_queue_status(ctxp->handle, ctxp->queue, ctxp->q_status);
 	return queue_time_to_position(snd_seq_queue_status_get_real_time(ctxp->q_status));
+#else
+	return 0;
+#endif
 }
 
 /*
