@@ -2067,6 +2067,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
   voice[i].panning = get_panning(ch, note, i);
 
 #ifdef ENABLE_PAN_DELAY
+  voice[i].pan_delay_rpt = 0;
   if(voice[i].panning == 64) {voice[i].delay += pan_delay_table[64] * play_mode->rate / 1000;}
   else {
 	  if(pan_delay_table[voice[i].panning] > pan_delay_table[127 - voice[i].panning]) {
@@ -2079,7 +2080,7 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  voice[i].delay += pan_delay_diff * play_mode->rate / 1000;
   }
   memset(voice[i].pan_delay_buf, 0, sizeof(voice[i].pan_delay_buf));
-  if(voice[i].pan_delay_rpt < 1) {voice[i].pan_delay_rpt = 1;}
+  if(voice[i].pan_delay_rpt < 2) {voice[i].pan_delay_rpt = 0;}
   voice[i].pan_delay_wpt = 0;
 #endif	/* ENABLE_PAN_DELAY */
 

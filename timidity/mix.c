@@ -636,7 +636,13 @@ static inline void mix_mystery_signal(
 			count -= i;
 #endif
 #ifdef ENABLE_PAN_DELAY
-			if(vp->panning < 64) {
+			if(vp->pan_delay_rpt == 0) {
+				for (i = 0; i < count; i++) {
+					s = *sp++;
+					MIXATION(left);
+					MIXATION(right);
+				}
+			} else if(vp->panning < 64) {
 				for (i = 0; i < count; i++) {
 					s = *sp++;
 					MIXATION(left);
@@ -723,7 +729,13 @@ static inline void mix_mystery(mix_t *sp, int32 *lp, int v, int count)
 	count -= i;
 #endif
 #ifdef ENABLE_PAN_DELAY
-	if(vp->panning < 64) {
+	if(vp->pan_delay_rpt == 0) {
+		for (i = 0; i < count; i++) {
+			s = *sp++;
+			MIXATION(left);
+			MIXATION(right);
+		}
+	} else if(vp->panning < 64) {
 		for (i = 0; i < count; i++) {
 			s = *sp++;
 			MIXATION(left);
