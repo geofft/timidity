@@ -35,6 +35,12 @@
 extern int opt_reverb_control;
 extern int opt_effect_quality;
 
+extern void set_dry_signal(register int32 *, int32);
+extern void mix_dry_signal(register int32 *, int32);
+
+/*                                  */
+/* for Insertion / Variation Effect */
+/*                                  */
 enum {
 	EFFECT_NONE,
 	EFFECT_EQ2,
@@ -44,6 +50,7 @@ enum {
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
+#define MAGIC_FREE_EFFECT_INFO -2
 
 typedef struct _EffectList {
 	int8 type;
@@ -57,9 +64,8 @@ extern EffectList *push_effect(EffectList *, int8, void *);
 extern void do_effect_list(int32 *, int32, EffectList *);
 extern void free_effect_list(EffectList *);
 
-/*! general purpose 2-band equalizer information. */
-struct InfoEQ2
-{
+/*! 2-Band EQ */
+typedef struct {
     int16 low_freq;		/* in Hz */
 	int16 high_freq;	/* in Hz */
 	int16 low_gain;		/* in dB */
@@ -71,12 +77,24 @@ struct InfoEQ2
 	/* for lowpass shelving filter */
 	int32 low_coef[5];
 	int32 low_val[8];
-};
+} InfoEQ2;
 
-extern void set_dry_signal(register int32 *, int32);
-extern void mix_dry_signal(register int32 *, int32);
+/*! Overdrive 1 / Distortion 1 */
+typedef struct {
+	double pan, level, volume;
+	int32 max_volume1, max_volume2;
+} InfoOverdrive1;
 
-/* channel by channel reverberation effect */
+/*! OD1 / OD2 */
+typedef struct {
+	double volume, pan1, level1, volume1, pan2, level2, volume2;
+	int32 max_volume1, max_volume2, type1, type2;
+} InfoOD1OD2;
+
+/*                                  */
+/*        for System Effects        */
+/*                                  */
+/* channel-by-channel reverberation effect */
 extern void do_reverb(int32 *, int32);
 extern void do_ch_reverb(int32 *, int32);
 extern void set_ch_reverb(register int32 *, int32, int32);
@@ -85,18 +103,18 @@ extern void init_reverb(int32);
 extern void reverb_rc_event(int, int32);
 extern void recompute_reverb_value(int32);
 
-/* channel by channel delay effect */
+/* channel-by-channel delay effect */
 extern void do_ch_delay(int32 *, int32);
 extern void set_ch_delay(register int32 *, int32, int32);
 extern void init_ch_delay();
 
-/* channel by channel chorus effect */
+/* channel-by-channel chorus effect */
 extern void do_ch_chorus(int32 *, int32);
 extern void set_ch_chorus(register int32 *, int32, int32);
 extern void init_chorus_lfo();
 extern void init_ch_chorus();
 
-/* channel by channel equalizer */
+/* channel-by-channel equalizer */
 extern void init_eq();
 extern void set_ch_eq(register int32 *, int32);
 extern void do_ch_eq(int32 *, int32);

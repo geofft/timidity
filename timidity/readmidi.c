@@ -4731,10 +4731,10 @@ void set_insertion_effect_default_parameter()
 	}
 }
 
-/*! convert GS insertion effect parameters for internal 2-band equalizer. */
+/*! convert GS insertion effect parameters for internal 2-Band EQ. */
 static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 {
-	struct InfoEQ2 *eq = (struct InfoEQ2 *)safe_malloc(sizeof(struct InfoEQ2));
+	InfoEQ2 *eq = (InfoEQ2 *)safe_malloc(sizeof(InfoEQ2));
 
 	eq->high_freq = 4000;
 	eq->high_gain = ieffect->parameter[16] - 0x40;
@@ -4744,25 +4744,55 @@ static void *conv_gs_ie_to_eq2(struct GSInsertionEffect *ieffect)
 	return eq;
 }
 
+/*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
+static void *conv_gs_ie_to_overdrive1(struct GSInsertionEffect *ieffect)
+{
+	InfoOverdrive1 *od = (InfoOverdrive1 *)safe_malloc(sizeof(InfoOverdrive1));
+
+	od->volume = (double)ieffect->parameter[19] / 127.0;
+	od->level = (double)ieffect->parameter[0] / 127.0;
+	od->pan = (ieffect->parameter[18] - 0x40) / 63.0;
+
+	return od;
+}
+
+/*! convert GS insertion effect parameters for OD1 / OD2. */
+static void *conv_gs_ie_to_dual_od(struct GSInsertionEffect *ieffect)
+{
+	InfoOD1OD2 *od = (InfoOD1OD2 *)safe_malloc(sizeof(InfoOD1OD2));
+
+	od->volume = (double)ieffect->parameter[19] / 127.0;
+	od->volume1 = (double)ieffect->parameter[16] / 127.0 * od->volume;
+	od->volume2 = (double)ieffect->parameter[18] / 127.0 * od->volume;
+	od->level1 = (double)ieffect->parameter[1] / 127.0;
+	od->level2 = (double)ieffect->parameter[6] / 127.0;
+	od->pan1 = (double)(ieffect->parameter[15] - 0x40) / 63.0;
+	od->pan2 = (double)(ieffect->parameter[17] - 0x40) / 63.0;
+	od->type1 = ieffect->parameter[0];
+	od->type2 = ieffect->parameter[5];
+
+	return od;
+}
+
 /*! recompute GS insertion effect parameters. */
 void recompute_insertion_effect()
 {
 	struct GSInsertionEffect *st = &gs_ieffect;
-	void *info;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
 
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
-		info = conv_gs_ie_to_eq2(st);
-		st->ef = push_effect(st->ef, EFFECT_EQ2, info);
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st));
+		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1, conv_gs_ie_to_overdrive1(st));
 		break;
 	case 0x0111: /* Distortion */
-		info = conv_gs_ie_to_eq2(st);
-		st->ef = push_effect(st->ef, EFFECT_EQ2, info);
+		st->ef = push_effect(st->ef, EFFECT_EQ2, conv_gs_ie_to_eq2(st));
+		st->ef = push_effect(st->ef, EFFECT_DISTORTION1, conv_gs_ie_to_overdrive1(st));
 		break;
 	case 0x1103: /* OD1 / OD2 */
+		st->ef = push_effect(st->ef, EFFECT_OD1OD2, conv_gs_ie_to_dual_od(st));
 		break;
 	default: break;
 	}

@@ -1,3 +1,8 @@
+2003-11-27  Saito <saito2@digitalme.com>
+
+	* timidity/reverb.[ch], timidity/effect.c, timidity/readmidi.c:
+	  Fix around GS Insertion Effect.
+
 2003-11-24  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.c:

@@ -1212,165 +1212,6 @@ void do_lowpass_24db(register int32* buf,int32 count,int32* lpf_coef,int32* lpf_
 /*                             */
 /* Insertion Effect (SC-88Pro) */
 /*                             */
-
-/* volume stat. for Overdrive / Distortion */
-int32 od_max_volume1;	
-int32 od_max_volume2;
-
-/* general-purpose volume stat. */
-inline void do_volume_stat(int32 sample,int32 *volume)
-{
-	*volume -= 200;
-	if(sample < 0) {sample = -sample;}
-	if(sample > *volume) {*volume = sample;}
-}
-
-/* general-purpose Panning */
-/* pan = -1.0 ~ 1.0          */
-static inline int32 do_left_panning(int32 sample, FLOAT_T pan)
-{
-	return (int32)(sample - sample * pan);
-}
-
-static inline int32 do_right_panning(int32 sample, FLOAT_T pan)
-{
-	return (int32)(sample + sample * pan);
-}
-
-/* general-purpose Distortion */
-/* level = 0.0 ~ 1.0         */
-/* volume = 0.0 ~ 1.0        */ 
-inline int32 do_distortion(int32 sample,FLOAT_T level,FLOAT_T volume,int32 max_volume)
-{
-	int32 od_clip = max_volume >> 2;
-	sample *= level;
-	if(sample > od_clip) {sample = od_clip;}
-	else if(sample < -od_clip) {sample = -od_clip;}
-	sample *= volume;
-	sample <<= 2;
-	return sample;
-}
-
-/* general-purpose Overdrive */
-/* level = 0.0 ~ 1.0        */
-/* volume = 0.0 ~ 1.0       */
-inline int32 do_overdrive(int32 sample,FLOAT_T level,FLOAT_T volume,int32 max_volume)
-{
-	int32 od_threshold = max_volume >> 1;
-
-	if(sample < -od_threshold) {
-		sample = (int32)(-pow((FLOAT_T)-sample / (FLOAT_T)max_volume, level) * volume * max_volume);
-	} else if(sample > od_threshold) {
-		sample = (int32)(pow((FLOAT_T)sample / (FLOAT_T)max_volume, level) * volume * max_volume);
-	} else {
-		sample *= volume;
-	}
-
-	return sample;
-}
-
-/* 0x0110: Overdrive */
-void do_0110_overdrive(int32* buf, int32 count)
-{
-	register int32 i;
-	int32 n = count,output;
-	FLOAT_T pan;
-	FLOAT_T level,volume;
-
-	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
-	level = (FLOAT_T)gs_ieffect.parameter[0] / 127.0;
-	pan = (gs_ieffect.parameter[18] - 0x40) / 63.0;
-
-	for(i=0;i<n;i++) {
-		/* Left */
-		output = buf[i];
-		do_volume_stat(output,&od_max_volume1);
-		output = do_overdrive(output,level,volume,od_max_volume1);
-		buf[i] = do_left_panning(output,pan);
-
-		/* Right */
-		output = buf[++i];
-		do_volume_stat(output,&od_max_volume2);
-		output = do_overdrive(output,level,volume,od_max_volume2);
-		buf[i] = do_right_panning(output,pan);
-	}
-}
-
-/* 0x0111: Distortion */
-void do_0111_distortion(int32* buf, int32 count)
-{
-	register int32 i;
-	int32 n = count,output;
-	FLOAT_T pan;
-	FLOAT_T level,volume;
-
-	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
-	level = (FLOAT_T)gs_ieffect.parameter[0] / 127.0;
-	pan = (gs_ieffect.parameter[18] - 0x40) / 63.0;
-
-	for(i=0;i<n;i++) {
-		/* Left */
-		output = buf[i];
-		do_volume_stat(output,&od_max_volume1);
-		output = do_distortion(output,level,volume,od_max_volume1);
-		buf[i] = do_left_panning(output,pan);
-
-		/* Right */
-		output = buf[++i];
-		do_volume_stat(output,&od_max_volume2);
-		output = do_distortion(output,level,volume,od_max_volume2);
-		buf[i] = do_right_panning(output,pan);
-	}
-}
-
-/* 0x1103: OD1 / OD2 */
-void do_1103_dual_od(int32* buf, int32 count)
-{
-	register int32 i;
-	int32 n = count,output1,output2,type;
-	FLOAT_T pan1,pan2;
-	FLOAT_T level1,level2,volume,volume1,volume2;
-	int32 (*od1)(int32,FLOAT_T,FLOAT_T,int32),(*od2)(int32,FLOAT_T,FLOAT_T,int32);
-
-	volume = (FLOAT_T)gs_ieffect.parameter[19] / 127.0;
-	volume1 = (FLOAT_T)gs_ieffect.parameter[16] / 127.0 * volume;
-	volume2 = (FLOAT_T)gs_ieffect.parameter[18] / 127.0 * volume;
-	level1 = (FLOAT_T)gs_ieffect.parameter[1] / 127.0;
-	level2 = (FLOAT_T)gs_ieffect.parameter[6] / 127.0;
-	pan1 = (gs_ieffect.parameter[15] - 0x40) / 63.0;
-	pan2 = (gs_ieffect.parameter[17] - 0x40) / 63.0;
-
-	type = gs_ieffect.parameter[0];
-	if(type == 0) {od1 = do_overdrive;}
-	else {od1 = do_distortion;}
-
-	type = gs_ieffect.parameter[5];
-	if(type == 0) {od2 = do_overdrive;}
-	else {od2 = do_distortion;}
-
-	for(i=0;i<n;i++) {
-		/* Left */
-		output1 = buf[i];
-		do_volume_stat(output1,&od_max_volume1);
-		output1 = (*od1)(output1,level1,volume1,od_max_volume1);
-
-		/* Right */
-		output2 = buf[++i];
-		do_volume_stat(output2,&od_max_volume2);
-		output2 = (*od2)(output2,level2,volume2,od_max_volume2);
-
-		/* Mix */
-		buf[i-1] = do_left_panning(output1,pan1) + do_left_panning(output2,pan2);
-		buf[i] = do_right_panning(output1,pan1) + do_right_panning(output2,pan2);
-	}
-}
-
-void init_insertion_effect()
-{
-	od_max_volume1 = 0;
-	od_max_volume2 = 0;
-}
-
 /* !!! rename this function to do_insertion_effect_gs() !!! */
 void do_insertion_effect(int32 *buf, int32 count)
 {
@@ -1926,10 +1767,9 @@ void free_effect_buffers(void)
 	free_revmodel();
 }
 
-/*                                                        */
-/* new implementation for insertion and variation effect. */
-/*               (under construction...)                  */
-/*                                                        */
+/*                                  */
+/*  Insertion and Variation Effect  */
+/*                                  */
 
 /*! allocate new effect item and add it into the tail of effect list.
     EffectList *efc: pointer to the top of effect list.
@@ -1977,21 +1817,26 @@ void free_effect_list(EffectList *ef)
 	if(efc == NULL) {return;}
 	do {
 		efn = efc->next_ef;
+		if(efc->info != NULL) {
+			(*efc->do_effect)(NULL, MAGIC_FREE_EFFECT_INFO, efc);
+			free(efc->info);
+		}
 		efc->do_effect = NULL;
-		if(efc->info != NULL) {free(efc->info);}
 		free(efc);
 	} while ((efc = efn) != NULL);
 }
 
-/*! general purpose 2-band equalizer engine. */
+/*! 2-Band EQ */
 void do_eq2(int32 *buf, int32 count, EffectList *ef)
 {
-	struct InfoEQ2 *eq = (struct InfoEQ2 *)ef->info;
+	InfoEQ2 *eq = (InfoEQ2 *)ef->info;
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		calc_lowshelf_coefs(eq->low_coef, eq->low_freq, eq->low_gain, play_mode->rate);
 		calc_highshelf_coefs(eq->high_coef, eq->high_freq, eq->high_gain, play_mode->rate);
 		memset(eq->low_val, 0, sizeof(eq->low_val));
 		memset(eq->high_val, 0, sizeof(eq->high_val));
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
 		return;
 	}
 	if(eq->low_gain != 0) {
@@ -2000,6 +1845,148 @@ void do_eq2(int32 *buf, int32 count, EffectList *ef)
 	if(eq->high_gain != 0) {
 		do_shelving_filter(buf, count, eq->high_coef, eq->high_val);
 	}
+}
+
+/*! volume stat. */
+inline void do_volume_stat(int32 sample,int32 *volume)
+{
+	*volume -= 200;
+	if(sample < 0) {sample = -sample;}
+	if(sample > *volume) {*volume = sample;}
+}
+
+/*! panning (pan = [-1.0, 1.0]) */
+static inline int32 do_left_panning(int32 sample, FLOAT_T pan)
+{
+	return (int32)(sample - sample * pan);
+}
+
+static inline int32 do_right_panning(int32 sample, FLOAT_T pan)
+{
+	return (int32)(sample + sample * pan);
+}
+
+/*! Overdrive (level = [0.0, 1.0], volume = [0.0, 1.0]) */ 
+inline int32 do_overdrive(int32 sample, FLOAT_T level, FLOAT_T volume, int32 max_volume)
+{
+	int32 od_threshold = max_volume >> 1;
+
+	if(sample < -od_threshold) {
+		sample = (int32)(-pow((FLOAT_T)-sample / (FLOAT_T)max_volume, level) * volume * max_volume);
+	} else if(sample > od_threshold) {
+		sample = (int32)(pow((FLOAT_T)sample / (FLOAT_T)max_volume, level) * volume * max_volume);
+	} else {
+		sample *= volume;
+	}
+
+	return sample;
+}
+
+/*! Distortion (level = [0.0, 1.0], volume = [0.0, 1.0]) */ 
+inline int32 do_distortion(int32 sample, FLOAT_T level, FLOAT_T volume, int32 max_volume)
+{
+	int32 od_clip = max_volume >> 2;
+	sample *= level;
+	if(sample > od_clip) {sample = od_clip;}
+	else if(sample < -od_clip) {sample = -od_clip;}
+	sample *= volume;
+	sample <<= 2;
+	return sample;
+}
+
+/*! GS 0x0110: Overdrive 1 */
+void do_overdrive1(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
+	int32 i, output, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
+	double pan = od->pan, level = od->level, volume = od->volume;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	for(i = 0; i < count; i++) {
+		/* left */
+		output = buf[i];
+		do_volume_stat(output, &max_volume1);
+		output = do_overdrive(output, level, volume, max_volume1);
+		buf[i] = do_left_panning(output, pan);
+
+		/* right */
+		output = buf[++i];
+		do_volume_stat(output, &max_volume2);
+		output = do_overdrive(output, level, volume, max_volume2);
+		buf[i] = do_right_panning(output, pan);
+	}
+	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+}
+
+/*! GS 0x0111: Distortion 1 */
+void do_distortion1(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
+	int32 i, output, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
+	double pan = od->pan, level = od->level, volume = od->volume;
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	for(i = 0; i < count; i++) {
+		/* left */
+		output = buf[i];
+		do_volume_stat(output, &max_volume1);
+		output = do_distortion(output, level, volume, max_volume1);
+		buf[i] = do_left_panning(output, pan);
+
+		/* right */
+		output = buf[++i];
+		do_volume_stat(output, &max_volume2);
+		output = do_distortion(output, level, volume, max_volume2);
+		buf[i] = do_right_panning(output, pan);
+	}
+	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
+}
+
+/*! GS 0x1103: OD1 / OD2 */
+void do_dual_od(int32 *buf, int32 count, EffectList *ef)
+{
+	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
+	int32 i, output1, output2, max_volume1 = od->max_volume1, max_volume2 = od->max_volume2;
+	double pan1 = od->pan1, level1 = od->level1, volume1 = od->volume1,
+		pan2 = od->pan2, level2 = od->level2, volume2 = od->volume2;
+	int32 (*od1)(int32, FLOAT_T, FLOAT_T, int32),(*od2)(int32, FLOAT_T, FLOAT_T, int32);
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		od->max_volume1 = od->max_volume2 = 0;	/* init volume stat. */
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		return;
+	}
+	if(od->type1 == 0) {od1 = do_overdrive;}
+	else {od1 = do_distortion;}
+	if(od->type2 == 0) {od2 = do_overdrive;}
+	else {od2 = do_distortion;}
+	for(i = 0; i < count; i++) {
+		/* left */
+		output1 = buf[i];
+		do_volume_stat(output1, &max_volume1);
+		output1 = (*od1)(output1, level1, volume1, max_volume1);
+
+		/* right */
+		output2 = buf[++i];
+		do_volume_stat(output2, &max_volume2);
+		output2 = (*od2)(output2, level2, volume2, max_volume2);
+
+		/* mix */
+		buf[i-1] = do_left_panning(output1, pan1) + do_left_panning(output2, pan2);
+		buf[i] = do_right_panning(output1, pan1) + do_right_panning(output2, pan2);
+	}
+	od->max_volume1 = max_volume1, od->max_volume2 = max_volume2;
 }
 
 /*! assign effect engine according to effect type. */
@@ -2012,6 +1999,15 @@ void convert_effect(EffectList *ef)
 		break;
 	case EFFECT_EQ2:
 		ef->do_effect = do_eq2;
+		break;
+	case EFFECT_OVERDRIVE1:
+		ef->do_effect = do_overdrive1;
+		break;
+	case EFFECT_DISTORTION1:
+		ef->do_effect = do_distortion1;
+		break;
+	case EFFECT_OD1OD2:
+		ef->do_effect = do_dual_od;
 		break;
 	default:
 		break;

@@ -85,7 +85,6 @@ void init_effect(void)
 	init_ch_delay();
 	init_ch_chorus();
 	init_eq();
-	init_insertion_effect();
 }
 
 /*
