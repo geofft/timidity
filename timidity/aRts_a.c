@@ -104,7 +104,7 @@ PlayMode arts_play_mode2 = {
 static int open_output(void)
 {
     int i, include_enc, exclude_enc;
-    int sample_width, chanels;
+    int sample_width, channels;
 
     include_enc = 0;
     exclude_enc = PE_ULAW|PE_ALAW|PE_BYTESWAP; /* They can't mean these */
@@ -138,7 +138,7 @@ static int open_output(void)
 
     server_buffer = arts_stream_get(stream, ARTS_P_SERVER_LATENCY) * dpm.rate * (sample_width/8) * channels / 1000;
     output_count = 0;
-    return warnings;
+    return 0;
     /* "this aRts function isnot yet implemented"
      *
     if (dpm.extra_param[0]) {
@@ -160,7 +160,7 @@ static int output_data(char *buf, int32 nbytes)
 {
     int n;
 
-    if (stream == -1) return -1;
+    if (stream == 0) return -1;
 
     while(nbytes > 0)
     {

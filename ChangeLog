@@ -1,3 +1,7 @@
+2003-06-06  Takashi Iwai <tiwai@suse.de>
+
+	* timidity/aRts_a.c (output_data, open_output): Fix typo
+
 2003-06-05  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (main): Add check codes for interface
