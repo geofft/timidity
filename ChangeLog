@@ -1,4 +1,8 @@
-2004-01-21  URABE Shyouhei  <shyouhei@YahooBB218133008099.bbtec.net>
+2004-01-21  mput <root@mput.dip.jp>
+
+	* doc/ja_JP.ujis/timidity.cfg.5: sorry, I was confusing. revert.
+
+2004-01-21  mput <root@mput.dip.jp>
 
 	* doc/ja_JP.ujis/timidity.cfg.5 :
 	  Was written in eucJP, convert to iso-2022-jp
