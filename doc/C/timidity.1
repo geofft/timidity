@@ -40,7 +40,7 @@ plays all files in the directory \fBsome/where/\fP.
 .B Archive File
 Extract and play the file(s) in the archive.  If you want to specify a
 certain MIDI file in the archive, append \fB#<MIDI\-filename>\fP to
-the archive name.  The expression after `#' can use regular
+the archive name.  The path after `#' allows the use of the wildcard
 expressions (case insensitive).
 .br
 You can use escape sequence \fB\\xHH\fP, where `HH' is a ASCII number
@@ -53,7 +53,7 @@ For example:
 Plays \fBfile.mid\fP in \fBfile.zip\fP
 .TP
 % timidity file.lzh#*.mid
-Plays any files that match the regular expression \fB*.mid\fP in
+Plays any files that match the wildcard expression *.mid in 
 \fBfile.lzh\fP
 .TP
 % timidity file.tgz#*
