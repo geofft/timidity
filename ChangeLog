@@ -1,3 +1,8 @@
+2004-06-02  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* utils/support.h: add things to treat the case of no <sys/stat.h>
+	* timidity/common.c: rebirth of HAVE_SYS_STAT_H
+
 2004-06-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (canonicalize_path): fix typo

@@ -67,4 +67,11 @@ extern int strncasecmp(char *s1, char *s2, unsigned int len);
 extern int mkstemp(char *template);
 #endif /* HAVE_MKSTEMP */
 
+#ifndef HAVE_SYS_STAT_H
+#ifdef __W32__
+#include <sys/stat.h>          /* they have. */
+#elif defined(__MACOS__)
+/* TODO: wrte something here to work stat() correctly on mac */
+#endif /* __W32__ */
+#endif /* HAVE_SYS_STAT_H*/
 #endif /* ___SUPPORT_H_ */
