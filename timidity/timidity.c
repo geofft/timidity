@@ -518,6 +518,13 @@ CRITICAL_SECTION critSect;
 #pragma argsused
 static BOOL WINAPI handler(DWORD dw)
 {
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN)
+	if( ctl->id_character == 'W' 
+		|| ctl->id_character == 'P' )
+	{
+    	rtsyn_midiports_close();
+	}
+#endif	
     printf ("***BREAK" NLS); fflush(stdout);
     intr++;
     return TRUE;

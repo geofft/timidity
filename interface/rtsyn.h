@@ -54,7 +54,7 @@
 #endif
 
 #if !defined(__MACOS__)
-#define USE_WINSYN_TIMER_I 1
+//#define USE_WINSYN_TIMER_I 1
 
 #ifndef __W32__
 #include <pthread.h>
@@ -136,10 +136,13 @@ void rtsyn_get_port_list(void);
 int rtsyn_synth_start(void);
 void rtsyn_synth_stop(void);
 int rtsyn_play_some_data (void);
+void rtsyn_midiports_close(void);
+
 
 #if defined(IA_WINSYN) || defined(IA_W32G_SYN)
 int rtsyn_buf_check(void);
 #endif
+
 
 
 #ifdef USE_WINSYN_TIMER_I

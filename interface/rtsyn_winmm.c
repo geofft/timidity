@@ -172,10 +172,15 @@ winmmerror:
 }
 
 void rtsyn_synth_stop(){
-UINT port;
-
-rtsyn_stop_playing();
+	rtsyn_stop_playing();
 	//	play_mode->close_output();
+	rtsyn_midiports_close();
+
+	return;
+}
+void rtsyn_midiports_close(void){
+	UINT port;
+	
 	for(port=0;port<rtsyn_portnumber;port++){
 		if( MMSYSERR_NOERROR!=midiInStop(hMidiIn[port]) )
 			ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"MIDI Stop Error\n");
@@ -184,7 +189,6 @@ rtsyn_stop_playing();
 		if( MMSYSERR_NOERROR!=midiInClose(hMidiIn[port]) ) 
 			ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"MIDI Close Error\n");
 	}
-	return;
 }
 
 int rtsyn_buf_check(void){

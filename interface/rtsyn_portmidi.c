@@ -163,22 +163,26 @@ pmerror:
 
 
 void rtsyn_synth_stop(){
-unsigned int port;
 
-rtsyn_stop_playing();
+	rtsyn_stop_playing();
 //	play_mode->close_output();
-	for(port=0;port<rtsyn_portnumber;port++){
-		pmerr=Pm_Abort(midistream[port].stream);
-//		if( pmerr != pmNoError ) goto pmerror;
-	}
-	Pm_Terminate();
+	rtsyn_midiports_close();
+	
 	return;
 pmerror:
 		Pm_Terminate();
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortMIDI error: %s\n", Pm_GetErrorText( pmerr ) );
 	return ;
 }
+void rtsyn_midiports_close(void){
+	unsigned int port;
 
+	for(port=0;port<rtsyn_portnumber;port++){
+		pmerr=Pm_Abort(midistream[port].stream);
+//		if( pmerr != pmNoError ) goto pmerror;
+	}
+	Pm_Terminate();
+}
 
 int rtsyn_play_some_data (void){
 	PmMessage pmmsg;
