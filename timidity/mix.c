@@ -1507,7 +1507,7 @@ int recompute_envelope(int v)
 			if (channel[ch].sostenuto) {
 				sustain_time = min_sustain_time;
 			} else {
-				sustain_time = (double)min_sustain_time * (double)(channel[ch].sustain - 64) / 63.0;
+				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
 			}
 			/* Calculate the release phase speed. */
 			rate = -0x3fffffff * (double) control_ratio * 1000
@@ -1916,7 +1916,7 @@ int recompute_modulation_envelope(int v)
 			if (channel[ch].sostenuto) {
 				sustain_time = min_sustain_time;
 			} else {
-				sustain_time = (double)min_sustain_time * (double)(channel[ch].sustain - 64) / 63.0;
+				sustain_time = (double)min_sustain_time * (double)channel[ch].sustain / 127.0;
 			}
 			/* Calculate the release phase speed. */
 			rate = -0x3fffffff * (double) control_ratio * 1000

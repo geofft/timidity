@@ -5187,11 +5187,11 @@ static void seek_forward(int32 until_time)
 	    break;
 
 	  case ME_SUSTAIN:
-		  channel[ch].sustain = current_event->a >= 64 ? current_event->a : 0;
+		  channel[ch].sustain = current_event->a;
 	    break;
 
 	  case ME_SOSTENUTO:
-		  channel[ch].sostenuto = current_event->a >= 64 ? current_event->a : 0;
+		  channel[ch].sostenuto = (current_event->a >= 64);
 	    break;
 
 	  case ME_LEGATO_FOOTSWITCH:
@@ -7135,14 +7135,14 @@ int play_event(MidiEvent *ev)
     if (channel[ch].sustain == 0 && ev->a >= 64) {
 		update_redamper_controls(ch);
 	}
-	channel[ch].sustain = ev->a >= 64 ? ev->a : 0;
+	channel[ch].sustain = ev->a;
 	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
 	    drop_sustain(ch);
 	ctl_mode_event(CTLE_SUSTAIN, 1, ch, ev->a >= 64);
 	break;
 
       case ME_SOSTENUTO:
-	channel[ch].sostenuto = ev->a >= 64 ? ev->a : 0;
+	channel[ch].sostenuto = (ev->a >= 64);
 	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
 	    drop_sustain(ch);
 	else {update_sostenuto_controls(ch);}
