@@ -1,3 +1,7 @@
+2003-10-12  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/rcp.c: RCP tempo gradation is supported.
+
 2003-10-11  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c:
