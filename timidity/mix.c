@@ -1618,6 +1618,11 @@ static inline int next_stage(int v)
 			} else {
 				rate *= sc_eg_decay_table[val & 0x7f];
 			}
+
+			if (fabs(rate) > OFFSET_MAX)
+				rate = (rate > 0) ? OFFSET_MAX : -OFFSET_MAX;
+			else if (fabs(rate) < 1)
+				rate = (rate > 0) ? 1 : -1;
 		}
 		if(stage < EG_SF_DECAY && rate > OFFSET_MAX) {	/* instantaneous decay */
 			vp->envelope_volume = offset;
@@ -1631,8 +1636,14 @@ static inline int next_stage(int v)
 			rate = -rate;
 		}
 	} else {	/* attacking phase */
-		if (val != -1)
+		if (val != -1) {
 			rate *= sc_eg_attack_table[val & 0x7f];
+
+			if (fabs(rate) > OFFSET_MAX)
+				rate = (rate > 0) ? OFFSET_MAX : -OFFSET_MAX;
+			else if (fabs(rate) < 1)
+				rate = (rate > 0) ? 1 : -1;
+		}
 		if(stage < EG_SF_DECAY && rate > OFFSET_MAX) {	/* instantaneous attack */
 			vp->envelope_volume = offset;
 			return recompute_envelope(v);
