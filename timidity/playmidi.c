@@ -111,6 +111,7 @@ static int32 midi_restart_time = 0;
 Channel channel[MAX_CHANNELS];
 Voice voice[MAX_VOICES];
 int8 current_keysig = 0;
+int8 current_temper_keysig = 0;
 int8 opt_init_keysig = 0;
 int8 opt_force_keysig = 8;
 int32 current_play_tempo = 500000;
@@ -322,6 +323,9 @@ static char *event_name(int type)
 	EVENT_NAME(ME_TIMESIG);
 	EVENT_NAME(ME_KEYSIG);
 	EVENT_NAME(ME_SCALE_TUNING);
+	EVENT_NAME(ME_TEMPER_KEYSIG);
+	EVENT_NAME(ME_TEMPER_TYPE);
+	EVENT_NAME(ME_MASTER_TEMPER_TYPE);
 	EVENT_NAME(ME_WRD);
 	EVENT_NAME(ME_SHERRY);
 	EVENT_NAME(ME_BARMARKER);
@@ -468,11 +472,10 @@ static void reset_nrpn_controllers(int c)
   if(play_system_mode == GS_SYSTEM_MODE) {
 	  channel[c].bank_lsb = channel[c].tone_map0_number;
   }
-	if (! ISDRUMCHANNEL(c)) {
-		for (i = 0; i < 12; i++)
-			channel[c].scale_tuning[i] = 0;
-		channel[c].prev_scale_tuning = 0;
-	}
+	for (i = 0; i < 12; i++)
+		channel[c].scale_tuning[i] = 0;
+	channel[c].prev_scale_tuning = 0;
+	channel[c].temper_type = 0;
 
   /* channel pressure control */
   channel[c].caf_rate_ctl1 = 0.25;
@@ -1608,11 +1611,27 @@ static int select_play_sample(Sample *splist, int nsp,
 
 	if (opt_pure_intonation) {
 		if (current_keysig < 8)
-			f = freq_table2[current_freq_table][note];
+			f = freq_table_pureint[current_freq_table][note];
 		else
-			f = freq_table2[current_freq_table + 12][note];
+			f = freq_table_pureint[current_freq_table + 12][note];
 	} else
-		f = freq_table[note];
+		switch (channel[e->channel].temper_type) {
+		case 0:
+			f = freq_table[note];
+			break;
+		case 1:
+			f = freq_table_pytha[current_freq_table][note];
+			break;
+		case 2:
+			f = freq_table_meantone[current_freq_table][note];
+			break;
+		case 3:
+			if (current_temper_keysig < 8)
+				f = freq_table_pureint[current_freq_table][note];
+			else
+				f = freq_table_pureint[current_freq_table + 12][note];
+			break;
+		}
 	fs = freq_table[note];
     if(nsp == 1)
     {
@@ -3801,10 +3820,24 @@ static void seek_forward(int32 until_time)
 
 	case ME_KEYSIG:
 		current_keysig = current_event->a + current_event->b * 16;
+		current_temper_keysig = current_keysig;
 		break;
 
 	case ME_SCALE_TUNING:
 		channel[ch].scale_tuning[current_event->a] = current_event->b;
+		break;
+
+	case ME_TEMPER_KEYSIG:
+		current_temper_keysig = current_event->a + current_event->b * 16;
+		break;
+
+	case ME_TEMPER_TYPE:
+		channel[ch].temper_type = current_event->a;
+		break;
+
+	case ME_MASTER_TEMPER_TYPE:
+		for (i = 0; i < MAX_CHANNELS; i++)
+			channel[i].temper_type = current_event->a;
 		break;
 
 	  case ME_SYSEX_GS1:
@@ -5567,6 +5600,8 @@ int play_event(MidiEvent *ev)
 	case ME_KEYSIG:
 		current_keysig = current_event->a + current_event->b * 16;
 		ctl_mode_event(CTLE_KEYSIG, 1, current_keysig, 0);
+		current_temper_keysig = current_keysig;
+		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
 		if (opt_force_keysig != 8) {
 			i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 			note_key_offset -= floor(note_key_offset / 12.0) * 12;
@@ -5592,6 +5627,29 @@ int play_event(MidiEvent *ev)
 		resamp_cache_refer_alloff(ch, current_event->time);
 		channel[ch].scale_tuning[current_event->a] = current_event->b;
 		adjust_pitch(ch);
+		break;
+
+	case ME_TEMPER_KEYSIG:
+		current_temper_keysig = current_event->a + current_event->b * 16;
+		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
+		i = current_temper_keysig + ((current_temper_keysig < 8) ? 7 : -9);
+		j = 0;
+		while (i != 7 && i != 19)
+			i += (i < 7) ? 5 : -7, j++;
+		j += note_key_offset, j -= floor(j / 12.0) * 12;
+		current_freq_table = j;
+		break;
+
+	case ME_TEMPER_TYPE:
+		channel[ch].temper_type = current_event->a;
+		ctl_mode_event(CTLE_TEMPER_TYPE, 1, ch, channel[ch].temper_type);
+		break;
+
+	case ME_MASTER_TEMPER_TYPE:
+		for (i = 0; i < MAX_CHANNELS; i++) {
+			channel[i].temper_type = current_event->a;
+			ctl_mode_event(CTLE_TEMPER_TYPE, 1, i, channel[i].temper_type);
+		}
 		break;
 
 	case ME_SYSEX_GS1:
@@ -5888,9 +5946,15 @@ int play_midi_file(char *fn)
 	return rc;
 
     /* Reset key & speed each files */
-    current_keysig = opt_init_keysig;
+    current_keysig = current_temper_keysig = opt_init_keysig;
     note_key_offset = 0;
     midi_time_ratio = 1.0;
+	for (i = 0; i < MAX_CHANNELS; i++) {
+		for (j = 0; j < 12; j++)
+			channel[i].scale_tuning[j] = 0;
+		channel[i].prev_scale_tuning = 0;
+		channel[i].temper_type = 0;
+	}
     CLEAR_CHANNELMASK(channel_mute);
 
     /* Reset restart offset */
@@ -5930,6 +5994,9 @@ int play_midi_file(char *fn)
 	current_freq_table = j;
 	ctl_mode_event(CTLE_TEMPO, 0, current_play_tempo, 0);
 	ctl_mode_event(CTLE_TIME_RATIO, 0, 100 / midi_time_ratio + 0.5, 0);
+	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, current_temper_keysig, 0);
+	for (i = 0; i < MAX_CHANNELS; i++)
+		ctl_mode_event(CTLE_TEMPER_TYPE, 0, i, channel[i].temper_type);
   play_reload: /* Come here to reload MIDI file */
     rc = play_midi_load_file(fn, &event, &nsamples);
     if(RC_IS_SKIP_FILE(rc))

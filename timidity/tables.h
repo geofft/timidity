@@ -32,7 +32,9 @@ extern FLOAT_T lookup_sine(int x);
 
 #define SINE_CYCLE_LENGTH 1024
 extern int32 freq_table[];
-extern int32 freq_table2[][128];
+extern int32 freq_table_pytha[][128];
+extern int32 freq_table_meantone[][128];
+extern int32 freq_table_pureint[][128];
 extern FLOAT_T *vol_table;
 extern FLOAT_T def_vol_table[];
 extern FLOAT_T gs_vol_table[];
@@ -66,7 +68,9 @@ extern FLOAT_T sb_vol_table[];
 extern FLOAT_T cb_to_amp_table[];
 extern int8 bitshift_table[];
 
-extern void init_freq_table2(void);
+extern void init_freq_table_pytha(void);
+extern void init_freq_table_meantone(void);
+extern void init_freq_table_pureint(void);
 extern void init_bend_fine(void);
 extern void init_bend_coarse(void);
 extern void init_tables(void);

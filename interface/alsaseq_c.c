@@ -293,7 +293,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 
 	opt_realtime_playing = 2; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
-	current_keysig = opt_init_keysig;
+	current_keysig = current_temper_keysig = opt_init_keysig;
 	note_key_offset = 0;
 
 	/* set the audio queue size as minimum as possible, since

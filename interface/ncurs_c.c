@@ -128,7 +128,7 @@ extern int set_extension_modes(char *flag);
 
 static struct
 {
-    int bank, bank_lsb, bank_msb, prog, vol, exp, pan, sus, pitch, wheel;
+    int bank, bank_lsb, bank_msb, prog, vol, exp, pan, sus, pitch, wheel, st;
     int is_drum;
     int bend_mark;
 
@@ -194,6 +194,8 @@ static const char note_name_char[12] =
 };
 
 static void ctl_note(int status, int ch, int note, int vel);
+static void ctl_temper_keysig(int8 sk, int ko);
+static void ctl_temper_type(int ch, int8 st);
 static void ctl_drumpart(int ch, int is_drum);
 static void ctl_program(int ch, int prog, char *vp, unsigned int banks);
 static void ctl_volume(int channel, int val);
@@ -486,7 +488,7 @@ static void N_ctl_scrinit(void)
 
 	wmove(dftwin, TITLE_LINE, 0);
 	waddstr(dftwin, "Ch ");
-	o = (COLS - 24) / 12;
+	o = (COLS - 28) / 12;
 	for(i = 0; i < o; i++)
 	{
 	    int j;
@@ -532,7 +534,7 @@ static void init_trace_window_chan(int ch)
     N_ctl_clrtoeol(NOTE_LINE + ch);
     if(ch != selected_channel)
     {
-	c = (COLS - 24) / 12 * 12;
+	c = (COLS - 28) / 12 * 12;
 	if(c <= 0)
 	    c = 1;
 	if (IS_SET_CHANNELMASK(channel_mute, ch))
@@ -544,6 +546,7 @@ static void init_trace_window_chan(int ch)
 
 	for(i = 0; i < c; i++)
 	    waddch(dftwin, '.');
+	ctl_temper_type(ch, CTL_STATUS_UPDATE);
 	ctl_program(ch, CTL_STATUS_UPDATE, NULL, 0);
 	ctl_volume(ch, CTL_STATUS_UPDATE);
 	ctl_expression(ch, CTL_STATUS_UPDATE);
@@ -1026,6 +1029,7 @@ static void redraw_all(void)
     ctl_metronome(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
     ctl_keysig(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
     ctl_tempo(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
+    ctl_temper_keysig(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
     display_key_helpmsg();
     ctl_file_name(NULL);
     ctl_ncurs_mode_init();
@@ -1069,12 +1073,19 @@ static void ctl_event(CtlEvent *e)
 		break;
 	case CTLE_KEY_OFFSET:
 		ctl_keysig(CTL_STATUS_UPDATE, (int) e->v1);
+		ctl_temper_keysig(CTL_STATUS_UPDATE, (int) e->v1);
 		break;
 	case CTLE_TEMPO:
 		ctl_tempo((int) e->v1, CTL_STATUS_UPDATE);
 		break;
 	case CTLE_TIME_RATIO:
 		ctl_tempo(CTL_STATUS_UPDATE, (int) e->v1);
+		break;
+	case CTLE_TEMPER_KEYSIG:
+		ctl_temper_keysig((int8) e->v1, CTL_STATUS_UPDATE);
+		break;
+	case CTLE_TEMPER_TYPE:
+		ctl_temper_type((int) e->v1, (int8) e->v2);
 		break;
       case CTLE_PROGRAM:
 	ctl_program((int)e->v1, (int)e->v2, (char *)e->v3, (unsigned int)e->v4);
@@ -1322,7 +1333,7 @@ static void ctl_note(int status, int ch, int note, int vel)
 	n = '0' + (10 * vel) / 128;
     else
 	n = note_name_char[note % 12];
-    c = (COLS - 24) / 12 * 12;
+    c = (COLS - 28) / 12 * 12;
     if(c <= 0)
 	c = 1;
     note = note % c;
@@ -1394,6 +1405,69 @@ static void ctl_note(int status, int ch, int note, int vel)
 	    waddch(dftwin, ' ');
 	}
     }
+}
+
+static void ctl_temper_keysig(int8 sk, int ko)
+{
+	static int8 lastkeysig = CTL_STATUS_UPDATE;
+	static int lastoffset = CTL_STATUS_UPDATE;
+	static const char *keysig_name[] = {
+		"Cb", "Gb", "Db", "Ab", "Eb", "Bb", " F", " C",
+		" G", " D", " A", " E", " B", "F#", "C#", "G#",
+		"D#", "A#"
+	};
+	int i, j;
+	
+	if (sk == CTL_STATUS_UPDATE)
+		sk = lastkeysig;
+	else
+		lastkeysig = sk;
+	if (ko == CTL_STATUS_UPDATE)
+		ko = lastoffset;
+	else
+		lastoffset = ko;
+	i = sk + ((sk < 8) ? 7 : -6);
+	if (ko > 0)
+		for (j = 0; j < ko; j++)
+			i += (i > 10) ? -5 : 7;
+	else
+		for (j = 0; j < abs(ko); j++)
+			i += (i < 7) ? 5 : -7;
+	wmove(dftwin, TITLE_LINE, COLS - 24);
+	wprintw(dftwin, "%s%c", keysig_name[i], (sk < 8) ? ' ' : 'm');
+	N_ctl_refresh();
+}
+
+static void ctl_temper_type(int ch, int8 st)
+{
+	if (ch >= display_channels)
+		return;
+	if (st != CTL_STATUS_UPDATE) {
+		if (ChannelStatus[ch].st == st)
+			return;
+		ChannelStatus[ch].st = st;
+	} else
+		st = ChannelStatus[ch].st;
+	if (ctl_ncurs_mode != NCURS_MODE_TRACE || selected_channel == ch)
+		return;
+	wmove(dftwin, NOTE_LINE + ch, COLS - 23);
+	switch (st) {
+	case 0:
+		waddch(dftwin, ' ');
+		break;
+	case 1:
+		waddch(dftwin, 'P');
+		break;
+	case 2:
+		waddch(dftwin, 'm');
+		break;
+	case 3:
+		wattron(dftwin, A_BOLD);
+		waddch(dftwin, 'p');
+		wattroff(dftwin, A_BOLD);
+		break;
+	}
+	scr_modified_flag = 1;
 }
 
 static void ctl_drumpart(int ch, int is_drum)
@@ -1702,7 +1776,7 @@ static void ctl_lcd_mark(int status, int x, int y)
 	return;
     }
 
-    w = (COLS - 24) / 12 * 12;
+    w = (COLS - 28) / 12 * 12;
     if(status == GS_LCD_MARK_CLEAR)
       {
 	int x, y;

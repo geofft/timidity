@@ -119,6 +119,9 @@ enum midi_event_t
     ME_TIMESIG,			/* Time signature */
     ME_KEYSIG,			/* Key signature */
     ME_SCALE_TUNING,		/* Scale tuning */
+    ME_TEMPER_KEYSIG,		/* Temperament key signature */
+    ME_TEMPER_TYPE,		/* Temperament type */
+    ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
 
 	ME_SYSEX_GS1,	/* GS system exclusive message (1) */
 	ME_SYSEX_GS2,	/* GS system exclusive message (2) */
@@ -243,6 +246,7 @@ typedef struct {
   int8 velocity_sense_depth,velocity_sense_offset;
   
   int8 scale_tuning[12], prev_scale_tuning;
+  int8 temper_type;
 
   int8 soft_pedal;	/* for CC# Soft */
 
@@ -380,6 +384,7 @@ extern int no_4point_interpolation;
 #endif
 extern ChannelBitMask channel_mute;
 extern int8 current_keysig;
+extern int8 current_temper_keysig;
 extern int8 opt_init_keysig;
 extern int8 opt_force_keysig;
 extern int key_adjust;

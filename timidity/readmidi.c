@@ -554,6 +554,8 @@ int convert_midi_control_change(int chn, int type, int val, MidiEvent *ev_ret)
 int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 {
     int num_events = 0;				/* Number of events added */
+	uint16 channel_st;
+	int i, j;
 
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
 	current_file_info->mid = val[0];
@@ -620,7 +622,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  break;
 
 				case 0x05:	/* mono/poly mode */
- 				  if(*body == 0) {
+				  if(*body == 0) {
 					  channel[p].mono = 1;
 				  } else {
 					  channel[p].mono = 0;
@@ -1447,11 +1449,59 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		}
     }
 
+	/* Non-RealTime / RealTime Universal SysEx messages
+	 * 0 0x7e(Non-RealTime) / 0x7f(RealTime)
+	 * 1 SysEx device ID.  Could be from 0x00 to 0x7f.
+	 *   0x7f means disregard device.
+	 * 2 Sub ID
+	 * ...
+	 * E 0xf7
+	 */
+	if (len > 4 && val[0] >= 0x7e)
+		switch (val[2]) {
+		case 0x01:	/* Sample Dump header */
+		case 0x02:	/* Sample Dump packet */
+		case 0x03:	/* Dump Request */
+		case 0x05:	/* Sample Dump extensions */
+		case 0x06:	/* Inquiry Message */
+		case 0x07:	/* File Dump */
+			break;
+		case 0x08:	/* MIDI Tuning Standard */
+			switch (val[3]) {
+			case 0x0b:
+				channel_st = val[4] << 14 | val[5] << 7 | val[6];
+				if (val[1] == 0x7f) {
+					SETMIDIEVENT(evm[0],
+							0, ME_MASTER_TEMPER_TYPE, 0, val[7], 0);
+					num_events++;
+				} else {
+					for (i = 0, j = 0; i < 16; i++)
+						if (channel_st & 1 << i) {
+							SETMIDIEVENT(evm[j], 0, ME_TEMPER_TYPE,
+									MERGE_CHANNEL_PORT(i), val[7], 0);
+							j++;
+						}
+					num_events += j;
+				}
+				break;
+			}
+			break;
+		case 0x09:	/* General MIDI Message */
+		case 0x7b:	/* End of File */
+		case 0x7c:	/* Handshaking Message: Wait */
+		case 0x7d:	/* Handshaking Message: Cancel */
+		case 0x7e:	/* Handshaking Message: NAK */
+		case 0x7f:	/* Handshaking Message: ACK */
+			break;
+		}
+
     return(num_events);
 }
 
 int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 {
+	uint16 vol;
+	
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
 	current_file_info->mid = val[0];
 
@@ -1528,8 +1578,6 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 
 	if(addr == 0x400004) /* Master Volume */
 	{
-	    uint16 vol;
-
 	    vol = gs_convert_master_vol(*body);
 	    SETMIDIEVENT(*ev, 0, ME_MASTER_VOLUME,
 			 0, vol & 0xFF, (vol >> 8) & 0xFF);
@@ -1674,74 +1722,64 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	return 1;
     }
 
-    if(len > 4 && val[0] >= 0x7e)
-    {
-	int chan;
-
-	/* Non-RealTime Universal SysEx messages
-	 * 0 0x7E
-	 * 1 SysEx channel number. Could be from 0x00 to 0x7F.
-	 *   0x7F means disregard channel.
+	/* Non-RealTime / RealTime Universal SysEx messages
+	 * 0 0x7e(Non-RealTime) / 0x7f(RealTime)
+	 * 1 SysEx device ID.  Could be from 0x00 to 0x7f.
+	 *   0x7f means disregard device.
 	 * 2 Sub ID
 	 * ...
-	 *   0xF7
+	 * E 0xf7
 	 */
-
-	chan = val[1];
-	switch(val[2])
-	{
-	  case 0x01: /* Sample Dump header */
-	  case 0x02: /* Sample Dump packet */
-	  case 0x03: /* Dump Request */
-	    break;
-	  case 0x04: /* MIDI Time Code Setup/Device Control */
-	    switch(val[3])
-	    {
-	      case 0x01: /* Master Volume */
-	        {
-		    uint16 vol;
-		    vol = gm_convert_master_vol(val[4], val[5]);
-		    if(chan == 0x7F)
-		    {
-			SETMIDIEVENT(*ev, 0, ME_MASTER_VOLUME, 0,
-				     vol & 0xFF, (vol >> 8) & 0xFF);
-		    }
-		    else
-		    {
-			chan = MERGE_CHANNEL_PORT(chan);
-			SETMIDIEVENT(*ev, 0, ME_MAINVOLUME, chan,
-				     (vol >> 8) & 0xFF, 0);
-		    }
-		    return 1;
+	if (len > 4 && val[0] >= 0x7e)
+		switch (val[2]) {
+		case 0x01:	/* Sample Dump header */
+		case 0x02:	/* Sample Dump packet */
+		case 0x03:	/* Dump Request */
+			break;
+		case 0x04:	/* MIDI Time Code Setup/Device Control */
+			switch (val[3]) {
+			case 0x01:	/* Master Volume */
+				vol = gm_convert_master_vol(val[4], val[5]);
+				if (val[1] == 0x7f) {
+					SETMIDIEVENT(*ev, 0, ME_MASTER_VOLUME, 0,
+							vol & 0xff, vol >> 8 & 0xff);
+				} else {
+					SETMIDIEVENT(*ev, 0, ME_MAINVOLUME,
+							MERGE_CHANNEL_PORT(val[1]),
+							vol >> 8 & 0xff, 0);
+				}
+				return 1;
+			}
+			break;
+		case 0x05:	/* Sample Dump extensions */
+		case 0x06:	/* Inquiry Message */
+		case 0x07:	/* File Dump */
+			break;
+		case 0x08:	/* MIDI Tuning Standard */
+			switch (val[3]) {
+			case 0x0a:
+				SETMIDIEVENT(*ev, 0, ME_TEMPER_KEYSIG, 0,
+						val[4] | (val[4] & 0x40) << 1, val[5]);
+				return 1;
+			}
+			break;
+		case 0x09:	/* General MIDI Message */
+			/* GM System Enable/Disable */
+			if(val[3]) {
+				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Enable");
+				SETMIDIEVENT(*ev, 0, ME_RESET, 0, GM_SYSTEM_MODE, 0);
+			} else {
+				ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Disable");
+				SETMIDIEVENT(*ev, 0, ME_RESET, 0, DEFAULT_SYSTEM_MODE, 0);
+			}
+			return 1;
+		case 0x7b:	/* End of File */
+		case 0x7c:	/* Handshaking Message: Wait */
+		case 0x7d:	/* Handshaking Message: Cancel */
+		case 0x7e:	/* Handshaking Message: NAK */
+		case 0x7f:	/* Handshaking Message: ACK */
+			break;
 		}
-	    }
-	    break;
-	  case 0x05: /* Sample Dump extensions */
-	  case 0x06: /* Inquiry Message */
-	  case 0x07: /* File Dump */
-	  case 0x08: /* MIDI Tuning Standard */
-	  case 0x7B: /* End of File */
-	  case 0x7C: /* Handshaking Message: Wait */
-	  case 0x7D: /* Handshaking Message: Cancel */
-	  case 0x7E: /* Handshaking Message: NAK */
-	  case 0x7F: /* Handshaking Message: ACK */
-	    break;
-
-	  case 0x09: /* General MIDI Message */
-	    /* GM System Enable/Disable */
-	    if(val[3])
-	    {
-		ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Enable");
-		SETMIDIEVENT(*ev, 0, ME_RESET, 0, GM_SYSTEM_MODE, 0);
-	    }
-	    else
-	    {
-		ctl->cmsg(CMSG_INFO, VERB_DEBUG, "SysEx: GM System Disable");
-		SETMIDIEVENT(*ev, 0, ME_RESET, 0, DEFAULT_SYSTEM_MODE, 0);
-	    }
-	    return 1;
-	}
-    }
 
     return 0;
 }

@@ -85,9 +85,63 @@ int32 freq_table[128]=
  10548082, 11175303, 11839822, 12543854
 };
 
-int32 freq_table2[24][128];
+int32 freq_table_pytha[12][128];
+int32 freq_table_meantone[12][128];
+int32 freq_table_pureint[24][128];
 
-void init_freq_table2(void)
+void init_freq_table_pytha(void)
+{
+	int i, j, k, l;
+	double f;
+	static double ratio[] = {
+		  1.0 /  1, 256.0 / 243,   9.0 /   8,  32.0 /  27,
+		 81.0 / 64,   4.0 /   3, 729.0 / 512,   3.0 /   2,
+		128.0 / 81,  27.0 /  16,  16.0 /   9, 243.0 / 128
+	};
+	
+	for (i = 0; i < 12; i++)
+		for (j = -1; j < 11; j++) {
+			f = 440 * pow(2.0, (i - 9) / 12.0 + j - 5);
+			for (k = 0; k < 12; k++) {
+				l = i + j * 12 + k;
+				if (l < 0 || l >= 128)
+					continue;
+				freq_table_pytha[i][l] = f * ratio[k] * 1000 + 0.5;
+			}
+		}
+}
+
+void init_freq_table_meantone(void)
+{
+	int i, j, k, l;
+	double f;
+	static double ratio[12];
+	
+	ratio[0] = 1;
+	ratio[1] = 8 / pow(5.0, 5.0 / 4);
+	ratio[2] = pow(5.0, 1.0 / 2) / 2;
+	ratio[3] = 4 / pow(5.0, 3.0 / 4);
+	ratio[4] = 5.0 / 4;
+	ratio[5] = 2 / pow(5.0, 1.0 / 4);
+	ratio[6] = pow(5.0, 3.0 / 2) / 8;
+	ratio[7] = pow(5.0, 1.0 / 4);
+	ratio[8] = 8.0 / 5;
+	ratio[9] = pow(5.0, 3.0 / 4) / 2;
+	ratio[10] = 4 / pow(5.0, 1.0 / 2);
+	ratio[11] = pow(5.0, 5.0 / 4) / 4;
+	for (i = 0; i < 12; i++)
+		for (j = -1; j < 11; j++) {
+			f = 440 * pow(2.0, (i - 9) / 12.0 + j - 5);
+			for (k = 0; k < 12; k++) {
+				l = i + j * 12 + k;
+				if (l < 0 || l >= 128)
+					continue;
+				freq_table_meantone[i][l] = f * ratio[k] * 1000 + 0.5;
+			}
+		}
+}
+
+void init_freq_table_pureint(void)
 {
 	int i, j, k, l;
 	double f;
@@ -107,8 +161,8 @@ void init_freq_table2(void)
 				l = i + j * 12 + k;
 				if (l < 0 || l >= 128)
 					continue;
-				freq_table2[i][l] = f * major_ratio[k] * 1000 + 0.5;
-				freq_table2[i + 12][l] = f * minor_ratio[k] * 1000 + 0.5;
+				freq_table_pureint[i][l] = f * major_ratio[k] * 1000 + 0.5;
+				freq_table_pureint[i + 12][l] = f * minor_ratio[k] * 1000 + 0.5;
 			}
 		}
 }

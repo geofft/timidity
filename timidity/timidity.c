@@ -3277,7 +3277,9 @@ MAIN_INTERFACE void timidity_start_initialize(void)
 	for(i = 0; url_module_list[i]; i++)
 	    url_add_module(url_module_list[i]);
 	init_string_table(&opt_config_string);
-	init_freq_table2();
+	init_freq_table_pytha();
+	init_freq_table_meantone();
+	init_freq_table_pureint();
 	init_bend_fine();
 	init_bend_coarse();
 	init_tables();

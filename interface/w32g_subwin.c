@@ -541,9 +541,12 @@ ListWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_LISTWND_PLAY:
 				{
-					HWND hListBox = GetDlgItem(hListWnd, IDC_LISTBOX_PLAYLIST);
-					if(hListBox)
-						w32g_send_rc(RC_EXT_JUMP_FILE, ListBox_GetCurSel(hListBox));
+					int new_cursel =  SendDlgItemMessage(hwnd,IDC_LISTBOX_PLAYLIST,LB_GETCURSEL,0,0);
+					int selected, nfiles, cursel;
+					w32g_get_playlist_index(&selected, &nfiles, &cursel);
+					if ( nfiles <= new_cursel ) new_cursel = nfiles - 1;
+					if ( new_cursel >= 0 )
+						w32g_send_rc(RC_EXT_JUMP_FILE, new_cursel );
 				}
 				return FALSE;
 			case IDM_LISTWND_CHOOSEFONT:

@@ -1,4 +1,19 @@
 
+2003-03-26  TAMUKI Shoichi <tamuki@linet.gr.jp>
+	* interface/alsaseq_c.c, interface/ncurs_c.c, interface/winsyn_c.c,
+	  timidity/controls.h, timidity/playmidi.[ch], timidity/readmidi.c,
+	  timidity/tables.[ch], timidity/timidity.c:
+	  Support for temperament control with universal SysEx.
+	  - Temperament keysig control
+	  - Temperament type control
+
+2003-03-26  Daisuke Aoki <dai@sweetparty.ne.jp>
+	* interface/w32g_subwin.c (ListWndProc):
+	  Add a check for nfiles when double-clickng in list window
+	* interface/w32g_subwin3.c:
+	  Bug fix in mutual exclusion for tracer window, which might cause
+	  problems on Windows 2000.
+
 2003-03-26  Saito <timidity@flashmail.com>
 	* interface/w32g_subwin3.c:
 	  Fix resource leak of tracer window (W32GUI version)
@@ -25,9 +40,9 @@
 	* timidity/table.c, timidity/playmidi.c:
 	  Fix panning.
 
-2003-03-18  Tamuki <tamuki@linet.gr.jp>
+2003-03-18  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/playmidi.[ch], timidity/timidity.[ch]:
-	  Support for command line option
+	  Support for command line option below.
 	  -E l/L: Enable/Disable voice-by-voice LPF.
 
 2003-03-18  Saito <timidity@flashmail.com>
@@ -58,7 +73,7 @@
 	  Support for gradient bar resource
 	  Hack up arround redraw
 
-2003-02-23  Tamuki <tamuki@linet.gr.jp>
+2003-02-23  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/tables.[ch], timidity/timidity.c:
 	  Hack up attack_vol_table[] and sb_vol_table[]
@@ -94,7 +109,7 @@
 	  Improve envelope precision for SoundFont
 	* ChangeLog: updated
 
-2003-02-07  Tamuki <tamuki@linet.gr.jp>
+2003-02-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/playmidi.c
 	  Bug fixed rarely aborting due to pitch bend
 
@@ -102,7 +117,7 @@
 	* timidity/readmidi.c
 	  Bug fixed SysEx. parser in case of no EOX
 
-2003-02-01  Tamuki <tamuki@linet.gr.jp>
+2003-02-01  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/timidity.c
 	  Compilable on NetBSD/OpenBSD
 	  # thanks to Mr.342
@@ -160,11 +175,11 @@
 	  Bug fix text and graphic color on WRD window (W32GUI version)
 	  Bug fix quitting with iconized (W32GUI version)
 
-2003-01-10  Tamuki <tamuki@linet.gr.jp>
+2003-01-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* interface/alsaseq_c.c, timidity/readmidi.c, timidity/readmidi.h:
 	  Support for real time SysEx. on ALSA sequencer
 
-2002-12-05  Tamuki <tamuki@linet.gr.jp>
+2002-12-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* interface/winsyn_c.c, timidity/playmidi.c, timidity/playmidi.h,
 	  timidity/readmidi.c, timidity/tables.c, timidity/tables.h,
 	  timidity/timidity.c:
@@ -182,7 +197,7 @@
 	* interface/w32g_ini.c, interface/w32g_res.rc:
 	  Modify English resources (W32GUI version)
 
-2002-11-09  Tamuki <tamuki@linet.gr.jp>
+2002-11-09  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* interface/w32g_ini.c, interface/w32g_pref.c,
 	  interface/w32g_utl.c, interface/w32g_utl.h, timidity/mix.c,
 	  timidity/playmidi.c, timidity/playmidi.h, timidity/timidity.c:
@@ -361,7 +376,7 @@
 	  Bug fixed in case of MAX_CHANNEL >= 33
 	  # thanks to Mr.Ueda
 
-2002-09-10  Tamuki <tamuki@linet.gr.jp>
+2002-09-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Add initial keysig GUI option for pure intonation
 
@@ -369,7 +384,7 @@
 	* 
 	  Hacked up to use default value for LPF/resonance
 
-2002-09-08  Tamuki <tamuki@linet.gr.jp>
+2002-09-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Add initial keysig option for pure intonation
 
@@ -385,7 +400,7 @@
 	* 
 	  Support for 2 ports on Windows synthesizer mode
 
-2002-08-29  Tamuki <tamuki@linet.gr.jp>
+2002-08-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Bug fixed ALSA sequencer to add readmidi_read_init()
 
@@ -401,11 +416,11 @@
 	* 
 	  Support for Windows synthesizer mode
 
-2002-07-31  Tamuki <tamuki@linet.gr.jp>
+2002-07-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for meas.beat/keysig/tempo display on main panel
 
-2002-07-29  Tamuki <tamuki@linet.gr.jp>
+2002-07-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Bug fixed to use equal frequency table to select voice sample
 
@@ -434,11 +449,11 @@
 	* 
 	  Add pure intonation playing GUI option
 
-2002-07-18  Tamuki <tamuki@linet.gr.jp>
+2002-07-18  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Add frequency table for minor song playing
 
-2002-07-08  Tamuki <tamuki@linet.gr.jp>
+2002-07-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for ME_TIMESIG/ME_KEYSIG for RCP/R36/G18/G36 MIDI data
 
@@ -446,21 +461,21 @@
 	* configure.in:
 	  Rewrite configure.in
 
-2002-07-06  Tamuki <tamuki@linet.gr.jp>
+2002-07-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for real-time display of measure/beat (ncurses)
 
-2002-07-01  Tamuki <tamuki@linet.gr.jp>
+2002-07-01  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for playing MIDI data in pure intonation
 
-2002-06-21  Tamuki <tamuki@linet.gr.jp>
+2002-06-21  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Add key change command line option
 	  Update command help
 	  Modify moving song with not only down/up but only j/k (ncurses)
 
-2002-06-15  Tamuki <tamuki@linet.gr.jp>
+2002-06-15  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Add function to play with fixed key signature number
 
@@ -476,12 +491,12 @@
 	* 
 	  Support for non-linear for pan
 
-2002-06-08  Tamuki <tamuki@linet.gr.jp>
+2002-06-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for real-time display key signature on SMF (ncurses)
 	  Reflect keychange up/down to current key signature
 
-2002-06-06  Tamuki <tamuki@linet.gr.jp>
+2002-06-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for real-time display of key/tempo (ncurses)
 
@@ -493,7 +508,7 @@
 	* 
 	  Bug fixed to override patch option
 
-2002-06-04  Tamuki <tamuki@linet.gr.jp>
+2002-06-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* 
 	  Support for real-time channel mute control (ncurses)
 	  Modify moving ch. with not only c/C but only j/k (ncurses)
@@ -568,11 +583,11 @@
 	* 
 	  Bug fixed to work alternate sound in case of -j option
 
-2002-04-30  Tamuki <tamuki@linet.gr.jp>
+2002-04-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/{instrum.{c,h},timidity.{c,h}}
 	  Support for modulation patch option
 
-2002-04-20  Tamuki <tamuki@linet.gr.jp>
+2002-04-20  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/{instrum.{c,h},timidity.c}
 	  Support for ADSR patch option
 
@@ -582,7 +597,7 @@
 	  Bug fixed infinite looped in rs_bidir() of resample.c
 	  Support for insertion effect only [01 10: Overdrive]
 
-2002-04-16  Tamuki <tamuki@linet.gr.jp>
+2002-04-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
 	* timidity/instrum.c
 	  Using "tune=", change {low,high,root}_freq instead of sample_rate
 
