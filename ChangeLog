@@ -1,5 +1,8 @@
 2004-09-27  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* utils/support.c (vsnprintf): ensure snpritnf() to return a
+	  \0-terminated string
+
 	* interface/mac_c.c, interface/server_c.c, interface/w32g_c.c,
 	  interface/w32g_i.c, interface/wrdt_dumb.c, interface/wrdt_mac.c,
 	  interface/wrdt_tty.c, interface/wrdt_w32g.c, interface/xaw_i.c,

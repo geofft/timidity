@@ -207,7 +207,8 @@ void vsnprintf(char *buff, size_t bufsiz, const char *fmt, va_list ap)
     init_mblock(&pool);
     tmpbuf = new_segment(&pool, printf_string_upper_bound(fmt, ap));
     vsprintf(tmpbuf, fmt, ap);
-    strncpy(buff, tmpbuf, bufsiz);
+    strncpy(buff, tmpbuf, bufsiz-1);
+    buff[bufsiz-1] = '\0';
     reuse_mblock(&pool);
 }
 #endif /* HAVE_VSNPRINTF */
