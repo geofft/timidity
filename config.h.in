@@ -184,6 +184,10 @@
 /* Define to 1 if you have the `sleep' function. */
 #undef HAVE_SLEEP
 
+/* Define to 1 if you have the `snd_seq_port_info_set_timestamping' function.
+   */
+#undef HAVE_SND_SEQ_PORT_INFO_SET_TIMESTAMPING
+
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
