@@ -1,3 +1,10 @@
+2004-02-26  Saito <saito2@digitalme.com>
+
+	* timidity/instrum.[ch], timidity/timidity.c, timidity/playmidi.[ch],
+	  timidity/readmidi.c, timidity/mix.c:
+	  Rename #extension redamper to #extension damper.
+	  Add some patch options.
+
 2004-02-25  Saito <saito2@digitalme.com>
 
 	* timidity/w32g_vorbis_dll.c, timidity/vorbis_a.c, timidity/recache.c:
