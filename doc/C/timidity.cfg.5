@@ -1,4 +1,4 @@
-.TH timidity.cfg 5 "January 22 2004" "2.13.0"
+.TH timidity.cfg 5 "February 01 2004" "2.13.0"
 .SH NAME
 timidity.cfg \- configure file of TiMidity++
 .SH DESCRIPTION
@@ -49,18 +49,21 @@ foo.zip are also installed.
 Reads another configuration file, then continues processing the
 current one.
 .TP
-.BI "bank " number
+.BI "bank " "[MapID1] number"
 Selects the tone bank to modify.  Patch mappings that follow will
-affect this tone bank.
+affect this tone bank.  You can indicate specific map as a target, by
+specifing any ofthe following to \fIMapID1\fP: gm2, sc55, sc88,
+sc88pro, sc8850, xg, xgsfx64.
 .TP
 .BI "progbase " number
 Sets and displays the tone number from \fInumber\fP to
 \fInumber+128\fP.  If \fB progbase 1\fP are specified, tone numbers
 that follow are set and displayed as the numbers from 1 to 128.
 .TP
-.BI "drumset " number
-Selects the drum set to modify.  Patch mappings that follow will
-affect this drum set.
+.BI "drumset " "[MapID2] number"
+affect this drum set.  You can indicate specific map as a target, by
+specifing any ofthe following to \fIMapID2\fP: gm2drum, sc55drum,
+sc88drum, sc88prodrum,sc8850drum, xgdrum, xgsfx126.
 .TP
 .BI "number " "file [options]"
 .br
@@ -139,13 +142,13 @@ between 0 and 255.  The format is similar to \fBrate=\fP.
 .TP
 \fBsclnote=\fP\fInote[,...]\fP
 Set the instrument's standard note for scale tuning.  For example,
-\fBnote=60\fP causes the center note C to be standard note for scale
-tuning.  When two or more sample data is contained, the arguments
-after the second can specify different value respectively.
+\fBsclnote=60\fP causes the center note C to be standard note for
+scale tuning.  When two or more sample data is contained, the
+arguments after the second can specify different value respectively.
 .TP
 \fBscltune=\fP\fItune[,...]\fP
 Set the instrument's scale tuning factor in cents.  For example,
-\fBtune=50\fP causes the half tone steps as 50 cents.  When two or
+\fBscltune=50\fP causes the half tone steps as 50 cents.  When two or
 more sample data is contained, the arguments after the second can
 specify different value respectively.
 .TP
@@ -296,6 +299,10 @@ Copies all settings of the \fIdrumset\fP to the current drumset.
 .TP
 .BI "#extension copybank " bank
 Copies all settings of the \fIbank\fP to the current bank.
+.TP
+.BI "#extension copymap " "to-MapID from-MapID"
+Copies all settings of the banks defined for the map \fIfrom-MapID\fP
+to the map \fIto-MapID\fP.
 .TP
 .BI "#extension HTTPproxy " hostname:port
 Specifies the proxy of the HTTP protocol.  \fIhostname\fP and

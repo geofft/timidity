@@ -1,4 +1,4 @@
-.TH timidity.cfg 5 "2004年01月22日" "2.13.0"
+.TH timidity.cfg 5 "2004年02月01日" "2.13.0"
 .SH 名前
 timidity.cfg \- TiMidity++ の設定ファイル
 .SH 説明
@@ -49,18 +49,22 @@ baz.pat，zoo.pat が読み込まれます。
 他の設定ファイルをその場所に挿入し，続行します。source のネストは 50 段
 まで可能です。
 .TP
-.BI "bank " number
+.BI "bank " "[MapID1] number"
 これ以降変更するトーンバンクを選択します。この文以後の patch の対応付け
-は，指定されたトーンバンクに対して行われます。
+は，指定されたトーンバンクに対して行われます。\fIMapID1\fP に gm2，
+sc55，sc88，sc88pro，sc8850，xg，xgsfx64 のいずれかを指定することで，特
+定のマップを対象にできます。
 .TP
 .BI "progbase " number
 これ以降，プログラム番号を \fInumber\fP から \fInumber+128\fP で設定・
 表示します。例えば，\fBprogbase 1\fP とした場合は，それ以降プログラム番
 号は 1 から 128 で設定・表示されます。
 .TP
-.BI "drumset " number
+.BI "drumset " "[MapID2] number"
 変更するドラムセットを選択します。この文以後の patch の対応付けは，指定
-されたドラムセットに対して行われます。
+されたドラムセットに対して行われます。\fIMapID2\fP に gm2drum，
+sc55drum，sc88drum，sc88prodrum，sc8850drum，xgdrum，xgsfx126 のいずれ
+かを指定することで，特定のマップを対象にできます。
 .TP
 .BI "number " "file [options]"
 .br
@@ -145,9 +149,9 @@ baz.pat，zoo.pat が読み込まれます。
 .TP
 \fBscltune=\fP\fItune[,...]\fP
 インスツルメントのスケールチューニングの度合いを cent 単位で設定します。
-例えば，\fBscltune=50\fP とすれば，ノート間隔が50 cent になります。二つ
-目以降の引数は，音域別に複数のサンプルデータが含まれている場合に，それ
-ぞれ別の値を指定できます。
+例えば，\fBscltune=50\fP とすれば，ノート間隔が 50 cent になります。二
+つ目以降の引数は，音域別に複数のサンプルデータが含まれている場合に，そ
+れぞれ別の値を指定できます。
 .TP
 \fBmodrate=\fP\fIattack:decay:sustain:release1:release2:release3[,...]\fP
 .br
@@ -298,6 +302,10 @@ Instrument 番号 \fIprogram\fP で，\fIsecound\fP 秒以上 Suspend 状態が続
 .TP
 .BI "#extension copybank " bank
 \fIbank\fP 番号の状態すべてを，現在の \fIbank\fP にコピーします。
+.TP
+.BI "#extension copymap " "to-MapID from-MapID"
+マップ \fIfrom-MapID\fP に定義されたバンクの状態すべてを，マップ
+\fIto-MapID\fP にコピーします。
 .TP
 .BI "#extension HTTPproxy " hostname:port
 HTTP の proxy を設定します。proxy のホスト名を \fIhostname\fP に，ポー
