@@ -223,9 +223,9 @@ case "$target" in
 #        test -n "$SHLD" || SHLD="tlink32 -Tpd"
         test -n "$SHLD" || SHLD="BCC32 -WD"
         BORLANDC=yes
-        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
+        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
 		BORLANDC_START='C0X32.OBJ'
-        CFLAGS="$CFLAGS -WM"
+        CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
       "xcl "*)
@@ -250,9 +250,9 @@ case "$target" in
 #        test -n "$SHLD" || SHLD="tlink32 -Tpd"
         test -n "$SHLD" || SHLD="BCC32 -WD"
         BORLANDC=yes
-        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
+        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
         BORLANDC_START='C0X32.OBJ'
-        CFLAGS="$CFLAGS -WM"
+        CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
       "xcl "*) 
@@ -433,11 +433,7 @@ fi
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED
 AC_C_CONST
-if test "x$BORLANDC" = xyes; then
-  AC_DEFINE(inline,[])
-else
-  AC_C_INLINE
-fi
+AC_C_INLINE
 AC_C_VOLATILE
 AC_C_STRINGIZE
 AC_C_PROTOTYPES
@@ -1733,7 +1729,7 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
       VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
     else
 	  BORLANDC_START='C0W32.OBJ'
-      CFLAGS="$CFLAGS -W"
+      CFLAGS="$CFLAGS -tW"
     fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1759,7 +1755,7 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
 	  VCPP_LDFLAGS="$VCPP_LDFLAGS -subsystem:windows "
 	else
 	  BORLANDC_START='C0W32.OBJ'
-	  CFLAGS="$CFLAGS -W"
+	  CFLAGS="$CFLAGS -tW"
 	fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1920,6 +1916,7 @@ LIBS="$LIBS $lib_dl_opt $lib_png_opt $lib_zip_opt $lib_user32_opt $lib_w32gui_op
 SHLD="$SHLD $SHLDFLAGS"
 
 AC_SUBST(BORLANDC_START)
+AC_SUBST(BORLANDC_LDFLAGS)
 AC_SUBST(SHELL)
 AC_SUBST(timidity_LDFLAGS)
 AC_SUBST(VCPP_LDFLAGS)

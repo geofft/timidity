@@ -204,7 +204,7 @@ interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libint
 endif
 if BORLANDC
 interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-	for foo in   $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep);do \
+	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
 	  tlib $@ +$$foo; \
 	done	
 endif
@@ -287,11 +287,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 	rc w32g_res.rc
 else
-if BORLANDC
-w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-	brcc32 w32g_res.rc
-else
+
 w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
 	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
@@ -302,22 +298,19 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
 	escape_sjis.pl
 	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
+if BORLANDC 
+	windres -o $@ -O res w32g_res_escaped.rc
+else
 	windres -o $@ -O coff w32g_res_escaped.rc
+endif
 	rm w32g_res_escaped.rc
 endif
-endif
-## This needs to build japanese resource.
-#BRCC32 = c:/borland/bcc55/bin/brcc32.exe
-#BRCC32_FLAGS = -ic:/mingw/include
+
+## BORLANC brcc32 can't usr TiMidity++ resource
+#if BORLANDC 
 #w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 #	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-#	$(BRCC32) $(BRCC32_FLAGS) w32g_res.rc
-#	windres -o tmp.res -O coff w32g_res.RES
-#	mv tmp.res w32g_res.res
-
-###
-### For dynamic interfaces
-###
+#	brcc32 w32g_res.rc
 
 if NEEDDLOPEN
 # dynamic_targets = @dynamic_targets@ # autoconf already define this

@@ -163,6 +163,18 @@ EXTRA_timidity_SOURCES = \
 
 calcnewt_SOURCES = calcnewt.c
 
+if BORLANDC
+
+if ENABLE_W32GUI
+W32GUI_RES = w32g_res.res
+else
+if ENABLE_W32G_SYN
+W32GUI_RES = w32g_res.res
+endif
+endif
+
+else
+
 CLEANFILES = newton_table.c
 
 if ENABLE_W32GUI
@@ -171,6 +183,8 @@ else
 if ENABLE_W32G_SYN
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 endif
+endif
+
 endif
 
 if VCPP
@@ -194,11 +208,18 @@ else
 
 if BORLANDC
 timidity_LDADD = \
-	$(top_builddir)/interface/interface.lib \
-	$(top_builddir)/libarc/arc.lib \
-	$(top_builddir)/libunimod/unimod.lib \
-	$(top_builddir)/utils/utils.lib 
-
+      interface.lib \
+      arc.lib \
+      unimod.lib \
+      utils.lib
+BORLANDC_LINK_OPTIONS = \
+      -L..\\interface \
+      -L..\\libarc \
+      -L..\\libunimod \
+      -L..\\utils
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+      $(top_builddir)/interface/interface.lib \
+      $(top_builddir)/libarc/arc.lib \
 timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/interface/interface.lib \
 	$(top_builddir)/libarc/arc.lib \
@@ -225,6 +246,7 @@ endif
 endif
 
 if VCPP
+
 VC_LINK = link.exe
 VCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
 
@@ -236,19 +258,20 @@ calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
 	$(VCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
 
-endif
+else
 
 if BORLANDC
 BORLANDC_LINK = ilink32.exe -C -Gn
-BCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
 
-timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
 	@rm -f timidity$(EXEEXT)
-	$(BORLANDC_LINK) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
-
+	$(BORLANDC_LINK) $(BORLANDC_LINK_OPTIONS) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
+calcnewt.$(OBJEXT): calcnewt.c
+	$(CC)  -tWC  -c calcnewt.c
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
-	$(BCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+	$(CCLD) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+endif
 
 endif
 

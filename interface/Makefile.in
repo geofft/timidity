@@ -95,6 +95,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 A_so_libs = @A_so_libs@
 BORLANDC_FALSE = @BORLANDC_FALSE@
+BORLANDC_LDFLAGS = @BORLANDC_LDFLAGS@
 BORLANDC_START = @BORLANDC_START@
 BORLANDC_TRUE = @BORLANDC_TRUE@
 CC = @CC@
@@ -503,17 +504,11 @@ EXTRA_DIST = \
 
 # ELFILES = @ELFILES@ # autoconf already define this
 @ENABLE_EMACS_TRUE@install_el = install.el
-#BRCC32 = c:/borland/bcc55/bin/brcc32.exe
-#BRCC32_FLAGS = -ic:/mingw/include
+
+#if BORLANDC 
 #w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 #	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-#	$(BRCC32) $(BRCC32_FLAGS) w32g_res.rc
-#	windres -o tmp.res -O coff w32g_res.RES
-#	mv tmp.res w32g_res.res
-
-###
-### For dynamic interfaces
-###
+#	brcc32 w32g_res.rc
 
 # dynamic_targets = @dynamic_targets@ # autoconf already define this
 @NEEDDLOPEN_TRUE@install_dynamics = install.dynamics
@@ -1340,7 +1335,7 @@ libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libin
 @VCPP_TRUE@interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
 @VCPP_TRUE@	link -lib $(libinterface_OBJCTS) $(libinterface_LIBADD) -out:$@
 @BORLANDC_TRUE@interface.lib: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep)
-@BORLANDC_TRUE@	for foo in   $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libinterface_dep);do \
+@BORLANDC_TRUE@	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
 @BORLANDC_TRUE@	  tlib $@ +$$foo; \
 @BORLANDC_TRUE@	done	
 
@@ -1375,21 +1370,20 @@ install.el: $(ELFILES)
 @VCPP_TRUE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @VCPP_TRUE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 @VCPP_TRUE@	rc w32g_res.rc
-@BORLANDC_TRUE@@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-@BORLANDC_TRUE@@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-@BORLANDC_TRUE@@VCPP_FALSE@	brcc32 w32g_res.rc
-@BORLANDC_FALSE@@VCPP_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
-@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
-@BORLANDC_FALSE@@VCPP_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
-@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
+@VCPP_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
+@VCPP_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
-@BORLANDC_FALSE@@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-@BORLANDC_FALSE@@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
-@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl
-@BORLANDC_FALSE@@VCPP_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
+@VCPP_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
+@VCPP_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
+
+@VCPP_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@VCPP_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
+@VCPP_FALSE@	escape_sjis.pl
+@VCPP_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
+@BORLANDC_TRUE@@VCPP_FALSE@	windres -o $@ -O res w32g_res_escaped.rc
 @BORLANDC_FALSE@@VCPP_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc
-@BORLANDC_FALSE@@VCPP_FALSE@	rm w32g_res_escaped.rc
+@VCPP_FALSE@	rm w32g_res_escaped.rc
 #n_so_libs = @n_so_libs@
 #s_so_libs = @s_so_libs@
 #m_so_libs = @m_so_libs@

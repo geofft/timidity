@@ -275,7 +275,7 @@ typedef int32 splen_t;
 #  include <math.h>
 #else
 #  define TIM_FSCALE(a,b) ((a) * (double)(1<<(b)))
-#  define TIM_FSCALENEG(a,b) ((a) * (1.0L / (double)(1<<(b))))
+#  define TIM_FSCALENEG(a,b) ((a) * (1.0 / (double)(1<<(b))))
 #endif
 
 #ifdef HPUX
@@ -351,8 +351,10 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 
 #ifdef __BORLANDC__
 /* strncasecmp() -> strncmpi(char *,char *,size_t) */
-#define strncasecmp(a,b,c) strncmpi(a,b,c)
-#define strcasecmp(a,b) strcmpi(a,b)
+//#define strncasecmp(a,b,c) strncmpi(a,b,c)
+//#define strcasecmp(a,b) strcmpi(a,b)
+#define strncasecmp(a,b,c) strnicmp(a,b,c)
+#define strcasecmp(a,b) stricmp(a,b)
 #endif /* __BORLANDC__ */
 
 #ifdef _MSC_VER
