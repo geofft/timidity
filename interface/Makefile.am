@@ -310,7 +310,8 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
 	escape_sjis.pl
 	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
-	windres -o $@ -O coff w32g_res_escaped.rc
+	windres -o $@ -O coff w32g_res.rc 2>&1|grep escape - >/dev/null && \
+	windres -o $@ -O coff w32g_res_escaped.rc || echo
 	rm w32g_res_escaped.rc
 endif
 endif

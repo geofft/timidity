@@ -1222,7 +1222,8 @@ install.el: $(ELFILES)
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res.rc 2>&1|grep escape - >/dev/null && \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc || echo
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm w32g_res_escaped.rc
 #n_so_libs = @n_so_libs@
 #s_so_libs = @s_so_libs@

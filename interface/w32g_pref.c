@@ -3041,11 +3041,19 @@ int gogo_ConfigDialogInfoSaveINI(void)
 	char *section = SEC_GOGO;
 	char *inifile = timidity_output_inifile;
 	char buffer[1024];
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#define NUMSAVE(name) \
+		sprintf(buffer,"%d",gogo_ConfigDialogInfo.name ); \
+		WritePrivateProfileString(section, #name ,buffer,inifile);
+#define STRSAVE(name) \
+		WritePrivateProfileString(section,(char *) #name ,(char *)gogo_ConfigDialogInfo.name ,inifile);
+#else
 #define NUMSAVE(name) \
 		sprintf(buffer,"%d",gogo_ConfigDialogInfo. ## name ); \
 		WritePrivateProfileString(section, #name ,buffer,inifile);
 #define STRSAVE(name) \
 		WritePrivateProfileString(section,(char *) #name ,(char *)gogo_ConfigDialogInfo. ## name ,inifile);
+#endif
 	NUMSAVE(optIDC_CHECK_DEFAULT)
 	NUMSAVE(optIDC_CHECK_COMMANDLINE_OPTS)
 	STRSAVE(optIDC_EDIT_COMMANDLINE_OPTION)
@@ -3094,6 +3102,16 @@ int gogo_ConfigDialogInfoLoadINI(void)
 	char *inifile = timidity_output_inifile;
 	int num;
 	char buffer[1024];
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#define NUMLOAD(name) \
+		num = GetPrivateProfileInt(section, #name ,-1,inifile); \
+		if(num!=-1) gogo_ConfigDialogInfo.name = num;
+#define STRLOAD(name,len) \
+		GetPrivateProfileString(section,(char *) #name ,"",buffer,len,inifile); \
+		buffer[len-1] = '\0'; \
+		if(buffer[0]!=0) \
+			strcpy((char *)gogo_ConfigDialogInfo.name ,buffer);
+#else
 #define NUMLOAD(name) \
 		num = GetPrivateProfileInt(section, #name ,-1,inifile); \
 		if(num!=-1) gogo_ConfigDialogInfo. ## name = num;
@@ -3102,6 +3120,7 @@ int gogo_ConfigDialogInfoLoadINI(void)
 		buffer[len-1] = '\0'; \
 		if(buffer[0]!=0) \
 			strcpy((char *)gogo_ConfigDialogInfo. ## name ,buffer);
+#endif
 	gogo_ConfigDialogInfoLock();
 	NUMLOAD(optIDC_CHECK_DEFAULT)
 	NUMLOAD(optIDC_CHECK_COMMANDLINE_OPTS)
@@ -3472,11 +3491,19 @@ int vorbis_ConfigDialogInfoSaveINI(void)
 	char *inifile = timidity_output_inifile;
 	char buffer[1024];
 //	int len;
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#define NUMSAVE(name) \
+		sprintf(buffer,"%d",vorbis_ConfigDialogInfo.name ); \
+		WritePrivateProfileString(section, #name ,buffer,inifile);
+//#define STRSAVE(name,len) \
+//		WritePrivateProfileString(section,(char *) #name ,(char *)vorbis_ConfigDialogInfo.name ,inifile);
+#else
 #define NUMSAVE(name) \
 		sprintf(buffer,"%d",vorbis_ConfigDialogInfo. ## name ); \
 		WritePrivateProfileString(section, #name ,buffer,inifile);
 //#define STRSAVE(name,len) \
 //		WritePrivateProfileString(section,(char *) #name ,(char *)vorbis_ConfigDialogInfo. ## name ,inifile);
+#endif
 	NUMSAVE(optIDC_CHECK_DEFAULT)
 	NUMSAVE(optIDC_COMBO_MODE)
 	WritePrivateProfileString(NULL,NULL,NULL,inifile);		// Write Flush
@@ -3490,6 +3517,16 @@ int vorbis_ConfigDialogInfoLoadINI(void)
 	char *inifile = timidity_output_inifile;
 	int num;
 //	char buffer[1024];
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#define NUMLOAD(name) \
+		num = GetPrivateProfileInt(section, #name ,-1,inifile); \
+		if(num!=-1) vorbis_ConfigDialogInfo.name = num;
+//#define STRLOAD(name,len) \
+//		GetPrivateProfileString(section,(char *) #name ,"",buffer,len,inifile); \
+//		buffer[len-1] = '\0'; \
+//		if(buffer[0]!=0) \
+//			strcpy((char *)vorbis_ConfigDialogInfo.name ,buffer);
+#else
 #define NUMLOAD(name) \
 		num = GetPrivateProfileInt(section, #name ,-1,inifile); \
 		if(num!=-1) vorbis_ConfigDialogInfo. ## name = num;
@@ -3498,6 +3535,7 @@ int vorbis_ConfigDialogInfoLoadINI(void)
 //		buffer[len-1] = '\0'; \
 //		if(buffer[0]!=0) \
 //			strcpy((char *)vorbis_ConfigDialogInfo. ## name ,buffer);
+#endif
 	vorbis_ConfigDialogInfoLock();
 	NUMLOAD(optIDC_CHECK_DEFAULT)
 	NUMLOAD(optIDC_COMBO_MODE)
