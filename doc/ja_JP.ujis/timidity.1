@@ -442,10 +442,10 @@ X Window System がサポートされている環境のみで動作します。サウンドスペ
 .TP
 .BI "\-H, \-\-force\-keysig " n
 調号の数を指定します。\fIn\fP が正の場合は♯(シャープ)の数，\fIn\fP が
-負の場合は♭(フラット)の数のキーに転調ながら，MIDI ファイルを演奏します。
+負の場合は♭(フラット)の数のキーに移調ながら，MIDI ファイルを演奏します。
 \fIn\fP には \fB\-7\fP から \fB7\fP までの値を指定することができます。
 例えば，\fIn\fP に \fB\-1\fP を与えると，いかなる調性の MIDI ファイルで
-あっても，♭(フラット)が 1 個のヘ長調あるいはニ短調に転調しながら演奏す
+あっても，♭(フラット)が 1 個のヘ長調あるいはニ短調に移調しながら演奏す
 るので，演奏しやすい調性で楽器を練習するときの伴奏などに使うと便利です。
 .TP
 .B \-h, \-\-help
@@ -643,7 +643,12 @@ Sun Audio (au)ファイルを出力します。
 AIFF(Audio Interchange File Format) ファイルを出力します。
 .TP
 .B \-Ow
-RIFF WAVE ファイルを出力します。
+RIFF WAVE ファイルを出力します。出力がシーケンシャルファイルだったり，
+\fBTiMidity++\fP がファイルを閉じる前に中断された場合，ファイルヘッダは
+0xffffffff の RIFF およびデータブロック長フィールドを含みます。著名なサ
+ウンド変換ユーティリティ sox は，そのような規格外のファイルを読めるので，
+別フォーマットへのオンザフライ変換として，sox に直接データをパイプでき
+ます。
 .TP
 .B \-Ol
 MIDI イベントのリストを出力します。
@@ -748,7 +753,7 @@ Linux PCM デバイスに対しては使用できません。
 .br
 一方，\fB\-Q\fP オプションに `t' の文字を付加するか，
 \fB\-\-temper\-mute\fP オプションを指定することにより，音律種別
-\fIn\fP をミュートします。\fIn\fP には プリセット音律種別として
+\fIn\fP をミュートします。\fIn\fP には，プリセット音律種別として
 \fB0\fP から \fB3\fP までの値を，ユーザ定義音律種別として \fB4\fP から
 \fB7\fP までの値を指定することができます。
 .TP
@@ -910,6 +915,63 @@ MIDI ファイルの Key Signature メタイベントに基づき，簡易的な純正律で演
 ラット)の場合は負の数を指定します。\fIn\fP には \fB\-7\fP から \fB7\fP
 までの値を指定することができます。さらに，短調の場合は `m' の文字を付加
 します。
+.RE
+.TP
+.BI "\-\-module=" n
+特定の音源モジュールの動作をできるだけ真似ます。今のところ，定義されて
+いる \fIn\fP の値は次のとおりです。
+.RS
+.TP
+.B 0
+\fBTiMidity++\fP デフォルト
+.TP
+.B 1
+Roland SC\-55
+.TP
+.B 2
+Roland SC\-88
+.TP
+.B 3
+Roland SC\-88Pro
+.TP
+.B 4
+Roland SC\-8850
+.TP
+.B 5\-15
+GS 用にリザーブ
+.TP
+.B 16
+YAMAHA MU\-50
+.TP
+.B 17
+YAMAHA MU\-80
+.TP
+.B 18
+YAMAHA MU\-90
+.TP
+.B 19
+YAMAHA MU\-100
+.TP
+.B 20\-31
+XG 用にリザーブ
+.TP
+.B 32
+SoundBlaster Live!
+.TP
+.B 33
+SoundBlaster Audigy
+.TP
+.B 34\-111
+任意の音源モジュール用にリザーブ
+.TP
+.B 112
+\fBTiMidity++\fP スペシャル 1
+.TP
+.B 113\-126
+\fBTiMidity++\fP 特定目的用にリザーブ
+.TP
+.B 127
+\fBTiMidity++\fP デバッグ
 .RE
 .SH 関連項目
 lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1),

@@ -365,8 +365,13 @@ Moog resonant low\-pass VCF (24dB/oct)
 .RE
 .TP
 .BI "ns=, \-\-noise\-shaping " n
-Enable the \fIn\fP th degree noiseshaping filter.  Valid values of n
-are in the interval from \fB0\fP (min) to \fB4\fP (max).
+Enable the \fIn\fP th degree noiseshaping filter.  The distortion at
+decay stage is improved, but the noise on human auditory feeling
+increases because it shifts to a high frequency.  In case of 8\-bit
+linear encoding, valid values of \fIn\fP are in the interval from
+\fB0\fP (min) to \fB4\fP (max).  Default value is \fB4\fP.  In case of
+16\-bit linear encoding, valid values of n are in the interval from
+\fB0\fP to \fB2\fP.  Default value is \fB2\fP.
 .TP
 .BI "resamp=, \-\-resample " (d|l|c|L|n|g)
 .RS
@@ -417,7 +422,14 @@ Open the Sound\-Spectrogram window.  This option is activated if the
 system has support for the X Window System.
 .TP
 .BI "\-H, \-\-force\-keysig " n
-Forces keysig.  Specify the number of sharps(+) or flats(\-).
+Specify the number of key signature.  MIDI file is performed with
+transposition to the key of the number of sharp (when \fIn\fP is
+positive) or flat (when \fIn\fP is negative).  Valid values of \fIn\fP
+are in the interval from \fB\-7\fP to \fB7\fP.  For example, if \fIn\fP
+is \fB1\fP, MIDI file with any tonality will be performed transposing
+to \fB1\fP flat (i.e., F major or D minor).  Therefore, it is
+convenient to use for the accompaniment when practicing a musical
+instrument by the tonality which is easy to perform.
 .TP
 .B \-h, \-\-help
 Show the help message.
@@ -578,7 +590,7 @@ Sets interpolation parameter.  This option depends on the
 .RS
 .TP
 .B cspline, lagrange
-Toggles 4-point linear interpolation (default is on).
+Toggles 4\-point linear interpolation (default is on).
 .TP
 .B newton
 \fIn\fP point interpolation using Newton polynomials.  \fIn\fP must be
@@ -731,14 +743,16 @@ automatic polyphony reduction algorithm.
 .ns
 .TP
 .BI "\-\-temper\-mute " n[,...]
-Causes channel \fIn\fP to be quiet.  If channel \fIn\fP is negative,
-channel \-\fIn\fP is turned back on.  If \fIn\fP is \fB0\fP, all
-channels are turned off.
+Cause channel \fIn\fP to be quiet.  \fIn\fP can carry out package
+specification by `,'.  If \fIn\fP is \fB0\fP, all channels are turned
+off.  Continuously, specifying \-\fIn\fP, channel \fIn\fP is turned
+back on.
 .br
 On the other hand, to put `t' character after \fB\-Q\fP option or to
 use \fB\-\-temper\-mute\fP describes temperament mute.  This mutes
-channels of the specific temperament.  \fIn\fP can range \fB0\fP to
-\fB7\fP.
+channels of specific temperament type \fIn\fP.  For preset
+temperament, \fIn\fP can range \fB0\fP to \fB3\fP.  For user\-defined
+temperament, \fIn\fP can range \fB4\fP to \fB7\fP.
 .TP
 .BI "\-q, \-\-audio\-buffer " sec/n
 Specify audio buffer in seconds.  \fIsec\fP maximum size of buffer,
@@ -764,7 +778,7 @@ selected, depending on the implementation.
 Adjust tempo to \fIn\fP%; \fB120\fP play MOD files with an NTSC
 Amiga's timing.
 .TP
-.BI "-t, \-\-output\-charset " code
+.BI "\-t, \-\-output\-charset " code
 Sets output coding of Japanese text.  Possible values of \fIcode\fP
 are:
 .RS
@@ -887,14 +901,75 @@ carriage return.
 .TP
 .BI "\-Z, \-\-freq\-table " file
 Cause the table of frequencies to be read from \fIfile\fP.  This is
-useful to define a tuning different from the occidental temperate
-scale.
+useful to define a tuning different from 12\-equal temperament.  If
+``pure'' is specified, TiMidity++ plays in trial pure intonation.
 .RS
 .TP
 .BI "\-Zpure, \-\-pure\-intonation " [n(m)]
-Simple just intonation playing by Key Signature meta\-event in the
-MIDI file.  You can specify the keysig by hand, in case the MIDI file
-does not contains the meta\-event.
+Play in trial pure intonation by Key Signature meta\-event in the MIDI
+file.  You can specify the initial keysig by hand, in case the MIDI
+file does not contains the meta\-event.  Optionally, \fIn\fP is the
+number of key signature.  In case of sharp, \fIn\fP is positive.  In
+case of flat, \fIn\fP is negative.  Valid values of \fIn\fP are in the
+interval from \fB\-7\fP to \fB7\fP.  In case of minor mode, you should
+put `a' character along with \fB\-Zpure\fP option.
+.RE
+.TP
+.BI "\-\-module=" n
+Simulate behavior of specific synthesizer module as much as possible.
+For the moment, the value of \fIn\fP defined is as follows:
+.RS
+.TP
+.B 0
+\fBTiMidity++\fP Default
+.TP
+.B 1
+Roland SC\-55
+.TP
+.B 2
+Roland SC\-88
+.TP
+.B 3
+Roland SC\-88Pro
+.TP
+.B 4
+Roland SC\-8850
+.TP
+.B 5\-15
+Reserved for GS family
+.TP
+.B 16
+YAMAHA MU\-50
+.TP
+.B 17
+YAMAHA MU\-80
+.TP
+.B 18
+YAMAHA MU\-90
+.TP
+.B 19
+YAMAHA MU\-100
+.TP
+.B 20\-31
+Reserved for XG family
+.TP
+.B 32
+SoundBlaster Live!
+.TP
+.B 33
+SoundBlaster Audigy
+.TP
+.B 34\-111
+Reserved for other synthesizer modules
+.TP
+.B 112
+\fBTiMidity++\fP Special 1
+.TP
+.B 113\-126
+Reserved for \fBTiMidity++\fP specification purposes
+.TP
+.B 127
+\fBTiMidity++\fP Debug
 .RE
 .SH SEE ALSO
 lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1),

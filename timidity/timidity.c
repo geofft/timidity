@@ -3532,7 +3532,12 @@ static inline int parse_opt_h(const char *arg)
 "               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)",
 "                 'm' stands for minor mode",
 "  --module=n",
-"               Set default module as n",
+"               Simulate behavior of specific synthesizer module by n",
+"                 n=0       : TiMidity++ Default (default)",
+"                   1-15    : GS family",
+"                   16-31   : XG family",
+"                   32-111  : SoundBlaster and other systhesizer modules",
+"                   112-127 : TiMidity++ specification purposes",
 		NULL
 	};
 	static char *help_args[3];

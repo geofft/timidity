@@ -1,15 +1,20 @@
 2004-02-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/playmidi.c (get_play_note_ratio): Fix bug
 	* configs/Makefile.{am,in}:
-	  Rename to msc[67]-project.zip entry for msc-project[67].zip
-	  Rename to msc6-sjis.txt entry for msc-sjis.txt
+	  Rename for msc-project[67].zip to msc[67]-project.zip entry
+	  Rename for msc-sjis.txt to msc6-sjis.txt entry
 	  Add entry for msc7-sjis.txt
+	* doc/C/timidity.1, doc/ja_JP.ujis/timidity.1:
+	  Update man page of timidity.1
+	* timidity/playmidi.c (get_play_note_ratio): Fix bug
+	* timidity/timidity.c (parse_opt_h):
+	  Rewrite help message for --module
+
+2004-02-06  Kouji 'kekyo' Suzuki <k@kekyo.net>
 	* configs/msc[67]-project.zip, msc6-sjis.txt: Rename
 	* configs/msc7-sjis.txt: Add
 	* interface/rtsyn_common.c, timidity/calcnewt.c:
 	  Fix to fit with Visual C++ 7.0
-	  # thanks to Mr.kekyo
 
 2004-02-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -17,7 +22,7 @@
 	  Delete entry for msc-project.zip
 	  Add entry for msc-project[67].zip
 
-2004-02-05  Saito <saito2@digitalme.com>
+2004-02-05  Kouji 'kekyo' Suzuki <k@kekyo.net>
 
 	* configs/msc-project.zip:
 	  Remove this file.
@@ -29,7 +34,6 @@
 	  timidity/vorbis_a.c, timidity/wave_a.c,
 	  utils/support.h:
 	  Fix codes for Visual C++ 7.0.
-	  # thanks to Mr.kekyo
 
 2004-02-05  Kentaro Sato <kentaro@ranvis.com>
 
