@@ -1150,12 +1150,8 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
     sp = (SampleList *)SFMalloc(current_sfrec, sizeof(SampleList));
     memset(sp, 0, sizeof(SampleList));
 
-    if(bank == 128) {
-		if(tbl->set[SF_keynum]) {
-			sp->v.note_to_use = (int)tbl->val[SF_keynum];
-		} else if(tbl->set[SF_rootKey]) {
-			sp->v.note_to_use = (int)tbl->val[SF_rootKey];
-		}
+	if(tbl->set[SF_keynum]) {
+		sp->v.note_to_use = (int)tbl->val[SF_keynum];
 	}
     make_info(sf, sp, tbl);
 
@@ -1448,8 +1444,6 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	    vp->root++;
 	    vp->tune = 100 + vp->tune;
 	}
-	if(vp->v.scale_tuning == 50)
-	    vp->tune /= 2;
     }
     else
     {
@@ -1462,10 +1456,10 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
     /* orverride root key */
     if(tbl->set[SF_rootKey]) {
-		vp->root += (int)tbl->val[SF_rootKey] - sp->originalPitch;
+		vp->root = (int)tbl->val[SF_rootKey];
 	}
 
-    vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
+	vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
 	(int)tbl->val[SF_fineTune];
 
     /* correct too high pitch */

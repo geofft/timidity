@@ -869,13 +869,7 @@ void recompute_freq(int v)
 		voice[v].frequency = voice[v].orig_frequency * pf;
 		voice[v].cache = NULL;
 	}
-	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
-			&& channel[ch].drums[note]->play_note != -1)
-		root_freq = voice[v].sample->root_freq
-				* (double) freq_table[channel[ch].drums[note]->play_note]
-				/ voice[v].orig_frequency;
-	else
-		root_freq = voice[v].sample->root_freq;
+	root_freq = voice[v].sample->root_freq;
 	a = TIM_FSCALE(((double) voice[v].sample->sample_rate
 			* voice[v].frequency + channel[ch].pitch_offset_fine)
 			/ (root_freq * play_mode->rate), FRACTION_BITS) + 0.5;
@@ -1891,9 +1885,10 @@ static int find_free_voice(void)
 static int select_play_sample(Sample *splist,
 		int nsp, int note, int *vlist, MidiEvent *e)
 {
+	int ch = e->channel, keynote = e->a & 0x7F;
 	int32 f, fs, ft, fst, fc, cdiff, diff;
-	int8 tt = channel[e->channel].temper_type;
-	uint8 tp = channel[e->channel].rpnmap[RPN_ADDR_0003];
+	int8 tt = channel[ch].temper_type;
+	uint8 tp = channel[ch].rpnmap[RPN_ADDR_0003];
 	Sample *sp, *spc;
 	int16 st;
 	double ratio;
@@ -1952,12 +1947,17 @@ static int select_play_sample(Sample *splist,
 	vel = e->b;
 	nv = 0;
 	for (i = 0, sp = splist; i < nsp; i++, sp++) {
-		/* SF2 - Scale Tuning */
-		if ((st = sp->scale_tuning) != 100) {
-			ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
-			ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
-		} else
-			ft = f, fst = fs;
+		if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
+			ratio = (double)st / 100.0f;
+			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
+			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
+		} else {ft = f, fst = fs;}
+		if(channel[ch].drums[keynote] != NULL
+			&& channel[ch].drums[keynote]->play_note != -1) {
+			ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
+				/ (double)sp->root_freq;
+			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
+		}
 		if (sp->low_freq <= fst && sp->high_freq >= fst
 				&& sp->low_vel <= vel && sp->high_vel >= vel) {
 			j = vlist[nv] = find_voice(e);
@@ -1971,12 +1971,17 @@ static int select_play_sample(Sample *splist,
 	if (nv == 0) {
 		cdiff = 0x7fffffff;
 		for (i = 0, sp = splist; i < nsp; i++, sp++) {
-			/* SF2 - Scale Tuning */
-			if ((st = sp->scale_tuning) != 100) {
-				ratio = pow(2.0, (note - 60) * (st - 100) / 1200.0);
-				ft = f * ratio + 0.5, fst = fs * ratio + 0.5;
-			} else
-				ft = f, fst = fs;
+			if ((st = sp->scale_tuning) != 100) {	/* SF2 - Scale Tuning */
+			ratio = (double)st / 100.0f;
+			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
+			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
+			} else {ft = f, fst = fs;}
+			if(channel[ch].drums[keynote] != NULL
+				&& channel[ch].drums[keynote]->play_note != -1) {
+				ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
+					/ (double)sp->root_freq;
+				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
+			}
 			diff = abs(sp->root_freq - fst);
 			if (diff < cdiff) {
 				fc = ft;
@@ -2033,8 +2038,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 		ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 			  "Strange: percussion instrument with %d samples!",
 			  ip->samples);
-		if(ip->sample->note_to_use)
-		note = ip->sample->note_to_use;
+		if(ip->sample->note_to_use) {note = ip->sample->note_to_use;}
 		if(ip->type == INST_SF2) {
 			nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
 			/* Replace the sample if the sample is cached. */
