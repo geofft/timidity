@@ -17,7 +17,7 @@ dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 dnl MY_DEFINE(VARIABLE)
-AC_DEFUN(MY_DEFINE,
+AC_DEFUN([MY_DEFINE],
 [cat >> confdefs.h <<EOF
 [#define] $1 1
 EOF
@@ -29,7 +29,7 @@ dnl                  action-if-yes-or-dynamic,
 dnl		     $5
 dnl		     action-if-yes,action-if-dynamic,action-if-no)
 dnl		     $6            $7                $8
-AC_DEFUN(CONFIG_INTERFACE,
+AC_DEFUN([CONFIG_INTERFACE],
 [AC_ARG_ENABLE($1,[$4],
 [case "x$enable_$1" in xyes|xdynamic) $5 ;; esac])
 case "x$enable_$1" in
@@ -53,7 +53,7 @@ dnl CHECK_DLSYM_UNDERSCORE([ACTION-IF-NEED [, ACTION IF-NOT-NEED]])
 dnl variable input:
 dnl   CC CFLAGS CPPFLAGS LDFLAGS LIBS SHCFLAGS SHLD SHLDFLAGS
 dnl   ac_cv_header_dlfcn_h lib_dl_opt so
-AC_DEFUN(CHECK_DLSYM_UNDERSCORE,
+AC_DEFUN([CHECK_DLSYM_UNDERSCORE],
 [dnl Check if dlsym need a leading underscore
 AC_MSG_CHECKING(whether your dlsym() needs a leading underscore)
 AC_CACHE_VAL(timidity_cv_func_dlsym_underscore,
@@ -144,7 +144,7 @@ esac
 
 dnl contains program from perl5
 dnl CONTAINS_INIT()
-AC_DEFUN(CONTAINS_INIT,
+AC_DEFUN([CONTAINS_INIT],
 [dnl Some greps do not return status, grrr.
 AC_MSG_CHECKING(whether grep returns status)
 echo "grimblepritz" >grimble
@@ -171,7 +171,7 @@ esac
 ])
 
 dnl CONTAINS(word,filename,action-if-found,action-if-not-found)
-AC_DEFUN(CONTAINS,
+AC_DEFUN([CONTAINS],
 [if $contains "^[$1]"'[$]' $2 >/dev/null 2>&1; then
   [$3]
 else
@@ -180,7 +180,7 @@ fi
 ])
 
 dnl SET_UNIQ_WORDS(shell-variable,words...)
-AC_DEFUN(SET_UNIQ_WORDS,
+AC_DEFUN([SET_UNIQ_WORDS],
 [rm -f wordtmp >/dev/null 2>&1
 val=''
 for f in $2; do
@@ -193,7 +193,7 @@ rm -f wordtmp >/dev/null 2>&1
 
 dnl WAPI_CHECK_FUNC(FUNCTION, INCLUDES, TEST-BODY,
 		    [ACTION-FI-FOUND [, ACTION-IF-NOT-FOUND]])
-AC_DEFUN(WAPI_CHECK_FUNC,
+AC_DEFUN([WAPI_CHECK_FUNC],
 [AC_MSG_CHECKING(for $1)
 AC_CACHE_VAL(wapi_cv_func_$1,
 [AC_TRY_LINK([#include <windows.h>
@@ -214,7 +214,7 @@ dnl WAPI_CHECK_LIB(LIBRARY, FUNCTION,
 dnl		INCLUDES, TEST-BODY
 dnl		[, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND
 dnl		[, OTHER-LIBRARIES]]])
-AC_DEFUN(WAPI_CHECK_LIB,
+AC_DEFUN([WAPI_CHECK_LIB],
 [AC_MSG_CHECKING([for $2 in -l$1])
 ac_lib_var=`echo $1['_']$2 | sed 'y%./+-%__p_%'`
 AC_CACHE_VAL(wapi_cv_lib_$ac_lib_var,
@@ -238,7 +238,7 @@ fi
 ])
 
 dnl EXTRACT_CPPFLAGS(CPPFLAGS-to-append,others-to-append,FLAGS)
-AC_DEFUN(EXTRACT_CPPFLAGS,
+AC_DEFUN([EXTRACT_CPPFLAGS],
 [for f in $3; do
     case ".$f" in
 	.-I?*|.-D?*)	$1="[$]$1 $f" ;;
@@ -249,7 +249,7 @@ done
 
 
 dnl CHECK_COMPILER_OPTION(OPTIONS [, ACTION-IF-SUCCEED [, ACTION-IF-FAILED]])
-AC_DEFUN(CHECK_COMPILER_OPTION,
+AC_DEFUN([CHECK_COMPILER_OPTION],
 [AC_MSG_CHECKING([whether -$1 option is recognized])
 ac_ccoption=`echo $1 | sed 'y%./+-%__p_%'`
 AC_CACHE_VAL(timidity_cv_ccoption_$ac_ccoption,
@@ -282,7 +282,7 @@ dnl MY_SEARCH_LIBS(FUNCTION, LIBRARIES [, ACTION-IF-FOUND
 dnl            [, ACTION-IF-NOT-FOUND [, OTHER-LIBRARIES]]])
 dnl Search for a library defining FUNC, if it's not already available.
 
-AC_DEFUN(MY_SEARCH_LIBS,
+AC_DEFUN([MY_SEARCH_LIBS],
 [AC_CACHE_CHECK([for library containing $1], [timidity_cv_search_$1],
 [ac_func_search_save_LIBS="$LIBS"
 timidity_cv_search_$1="no"

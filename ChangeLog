@@ -1,3 +1,11 @@
+2004-10-14  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* autoconf/alsa.m4, autoconf/ao.m4, autoconf/arts.m4,
+	  autoconf/esd.m4, autoconf/gtk-2.0.m4, autoconf/gtk.m4,
+	  autoconf/libFLAC.m4, autoconf/libOggFLAC.m4, autoconf/ogg.m4,
+	  autoconf/utils.m4, autoconf/vorbis.m4: Fixes for the
+	  underquoting problems in the M4 macros.
+
 2004-10-09  Kentaro Sato <kentaro@ranvis.com>
 
 	* interface/mac_c.c, interface/wrdt_mac.c, timidity/wrd.h,

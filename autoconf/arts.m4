@@ -9,7 +9,7 @@ dnl Snarfed from the ESD code below - but the faults are all mine!
 dnl AM_PATH_ARTS([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for aRts, and define ARTS_CFLAGS and ARTS_LIBS
 dnl
-AC_DEFUN(AM_PATH_ARTS,
+AC_DEFUN([AM_PATH_ARTS],
 	[dnl 
 dnl Get the cflags and libraries from the arts-config script
 dnl
