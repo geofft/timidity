@@ -491,6 +491,7 @@ AC_CHECK_FUNCS( \
   strtol \
   usleep])
 AC_CHECK_FUNC(getopt_long,
+	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long function'])
 	 tm_cv_needgetopt="no",
 	 tm_cv_needgetopt="yes")
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")

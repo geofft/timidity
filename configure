@@ -9957,7 +9957,12 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_func_getopt_long" >&5
 echo "${ECHO_T}$ac_cv_func_getopt_long" >&6
 if test $ac_cv_func_getopt_long = yes; then
-  tm_cv_needgetopt="no"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GETOPT_LONG 1
+_ACEOF
+
+	 tm_cv_needgetopt="no"
 else
   tm_cv_needgetopt="yes"
 fi

@@ -100,7 +100,6 @@
 #include "mix.h"
 #include "unimod.h"
 #include "quantity.h"
-#include "utils/getopt.h"
 
 #ifdef IA_W32GUI
 #include "w32g.h"

@@ -1,3 +1,8 @@
+2003-07-31  mput <root@mput.dip.jp>
+
+	* utils/getopt.h: Fix including headers
+	* timidity/timidity.c: Fix doubled header include
+
 2003-07-29  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (help): rewrite to fit with long optoins.

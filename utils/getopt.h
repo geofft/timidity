@@ -25,7 +25,10 @@
 #ifndef __TMDY_GETOPT_H__
 #define __TMDY_GETOPT_H__
 
-#ifndef HAVE_GETOPT_H
+#ifdef HAVE_UNISTD_H
+/* getopt() declaration here */
+#include <unistd.h>
+#else
 
 /* For communication from `getopt' to the caller.
    When `getopt' finds an option that takes an argument,
@@ -60,12 +63,13 @@ extern int optopt;
 
 extern int getopt (int __argc, char *const *__argv, const char *__shortopts);
 
-#else
+#endif /* <unistd.h> */
+
+#ifdef HAVE_GETOPT_H
+/* gtopt_long() declared here */
 #include <getopt.h>
-#endif
+#else
 
-
-#ifndef HAVE_GETOPT_LONG
 /* Describe the long-named options requested by the application.
    The LONG_OPTIONS argument to getopt_long or getopt_long_only is a vector
    of `struct option' terminated by an element containing a name which is
@@ -137,6 +141,6 @@ extern int getopt_long_only (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct option *__longopts, int *__longind);
 
-#endif
+#endif /* <getopt.h> */
 
 #endif
