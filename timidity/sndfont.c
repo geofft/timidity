@@ -1311,7 +1311,7 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 
 	/* panning position: 0 to 127 */
 	val = (int)tbl->val[SF_panEffectsSend];
-    if(sample->sampletype & 1) {
+    if(sample->sampletype == 1) {	/* monoSample = 1 */
 		if(val < -500)
 		vp->v.panning = 0;
 		else if(val > 500)
@@ -1319,10 +1319,12 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		else
 		vp->v.panning = (int8)((val + 500) * 127 / 1000);
 		/* vp->fixpan = -1; */
-	} else if(sample->sampletype & 2) {
+	} else if(sample->sampletype == 2) {	/* rightSample = 2 */
 		vp->v.panning = 127;
-	} else if(sample->sampletype & 4) {
+	} else if(sample->sampletype == 4) {	/* leftSample = 4 */
 		vp->v.panning = 0;
+	} else if(sample->sampletype == 8) {	/* linkedSample = 8 */
+		ctl->cmsg(CMSG_ERROR,VERB_NOISY,"error: linkedSample is not supported.");
 	}
 
 #if 0 /* Not supported */

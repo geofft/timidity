@@ -125,7 +125,7 @@ int current_freq_table = 0;
 static void set_reverb_level(int ch, int level);
 static int make_rvid_flag = 0; /* For reverb optimization */
 
-static int sample_panning_average;
+static int sample_panning_average = -1;
 
 /* Ring voice id for each notes.  This ID enables duplicated note. */
 static uint8 vidq_head[128 * MAX_CHANNELS], vidq_tail[128 * MAX_CHANNELS];
@@ -678,7 +678,7 @@ void recompute_freq(int v)
       voice[v].frequency = (int32)((double)(voice[v].orig_frequency) * pf);
       voice[v].cache = NULL;
   }
-
+  
   if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL && channel[ch].drums[note]->play_note != -1) {
 	  root_freq = freq_table[channel[ch].drums[note]->play_note];
   } else {
@@ -935,23 +935,23 @@ void recompute_channel_filter(MidiEvent *e)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, reso;
+	double coef = 1.0, reso, diff;
 	FilterCoefficients *fc = &(voice[v].fc);
 
 	if(fc->freq == -1) {return;}
 
 	if(!ISDRUMCHANNEL(ch)) {
 		/* NRPN Filter Cutoff */
-		coef *= pow(2.0f,(double)channel[ch].param_cutoff_freq / 64.0f);
+		diff = channel[ch].param_cutoff_freq * 62.0f;
 	} else if(channel[ch].drums[note] != NULL) {
 		/* NRPN Drum Instrument Filter Cutoff */
-		coef *= pow(2.0f,(double)channel[ch].drums[note]->drum_cutoff_freq / 64.0f);
+		diff = channel[ch].drums[note]->drum_cutoff_freq * 62.0f;
 
 		/* NRPN Drum Instrument Filter Resonance */
 		reso = (double)channel[ch].drums[note]->drum_resonance * 0.5f;
 	}
 
-	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef * coef;
+	fc->freq = fc->orig_freq * channel[ch].cutoff_freq_coef + diff;
 	if(fc->freq < 20) {fc->freq = 20;}
 	else if(fc->freq > 20000) {fc->freq = 20000;}
 
@@ -1798,7 +1798,7 @@ static int find_samples(MidiEvent *e, int *vlist)
 			  ip->samples);
 		if(ip->sample->note_to_use)
 		note = ip->sample->note_to_use;
-		if(ip->type == INST_SF2 && ip->samples != 1) {
+		if(ip->type == INST_SF2) {
 			nv = select_play_sample(ip->sample, ip->samples, note, vlist, e);
 			return nv;
 		} else {
@@ -1860,7 +1860,7 @@ static int get_panning(int ch, int note,int v)
 {
     int i, pan;
 
-	if(channel[ch].panning != NO_PANNING) {pan = (channel[ch].panning - 64) * 2;}
+	if(channel[ch].panning != NO_PANNING) {pan = ((int)channel[ch].panning - 64) * 2;}
 	else {pan = 0;}
 
 	if(ISDRUMCHANNEL(ch) &&
@@ -1950,7 +1950,9 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
     voice[i].vibrato_sample_increment[j]=0;
 
   /* Pan */
+  if(sample_panning_average == -1) {sample_panning_average = 64;}
   voice[i].sample_panning_average = sample_panning_average;
+  sample_panning_average = -1;
   voice[i].panning = get_panning(ch, note, i);
 /*  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Pan: %d",voice[i].panning);*/
 
