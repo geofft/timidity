@@ -1197,7 +1197,10 @@ void recompute_voice_filter(int v)
 	else if(fc->reso_dB > 96.0f) {fc->reso_dB = 96.0f;}
 
 	if(fc->type == 1) {	/* Chamberlin filter */
-		if(fc->start_flag == 0 && fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
+		if(fc->freq > play_mode->rate / 6) {
+			if (fc->start_flag == 0) {fc->type = 0;}	/* turn off. */ 
+			else {fc->freq = play_mode->rate / 6;}
+		}
 		if(fc->reso_dB > CHAMBERLIN_RESONANCE_MAX) {fc->reso_dB = CHAMBERLIN_RESONANCE_MAX;}
 	} else if(fc->type == 2) {	/* Moog VCF */
 		if(fc->reso_dB > fc->orig_reso_dB / 2) {
