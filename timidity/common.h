@@ -50,6 +50,7 @@ struct timidity_file
 
 extern void add_to_pathlist(char *s);
 extern void clean_up_pathlist(void);
+extern int is_url_prefix(const char *name);
 extern struct timidity_file *open_file(char *name,
 				       int decompress, int noise_mode);
 extern struct timidity_file *open_with_mem(char *mem, int32 memlen,
