@@ -33,7 +33,7 @@
 #include "zip.h"
 #include "arc.h"
 
-extern char *safe_strdup(char *);
+extern char *safe_strdup(const char *);
 
 #ifndef MAX_CHECK_LINES
 #define MAX_CHECK_LINES 1024

@@ -29,7 +29,6 @@
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <math.h>
 #ifndef NO_STRING_H
 #include <string.h>

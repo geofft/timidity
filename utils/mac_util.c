@@ -187,7 +187,7 @@ void SetDialogItemHilite(DialogRef dialog, short item, short value)
 	ControlRef	itemHandle;
 	Rect		itemRect;
 	
-	GetDialogItem(dialog, item, &itemType, &itemHandle, &itemRect);
+	GetDialogItem(dialog, item, &itemType, (Handle *)&itemHandle, &itemRect);
 	HiliteControl(itemHandle, value);
 }
 

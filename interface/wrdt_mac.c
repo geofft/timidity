@@ -62,7 +62,9 @@ static void wrdt_update_events(void);
 static int wrdt_start(int wrdflag)
 {
 	if( wrdflag ){
+		#ifdef ENABLE_SHERRY
 		sry_start();
+		#endif
 		ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 			  "WRD START");
 	}
@@ -73,7 +75,9 @@ static void wrdt_end(void)
 {
 	wrd_argc = 0;
 	inkey_flag = 0;
+	#ifdef ENABLE_SHERRY
 	sry_end();
+	#endif
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "WRD END");
 }
@@ -90,7 +94,11 @@ WRDTracer wrdt =
     0,
     wrdt_open,
     wrdt_apply,
+    #ifdef ENABLE_SHERRY
     sry_wrdt_apply,
+    #else
+    NULL,
+    #endif
     wrdt_update_events,
     wrdt_start,
     wrdt_end,
@@ -1718,9 +1726,11 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
 	ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		  "WRD END SKIP");
 	break;
+#ifdef ENABLE_SHERRY
       case WRD_SHERRY_UPDATE:
 	sry_update();
 	break;
+#endif
     }
     wrd_argc = 0;
 }

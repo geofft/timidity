@@ -114,7 +114,7 @@ Rect	rFileName={10,10, 26,140},
 		rLoop={8,210,28,240};
 
 PicHandle	logo, logoDown;
-static RgnHandle	receiveRgn;
+//static RgnHandle	receiveRgn;
 CIconHandle	button[6], iconPlay, iconPause, iconVol, iconTab, iconNotLoop,iconLoop;
 static TEHandle	gLogTE=0,gDocTE=0;
 
@@ -354,10 +354,10 @@ static int open_PlayerWin()
 	
 	if(gHasDragMgr)
 	{
-		receiveRgn=NewRgn();
-		if( receiveRgn )
+		//receiveRgn=NewRgn();
+		//if( receiveRgn )
 		{
-			GetWindowContentRgn(win.ref, receiveRgn);
+			//GetWindowContentRgn(win.ref, receiveRgn);
 			err=InstallTrackingHandler(NewDragTrackingHandlerProc(DragTrackingProc),
 								(WindowPtr)win.ref, 0);
 			if(err) ExitToShell();
@@ -413,9 +413,9 @@ static void update_PlayerWin()
 	DrawFileStr();
 }
 
-static void goaway_PlayerWin()
+static void goaway_PlayerWin(MacWindow *macwin)
 {
-	DoQuit();
+	Do_Quit();
 }
 
 static int	message_PlayerWin(int /*message*/, long /*param*/)
@@ -973,7 +973,7 @@ static void ctl_pass_playing_list(int init_number_of_files,
 		WaitNextEvent(everyEvent, &event, 1,0);
 		mac_HandleEvent(&event);
 	}	
-	DoQuit();
+	Do_Quit();
 }
 
 static Boolean UserWantsControl()
@@ -991,7 +991,7 @@ static int ctl_read(int32* /*valp*/)
 	int			ret;
 	
 	//if( gCursorIsWatch ){ gCursorIsWatch=false; InitCursor(); }
-	if( gQuit ) DoQuit();	/* Quit Apple event occured */
+	if( gQuit ) Do_Quit();	/* Quit Apple event occured */
 	if( mac_rc ){ret=mac_rc; mac_rc=0; return ret;}
 	if( !gBusy || UserWantsControl()){
 		YieldToAnyThread();

@@ -29,9 +29,6 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
-#ifndef __WIN32__
-#include <unistd.h>
-#endif
 #include <stdlib.h>
 
 #ifndef NO_STRING_H
@@ -235,6 +232,7 @@ static uint8 rpn_addr[MAX_CHANNELS], nrpn_lsb[MAX_CHANNELS], nrpn_msb[MAX_CHANNE
 static long instrument_number[MAX_CHANNELS];
 static char instrument_name[MAX_CHANNELS][32];
 static Boolean drum_part[MAX_CHANNELS], rpn_flag, prescan = 0;
+static Boolean			qt5orlater;
 
 static void init_variable(void)
 {
@@ -244,7 +242,9 @@ static void init_variable(void)
 static int open_output(void)
 {
 	int	i;
+	long response;
 
+	qt5orlater = Gestalt(gestaltQuickTimeVersion, &response) == noErr && response >= 0x05000000;
 	// open the note allocator component
 	gNoteAllocator = OpenDefaultComponent(kNoteAllocatorComponentType, 0);
 	if(gNoteAllocator == NULL){
@@ -260,7 +260,7 @@ static int open_output(void)
 	return 0;
 }
 
-static int output_data(char *, int32)
+static int output_data(char *buf, int32 count)
 {
  	// Never called
  	return 0;
@@ -504,7 +504,10 @@ static void set_instrument(MidiEvent *ev)
 		if(note_channel[ch] != NULL)
 			NADisposeNoteChannel(gNoteAllocator, note_channel[ch]);
 		nr.info.flags = 0;
-		nr.info.reserved = 0;
+		if (qt5orlater && ch <= 16)
+			nr.info.midiChannelAssignment = kNoteRequestSpecifyMIDIChannel | ch;
+		else
+			nr.info.midiChannelAssignment = 0;	// see note QuickTimeMusic.h.
 		*(short *)(&nr.info.polyphony) = EndianS16_NtoB(8);			// 8 voices poliphonic
 		*(Fixed *)(&nr.info.typicalPolyphony) = EndianU32_NtoB(0x00010000);
 		NAStuffToneDescription(gNoteAllocator, instrumentNumber, &nr.tone);

@@ -318,14 +318,14 @@ void MyCopyBits(PixMapHandle srcPixmap, PixMapHandle dstPixmap,
 		maskwidth= ((maskx+7)& ~0x07)/8; //kiriage
 		if( srcRect.top >= dstRect.top ){
 			for( y1=srcRect.top, y2=dstRect.top, dy=0; y1<srcRect.bottom; y1++,y2++,dy++,dy%=masky ){
-				BlockMoveData_masktrans( &(srcAdr[y1*srcRowBytes+srcRect.left]),
-					&(dstAdr[y2*destRowBytes+dstRect.left]), width, trans,
+				BlockMoveData_masktrans( (uint8 *)&(srcAdr[y1*srcRowBytes+srcRect.left]),
+					(uint8 *)&(dstAdr[y2*destRowBytes+dstRect.left]), width, trans,
 					maskx, &maskdata[maskwidth*dy]);
 			}
 		}else{
 			for( y1=srcRect.bottom-1, y2=dstRect.top+hight-1,dy=hight-1; y1>=srcRect.top; y1--, y2--,dy+=masky-1, dy%=masky ){
-				BlockMoveData_masktrans( &(srcAdr[y1*srcRowBytes+srcRect.left]),
-					&(dstAdr[y2*destRowBytes+dstRect.left]), width, trans,
+				BlockMoveData_masktrans( (uint8 *)&(srcAdr[y1*srcRowBytes+srcRect.left]),
+					(uint8 *)&(dstAdr[y2*destRowBytes+dstRect.left]), width, trans,
 					maskx, &maskdata[maskwidth*dy]);
 			}
 		}

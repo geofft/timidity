@@ -31,8 +31,6 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<Threads.h>
-#include	<unix.mac.h>
-#include	"OMS.h"
 
 #include	"timidity.h"
 #include	"common.h"
@@ -52,8 +50,12 @@
 
 #include	"mac_main.h"
 #include	"mac_c.h"
-#include	"mac_oms.h"
 #include	"mac_util.h"
+
+#ifdef MAC_USE_OMS
+#include	"OMS.h"
+#include	"mac_oms.h"
+#endif
 
 #define MAIN_INTERFACE  /* non-static */
 MAIN_INTERFACE void	timidity_start_initialize(void);
@@ -65,7 +67,6 @@ MAIN_INTERFACE int	read_config_file(char *name, int self);
 MAIN_INTERFACE void	timidity_init_aq_buff(void);
 
 extern char *wrdt_open_opts;
-char *timidity_version = TIMID_VERSION;
 
 Boolean	skin_f_repeat, gQuit, gBusy, gShuffle;
 int		mac_rc, skin_state=WAITING, mac_n_files, nPlaying;
@@ -74,6 +75,10 @@ double	gSilentSec;
 MidiFile	fileList[LISTSIZE];
 int		evil_level;
 int		do_initial_filling;
+
+#ifdef __MRC__
+QDGlobals	qd;
+#endif
 
 /*****************************************/
 
@@ -223,7 +228,7 @@ int  main()
 	return 0;
 }
 
-static pascal void* StartPlay(void *)
+static pascal void *StartPlay(void *threadParam)
 {
 	int		rc;
 		
@@ -375,7 +380,7 @@ extern PlayMode mac_play_mode;
 extern PlayMode mac_quicktime_play_mode;
 extern PlayMode mac_oms_play_mode;
 
-static pascal void* ConvertToAiffFile(void*)
+static pascal void *ConvertToAiffFile(void *threadParam)
 {
 	OSErr	err;
 	int		tmp;
@@ -501,7 +506,7 @@ void mac_HandleMenuSelect(long select, short modifiers)
 		return;
 		
 	case iPref:	mac_SetPlayOption(); return;
-	case iQuit:	DoQuit();			 return;
+	case iQuit:	Do_Quit();			 return;
 	
 	//Play menu
 	case iPlay:	SKIN_ACTION_PLAY(); break;
@@ -534,6 +539,7 @@ void mac_HandleMenuSelect(long select, short modifiers)
 		play_mode=&mac_quicktime_play_mode;
 		}
 		return;
+#ifdef MAC_USE_OMS
 	case iOMS:{
 		MenuHandle menu=GetMenu(mSynth);
 		
@@ -549,6 +555,7 @@ void mac_HandleMenuSelect(long select, short modifiers)
 		play_mode=&mac_oms_play_mode;
 		}
 		return;
+#endif
 	}
 	
 	if( (select>>16)==mApple )
@@ -558,14 +565,16 @@ void mac_HandleMenuSelect(long select, short modifiers)
 	}
 }
 
-void DoQuit()
+void Do_Quit()
 {
 	if( mac_play_mode.fd!=-1 )
 		mac_play_mode.close_output();
 	if( mac_quicktime_play_mode.fd!=-1 )
 		mac_quicktime_play_mode.close_output();
+#ifdef MAC_USE_OMS
 	if( mac_oms_play_mode.fd!=-1 )
 		mac_oms_play_mode.close_output();
+#endif
 	if( ctl )
 		ctl->close();
 		
@@ -709,7 +718,7 @@ static void mac_add_archive_file(const char *fullpath)
 		//fileList[mac_n_files].filename= (char*)safe_malloc(fullpath[0]+1);
 		arc_files[0]= fullpath;
 		
-		new_files= expand_file_archives(arc_files, &nfiles);
+		new_files = expand_file_archives((char **)arc_files, &nfiles);
 		
 		for( i=0; i<nfiles; i++ ){
 			mac_add_nonarchive_file(new_files[i]);			

@@ -1814,7 +1814,7 @@ struct sry_drawtext_{
 	char	back_color;
 	short	x;
 	short	y;
-	char	text[0];
+	char	text[];
 };
 typedef struct sry_drawtext_ sry_drawtext;
 
@@ -1939,14 +1939,14 @@ static void sry_timebase22(struct wrd_step_tracer* wrdstep, int mode)
 
 static void sry_wrdinfo(uint8 *info, int len)
 {
-    char *info1, *info2, *desc;
+    uint8 *info1, *info2, *desc;
     int i;
 
     /* "info1\0info2\0desc\0" */
     /* FIXME: Need to convert SJIS to "output_text_code" */
 
     i = 0;
-    info1 = (char *)info;
+    info1 = info;
     while(i < len && info[i])
 	i++;
     i++; /* skip '\0' */

@@ -150,7 +150,7 @@ int mac_mag_load(const char* fn, int dx, int dy, PixMapHandle pixmap,
 //		return; //nothing to do
 //	}
 	
-	if( (tf=wrd_open_file(fn))==0 )
+	if( (tf=wrd_open_file((char *)fn))==0 )
 		return 1;
 	
 	// initialize table
@@ -246,7 +246,7 @@ int mac_pho_load(const char* fn, PixMapHandle pm)
 	SET_G_COLOR(0,graphicWorld[activeGraphics]);
 	PaintRect(&portRect);
 
-	if( (tf=wrd_open_file(fn))==0 )
+	if( (tf=wrd_open_file((char *)fn))==0 )
 		return 1;	
 	rowBytes= (**pm).rowBytes & 0x1FFF;
 	bitMap = GetPixBaseAddr(pm);

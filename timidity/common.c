@@ -31,8 +31,12 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif /* HAVE_SYS_TIME_H */
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
 #include <fcntl.h>
 
 #ifndef NO_STRING_H
@@ -42,7 +46,9 @@
 #endif
 #include <ctype.h>
 #ifndef __W32__
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 #else
 #include <process.h>
 #include <io.h>

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #ifdef __W32__
 #include <io.h>
-#else
+#elif defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
 #ifndef NO_STRING_H
