@@ -96,7 +96,7 @@ typedef struct {
   char *comment;
   Instrument *instrument;
   int8 note, pan, strip_loop, strip_envelope, strip_tail, loop_timeout,
-	font_preset,font_keynote,legato,tva_level;
+	font_preset, font_keynote, legato, tva_level, play_note;
   uint8 font_bank;
   uint8 instype; /* 0: Normal
 		    1: %font

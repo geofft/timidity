@@ -1,3 +1,12 @@
+2004-01-09  Saito <saito2@digitalme.com>
+
+	* timidity/timidity.c, timidity/playmidi.c,
+	  timidity/mix.c, timidity/instrum.h:
+	  Fix typo.
+	  Fix modulation envelope.
+	  Fix GS SysEx. Drum Instrument Play Note.
+	  Add #extension playnote.
+
 2004-01-08  Saito <saito2@digitalme.com>
 
 	* timidity/sndfont.c, timidity/playmidi.[ch],

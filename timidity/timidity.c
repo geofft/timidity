@@ -872,6 +872,7 @@ static void reinit_tone_bank_element(ToneBankElement *tone)
     tone->amp = -1;
     tone->legato = 0;
     tone->tva_level = -1;
+	tone->play_note = -1;
 }
 
 #define SET_GUS_PATCHCONF_COMMENT
@@ -1528,6 +1529,47 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		continue;
 	    }
 		bank->tone[i].tva_level = atoi(w[2]);
+	}	/* #extension playnote */
+	else if(strcmp(w[0], "playnote") == 0)
+	{
+	    if(words < 3)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: line %d: syntax error", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+	    if(!bank)
+	    {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+			  "%s: line %d: Must specify tone bank or drum set "
+			  "before assignment", name, line);
+		CHECKERRLIMIT;
+		continue;
+	    }
+		if (words == 3) {
+			i = atoi(w[1]);
+			if(i < 0 || i > 127)
+			{
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				  "%s: line %d: extension playnote "
+				  "must be between 0 and 127", name, line);
+			CHECKERRLIMIT;
+			continue;
+			}
+			bank->tone[i].play_note = atoi(w[2]);
+		} else if(words == 4) {
+			for (i = atoi(w[1]); i < atoi(w[2]); i++) {
+				if(i < 0 || i > 127)
+				{
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					  "%s: line %d: extension playnote "
+					  "must be between 0 and 127", name, line);
+				CHECKERRLIMIT;
+				continue;
+				}
+				bank->tone[i].play_note = atoi(w[3]);
+			}
+		}
 	}
 	else if(!strcmp(w[0], "soundfont"))
 	{

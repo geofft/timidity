@@ -876,7 +876,7 @@ void recompute_freq(int v)
 	}
 	root_freq = voice[v].sample->root_freq;
 	a = TIM_FSCALE(((double) voice[v].sample->sample_rate
-			* voice[v].frequency + channel[ch].pitch_offset_fine)
+			* ((double)voice[v].frequency + channel[ch].pitch_offset_fine))
 			/ (root_freq * play_mode->rate), FRACTION_BITS) + 0.5;
 	/* need to preserve the loop direction */
 	voice[v].sample_increment = (voice[v].sample_increment >= 0) ? a : -a;
@@ -1041,16 +1041,12 @@ static void recompute_amp(int v)
 
 void recompute_channel_filter(MidiEvent *e)
 {
-	int ch = e->channel, note, prog, bk;
+	int ch = e->channel, note;
 	double coef = 1.0f, reso = 0;
-	ToneBankElement *elm;
 
 	if(channel[ch].special_sample > 0) {return;}
 
 	note = MIDI_EVENT_NOTE(e);
-	prog = channel[ch].program;
-	bk = channel[ch].bank;
-	elm = &tonebank[bk]->tone[prog];
 
 	/* Soft Pedal */
 	if(channel[ch].soft_pedal > 63) {
@@ -1906,6 +1902,31 @@ int32 get_note_freq(Sample *sp, int note)
 		ratio = (double)sp->scale_tuning / 100.0f;
 		f = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
 	}
+	return f;
+}
+
+static double get_play_note_ratio(int ch, int note)
+{
+	int i, nbank, nprog, play_note, def_play_note;
+	ToneBank *bank;
+	if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
+			&& (play_note = channel[ch].drums[note]->play_note) != -1) {
+		nbank = channel[ch].bank;
+		nprog = note;
+		instrument_map(channel[ch].mapID, &nbank, &nprog);
+		bank = drumset[nbank];
+		if (bank == NULL) {bank = drumset[0];}
+		def_play_note = bank->tone[nprog].play_note;
+		if (def_play_note == -1) {return 1.0f;}
+		play_note -= def_play_note;
+		if (play_note >= 0) {
+			return bend_coarse[play_note & 0x7f];
+		} else {
+			return 1.0f / bend_coarse[-play_note & 0x7f];
+		}
+	} else {
+		return 1.0f;
+	}
 }
 
 static int select_play_sample(Sample *splist,
@@ -1978,10 +1999,8 @@ static int select_play_sample(Sample *splist,
 			ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 			fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 		} else {ft = f, fst = fs;}
-		if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
-			&& channel[ch].drums[keynote]->play_note != -1) {
-			ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
-				/ (double)sp->root_freq;
+		ratio = get_play_note_ratio(ch, keynote);
+		if (ratio != 1.0f) {
 			ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 		}
 		if (sp->low_freq <= fst && sp->high_freq >= fst
@@ -2006,10 +2025,8 @@ static int select_play_sample(Sample *splist,
 				ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5),
 				fst = sp->root_freq + ((fs - sp->root_freq) * ratio + 0.5);
 			} else {ft = f, fst = fs;}
-			if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
-				&& channel[ch].drums[keynote]->play_note != -1) {
-				ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
-					/ (double)sp->root_freq;
+			ratio = get_play_note_ratio(ch, keynote);
+			if (ratio != 1.0f) {
 				ft = ft * ratio + 0.5, fst = fst * ratio + 0.5;
 			}
 			diff = abs(sp->root_freq - fst);
@@ -2058,10 +2075,8 @@ static int select_play_sample(Sample *splist,
 						ratio = (double)st / 100.0f;
 						ft = sp->root_freq + ((f - sp->root_freq) * ratio + 0.5);
 					} else {ft = f;}
-					if(ISDRUMCHANNEL(ch) && channel[ch].drums[keynote] != NULL
-						&& channel[ch].drums[keynote]->play_note != -1) {
-						ratio = (double)freq_table[channel[ch].drums[keynote]->play_note]
-							/ (double)sp->root_freq;
+					ratio = get_play_note_ratio(ch, keynote);
+					if (ratio != 1.0f) {
 						ft = ft * ratio + 0.5;
 					}
 					k = vlist[nv] = find_voice(e);
