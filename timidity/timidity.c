@@ -2937,9 +2937,9 @@ static inline int parse_opt_g(const char *arg)
 
 static inline int parse_opt_H(const char *arg)
 {
+	/* force keysig (number of sharp/flat) */
 	int keysig;
 	
-	/* force keysig (number of sharp/flat) */
 	if (set_value(&keysig, atoi(arg), -7, 7,
 			"Force keysig (number of sHarp(+)/flat(-))"))
 		return 1;
@@ -4011,9 +4011,9 @@ static inline int parse_opt_Z(char *arg)
 
 static inline int parse_opt_Z1(const char *arg)
 {
+	/* --pure-intonation */
 	int keysig;
 	
-	/* --pure-intonation */
 	opt_pure_intonation = 1;
 	if (*arg) {
 		if (set_value(&keysig, atoi(arg), -7, -7,
