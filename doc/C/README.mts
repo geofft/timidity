@@ -2,6 +2,17 @@
 MIDI Tuning Standard summary
 ======================================================================
 
+Besides GS/XG scale tuning which adjusts the pitch of 12 tones in an
+octave individually, TiMidity++ supports MIDI Tuning Standard in
+Universal SysEx.  MIDI Tuning Standard has the following advantages
+compared with GS/XG scale tuning:
+
+  - Support for microtonal sound other than 12 tones
+  - The pitch can be adjusted in 1/100 cent or less accuracy
+  - Temperaments can be rationally setup based on the tonality
+
+For details, please refer to the recommended practice.
+
 (1) Bulk Tuning Dump Request (Non Real-Time)
 ----------------------------------------------------------------------
 F0 7E <device ID> 08 00 tt F7
@@ -360,6 +371,78 @@ F7		EOX
 ----------------------------------------------------------------------
 
 ======================================================================
+The major/minor in the temperament tonality
+======================================================================
+
+The basic chords used in general music in C major are not only C, G, F
+but also Am, Em, Dm which appear frequently.  There may also be Cm,
+Gm, Fm, A, E, D, and so on.  Since these chords are not supported only
+in pure intonation (C major), players need to change temperaments
+according to progress of music.
+
+To solve the issue, TiMidity++ prepares
+
+(1) pure intonation (C major)
+	based on the pitch of C in Pythagoras tuning (C major)
+(2) pure intonation (A minor)
+	based on the pitch of A in Pythagoras tuning (A minor)
+(3) pure intonation (passing C major)
+	based on the pitch of A in Pythagoras tuning (C major)
+(4) pure intonation (passing A minor)
+	based on the pitch of C in Pythagoras tuning (A minor)
+
+I will explain more precisely.  The following table gives the lattice
+(Cartesian model) of the scale system:
+
+-----------------------------------------------------------------------------
+D--   A--   E--   B--   F#--  C#--  G#--  D#--  A#--  E#--  B#--  F##-- C##--
+Bb-   F-    C-    G-    D-    A-    E-    B-    F#-   C#-   G#-   D#-   A#-  
+Gb    Db    Ab    Eb    Bb    F     C     G     D     A     E     B     F#   
+Ebb+  Bbb+  Fb+   Cb+   Gb+   Db+   Ab+   Eb+   Bb+   F+    C+    G+    D+   
+Cbb++ Gbb++ Dbb++ Abb++ Ebb++ Bbb++ Fb++  Cb++  Gb++  Db++  Ab++  Eb++  Bb++ 
+-----------------------------------------------------------------------------
+
+The notation "ABCDEFG" is according to Pythagoras tuning.  The
+notation "+", "-", "++" and "--" mean 1sc higher, 1sc lower, 2sc
+higher and 2sc lower respectively.
+
+A certain pure intonation is given as 12 sounds arranged by the
+rectangle of 4x3 from the lattice.  For example, C tuning, A tuning,
+A- tuning and C+ tuning are given as following tables respectively:
+
+[C tuning (C major)]
+----------------------
+A-    E-    B-    F#- 
+F     C     G     D   
+Db+   Ab+   Eb+   Bb+ 
+----------------------
+
+[A tuning (A minor)]
+----------------------
+F#-   C#-   G#-   D#- 
+D     A     E     B   
+Bb+   F+    C+    G+  
+----------------------
+
+[C+ tuning (passing C major)]
+----------------------
+A     E     B     F#  
+F+    C+    G+    D+  
+Db++  Ab++  Eb++  Bb++
+----------------------
+
+[A- tuning (passing A minor)]
+----------------------
+F#--  C#--  G#--  D#--
+D-    A-    E-    B-  
+Bb    F     C     G   
+----------------------
+
+I think it is nice to select the tuning combination whose pitch of
+parallel key is slightly lower for major music, and slightly higher
+for minor music.
+
+======================================================================
 Preset temperament of Temperament Type Control Tuning
 ======================================================================
 
@@ -493,78 +576,6 @@ same situation as Pythagoras tuning and pure intonation.
 Now, I think that mean-tone tuning could use for a harmony-melody
 because of the characteristic that is more harmony-like than
 Pythagoras tuning, and a scale is not uneven like pure intonation.
-
-======================================================================
-The major/minor in the temperament tonality
-======================================================================
-
-The basic chords used in general music in C major are not only C, G, F
-but also Am, Em, Dm which appear frequently.  There may also be Cm,
-Gm, Fm, A, E, D, and so on.  Since these chords are not supported only
-in pure intonation (C major), players need to change temperaments
-according to progress of music.
-
-To solve the issue, TiMidity++ prepares
-
-(1) pure intonation (C major)
-	based on the pitch of C in Pythagoras tuning (C major)
-(2) pure intonation (A minor)
-	based on the pitch of A in Pythagoras tuning (A minor)
-(3) pure intonation (passing C major)
-	based on the pitch of A in Pythagoras tuning (C major)
-(4) pure intonation (passing A minor)
-	based on the pitch of C in Pythagoras tuning (A minor)
-
-I will explain more precisely.  The following table gives the lattice
-(Cartesian model) of the scale system:
-
------------------------------------------------------------------------------
-D--   A--   E--   B--   F#--  C#--  G#--  D#--  A#--  E#--  B#--  F##-- C##--
-Bb-   F-    C-    G-    D-    A-    E-    B-    F#-   C#-   G#-   D#-   A#-  
-Gb    Db    Ab    Eb    Bb    F     C     G     D     A     E     B     F#   
-Ebb+  Bbb+  Fb+   Cb+   Gb+   Db+   Ab+   Eb+   Bb+   F+    C+    G+    D+   
-Cbb++ Gbb++ Dbb++ Abb++ Ebb++ Bbb++ Fb++  Cb++  Gb++  Db++  Ab++  Eb++  Bb++ 
------------------------------------------------------------------------------
-
-The notation "ABCDEFG" is according to Pythagoras tuning.  The
-notation "+", "-", "++" and "--" mean 1sc higher, 1sc lower, 2sc
-higher and 2sc lower respectively.
-
-A certain pure intonation is given as 12 sounds arranged by the
-rectangle of 4x3 from the lattice.  For example, C tuning, A tuning,
-A- tuning and C+ tuning are given as following tables respectively:
-
-[C tuning (C major)]
-----------------------
-A-    E-    B-    F#- 
-F     C     G     D   
-Db+   Ab+   Eb+   Bb+ 
-----------------------
-
-[A tuning (A minor)]
-----------------------
-F#-   C#-   G#-   D#- 
-D     A     E     B   
-Bb+   F+    C+    G+  
-----------------------
-
-[C+ tuning (passing C major)]
-----------------------
-A     E     B     F#  
-F+    C+    G+    D+  
-Db++  Ab++  Eb++  Bb++
-----------------------
-
-[A- tuning (passing A minor)]
-----------------------
-F#--  C#--  G#--  D#--
-D-    A-    E-    B-  
-Bb    F     C     G   
-----------------------
-
-I think it is nice to select the tuning combination whose pitch of
-parallel key is slightly lower for major music, and slightly higher
-for minor music.
 
 ======================================================================
 User-defined temperament entry
