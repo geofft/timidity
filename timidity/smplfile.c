@@ -315,7 +315,7 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 	struct timidity_file	*tf;
 	char			buf[12];
 	int				state;		/* initial > fmt_read > data_read */
-	int				i, chunk_size, type_index, samples;
+	int				i, chunk_size, type_index, type_size, samples;
 	int32			chunk_flags;
 	Sample			*sample;
 	WAVFormatChunk	format;
@@ -332,9 +332,9 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 	}
 	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Loading WAV: %s", sample_file);
 	state = chunk_flags = 0;
-	type_index = 4;
+	type_index = 4, type_size = 8;
 	for(;;) {
-		if (tf_read(&buf[type_index], 8, 1, tf) != 1)
+		if (tf_read(&buf[type_index], type_size, 1, tf) != 1)
 			break;
 		chunk_size = LE_LONG(*(int32 *)&buf[4 + 4]);
 		if (memcmp(&buf[4 + 0], "fmt ", 4) == 0)
@@ -393,6 +393,7 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 		else if (tf_seek(tf, chunk_size, SEEK_CUR) == -1)
 			break;
 		type_index = 4 - (chunk_size & 1);
+		type_size = 8 + (chunk_size & 1);
 	}
 	close_file(tf);
 	if (chunk_flags & WAVE_CHUNKFLAG_SAMPLER)
@@ -597,7 +598,7 @@ static int import_aiff_load(char *sample_file, Instrument *inst)
 {
 	struct timidity_file	*tf;
 	char			buf[12];
-	int				chunk_size, type_index;
+	int				chunk_size, type_index, type_size;
 	int				compressed;
 	int32			chunk_flags;
 	AIFFCommonChunk	common;
@@ -617,13 +618,13 @@ static int import_aiff_load(char *sample_file, Instrument *inst)
 	}
 	compressed = buf[8 + 3] == 'C';
 	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Loading AIFF: %s", sample_file);
-	type_index = 4;
+	type_index = 4, type_size = 8;
 	chunk_flags = 0;
 	sound.inst = inst;
 	sound.common = &common;
 	marker_data = NULL;
 	for(;;) {
-		if (tf_read(&buf[type_index], 8, 1, tf) != 1)
+		if (tf_read(&buf[type_index], type_size, 1, tf) != 1)
 			break;
 		chunk_size = BE_LONG(*(int32 *)&buf[4 + 4]);
 		if (memcmp(&buf[4 + 0], "COMM", 4) == 0)
@@ -692,6 +693,7 @@ static int import_aiff_load(char *sample_file, Instrument *inst)
 			break;
 		/* no need to check format version chunk */
 		type_index = 4 - (chunk_size & 1);
+		type_size = 8 + (chunk_size & 1);
 	}
 	if (chunk_flags & AIFF_CHUNKFLAG_FAILED
 			|| (chunk_flags & AIFF_CHUNKFLAG_REQUIRED) != AIFF_CHUNKFLAG_REQUIRED)
