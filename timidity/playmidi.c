@@ -184,6 +184,7 @@ int opt_sf_lpf = 0;	/* soundfont pre-lpf */
 int opt_drum_effect = 0;	/* drumpart effect control */
 int opt_random_expression = 0; /* expression randomize */
 double opt_drum_power = 1.0;		/* coef. of drum amplitude */
+int opt_amp_compensation = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
 
@@ -229,6 +230,10 @@ int32 current_sample;		/* Number of calclated samples */
 int note_key_offset = 0;	/* For key up/down */
 FLOAT_T midi_time_ratio = 1.0;	/* For speed up/down */
 ChannelBitMask channel_mute;	/* For channel mute */
+
+/* for auto amplitude compensation */
+static int mainvolume_max; /* maximum value of mainvolume */
+static double compensation_ratio = 1.0; /* compensation ratio */
 
 static void update_portamento_controls(int ch);
 static void update_rpn_map(int ch, int addr, int update_now);
@@ -326,8 +331,9 @@ static char *event_name(int type)
 
 static void adjust_amplification(void)
 {
+    /* compensate master volume */
     master_volume = (double)(amplification) / 100.0 *
-	((double)master_volume_ratio * (1.0/0xFFFF));
+	((double)master_volume_ratio * (compensation_ratio/0xFFFF));
 }
 
 static int new_vidq(int ch, int note)
@@ -478,6 +484,12 @@ static void reset_controllers(int c)
       channel[c].volume = 100;
   else
       channel[c].volume = 90;
+  if (prescanning_flag) {
+    if (channel[c].volume > mainvolume_max) {	/* pick maximum value of mainvolume */
+      mainvolume_max = channel[c].volume;
+      ctl->cmsg(CMSG_INFO,VERB_DEBUG,"ME_MAINVOLUME/max (CH:%d VAL:%#x)",c,mainvolume_max);
+    }
+  }
 
   channel[c].expression=127; /* SCC-1 does this. */
   channel[c].sustain=0;
@@ -2124,13 +2136,13 @@ static void set_envelope_time(int ch,int val,int stage)
 		val += 64;
 	}
 	switch(stage) {
-	case 0:	// Attack
+	case 0:	/* Attack */
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Attack Time (CH:%d VALUE:%d)",ch,val);
 		break;
-	case 2: // Decay
+	case 2: /* Decay */
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Decay Time (CH:%d VALUE:%d)",ch,val);
 		break;
-	case 3:	// Release
+	case 3:	/* Release */
 		ctl->cmsg(CMSG_INFO,VERB_NOISY,"Release Time (CH:%d VALUE:%d)",ch,val);
 		break;
 	default:
@@ -2890,6 +2902,10 @@ void midi_program_change(int ch, int prog)
 static void play_midi_prescan(MidiEvent *ev)
 {
     int i;
+    
+    if(opt_amp_compensation) {mainvolume_max = 0;}
+    else {mainvolume_max = 0x7f;}
+    compensation_ratio = 1.0;
 
     prescanning_flag = 1;
     change_system_mode(DEFAULT_SYSTEM_MODE);
@@ -2978,8 +2994,21 @@ static void play_midi_prescan(MidiEvent *ev)
 	    resamp_cache_refer_alloff(ch, ev->time);
 	    channel[ch].key_shift = (int)ev->a - 0x40;
 	    break;
+
+	  case ME_MAINVOLUME:
+	    if (ev->a > mainvolume_max) {
+	      mainvolume_max = ev->a;
+	      ctl->cmsg(CMSG_INFO,VERB_DEBUG,"ME_MAINVOLUME/max (CH:%d VAL:%#x)",ev->channel,ev->a);
+	    }
+	    break;
 	}
 	ev++;
+    }
+
+    /* calculate compensation ratio */
+    if (0 < mainvolume_max && mainvolume_max < 0x7f) {
+      compensation_ratio = pow((double)0x7f/(double)mainvolume_max, 4);
+      ctl->cmsg(CMSG_INFO,VERB_DEBUG,"Compensation ratio:%lf",compensation_ratio);
     }
 
     for(i = 0; i < MAX_CHANNELS; i++)

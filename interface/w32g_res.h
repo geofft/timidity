@@ -90,6 +90,7 @@
 #define IDD_PREF_TIMIDITY3              1062
 #define IDC_CHECKBOX_FORCE_KEYSIG       1062
 #define IDC_BUTTON_4                    1063
+#define IDC_CHECKBOX_AMP_COMPENSATION   1063
 #define IDC_BUTTON_8                    1064
 #define IDC_BUTTON_16                   1065
 #define IDC_BUTTON_24                   1066

@@ -85,6 +85,7 @@ PlayMode dpm = {
     output_data,
     acntl
 };
+static char *tag_title = NULL;
 
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 #if defined(_MSC_VER)
@@ -401,7 +402,7 @@ void gogo_opts_reset(void)
 	gogo_opts.optUSE3DNOW = -1;
 	gogo_opts.optUSEKNI = -1;
 	gogo_opts.optUSEE3DNOW = -1;
-	gogo_opts.optADDTAGnum = -1;
+	gogo_opts.optADDTAGnum = 0; // 追加するたびにインクリメントされるためデフォルトは0
 	gogo_opts.optEMPHASIS = -1;
 	gogo_opts.optVBR = -1;
 	gogo_opts.optCPU = -1;
@@ -534,7 +535,7 @@ static int id3_to_buffer(mp3_id3_tag_t *id3_tag, char *buffer)
 #if 0
 	memcpy(buffer+0,id3_tag->tag);
 #else
-	memcpy(buffer+0,"ID3",3);
+	memcpy(buffer+0,"TAG",3); //ID3 Tag v1
 #endif
 	memcpy(buffer+3,id3_tag->title,30);
 	memcpy(buffer+33,id3_tag->artist,30);
@@ -544,36 +545,39 @@ static int id3_to_buffer(mp3_id3_tag_t *id3_tag, char *buffer)
 	buffer[127] = id3_tag->genre;
 	return 0;
 }
-int gogo_opts_id3_tag(char *title, char *artist, char *album, char *year, char *comment, int genre)
+static char *id3_tag_strncpy(char *dst, const char *src, int num)
+{
+	// NULL終端を付加してはならない
+	int len = strlen(src);
+	return memcpy (dst, src, (len <= num) ? len : num);
+}
+int gogo_opts_id3_tag(const char *title, const char *artist, const char *album, const char *year, const char *comment, int genre)
 {
 	mp3_id3_tag_t id3_tag;
 	char *buffer;
 	buffer = (char *)safe_malloc(128);
 	if(buffer==NULL)
 		return -1;
-	memset(&id3_tag,0x20,128);
+	memset(&id3_tag,0x20,128); // TAG全体を空白文字でfill
 	if(title){
-		memset(id3_tag.title,0x20,30);
-		strncpy(id3_tag.title,title,30);
+		id3_tag_strncpy(id3_tag.title,title,30);
 	}
 	if(artist){
-		memset(id3_tag.artist,0x20,30);
-		strncpy(id3_tag.artist,artist,30);
+		id3_tag_strncpy(id3_tag.artist,artist,30);
 	}
 	if(album){
-		memset(id3_tag.album,0x20,30);
-		strncpy(id3_tag.album,album,30);
+		id3_tag_strncpy(id3_tag.album,album,30);
 	}
 	if(year){
-		memset(id3_tag.year,0x20,4);
-		strncpy(id3_tag.year,year,4);
+		id3_tag_strncpy(id3_tag.year,year,4);
 	}
 	if(comment){
-		memset(id3_tag.comment,0x20,30);
-		strncpy(id3_tag.comment,comment,30);
+		id3_tag_strncpy(id3_tag.comment,comment,30);
 	}
-	if(genre>=0);
+	if(genre>=0)
 		id3_tag.genre = (unsigned char)(genre & 0xff);
+	else // ジャンル未設定
+		id3_tag.genre = (unsigned char)0xff;
 	id3_to_buffer(&id3_tag,buffer);
 	gogo_opts.optADDTAGnum++;
 	gogo_opts.optADDTAG_len[gogo_opts.optADDTAGnum-1] = 128;
@@ -1002,6 +1006,10 @@ static int __stdcall MPGEthread(void)
 #else
 	gogo_ConfigDialogInfoApply();
 #endif
+	// titleがある場合はデフォルトでTAG付加
+	if (tag_title != NULL) {
+		gogo_opts_id3_tag(tag_title, NULL, NULL, NULL, NULL, -1);
+	}
 	set_gogo_opts();
 	rval = MPGE_setConfigure( MC_INPUTFILE,MC_INPDEV_USERFUNC,(UPARAM)&mcp_inpdev_userfunc);
 	if(rval != ME_NOERR){
@@ -1154,7 +1162,7 @@ static int gogo_output_open(const char *fname)
 	return 0;
 }
 
-static int auto_gogo_output_open(const char *input_filename)
+static int auto_gogo_output_open(const char *input_filename, const char *title)
 {
   char *output_filename;
 
@@ -1179,6 +1187,14 @@ static int auto_gogo_output_open(const char *input_filename)
 #endif
   if(output_filename==NULL){
 	  return -1;
+  }
+  if (tag_title != NULL) {
+	free(tag_title);
+	tag_title = NULL;
+  }
+  if (title != NULL) {
+	tag_title = (char *)safe_malloc(sizeof(char)*(strlen(title)+1));
+	strcpy(tag_title, title);
   }
   if((dpm.fd = gogo_output_open(output_filename)) == -1) {
     free(output_filename);
@@ -1318,7 +1334,7 @@ static int acntl(int request, void *arg)
 	switch(request) {
 	case PM_REQ_PLAY_START:
 		if(dpm.flag & PF_AUTO_SPLIT_FILE)
-			return auto_gogo_output_open(current_file_info->filename);
+			return auto_gogo_output_open(current_file_info->filename,current_file_info->seq_name);
 		break;
 	case PM_REQ_PLAY_END:
 		if(dpm.flag & PF_AUTO_SPLIT_FILE) {

@@ -27,6 +27,7 @@
 #endif /* HAVE_CONFIG_H */
 #include "interface.h"
 #include <stdio.h>
+#include <string.h>
 
 #ifdef AU_VORBIS_DLL
 #include <stdlib.h>
@@ -84,6 +85,7 @@ PlayMode dpm = {
     output_data,
     acntl
 };
+static char *tag_title = NULL;
 
 static	ogg_stream_state os; /* take physical pages, weld into a logical
 				stream of packets */
@@ -163,7 +165,9 @@ static int ogg_output_open(const char *fname, const char *comment)
 {
   int fd;
   int nch;
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
   int bitrate;
+#endif
 
 #ifdef AU_VORBIS_DLL
   {
@@ -234,6 +238,10 @@ static int ogg_output_open(const char *fname, const char *comment)
     vorbis_comment_add(&vc, (char *)location_string);
     free(location_string);
   }
+  /* add default tag */
+    if (tag_title != NULL) {
+	vorbis_comment_add_tag(&vc, "title", (char *)tag_title);
+  }
 
   /* set up the analysis state and auxiliary encoding storage */
   vorbis_analysis_init(&vd, &vi);
@@ -276,7 +284,7 @@ static int ogg_output_open(const char *fname, const char *comment)
  */
 extern char *create_auto_output_name(const char *input_filename, char *ext_str, char *output_dir, int mode);
 
-static int auto_ogg_output_open(const char *input_filename)
+static int auto_ogg_output_open(const char *input_filename, const char *title)
 {
   char *output_filename;
 
@@ -287,6 +295,14 @@ static int auto_ogg_output_open(const char *input_filename)
 #endif
   if(output_filename==NULL){
 	  return -1;
+  }
+  if (tag_title != NULL) {
+	free(tag_title);
+	tag_title = NULL;
+  }
+  if (title != NULL) {
+	tag_title = (char *)safe_malloc(sizeof(char)*(strlen(title)+1));
+	strcpy(tag_title, title);
   }
   if((dpm.fd = ogg_output_open(output_filename, input_filename)) == -1) {
     free(output_filename);
@@ -355,7 +371,7 @@ static int output_data(char *readbuffer, int32 bytes)
   /* uninterleave samples */
   for(j = 0; j < ch; j++)
     for(i = 0; i < nsamples; i++)
-      buffer[j][i] = samples[i*ch+j] * (1.0/32768.0);
+      buffer[j][i] = (float)(samples[i*ch+j] * (1.0/32768.0));
 
   /* tell the library how much we actually submitted */
   vorbis_analysis_wrote(&vd, nsamples);
@@ -445,7 +461,7 @@ static int acntl(int request, void *arg)
   switch(request) {
   case PM_REQ_PLAY_START:
     if(dpm.flag & PF_AUTO_SPLIT_FILE)
-      return auto_ogg_output_open(current_file_info->filename);
+      return auto_ogg_output_open(current_file_info->filename,current_file_info->seq_name);
     break;
   case PM_REQ_PLAY_END:
     if(dpm.flag & PF_AUTO_SPLIT_FILE) {

@@ -594,6 +594,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	control_ratio = SetValue(control_ratio, 1, MAX_CONTROL_RATIO);
     }
 	opt_drum_power = st->opt_drum_power;
+	opt_amp_compensation = st->opt_amp_compensation;
     data_block_bits = st->data_block_bits;
     data_block_num = st->data_block_num;
 
@@ -713,6 +714,7 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
     st->modify_release = SetValue(modify_release, 0, MAX_MREL);
     st->allocate_cache_size = allocate_cache_size;
 	st->opt_drum_power = opt_drum_power;
+	st->opt_amp_compensation = opt_amp_compensation;
 	st->key_adjust = key_adjust;
 	st->opt_force_keysig = opt_force_keysig;
 	st->opt_pure_intonation = opt_pure_intonation;
