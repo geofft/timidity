@@ -223,8 +223,9 @@ typedef struct {
   /* For Drum part */
   struct DrumParts *drums[128];
 
-  /* For vibrato */
-  int32 vibrato_ratio, vibrato_depth, vibrato_delay;
+  /* For NRPN Vibrato */
+  int32 vibrato_depth, vibrato_delay;
+  double vibrato_ratio;
 
   /* For RPN */
   uint8 rpnmap[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
@@ -332,7 +333,7 @@ typedef struct {
   int32
     vibrato_sample_increment[VIBRATO_SAMPLE_INCREMENTS], vibrato_delay;
   int
-    vibrato_phase, orig_vibrato_control_ratio, vibrato_control_ratio,
+	vibrato_phase, orig_vibrato_control_ratio, vibrato_control_ratio,
     vibrato_depth, vibrato_control_counter,
     envelope_stage, control_counter, panning, panned, modulation_wheel;
   int16 tremolo_depth;

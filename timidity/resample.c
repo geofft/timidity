@@ -672,21 +672,17 @@ static sample_t *rs_loop(Voice *vp, int32 count)
 #ifdef PRECALC_LOOPS
   while (count)
     {
-      while (ofs >= le)
-	ofs -= ll;
+      while (ofs >= le)	{ofs -= ll;}
       /* Precalc how many times we should go through the loop */
       i = PRECALC_LOOP_COUNT(ofs, le, incr);
-      if (i > count)
-	{
-	  i = count;
-	  count = 0;
-	}
-      else count -= i;
-      for(j = 0; j < i; j++)
-	{
-	  RESAMPLATION;
-	  ofs += incr;
-	}
+      if (i > count) {
+		  i = count;
+		  count = 0;
+	  } else {count -= i;}
+      for(j = 0; j < i; j++) {
+		  RESAMPLATION;
+		  ofs += incr;
+	  }
     }
 #else
   while (count--)
@@ -862,7 +858,7 @@ static int32 update_vibrato(Voice *vp, int sign)
   /* Need to compute this sample increment. */
 
   depth = vp->vibrato_depth;
-  if(depth < vp->modulation_wheel)
+  if(abs(depth) < vp->modulation_wheel)
       depth = vp->modulation_wheel;
   depth <<= 7;
 
@@ -896,13 +892,13 @@ static int32 update_vibrato(Voice *vp, int sign)
 		  (double)(play_mode->rate)),
 		 FRACTION_BITS);
 
-  if(pb < 0)
-  {
+  if(pb < 0) {
       pb = -pb;
       a /= bend_fine[(pb >> 5) & 0xFF] * bend_coarse[pb >> 13];
-  }
-  else
+	  pb = -pb;
+  } else {
       a *= bend_fine[(pb >> 5) & 0xFF] * bend_coarse[pb >> 13];
+  }
   a += 0.5;
 
   /* If the sweep's over, we can store the newly computed sample_increment */
@@ -989,32 +985,28 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
   while (count)
     {
       /* Hopefully the loop is longer than an increment */
-      while(ofs >= le)
-	ofs -= ll;
+      while(ofs >= le) {ofs -= ll;}
       /* Precalc how many times to go through the loop, taking
 	 the vibrato control ratio into account this time. */
       i = PRECALC_LOOP_COUNT(ofs, le, incr);
-      if(i > count) i = count;
-      if(i > cc)
-	{
-	  i = cc;
-	  vibflag = 1;
-	}
-      else cc -= i;
+      if(i > count) {
+		  i = count;
+	  }
+      if(i > cc) {
+		  i = cc;
+		  vibflag = 1;
+	  } else {cc -= i;}
       count -= i;
-      for(j = 0; j < i; j++)
-	{
-	  RESAMPLATION;
-	  ofs += incr;
-	}
-      if(vibflag)
-	{
-	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, 0);
-	  vibflag = 0;
-	}
+      if(vibflag) {
+		  cc = vp->vibrato_control_ratio;
+		  incr = update_vibrato(vp, 0);
+		  vibflag = 0;
+	  }
+      for(j = 0; j < i; j++) {
+		  RESAMPLATION;
+		  ofs += incr;
+	  }
     }
-
 #else /* PRECALC_LOOPS */
   while (count--)
     {
@@ -1079,16 +1071,16 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
 	}
       else cc -= i;
       count -= i;
-      for(j = 0; j < i; j++)
-	{
-	  RESAMPLATION;
-	  ofs += incr;
-	}
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
 	  incr = update_vibrato(vp, 0);
 	  vibflag = 0;
+	}
+      for(j = 0; j < i; j++)
+	{
+	  RESAMPLATION;
+	  ofs += incr;
 	}
     }
 
@@ -1106,16 +1098,16 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
 	}
       else cc -= i;
       count -= i;
-      while (i--)
-	{
-	  RESAMPLATION;
-	  ofs += incr;
-	}
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
 	  incr = update_vibrato(vp, (incr < 0));
 	  vibflag = 0;
+	}
+      while (i--)
+	{
+	  RESAMPLATION;
+	  ofs += incr;
 	}
       if (ofs >= 0 && ofs >= le)
 	{

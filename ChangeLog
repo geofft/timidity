@@ -1,3 +1,8 @@
+2003-12-12  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/resample.c:
+	  Fix around vibrato.
+
 2003-12-09  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/m2m.c (m2m_process_events): Fix drum volumes

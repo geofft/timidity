@@ -491,7 +491,7 @@ static void reset_nrpn_controllers(int c)
 
   /* NRPN */
   reset_drum_controllers(channel[c].drums, -1);
-  channel[c].vibrato_ratio = 0;
+  channel[c].vibrato_ratio = 1.0;
   channel[c].vibrato_depth = 0;
   channel[c].vibrato_delay = 0;
   channel[c].param_cutoff_freq = 0;
@@ -2031,12 +2031,132 @@ static void calc_sample_panning_average(int nv,int *vlist)
 	}
 }
 
+/*! initialize vibrato parameters for a voice. */
+static void init_voice_vibrato(int v)
+{
+	Voice *vp = &(voice[v]);
+	int ch = vp->channel, j, flag;
+	double ratio;
+
+	flag = opt_nrpn_vibrato
+		&& (channel[ch].vibrato_ratio != 1.0 || channel[ch].vibrato_depth);
+	
+	/* vibrato sweep */
+	vp->vibrato_sweep = vp->sample->vibrato_sweep_increment;
+	vp->vibrato_sweep_position = 0;
+
+	/* vibrato rate */
+	if (flag) {
+		if(vp->sample->vibrato_control_ratio == 0) {
+			ratio = (double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio;
+		} else {
+			ratio = (double)vp->sample->vibrato_control_ratio * channel[ch].vibrato_ratio;
+		}
+		if (ratio < 0) {ratio = 0;}
+		vp->vibrato_control_ratio = (int)ratio;
+	} else {
+		vp->vibrato_control_ratio = vp->sample->vibrato_control_ratio;
+	}
+	
+	/* vibrato depth */
+	if (flag) {
+		if (vp->vibrato_depth < 0) {
+			vp->vibrato_depth = vp->sample->vibrato_depth - channel[ch].vibrato_depth;
+		} else {
+			vp->vibrato_depth = vp->sample->vibrato_depth + channel[ch].vibrato_depth;
+		}
+		if (vp->vibrato_depth == 0) {vp->vibrato_depth = 1;}
+		if (vp->vibrato_depth > 255) {vp->vibrato_depth = 255;}
+		else if (vp->vibrato_depth < -255) {vp->vibrato_depth = -255;}
+	} else {
+		vp->vibrato_depth = vp->sample->vibrato_depth;
+	}
+	
+	/* vibrato delay */
+	vp->vibrato_delay = vp->sample->vibrato_delay + channel[ch].vibrato_delay;
+	
+	/* internal parameters */
+	vp->orig_vibrato_control_ratio = vp->vibrato_control_ratio;
+	vp->vibrato_control_counter = vp->vibrato_phase = 0;
+	for (j = 0; j < VIBRATO_SAMPLE_INCREMENTS; j++) {
+		vp->vibrato_sample_increment[j] = 0;
+	}
+}
+
+/*! initialize panning-delay for a voice. */
+static void init_voice_pan_delay(int v)
+{
+#ifdef ENABLE_PAN_DELAY
+	Voice *vp = &(voice[v]);
+	int ch = vp->channel;
+	double pan_delay_diff; 
+
+  vp->pan_delay_rpt = 0;
+  if(opt_pan_delay && channel[ch].insertion_effect == 0) {
+	  if(vp->panning == 64) {vp->delay += pan_delay_table[64] * play_mode->rate / 1000;}
+	  else {
+		  if(pan_delay_table[vp->panning] > pan_delay_table[127 - vp->panning]) {
+			  pan_delay_diff = pan_delay_table[vp->panning] - pan_delay_table[127 - vp->panning];
+			  vp->delay += (pan_delay_table[vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
+		  } else {
+			  pan_delay_diff = pan_delay_table[127 - vp->panning] - pan_delay_table[vp->panning];
+			  vp->delay += (pan_delay_table[127 - vp->panning] - pan_delay_diff) * play_mode->rate / 1000;
+		  }
+		  vp->pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
+	  }
+	  memset(vp->pan_delay_buf, 0, sizeof(vp->pan_delay_buf));
+	  if(vp->pan_delay_rpt < 1) {vp->pan_delay_rpt = 0;}
+	  vp->pan_delay_wpt = vp->pan_delay_rpt - 1;
+  }
+#endif	/* ENABLE_PAN_DELAY */
+}
+
+/*! initialize portamento or legato for a voice. */
+static void init_voice_portamento(int v)
+{
+	Voice *vp = &(voice[v]);
+	int ch = vp->channel;
+
+  vp->porta_control_counter = 0;
+  if(channel[ch].legato && channel[ch].legato_flag) {
+	  update_legato_controls(ch);
+  } else if(channel[ch].portamento && !channel[ch].porta_control_ratio) {
+      update_portamento_controls(ch);
+  }
+  vp->porta_control_ratio = 0;
+  if(channel[ch].porta_control_ratio)
+  {
+      if(channel[ch].last_note_fine == -1) {
+	  /* first on */
+	  channel[ch].last_note_fine = vp->note * 256;
+	  channel[ch].porta_control_ratio = 0;
+      } else {
+	  vp->porta_control_ratio = channel[ch].porta_control_ratio;
+	  vp->porta_dpb = channel[ch].porta_dpb;
+	  vp->porta_pb = channel[ch].last_note_fine -
+	      vp->note * 256;
+	  if(vp->porta_pb == 0) {vp->porta_control_ratio = 0;}
+      }
+  }
+}
+
+/*! initialize tremolo for a voice. */
+static void init_voice_tremolo(int v)
+{
+	Voice *vp = &(voice[v]);
+	int ch = vp->channel;
+
+  vp->tremolo_delay = vp->sample->tremolo_delay;
+  vp->tremolo_phase = 0;
+  vp->tremolo_phase_increment = vp->sample->tremolo_phase_increment;
+  vp->tremolo_sweep = vp->sample->tremolo_sweep_increment;
+  vp->tremolo_sweep_position = 0;
+  vp->tremolo_depth = vp->sample->tremolo_depth;
+}
+
 static void start_note(MidiEvent *e, int i, int vid, int cnt)
 {
   int j, ch, note, pan;
-#ifdef ENABLE_PAN_DELAY
-  double pan_delay_diff;  
-#endif
 
   ch = e->channel;
 
@@ -2066,95 +2186,19 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
 	  return;
       }
   }
-  voice[i].sample_increment=0; /* make sure it isn't negative */
-  voice[i].modulation_wheel=channel[ch].modulation_wheel;
+  voice[i].sample_increment = 0; /* make sure it isn't negative */
+  voice[i].modulation_wheel = channel[ch].modulation_wheel;
+  voice[i].vid = vid;
   voice[i].delay = voice[i].sample->envelope_delay;
   voice[i].modenv_delay = voice[i].sample->modenv_delay;
-  voice[i].tremolo_delay = voice[i].sample->tremolo_delay;
-  voice[i].vid=vid;
-
-  voice[i].tremolo_phase=0;
-  voice[i].tremolo_phase_increment=voice[i].sample->tremolo_phase_increment;
-  voice[i].tremolo_sweep=voice[i].sample->tremolo_sweep_increment;
-  voice[i].tremolo_sweep_position=0;
-  voice[i].tremolo_depth = voice[i].sample->tremolo_depth;
-
-  voice[i].vibrato_sweep=voice[i].sample->vibrato_sweep_increment;
-  voice[i].vibrato_sweep_position=0;
-
   voice[i].delay_counter = 0;
 
-	init_voice_filter(i);
-
-	if (opt_nrpn_vibrato && channel[ch].vibrato_ratio) {
-		voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio + channel[ch].vibrato_ratio;
-		if (voice[i].vibrato_control_ratio < 0)
-			voice[i].vibrato_control_ratio = 0;
-	} else
-		voice[i].vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
-	if (opt_nrpn_vibrato && channel[ch].vibrato_depth) {
-		voice[i].vibrato_depth = voice[i].sample->vibrato_depth + channel[ch].vibrato_depth;
-		if (voice[i].vibrato_depth > 255)
-			voice[i].vibrato_depth = 255;
-		else if (voice[i].vibrato_depth < -255)
-			voice[i].vibrato_depth = -255;
-	} else
-		voice[i].vibrato_depth = voice[i].sample->vibrato_depth;
-	voice[i].vibrato_delay = voice[i].sample->vibrato_delay + channel[ch].vibrato_delay;
-	voice[i].orig_vibrato_control_ratio = voice[i].sample->vibrato_control_ratio;
-
-  voice[i].vibrato_control_counter=voice[i].vibrato_phase=0;
-  for (j=0; j<VIBRATO_SAMPLE_INCREMENTS; j++)
-    voice[i].vibrato_sample_increment[j]=0;
-
-  /* Pan */
-  voice[i].panning = get_panning(ch, note, i);
-
-#ifdef ENABLE_PAN_DELAY
-  voice[i].pan_delay_rpt = 0;
-  if(opt_pan_delay && channel[ch].insertion_effect == 0) {
-	  if(voice[i].panning == 64) {voice[i].delay += pan_delay_table[64] * play_mode->rate / 1000;}
-	  else {
-		  if(pan_delay_table[voice[i].panning] > pan_delay_table[127 - voice[i].panning]) {
-			  pan_delay_diff = pan_delay_table[voice[i].panning] - pan_delay_table[127 - voice[i].panning];
-			  voice[i].delay += (pan_delay_table[voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
-		  } else {
-			  pan_delay_diff = pan_delay_table[127 - voice[i].panning] - pan_delay_table[voice[i].panning];
-			  voice[i].delay += (pan_delay_table[127 - voice[i].panning] - pan_delay_diff) * play_mode->rate / 1000;
-		  }
-		  voice[i].pan_delay_rpt = pan_delay_diff * play_mode->rate / 1000;
-	  }
-	  memset(voice[i].pan_delay_buf, 0, sizeof(voice[i].pan_delay_buf));
-	  if(voice[i].pan_delay_rpt < 1) {voice[i].pan_delay_rpt = 0;}
-	  voice[i].pan_delay_wpt = voice[i].pan_delay_rpt - 1;
-  }
-#endif	/* ENABLE_PAN_DELAY */
-
-  voice[i].porta_control_counter = 0;
-  if(channel[ch].legato && channel[ch].legato_flag) {
-	  update_legato_controls(ch);
-  }
-  else if(channel[ch].portamento && !channel[ch].porta_control_ratio)
-      update_portamento_controls(ch);
-  voice[i].porta_control_ratio = 0;
-  if(channel[ch].porta_control_ratio)
-  {
-      if(channel[ch].last_note_fine == -1)
-      {
-	  /* first on */
-	  channel[ch].last_note_fine = voice[i].note * 256;
-	  channel[ch].porta_control_ratio = 0;
-      }
-      else
-      {
-	  voice[i].porta_control_ratio = channel[ch].porta_control_ratio;
-	  voice[i].porta_dpb = channel[ch].porta_dpb;
-	  voice[i].porta_pb = channel[ch].last_note_fine -
-	      voice[i].note * 256;
-	  if(voice[i].porta_pb == 0)
-	      voice[i].porta_control_ratio = 0;
-      }
-  }
+  init_voice_tremolo(i);	/* tremolo */
+  init_voice_filter(i);		/* resonant lowpass filter */
+  init_voice_vibrato(i);	/* vibrato */
+  voice[i].panning = get_panning(ch, note, i);	/* pan */
+  init_voice_pan_delay(i);	/* panning-delay */
+  init_voice_portamento(i);	/* portamento or legato */
 
   if(cnt == 0)
       channel[ch].last_note_fine = voice[i].note * 256;
@@ -2172,7 +2216,6 @@ static void start_note(MidiEvent *e, int i, int vid, int cnt)
       voice[i].modenv_volume = 0;
       recompute_modulation_envelope(i);
 	  apply_modulation_envelope(i);
-
     }
   else
     {
@@ -3583,6 +3626,52 @@ static void play_midi_prescan(MidiEvent *ev)
     prescanning_flag = 0;
 }
 
+/*! convert GS NRPN to vibrato rate ratio. */
+/* from 0 to 3.0. */
+static double gs_cnv_vib_rate(int rate)
+{
+	double ratio;
+
+	if(rate == 0) {
+		ratio = 1.6 / 100.0;
+	} else if(rate == 64) {
+		ratio = 1.0;
+	} else if(rate <= 100) {
+		ratio = (double)rate * 1.6 / 100.0;
+	} else {
+		ratio = (double)(rate - 101) * 1.33 / 26.0 + 1.67;
+	}
+	return (1.0 / ratio);
+}
+
+/*! convert GS NRPN to vibrato depth. */
+/* from 1 cents to 476 cents. */
+static int32 gs_cnv_vib_depth(int depth)
+{
+	double cent;
+	
+	if(depth >= 64 && depth <= 85) {
+		cent = (double)(depth - 64) * 6.25 / 21.0 + 1.0;
+	} else if(depth >= 86 && depth <= 117) {
+		cent = (double)(depth - 86) * 13.0 / 31.0 + 72.0;
+	} else if(depth >= 118 && depth <= 127) {
+		cent = 4.0 * (double)(depth - 118) * (double)(depth - 118) + 152.0;
+	} else {
+		cent = 1.0;
+	}
+	return (int32)(cent * 256.0 / 400.0);
+}
+
+/*! convert GS NRPN to vibrato delay. */
+/* from 0 ms to 5074 ms. */
+static int32 gs_cnv_vib_delay(int delay)
+{
+	double ms;
+	ms = 0.2092 * exp(0.0795 * (double)delay);
+	if(delay == 0) {ms = 0;}
+	return (int32)((double)play_mode->rate * ms * 0.001);
+}
+
 static int32 midi_cnv_vib_rate(int rate)
 {
     return (int32)((double)play_mode->rate * MODULATION_WHEEL_RATE
@@ -3674,23 +3763,18 @@ static void update_rpn_map(int ch, int addr, int update_now)
 	switch (addr) {
 	case NRPN_ADDR_0108:	/* Vibrato Rate */
 		if (opt_nrpn_vibrato) {
-			/* from -10.72 Hz to +10.72 Hz. */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 					"Vibrato Rate (CH:%d VAL:%d)", ch, val - 64);
-			channel[ch].vibrato_ratio = 168 * (val - 64)
-					* (VIBRATO_RATE_TUNING * play_mode->rate)
-					/ (2 * VIBRATO_SAMPLE_INCREMENTS);
+			channel[ch].vibrato_ratio = gs_cnv_vib_rate(val);
 		}
 		if (update_now)
 			update_channel_freq(ch);
 		break;
 	case NRPN_ADDR_0109:	/* Vibrato Depth */
 		if (opt_nrpn_vibrato) {
-			/* from -10cents to +10cents. */
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 					"Vibrato Depth (CH:%d VAL:%d)", ch, val - 64);
-			channel[ch].vibrato_depth =
-					(double) (val - 64) * 0.15625 * 256 / 400;
+			channel[ch].vibrato_depth = gs_cnv_vib_depth(val);
 		}
 		if (update_now)
 			update_channel_freq(ch);
@@ -3699,8 +3783,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 		if (opt_nrpn_vibrato) {
 			ctl->cmsg(CMSG_INFO, VERB_NOISY,
 					"Vibrato Delay (CH:%d VAL:%d)", ch, val);
-			channel[ch].vibrato_delay =
-					play_mode->rate * delay_time_center_table[val] * 0.001;
+			channel[ch].vibrato_delay = gs_cnv_vib_delay(val);
 		}
 		if (update_now)
 			update_channel_freq(ch);
