@@ -1,3 +1,8 @@
+2003-08-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c:
+	  Support long option for "#extension opt" in timidity.cfg
+
 2003-08-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Fix typo around long options

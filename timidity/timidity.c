@@ -1273,48 +1273,41 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 #endif /* SUPPORT_SOCKET */
 	}
 	/* #extension opt [-]{option}[optarg] */
-	else if(strcmp(w[0], "opt") == 0)
-	{
-	    int c, err;
-	    char *arg, *cmd, *p;
-
-	    if(words != 2 && words != 3)
-	    {
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: Syntax error", name, line);
-		CHECKERRLIMIT;
-		continue;
-	    }
-	    cmd = w[1];
-	    if(*cmd == '-')
-		cmd++;
-	    c = *cmd;
-	    p = strchr(optcommands, c);
-	    if(p == NULL)
-		err = 1;
-	    else
-	    {
-		if(*(p + 1) == ':')
-		{
-		    if(words == 2)
-			arg = cmd + 1;
-		    else
-			arg = w[2];
+	else if (strcmp(w[0], "opt") == 0) {
+		int c, longind, err;
+		char *p, *cmd, *arg;
+		
+		if (words != 2 && words != 3) {
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: Syntax error", name, line);
+			CHECKERRLIMIT;
+			continue;
 		}
-		else
-		    arg = "";
-		err = set_tim_opt_short(c, arg);
-	    }
-	    if(err)
-	    {
-		/* error */
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-			  "%s: line %d: Invalid command line option",
-			  name, line);
-		errcnt += err - 1;
-		CHECKERRLIMIT;
-		continue;
-	    }
+		if (*w[1] == '-') {
+			c = getopt_long(words, w, optcommands, longopts, &longind);
+			err = set_tim_opt_long(c, optarg, longind);
+			optind = 0;
+		} else {
+			/* backward compatibility */
+			if ((p = strchr(optcommands, c = *(cmd = w[1]))) == NULL)
+				err = 1;
+			else {
+				if (*(p + 1) == ':')
+					arg = (words == 2) ? cmd + 1 : w[2];
+				else
+					arg = "";
+				err = set_tim_opt_short(c, arg);
+			}
+		}
+		if (err) {
+			/* error */
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"%s: line %d: Invalid command line option",
+					name, line);
+			errcnt += err - 1;
+			CHECKERRLIMIT;
+			continue;
+		}
 	}
 	/* #extension undef program */
 	else if(strcmp(w[0], "undef") == 0)
