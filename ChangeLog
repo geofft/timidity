@@ -7,6 +7,11 @@
 
 	* timidity/sndfont.c: cfgforsf supported comment option.
 
+2004-01-14  mput <root@mput.dip.jp>
+
+	* timidity/playmidi.c (play_event): Fix for buffer overflow
+	* timidity/readmidi.c (drum_setup_xg): ditto
+
 2004-01-13  Christian Casteyde <casteyde.christian@free.fr>
 
 	* timidity/aRts_a.c (open_output): Fix for aRts backend hogging
