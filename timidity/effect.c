@@ -274,7 +274,7 @@ void do_effect(int32 *buf, int32 count)
 			 * if applied globally on top of channel chorus
 			 */
 #if 0
-		if (opt_chorus_control < 0)
+		if (opt_chorus_control < 0 && !opt_surround_chorus)
 			do_ch_chorus(buf, nsamples);
 #endif
 		if (opt_reverb_control == 2 || opt_reverb_control == 4

@@ -46,9 +46,13 @@
 #include <math.h>
 #include <stdlib.h>
 
-extern int opt_surround_chorus;
-
 #define SYS_EFFECT_PRE_LPF
+
+/* #define SYS_EFFECT_CLIP */
+#ifdef SYS_EFFECT_CLIP
+#define CLIP_AMP_MAX (1L << (32 - GUARD_BITS))
+#define CLIP_AMP_MIN (-1L << (32 - GUARD_BITS))
+#endif /* SYS_EFFECT_CLIP */
 
 static double REV_INP_LEV = 1.0;
 #define MASTER_CHORUS_LEVEL 1.7
@@ -159,12 +163,24 @@ void set_dry_signal_xg(register int32 *sbuffer, int32 n, int32 level)
 }
 #endif /* OPT_MODE != 0 */
 
-void mix_dry_signal(register int32 *buf, int32 n)
+#ifdef SYS_EFFECT_CLIP
+void mix_dry_signal(int32 *buf, int32 n)
+{
+	int32 i, x;
+	for (i = 0; i < n; i++) {
+		x = direct_buffer[i];
+		buf[i] = (x > CLIP_AMP_MAX) ? CLIP_AMP_MAX
+				: (x < CLIP_AMP_MIN) ? CLIP_AMP_MIN : x;
+	}
+	memset(direct_buffer, 0, sizeof(int32) * n);
+}
+#else /* SYS_EFFECT_CLIP */
+void mix_dry_signal(int32 *buf, int32 n)
 {
  	memcpy(buf, direct_buffer, sizeof(int32) * n);
 	memset(direct_buffer, 0, sizeof(int32) * n);
 }
-
+#endif /* SYS_EFFECT_CLIP */
 
 /*                    */
 /*  Effect Utilities  */
@@ -215,9 +231,9 @@ static void set_delay(delay *delay, int32 size)
 }
 
 /*! LFO (low frequency oscillator) */
-static void init_lfo(lfo *lfo, double freq, int type)
+static void init_lfo(lfo *lfo, double freq, int type, double phase)
 {
-	int32 i, cycle;
+	int32 i, cycle, diff;
 
 	lfo->count = 0;
 	lfo->freq = freq;
@@ -226,20 +242,17 @@ static void init_lfo(lfo *lfo, double freq, int type)
 	if (cycle < 1) {cycle = 1;}
 	lfo->cycle = cycle;
 	lfo->icycle = TIM_FSCALE((SINE_CYCLE_LENGTH - 1) / (double)cycle, 24) - 0.5;
+	diff = SINE_CYCLE_LENGTH * phase / 360.0f;
 
 	if(lfo->type != type) {	/* generate LFO waveform */
 		switch(type) {
 		case LFO_SINE:
 			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
-				lfo->buf[i] = TIM_FSCALE((lookup_sine(i) + 1.0) / 2.0, 16);
-			break;
-		case LFO_COSINE:
-			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
-				lfo->buf[i] = TIM_FSCALE((lookup_sine(i + SINE_CYCLE_LENGTH / 4) + 1.0) / 2.0, 16);
+				lfo->buf[i] = TIM_FSCALE((lookup_sine(i + diff) + 1.0) / 2.0, 16);
 			break;
 		case LFO_TRIANGULAR:
 			for(i = 0; i < SINE_CYCLE_LENGTH; i++)
-				lfo->buf[i] = TIM_FSCALE((lookup_triangular(i) + 1.0) / 2.0, 16);
+				lfo->buf[i] = TIM_FSCALE((lookup_triangular(i + diff) + 1.0) / 2.0, 16);
 			break;
 		default:
 			for(i = 0; i < SINE_CYCLE_LENGTH; i++) {lfo->buf[i] = TIM_FSCALE(0.5, 16);}
@@ -781,20 +794,6 @@ static double gs_revchar_to_width(int character)
 	return width;
 }
 
-static double gs_revchar_to_apfbk(int character)
-{
-	double apf;
-	switch(character) {
-	case 0: apf = 0.7;	break;	/* Room 1 */
-	case 1: apf = 0.7;	break;	/* Room 2 */
-	case 2: apf = 0.7;	break;	/* Room 3 */
-	case 3: apf = 0.6;	break;	/* Hall 1 */
-	case 4: apf = 0.55;	break;	/* Hall 2 */
-	default: apf = 0.55;	break;	/* Plate, Delay, Panning Delay */
-	}
-	return apf;
-}
-
 static void init_standard_reverb(InfoStandardReverb *info)
 {
 	double time;
@@ -1177,7 +1176,7 @@ static void realloc_freeverb_buf(InfoFreeverb *rev)
 static void update_freeverb(InfoFreeverb *rev)
 {
 	int i;
-	double allpassfbk = gs_revchar_to_apfbk(reverb_status_gs.character), rtbase, rt;
+	double allpassfbk = 0.55, rtbase, rt;
 
 	rev->wet = (double)reverb_status_gs.level / 127.0f * gs_revchar_to_level(reverb_status_gs.character) * fixedgain;
 	rev->roomsize = gs_revchar_to_roomsize(reverb_status_gs.character) * scaleroom + offsetroom;
@@ -1549,8 +1548,8 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 	double t;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(lfo1, 1.0f, LFO_SINE);
-		init_lfo(lfo1d, 1.0f, LFO_SINE);
+		init_lfo(lfo1, 1.0f, LFO_SINE, 0);
+		init_lfo(lfo1d, 1.0f, LFO_SINE, 0);
 		t = reverb_time_table[reverb_status_gs.time] / reverb_time_table[64] - 1.0;
 		t = 1.0 + t / 2;
 		set_delay(pd, reverb_status_gs.pre_delay_time * play_mode->rate / 1000);
@@ -2020,8 +2019,8 @@ static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(&(info->lfoL), (double)chorus_status_gs.rate * 0.122f, LFO_SINE);
-		init_lfo(&(info->lfoR), (double)chorus_status_gs.rate * 0.122f, LFO_COSINE);
+		init_lfo(&(info->lfoL), (double)chorus_status_gs.rate * 0.122f, LFO_SINE, 0);
+		init_lfo(&(info->lfoR), (double)chorus_status_gs.rate * 0.122f, LFO_SINE, 90);
 		info->pdelay = chorus_delay_time_table[chorus_status_gs.delay] * (double)play_mode->rate / 1000.0f;
 		info->depth = (double)(chorus_status_gs.depth + 1) / 3.2f * (double)play_mode->rate / 1000.0f;
 		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
@@ -2099,11 +2098,9 @@ static void do_ch_stereo_chorus(int32 *buf, int32 count, InfoStereoChorus *info)
 
 void init_ch_chorus(void)
 {
-	if (!opt_surround_chorus) {
-		/* clear delay-line of LPF */
-		init_filter_lowpass1(&(chorus_status_gs.lpf));
-		do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status_gs.info_stereo_chorus));
-	}
+	/* clear delay-line of LPF */
+	init_filter_lowpass1(&(chorus_status_gs.lpf));
+	do_ch_stereo_chorus(NULL, MAGIC_INIT_EFFECT_INFO, &(chorus_status_gs.info_stereo_chorus));
 	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
 }
 
@@ -2165,7 +2162,6 @@ void set_ch_chorus(register int32 *sbuffer,int32 n, int32 level)
 
 void do_ch_chorus(int32 *buf, int32 count)
 {
-	if (!opt_surround_chorus) {
 #ifdef SYS_EFFECT_PRE_LPF
 	if ((opt_reverb_control == 3 || opt_reverb_control == 4
 			|| (opt_reverb_control < 0 && ! (opt_reverb_control & 0x100))) && chorus_status_gs.pre_lpf)
@@ -2173,7 +2169,6 @@ void do_ch_chorus(int32 *buf, int32 count)
 #endif /* SYS_EFFECT_PRE_LPF */
 
 	do_ch_stereo_chorus(buf, count, &(chorus_status_gs.info_stereo_chorus));
-	}
 }
 
 /*                             */
@@ -2292,12 +2287,57 @@ void do_insertion_effect_gs(int32 *buf, int32 count)
 	do_effect_list(buf, count, insertion_effect_gs.ef);
 }
 
-void do_insertion_effect_xg(int32 *buf, int32 count)
+void do_insertion_effect_xg(int32 *buf, int32 count, struct effect_xg_t *st)
 {
+	do_effect_list(buf, count, st->ef);
 }
 
-void do_variation_effect_xg(int32 *buf, int32 count)
+void do_variation_effect1_xg(int32 *buf, int32 count)
 {
+	int32 i, x;
+	int32 send_reverbi = TIM_FSCALE((double)variation_effect_xg[0].send_reverb * (0.787f / 100.0f * REV_INP_LEV), 24),
+		send_chorusi = TIM_FSCALE((double)variation_effect_xg[0].send_chorus * (0.787f / 100.0f), 24);
+	if (variation_effect_xg[0].connection == XG_CONN_SYSTEM) {
+		do_effect_list(delay_effect_buffer, count, variation_effect_xg[0].ef);
+		for (i = 0; i < count; i++) {
+			x = delay_effect_buffer[i];
+			buf[i] += x;
+			reverb_effect_buffer[i] += imuldiv24(x, send_reverbi);
+			chorus_effect_buffer[i] += imuldiv24(x, send_chorusi);
+		}
+	}
+	memset(delay_effect_buffer, 0, sizeof(int32) * count);
+}
+
+void do_ch_chorus_xg(int32 *buf, int32 count)
+{
+	int32 i;
+	int32 send_reverbi = TIM_FSCALE((double)chorus_status_xg.send_reverb * (0.787f / 100.0f * REV_INP_LEV), 24);
+
+	do_effect_list(chorus_effect_buffer, count, chorus_status_xg.ef);
+	for (i = 0; i < count; i++) {
+		buf[i] += chorus_effect_buffer[i];
+		reverb_effect_buffer[i] += imuldiv24(chorus_effect_buffer[i], send_reverbi);
+	}
+	memset(chorus_effect_buffer, 0, sizeof(int32) * count);
+}
+
+void do_ch_reverb_xg(int32 *buf, int32 count)
+{
+	int32 i;
+
+	do_effect_list(reverb_effect_buffer, count, reverb_status_xg.ef);
+	for (i = 0; i < count; i++) {
+		buf[i] += reverb_effect_buffer[i];
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+}
+
+void init_ch_effect_xg(void)
+{
+	memset(reverb_effect_buffer, 0, sizeof(reverb_effect_buffer));
+	memset(chorus_effect_buffer, 0, sizeof(chorus_effect_buffer));
+	memset(delay_effect_buffer, 0, sizeof(delay_effect_buffer));
 }
 
 void alloc_effect(EffectList *ef)
@@ -2305,7 +2345,7 @@ void alloc_effect(EffectList *ef)
 	int i;
 
 	ef->engine = NULL;
-	for(i = 0; i < EFFECT_ENGINE_NUM; i++) {
+	for(i = 0; effect_engine[i].type != -1; i++) {
 		if (effect_engine[i].type == ef->type) {
 			ef->engine = &(effect_engine[i]);
 			break;
@@ -2696,7 +2736,7 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		set_delay(buf0, (int32)(9600.0f * play_mode->rate / 44100.0f));
-		init_lfo(lfo, lfo->freq, LFO_TRIANGULAR);
+		init_lfo(lfo, lfo->freq, LFO_SINE, 0);
 		info->dryi = TIM_FSCALE(info->level * info->dry, 24);
 		info->weti = TIM_FSCALE(info->level * info->wet * HEXA_CHORUS_WET_LEVEL, 24);
 		v0 = info->depth * ((double)info->depth_dev * HEXA_CHORUS_DEPTH_DEV);
@@ -2898,16 +2938,24 @@ static void conv_gs_hexa_chorus(struct insertion_effect_gs_t *ieffect, EffectLis
 	if(info->wet > 1.0) {info->wet = 1.0;}
 }
 
-static double calc_dry_xg(int val, int connection)
+static double calc_dry_xg(int val, struct effect_xg_t *st)
 {
-	if (connection) {return 0.0f;}
+	if (st->connection) {return 0.0f;}
 	else {return ((double)(127 - val) / 127.0f);}
 }
 
-static double calc_wet_xg(int val, int connection)
+static double calc_wet_xg(int val, struct effect_xg_t *st)
 {
-	if (connection) {return 1.0f;}
-	else {return ((double)val / 127.0f);}
+	switch(st->connection) {
+	case XG_CONN_SYSTEM:
+		return ((double)st->ret / 127.0f);
+	case XG_CONN_SYSTEM_CHORUS:
+		return ((double)st->ret / 127.0f * MASTER_CHORUS_LEVEL);
+	case XG_CONN_SYSTEM_REVERB:
+		return ((double)st->ret / 127.0f);
+	default:
+		return ((double)val / 127.0f); 
+	}
 }
 
 /*! 3-Band EQ */
@@ -2974,13 +3022,42 @@ static void conv_xg_chorus(struct effect_xg_t *st, EffectList *ef)
 {
 	InfoChorus *info = (InfoChorus *)ef->info;
 
-/*	info->rate = rate_table_xg[param[0]] */
+	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
 	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
 	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
-/*	info->pdelay_ms = delay_tables_xg[param[3]] */
+	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[3]];
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+	info->phase_diff = 0.0f;
+}
 
-	info->dry = calc_dry_xg(st->param_lsb[9], st->connection);
-	info->wet = calc_wet_xg(st->param_lsb[9], st->connection);
+static void conv_xg_flanger(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoChorus *info = (InfoChorus *)ef->info;
+	int val;
+
+	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->feedback = (double)(st->param_lsb[2] - 64) * (0.763f * 2.0f / 100.0f);
+	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[2]];
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+	val = st->param_lsb[13];
+	val = (val > 124) ? 124 : (val < 4) ? 4 : val;
+	info->phase_diff = (double)(val - 64) * 3.0f;
+}
+
+static void conv_xg_symphonic(struct effect_xg_t *st, EffectList *ef)
+{
+	InfoChorus *info = (InfoChorus *)ef->info;
+
+	info->rate = lfo_freq_table_xg[st->param_lsb[0]];
+	info->depth_ms = (double)(st->param_lsb[1] + 1) / 3.2f;
+	info->feedback = 0.0f;
+	info->pdelay_ms = mod_delay_offset_table_xg[st->param_lsb[3]];
+	info->dry = calc_dry_xg(st->param_lsb[9], st);
+	info->wet = calc_wet_xg(st->param_lsb[9], st);
+	info->phase_diff = 0.0f;
 }
 
 static void do_chorus(int32 *buf, int32 count, EffectList *ef)
@@ -2996,8 +3073,8 @@ static void do_chorus(int32 *buf, int32 count, EffectList *ef)
 		hist0 = info->hist0, hist1 = info->hist1, lfocnt = info->lfoL.count;
 
 	if (count == MAGIC_INIT_EFFECT_INFO) {
-		init_lfo(&(info->lfoL), info->rate, LFO_SINE);
-		init_lfo(&(info->lfoR), info->rate, LFO_COSINE);
+		init_lfo(&(info->lfoL), info->rate, LFO_SINE, 0);
+		init_lfo(&(info->lfoR), info->rate, LFO_SINE, info->phase_diff);
 		info->pdelay = info->pdelay_ms * (double)play_mode->rate / 1000.0f;
 		info->depth = info->depth_ms * (double)play_mode->rate / 1000.0f;
 		info->pdelay -= info->depth / 2;	/* NOMINAL_DELAY to delay */
@@ -3062,13 +3139,15 @@ static void do_chorus(int32 *buf, int32 count, EffectList *ef)
 struct _EffectEngine effect_engine[] = {
 	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
 	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
-	EFFECT_OVERDRIVE1, "Overdrive (GS)", do_overdrive1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
-	EFFECT_DISTORTION1, "Distortion (GS)", do_distortion1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
+	EFFECT_OVERDRIVE1, "Overdrive", do_overdrive1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
+	EFFECT_DISTORTION1, "Distortion", do_distortion1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
 	EFFECT_OD1OD2, "OD1/OD2", do_dual_od, conv_gs_dual_od, NULL, sizeof(InfoOD1OD2),
 	EFFECT_HEXA_CHORUS, "Hexa-Chorus", do_hexa_chorus, conv_gs_hexa_chorus, NULL, sizeof(InfoHexaChorus),
 	EFFECT_CHORUS, "Chorus", do_chorus, NULL, conv_xg_chorus, sizeof(InfoChorus),
+	EFFECT_FLANGER, "Flanger", do_chorus, NULL, conv_xg_flanger, sizeof(InfoChorus),
+	EFFECT_SYMPHONIC, "Symphonic", do_chorus, NULL, conv_xg_symphonic, sizeof(InfoChorus),
 	EFFECT_CHORUS_EQ3, "3-Band EQ (XG Chorus built-in)", do_eq3, NULL, conv_xg_chorus_eq3, sizeof(InfoEQ3),
-	EFFECT_EOF, "EOF", NULL, NULL, NULL, 0, 
+	-1, "EOF", NULL, NULL, NULL, 0, 
 };
 
 struct effect_parameter_xg_t effect_parameter_xg[] = {

@@ -783,32 +783,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 			}
 		    break;
 
-		case 0x20:	/* Chorus Type MSB */
-		    xg_chorus_type_msb = *body;
-		    break;
-
-		case 0x21:	/* Chorus Type LSB */
-		    xg_chorus_type_lsb = *body;
-			v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
-			if (v >= 0) {
-			    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
-			    num_events++;
-			}
-		    break;
-
 		case 0x0C:	/* Reverb Return */
 		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x00);
 			num_events++;
 		    break;
 
-		case 0x2C:	/* Chorus Return */
-		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, *body, 0x01);
-			num_events++;
-		    break;
-
 		default:
-		    ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported XG Bulk Dump SysEx. (ADDR:%02X %02X %02X VAL:%02X)",val[5],val[6],val[7],ent);
-		    continue;
+		    SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[5] - 1, 1);
+			SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, *body, val[6]);
+			num_events += 2;
 		    break;
 	    }
 		}
@@ -1666,31 +1649,15 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				  num_events++;
 				  break;
 
-				case 0x20:	/* Chorus Type MSB */
-				  xg_chorus_type_msb = val[6];
-				  v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
-				  num_events++;
-				  break;
-
-				case 0x21:	/* Chorus Type LSB */
-				  xg_chorus_type_lsb = val[6];
-				  v = set_xg_chorus_type(xg_chorus_type_msb, xg_chorus_type_lsb);
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_GS_LSB, p, v, 0x0D);
-				  num_events++;
-				  break;
-
 				case 0x0C:	/* Reverb Return */
 				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x00);
 				  num_events++;
 				  break;
 
-				case 0x2C:	/* Chorus Return */
-				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_LSB, 0, val[6], 0x01);
-				  num_events++;
-				  break;
-
 				default:
+				  SETMIDIEVENT(evm[num_events], 0, ME_SYSEX_XG_MSB, 0, val[4] - 1, 1);
+				  SETMIDIEVENT(evm[num_events + 1], 0, ME_SYSEX_XG_LSB, 0, val[6], val[5]);
+				  num_events += 2;
 				  break;
 			}
 			}
@@ -6589,6 +6556,70 @@ void free_userinst()
 	userinst_first = userinst_last = NULL;
 }
 
+static void set_effect_param_xg(struct effect_xg_t *st, int msb, int lsb)
+{
+	int i, j;
+	for (i = 0; effect_parameter_xg[i].type_msb != -1
+		&& effect_parameter_xg[i].type_lsb != -1; i++) {
+		if (msb == effect_parameter_xg[i].type_msb
+			&& lsb == effect_parameter_xg[i].type_lsb) {
+			for (j = 0; j < 16; j++) {
+				st->param_lsb[j] = effect_parameter_xg[i].param_lsb[j];
+			}
+			for (j = 0; j < 10; j++) {
+				st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
+			}
+		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name); */
+			break;
+		}
+	}
+}
+
+/*! recompute XG effect parameters. */
+void recompute_effect_xg(struct effect_xg_t *st)
+{
+	EffectList *efc = st->ef;
+
+	if (st->ef == NULL) {return;}
+	while(efc != NULL && efc->info != NULL)
+	{
+		(*efc->engine->conv_xg)(st, efc);
+		(*efc->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
+		efc = efc->next_ef;
+	}
+}
+
+void realloc_effect_xg(struct effect_xg_t *st)
+{
+	int type_msb = st->type_msb, type_lsb = st->type_lsb;
+
+	free_effect_list(st->ef);
+	st->ef = NULL;
+
+	switch(type_msb) {
+	case 0x41:
+	case 0x42:
+		st->ef = push_effect(st->ef, EFFECT_CHORUS);
+		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
+		break;
+	case 0x43:
+		st->ef = push_effect(st->ef, EFFECT_FLANGER);
+		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
+		break;
+	case 0x44:
+		st->ef = push_effect(st->ef, EFFECT_SYMPHONIC);
+		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
+		break;
+	default:	/* Not Supported */
+		type_msb = type_lsb = 0;
+		break;
+	}
+
+	set_effect_param_xg(st, type_msb, type_lsb);
+
+	recompute_effect_xg(st);
+}
+
 static void init_effect_xg(struct effect_xg_t *st)
 {
 	int i;
@@ -6611,18 +6642,23 @@ static void init_all_effect_xg(void)
 	int i;
  	init_effect_xg(&reverb_status_xg);
 	reverb_status_xg.type_msb = 0x01;
-	reverb_status_xg.connection = 1;
+	reverb_status_xg.connection = XG_CONN_SYSTEM_REVERB;
+	realloc_effect_xg(&reverb_status_xg);
 	init_effect_xg(&chorus_status_xg);
 	chorus_status_xg.type_msb = 0x41;
-	chorus_status_xg.connection = 1;
+	chorus_status_xg.connection = XG_CONN_SYSTEM_CHORUS;
+	realloc_effect_xg(&chorus_status_xg);
 	for (i = 0; i < XG_VARIATION_EFFECT_NUM; i++) {
 		init_effect_xg(&variation_effect_xg[i]);
 		variation_effect_xg[i].type_msb = 0x05;
+		realloc_effect_xg(&variation_effect_xg[i]);
 	}
 	for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {
 		init_effect_xg(&insertion_effect_xg[i]);
 		insertion_effect_xg[i].type_msb = 0x49;
+		realloc_effect_xg(&insertion_effect_xg[i]);
 	}
+	init_ch_effect_xg();
 }
 
 /*! initialize GS insertion effect parameters */
@@ -6703,64 +6739,6 @@ void set_insertion_effect_def_gs(void)
 		break;
 	default: break;
 	}
-}
-
-static void set_effect_param_xg(struct effect_xg_t *st, int msb, int lsb)
-{
-	int i, j;
-	for (i = 0; effect_parameter_xg[i].type_msb != -1
-		&& effect_parameter_xg[i].type_lsb != -1; i++) {
-		if (msb == effect_parameter_xg[i].type_msb
-			&& lsb == effect_parameter_xg[i].type_lsb) {
-			for (j = 0; j < 16; j++) {
-				st->param_lsb[j] = effect_parameter_xg[i].param_lsb[j];
-			}
-			for (j = 0; j < 10; j++) {
-				st->param_msb[j] = effect_parameter_xg[i].param_msb[j];
-			}
-		/*	ctl->cmsg(CMSG_INFO, VERB_NOISY, "XG EFX: %s", effect_parameter_xg[i].name); */
-			break;
-		}
-	}
-}
-
-/*! recompute XG effect parameters. */
-void recompute_effect_xg(struct effect_xg_t *st)
-{
-	EffectList *efc = st->ef;
-
-	if (st->ef == NULL) {return;}
-	while(efc != NULL && efc->info != NULL)
-	{
-		(*efc->engine->conv_xg)(st, efc);
-		(*efc->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, efc);
-		efc = efc->next_ef;
-	}
-}
-
-void realloc_effect_xg(struct effect_xg_t *st)
-{
-	int msb = st->type_msb, lsb = st->type_lsb;
-
-	free_effect_list(st->ef);
-	st->ef = NULL;
-
-	switch(msb) {
-	case 0x41:
-	case 0x42:
-	case 0x43:
-	case 0x44:
-		st->ef = push_effect(st->ef, EFFECT_CHORUS);
-		st->ef = push_effect(st->ef, EFFECT_CHORUS_EQ3);
-		break;
-	default:
-		msb = lsb = 0;
-		break;
-	}
-
-	set_effect_param_xg(st, msb, lsb);
-
-	recompute_effect_xg(st);
 }
 
 /*! recompute GS insertion effect parameters. */

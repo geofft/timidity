@@ -72,9 +72,7 @@ typedef struct {
 enum {
 	LFO_NONE = 0,
 	LFO_SINE,
-	LFO_COSINE,
 	LFO_TRIANGULAR,
-	LFO_WHITENOISE,
 };
 
 /*! modulated delay with allpass interpolation */
@@ -161,8 +159,9 @@ typedef struct _comb {
 /*  Insertion and Variation Effect  */
 /*                                  */
 extern void do_insertion_effect_gs(int32*, int32);
-extern void do_insertion_effect_xg(int32*, int32);
-extern void do_variation_effect_xg(int32*, int32);
+extern void do_insertion_effect_xg(int32*, int32, int8);
+extern void do_variation_effect1_xg(int32*, int32);
+extern void init_ch_effect_xg(void);
 
 enum {
 	EFFECT_NONE,
@@ -171,9 +170,10 @@ enum {
 	EFFECT_DISTORTION1,
 	EFFECT_OD1OD2,
 	EFFECT_CHORUS,	
+	EFFECT_FLANGER,
+	EFFECT_SYMPHONIC,
 	EFFECT_CHORUS_EQ3,	
 	EFFECT_HEXA_CHORUS,
-	EFFECT_EOF,
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
@@ -193,6 +193,13 @@ struct effect_xg_t {
 		mw_depth, bend_depth, cat_depth, ac1_depth, ac2_depth, cbc1_depth,
 		cbc2_depth;
 	struct _EffectList *ef;
+};
+
+enum {
+	XG_CONN_INSERTION = 0,
+	XG_CONN_SYSTEM = 1,
+	XG_CONN_SYSTEM_CHORUS,
+	XG_CONN_SYSTEM_REVERB,
 };
 
 #define XG_INSERTION_EFFECT_NUM 2
@@ -218,7 +225,6 @@ struct _EffectEngine {
 };
 
 extern struct _EffectEngine effect_engine[];
-#define EFFECT_ENGINE_NUM EFFECT_EOF
 
 struct effect_parameter_xg_t {
 	int8 type_msb, type_lsb;
@@ -342,7 +348,7 @@ typedef struct {
 	lfo lfoL, lfoR;
 	int32 wpt0, spt0, spt1, hist0, hist1;
 	int32 rpt0, depth, pdelay;
-	double dry, wet, feedback, pdelay_ms, depth_ms, rate;
+	double dry, wet, feedback, pdelay_ms, depth_ms, rate, phase_diff;
 	int32 dryi, weti, feedbacki;
 } InfoChorus;
 

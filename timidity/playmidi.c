@@ -3302,11 +3302,6 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_lsb;
 		break;
 	case GM2_SYSTEM_MODE:	/* GM2 */
-		if ((channel[ch].bank_msb & 0xFE) == 0x78)	/* 0x78/0x79 */
-		{
-			dr = channel[ch].bank_msb == 0x78;	/* change rhythm/melody */
-			midi_drumpart_change(ch, dr);
-		}
 		channel[ch].mapID = (dr) ? GM2_DRUM_MAP : GM2_TONE_MAP;
 		newbank = channel[ch].bank_lsb;
 		break;
@@ -4277,6 +4272,55 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if (chorus_status_xg.type_lsb != val) {
 				chorus_status_xg.type_lsb = val;
 				realloc_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x22:	/* Chorus Parameter 1 - 10 */
+		case 0x23:
+		case 0x24:
+		case 0x25:
+		case 0x26:
+		case 0x27:
+		case 0x28:
+		case 0x29:
+		case 0x2A:
+		case 0x2B:
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Parameter %d (%d)", b - 0x22 + 1, val);
+			if (chorus_status_xg.param_lsb[b - 0x22] != val) {
+				chorus_status_xg.param_lsb[b - 0x22] = val;
+				recompute_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x2C:	/* Chorus Return */
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Return (%d)", val);
+			if (chorus_status_xg.ret != val) {
+				chorus_status_xg.ret = val;
+				recompute_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x2D:
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Pan (%d)", val);
+			if (chorus_status_xg.pan != val) {
+				chorus_status_xg.pan = val;
+				recompute_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x2E:
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Send Chorus To Reverb (%d)", val);
+			if (chorus_status_xg.send_reverb != val) {
+				chorus_status_xg.send_reverb = val;
+				recompute_effect_xg(&chorus_status_xg);
+			}
+			break;
+		case 0x30:	/* Chorus Parameter 11 - 16 */
+		case 0x31:
+		case 0x32:
+		case 0x33:
+		case 0x34:
+		case 0x35:
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "Chorus Parameter %d (%d)", b - 0x30 + 11, val);
+			if (chorus_status_xg.param_lsb[b - 0x30] != val) {
+				chorus_status_xg.param_lsb[b - 0x30] = val;
+				recompute_effect_xg(&chorus_status_xg);
 			}
 			break;
 		case 0x40:	/* Variation Type MSB */
@@ -6061,6 +6105,23 @@ static void mix_signal(int32 *dest, int32 *src, int32 count)
 	}
 }
 
+inline static int is_insertion_effect_xg(int ch)
+{
+	int i;
+	for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {
+		if (insertion_effect_xg[i].part == ch) {
+			return 1;
+		}
+	}
+	for (i = 0; i < XG_VARIATION_EFFECT_NUM; i++) {
+		if (variation_effect_xg[i].connection == XG_CONN_INSERTION
+			&& variation_effect_xg[i].part == ch) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 #ifdef USE_DSP_EFFECT
 /* do_compute_data_midi() with DSP Effect */
 static void do_compute_data_midi(int32 count)
@@ -6087,7 +6148,7 @@ static void do_compute_data_midi(int32 count)
 	channel_reverb = (stereo && (opt_reverb_control == 1
 			|| opt_reverb_control == 3
 			|| (opt_reverb_control < 0 && opt_reverb_control & 0x80)));
-	channel_chorus = (stereo && opt_chorus_control);
+	channel_chorus = (stereo && opt_chorus_control && !opt_surround_chorus);
 	channel_delay = (stereo && opt_delay_control > 0);
 
 	/* is EQ valid? */
@@ -6120,7 +6181,8 @@ static void do_compute_data_midi(int32 count)
 					|| channel[i].chorus_level > 0 || channel[i].delay_level > 0
 					|| channel[i].eq_xg.valid
 					|| channel[i].dry_level != 127
-					|| (opt_drum_effect && ISDRUMCHANNEL(i))) {
+					|| (opt_drum_effect && ISDRUMCHANNEL(i))
+					|| is_insertion_effect_xg(i)) {
 				vpblist[i] = (int32*)(reverb_buffer + buf_index);
 				buf_index += n;
 			} else {
@@ -6182,6 +6244,18 @@ static void do_compute_data_midi(int32 count)
 	upper_voices = uv;
 
 	if(play_system_mode == XG_SYSTEM_MODE && channel_effect) {	/* XG */
+		if (opt_insertion_effect) { 	/* insertion effect */
+			for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {
+				if (insertion_effect_xg[i].part <= MAX_CHANNELS) {
+					do_insertion_effect_xg(vpblist[insertion_effect_xg[i].part], cnt, &insertion_effect_xg[i]);
+				}
+			}
+			for (i = 0; i < XG_VARIATION_EFFECT_NUM; i++) {
+				if (variation_effect_xg[i].part <= MAX_CHANNELS) {
+					do_insertion_effect_xg(vpblist[variation_effect_xg[i].part], cnt, &variation_effect_xg[i]);
+				}
+			}
+		}
 		for(i = 0; i < MAX_CHANNELS; i++) {	/* system effects */
 			int32 *p;
 			p = vpblist[i];
@@ -6230,8 +6304,8 @@ static void do_compute_data_midi(int32 count)
 
 		/* mixing signal and applying system effects */ 
 		mix_dry_signal(buffer_pointer, cnt);
-		if(channel_chorus) {do_ch_chorus(buffer_pointer, cnt);}
-		if(channel_delay) {do_ch_delay(buffer_pointer, cnt);}
+		if(channel_delay) {do_variation_effect1_xg(buffer_pointer, cnt);}
+		if(channel_chorus) {do_ch_chorus_xg(buffer_pointer, cnt);}
 		if(channel_reverb) {do_ch_reverb(buffer_pointer, cnt);}
 		if(multi_eq_xg.valid) {do_multi_eq_xg(buffer_pointer, cnt);}
 	} else if(channel_effect) {	/* GM & GS */
