@@ -1,3 +1,8 @@
+2004-10-09  Kentaro Sato <kentaro@ranvis.com>
+
+	* interface/mac_c.c, interface/wrdt_mac.c, timidity/wrd.h,
+	  utils/support.c: Fixes to compile on Mac OS.
+
 2004-10-03  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* NEWS: Add new entry for 2.13.2

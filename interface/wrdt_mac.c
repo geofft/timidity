@@ -1313,7 +1313,8 @@ static void wrd_load_default_image()
 {
 	char	filename[256], *p;
 	
-	strncpy(filename, current_file_info->filename, sizeof(filename));
+	strncpy(filename, current_file_info->filename, sizeof filename - 1);
+	filename[sizeof filename - 1] = '\0';
 	p= strrchr( filename, '.' );
 	if( p==0 ) return;
 	strncpy( p, ".mag", sizeof(filename) - (p - filename) - 1 );
@@ -1325,7 +1326,8 @@ static void wrd_load_default_image()
 		return;
 	
 		//retry pho file
-	strncpy(filename, current_file_info->filename sizeof(filename));
+	strncpy(filename, current_file_info->filename, sizeof filename - 1);
+	filename[sizeof filename - 1] = '\0';
 	p= strrchr( filename, '.' );
 	if( p==0 ) return;
 	strncpy( p, ".pho", sizeof(filename) - (p - filename) - 1 );
@@ -1383,8 +1385,8 @@ static void mac_wrd_DrawText(const char* str, int len)
 static void mac_wrd_doESC(const char* code )
 {
 	char	str[20]="\33[";
-	strncat(str, code, sizeof(str) - strlen(str) - 1);
-        str[sizeof(str)-1] = '\0';
+	strncat(str, code, sizeof(str) - strlen(code) - 1);
+	str[sizeof(str)-1] = '\0';
 	mac_wrd_DrawText(str, strlen(str));
 }
 
@@ -1549,7 +1551,7 @@ static void wrdt_apply(int cmd, int wrd_argc, int wrd_args[])
       case WRD_OFFSET: /* Never call */
 	break;
       case WRD_PAL:
-/*       	mac_wrd_pal( wrd_args[0], &wrd_args[1]); */
+      	mac_wrd_pal( wrd_args[0], &wrd_args[1]);
 /* 	p = (char *)new_segment(&tmpbuffer, MIN_MBLOCK_SIZE); */
 /* 	sprintf(p, "@PAL(%03x", wrd_args[0]); */
 /* 	for(i = 1; i < 17; i++) */
