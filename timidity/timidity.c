@@ -4102,6 +4102,9 @@ static inline int parse_opt_output_format(const char *arg)
 		play_mode->encoding &=
 				~(PE_SIGNED | PE_16BIT | PE_ULAW | PE_BYTESWAP);
 		return 0;
+	default:
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid output format %s", arg);
+		return 1;
 	}
 }
 

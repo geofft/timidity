@@ -5,10 +5,13 @@
 
 2004-02-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* Makefile.{am,in}:
+	  Change directory order
 	* configs/Makefile.{am,in}:
 	  Delete entry for msc-(twsyn-)interface.h
 	* configs/msc-(twsyn-)interface.h: Remove
 	* timidity/reverb.c: Fix typo
+	* timidity/timidity.c (parse_opt_output_format): Fix bug
 
 2004-02-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -17,7 +20,7 @@
 
 2004-02-04  Saito <saito2@digitalme.com>
 
-	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]
+	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch],
 	  timidity/reverb.[ch]:
 	  Add --module=n option.
 	  Rewrite Delay Effect.

@@ -22,14 +22,14 @@ ACLOCAL_AMFLAGS = -I autoconf
 M4DIR = autoconf
 SUBDIRS = \
 	autoconf \
-	configs \
-	doc \
-	script \
 	utils \
 	libarc \
 	libunimod \
 	interface \
-	timidity
+	timidity \
+	doc \
+	script \
+	configs
 
 EXTRA_DIST = \
 	ChangeLog.1 \
