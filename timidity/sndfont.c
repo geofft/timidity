@@ -1481,6 +1481,7 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.tremolo_to_fc = (int)tbl->val[SF_lfo1ToFilterFc];
 	if(tbl->set[SF_env1ToPitch]) {
 		vp->v.modenv_to_pitch = (int)tbl->val[SF_env1ToPitch];
+		if (vp->v.modenv_to_pitch > 1200) {vp->v.modenv_to_pitch = 1200;}
 		/* correct tune with the sustain level of modulation envelope */
 		temp = ((int)vp->v.modenv_to_pitch * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000;
 		vp->tune += temp;
