@@ -8485,16 +8485,6 @@ int play_midi_file(char *fn)
 	ctl_mode_event(CTLE_METRONOME, 0, 0, 0);
 	ctl_mode_event(CTLE_KEYSIG, 0, current_keysig, 0);
 	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, 0, 0);
-	if (opt_force_keysig != 8) {
-		i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
-		while (i != opt_force_keysig && i != opt_force_keysig + 12)
-			i += (i > 0) ? -5 : 7, j++;
-		while (abs(j - note_key_offset) > 7)
-			j += (j > note_key_offset) ? -12 : 12;
-		if (abs(j - key_adjust) >= 12)
-			j += (j > key_adjust) ? -12 : 12;
-		note_key_offset = j;
-	}
 	ctl_mode_event(CTLE_KEY_OFFSET, 0, note_key_offset, 0);
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
 	while (i != 7)
