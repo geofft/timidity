@@ -420,18 +420,17 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 			loopEnd = samplerc.loop_dwEnd << FRACTION_BITS;
 		}
 		else
-		{
 			modes = 0;
-			loopStart = sample->loop_start;
-			loopEnd = sample->loop_end;
-		}
 		for(i = 0; i < samples; i++)
 		{
 			sample = &inst->sample[i];
 			sample->sample_rate = sample_rate;
 			sample->root_freq = root_freq;
-			sample->loop_start = loopStart;
-			sample->loop_end = loopEnd;
+			if (modes != 0)
+			{
+				sample->loop_start = loopStart;
+				sample->loop_end = loopEnd;
+			}
 			sample->modes |= modes;
 		}
 	}

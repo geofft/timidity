@@ -1,3 +1,8 @@
+2004-02-05  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/smplfile.c:
+	  Fixed bug with WAVE Sampler chunk without loop.
+
 2004-02-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* configs/Makefile.{am,in}:
