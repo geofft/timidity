@@ -14,6 +14,12 @@
 #define IDM_MENU_MAIN_EN                112
 #define IDD_DIALOG_VORBIS_EN            113
 #define IDD_DIALOG_GOGO_EN              114
+#define IDD_DIALOG_ONE_LINE_EN          118
+#define IDD_DIALOG_ONE_LINE             119
+#define IDB_BITMAP_KEYBORD42x20         122
+#define IDB_BITMAP_TRACER               125
+#define IDD_PREF_SYN1                   127
+#define IDD_PREF_SYN1_EN                128
 #define IDC_CHECK_SEACHDIRRECURSIVE     1001
 #define IDC_CHECK_DOCWNDINDEPENDENT     1002
 #define IDC_CHECK_INIFILE_AUTOSAVE      1003
@@ -27,9 +33,14 @@
 #define IDC_CHECKBOX_CH02               1009
 #define IDC_CHECKBOX_RESONANCE          1009
 #define IDC_CHECKBOX_CH03               1010
+#define IDC_CHECKBOX_SF_LPF             1010
 #define IDC_CHECKBOX_CH04               1011
+#define IDC_CHECKBOX_DRUM_EFFECT        1011
 #define IDC_CHECKBOX_CH05               1012
+#define IDC_CHECKBOX_PURE_INTONATION    1012
+#define IDC_CHECKBOX_LPF_DEF            1012
 #define IDC_CHECKBOX_CH06               1013
+#define IDC_CHECKBOX_INIT_MI            1013
 #define IDC_CHECKBOX_CH07               1014
 #define IDC_CHECKBOX_CH08               1015
 #define IDC_CHECKBOX_CH09               1016
@@ -77,6 +88,7 @@
 #define IDC_CHECKBOX_DRUM_CHANNEL_MASK  1060
 #define IDC_CHECKBOX_CTL_TRACE_PLAYING  1061
 #define IDD_PREF_TIMIDITY3              1062
+#define IDC_CHECKBOX_FORCE_KEYSIG       1062
 #define IDC_BUTTON_4                    1063
 #define IDC_BUTTON_8                    1064
 #define IDC_BUTTON_16                   1065
@@ -113,12 +125,14 @@
 #define IDC_EDIT_CACHE_SIZE             1095
 #define IDC_EDIT_AUTOMAXIMIZE           1095
 #define IDC_EDIT_VELOCITYTABLE          1095
+#define IDC_EDIT_KEY_ADJUST             1096
 #define IDC_EDIT_SPECIAL_TONEBANK       1097
 #define IDC_CHECKBOX_NOT_LOOPING        1097
 #define IDC_EDIT_DEFAULT_TONEBANK       1098
 #define IDC_CHECKBOX_AUTOSTART          1098
 #define IDC_EDIT_REDUCE_VOICE           1099
 #define IDC_CHECKBOX_RANDOM             1099
+#define IDC_EDIT_DRUM_POWER             1099
 #define IDC_EDIT_CTL_VEBOSITY           1100
 #define IDC_EDIT_DELAY                  1101
 #define IDC_RADIOBUTTON_DELAY_LEFT      1102
@@ -268,15 +282,36 @@
 #define IDC_CHECKBOX_TVAD               2058
 #define IDC_CHECKBOX_TVAR               2059
 #define IDC_CHECKBOX_PDELAY             2060
+#define IDC_CHECKBOX_EQ                 2061
+#define IDC_CHECK_AUTOLOAD_PLAYLIST     2061
+#define IDC_CHECKBOX_IEFFECT            2062
+#define IDC_CHECK_AUTOSAVE_PLAYLIST     2062
+#define IDC_STATIC_HEAD                 2063
+#define IDC_STATIC_TAIL                 2064
+#define IDC_BUTTON_1                    2065
+#define IDC_BUTTON_2                    2066
+#define IDC_BUTTON_3                    2067
+#define IDC_EDIT_ONE_LINE               2068
+#define IDC_EDIT_SUBWINDOW_MAX          2069
+#define IDC_CHECK_POS_SIZE_SAVE         2070
+#define IDC_COMBO_FORCE_KEYSIG          2072
+#define IDC_COMBO_INIT_KEYSIG           2073
+#define IDC_COMBO_IDPORT0               2085
+#define IDC_COMBO_IDPORT1               2086
+#define IDC_COMBO_IDPORT2               2087
+#define IDC_COMBO_IDPORT3               2088
+#define IDC_COMBO_SYN_THREAD_PRIORITY   2089
+#define IDC_COMBO_PORT_NUM              2090
+#define IDM_MHSUPPLEMENT                40002
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        114
-#define _APS_NEXT_COMMAND_VALUE         40002
-#define _APS_NEXT_CONTROL_VALUE         2061
+#define _APS_NEXT_RESOURCE_VALUE        129
+#define _APS_NEXT_COMMAND_VALUE         40003
+#define _APS_NEXT_CONTROL_VALUE         2091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

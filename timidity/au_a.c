@@ -36,12 +36,16 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifndef NO_STRING_H
+#ifdef STDC_HEADERS
 #include <string.h>
-#else
+#include <stdlib.h>
+#include <ctype.h>
+#elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 
 #ifdef __FreeBSD__
 #include <stdio.h>

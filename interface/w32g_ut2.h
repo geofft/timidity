@@ -23,8 +23,7 @@
 extern int DlgChooseFontAndApply(HWND hwnd, HWND hwndFontChange, HFONT hFontPre, char *fontname, int *fontheight, int *fontwidth);
 extern int DlgChooseFont(HWND hwnd, char *fontName, int *fontHeight, int *fontWidth);
 
-extern int INILoadAll(void);
-extern int INISaveAll(void);
+extern void SetWindowPosSize ( HWND parent_hwnd, HWND hwnd, int x, int y );
 
 // ini file of timidity window information
 #define TIMIDITY_WINDOW_INI_FILE	timidity_window_inifile
@@ -35,7 +34,20 @@ extern int INISaveAll(void);
 #define FONT_FLAGS_BOLD			0x04
 
 // section of ini file
+// [MainWnd]
+// PosX =
+// PosY =
+typedef struct MAINWNDINFO_ {
+	HWND hwnd;
+	int PosX;
+	int PosY;
+} MAINWNDINFO;
+extern MAINWNDINFO MainWndInfo;
+
+// section of ini file
 // [ListWnd]
+// PosX =
+// PosY =
 // Width =
 // Height =
 // fontName =
@@ -43,6 +55,8 @@ extern int INISaveAll(void);
 // fontHeight =
 typedef struct LISTWNDINFO_ {
 	HWND hwnd;
+	int PosX;
+	int PosY;
 	int Width;		// save parameter
 	int Height;		// save parameter
 	HMENU hPopupMenu;
@@ -57,6 +71,8 @@ extern LISTWNDINFO ListWndInfo;
 
 // section of ini file
 // [DocWnd]
+// PosX =
+// PosY =
 // Width =
 // Height =
 // fontName =
@@ -71,6 +87,8 @@ typedef struct DOCWNDINFO_ {
 	int TextSize;
 
 	HWND hwnd;
+	int PosX;
+	int PosY;
 	int Width;		// save parameter
 	int Height;		// save parameter
 	HMENU hPopupMenu;
@@ -84,9 +102,24 @@ typedef struct DOCWNDINFO_ {
 } DOCWNDINFO;
 extern DOCWNDINFO DocWndInfo;
 
+// section of ini file
+// [ConsoleWnd]
+// PosX =
+// PosY =
+typedef struct CONSOLEWNDINFO_ {
+	HWND hwnd;
+	int PosX;
+	int PosY;
+} CONSOLEWNDINFO;
+extern CONSOLEWNDINFO ConsoleWndInfo;
+
+extern int INISaveMainWnd(void);
+extern int INILoadMainWnd(void);
 extern int INISaveListWnd(void);
 extern int INILoadListWnd(void);
 extern int INISaveDocWnd(void);
 extern int INILoadDocWnd(void);
+extern int INISaveConsoleWnd(void);
+extern int INILoadConsoleWnd(void);
 
 #endif /* __W32G_UT2_H__ */

@@ -25,8 +25,9 @@
 #define ___INSTRUM_H_
 
 typedef struct _Sample {
+  uint32
+    loop_start, loop_end, data_length;
   int32
-    loop_start, loop_end, data_length,
     sample_rate, low_freq, high_freq, root_freq;
   int8 panning, note_to_use;
   int32
@@ -38,10 +39,14 @@ typedef struct _Sample {
   int32
     tremolo_sweep_increment, tremolo_phase_increment,
     vibrato_sweep_increment, vibrato_control_ratio;
+  uint16
+    tremolo_depth;
   uint8
-    tremolo_depth, vibrato_depth,
+    vibrato_depth,
     modes, data_alloced,
     low_vel, high_vel;
+  int16 cutoff_freq,resonance;
+  double resonance_dB;
 } Sample;
 
 /* Bits in modes: */
@@ -57,6 +62,7 @@ typedef struct _Sample {
 #define INST_GUS	0
 #define INST_SF2	1
 #define INST_MOD	2
+#define INST_PCM	3	/* %sample */
 
 typedef struct {
   int type;
@@ -70,15 +76,20 @@ typedef struct {
   char *comment;
   Instrument *instrument;
   int8 note, pan, strip_loop, strip_envelope, strip_tail, loop_timeout,
-	font_preset;
+	font_preset,font_keynote,legato,tva_level;
   uint8 font_bank;
   uint8 instype; /* 0: Normal
 		    1: %font
-		    2-255: reserved
+		    2: %sample
+		    3-255: reserved
 		    */
-  int16 amp;
+  int16 amp,cutoff_freq,resonance;
   int tunenum;
   float *tune;
+	int envratenum, envofsnum;
+	int **envrate, **envofs;
+	int tremnum, vibnum;
+	struct Quantity_ **trem, **vib;
 } ToneBankElement;
 
 /* A hack to delay instrument loading until after reading the
@@ -170,6 +181,7 @@ extern void free_instrument_map(void);
 extern AlternateAssign *add_altassign_string(AlternateAssign *old,
 					     char **params, int n);
 extern AlternateAssign *find_altassign(AlternateAssign *altassign, int note);
+extern void free_instrument(Instrument *ip);
 
 extern char *default_instrument_name;
 extern int progbase;

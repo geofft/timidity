@@ -29,9 +29,8 @@
 #include <strings.h>
 #endif
 #include "timidity.h"
+#include "common.h"
 #include "url.h"
-
-extern char *safe_strdup(char *);
 
 #ifdef __W32READDIR__
 #include "readdir.h"
@@ -106,7 +105,7 @@ static struct dir_cache_t *scan_cached_files(struct dir_cache_t *p,
 
     if(p == NULL)
     {
-	if((p = (struct dir_cache_t *)malloc(sizeof(struct dir_cache_t))) ==
+	if((p = (struct dir_cache_t *)safe_malloc(sizeof(struct dir_cache_t))) ==
 	   NULL)
 	    return NULL;
 	allocated = 1;
@@ -261,7 +260,6 @@ struct URL_module URL_module_dir =
 
 static int name_dir_check(char *url_string)
 {
-    extern char *pathsep_strrchr(char *);
     if(strncasecmp(url_string, "dir:", 4) == 0)
 	return 1;
     url_string = pathsep_strrchr(url_string);

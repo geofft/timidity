@@ -147,7 +147,7 @@ static void decode_start_lzs(UNLZHHandler decoder);
 static unsigned short decode_c_lz5(UNLZHHandler decoder);
 static unsigned short decode_p_lz5(UNLZHHandler decoder);
 static void decode_start_lz5(UNLZHHandler decoder);
-static void make_table(UNLZHHandler decoder,
+static int make_table(UNLZHHandler decoder,
 		       int nchar, unsigned char bitlen[],
 		       int tablebits, unsigned short table[]);
 static int fill_inbuf(UNLZHHandler decoder);
@@ -1054,7 +1054,7 @@ static void decode_start_lz5(UNLZHHandler decoder)
     memset(&decoder->text[256 * 13 + 512 + 128 + 18], ' ', 128 - 18);
 }
 
-static void make_table(UNLZHHandler decoder,
+static int make_table(UNLZHHandler decoder,
 		       int nchar, unsigned char bitlen[],
 		       int tablebits, unsigned short table[])
 {
@@ -1089,7 +1089,8 @@ static void make_table(UNLZHHandler decoder,
     if((total & 0xffff) != 0)
     {
 	fprintf(stderr, "Decode: Bad table (5)\n");
-	exit(1);
+	/*exit(1);*/ /* for win32gui i/f  2002/8/17 */
+	return 1;
     }
 
 /* shift data for make table. */

@@ -25,6 +25,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#include "interface.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -72,6 +73,12 @@ extern int DocWndAutoPopup;
 extern int SeachDirRecursive;
 extern int IniFileAutoSave;
 extern int SecondMode;
+extern int AutoloadPlaylist;
+extern int AutosavePlaylist;
+char DefaultPlaylistName[] = "default.pls";
+char DefaultPlaylistPath[1024];
+
+extern int PosSizeSave;
 
 //*****************************************************************************/
 // ini
@@ -96,6 +103,19 @@ IniGetKeyInt32(char *section, char *key,int32 *n)
 }
 
 int
+IniGetKeyInt(char *section, char *key,int *n)
+{
+  CHAR buffer[INI_MAXLEN];
+  GetPrivateProfileString
+    (section,key,INI_INVALID,buffer,INI_MAXLEN-1,IniFile);
+  if(strcasecmp(buffer,INI_INVALID)){
+    *n =atoi(buffer);
+    return 0;
+  } else
+    return 1;
+}
+
+int
 IniGetKeyInt32Array(char *section, char *key, int32 *n, int arraysize)
 {
   int i;
@@ -107,7 +127,7 @@ IniGetKeyInt32Array(char *section, char *key, int32 *n, int arraysize)
     GetPrivateProfileString
       (section,keybuffer,INI_INVALID,buffer,INI_MAXLEN-1,IniFile);
     if(strcasecmp(buffer,INI_INVALID))
-      *n =atol(buffer);
+      n[i] =atol(buffer);
     else
       ret++;
   }
@@ -115,9 +135,22 @@ IniGetKeyInt32Array(char *section, char *key, int32 *n, int arraysize)
 }
 
 int
-IniGetKeyInt(char *section, char *key, int *n)
+IniGetKeyIntArray(char *section, char *key, int *n, int arraysize)
 {
-  return IniGetKeyInt32(section, key, (int32 *)n);
+  int i;
+  int ret = 0;
+  CHAR buffer[INI_MAXLEN];
+  char keybuffer[INI_MAXLEN];
+  for(i=0;i<arraysize;i++){
+    sprintf(keybuffer,"%s%d",key,i);
+    GetPrivateProfileString
+      (section,keybuffer,INI_INVALID,buffer,INI_MAXLEN-1,IniFile);
+    if(strcasecmp(buffer,INI_INVALID))
+      n[i] =atol(buffer);
+    else
+      ret++;
+  }
+  return ret;
 }
 
 int
@@ -145,12 +178,6 @@ IniGetKeyChar(char *section, char *key, char *c)
     *c = buffer[0];
     return 0;
   }
-}
-
-int
-IniGetKeyIntArray(char *section, char *key, int *n, int arraysize)
-{
-  return IniGetKeyInt32Array(section,key,(int32 *)n, arraysize);
 }
 
 int
@@ -190,6 +217,16 @@ IniPutKeyInt32(char *section, char *key,int32 *n)
 }
 
 int
+IniPutKeyInt(char *section, char *key,int *n)
+{
+  CHAR buffer[INI_MAXLEN];
+  sprintf(buffer,"%ld",*n);
+  WritePrivateProfileString
+    (section,key,buffer,IniFile);
+  return 0;
+}
+
+int
 IniPutKeyInt32Array(char *section, char *key, int32 *n, int arraysize)
 {
   int i;
@@ -204,9 +241,17 @@ IniPutKeyInt32Array(char *section, char *key, int32 *n, int arraysize)
 }
 
 int
-IniPutKeyInt(char *section, char *key, int *n)
+IniPutKeyIntArray(char *section, char *key, int *n, int arraysize)
 {
-  return IniPutKeyInt32(section, key, (int32 *)n);
+  int i;
+  CHAR buffer[INI_MAXLEN];
+  CHAR keybuffer[INI_MAXLEN];
+  for(i=0;i<arraysize;i++){
+    sprintf(buffer,"%ld",n[i]);
+    sprintf(keybuffer,"%s%d",key,i);
+    WritePrivateProfileString(section,keybuffer,buffer,IniFile);
+  }
+  return 0;
 }
 
 int
@@ -215,12 +260,6 @@ IniPutKeyChar(char *section, char *key, char *c)
   char buffer[64];
   sprintf(buffer,"%c",*c);
   return IniPutKeyStringN(section,key,buffer,60);
-}
-
-int
-IniPutKeyIntArray(char *section, char *key, int *n, int arraysize)
-{
-  return IniPutKeyInt32Array(section,key,(int32 *)n, arraysize);
 }
 
 int
@@ -244,6 +283,11 @@ IniPutKeyFloat(char *section, char *key,FLOAT_T n)
     sprintf(buffer,"%f", (double)n);
     WritePrivateProfileString(section, key, buffer, IniFile);
     return 0;
+}
+
+void IniFlush(void)
+{
+	WritePrivateProfileString(NULL,NULL,NULL,IniFile);
 }
 
 // LoadIniFile() , SaveIniFile()
@@ -323,6 +367,9 @@ ApplySettingPlayer(SETTING_PLAYER *sp)
   SeachDirRecursive = sp->SeachDirRecursive;
   IniFileAutoSave = sp->IniFileAutoSave;
   SecondMode = sp->SecondMode;
+  AutoloadPlaylist = sp->AutoloadPlaylist;
+  AutosavePlaylist = sp->AutosavePlaylist;
+  PosSizeSave = sp->PosSizeSave;
 }
 
 void
@@ -387,6 +434,9 @@ SaveSettingPlayer(SETTING_PLAYER *sp)
   sp->SeachDirRecursive = SeachDirRecursive;
   sp->IniFileAutoSave = IniFileAutoSave;
   sp->SecondMode = SecondMode;
+  sp->AutoloadPlaylist = AutoloadPlaylist;
+  sp->AutosavePlaylist = AutosavePlaylist;
+  sp->PosSizeSave = PosSizeSave;
 }
 
 extern int set_play_mode(char *cp);
@@ -403,6 +453,12 @@ static int is_device_output_ID(int id)
 {
     return id == 'd' || id == 'n' || id == 'e';
 }
+
+#ifdef IA_W32G_SYN
+extern int w32g_syn_id_port[];
+extern int syn_ThreadPriority;
+extern int w32g_syn_port_num;
+#endif
 
 void
 ApplySettingTiMidity(SETTING_TIMIDITY *st)
@@ -442,6 +498,11 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	opt_tva_release = st->opt_tva_release;
 	opt_delay_control = st->opt_delay_control;
 	opt_resonance = st->opt_resonance;
+	opt_lpf_def = st->opt_lpf_def;
+	opt_sf_lpf = st->opt_sf_lpf;
+	opt_drum_effect = st->opt_drum_effect;
+	opt_eq_control = st->opt_eq_control;
+	opt_insertion_effect = st->opt_insertion_effect;
 	opt_env_attack = st->opt_env_attack;
 	opt_velocity_table = st->opt_velocity_table;
     adjust_panning_immediately = SetFlag(st->adjust_panning_immediately);
@@ -488,6 +549,10 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     opt_aq_fill_buff = safe_strdup(opt_aq_fill_buff);
     modify_release = SetValue(st->modify_release, 0, MAX_MREL);
     allocate_cache_size = st->allocate_cache_size;
+	key_adjust = st->key_adjust;
+	opt_force_keysig = st->opt_force_keysig;
+	opt_pure_intonation = st->opt_pure_intonation;
+	opt_init_keysig = st->opt_init_keysig;
     if(output_text_code)
 	free(output_text_code);
     output_text_code = safe_strdup(st->output_text_code);
@@ -505,8 +570,17 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
 	control_ratio = play_mode->rate / CONTROLS_PER_SECOND;
 	control_ratio = SetValue(control_ratio, 1, MAX_CONTROL_RATIO);
     }
+	opt_drum_power = st->opt_drum_power;
     data_block_bits = st->data_block_bits;
     data_block_num = st->data_block_num;
+
+#ifdef IA_W32G_SYN
+	for ( i = 0; i < MAX_PORT; i ++ ) {
+		w32g_syn_id_port[i] = st->SynIDPort[i];
+	}
+	syn_ThreadPriority = st->syn_ThreadPriority;
+	w32g_syn_port_num = st->SynPortNum;
+#endif
 }
 
 void
@@ -539,6 +613,11 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	st->opt_tva_release = opt_tva_release;
 	st->opt_delay_control = opt_delay_control;
 	st->opt_resonance = opt_resonance;
+	st->opt_lpf_def = opt_lpf_def;
+	st->opt_sf_lpf = opt_sf_lpf;
+	st->opt_drum_effect = opt_drum_effect;
+	st->opt_eq_control = opt_eq_control;
+	st->opt_insertion_effect = opt_insertion_effect;
 	st->opt_env_attack = opt_env_attack;
 	st->opt_velocity_table = opt_velocity_table;
     st->noise_sharp_type = noise_sharp_type;
@@ -610,6 +689,11 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 	     opt_aq_max_buff,opt_aq_fill_buff);
     st->modify_release = SetValue(modify_release, 0, MAX_MREL);
     st->allocate_cache_size = allocate_cache_size;
+	st->opt_drum_power = opt_drum_power;
+	st->key_adjust = key_adjust;
+	st->opt_force_keysig = opt_force_keysig;
+	st->opt_pure_intonation = opt_pure_intonation;
+	st->opt_init_keysig = opt_init_keysig;
     st->output_rate = opt_output_rate;
     if(st->output_rate == 0)
     {
@@ -630,6 +714,14 @@ SaveSettingTiMidity(SETTING_TIMIDITY *st)
 #endif /* SMFCONV */
   st->data_block_bits = data_block_bits;
   st->data_block_num = data_block_num;
+
+#ifdef IA_W32G_SYN
+	for ( i = 0; i < MAX_PORT; i ++ ) {
+		st->SynIDPort[i] = w32g_syn_id_port[i];
+	}
+	st->syn_ThreadPriority = syn_ThreadPriority;
+	st->SynPortNum = w32g_syn_port_num;
+#endif
 }
 
 
@@ -767,6 +859,11 @@ void w32g_initialize(void)
 	strncpy(timidity_output_inifile, buffer, 200);
     timidity_output_inifile[200] = '\0';
     strcat(timidity_output_inifile,"timidity_output.ini");
+  // default playlist
+	strncpy(DefaultPlaylistPath, buffer, 200);
+  DefaultPlaylistPath[200] = '\0';
+  strcat(DefaultPlaylistPath,DefaultPlaylistName);
+
 	//
     st_default = (SETTING_TIMIDITY *)safe_malloc(sizeof(SETTING_TIMIDITY));
     sp_default = (SETTING_PLAYER *)safe_malloc(sizeof(SETTING_PLAYER));
@@ -837,7 +934,9 @@ void w32g_initialize(void)
 
 	wrdt=wrdt_list[0];
 
+#ifndef IA_W32G_SYN
     w32g_i_init();
+#endif
 }
 
 int IniVersionCheck(void)
@@ -1154,3 +1253,100 @@ char **FilesExpandDir(int *p_nfiles, char **files)
     return make_string_array(&st);
 
 }
+
+#ifndef IA_W32G_SYN
+int w32gLoadDefaultPlaylist(void)
+{
+	if(AutoloadPlaylist) {
+    w32g_lock_open_file = 1;
+    w32g_send_rc(RC_EXT_LOAD_PLAYLIST, (int32)DefaultPlaylistPath);
+	}
+	return 0;
+}
+
+int w32gSaveDefaultPlaylist(void)
+{
+	if(AutosavePlaylist) {
+    w32g_lock_open_file = 1;
+    w32g_send_rc(RC_EXT_SAVE_PLAYLIST, (int32)DefaultPlaylistPath);
+	}
+	return 0;
+}
+#endif
+
+#ifndef WIN32GCC
+static char *get_filename(char *src, char *dest)
+{
+	char *p = src;
+	char *start = NULL;
+	int quot_flag = 0;
+	if(p == NULL)
+		return NULL;
+	for(;;){
+		if(*p != ' ' && *p != '\0' && start == NULL)
+			start = p;
+		if(*p == '\'' || *p == '\"'){
+			if(quot_flag){
+				if(p - start != 0)
+					strncpy(dest, start, p - start);
+				dest[p-start] = '\0';
+				p++;
+				return p;
+			} else {
+				quot_flag = !quot_flag;
+				p++;
+				start = p;
+				continue;
+			}
+		}
+		if(*p == '\0' || (*p == ' ' && !quot_flag)){
+			if(start == NULL)
+				return NULL;
+			if(p - start != 0)
+				strncpy(dest, start, p - start);
+			dest[p-start] = '\0';
+			if(*p != '\0')
+				p++;
+			return p;
+		}
+		p++;
+	}
+}
+
+void CmdLineToArgv(LPSTR lpCmdLine, int *pArgc, CHAR ***pArgv)
+{
+	LPSTR p = lpCmdLine , buffer, lpsRes;
+	int i, max = -1, inc = 16;
+	int buffer_size;
+
+	*pArgv = NULL;
+	buffer_size = strlen(lpCmdLine) + 1024;
+//	buffer = safe_malloc(sizeof(CHAR) * buffer_size + 1);
+	buffer = (LPSTR)malloc(sizeof(CHAR) * buffer_size + 1);
+	strcpy(buffer, lpCmdLine);
+
+	for(i=0;;i++)
+	{
+	if(i > max){
+		max += inc;
+//		*pArgv = (CHAR **)safe_realloc(*pArgv, sizeof(CHAR *) * (max + 1));
+		*pArgv = (CHAR **)realloc(*pArgv, sizeof(CHAR *) * (max + 2));
+	}
+	if(i==0){
+		GetModuleFileName(NULL,buffer,buffer_size);
+		lpsRes = p;
+	} else
+		lpsRes = get_filename(p,buffer);
+	if(lpsRes != NULL){
+//		(*pArgv)[i] = (CHAR *)safe_malloc(sizeof(CHAR) * strlen(buffer) + 1);
+		(*pArgv)[i] = (CHAR *)malloc(sizeof(CHAR) * strlen(buffer) + 1);
+		strcpy((*pArgv)[i],buffer);
+		p = lpsRes;
+	} else {
+		*pArgc = i;
+		free(buffer);
+		return;
+	}
+	}
+}
+#endif /* !WIN32GCC */

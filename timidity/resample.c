@@ -49,7 +49,7 @@
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
 	if(reduce_quality_flag || \
-	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){ \
+	   (ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
                 *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
 		ofsd=ofs; \
@@ -74,7 +74,7 @@
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
 	if(reduce_quality_flag || \
-	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){ \
+	   (ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
                 *dest++ = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
                 v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
@@ -127,7 +127,7 @@ static sample_t *vib_resample_voice(int, int32 *, int);
 static sample_t *normal_resample_voice(int, int32 *, int);
 
 #ifdef PRECALC_LOOPS
-#define PRECALC_LOOP_COUNT(start, end, incr) (((end) - (start) + (incr) - 1) / (incr))
+#define PRECALC_LOOP_COUNT(start, end, incr) (((int32)((end) - (start) + (incr) - 1)) / (incr))
 #endif /* PRECALC_LOOPS */
 
 /*************** resampling with fixed increment *****************/
@@ -138,7 +138,8 @@ static sample_t *rs_plain_c(int v, int32 *countptr)
     sample_t
 	*dest=resample_buffer+resample_buffer_offset,
 	*src=vp->sample->data;
-    int32 ofs, le, count = *countptr, i;
+    int32 ofs, count = *countptr, i;
+	uint32 le;
 
     le = (vp->sample->loop_end >> FRACTION_BITS);
     ofs = (vp->sample_offset >> FRACTION_BITS);
@@ -231,7 +232,8 @@ static sample_t *rs_plain(int v, int32 *countptr)
 static sample_t *rs_loop_c(Voice *vp, int32 count)
 {
   int32
-    ofs=vp->sample_offset,
+    ofs=vp->sample_offset;
+  uint32
     le=vp->sample->loop_end,
     ll=le - vp->sample->loop_start;
   sample_t
@@ -265,7 +267,8 @@ static sample_t *rs_loop(Voice *vp, int32 count)
   INTERPVARS
   int32
     ofs=vp->sample_offset,
-    incr=vp->sample_increment,
+    incr=vp->sample_increment;
+  uint32
     le=vp->sample->loop_end,
 #if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
     ls=vp->sample->loop_start,
@@ -319,7 +322,8 @@ static sample_t *rs_bidir(Voice *vp, int32 count)
   INTERPVARS
   int32
     ofs=vp->sample_offset,
-    incr=vp->sample_increment,
+    incr=vp->sample_increment;
+  uint32
     le=vp->sample->loop_end,
     ls=vp->sample->loop_start;
   sample_t
@@ -327,9 +331,10 @@ static sample_t *rs_bidir(Voice *vp, int32 count)
     *src=vp->sample->data;
 
 #ifdef PRECALC_LOOPS
-  int32
+  uint32
     le2 = le<<1,
-    ls2 = ls<<1,
+    ls2 = ls<<1;
+  int32
     i, j;
   /* Play normally until inside the loop region */
 
@@ -369,13 +374,13 @@ static sample_t *rs_bidir(Voice *vp, int32 count)
 	  RESAMPLATION;
 	  ofs += incr;
 	}
-      if (ofs>=le)
+      if(ofs >= 0 && ofs >= le)
 	{
 	  /* fold the overshoot back in */
 	  ofs = le2 - ofs;
 	  incr *= -1;
 	}
-      else if (ofs <= ls)
+      else if (ofs <= 0 || ofs <= ls)
 	{
 	  ofs = ls2 - ofs;
 	  incr *= -1;
@@ -563,7 +568,8 @@ static sample_t *rs_vib_loop(Voice *vp, int32 count)
   INTERPVARS
   int32
     ofs=vp->sample_offset,
-    incr=vp->sample_increment,
+    incr=vp->sample_increment;
+  uint32
 #if defined(LAGRANGE_INTERPOLATION) || defined(CSPLINE_INTERPOLATION)
     ls=vp->sample->loop_start,
 #endif /* LAGRANGE_INTERPOLATION */
@@ -635,7 +641,8 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
   INTERPVARS
   int32
     ofs=vp->sample_offset,
-    incr=vp->sample_increment,
+    incr=vp->sample_increment;
+  uint32
     le=vp->sample->loop_end,
     ls=vp->sample->loop_start;
   sample_t
@@ -702,13 +709,13 @@ static sample_t *rs_vib_bidir(Voice *vp, int32 count)
 	  incr = update_vibrato(vp, (incr < 0));
 	  vibflag = 0;
 	}
-      if (ofs >= le)
+      if (ofs >= 0 && ofs >= le)
 	{
 	  /* fold the overshoot back in */
 	  ofs = le2 - ofs;
 	  incr *= -1;
 	}
-      else if (ofs <= ls)
+      else if (ofs <= 0 || ofs <= ls)
 	{
 	  ofs = ls2 - ofs;
 	  incr *= -1;
@@ -991,8 +998,8 @@ void pre_resample(Sample * sp)
   *dest++ = *(dest - 1) / 2;
 
   sp->data_length = newlen;
-  sp->loop_start = (int32)(sp->loop_start * a);
-  sp->loop_end = (int32)(sp->loop_end * a);
+  sp->loop_start = (uint32)(sp->loop_start * a);
+  sp->loop_end = (uint32)(sp->loop_end * a);
   free(sp->data);
   sp->data = (sample_t *) newdata;
 /*

@@ -32,6 +32,7 @@ extern FLOAT_T lookup_sine(int x);
 
 #define SINE_CYCLE_LENGTH 1024
 extern int32 freq_table[];
+extern int32 freq_table2[][128];
 extern FLOAT_T *vol_table;
 extern FLOAT_T def_vol_table[];
 extern FLOAT_T gs_vol_table[];
@@ -53,13 +54,19 @@ extern uint8 chorus_macro_presets[];
 extern uint8 delay_macro_presets[];
 extern FLOAT_T delay_time_center_table[];
 extern FLOAT_T pre_delay_time_table[];
+extern FLOAT_T rate1_table[];
 extern uint8 velocity_table[];
 extern int opt_velocity_table;
 extern FLOAT_T linear_vol_table[];
 extern FLOAT_T log_vol_table[];
+extern FLOAT_T exp_vol_table[];
 extern FLOAT_T *attack_vol_table;
+extern FLOAT_T envelope_coef[];
+extern FLOAT_T sc_vel_table[];
+extern FLOAT_T sc_vol_table[];
+extern FLOAT_T sc_pan_table[];
 
-
+extern void init_freq_table2(void);
 extern void init_tables(void);
 
 #endif /* ___TABLES_H_ */

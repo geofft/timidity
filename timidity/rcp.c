@@ -81,6 +81,7 @@ static void ntr_wait_all_off(struct RCPNoteTracer *ntr);
 #define MAX_EXCLUSIVE_LENGTH 1024
 static uint8 user_exclusive_data[8][USER_EXCLUSIVE_LENGTH];
 static int32 init_tempo;
+static int32 init_keysig;
 static int play_bias;
 
 int read_rcp_file(struct timidity_file *tf, char *magic0, char *fn)
@@ -197,8 +198,10 @@ int read_rcp_file(struct timidity_file *tf, char *magic0, char *fn)
 	current_file_info->time_sig_d = tf_getc(tf);
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Time signature(d) %d",
 		  current_file_info->time_sig_d);
-	i = tf_getc(tf);
-	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Key signature %d", i);
+	init_keysig = tf_getc(tf);
+	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Key signature %d", init_keysig);
+	if (init_keysig < 0 || init_keysig >= 32)
+		init_keysig = 0;
 
 	play_bias = (int)(signed char)tf_getc(tf);
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Play bias %d", play_bias);
@@ -263,8 +266,10 @@ int read_rcp_file(struct timidity_file *tf, char *magic0, char *fn)
 	current_file_info->time_sig_d = tf_getc(tf);
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Time signature(n) %d",
 		  current_file_info->time_sig_d);
-	i = tf_getc(tf);
-	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Key signature %d", i);
+	init_keysig = tf_getc(tf);
+	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Key signature %d", init_keysig);
+	if (init_keysig < 0 || init_keysig >= 32)
+		init_keysig = 0;
 
 	play_bias = (int)(signed char)tf_getc(tf);
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Play bias %d", play_bias);
@@ -323,6 +328,30 @@ static void rcp_tempo_change(int32 at, int32 tempo)
     a = ((tempo >> 8) & 0xff);
     b = ((tempo >> 16) & 0xff);
     MIDIEVENT(at, ME_TEMPO, c, b, a);
+}
+
+static void rcp_timesig_change(int32 at)
+{
+	int n, d;
+	
+	n = current_file_info->time_sig_n;
+	d = current_file_info->time_sig_d;
+	MIDIEVENT(at, ME_TIMESIG, 0, n, d);
+}
+
+static void rcp_keysig_change(int32 at, int32 key)
+{
+	int8 sf, mi;
+	
+	if (key < 8)
+		sf = key, mi = 0;
+	else if (key < 16)
+		sf = 8 - key, mi = 0;
+	else if (key < 24)
+		sf = key - 16, mi = 1;
+	else
+		sf = 24 - key, mi = 1;
+	MIDIEVENT(at, ME_KEYSIG, 0, sf, mi);
 }
 
 static char *rcp_cmd_name(int cmd)
@@ -523,6 +552,10 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
     current_tempo = (int32)(60000000.0 / init_tempo);
     if(trackno == 0 && current_tempo != 500000)
 	rcp_tempo_change(ntr_at(ntr), current_tempo);
+	if (trackno == 0) {
+		rcp_timesig_change(ntr_at(ntr));
+		rcp_keysig_change(ntr_at(ntr), init_keysig);
+	}
     ntr_incr(&ntr, time_offset);
 
     data_top = tf_tell(tf);
@@ -877,8 +910,13 @@ static int read_rcp_track(struct timidity_file *tf, int trackno, int gfmt)
 	    ntr_incr(&ntr, step);
 	    break;
 
-	  case 0xf5:	/* key change */
-	    break;
+	case 0xf5:	/* key change */
+		if (step < 0 || step >= 32) {
+			ctl->cmsg(CMSG_WARNING, VERB_VERBOSE, "Invalid key change\n");
+			step = 0;
+		}
+		rcp_keysig_change(ntr_at(ntr), step);
+		break;
 
 	  case 0xf6:	/* comment */
 	    len = 0;

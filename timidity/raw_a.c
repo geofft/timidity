@@ -37,9 +37,11 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifndef NO_STRING_H
+#ifdef STDC_HEADERS
+#include <stdlib.h>
 #include <string.h>
-#else
+#include <ctype.h>
+#elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
 

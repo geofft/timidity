@@ -45,12 +45,16 @@ extern void free_vorbisenc_dll(void);
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifndef NO_STRING_H
+#ifdef STDC_HEADERS
 #include <string.h>
-#else
+#include <stdlib.h>
+#include <ctype.h>
+#elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 #include <vorbis/vorbisenc.h>
 
 #include "timidity.h"
@@ -89,7 +93,7 @@ static	vorbis_info	 vi; /* struct that stores all the static vorbis bitstream
 				settings */
 static	vorbis_comment	 vc; /* struct that stores all the user comments */
 
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 extern char *w32g_output_dir;
 extern int w32g_auto_output_mode;
 extern int vorbis_ConfigDialogInfoApply(void);
@@ -98,7 +102,7 @@ int ogg_vorbis_mode = 8;	/* initial mode. */
 
 /*************************************************************************/
 
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 static int
 choose_bitrate(int nch, int rate)
 {
@@ -134,7 +138,7 @@ choose_bitrate(int nch, int rate)
   }
   return bitrate;
 #else
-	if (ogg_vorbis_mode<1 || ogg_vorbis_mode > 10)
+	if (ogg_vorbis_mode < 1 || ogg_vorbis_mode > 1000)
 		bitrate = 8;
 	else
 		bitrate = ogg_vorbis_mode;
@@ -193,7 +197,7 @@ static int ogg_output_open(const char *fname, const char *comment)
       comment = fname;
   }
 
-#ifdef IA_W32GUI
+#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
   vorbis_ConfigDialogInfoApply();
 #endif
 
@@ -201,14 +205,20 @@ static int ogg_output_open(const char *fname, const char *comment)
 
   /* choose an encoding mode */
   vorbis_info_init(&vi);
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
   bitrate = choose_bitrate(nch, dpm.rate);
   ctl->cmsg(CMSG_INFO,VERB_NOISY,"Target encoding bitrate: %dbps", bitrate);
   vorbis_encode_init(&vi, nch, dpm.rate, -1, bitrate, -1);
 #else
-  bitrate = choose_bitrate(nch, dpm.rate);
-  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Target encoding VBR quality: %d", bitrate);
-  vorbis_encode_init_vbr(&vi, nch, dpm.rate, (float)bitrate/10);
+  {
+	  float bitrate_f = (float)choose_bitrate(nch, dpm.rate);
+	  if (bitrate_f <= 10.0 )
+		  bitrate_f /= 10.0;
+	  if (bitrate_f > 10 )
+		  bitrate_f /= 1000.0;
+	  ctl->cmsg(CMSG_INFO,VERB_NOISY,"Target encoding VBR quality: %d", bitrate_f);
+	  vorbis_encode_init_vbr(&vi, nch, dpm.rate, bitrate_f);
+  }
 #endif
 
   {
@@ -270,7 +280,7 @@ static int auto_ogg_output_open(const char *input_filename)
 {
   char *output_filename;
 
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
   output_filename = create_auto_output_name(input_filename,"ogg",NULL,0);
 #else
   output_filename = create_auto_output_name(input_filename,"ogg",w32g_output_dir,w32g_auto_output_mode);
@@ -302,7 +312,7 @@ static int open_output(void)
   exclude_enc |= PE_BYTESWAP;
   dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
 
-#ifndef IA_W32GUI
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
   if(dpm.name == NULL) {
     dpm.flag |= PF_AUTO_SPLIT_FILE;
     dpm.name = NULL;

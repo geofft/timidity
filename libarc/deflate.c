@@ -97,8 +97,10 @@
 /* #define UNALIGNED_OK */
 /* #define DEBUG */
 #include "timidity.h"
+#include "common.h"
 #include "mblock.h"
 #include "zip.h"
+
 #define local static
 
 #define MIN_MATCH  3
@@ -275,7 +277,7 @@ local struct deflate_buff_queue *new_queue(void)
     }
     else
 	p = (struct deflate_buff_queue *)
-	    malloc(sizeof(struct deflate_buff_queue) + OUTBUFSIZ);
+	    safe_malloc(sizeof(struct deflate_buff_queue) + OUTBUFSIZ);
     p->next = NULL;
     p->len = 0;
     p->ptr = (uch *)p + sizeof(struct deflate_buff_queue);
@@ -988,7 +990,7 @@ DeflateHandler open_deflate_handler(
     if(level < 1 || level > 9)
 	return NULL; /* error("bad compression level"); */
 
-    encoder = (DeflateHandler)malloc(sizeof(struct _DeflateHandler));
+    encoder = (DeflateHandler)safe_malloc(sizeof(struct _DeflateHandler));
     if(encoder == NULL)
 	return NULL;
     memset(encoder, 0, sizeof(struct _DeflateHandler));

@@ -52,6 +52,7 @@
 #define IS_MED_FILE	712	/* MED/OctaMED */
 #define IS_IT_FILE	713	/* Impulse Tracker */
 #define IS_PTM_FILE	714	/* Poly Tracker */
+#define IS_MFI_FILE	800	/* Melody Format for i-mode */
 
 enum play_system_modes
 {
@@ -109,68 +110,6 @@ struct midi_file_info
     struct timidity_file *pcm_tf;
 };
 
-struct delay_status_t
-{
-	uint8 level;		/* master level */
-    uint8 level_center;
-    uint8 level_left;
-    uint8 level_right;
-    int time_center;			/* (ms) */
-    double time_ratio_left;		/* gs_val/24 */
-    double time_ratio_right;	/* gs_val/24 */
-	int time_left;
-	int time_right;
-    uint8 feed_back;	/* reserved. */
-	uint8 pre_lpf;		/* reserved. */
-	double level_ratio_center;
-	double level_ratio_left;
-	double level_ratio_right;
-	int fb_loop;
-	double fb_ratio;
-};
-
-struct reverb_status_t
-{
-	uint8 character;
-	uint8 pre_lpf;
-	uint8 level;
-	uint8 time;
-	uint8 delay_feedback;
-	uint8 pre_delay_time;	/* (ms) */
-};
-
-struct chorus_status_t
-{
-    int status;
-    uint8 voice_reserve[18];
-    uint8 macro[3];
-    uint8 pre_lpf[3];
-    uint8 level[3];
-    uint8 feed_back[3];
-    uint8 delay[3];
-    uint8 rate[3];
-    uint8 depth[3];
-    uint8 send_level[3];
-};
-
-struct insertion_effect_t
-{
-	uint8 type_lsb;
-	uint8 type_msb;
-	uint8 type;
-	uint8 channel[16];	/* 0:BYPASS, 1:EFX */
-	uint8 parameter[20];
-	uint8 send_reverb;
-	uint8 send_chorus;
-	uint8 send_delay;
-	uint8 control_source1;
-	uint8 control_depth1;
-	uint8 control_source2;
-	uint8 control_depth2;
-	uint8 send_eq_switch;
-};
-
-
 extern int32 readmidi_set_track(int trackno, int rewindp);
 extern void readmidi_add_event(MidiEvent *newev);
 extern void readmidi_add_ctl_event(int32 at, int ch, int control, int val);
@@ -181,8 +120,8 @@ extern char *readmidi_make_string_event(int type, char *string, MidiEvent *ev,
 					int cnv);
 extern MidiEvent *read_midi_file(struct timidity_file *mtf,
 				 int32 *count, int32 *sp, char *file_name);
-extern struct midi_file_info *get_midi_file_info(char *filename, int newp);
-extern struct midi_file_info *new_midi_file_info(char *filename);
+extern struct midi_file_info *get_midi_file_info(char *filename,int newp);
+extern struct midi_file_info *new_midi_file_info(const char *filename);
 extern void free_all_midi_file_info(void);
 extern int check_midi_file(char *filename);
 extern char *get_midi_title(char *filename);
@@ -204,9 +143,5 @@ extern int readmidi_error_flag;
 extern int readmidi_wrd_mode;
 extern int play_system_mode;
 extern FLOAT_T tempo_adjust;
-
-extern struct delay_status_t *get_delay_status();
-extern struct reverb_status_t *get_reverb_status();
-extern struct chorus_status_t *get_chorus_status();
 
 #endif /* ___READMIDI_H_ */

@@ -26,6 +26,10 @@
  * XAW configurations
  */
 
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 /* Define to use libXaw3d */
 /* #define XAW3D */
 

@@ -25,12 +25,14 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
-#ifndef NO_STRING_H
+#ifdef STDC_HEADERS
 #include <string.h>
-#else
+#include <ctype.h>
+#elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
 #include "timidity.h"
+#include "common.h"
 #include "output.h"
 #include "tables.h"
 #include "controls.h"
@@ -66,6 +68,10 @@ extern PlayMode bsdi_play_mode;
 #elif defined(__MACOS__)
 extern PlayMode mac_play_mode;
 #define DEV_PLAY_MODE &mac_play_mode
+
+#elif defined(AU_DARWIN)
+extern PlayMode darwin_play_mode;
+#define DEV_PLAY_MODE &darwin_play_mode
 #endif
 
 #ifdef AU_ALSA
@@ -75,6 +81,10 @@ extern PlayMode alsa_play_mode;
 #ifdef AU_HPUX_ALIB
 extern PlayMode hpux_nplay_mode;
 #endif /* AU_HPUX_ALIB */
+
+#ifdef AU_ARTS
+extern PlayMode arts_play_mode;
+#endif /* AU_ARTS */
 
 #ifdef AU_ESD
 extern PlayMode esd_play_mode;
@@ -110,6 +120,10 @@ PlayMode *play_mode_list[] = {
 #ifdef AU_HPUX_ALIB
   &hpux_nplay_mode,
 #endif /* AU_HPUX_ALIB */
+
+#if defined(AU_ARTS)
+  &arts_play_mode,
+#endif /* AU_ARTS */
 
 #if defined(AU_ESD)
   &esd_play_mode,
@@ -370,7 +384,7 @@ char *create_auto_output_name(const char *input_filename, char *ext_str, char *o
   int32 dir_len = 0;
   char ext_str_tmp[65];
 
-  output_filename = (char *)malloc((output_dir?strlen(output_dir):0) + strlen(input_filename) + 6);
+  output_filename = (char *)safe_malloc((output_dir?strlen(output_dir):0) + strlen(input_filename) + 6);
   if(output_filename==NULL)
     return NULL;
   output_filename[0] = '\0';

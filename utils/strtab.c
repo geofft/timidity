@@ -30,14 +30,9 @@
 #include <strings.h>
 #endif
 #include "timidity.h"
+#include "common.h"
 #include "mblock.h"
 #include "strtab.h"
-
-#ifdef HAVE_SAFE_MALLOC
-extern void *safe_malloc(size_t count);
-#define malloc safe_malloc
-#endif /* HAVE_SAFE_MALLOC */
-
 
 void init_string_table(StringTable *stab)
 {
@@ -80,14 +75,14 @@ char **make_string_array(StringTable *stab)
     n = stab->nstring;
     if(n == 0)
 	return NULL;
-    if((table = (char **)malloc((n + 1) * sizeof(char *))) == NULL)
+    if((table = (char **)safe_malloc((n + 1) * sizeof(char *))) == NULL)
 	return NULL;
 
     s = 0;
     for(p = stab->head; p; p = p->next)
 	s += strlen(p->string) + 1;
 
-    if((u = (char *)malloc(s)) == NULL)
+    if((u = (char *)safe_malloc(s)) == NULL)
     {
 	free(table);
 	return NULL;

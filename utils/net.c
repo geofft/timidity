@@ -39,6 +39,7 @@
 #endif
 
 #include "timidity.h"
+#include "common.h"
 #include "net.h"
 
 #ifndef INADDR_NONE
@@ -181,7 +182,7 @@ FILE *socket_fdopen(SOCKET fd, char *mode)
     /* w32_fp_socket fake FILE.
      * `mode' argument is ignored.
      */
-    if((fp = (FILE *)malloc(sizeof(w32_fp_socket))) == NULL)
+    if((fp = (FILE *)safe_malloc(sizeof(w32_fp_socket))) == NULL)
 	return NULL;
     memset(fp, 0, sizeof(w32_fp_socket));
     W32_FP2SOCKET(fp) = fd;

@@ -24,10 +24,9 @@
 
 #ifndef ___MIX_H_
 #define ___MIX_H_
-
-extern void mix_voice(int32 *buf, int v, int32 c);
-extern int recompute_envelope(int v);
-extern int apply_envelope_to_amp(int v);
-extern int min_sustain_time;  /* time (ms) for full vol note to sustain */
-
+extern void mix_voice(int32 *, int, int32);
+extern int recompute_envelope(int);
+extern int apply_envelope_to_amp(int);
+/* time (ms) for full vol note to sustain */
+extern int min_sustain_time;
 #endif /* ___MIX_H_ */

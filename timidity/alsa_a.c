@@ -41,7 +41,12 @@
 #endif
 
 /*ALSA header file*/
+
+#if HAHE_ALSA_ASOUNDLIB_H
+#include <alsa/asoundlib.h>
+#else
 #include <sys/asoundlib.h>
+#endif
 
 #if defined(SND_LIB_MINOR)
 #define ALSA_LIB  SND_LIB_MINOR
@@ -260,10 +265,10 @@ static int open_output(void)
 
   if (! dpm.name || ! *dpm.name) {
     if (env_pcm_name && *env_pcm_name)
-      dpm.name = strdup(env_pcm_name);
+      dpm.name = safe_strdup(env_pcm_name);
   }
   if (! dpm.name || ! *dpm.name)
-    dpm.name = strdup(default_pcm_name);
+    dpm.name = safe_strdup(default_pcm_name);
 
   tmp = snd_pcm_open(&handle, dpm.name, SND_PCM_STREAM_PLAYBACK, 0);
   if (tmp < 0) {

@@ -23,7 +23,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
+#endif
 #ifndef NO_STRING_H
 #include <string.h>
 #else
@@ -31,6 +33,7 @@
 #endif
 
 #include "timidity.h"
+#include "common.h"
 
 #ifdef __W32__
 #include "readdir.h"
@@ -55,17 +58,17 @@ API_EXPORT(DIR *) opendir(const char *dir)
     long handle;
     int index;
 
-    filespec = malloc(strlen(dir) + 2 + 1);
+    filespec = safe_malloc(strlen(dir) + 2 + 1);
     strcpy(filespec, dir);
     index = strlen(filespec) - 1;
     if (index >= 0 && (filespec[index] == '/' || filespec[index] == '\\'))
         filespec[index] = '\0';
     strcat(filespec, "/*");
 
-    dp = (DIR *)malloc(sizeof(DIR));
+    dp = (DIR *)safe_malloc(sizeof(DIR));
     dp->offset = 0;
     dp->finished = 0;
-    dp->dir = strdup(dir);
+    dp->dir = safe_strdup(dir);
 
     if ((handle = _findfirst(filespec, &(dp->fileinfo))) < 0) {
         if (errno == ENOENT)

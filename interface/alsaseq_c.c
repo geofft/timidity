@@ -43,9 +43,14 @@
 #else
 #include <strings.h>
 #endif
+#include <math.h>
 #include <signal.h>
 
+#if HAHE_ALSA_ASOUNDLIB_H
+#include <alsa/asoundlib.h>
+#else
 #include <sys/asoundlib.h>
+#endif
 
 #include "timidity.h"
 #include "common.h"
@@ -59,7 +64,7 @@
 #include "timer.h"
 
 
-#define NUM_PORTS	2	/* number of ports;
+#define NUM_PORTS	4	/* number of ports;
 				 * this should be configurable via command line..
 				 */
 
@@ -254,7 +259,7 @@ static int set_realtime_priority(void)
 static void ctl_pass_playing_list(int n, char *args[])
 {
 	double btime;
-	int i;
+	int i, j;
 
 #ifdef SIGPIPE
 	signal(SIGPIPE, SIG_IGN);    /* Handle broken pipe */
@@ -288,6 +293,8 @@ static void ctl_pass_playing_list(int n, char *args[])
 
 	opt_realtime_playing = 2; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
+	current_keysig = opt_init_keysig;
+	note_key_offset = 0;
 
 	/* set the audio queue size as minimum as possible, since
 	 * we don't have to use audio queue..
@@ -307,7 +314,40 @@ static void ctl_pass_playing_list(int n, char *args[])
 	signal(SIGTERM, safe_exit);
 	signal(SIGHUP, sig_reset);
 
+	if (opt_force_keysig != 8) {
+		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
+		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
+		while (i != j && i != j + 12) {
+			if (++note_key_offset > 6)
+				note_key_offset -= 12;
+			i += (i > 10) ? -5 : 7;
+		}
+	}
+	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
+	while (i != 7 && i != 19)
+		i += (i < 7) ? 5 : -7, j++;
+	j += note_key_offset, j -= floor(j / 12.0) * 12;
+	current_freq_table = j;
+
 	play_mode->close_output();
+
+	if (ctl.flags & CTLF_DAEMONIZE)
+	{
+		int pid = fork();
+		FILE *pidf;
+		switch (pid)
+		{
+			case 0:			// child is the daemon
+				break;
+			case -1:		// error status return
+				exit(7);
+			default:		// no error, doing well
+				if ((pidf = fopen( "/var/run/timidity.pid", "w" )) != NULL )
+					fprintf( pidf, "%d\n", pid );
+				exit(0);
+		}
+	}
+
 	for (;;) {
 		server_reset();
 		doit(&alsactx);
@@ -373,6 +413,7 @@ __done:
 
 static void server_reset(void)
 {
+	readmidi_read_init();
 	playmidi_stream_init();
 	if (free_instruments_afterwards)
 		free_instruments(0);

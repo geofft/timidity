@@ -105,6 +105,7 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_pref.h \
 	w32g_subwin.c \
 	w32g_subwin.h \
+	w32g_syn.c \
 	w32g_btn.bmp \
 	w32g_icon.ico \
 	w32g_sleep.bmp \
@@ -118,7 +119,8 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_mag.c \
 	w32g_mag.h \
 	w32g_dib.c \
-	w32g_dib.h
+	w32g_dib.h \
+	winsyn_c.c
 
 if ENABLE_WRD
 WRD_OBJS = \
@@ -225,7 +227,7 @@ install.bitmaps:
 
 
 if ENABLE_EMACS
-ELFILES = @ELFILES@
+# ELFILES = @ELFILES@ # autoconf already define this
 install_el = install.el
 endif
 
@@ -251,7 +253,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 ###
 
 if NEEDDLOPEN
-dynamic_targets = @dynamic_targets@
+# dynamic_targets = @dynamic_targets@ # autoconf already define this
 install_dynamics = install.dynamics
 n_so_libs = @n_so_libs@
 s_so_libs = @s_so_libs@

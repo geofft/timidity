@@ -69,6 +69,8 @@ timidity_SOURCES = \
 	output.h \
 	playmidi.c \
 	playmidi.h \
+	quantity.c \
+	quantity.h \
 	raw_a.c \
 	rcp.c \
 	readmidi.c \
@@ -87,6 +89,7 @@ timidity_SOURCES = \
 	sflayer.h \
 	smfconv.c \
 	smfconv.h \
+	smplfile.c \
 	sndfont.c \
 	sysdep.h \
 	tables.c \
@@ -101,6 +104,7 @@ timidity_SOURCES = \
 
 EXTRA_timidity_SOURCES = \
 	alsa_a.c \
+	aRts_a.c \
 	audriv.h \
 	audriv_a.c \
 	audriv_al.c \

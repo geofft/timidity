@@ -34,6 +34,7 @@
 #include <signal.h> /* for SIGALRM */
 
 #include "timidity.h"
+#include "common.h"
 #include "url.h"
 #include "net.h"
 
@@ -103,7 +104,7 @@ URL url_newsgroup_open(char *name)
     printf("url_newsgroup_open(%s)\n", name);
 #endif /* DEBUG */
 
-    if((urlname = strdup(name)) == NULL)
+    if((urlname = safe_strdup(name)) == NULL)
 	return NULL;
     n = strlen(urlname);
     while(n > 0 && urlname[n - 1] == '/')

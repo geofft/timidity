@@ -97,11 +97,14 @@ extern WRDTracer tty_wrdt_mode;
 extern WRDTracer x_wrdt_mode;
 #endif /* WRDT_X */
 
-#if defined(__W32__) && !defined(IA_W32GUI)
+#if defined(__W32__) && !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
 extern WRDTracer wcon_wrdt_mode; /* wrdt_wcon.c */
 #endif /* __W32__ */
 #if defined(__W32__) && defined(IA_W32GUI)
 extern WRDTracer w32g_wrdt_mode; /* wrdt_w32g.c */
+#endif /* __W32__ */
+#if defined(__W32__) && defined(IA_W32G_SYN)
+extern WRDTracer null_wrdt_mode;
 #endif /* __W32__ */
 
 WRDTracer *wrdt_list[] =
@@ -109,7 +112,7 @@ WRDTracer *wrdt_list[] =
 #ifdef WRDT_X
     &x_wrdt_mode,
 #endif /* WRDT_X */
-#if defined(__W32__) && !defined(IA_W32GUI)
+#if defined(__W32__) && !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
 	&wcon_wrdt_mode,
 #endif /* __W32__ */
 #if defined(__W32__) && defined(IA_W32GUI)

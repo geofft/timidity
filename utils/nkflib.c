@@ -501,7 +501,7 @@ sopen(SFILE *sf, char *string, signed int maxsize, char *md)
       if(maxsize <= sizeof(sfile_buffer))
 	  st = sfile_buffer;
       else
-	  st = (char *)malloc(maxsize);
+	  st = (char *)safe_malloc(maxsize);
   }
   else
     st=string;
@@ -1576,6 +1576,7 @@ s_iconv(int c2, int c1)
 }
 
 
+int
 e_oconv(int c2, int c1)
 {
     c2 = pre_convert(c1,c2); c1 = c1_return;

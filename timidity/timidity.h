@@ -18,25 +18,38 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef ___TIMIDITY_H_
-#define ___TIMIDITY_H_
+/*
+ * Historical issues: This file once was a huge header file, but now is
+ * devided into some smaller ones.  Please do not add things to this
+ * header, but consider put them on other files.
+ */
 
-#if defined(__WIN32__) && !defined(__W32__)
-#define __W32__
-#endif
+#ifndef TIMIDITY_H_INCLUDED
+#define TIMIDITY_H_INCLUDED 1
+
+/* 
+   Table of contents:
+   (1) Flags and definitions to customize timidity
+   (3) inportant definitions not to customize
+   (2) #includes -- include other headers
+ */
+
+/*****************************************************************************\
+ section 1: some customize issues
+\*****************************************************************************/
 
 
 /* You could specify a complete path, e.g. "/etc/timidity.cfg", and
    then specify the library directory in the configuration file. */
 /* #define CONFIG_FILE "/etc/timidity.cfg" */
 #ifndef CONFIG_FILE
-
-#ifdef DEFAULT_PATH
-#define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
-#else
-#define CONFIG_FILE PKGDATADIR "/timidity.cfg"
-#endif /* DEFAULT_PATH */
+#  ifdef DEFAULT_PATH
+#    define CONFIG_FILE DEFAULT_PATH "/timidity.cfg"
+#  else
+#    define CONFIG_FILE PKGDATADIR "/timidity.cfg"
+#  endif /* DEFAULT_PATH */
 #endif /* CONFIG_FILE */
+
 
 /* Filename extension, followed by command to run decompressor so that
    output is written to stdout. Terminate the list with a 0.
@@ -130,16 +143,7 @@ typedef double FLOAT_T;
    You should probably use a larger number for improved performance.
 
 */
-
 #define AUDIO_BUFFER_BITS 12	/* Maxmum audio buffer size (2^bits) */
-
-#ifndef DEFAULT_AUDIO_BUFFER_BITS
-#ifdef __W32__
-#define DEFAULT_AUDIO_BUFFER_BITS 12
-#else
-#define DEFAULT_AUDIO_BUFFER_BITS 11
-#endif
-#endif
 
 
 /* 1000 here will give a control ratio of 22:1 with 22 kHz output.
@@ -332,6 +336,7 @@ typedef double FLOAT_T;
  */
 #define CHORUS_CONTROL_ALLOW
 
+#define NEW_CHORUS
 
 /* Define if you want to use channel pressure.
  * Channel pressure effect is different in sequencers.
@@ -352,37 +357,14 @@ typedef double FLOAT_T;
 #define OVERLAP_VOICE_ALLOW
 
 
-/**************************************************************************/
-/* Anything below this shouldn't need to be changed unless you're porting
-   to a new machine with other than 32-bit, big-endian words. */
-/**************************************************************************/
 
-
-#include <stdio.h>
-
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif /* HAVE_ERRNO_H */
-extern int errno;
-
-#ifdef HAVE_MACHINE_ENDIAN_H
-#include <machine/endian.h> /* for __byte_swap_*() */
-#endif
-
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-
-#ifndef NO_VOLATILE
-#define VOLATILE_TOUCH(val) /* do nothing */
-#define VOLATILE volatile
-#else
-extern int volatile_touch(void* dmy);
-#define VOLATILE_TOUCH(val) volatile_touch(&(val))
-#define VOLATILE
-#endif /* NO_VOLATILE */
-
-#define HAVE_SAFE_MALLOC
+/*****************************************************************************\
+ section 2: some important definitions
+\*****************************************************************************/
+/*
+  Anything below this shouldn't need to be changed unless you're porting
+   to a new machine with other than 32-bit, big-endian words.
+ */
 
 /* change FRACTION_BITS above, not these */
 #define INTEGER_BITS (32 - FRACTION_BITS)
@@ -396,132 +378,14 @@ extern int volatile_touch(void* dmy);
    fragments under the VoxWare (Linux & FreeBSD) audio driver */
 #define AUDIO_BUFFER_SIZE (1<<AUDIO_BUFFER_BITS)
 
-/* Byte order */
-#ifdef WORDS_BIGENDIAN
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN 4321
-#endif
-#undef LITTLE_ENDIAN
-#else
-#undef BIG_ENDIAN
-#ifndef LITTLE_ENDIAN
-#define LITTLE_ENDIAN 1234
-#endif
-#endif
-
-/* DEC MMS has 64 bit long words */
-/* Linux-Axp has also 64 bit long words */
-#if defined(DEC) || defined(__alpha__)
-typedef unsigned int uint32;
-typedef int int32;
-#else
-typedef unsigned long uint32;
-typedef long int32;
-#endif
-#ifdef HPUX
-typedef unsigned short uint16;
-typedef short int16;
-typedef unsigned char uint8;
-typedef char int8;
-#else
-typedef unsigned short uint16;
-typedef signed short int16;
-typedef unsigned char uint8;
-typedef signed char int8;
-#endif
-
-/* Instrument files are little-endian, MIDI files big-endian, so we
-   need to do some conversions. */
-
-#define XCHG_SHORT(x) ((((x)&0xFF)<<8) | (((x)>>8)&0xFF))
-#if defined(__i486__) && !defined(__i386__)
-# define XCHG_LONG(x) \
-     ({ int32 __value; \
-        asm ("bswap %1; movl %1,%0" : "=g" (__value) : "r" (x)); \
-       __value; })
-#else
-# define XCHG_LONG(x) ((((x)&0xFF)<<24) | \
-		      (((x)&0xFF00)<<8) | \
-		      (((x)&0xFF0000)>>8) | \
-		      (((x)>>24)&0xFF))
-#endif
-
-#ifdef LITTLE_ENDIAN
-#define LE_SHORT(x) (x)
-#define LE_LONG(x) (x)
-#ifdef __FreeBSD__
-#define BE_SHORT(x) __byte_swap_word(x)
-#define BE_LONG(x) __byte_swap_long(x)
-#else
-#define BE_SHORT(x) XCHG_SHORT(x)
-#define BE_LONG(x) XCHG_LONG(x)
-#endif
-#else /* BIG_ENDIAN */
-#define BE_SHORT(x) (x)
-#define BE_LONG(x) (x)
-#ifdef __FreeBSD__
-#define LE_SHORT(x) __byte_swap_word(x)
-#define LE_LONG(x) __byte_swap_long(x)
-#else
-#define LE_SHORT(x) XCHG_SHORT(x)
-#define LE_LONG(x) XCHG_LONG(x)
-#endif
-#endif
-
-#define MAX_AMPLIFICATION 800
-
-#define MAX_CHANNELS 32
-/*#define MAX_CHANNELS 256*/
-
-#if MAX_CHANNELS <= 32
-typedef uint32 ChannelBitMask; /* 32-bit bitvector */
-#define IS_SET_CHANNELMASK(bits, c) ((bits) &   (1u << (c)))
-#define SET_CHANNELMASK(bits, c)    ((bits) |=  (1u << (c)))
-#define UNSET_CHANNELMASK(bits, c)  ((bits) &= ~(1u << (c)))
-#define TOGGLE_CHANNELMASK(bits, c) ((bits) ^=  (1u << (c)))
-#else
-typedef struct _ChannelBitMask
-{
-    uint32 b[8];		/* 256-bit bitvector */
-} ChannelBitMask;
-#define IS_SET_CHANNELMASK(bits, c) \
-	((bits).b[((c) >> 5) & 0x7] &   (1u << ((c) & 0x1F)))
-#define SET_CHANNELMASK(bits, c) \
-	((bits).b[((c) >> 5) & 0x7] |=  (1u << ((c) & 0x1F)))
-#define UNSET_CHANNELMASK(bits, c) \
-	((bits).b[((c) >> 5) & 0x7] &= ~(1u << ((c) & 0x1F)))
-#define TOGGLE_CHANNELMASK(bits, c) \
-	((bits).b[((c) >> 5) & 0x7] ^=  (1u << ((c) & 0x1F)))
-#endif
-
-#define MAXMIDIPORT 16
-
 /* These affect general volume */
 #define GUARD_BITS 3
 #define AMP_BITS (15-GUARD_BITS)
 
-#ifdef LOOKUP_HACK
-   typedef int8 sample_t;
-   typedef uint8 final_volume_t;
-#  define FINAL_VOLUME(v) ((final_volume_t)~_l2u[v])
-#  define MIXUP_SHIFT 5
-#  define MAX_AMP_VALUE 4095
-#else
-   typedef int16 sample_t;
-   typedef int32 final_volume_t;
-#  define FINAL_VOLUME(v) (v)
-#  define MAX_AMP_VALUE ((1<<(AMP_BITS+1))-1)
-#endif
-#define MIN_AMP_VALUE (MAX_AMP_VALUE >> 9)
-
-#ifdef USE_LDEXP
-#  define TIM_FSCALE(a,b) ldexp((double)(a),(b))
-#  define TIM_FSCALENEG(a,b) ldexp((double)(a),-(b))
-#  include <math.h>
-#else
-#  define TIM_FSCALE(a,b) ((a) * (double)(1<<(b)))
-#  define TIM_FSCALENEG(a,b) ((a) * (1.0L / (double)(1<<(b))))
-#endif
+#define MAX_AMPLIFICATION 800
+#define MAX_CHANNELS 32
+/*#define MAX_CHANNELS 256*/
+#define MAXMIDIPORT 16
 
 /* Vibrato and tremolo Choices of the Day */
 #define SWEEP_TUNING 38
@@ -541,109 +405,39 @@ typedef struct _ChannelBitMask
 
 #define VIBRATO_DEPTH_TUNING (1.0/4.0)
 
-#ifdef HPUX
-#undef mono
-#endif
-
-#ifdef sun
-#ifndef SOLARIS
-/* SunOS 4.x */
-#include <sys/stdtypes.h>
-#include <memory.h>
-#define memcpy(x, y, n) bcopy(y, x, n)
-#else
-/* Solaris */
-int usleep(unsigned int useconds); /* shut gcc warning up */
-#endif
-#endif /* sun */
-
-
-#ifdef __W32__
-#undef PATCH_EXT_LIST
-#define PATCH_EXT_LIST { ".pat", 0 }
-
-#define URL_DIR_CACHE_DISABLE
-#endif
-
-/* The path separator (D.M.) */
-/* Windows: "\"
- * Cygwin:  both "\" and "/"
- * Macintosh: ":"
- * Unix: "/"
- */
-#if defined(__W32__)
-#  define PATH_SEP '\\'
-#  define PATH_STRING "\\"
-#if defined(__CYGWIN32__) || defined(__MINGW32__)
-#  define PATH_SEP2 '/'
-#endif
-#elif defined(__MACOS__)
-#  define PATH_SEP ':'
-#  define PATH_STRING ":"
-#else
-#  define PATH_SEP '/'
-#  define PATH_STRING "/"
-#endif
-
-#ifdef PATH_SEP2
-#define IS_PATH_SEP(c) ((c) == PATH_SEP || (c) == PATH_SEP2)
-#else
-#define IS_PATH_SEP(c) ((c) == PATH_SEP)
-#endif
-
-/* new line code */
-#ifndef NLS
-#ifdef __W32__
-#if defined(__BORLANDC__) || defined(__CYGWIN32__) || defined(__MINGW32__)
-#  define NLS "\n"
-#else
-#  define NLS "\r\n"
-#endif
-#else /* !__W32__ */
-#  define NLS "\n"
-#endif
-#endif /* NLS */
-
-#define MAX_SAFE_MALLOC_SIZE (1<<22) /* 4M */
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif /* M_PI */
-
-#ifndef __W32__
-#undef MAIL_NAME
-#endif /* __W32__ */
-
-
-#ifdef __BORLANDC__
-/* strncasecmp() -> strncmpi(char *,char *,size_t) */
-#define strncasecmp(a,b,c) strncmpi(a,b,c)
-#define strcasecmp(a,b) strcmpi(a,b)
-#endif /* __BORLANDC__ */
-
-#ifdef _MSC_VER
-#define strncasecmp(a,b,c)	_strnicmp((a),(b),(c))
-#define strcasecmp(a,b)		_stricmp((a),(b))
-#define open _open
-#define close _close
-#define write _write
-#define lseek _lseek
-#define unlink _unlink
-#endif /* _MSC_VER */
-
-#define SAFE_CONVERT_LENGTH(len) (6 * (len) + 1)
+/* you cannot but use safe_malloc(). */
+#define HAVE_SAFE_MALLOC 1
+/* malloc's limit */
+#define MAX_SAFE_MALLOC_SIZE (1<<23) /* 8M */
 
 #define DEFAULT_SOUNDFONT_ORDER 0
 
-#ifdef __MACOS__
-#include "mac_com.h"
-#endif
 
-#if !defined(HAVE_POPEN)
-#undef DECOMPRESSOR_LIST
-#undef PATCH_CONVERTERS
-#endif
+/*****************************************************************************\
+ section 3: include other headers
+\*****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+extern int errno;
+
+#ifdef HAVE_MACHINE_ENDIAN_H
+#include <machine/endian.h> /* for __byte_swap_*() */
+#endif /* HAVE_MACHINE_ENDIAN_H */
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#include "sysdep.h"
 #include "support.h"
+#include "optcode.h"
 
-#endif /* ___TIMIDITY_H_ */
+#endif /* TIMIDITY_H_INCLUDED */

@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "timidity.h"
+#include "common.h"
 #include "instrum.h"
 #include "freq.h"
 #include "fft4g.h"
@@ -252,7 +253,7 @@ int freq_initialize_fft_arrays(Sample *sp)
     origdata = sp->data;
 
     /* copy the sample to a new float array */
-    floatdata = (float *) malloc(length * sizeof(float));
+    floatdata = (float *) safe_malloc(length * sizeof(float));
     for (i = 0; i < length; i++)
 	floatdata[i] = origdata[i];
 
@@ -263,14 +264,14 @@ int freq_initialize_fft_arrays(Sample *sp)
     newlength = pow(2, ceil(log(length) / log(2)));
     if (newlength > length)
     {
-	floatdata = realloc(floatdata, newlength * sizeof(float));
+	floatdata = safe_realloc(floatdata, newlength * sizeof(float));
 	memset(floatdata + length, 0, (newlength - length) * sizeof(float));
     }
     length = newlength;
     if (length < rate)
     {
 	padding = pow(2, ceil(log(rate) / log(2))) - length;
-	floatdata = realloc(floatdata, (length + padding) * sizeof(float));
+	floatdata = safe_realloc(floatdata, (length + padding) * sizeof(float));
 	memset(floatdata + length, 0, padding * sizeof(float));
 	length += padding;
     }
@@ -292,13 +293,13 @@ int freq_initialize_fft_arrays(Sample *sp)
             free(w);
             free(fft1_bin_to_pitch);
         }
-        magdata = (float *) malloc(length * sizeof(float));
-        logmagdata = (float *) malloc(length * sizeof(float));
-        cepstrum = (float *) malloc(length * sizeof(float));
-        ip = (int *) malloc(2 + sqrt(length) * sizeof(int));
+        magdata = (float *) safe_malloc(length * sizeof(float));
+        logmagdata = (float *) safe_malloc(length * sizeof(float));
+        cepstrum = (float *) safe_malloc(length * sizeof(float));
+        ip = (int *) safe_malloc(2 + sqrt(length) * sizeof(int));
         *ip = 0;
-        w = (float *) malloc((length >> 1) * sizeof(float));
-        fft1_bin_to_pitch = malloc((length >> 1) * sizeof(float));
+        w = (float *) safe_malloc((length >> 1) * sizeof(float));
+        fft1_bin_to_pitch = safe_malloc((length >> 1) * sizeof(float));
 
         for (i = 1, f0 = (float) rate / length; i < (length >> 1); i++) {
             fft1_bin_to_pitch[i] = assign_pitch_to_freq(i * f0);

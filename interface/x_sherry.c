@@ -20,11 +20,11 @@
     x_sherry.c - Sherry WRD for X Window written by Masanao Izumo
 */
 
-#ifdef ENABLE_SHERRY
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 
+#ifdef ENABLE_SHERRY
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #ifndef NO_STRING_H

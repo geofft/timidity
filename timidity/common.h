@@ -67,14 +67,15 @@ extern int check_file_extension(char *filename, char *ext, int decompress);
 extern void *safe_malloc(size_t count);
 extern void *safe_realloc(void *old_ptr, size_t new_size);
 extern void *safe_large_malloc(size_t count);
-extern char *safe_strdup(char *s);
+extern char *safe_strdup(const char *s);
+extern void free_ptr_list(void *ptr_list, int count);
 extern char **expand_file_archives(char **files, int *nfiles_in_out);
 extern void randomize_string_list(char **strlist, int nstr);
 extern int pathcmp(const char *path1, const char *path2, int ignore_case);
 extern void sort_pathname(char **files, int nfiles);
 extern int  load_table(char *file);
-extern char *pathsep_strrchr(char *path);
-extern char *pathsep_strchr(char *path);
+extern char *pathsep_strrchr(const char *path);
+extern char *pathsep_strchr(const char *path);
 extern int str2mID(char *str);
 
 

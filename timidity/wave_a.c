@@ -37,9 +37,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifndef NO_STRING_H
+#ifdef STDC_HEADERS
 #include <string.h>
-#else
+#include <stdlib.h>
+#elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
 #include <fcntl.h>

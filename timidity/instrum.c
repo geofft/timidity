@@ -46,6 +46,7 @@
 #include "resample.h"
 #include "tables.h"
 #include "filter.h"
+#include "quantity.h"
 
 #define INSTRUMENT_HASH_SIZE 128
 struct InstrumentCache
@@ -70,7 +71,7 @@ SpecialPatch *special_patch[NSPECIAL_PATCH];
 int progbase = 0;
 struct inst_map_elem
 {
-    int set, elem;
+    int set, elem, mapped;
 };
 
 static struct inst_map_elem *inst_map_table[NUM_INST_MAP][128];
@@ -117,7 +118,7 @@ static int32 calc_rate(int diff, double msec)
 }
 /*End of Pseudo Reverb*/
 
-static void free_instrument(Instrument *ip)
+void free_instrument(Instrument *ip)
 {
   Sample *sp;
   int i;
@@ -288,29 +289,112 @@ static void store_instrument_cache(Instrument *ip,
 }
 
 static int
-adjust_tune_rate(int val, float tune)
+adjust_tune_freq(int val, float tune)
 {
   if (!tune)
     return val;
-  return (int)(val * pow(2.0, tune / 12.0));
+  return (int)(val / pow(2.0, tune / 12.0));
 }
 
-static void
-apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
+static int32 to_rate(int rate)
 {
-  int i;
+	return (rate) ? (int32) (0x200 * pow(2.0, rate / 17.0)
+			* 44100 / play_mode->rate * control_ratio) << fast_decay : 0;
+}
 
-  if (!tone->tunenum)
-    return;
+static int32 to_control(int control)
+{
+	return (int32) (0x2000 / pow(2.0, control / 31.0));
+}
 
-  for (i = 0; i < ip->samples; i++) {
-    Sample *sp;
-    sp = &ip->sample[i];
-    if (tone->tunenum == 1)
-      sp->sample_rate = adjust_tune_rate(sp->sample_rate, tone->tune[0]);
-    else if (i < tone->tunenum)
-      sp->sample_rate = adjust_tune_rate(sp->sample_rate, tone->tune[i]);
-  }
+static void apply_bank_parameter(Instrument *ip, ToneBankElement *tone)
+{
+	int i, j;
+	Sample *sp;
+	
+	if (tone->tunenum)
+		for (i = 0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->tunenum == 1) {
+				sp->low_freq = adjust_tune_freq(sp->low_freq, tone->tune[0]);
+				sp->high_freq = adjust_tune_freq(sp->high_freq, tone->tune[0]);
+				sp->root_freq = adjust_tune_freq(sp->root_freq, tone->tune[0]);
+			} else if (i < tone->tunenum) {
+				sp->low_freq = adjust_tune_freq(sp->low_freq, tone->tune[i]);
+				sp->high_freq = adjust_tune_freq(sp->high_freq, tone->tune[i]);
+				sp->root_freq = adjust_tune_freq(sp->root_freq, tone->tune[i]);
+			}
+		}
+	if (tone->envratenum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->envratenum == 1) {
+				for (j =0; j < 6; j++)
+					if (tone->envrate[0][j] >= 0)
+						sp->envelope_rate[j] = to_rate(tone->envrate[0][j]);
+			} else if (i < tone->envratenum) {
+				for (j =0; j < 6; j++)
+					if (tone->envrate[i][j] >= 0)
+						sp->envelope_rate[j] = to_rate(tone->envrate[i][j]);
+			}
+		}
+	if (tone->envofsnum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->envofsnum == 1) {
+				for (j =0; j < 6; j++)
+					if (tone->envofs[0][j] >= 0)
+						sp->envelope_offset[j] = to_offset(tone->envofs[0][j]);
+			} else if (i < tone->envofsnum) {
+				for (j =0; j < 6; j++)
+					if (tone->envofs[i][j] >= 0)
+						sp->envelope_offset[j] = to_offset(tone->envofs[i][j]);
+			}
+		}
+	if (tone->tremnum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->tremnum == 1) {
+				if (IS_QUANTITY_DEFINED(tone->trem[0][0]))
+					sp->tremolo_sweep_increment =
+							quantity_to_int(&tone->trem[0][0], 0);
+				if (IS_QUANTITY_DEFINED(tone->trem[0][1]))
+					sp->tremolo_phase_increment = quantity_to_int(&tone->trem[0][1], 0);
+				if (IS_QUANTITY_DEFINED(tone->trem[0][2]))
+					sp->tremolo_depth = quantity_to_int(&tone->trem[0][2], 0) << 1;
+			} else if (i < tone->tremnum) {
+				if (IS_QUANTITY_DEFINED(tone->trem[i][0]))
+					sp->tremolo_sweep_increment =
+							quantity_to_int(&tone->trem[i][0], 0);
+				if (IS_QUANTITY_DEFINED(tone->trem[i][1]))
+					sp->tremolo_phase_increment = quantity_to_int(&tone->trem[i][1], 0);
+				if (IS_QUANTITY_DEFINED(tone->trem[i][2]))
+					sp->tremolo_depth = quantity_to_int(&tone->trem[i][2], 0) << 1;
+			}
+		}
+	if (tone->vibnum)
+		for (i =0; i < ip->samples; i++) {
+			sp = &ip->sample[i];
+			if (tone->vibnum == 1) {
+				if (IS_QUANTITY_DEFINED(tone->vib[0][1]))
+					sp->vibrato_control_ratio = quantity_to_int(&tone->vib[0][1], 0);
+				if (IS_QUANTITY_DEFINED(tone->vib[0][0]))
+					sp->vibrato_sweep_increment =
+							quantity_to_int(&tone->vib[0][0],
+							sp->vibrato_control_ratio);
+				if (IS_QUANTITY_DEFINED(tone->vib[0][2]))
+					sp->vibrato_depth = quantity_to_int(&tone->vib[0][2], 0);
+			} else if (i < tone->vibnum) {
+				if (IS_QUANTITY_DEFINED(tone->vib[i][1]))
+					sp->vibrato_control_ratio = quantity_to_int(&tone->vib[i][1], 0);
+				if (IS_QUANTITY_DEFINED(tone->vib[i][0]))
+					sp->vibrato_sweep_increment =
+							quantity_to_int(&tone->vib[i][0],
+							sp->vibrato_control_ratio);
+				if (IS_QUANTITY_DEFINED(tone->vib[i][2]))
+					sp->vibrato_depth = quantity_to_int(&tone->vib[i][2], 0);
+			}
+		}
 }
 
 /*
@@ -364,7 +448,9 @@ static Instrument *load_gus_instrument(char *name,
       tone = NULL;
   }
 
-  if (tone && tone->tunenum == 0) {
+	if (tone && tone->tunenum == 0
+			&& tone->envratenum == 0 && tone->envofsnum == 0
+			&& tone->tremnum == 0 && tone->vibnum == 0) {
     if((ip = search_instrument_cache(name, panning, amp, note_to_use,
 				     strip_loop, strip_envelope, strip_tail))
        != NULL)
@@ -799,19 +885,96 @@ Instrument *load_instrument(int dr, int b, int prog)
     char infomsg[256];
     int font_bank, font_preset, font_keynote;
 
-    if(bank->tone[prog].instype == 1)
+    if(bank->tone[prog].instype == 1
+	|| bank->tone[prog].instype == 2)
     {
-	/* Font extention */
-	font_bank = bank->tone[prog].font_bank;
-	font_preset = bank->tone[prog].font_preset;
-	font_keynote = bank->tone[prog].note;
-	ip = extract_soundfont(bank->tone[prog].name,
+	if (bank->tone[prog].instype == 1)
+	{
+	    /* Font extention */
+	    font_bank = bank->tone[prog].font_bank;
+	    font_preset = bank->tone[prog].font_preset;
+	    font_keynote = bank->tone[prog].font_keynote;
+	    ip = extract_soundfont(bank->tone[prog].name,
 			       font_bank, font_preset, font_keynote);
-	if(ip != NULL && bank->tone[prog].amp != -1)
+	}
+	else
+	{
+	    /* Sample extension */
+		extern Instrument *extract_sample_file(char *);
+		
+	    ip = extract_sample_file(bank->tone[prog].name);
+	}
+	if(ip != NULL && bank->tone[prog].amp != -1)	/* amp tuning */
 	{
 	    int i;
-	    for(i = 0; i < ip->samples; i++)
-		ip->sample[i].volume = bank->tone[prog].amp / 100.0;
+		FLOAT_T volume_max = 0;
+		for(i = 0; i < ip->samples; i++) {
+			if(ip->sample[i].volume > volume_max) {volume_max = ip->sample[i].volume;}
+		}
+		if(volume_max != 0) {
+			for(i = 0; i < ip->samples; i++) {
+				/*ip->sample[i].volume = bank->tone[prog].amp / 100.0;*/
+				ip->sample[i].volume = (ip->sample[i].volume * (FLOAT_T)bank->tone[prog].amp) * 0.01 / volume_max;
+			}
+		}
+	}
+	if(ip != NULL && bank->tone[prog].pan != -1)	/* panning */
+	{
+	    int i,pan,pan_average,panning;
+		/* calculate average of soundfont default panning */
+		pan_average = 0;
+		for(i = 0; i < ip->samples; i++) {
+			pan_average += ip->sample[i].panning;
+		}
+		pan_average /= ip->samples;
+
+		pan = (uint8)bank->tone[prog].pan & 0x7F;
+
+		for(i = 0; i < ip->samples; i++) {
+			panning = ip->sample[i].panning + pan - pan_average;
+			if(panning < 0) {panning = 0;}
+			else if(panning > 127) {panning = 127;}
+			ip->sample[i].panning = panning;
+		}
+	}
+	if(ip != NULL && bank->tone[prog].note != -1)	/* note to use */
+	{
+	    int i;
+		for(i = 0; i < ip->samples; i++) {
+			ip->sample[i].root_freq = freq_table[bank->tone[prog].note & 0x7F];
+		}
+	}
+	if(ip != NULL && bank->tone[prog].strip_tail == 1)	/* strip tail */
+	{
+	    int i;
+		for(i = 0; i < ip->samples; i++) {
+			ip->sample[i].data_length = ip->sample[i].loop_end;
+		}
+	}
+	/* #extension cutoff / resonance */
+	if(opt_resonance && ip != NULL) {
+		int i,cutoff_freq = 0,resonance = 0;
+		for(i = 0; i < ip->samples; i++) {
+			if(cutoff_freq < ip->sample[i].cutoff_freq) {
+				cutoff_freq = ip->sample[i].cutoff_freq;
+			}/* else if(ip->sample[i].cutoff_freq == 0) {
+				cutoff_freq = 0;
+				resonance = 0;
+				break;
+			}*/
+			if(ip->sample[i].resonance != 0) {
+				if(resonance == 0) {resonance = ip->sample[i].resonance;}
+				else if(resonance > ip->sample[i].resonance) {
+					resonance = ip->sample[i].resonance;
+				}
+			}
+		}	
+		if(bank->tone[prog].cutoff_freq == 0) {
+			bank->tone[prog].cutoff_freq = cutoff_freq;
+		}
+		if(bank->tone[prog].resonance == 0) {
+			bank->tone[prog].resonance = resonance;
+		}
 	}
 	if (ip != NULL) {
 	  int i;
@@ -819,8 +982,8 @@ Instrument *load_instrument(int dr, int b, int prog)
 	  if (bank->tone[i].comment)
 	    free(bank->tone[i].comment);
 	  bank->tone[i].comment = safe_strdup(ip->instname);
+		apply_bank_parameter(ip, &bank->tone[prog]);
 	}
-	apply_bank_parameter(ip, &bank->tone[prog]);
 	return ip;
     }
 
@@ -867,7 +1030,8 @@ Instrument *load_instrument(int dr, int b, int prog)
 	}
     }
 
-    apply_bank_parameter(ip, &bank->tone[prog]);
+	if (ip != NULL)
+		apply_bank_parameter(ip, &bank->tone[prog]);
     return ip;
 }
 
@@ -1133,7 +1297,7 @@ int instrument_map(int mapID, int *set, int *elem)
     s = *set;
     e = *elem;
     p = inst_map_table[mapID][s];
-    if(p != NULL)
+    if(p != NULL && p[e].mapped)
     {
 	*set = p[e].set;
 	*elem = p[e].elem;
@@ -1143,7 +1307,7 @@ int instrument_map(int mapID, int *set, int *elem)
     if(s != 0)
     {
 	p = inst_map_table[mapID][0];
-	if(p != NULL)
+	if(p != NULL && p[e].mapped)
 	{
 	    *set = p[e].set;
 	    *elem = p[e].elem;
@@ -1162,18 +1326,19 @@ void set_instrument_map(int mapID,
     p = inst_map_table[mapID][set_from];
     if(p == NULL)
     {
-	p = (struct inst_map_elem *)
+		p = (struct inst_map_elem *)
 	    safe_malloc(128 * sizeof(struct inst_map_elem));
-	memset(p, 0, 128 * sizeof(struct inst_map_elem));
-	inst_map_table[mapID][set_from] = p;
+	    memset(p, 0, 128 * sizeof(struct inst_map_elem));
+		inst_map_table[mapID][set_from] = p;
     }
     p[elem_from].set = set_to;
     p[elem_from].elem = elem_to;
+	p[elem_from].mapped = 1;
 }
 
 void free_instrument_map(void)
 {
-  int i, j, k;
+  int i, j;
 
   for (i = 0; i < NUM_INST_MAP; i++) {
     for (j = 0; j < 128; j++) {

@@ -164,6 +164,7 @@ static void reset_indicator(void);
 static void indicator_chan_update(int ch);
 static void display_lyric(char *lyric, int sep);
 static void display_play_system(int mode);
+static void display_intonation(int mode);
 static void display_aq_ratio(void);
 
 #define LYRIC_WORD_NOSEP	0
@@ -182,6 +183,9 @@ static void ctl_help_mode(void);
 static void ctl_list_mode(int type);
 static void ctl_total_time(int tt);
 static void ctl_master_volume(int mv);
+static void ctl_metronome(int meas, int beat);
+static void ctl_keysig(int8 k, int ko);
+static void ctl_tempo(int t, int tr);
 static void ctl_file_name(char *name);
 static void ctl_current_time(int ct, int nv);
 static const char note_name_char[12] =
@@ -447,7 +451,7 @@ static void N_ctl_scrinit(void)
     wmove(dftwin, TIME_LINE,6 + 6);
     waddch(dftwin, '/');
     wmove(dftwin, VOICE_LINE,40);
-    wprintw(dftwin, "Voices:    /%3d", voices);
+    wprintw(dftwin, "Voices:     / %3d", voices);
     wmove(dftwin, VOICE_LINE, COLS-20);
     waddstr(dftwin, "Master volume:");
     wmove(dftwin, SEPARATE1_LINE, 0);
@@ -457,6 +461,12 @@ static void N_ctl_scrinit(void)
 #else
     waddch(dftwin, '_');
 #endif
+    wmove(dftwin, SEPARATE1_LINE, 0);
+    waddstr(dftwin, "Meas: ");
+    wmove(dftwin, SEPARATE1_LINE, 37);
+    waddstr(dftwin, " Key: ");
+    wmove(dftwin, SEPARATE1_LINE, 58);
+    waddstr(dftwin, " Tempo: ");
 
     indicator_width = COLS - 2;
     if(indicator_width < 40)
@@ -525,7 +535,12 @@ static void init_trace_window_chan(int ch)
 	c = (COLS - 24) / 12 * 12;
 	if(c <= 0)
 	    c = 1;
-	wprintw(dftwin, "%02d ", ch + 1);
+	if (IS_SET_CHANNELMASK(channel_mute, ch))
+		wattron(dftwin, A_REVERSE);
+	wprintw(dftwin, "%02d", ch + 1);
+	if (IS_SET_CHANNELMASK(channel_mute, ch))
+		wattroff(dftwin, A_REVERSE);
+	waddch(dftwin, ' ');
 
 	for(i = 0; i < c; i++)
 	    waddch(dftwin, '.');
@@ -543,9 +558,12 @@ static void init_trace_window_chan(int ch)
 	ToneBank *bank;
 	int b, type, pr;
 
-	wattron(dftwin, A_BOLD);
-	wprintw(dftwin, "%02d ", ch + 1);
-	wattroff(dftwin, A_BOLD);
+	wattron(dftwin, A_BOLD
+			| ((IS_SET_CHANNELMASK(channel_mute, ch)) ? A_REVERSE : 0));
+	wprintw(dftwin, "%02d", ch + 1);
+	wattroff(dftwin, A_BOLD
+			| ((IS_SET_CHANNELMASK(channel_mute, ch)) ? A_REVERSE : 0));
+	waddch(dftwin, ' ');
 
 	b = ChannelStatus[ch].bank;
 	pr = ChannelStatus[ch].prog;
@@ -670,7 +688,7 @@ static void init_chan_status(void)
 
 static void display_play_system(int mode)
 {
-    wmove(dftwin, TIME_LINE, 23);
+    wmove(dftwin, TIME_LINE, 22);
     switch(mode)
     {
       case GM_SYSTEM_MODE:
@@ -689,6 +707,13 @@ static void display_play_system(int mode)
     scr_modified_flag = 1;
 }
 
+static void display_intonation(int mode)
+{
+	wmove(dftwin, TIME_LINE, 28);
+	waddstr(dftwin, (mode == 1) ? "[PureInt]" : "         ");
+	scr_modified_flag = 1;
+}
+
 static void ctl_ncurs_mode_init(void)
 {
     int i;
@@ -700,6 +725,7 @@ static void ctl_ncurs_mode_init(void)
 	display_channels = 16;
 
     display_play_system(play_system_mode);
+    display_intonation(opt_pure_intonation);
     switch(ctl_ncurs_mode)
     {
       case NCURS_MODE_MAIN:
@@ -765,10 +791,10 @@ static void ctl_help_mode(void)
 "v/Down=Softer  f/Right=Skip forward  p/Prev=Previous file  q/End=Quit program",
 "h/?=Help mode  s=Toggle pause        E=ExtMode-Setting",
 "+=Key up       -=Key down            >=Speed up            <=Speed down",
-"O=Voices up    o=Voices down         c/C=Move channel      d=Toggle drum prt.",
+"O=Voices up    o=Voices down         c/j/C/k=Move channel  d=Toggle drum prt.",
 "J=Jump         L=Load & play (TAB: File completion)        t=Toggle trace mode",
 "%=Display velocity (toggle)          D=Drum change         S=Save as",
-"R=Change rate",
+"R=Change rate  Space=Toggle ch. mute .=Solo ch. play       /=Clear ch. mute",
 #ifdef SUPPORT_SOUNDSPEC
 "g=Open sound spectrogram window",
 #else
@@ -776,7 +802,7 @@ static void ctl_help_mode(void)
 #endif /* SUPPORT_SOUNDSPEC */
 "",
 "l/INS=List mode",
-"Up=Cursol up           Down=Cursol down   Space=Select and play",
+"k/Up=Cursor up         j/Down=Cursor down Space=Select and play",
 "p=Previous file play   n=Next file play   RollUp=Page up   RollDown=Page down",
 "/=Search file",
 NULL
@@ -997,6 +1023,9 @@ static void redraw_all(void)
     N_ctl_scrinit();
     ctl_total_time(CTL_STATUS_UPDATE);
     ctl_master_volume(CTL_STATUS_UPDATE);
+    ctl_metronome(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
+    ctl_keysig(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
+    ctl_tempo(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
     display_key_helpmsg();
     ctl_file_name(NULL);
     ctl_ncurs_mode_init();
@@ -1021,11 +1050,6 @@ static void ctl_event(CtlEvent *e)
 	break;
       case CTLE_PLAY_END:
 	break;
-      case CTLE_TEMPO:
-	break;
-      case CTLE_METRONOME:
-	update_indicator();
-	break;
       case CTLE_CURRENT_TIME:
 	ctl_current_time((int)e->v1, (int)e->v2);
 	display_aq_ratio();
@@ -1036,6 +1060,22 @@ static void ctl_event(CtlEvent *e)
       case CTLE_MASTER_VOLUME:
 	ctl_master_volume((int)e->v1);
 	break;
+	case CTLE_METRONOME:
+		ctl_metronome((int) e->v1, (int) e->v2);
+		update_indicator();
+		break;
+	case CTLE_KEYSIG:
+		ctl_keysig((int8) e->v1, CTL_STATUS_UPDATE);
+		break;
+	case CTLE_KEY_OFFSET:
+		ctl_keysig(CTL_STATUS_UPDATE, (int) e->v1);
+		break;
+	case CTLE_TEMPO:
+		ctl_tempo((int) e->v1, CTL_STATUS_UPDATE);
+		break;
+	case CTLE_TIME_RATIO:
+		ctl_tempo(CTL_STATUS_UPDATE, (int) e->v1);
+		break;
       case CTLE_PROGRAM:
 	ctl_program((int)e->v1, (int)e->v2, (char *)e->v3, (unsigned int)e->v4);
 	break;
@@ -1123,6 +1163,81 @@ static void ctl_master_volume(int mv)
     N_ctl_refresh();
 }
 
+static void ctl_metronome(int meas, int beat)
+{
+	static int lastmeas = CTL_STATUS_UPDATE;
+	static int lastbeat = CTL_STATUS_UPDATE;
+	
+	if (meas == CTL_STATUS_UPDATE)
+		meas = lastmeas;
+	else
+		lastmeas = meas;
+	if (beat == CTL_STATUS_UPDATE)
+		beat = lastbeat;
+	else
+		lastbeat = beat;
+	wmove(dftwin, SEPARATE1_LINE, 6);
+	wattron(dftwin, A_BOLD);
+	wprintw(dftwin, "%03d.%02d ", meas, beat);
+	wattroff(dftwin, A_BOLD);
+	N_ctl_refresh();
+}
+
+static void ctl_keysig(int8 k, int ko)
+{
+	static int8 lastkeysig = CTL_STATUS_UPDATE;
+	static int lastoffset = CTL_STATUS_UPDATE;
+	static const char *keysig_name[] = {
+		"Cb", "Gb", "Db", "Ab", "Eb", "Bb", "F ", "C ",
+		"G ", "D ", "A ", "E ", "B ", "F#", "C#", "G#",
+		"D#", "A#"
+	};
+	int i, j;
+	
+	if (k == CTL_STATUS_UPDATE)
+		k = lastkeysig;
+	else
+		lastkeysig = k;
+	if (ko == CTL_STATUS_UPDATE)
+		ko = lastoffset;
+	else
+		lastoffset = ko;
+	i = k + ((k < 8) ? 7 : -6);
+	if (ko > 0)
+		for (j = 0; j < ko; j++)
+			i += (i > 10) ? -5 : 7;
+	else
+		for (j = 0; j < abs(ko); j++)
+			i += (i < 7) ? 5 : -7;
+	wmove(dftwin, SEPARATE1_LINE, 43);
+	wattron(dftwin, A_BOLD);
+	wprintw(dftwin, "%s %s (%+03d) ",
+			keysig_name[i], (k < 8) ? "Maj" : "Min", ko);
+	wattroff(dftwin, A_BOLD);
+	N_ctl_refresh();
+}
+
+static void ctl_tempo(int t, int tr)
+{
+	static int lasttempo = CTL_STATUS_UPDATE;
+	static int lastratio = CTL_STATUS_UPDATE;
+	
+	if (t == CTL_STATUS_UPDATE)
+		t = lasttempo;
+	else
+		lasttempo = t;
+	if (tr == CTL_STATUS_UPDATE)
+		tr = lastratio;
+	else
+		lastratio = tr;
+	t = (int) (500000 / (double) t * 120 * (double) tr / 100 + 0.5);
+	wmove(dftwin, SEPARATE1_LINE, 66);
+	wattron(dftwin, A_BOLD);
+	wprintw(dftwin, "%3d (%03d %%) ", t, tr);
+	wattroff(dftwin, A_BOLD);
+	N_ctl_refresh();
+}
+
 static void ctl_file_name(char *name)
 {
     if(name == NULL)
@@ -1175,7 +1290,7 @@ static void ctl_current_time(int secs, int v)
     if(last_v != v)
     {
 	last_v = v;
-	wmove(dftwin, VOICE_LINE, 47);
+	wmove(dftwin, VOICE_LINE, 48);
 	wattron(dftwin, A_BOLD);
 	wprintw(dftwin, "%3d", v);
 	wattroff(dftwin, A_BOLD);
@@ -1185,7 +1300,7 @@ static void ctl_current_time(int secs, int v)
     if(last_voices != voices)
     {
 	last_voices = voices;
-	wmove(dftwin, VOICE_LINE, 52);
+	wmove(dftwin, VOICE_LINE, 54);
 	wprintw(dftwin, "%3d", voices);
 	scr_modified_flag = 1;
     }
@@ -2388,6 +2503,10 @@ static int ctl_read(int32 *valp)
 	      /* ctl_list_mode(NC_LIST_SELECT); */
 	      return RC_LOAD_FILE;
 	  }
+		if (ctl_ncurs_mode == NCURS_MODE_TRACE && selected_channel != -1) {
+			*valp = selected_channel;
+			return RC_TOGGLE_MUTE;
+		}
 	  continue;
 	case '+':
 	  *valp = u_prefix;
@@ -2414,6 +2533,12 @@ static int ctl_read(int32 *valp)
 	      continue;
 	  }
 	  break;
+	case 'j':
+		if (ctl_ncurs_mode == NCURS_MODE_TRACE)
+			move_select_channel(u_prefix);
+		else if (ctl_ncurs_mode == NCURS_MODE_LIST)
+			ctl_list_mode(NC_LIST_DOWN);
+		continue;
 	case 'C':
 	  if(ctl_ncurs_mode == NCURS_MODE_TRACE)
 	  {
@@ -2421,6 +2546,12 @@ static int ctl_read(int32 *valp)
 	      continue;
 	  }
 	  break;
+	case 'k':
+		if (ctl_ncurs_mode == NCURS_MODE_TRACE)
+			move_select_channel(-u_prefix);
+		else if (ctl_ncurs_mode == NCURS_MODE_LIST)
+			ctl_list_mode(NC_LIST_UP);
+		continue;
 	case 'd':
 	  if(ctl_ncurs_mode == NCURS_MODE_TRACE && selected_channel != -1)
 	  {
@@ -2428,6 +2559,12 @@ static int ctl_read(int32 *valp)
 	      return RC_TOGGLE_DRUMCHAN;
 	  }
 	  break;
+	case '.':
+		if (ctl_ncurs_mode == NCURS_MODE_TRACE && selected_channel != -1) {
+			*valp = selected_channel;
+			return RC_SOLO_PLAY;
+		}
+		break;
 	case 'g':
 	  return RC_TOGGLE_SNDSPEC;
 	case 'G':
@@ -2440,6 +2577,9 @@ static int ctl_read(int32 *valp)
 	      return RC_QUIT; /* Error */
 	  ctl_total_time(CTL_STATUS_UPDATE);
 	  ctl_master_volume(CTL_STATUS_UPDATE);
+	  ctl_metronome(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
+	  ctl_keysig(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
+	  ctl_tempo(CTL_STATUS_UPDATE, CTL_STATUS_UPDATE);
 	  ctl_file_name(NULL);
 	  display_key_helpmsg();
 	  if(ctl.trace_playing)
@@ -2588,6 +2728,8 @@ static int ctl_read(int32 *valp)
 	      ctl_cmdmode = NCURS_MODE_CMD_FSEARCH;
 	      mini_buff_set(command_buffer, dftwin, LINES - 1, "/");
 	  }
+		if (ctl_ncurs_mode == NCURS_MODE_TRACE)
+			return RC_MUTE_CLEAR;
 	  continue;
 	case 12: /* ^L */
 	  redraw_all();
@@ -2968,11 +3110,11 @@ static void display_aq_ratio(void)
     if(last_rate != rate)
     {
 	last_rate = rate;
-	wmove(dftwin, VOICE_LINE + 1, 34);
+	wmove(dftwin, VOICE_LINE + 1, 15);
 	if(rate > 9999)
-	    wprintw(dftwin, " Audio queue:****%% ");
+	    wprintw(dftwin, " Audio queue: ****%% ");
 	else
-	    wprintw(dftwin, " Audio queue:%4d%% ", rate);
+	    wprintw(dftwin, " Audio queue: %4d%% ", rate);
 	scr_modified_flag = 1;
     }
 }
@@ -2984,9 +3126,10 @@ static void update_indicator(void)
     char c;
     static int play_modeflag = 1;
 
-#ifdef __W32__
+#if 0
     play_modeflag = 1;
     display_play_system(play_system_mode);
+    display_intonation(opt_pure_intonation);
 #else
     if(midi_trace.flush_flag)
     {
@@ -3004,10 +3147,13 @@ static void update_indicator(void)
 	}
     }
 
-    if(play_modeflag)
-	display_play_system(play_system_mode);
-    else
-	display_play_system(-1);
+	if (play_modeflag) {
+		display_play_system(play_system_mode);
+		display_intonation(opt_pure_intonation);
+	} else {
+		display_play_system(-1);
+		display_intonation(-1);
+	}
     play_modeflag = !play_modeflag;
 #endif /* __W32__ */
 

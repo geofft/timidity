@@ -31,12 +31,8 @@
 #endif
 
 #include "timidity.h"
+#include "common.h"
 #include "url.h"
-
-#ifdef HAVE_SAFE_MALLOC
-extern void *safe_malloc(size_t count);
-extern void *safe_realloc(void *old_ptr, size_t new_size);
-#endif /* HAVE_SAFE_MALLOC */
 
 /* #define DEBUG */
 

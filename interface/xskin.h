@@ -41,6 +41,10 @@
 #include <strings.h>
 #endif /* NO_STRING_H */
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
 #ifndef __MACOS__
 #include <signal.h>
 #include <sys/types.h>

@@ -631,7 +631,7 @@ void *safe_realloc(void *ptr, size_t count)
 }
 
 /* This'll allocate memory or die. */
-char *safe_strdup(char *s)
+char *safe_strdup(const char *s)
 {
     char *p;
     static int errflag = 0;
@@ -652,6 +652,15 @@ char *safe_strdup(char *s)
 #endif /* ABORT_AT_FATAL */
     safe_exit(10);
     /*NOTREACHED*/
+}
+
+/* free ((void **)ptr_list)[0..count-1] and ptr_list itself */
+void free_ptr_list(void *ptr_list, int count)
+{
+	int i;
+	for(i = 0; i < count; i++)
+		free(((void **)ptr_list)[i]);
+	free(ptr_list);
 }
 
 /* This adds a directory to the path list */
@@ -1183,13 +1192,13 @@ void sort_pathname(char **files, int nfiles)
 	  (int (*)(const void *, const void *))pathcmp_qsort);
 }
 
-char *pathsep_strchr(char *path)
+char *pathsep_strchr(const char *path)
 {
 #ifdef PATH_SEP2
     while(*path)
     {
         if(*path == PATH_SEP || *path == PATH_SEP2)
-	    return path;
+	    return (char *)path;
 	path++;
     }
     return NULL;
@@ -1198,14 +1207,14 @@ char *pathsep_strchr(char *path)
 #endif
 }
 
-char *pathsep_strrchr(char *path)
+char *pathsep_strrchr(const char *path)
 {
 #ifdef PATH_SEP2
     char *last_sep = NULL;
     while(*path)
     {
         if(*path == PATH_SEP || *path == PATH_SEP2)
-	    last_sep = path;
+	    last_sep = (char *)path;
 	path++;
     }
     return last_sep;

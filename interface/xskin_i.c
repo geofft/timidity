@@ -449,7 +449,7 @@ void xskin_start_interface( int pipe_in ) {
   xskin_chint.res_class = XSKIN_RES_CLASS;
   XSetClassHint( xskin_d, xskin_w, &xskin_chint );
 
-  namlist[0]=(char *)malloc(strlen(XSKIN_WINDOW_NAME)+1);
+  namlist[0]=(char *)safe_malloc(strlen(XSKIN_WINDOW_NAME)+1);
   strcpy( namlist[0], XSKIN_WINDOW_NAME );
   XmbTextListToTextProperty( xskin_d, namlist, 1, XCompoundTextStyle, &ct );
   XSetWMName( xskin_d, xskin_w, &ct );

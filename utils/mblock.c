@@ -36,12 +36,8 @@
 #endif /* HAVE_UNISTD_H */
 
 #include "timidity.h"
+#include "common.h"
 #include "mblock.h"
-
-#ifdef HAVE_SAFE_MALLOC
-extern void *safe_malloc(size_t count);
-#define malloc safe_malloc
-#endif /* HAVE_SAFE_MALLOC */
 
 static MBlockNode *free_mblock_list = NULL;
 #define ADDRALIGN 8
@@ -59,13 +55,13 @@ static MBlockNode *new_mblock_node(size_t n)
 
     if(n > MIN_MBLOCK_SIZE)
     {
-	if((p = (MBlockNode *)malloc(n + sizeof(MBlockNode))) == NULL)
+	if((p = (MBlockNode *)safe_malloc(n + sizeof(MBlockNode))) == NULL)
 	    return NULL;
 	p->block_size = n;
     }
     else if(free_mblock_list == NULL)
     {
-	if((p = (MBlockNode *)malloc(sizeof(MBlockNode)
+	if((p = (MBlockNode *)safe_malloc(sizeof(MBlockNode)
 				     + MIN_MBLOCK_SIZE)) == NULL)
 	    return NULL;
 	p->block_size = MIN_MBLOCK_SIZE;

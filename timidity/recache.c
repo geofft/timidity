@@ -66,7 +66,7 @@ static MBlockList hash_entry_pool;
 # define RESAMPLATION_CACHE \
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
- 	if(((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){ \
+ 	if((ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
                 dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
  	}else{ \
 		ofsd=ofs; \
@@ -90,7 +90,7 @@ static MBlockList hash_entry_pool;
 # define RESAMPLATION_CACHE \
         v1 = (int32)src[(ofs>>FRACTION_BITS)]; \
         v2 = (int32)src[(ofs>>FRACTION_BITS)+1]; \
-	if(((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){ \
+	if((ofs<ls+(1L<<FRACTION_BITS))||((ofs+(2L<<FRACTION_BITS))>le)){ \
                 dest[i] = (sample_t)(v1 + (((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS)); \
 	}else{ \
                 v0 = (int32)src[(ofs>>FRACTION_BITS)-1]; \
@@ -293,10 +293,10 @@ static void loop_connect(sample_t *data, int32 start, int32 end)
 }
 
 static double sample_resamp_info(Sample *sp, int note,
-				 int32 *loop_start, int32 *loop_end,
-				 int32 *data_length)
+				 uint32 *loop_start, uint32 *loop_end,
+				 uint32 *data_length)
 {
-    int32 xls, xle, ls, le, ll, newlen;
+    uint32 xls, xle, ls, le, ll, newlen;
     double a, xxls, xxle, xn;
 
     a = ((double)sp->sample_rate * freq_table[note]) /
@@ -367,9 +367,9 @@ static double sample_resamp_info(Sample *sp, int note,
     }
 
     if(loop_start)
-	*loop_start = (int32)(xls & ~FRACTION_MASK);
+	*loop_start = (uint32)(xls & ~FRACTION_MASK);
     if(loop_end)
-	*loop_end = (int32)(xle & ~FRACTION_MASK);
+	*loop_end = (uint32)(xle & ~FRACTION_MASK);
     *data_length = newlen << FRACTION_BITS;
     return a;
 }
@@ -378,9 +378,9 @@ static int cache_resampling(struct cache_hash *p)
 {
     Sample *sp, *newsp;
     sample_t *src, *dest;
-    int32 newlen;
-    int32 i, ofs, incr, le, ls, ll;
-    int32 xls, xle;
+    uint32 newlen;
+    int32 i, ofs, incr;
+	uint32 le, ls, ll, xls, xle;
     double a;
 
     sp = p->sp;
@@ -533,7 +533,7 @@ void resamp_cache_create(void)
 	    if(tmp->cnt > 0)
 	    {
 		Sample *sp;
-		int32 newlen;
+		uint32 newlen;
 
 		sp = tmp->sp;
 		sample_resamp_info(sp, tmp->note, NULL, NULL, &newlen);

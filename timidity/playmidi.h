@@ -117,6 +117,7 @@ enum midi_event_t
     ME_NOTE_STEP,
 
     ME_TIMESIG,			/* Time signature */
+    ME_KEYSIG,			/* Key signature */
 
     ME_WRD,			/* for MIMPI WRD tracer */
     ME_SHERRY,			/* for Sherry WRD tracer */
@@ -153,6 +154,8 @@ enum rpn_data_address_t /* NRPN/RPN */
     NRPN_ADDR_1D00,
     NRPN_ADDR_1E00,
     NRPN_ADDR_1F00,
+	NRPN_ADDR_3000,
+	NRPN_ADDR_3001,
     RPN_ADDR_0000,
     RPN_ADDR_0001,
     RPN_ADDR_0002,
@@ -163,24 +166,16 @@ enum rpn_data_address_t /* NRPN/RPN */
 
 struct DrumParts
 {
-    int drum_panning;
-    int32 drum_envelope_rate[6]; /* Drum Attack,Delay Time */
+    int8 drum_panning;
+    int32 drum_envelope_rate[6]; /* drum instrument envelope */
+    int8 pan_random;    /* flag for drum random pan */
+	FLOAT_T drum_level;
 
-    /* flag for drum random pan */
-    int pan_random;
-	
-	/* Level of Drum (0~127[Level of Drum] / 100[GS default]) */
-	double drum_level;
-
-	int8 chorus_level, reverb_level, delay_level, note;
+	int8 chorus_level, reverb_level, delay_level, coarse, fine, play_note, rx_note_off;
 
 /* Not supported:
  * Drum Filter Cutoff
- * Drum Filter Resonance
- * Coarse Pitch of Drum/Fine Pitch of Drum
- * Reverb Send Level of Drum
- * Chorus Send Level of Drum
- * Variation Send Level of Drum
+ * Drum Filter Resonance 
  */
 };
 
@@ -198,6 +193,8 @@ typedef struct {
 			   -1: DEFAULT_REVERB_SEND_LEVEL
 			   */
   int8 delay_level;	/* Delay Send Level */
+  int8 eq_on;	/* EQ ON/OFF */
+  int8 insertion_effect;
 
   /* Special sample ID. (0 means Normal sample) */
   uint8 special_sample;
@@ -216,8 +213,8 @@ typedef struct {
   struct DrumParts *drums[128];
 
   /* For vibrato */
-  int32 vibrato_ratio, vibrato_delay;
-  int vibrato_depth;
+  FLOAT_T vibrato_ratio,vibrato_depth;
+  int32 vibrato_delay;
 
   /* For RPN */
   uint8 rpnmap[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
@@ -239,14 +236,39 @@ typedef struct {
   /* flag for random pan */
   int pan_random;
 
-  /* for Cutoff,Resonance */
-  int cutoff_freq;
-  int resonance_level;
+  /* for Channel LPF / Resonance */
+  int16 cutoff_freq;	/* 0 ~ 22050 */
+  int16 resonance;	/* 0 ~ 127 */
+  int8 param_resonance,param_cutoff_freq;	/* -64 ~ 63 */
+  int32 lpf_val[8];
+  int32 lpf_coef[5];
+
+  double cutoff_freq_coef;
+  double resonance_dB;
+
+  int8 velocity_sense_depth,velocity_sense_offset;
+  
+  int8 scale_tuning[12];
+
+  int8 soft_pedal;	/* for CC# Soft */
+
+  int8 tone_map0_number;	/* for GS SysEx. */
+  FLOAT_T pitch_offset_fine;	/* in Hz */
+  int8 assign_mode;
+
+  int8 legato;	/* Legato: 0 or 1 */
+  int8 note_on;	/* for Legato */
 
 } Channel;
 
 /* Causes the instrument's default panning to be used. */
 #define NO_PANNING -1
+
+typedef struct {
+	int16 freq, last_freq;
+	double reso_dB, last_reso_dB, reso_lin, filter_gain; 
+	int32 a1, a2, b0, b1, b2, hist1, hist2;
+} FilterCoefficients;
 
 typedef struct {
   uint8
@@ -286,6 +308,9 @@ typedef struct {
   struct cache_hash *cache;
 
   uint8 chorus_link;	/* Chorus link */
+  int8 proximate_flag;
+
+  FilterCoefficients fc;
 } Voice;
 
 /* Voice status options: */
@@ -330,8 +355,14 @@ extern int opt_tva_attack;
 extern int opt_tva_decay;
 extern int opt_tva_release;
 extern int opt_delay_control;
+extern int opt_eq_control;
+extern int opt_insertion_effect;
 extern int opt_resonance;
+extern int opt_lpf_def;
+extern int opt_sf_lpf;
+extern int opt_drum_effect;
 extern int opt_env_attack;
+extern int opt_random_expression;
 extern int noise_sharp_type;
 extern int32 current_play_tempo;
 extern int opt_realtime_playing;
@@ -348,6 +379,14 @@ extern int play_pause_flag;
 extern int reduce_quality_flag;
 extern int no_4point_interpolation;
 #endif
+extern ChannelBitMask channel_mute;
+extern int8 current_keysig;
+extern int8 opt_init_keysig;
+extern int8 opt_force_keysig;
+extern int key_adjust;
+extern int opt_pure_intonation;
+extern int current_freq_table;
+extern double opt_drum_power;
 
 extern int play_midi_file(char *fn);
 extern void dumb_pass_playing_list(int number_of_files, char *list_of_files[]);
@@ -364,10 +403,14 @@ extern void playmidi_output_changed(int play_state);
 extern Instrument *play_midi_load_instrument(int dr, int bk, int prog);
 extern void midi_program_change(int ch, int prog);
 extern void free_voice(int v);
+extern void play_midi_setup_drums(int ch,int note);
 
 /* For stream player */
 extern void playmidi_stream_init(void);
 extern void playmidi_tmr_reset(void);
 extern int play_event(MidiEvent *ev);
+
+extern void dup_tone_bank_element(int,int,int);
+extern void free_tone_bank_element(int,int,int);
 
 #endif /* ___PLAYMIDI_H_ */

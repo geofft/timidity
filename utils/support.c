@@ -53,6 +53,7 @@
 #include <ctype.h>
 
 #include "timidity.h"
+#include "common.h"
 #include "mblock.h"
 #ifdef __MACOS__
 #include <Threads.h>
@@ -778,7 +779,7 @@ char *strdup(const char *s)
     char *p;
 
     len = strlen(s);
-    if((p = (char *)malloc(len + 1)) == NULL)
+    if((p = (char *)safe_malloc(len + 1)) == NULL)
 	return NULL;
     return strcpy(p, s);
 }

@@ -71,7 +71,6 @@
 /*#define SF_SUPPRESS_VIBRATO*/
 #define CUTOFF_AMPTUNING 0.6
 
-
 /* return value */
 #define AWE_RET_OK		0	/* successfully loaded */
 #define AWE_RET_ERR		1	/* some fatal error occurs */
@@ -90,12 +89,16 @@ typedef struct _SFPatchRec {
 typedef struct _SampleList {
 	Sample v;
 	struct _SampleList *next;
-	int32 start, len;
+	int32 start;
+	int32 len;
 	int32 cutoff_freq;
 	FLOAT_T resonance;
+	double resonance_dB;
+	int16 param_resonance;
 	int16 scaleTuning;	/* pitch scale tuning(%), normally 100 */
 	int16 root, tune;
 	char low, high;		/* key note range */
+	int8 reverb_send,chorus_send;
 
 	/* Depend on play_mode->rate */
 	int32 vibrato_freq;
@@ -235,29 +238,22 @@ void add_soundfont(char *sf_file,
 {
     SFInsts *sf;
 
-    if((sf = find_soundfont(sf_file)) != NULL)
+    if((sf = find_soundfont(sf_file)) == NULL)
     {
-	if(sf_order >= 0)
-	    sf->def_order = sf_order;
-	if(sf_cutoff >= 0)
-	    sf->def_cutoff_allowed = sf_cutoff;
-	if(sf_resonance >= 0)
-	    sf->def_resonance_allowed = sf_resonance;
-	if(amp >= 0)
-	    sf->amptune = (FLOAT_T)amp * 0.01;
-	current_sfrec = sf;
-	return;
+        sf = new_soundfont(sf_file);
+        sf->next = sfrecs;
+        sfrecs = sf;
     }
 
-    sf = new_soundfont(sf_file);
     if(sf_order >= 0)
-	sf->def_order = sf_order;
-    if(sf_cutoff > 0)
-	sf->def_cutoff_allowed = 1;
+        sf->def_order = sf_order;
+    if(sf_cutoff >= 0)
+        sf->def_cutoff_allowed = sf_cutoff;
+    if(sf_resonance >= 0)
+        sf->def_resonance_allowed = sf_resonance;
     if(amp >= 0)
-	sf->amptune = (FLOAT_T)amp * 0.01;
-    sf->next = sfrecs;
-    current_sfrec = sfrecs = sf;
+        sf->amptune = (FLOAT_T)amp * 0.01;
+    current_sfrec = sf;
 }
 
 void remove_soundfont(char *sf_file)
@@ -324,6 +320,7 @@ static void init_sf(SFInsts *rec)
 		int preset = sfinfo.preset[i].preset;
 
 		if (bank == 128)
+		    /* FIXME: why not allow exclusion of drumsets? */
 		    alloc_instrument_bank(1, preset);
 		else {
 			if (is_excluded(rec, bank, preset, -1))
@@ -442,13 +439,19 @@ Instrument *load_soundfont_inst(int order,
 {
     SFInsts *rec;
     Instrument *ip;
+    /*
+     * Search through all ordered soundfonts
+     */
+    int o = order;
+
     for(rec = sfrecs; rec != NULL; rec = rec->next)
     {
 	if(rec->fname != NULL)
 	{
-	    ip = try_load_soundfont(rec, order, bank, preset, keynote);
+	    ip = try_load_soundfont(rec, o, bank, preset, keynote);
 	    if(ip != NULL)
 		return ip;
+	    if (o > 0) o++;
 	}
     }
     return NULL;
@@ -611,7 +614,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		sample->envelope_rate[5] = sp->v.envelope_rate[4];
 #endif
 
-		if(i > 0 && (sample->note_to_use ||
+		if(i > 0 && (!sample->note_to_use ||
 			     (sample->modes & MODES_LOOPING)))
 		{
 		    SampleList *sps;
@@ -674,8 +677,15 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		}
 #endif
 
+		/* #extension cutoff / resonance */
+		if(opt_lpf_def) {
+			if(sp->cutoff_freq > 0) {sample->cutoff_freq = sp->cutoff_freq;}
+			if(sp->param_resonance > 0) {sample->resonance = sp->param_resonance;}
+			if(sp->resonance_dB > 0) {sample->resonance_dB = sp->resonance_dB;}
+		}
+
 		/* do some filtering if necessary */
-		if (sp->cutoff_freq > 0) {
+		if (opt_sf_lpf && !opt_lpf_def && sp->cutoff_freq > 0) {
 			/* restore the normal value */
 			sample->data_length >>= FRACTION_BITS;
 			ctl->cmsg(CMSG_INFO, VERB_DEBUG,
@@ -711,6 +721,7 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		}
 #endif
 	}
+
 	return inst;
 }
 
@@ -1202,6 +1213,9 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	+ tbl->val[SF_endAddrs]
 	+ sp->endsample - vp->start;
 
+	vp->start = abs(vp->start);
+	vp->len = abs(vp->len);
+
     /* set loop position */
     vp->v.loop_start = (tbl->val[SF_startloopAddrsHi] << 15)
 	+ tbl->val[SF_startloopAddrs]
@@ -1262,7 +1276,9 @@ static void set_sample_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 /* set global information */
 static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 {
-    int val;
+    int val,pan;
+    SFSampleInfo *sample;
+    sample = &sf->sample[tbl->val[SF_sampleId]];
 
     /* key range */
     if(tbl->set[SF_keyRange])
@@ -1292,15 +1308,29 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     vp->fixvel = tbl->val[SF_velocity];
 #endif
 
-    /* panning position: 0 to 127 */
-    val = (int)tbl->val[SF_panEffectsSend];
-    if(val < -500)
-	vp->v.panning = 0;
-    else if(val > 500)
-	vp->v.panning = 127;
-    else
-	vp->v.panning = (int8)((val + 500) * 127 / 1000);
-    /* vp->fixpan = -1; */
+	/* panning position: 0 to 127 */
+	val = (int)tbl->val[SF_panEffectsSend];
+    if(sample->sampletype == 1) {
+		if(val < -500)
+		vp->v.panning = 0;
+		else if(val > 500)
+		vp->v.panning = 127;
+		else
+		vp->v.panning = (int8)((val + 500) * 127 / 1000);
+		/* vp->fixpan = -1; */
+	} else if(sample->sampletype == 2) {
+		if(val < -500) {val = -500;}
+		else if(val > 500) {val = 500;}
+		pan = 127 + ((val + 500) * 127 / 1000) - 64;
+		if(pan > 127) {pan = 127;}
+		vp->v.panning = pan;
+	} else if(sample->sampletype == 4) {
+		if(val < -500) {val = -500;}
+		else if(val > 500) {val = 500;}
+		pan = ((val + 500) * 127 / 1000) - 64;
+		if(pan < 0) {pan = 0;}
+		vp->v.panning = pan;
+	}
 
 #if 0 /* Not supported */
 
@@ -1321,6 +1351,21 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	vp->parm.reverb = awe_option.default_reverb * 255 / 100;
 #endif
 
+	/*	if(tbl->set[SF_chorusEffectsSend] && tbl->val[SF_chorusEffectsSend]) {
+		vp->chorus_send = (int8)(tbl->val[SF_chorusEffectsSend] / 8) & 0x7F;
+	} else {vp->chorus_send = 0;}
+
+	if(tbl->set[SF_reverbEffectsSend] && tbl->val[SF_reverbEffectsSend]) {
+		vp->reverb_send = (int8)(tbl->val[SF_reverbEffectsSend] / 8) & 0x7F;
+	} else {vp->reverb_send = 0;}*/
+
+#ifndef CFG_FOR_SF
+	if(opt_sf_lpf || opt_lpf_def) {
+		current_sfrec->def_cutoff_allowed = 1;
+		current_sfrec->def_resonance_allowed = 1;
+	}
+#endif
+
     /* initial cutoff & resonance */
     vp->cutoff_freq = 0;
     if(tbl->val[SF_initialFilterFc] < 0)
@@ -1333,8 +1378,10 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 	else
 	    val = tbl->val[SF_initialFilterFc];
 
-	if(tbl->set[SF_env1ToFilterFc])
-	    val += tbl->val[SF_env1ToFilterFc];
+	if(tbl->set[SF_env1ToFilterFc] && (int)tbl->val[SF_env1ToFilterFc] > 0)
+	{
+	    val += ((int)tbl->val[SF_env1ToFilterFc])/* * (1000 - (int)tbl->val[SF_sustainEnv1])) / 1000*/;
+	}
 	vp->cutoff_freq = abscent_to_Hz(val);
     }
 
@@ -1342,10 +1389,11 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     if(current_sfrec->def_resonance_allowed && tbl->set[SF_initialFilterQ])
     {
 	val = tbl->val[SF_initialFilterQ];
-	vp->resonance = pow(10.0, (double)val / 2.0 / 200.0) - 1;
-	if(vp->resonance < 0)
-	    vp->resonance = 0;
-    }
+	vp->resonance_dB = (FLOAT_T)val / 10.0;
+	vp->resonance = 1.0 / pow(10.0,(FLOAT_T)val / 2.0 / 200.0);
+	vp->param_resonance = val * 127 / 960;
+	if(val = 0) {vp->resonance = 0;}
+	}
 
 #if 0 /* Not supported */
     /* exclusive class key */
@@ -1582,48 +1630,52 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 static void do_lowpass(Sample *sp, int32 freq, FLOAT_T resonance)
 {
 	int32 i,length;
-	FLOAT_T f,k,p,r,scale;
+	int32 i_a1,i_a2,i_b0,x1,y1,y2,yout;
+	FLOAT_T a1,a2,b0,w0,T,k;
 	sample_t *buf;
-	sample_t y1,y2,y3,y4,oldy1,oldy2,oldy3,oldx,x;
 
-	if (freq > sp->sample_rate * 2) {
-		ctl->cmsg(CMSG_WARNING, VERB_NORMAL,
-			  "Lowpass: center freq must be < data rate * 2");
+	if (freq > sp->sample_rate / 2) {
+		ctl->cmsg(CMSG_WARNING, VERB_DEBUG,
+			  "Lowpass: center freq must be < data rate / 2");
 		return;
 	}
 
+	if(resonance == 0) {resonance = 0.999999f;}
+
+	T = 1.0 / (FLOAT_T)sp->sample_rate;
+	w0 = 2.0 * M_PI * (FLOAT_T)freq;
+	k = resonance;
+	a1 = 2.0 * exp(-w0 * k / sqrt(1.0 - k * k) * T) * cos(w0 * T);
+	a2 = -exp(-2.0 * w0 * k / sqrt(1.0 - k * k) * T);
+	b0 = 1.0 - a1 - a2;
+
+#if OPT_MODE != 0
+	i_a1 = a1 * 0x10000;
+	i_a2 = a2 * 0x10000;
+	i_b0 = b0 * 0x10000;
+#endif
+
 	buf = sp->data;
 	length = sp->data_length;
-
-	y1=y2=y3=y4=oldx=oldy1=oldy2=oldy3=0;
-
-	f = 2.0 * freq / sp->sample_rate;
-	k = 3.6*f - 1.6*f*f - 1;
-	p = (k+1)*0.5;
-	scale = exp((1-p)*1.386249);
-	r = resonance * scale;
-	r /= 4;
-	y4 = buf[0];
+	x1 = 0;
+	y1 = 0;
+	y2 = 0;
+	yout = 0;
 
 	for(i=0;i<length;i++) {
-		buf[i] -= r * y4;
-		x = buf[i];
-
-		y1=(x+oldx)*p - k*y1;
-		y2=(y1+oldy1)*p - k*y2;
-		y3=(y2+oldy2)*p - k*y3;
-		y4=(y3+oldy3)*p - k*y4;
-
-		y4 -= y4 * y4 * y4 * 0.166667;
-
-		oldx = x;
-		oldy1 = y1;
-		oldy2 = y2;
-		oldy3 = y3;
+#if OPT_MODE != 0
+		yout = imuldiv16(y1,i_a1) + imuldiv16(y2,i_a2) + imuldiv16(x1,i_b0);
+#else
+		yout = a1 * y1 + a2 * y2 + b0 * x1;
+#endif
+		x1 = buf[i];
+		y2 = y1;
+		y1 = yout;
+		if(yout > MAX_DATAVAL) {yout = MAX_DATAVAL;}
+		else if(yout < MIN_DATAVAL) {yout = MIN_DATAVAL;}
+		buf[i] = yout;
 	}
 }
-
-
 
 #ifdef CFG_FOR_SF
 
@@ -1634,12 +1686,15 @@ static void do_lowpass(Sample *sp, int32 freq, FLOAT_T resonance)
   demanded sources.
      common.c  controls.c  dumb_c.c  instrum.c  sbkconv.c  sffile.c
      sfitem.c  sndfont.c  tables.c  version.c
-     utils/*  libarc/*
+     utils/  libarc/
 
   MACRO
       CFG_FOR_SF
 
  *********************************************************************/
+
+int opt_resonance = 0;		/* realtime resonant LPF control */
+int opt_sf_lpf = 0;	/* soundfont pre-lpf */
 
 static FILE *x_out;
 static char *x_sf_file_name = NULL;
@@ -1684,9 +1739,9 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 	if(x_sort){
 //		if(x_bank!=x_pre_bank || x_preset!=x_pre_preset){
 		{
+			char *str;
+			char buff[256];
 			if(x_bank==128){
-				char *str;
-				char buff[256];
 				for(x_keynote=x_keynote_from;x_keynote<=x_keynote_from;x_keynote++){
 					x_cfg_info.d_preset[x_preset][x_keynote] = x_preset;
 					x_cfg_info.d_keynote[x_preset][x_keynote] = x_keynote;
@@ -1695,20 +1750,17 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 					else
 						x_cfg_info.d_rom[x_preset][x_keynote] = 0;
 					str = x_cfg_info.d_str[x_preset][x_keynote];
-					if(str==NULL){
-						str = (char *)realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
+					str = (char *)safe_realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
+					if(x_cfg_info.d_str[x_preset][x_keynote]==NULL){
 						str[0] = '\0';
-					} else{
-						str = (char *)realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
 					}
 					sprintf(buff," %s",x_name);
 					strcat(str,buff);
 					x_cfg_info.d_str[x_preset][x_keynote] = str;
 				}
 			} else {
-				char *str = x_cfg_info.m_str[x_bank][x_preset];
-				char buff[256];
 				char *strROM;
+				str = x_cfg_info.m_str[x_bank][x_preset];
 				x_cfg_info.m_bank[x_bank][x_preset] = x_bank;
 				x_cfg_info.m_preset[x_bank][x_preset] = x_preset;
 				if(romflag)
@@ -1719,11 +1771,9 @@ static int cfg_for_sf_scan(char *x_name, int x_bank, int x_preset, int x_keynote
 					x_cfg_info.m_rom[x_bank][x_preset] = 1;
 				else
 					x_cfg_info.m_rom[x_bank][x_preset] = 0;
-				if(str==NULL){
-					str = (char *)realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
+				str = (char *)safe_realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
+				if(x_cfg_info.m_str[x_bank][x_preset]==NULL){
 					str[0] = '\0';
-				} else{
-					str = (char *)realloc(str,(str==NULL?0:strlen(str))+strlen(x_name)+30);
 				}
 				if(x_keynote_from!=x_keynote_to)
 					sprintf(buff,"        # %d-%d:%s%s\n",x_keynote_from,x_keynote_to,x_name,strROM);
@@ -1860,7 +1910,7 @@ int main(int argc, char **argv)
 	int initial = 0;
 
 	if(argc<=1){
-		printf("USAGE: %s [-s[-]] soundfont [cfg_output]\n");
+		printf("USAGE: %s [-s[-]] soundfont [cfg_output]\n", argv[0] );
 		exit(-1);
 	}
 #ifndef strcasecmp

@@ -1,4 +1,4 @@
-# aclocal.m4 generated automatically by aclocal 1.6.2 -*- Autoconf -*-
+# aclocal.m4 generated automatically by aclocal 1.6.3 -*- Autoconf -*-
 
 # Copyright 1996, 1997, 1998, 1999, 2000, 2001, 2002
 # Free Software Foundation, Inc.
@@ -138,7 +138,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],[am__api_version="1.6"])
 # Call AM_AUTOMAKE_VERSION so it can be traced.
 # This function is AC_REQUIREd by AC_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-	 [AM_AUTOMAKE_VERSION([1.6.2])])
+	 [AM_AUTOMAKE_VERSION([1.6.3])])
 
 # Helper functions for option handling.                    -*- Autoconf -*-
 
@@ -1192,31 +1192,50 @@ AC_SUBST(lispdir)
 ])# AM_PATH_LISPDIR
 
 dnl Configure Paths for Alsa
-dnl Christopher Lansdown (lansdoct@cs.alfred.edu)
-dnl 29/10/1998
-dnl modified for TiMidity++ by Isaku Yamahata(yamahata@kusm.kyoto-u.ac.jp)
-dnl 16/12/1998
-dnl AM_PATH_ALSA_LOCAL(MINIMUM-VERSION)
+dnl Some modifications by Richard Boulton <richard-alsa@tartarus.org>
+dnl Christopher Lansdown <lansdoct@cs.alfred.edu>
+dnl Jaroslav Kysela <perex@suse.cz>
+dnl Modified for TiMidity++ by URABE, Shyouhei <root@mput.dip.jp>
+dnl Original    : alsa.m4,v 1.22 2002/05/27 11:14:20 tiwai Exp
+dnl This version: alsa.m4,       2002/10/08 22:30:18 JST
+dnl AM_PATH_ALSA([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for libasound, and define ALSA_CFLAGS and ALSA_LIBS as appropriate.
-dnl if there exit ALSA, define have_alsa=yes, otherwise no.
-dnl enables arguments --with-alsa-prefix= --with-alsa-enc-prefix= --disable-alsatest
+dnl enables arguments --with-alsa-prefix=
+dnl                   --with-alsa-enc-prefix=
+dnl                   --disable-alsatest  (this has no effect, as yet)
 dnl
-AC_DEFUN(AM_PATH_ALSA_LOCAL,
-[dnl
-dnl Get the clfags and libraries for alsa
+dnl For backwards compatibility, if ACTION_IF_NOT_FOUND is not specified,
+dnl and the alsa libraries are not found, a fatal AC_MSG_ERROR() will result.
 dnl
-have_alsa=no
-AC_ARG_WITH(alsa-prefix,[  --with-alsa-prefix=PFX  Prefix where Alsa library is installed(optional)],
-	[alsa_prefix="$withval"], [alsa_prefix=""])
-AC_ARG_WITH(alsa-inc-prefix, [  --with-alsa-inc-prefix=PFX  Prefix where include libraries are (optional)],
-	[alsa_inc_prefix="$withval"], [alsa_inc_prefix=""])
-AC_ARG_ENABLE(alsatest, [  --disable-alsatest      Do not try to compile and run a test Alsa program], [enable_alsatest=no], [enable_alsatest=yes])
+AC_DEFUN(AM_PATH_ALSA,
+[dnl Save the original CFLAGS, LDFLAGS, and LIBS
+alsa_save_CFLAGS="$CFLAGS"
+alsa_save_LDFLAGS="$LDFLAGS"
+alsa_save_LIBS="$LIBS"
+alsa_found=yes
+
+dnl
+dnl Get the cflags and libraries for alsa
+dnl
+AC_ARG_WITH(alsa-prefix,
+[  --with-alsa-prefix=PFX  Prefix where Alsa library is installed(optional)],
+[alsa_prefix="$withval"], [alsa_prefix=""])
+
+AC_ARG_WITH(alsa-inc-prefix,
+[  --with-alsa-inc-prefix=PFX  Prefix where include libraries are (optional)],
+[alsa_inc_prefix="$withval"], [alsa_inc_prefix=""])
+
+dnl FIXME: this is not yet implemented
+AC_ARG_ENABLE(alsatest,
+[  --disable-alsatest      Do not try to compile and run a test Alsa program],
+[enable_alsatest=no],
+[enable_alsatest=yes])
 
 dnl Add any special include directories
 AC_MSG_CHECKING(for ALSA CFLAGS)
 if test "$alsa_inc_prefix" != "" ; then
 	ALSA_CFLAGS="$ALSA_CFLAGS -I$alsa_inc_prefix"
-        CFLAGS="$CFLAGS -I$alsa_inc_prefix"
+	CFLAGS="$CFLAGS -I$alsa_inc_prefix"
 fi
 AC_MSG_RESULT($ALSA_CFLAGS)
 
@@ -1224,34 +1243,17 @@ dnl add any special lib dirs
 AC_MSG_CHECKING(for ALSA LDFLAGS)
 if test "$alsa_prefix" != "" ; then
 	ALSA_LIBS="$ALSA_LIBS -L$alsa_prefix"
-	LIBS="-L$alsa_prefix"
+	LDFLAGS="$LDFLAGS $ALSA_LIBS"
 fi
 
 dnl add the alsa library
-ALSA_LIBS="$ALSA_LIBS -lasound"
+ALSA_LIBS="$ALSA_LIBS -lasound -lm -ldl -lpthread"
+LIBS=`echo $LIBS | sed 's/-lm//'`
+LIBS=`echo $LIBS | sed 's/-ldl//'`
+LIBS=`echo $LIBS | sed 's/-lpthread//'`
+LIBS=`echo $LIBS | sed 's/  //'`
+LIBS="$ALSA_LIBS $LIBS"
 AC_MSG_RESULT($ALSA_LIBS)
-
-dnl Check for the presence of the library
-dnl if test $enable_alsatest = yes; then
-dnl   AC_MSG_CHECKING(for working libasound)
-dnl   KEEP_LDFLAGS="$LDFLAGS"
-dnl   LDFLAGS="$LDFLAGS $ALSA_LIBS"
-dnl   AC_TRY_RUN([
-dnl #include <sys/asoundlib.h>
-dnl void main(void)
-dnl {
-dnl   snd_cards();
-dnl   exit(0);
-dnl }
-dnl ],
-dnl    [AC_MSG_RESULT("present")],
-dnl    [AC_MSG_RESULT("not found. ")
-dnl    AC_MSG_ERROR(Fatal error: Install alsa-lib package or use --with-alsa-prefix option...)],
-dnl    [AC_MSG_RESULT(unsopported)
-dnl     AC_MSG_ERROR(Cross-compiling isn't supported...)]
-dnl  )
-dnl   LDFLAGS="$KEEP_LDFLAGS"
-dnl fi
 
 dnl Check for a working version of libasound that is of the right version.
 min_alsa_version=ifelse([$1], ,0.1.1,$1)
@@ -1264,9 +1266,8 @@ no_alsa=""
     alsa_min_micro_version=`echo $min_alsa_version | \
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
 
-AC_TRY_COMPILE([
-#include <sys/asoundlib.h>
-], [
+dnl This is the test program.
+AC_DEFUN([MPUT_ALSA_TRY],[
 /* ensure backward compatibility */
 #if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
 #define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
@@ -1298,21 +1299,211 @@ AC_TRY_COMPILE([
 #    endif
 #  endif
 exit(0);
-],
-  [AC_MSG_RESULT(found.)
-   have_alsa=yes],
-  [AC_MSG_RESULT(not present.)]
-)
+])dnl macro MPUT_ALSA_TRY
 
-dnl Now that we know that we have the right version, let's see if we have the library and not just the headers.
-AC_CHECK_LIB([asound], [snd_ctl_open],,
-	[AC_MSG_RESULT(No linkable libasound was found.)]
-)
+AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_COMPILE([
+#include <alsa/asoundlib.h>
+],
+  MPUT_ALSA_TRY(),
+  [AC_MSG_RESULT(found.)],
+  [AC_TRY_COMPILE([
+#include <sys/asoundlib.h>
+], 
+  MPUT_ALSA_TRY(),
+  [AC_MSG_RESULT(found.)],
+  [AC_MSG_RESULT(not present.)
+   ifelse([$3], ,[AC_MSG_RESULT(libasound was not found anywhere.)])
+   alsa_found=no])
+   ifelse([$3], ,[AC_MSG_RESULT(Sufficiently new version of libasound not found.)])
+])
+AC_LANG_RESTORE
+
+dnl Now that we know we have the right version, why not see if we
+dnl have the library and not just the headers.
+AC_CHECK_LIB([asound],[snd_ctl_open], ,
+  [ifelse([$3], ,[AC_MSG_RESULT(No linkable libasound was found.)])
+   alsa_found=no
+])
+
+if test "x$alsa_found" = "xyes" ; then
+   ifelse([$2], , :, [$2])
+   LIBS=`echo $LIBS | sed 's/-lasound//g'`
+   LIBS=`echo $LIBS | sed 's/  //'`
+   LIBS="-lasound $LIBS"
+else
+   ifelse([$3], , :, [$3])
+   CFLAGS="$alsa_save_CFLAGS"
+   LDFLAGS="$alsa_save_LDFLAGS"
+   LIBS="$alsa_save_LIBS"
+   ALSA_CFLAGS=""
+   ALSA_LIBS=""
+fi
 
 dnl That should be it.  Now just export out symbols:
 AC_SUBST(ALSA_CFLAGS)
 AC_SUBST(ALSA_LIBS)
 ])
+dnl This should be pulled in from arts.m4
+dnl
+dnl Oh my word, I've never hacked automake before - let me know if this is a
+dnl complete rubbish!
+dnl Peter L Jones 2002-05-12
+dnl Snarfed from the ESD code below - but the faults are all mine!
+
+
+dnl AM_PATH_ARTS([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl Test for aRts, and define ARTS_CFLAGS and ARTS_LIBS
+dnl
+AC_DEFUN(AM_PATH_ARTS,
+	[dnl 
+dnl Get the cflags and libraries from the arts-config script
+dnl
+AC_ARG_WITH(arts-prefix,[  --with-arts-prefix=PFX   Prefix where ARTS is installed (optional)],
+	arts_prefix="$withval", arts_prefix="")
+AC_ARG_ENABLE(artstest, [  --disable-artstest       Do not try to compile and run a test ARTS program],
+	, enable_artstest=yes)
+
+  if test x$arts_prefix != x ; then
+     arts_args="$arts_args --prefix=$arts_prefix"
+     if test x${ARTS_CONFIG+set} != xset ; then
+        ARTS_CONFIG=$arts_prefix/bin/artsc-config
+     fi
+  fi
+
+  AC_PATH_PROG(ARTS_CONFIG, artsc-config, no)
+  min_arts_version=ifelse([$1], ,0.9.5,$1)
+  AC_MSG_CHECKING(for ARTS - version >= $min_arts_version)
+  no_arts=""
+  if test "$ARTS_CONFIG" = "no" ; then
+    no_arts=yes
+  else
+    ARTS_CFLAGS=`$ARTS_CONFIG $artsconf_args --cflags`
+    ARTS_LIBS=`$ARTS_CONFIG $artsconf_args --libs`
+
+    arts_major_version=`$ARTS_CONFIG $arts_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    arts_minor_version=`$ARTS_CONFIG $arts_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    arts_micro_version=`$ARTS_CONFIG $arts_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    if test "x$enable_artstest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $ARTS_CFLAGS"
+      LIBS="$LIBS $ARTS_LIBS"
+dnl
+dnl Now check if the installed ARTS is sufficiently new. (Also sanity
+dnl checks the results of arts-config to some extent
+dnl
+      rm -f conf.artstest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <artsc.h>
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+  
+  if (str)
+    {
+      new_str = malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+  
+  return new_str;
+}
+
+int main ()
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  system ("touch conf.artstest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_arts_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_arts_version");
+     exit(1);
+   }
+
+   if (($arts_major_version > major) ||
+      (($arts_major_version == major) && ($arts_minor_version > minor)) ||
+      (($arts_major_version == major) && ($arts_minor_version == minor) && ($arts_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'artsc-config --version' returned %d.%d.%d, but the minimum version\n", $arts_major_version, $arts_minor_version, $arts_micro_version);
+      printf("*** of ARTS required is %d.%d.%d. If artsc-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If artsc-config was wrong, set the environment variable ARTS_CONFIG\n");
+      printf("*** to point to the correct copy of artsc-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+],, no_arts=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+  fi
+  if test "x$no_arts" = x ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$ARTS_CONFIG" = "no" ; then
+       echo "*** The artsc-config script installed by ARTS could not be found"
+       echo "*** If ARTS was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the ARTS_CONFIG environment variable to the"
+       echo "*** full path to artsc-config."
+     else
+       if test -f conf.artstest ; then
+        :
+       else
+          echo "*** Could not run ARTS test program, checking why..."
+          CFLAGS="$CFLAGS $ARTS_CFLAGS"
+          LIBS="$LIBS $ARTS_LIBS"
+          AC_TRY_LINK([
+#include <stdio.h>
+#include <artsc.h>
+],      [ return 0; ],
+        [ echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding ARTS or finding the wrong"
+          echo "*** version of ARTS. If it is not finding ARTS, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+        [ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means ARTS was incorrectly installed"
+          echo "*** or that you have moved ARTS since it was installed. In the latter case, you"
+          echo "*** may want to edit the arts-config script: $ARTS_CONFIG" ])
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+       fi
+     fi
+     ARTS_CFLAGS=""
+     ARTS_LIBS=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(ARTS_CFLAGS)
+  AC_SUBST(ARTS_LIBS)
+  rm -f conf.artstest
+])
+dnl End of aRts
 # Configure paths for ESD
 # Manish Singh    98-9-30
 # stolen back from Frank Belew

@@ -243,7 +243,7 @@ Voice_SetVolume (UBYTE v, UWORD vol)
 
   /* MOD volume --> MIDI volume */
   vol >>= 1;
-  if (vol < 0) vol = 0;
+  /* if (vol < 0) vol = 0; *//* UNSIGNED! */
   if (vol > 127) vol = 127;
 
   if (ModV[v].vol != vol) {

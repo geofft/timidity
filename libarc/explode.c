@@ -880,7 +880,7 @@ static long explode_nolit4(ExplodeHandler decoder, char *buff, long size)
 	    DUMPBITS(t->b);
 	    d = w - d - t->v.n;       /* construct offset */
 	    NEEDBITS((unsigned)bl);    /* get coded length */
-	    t = t = tl + IGETBITS(bl);
+	    /*t =*/ t = tl + IGETBITS(bl);
 	    e = t->e;
 	    while(e > 16)
 	    {

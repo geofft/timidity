@@ -48,30 +48,45 @@ static void ns_shaping8(int32* buf, int32 count);
 
 void do_effect(int32* buf, int32 count)
 {
-    if(opt_reverb_control)
-    {
-	if(play_mode->encoding & PE_MONO)
-	    do_mono_reverb(buf, count);
-	else if(opt_reverb_control < 0)
-	{
-	    set_ch_reverb(buf, 2 * count, -opt_reverb_control);
-	    do_ch_reverb(buf, 2 * count);
+	/* reverb in mono */
+    if(opt_reverb_control && (play_mode->encoding & PE_MONO)) {
+		do_mono_reverb(buf, count);
 	}
+
+	/* for static reverb / chorus level */
+	if(opt_reverb_control < 0 || opt_chorus_control < 0) {
+		set_dry_signal(buf,2 * count);
+		if(opt_chorus_control < 0) {
+			set_ch_chorus(buf, 2 * count, -opt_chorus_control);
+		}
+		if(opt_reverb_control < 0) {
+			set_ch_reverb(buf, 2 * count, -opt_reverb_control);
+		}
+
+		mix_dry_signal(buf,2 * count);
+		if(opt_chorus_control < 0) {do_ch_chorus(buf, 2 * count);}
+		if(opt_reverb_control < 0) {do_ch_reverb(buf, 2 * count);}
     }
 
+	/* L/R Delay */
     effect_left_right_delay(buf, count);
 
     /* Noise shaping filter must apply at last */
     if(!(play_mode->encoding & (PE_16BIT|PE_ULAW|PE_ALAW)))
 	ns_shaping8(buf, count);
+
 }
 
 
 void init_effect(void)
 {
-    init_reverb(play_mode->rate);
     effect_left_right_delay(NULL, 0);
-    init_ns_tap();
+	init_ns_tap();
+    init_reverb(play_mode->rate);
+	init_ch_delay();
+	init_ch_chorus();
+	init_eq();
+	init_insertion_effect();
 }
 
 
@@ -315,3 +330,4 @@ static void ns_shaping8(int32* lp, int32 c)
 	ns_z1[0] = ll - l*(1U<<(32-8-GUARD_BITS));
     }
 }
+

@@ -34,6 +34,9 @@ extern ControlMode mac_control_mode;
 #elif defined(IA_W32GUI)
 extern ControlMode w32gui_control_mode;
 #define DEFAULT_CONTROL_MODE &w32gui_control_mode
+#elif defined(IA_W32G_SYN)
+extern ControlMode winsyn_control_mode;
+#define DEFAULT_CONTROL_MODE &winsyn_control_mode
 #else
 extern ControlMode dumb_control_mode;
 #define DEFAULT_CONTROL_MODE &dumb_control_mode
@@ -139,6 +142,10 @@ extern ControlMode server_control_mode;
 extern ControlMode alsaseq_control_mode;
 #endif /* IA_ALSASEQ */
 
+#ifdef IA_WINSYN
+extern ControlMode winsyn_control_mode;
+#endif /* IA_WINSYN */
+
 /* Minimal control mode */
 extern ControlMode dumb_control_mode;
 #ifndef DEFAULT_CONTROL_MODE
@@ -185,6 +192,9 @@ ControlMode *ctl_list[]={
 #ifdef IA_W32GUI
   &w32gui_control_mode,
 #endif /* IA_W32GUI */
+#ifdef IA_W32G_SYN
+  &winsyn_control_mode,
+#endif /* IA_W32GUI */
 #ifndef __MACOS__
   &dumb_control_mode,
 #endif
@@ -199,6 +209,9 @@ ControlMode *ctl_list[]={
 #endif /* IA_SERVER */
 #ifdef IA_ALSASEQ
   &alsaseq_control_mode,
+#endif
+#ifdef IA_WINSYN
+  &winsyn_control_mode,
 #endif
   0
 };

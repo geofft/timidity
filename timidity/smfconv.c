@@ -206,7 +206,7 @@ static URL rcpcv_convert(URL url,int type)
 		return NULL;
 	}
 	len = (*lpRcpcvGetSMFLength)(h);
-    if((buffer = (char *)realloc(buffer,len + 10))==NULL){
+    if((buffer = (char *)safe_realloc(buffer,len + 10))==NULL){
 		FreeLibrary(hRcpcv);
 		return NULL;
 	}

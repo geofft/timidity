@@ -166,9 +166,9 @@ static int auto_names(const char *input_filename)
 {
     char *ext, *p;
 
-    outname = (char *) realloc(outname,
+    outname = (char *) safe_realloc(outname,
 			       sizeof(char) * (strlen(input_filename) + 5));
-    cfgname = (char *) realloc(cfgname,
+    cfgname = (char *) safe_realloc(cfgname,
 			       sizeof(char) * (strlen(input_filename) + 5));
 
     strcpy(outname, input_filename);
@@ -696,7 +696,7 @@ void m2m_kill_notes_early(MidiEvent * ev, double time)
 					last_track_event_time[kill_ch]);
 	    track_size[kill_ch] += kill_n + num_dt_bytes;
 	    track_events[kill_ch] =
-		realloc(track_events[kill_ch],
+		safe_realloc(track_events[kill_ch],
 			track_size[kill_ch] * sizeof(unsigned char));
 
 	    /* save the delta_time */
@@ -721,7 +721,7 @@ void m2m_kill_notes_early(MidiEvent * ev, double time)
 		length = track_size[kill_ch];
 		track_size[kill_ch] += 4 * extra;
 		track_events[kill_ch] =
-		    realloc(track_events[kill_ch],
+		    safe_realloc(track_events[kill_ch],
 			    track_size[kill_ch] * sizeof(unsigned char));
 		p_track_event = track_events[kill_ch] + length;
 		for (i = 0; i < 3; i++)
@@ -831,7 +831,7 @@ void m2m_prescan(MidiEvent * ev)
 	{
 	    length = track_size[i];
 	    track_size[i] += 5;
-	    track_events[i] = realloc(track_events[i], track_size[i] *
+	    track_events[i] = safe_realloc(track_events[i], track_size[i] *
 				      sizeof(unsigned char));
 	    p_track_event = track_events[i] + length;
 	    /* Port Change Event */
@@ -846,7 +846,7 @@ void m2m_prescan(MidiEvent * ev)
     /* Issue Initial Drum Stuff */
     length = track_size[9];
     track_size[9] += 15;
-    track_events[9] = realloc(track_events[9], track_size[9] *
+    track_events[9] = safe_realloc(track_events[9], track_size[9] *
 			      sizeof(unsigned char));
     p_track_event = track_events[9] + length;
     /* program change to Standard Drums */
@@ -1263,7 +1263,7 @@ void m2m_process_events(MidiEvent * ev)
 		num_dt_bytes = set_dt_array(dt_array, time -
 					    last_track_event_time[ch]);
 		track_size[ch] += n + num_dt_bytes;
-		track_events[ch] = realloc(track_events[ch], track_size[ch] *
+		track_events[ch] = safe_realloc(track_events[ch], track_size[ch] *
 					   sizeof(unsigned char));
 
 		/* save the delta_time */
@@ -1291,7 +1291,7 @@ void m2m_process_events(MidiEvent * ev)
 		    length = track_size[ch];
 		    track_size[ch] += 4 * extra;
 		    track_events[ch] =
-			realloc(track_events[ch],
+			safe_realloc(track_events[ch],
 				track_size[ch] * sizeof(unsigned char));
 		    p_track_event = track_events[ch] + length;
 		    for (i = 0; i < 3; i++)
@@ -1332,7 +1332,7 @@ void m2m_process_events(MidiEvent * ev)
 		num_dt_bytes = set_dt_array(dt_array, time -
 					    last_track_event_time[old_ch]);
 		track_size[old_ch] += n + num_dt_bytes;
-		track_events[old_ch] = realloc(track_events[old_ch],
+		track_events[old_ch] = safe_realloc(track_events[old_ch],
 					       track_size[old_ch] *
 					       sizeof(unsigned char));
 

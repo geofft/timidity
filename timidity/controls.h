@@ -65,6 +65,9 @@
 #define RC_CHANGE_RATE	28
 #define RC_OUTPUT_CHANGED      29
 #define RC_STOP		30	/* Stop to play */
+#define RC_TOGGLE_MUTE	31
+#define RC_SOLO_PLAY	32
+#define RC_MUTE_CLEAR	33
 
 #define CMSG_INFO	0
 #define CMSG_WARNING	1
@@ -87,11 +90,14 @@ enum {
     CTLE_LOADING_DONE,		/* v1:0=success -1=error 1=terminated */
     CTLE_PLAY_START,		/* v1:nsamples */
     CTLE_PLAY_END,
-    CTLE_TEMPO,			/* v1:tempo */
-    CTLE_METRONOME,		/* v1:count */
     CTLE_CURRENT_TIME,		/* v1:secs, v2:voices */
     CTLE_NOTE,			/* v1:status, v2:ch, v3:note, v4:velo */
     CTLE_MASTER_VOLUME,		/* v1:amp(%) */
+    CTLE_METRONOME,		/* v1:measure, v2:beat */
+    CTLE_KEYSIG,		/* v1:key sig */
+    CTLE_KEY_OFFSET,		/* v1:key offset */
+    CTLE_TEMPO,			/* v1:tempo */
+    CTLE_TIME_RATIO,		/* v1:time ratio(%) */
     CTLE_PROGRAM,		/* v1:ch, v2:prog, v3:name, v4:bank,lsb.msb */
     CTLE_VOLUME,		/* v1:ch, v2:value */
     CTLE_EXPRESSION,		/* v1:ch, v2:value */
@@ -134,6 +140,7 @@ typedef struct {
 #define CTLF_AUTOUNIQ		(1u<<6)	/* -i?u */
 #define CTLF_AUTOREFINE		(1u<<7)	/* -i?R */
 #define CTLF_NOT_CONTINUE	(1u<<8)	/* -i?C */
+#define CTLF_DAEMONIZE		(1u<<9) /* -i?D */
 
   int  (*open)(int using_stdin, int using_stdout);
   void (*close)(void);

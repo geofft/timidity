@@ -49,6 +49,7 @@
 #endif
 
 #include "timidity.h"
+#include "common.h"
 #include "aenc.h"
 #include "output.h"
 #include "controls.h"
@@ -143,20 +144,20 @@ static int open_output(void)
        audio device accordingly  - Lalit Chhabra 23/Oct/2001 */
     if((audio_dev  = getenv("AUDIODEV")) != NULL)
     {
-      dpm.id_name = malloc(strlen(audio_dev));
-      dpm.name = malloc(strlen(audio_dev));
+      dpm.id_name = safe_malloc(strlen(audio_dev));
+      dpm.name = safe_malloc(strlen(audio_dev));
       strcpy(dpm.name, audio_dev);
       strcpy(dpm.id_name, audio_dev);
 
-      tmp_audio = malloc(strlen(audio_dev) + 3);
-      audio_ctl_dev = malloc(strlen(audio_dev) + 3);
+      tmp_audio = safe_malloc(strlen(audio_dev) + 3);
+      audio_ctl_dev = safe_malloc(strlen(audio_dev) + 3);
 
       strcpy(tmp_audio, audio_dev);
       strcpy(audio_ctl_dev, strcat(tmp_audio, "ctl"));
     }
     else
     {
-      audio_ctl_dev = malloc(strlen(AUDIO_CTLDEV) + 3);
+      audio_ctl_dev = safe_malloc(strlen(AUDIO_CTLDEV) + 3);
       strcpy(audio_ctl_dev, AUDIO_CTLDEV);
     }
 

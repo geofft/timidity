@@ -36,6 +36,7 @@
 #include <signal.h> /* for SIGALRM */
 
 #include "timidity.h"
+#include "common.h"
 #include "url.h"
 #include "net.h"
 
@@ -135,14 +136,14 @@ static NewsConnection *open_news_server(char *host, unsigned short port)
 	    break;
     if(p == NULL)
     {
-	if((p = (NewsConnection *)malloc(sizeof(NewsConnection))) == NULL)
+	if((p = (NewsConnection *)safe_malloc(sizeof(NewsConnection))) == NULL)
 	    return NULL;
 	p->next = connection_cache;
 	connection_cache = p;
 	p->status = -1;
     }
 
-    if((p->host = strdup(host)) == NULL)
+    if((p->host = safe_strdup(host)) == NULL)
 	return NULL;
     p->port = port;
 

@@ -28,6 +28,9 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #endif
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
 #include <gtk/gtk.h>
 
 #include "timidity.h"
