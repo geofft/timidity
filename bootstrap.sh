@@ -1,7 +1,7 @@
 #!/bin/sh
 # bootstrap script: use me instead of autoreconf
-if [ "x$1" = "x-f" ]; then
-    
+if [ "x$1" = "x-f" -o "x$1" = "x--force" ]; then
+
     set -x;
 
     # Force re-construct the whole autotools.
@@ -29,7 +29,7 @@ if [ "x$1" = "x-f" ]; then
 	automake --gnu $dir/Makefile; \
        done \
     && autoconf;
-    
+
 else
 
     set -x;
