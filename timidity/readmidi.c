@@ -6094,7 +6094,7 @@ void init_reverb_status_gs(void)
 	p->delay_feedback = 0;
 	p->pre_delay_time = 0;
 	recompute_reverb_status_gs();
-	init_reverb(play_mode->rate);
+	init_reverb();
 }
 
 /*! recompute Reverb Effect (GS) */

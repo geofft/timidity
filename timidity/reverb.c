@@ -165,10 +165,22 @@ void mix_dry_signal(register int32 *buf, int32 n)
 
 
 /*                    */
-/*  Effect Utitities  */
+/*  Effect Utilities  */
 /*                    */
 /* general-purpose temporary variables for macros */
 static int32 _output, _bufout, _temp1, _temp2, _temp3;
+
+static inline int isprime(int val)
+{
+	int i;
+	if (val == 2) {return 1;}
+	if (val & 1) {
+		for (i = 3; i < (int)sqrt((double)val) + 1; i += 2) {
+			if ((val % i) == 0) {return 0;}
+		}
+		return 1; /* prime */
+	} else {return 0;} /* even */
+}
 
 /*! delay */
 static void free_delay(delay *delay)
@@ -650,22 +662,7 @@ float get_pink_noise_light(pink_noise *p)
 #define REV_VAL2        44.12
 #define REV_VAL3        21.0
 
-#if OPT_MODE != 0
-#define REV_FBK_LEV      TIM_FSCALE(0.12, 24)
-
-#define REV_NMIX_LEV     0.7
-#define REV_CMIX_LEV     TIM_FSCALE(0.9, 24)
-#define REV_MONO_LEV     0.7
-
-#define REV_HPF_LEV      TIM_FSCALE(0.5, 24)
-#define REV_LPF_LEV      TIM_FSCALE(0.45, 24)
-#define REV_LPF_INP      TIM_FSCALE(0.55, 24)
-#define REV_EPF_LEV      TIM_FSCALE(0.4, 24)
-#define REV_EPF_INP      TIM_FSCALE(0.48, 24)
-
-#define REV_WIDTH        TIM_FSCALE(0.125, 24)
-#else
-#define REV_FBK_LEV      0.12
+/*#define REV_FBK_LEV      0.12
 
 #define REV_NMIX_LEV     0.7
 #define REV_CMIX_LEV     0.9
@@ -677,8 +674,7 @@ float get_pink_noise_light(pink_noise *p)
 #define REV_EPF_LEV      0.4
 #define REV_EPF_INP      0.48
 
-#define REV_WIDTH        0.125
-#endif
+#define REV_WIDTH        0.125*/
 
 static int  spt0, rpt0, def_rpt0;
 static int  spt1, rpt1, def_rpt1;
@@ -759,192 +755,272 @@ void set_ch_reverb(register int32 *sbuffer, int32 n, int32 level)
 }
 #endif /* OPT_MODE != 0 */
 
+static void init_standard_reverb(InfoStandardReverb *info)
+{
+	info->ta = info->tb = 0;
+	info->HPFL = info->HPFR = info->LPFL = info->LPFR = info->EPFL = info->EPFR = 0;
+	info->spt0 = info->spt1 = info->spt2 = info->spt3 = 0;
+	set_delay(&(info->buf0_L), REV_BUF0);
+	set_delay(&(info->buf0_R), REV_BUF0);
+	set_delay(&(info->buf1_L), REV_BUF1);
+	set_delay(&(info->buf1_R), REV_BUF1);
+	set_delay(&(info->buf2_L), REV_BUF2);
+	set_delay(&(info->buf2_R), REV_BUF2);
+	set_delay(&(info->buf3_L), REV_BUF3);
+	set_delay(&(info->buf3_R), REV_BUF3);
+	info->rpt0 = REV_VAL0 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
+	info->rpt1 = REV_VAL1 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
+	info->rpt2 = REV_VAL2 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
+	info->rpt3 = REV_VAL3 * play_mode->rate / 1000.0f * reverb_status.time_ratio;
+	while (!isprime(info->rpt0)) {info->rpt0++;}
+	while (!isprime(info->rpt1)) {info->rpt1++;}
+	while (!isprime(info->rpt2)) {info->rpt2++;}
+	while (!isprime(info->rpt3)) {info->rpt3++;}
+	info->fbklev = 0.12f;
+	info->nmixlev = 0.7f;
+	info->cmixlev = 0.9f;
+	info->monolev = 0.7f;
+	info->hpflev = 0.5f;
+	info->lpflev = 0.45f;
+	info->lpfinp = 0.55f;
+	info->epflev = 0.4f;
+	info->epfinp = 0.48f;
+	info->width = 0.125f;
+	info->fbklevi = TIM_FSCALE(info->fbklev, 24);
+	info->nmixlevi = TIM_FSCALE(info->nmixlev, 24);
+	info->cmixlevi = TIM_FSCALE(info->cmixlev, 24);
+	info->monolevi = TIM_FSCALE(info->monolev, 24);
+	info->hpflevi = TIM_FSCALE(info->hpflev, 24);
+	info->lpflevi = TIM_FSCALE(info->lpflev, 24);
+	info->lpfinpi = TIM_FSCALE(info->lpfinp, 24);
+	info->epflevi = TIM_FSCALE(info->epflev, 24);
+	info->epfinpi = TIM_FSCALE(info->epfinp, 24);
+	info->widthi = TIM_FSCALE(info->width, 24);
+}
 
-#if OPT_MODE != 0
-void do_standard_reverb(register int32 *comp, int32 n)
+static void free_standard_reverb(InfoStandardReverb *info)
+{
+	free_delay(&(info->buf0_L));
+	free_delay(&(info->buf0_R));
+	free_delay(&(info->buf1_L));
+	free_delay(&(info->buf1_R));
+	free_delay(&(info->buf2_L));
+	free_delay(&(info->buf2_R));
+	free_delay(&(info->buf3_L));
+	free_delay(&(info->buf3_R));
+}
+
+#if OPT_MODE != 0 /* fixed-point implementation */
+static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *info)
 {
 	int32 i, fixp, s, t;
+	int32 spt0 = info->spt0, spt1 = info->spt1, spt2 = info->spt2, spt3 = info->spt3,
+		ta = info->ta, tb = info->tb, HPFL = info->HPFL, HPFR = info->HPFR,
+		LPFL = info->LPFL, LPFR = info->LPFR, EPFL = info->EPFL, EPFR = info->EPFR;
+	int32 *buf0_L = info->buf0_L.buf, *buf0_R = info->buf0_R.buf,
+		*buf1_L = info->buf1_L.buf, *buf1_R = info->buf1_R.buf,
+		*buf2_L = info->buf2_L.buf, *buf2_R = info->buf2_R.buf,
+		*buf3_L = info->buf3_L.buf, *buf3_R = info->buf3_R.buf;
+	int32 fbklevi = info->fbklevi, cmixlevi = info->cmixlevi,
+		hpflevi = info->hpflevi, lpflevi = info->lpflevi, lpfinpi = info->lpfinpi,
+		epflevi = info->epflevi, epfinpi = info->epfinpi, widthi = info->widthi,
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
 
-    for(i = 0; i < n; i++)
-    {
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_standard_reverb(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_standard_reverb(info);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
         /* L */
         fixp = reverb_effect_buffer[i];
-        reverb_effect_buffer[i] = 0;
 
-        LPFL = imuldiv24(LPFL,REV_LPF_LEV) + imuldiv24(buf2_L[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
+        LPFL = imuldiv24(LPFL, lpflevi) + imuldiv24(buf2_L[spt2] + tb, lpfinpi) + imuldiv24(ta, widthi);
         ta = buf3_L[spt3];
         s  = buf3_L[spt3] = buf0_L[spt0];
         buf0_L[spt0] = -LPFL;
 
-        t = imuldiv24(HPFL + fixp,REV_HPF_LEV);
+        t = imuldiv24(HPFL + fixp, hpflevi);
         HPFL = t - fixp;
 
-        buf2_L[spt2] = imuldiv24(s - imuldiv24(fixp,REV_FBK_LEV),REV_CMIX_LEV);
+        buf2_L[spt2] = imuldiv24(s - imuldiv24(fixp, fbklevi), cmixlevi);
         tb = buf1_L[spt1];
         buf1_L[spt1] = t;
 
-        EPFL = imuldiv24(EPFL,REV_EPF_LEV) + imuldiv24(ta,REV_EPF_INP);
-        comp[i] += ta + EPFL;
+        EPFL = imuldiv24(EPFL, epflevi) + imuldiv24(ta, epfinpi);
+        buf[i] += ta + EPFL;
 
         /* R */
         fixp = reverb_effect_buffer[++i];
-        reverb_effect_buffer[i] = 0;
 
-        LPFR = imuldiv24(LPFR,REV_LPF_LEV) + imuldiv24(buf2_R[spt2] + tb,REV_LPF_INP) + imuldiv24(ta,REV_WIDTH);
+        LPFR = imuldiv24(LPFR, lpflevi) + imuldiv24(buf2_R[spt2] + tb, lpfinpi) + imuldiv24(ta, widthi);
         ta = buf3_R[spt3];
         s  = buf3_R[spt3] = buf0_R[spt0];
         buf0_R[spt0] = LPFR;
 
-        t = imuldiv24(HPFR + fixp,REV_HPF_LEV);
+        t = imuldiv24(HPFR + fixp, hpflevi);
         HPFR = t - fixp;
 
-        buf2_R[spt2] = imuldiv24(s - imuldiv24(fixp,REV_FBK_LEV),REV_CMIX_LEV);
+        buf2_R[spt2] = imuldiv24(s - imuldiv24(fixp, fbklevi), cmixlevi);
         tb = buf1_R[spt1];
         buf1_R[spt1] = t;
 
-        EPFR = imuldiv24(EPFR,REV_EPF_LEV) + imuldiv24(ta,REV_EPF_INP);
-        comp[i] += ta + EPFR;
+        EPFR = imuldiv24(EPFR, epflevi) + imuldiv24(ta, epfinpi);
+        buf[i] += ta + EPFR;
 
-        rev_ptinc();
-    }
+		if (++spt0 == rpt0) {spt0 = 0;}
+		if (++spt1 == rpt1) {spt1 = 0;}
+		if (++spt2 == rpt2) {spt2 = 0;}
+		if (++spt3 == rpt3) {spt3 = 0;}
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+	info->spt0 = spt0, info->spt1 = spt1, info->spt2 = spt2, info->spt3 = spt3,
+	info->ta = ta, info->tb = tb, info->HPFL = HPFL, info->HPFR = HPFR,
+	info->LPFL = LPFL, info->LPFR = LPFR, info->EPFL = EPFL, info->EPFR = EPFR;
 }
-#else
-void do_standard_reverb(int32 *comp, int32 n)
+#else /* floating-point implementation */
+static void do_ch_standard_reverb(int32 *buf, int32 count, InfoStandardReverb *info)
 {
-    int32  fixp, s, t, i;
+	int32 i, fixp, s, t;
+	int32 spt0 = info->spt0, spt1 = info->spt1, spt2 = info->spt2, spt3 = info->spt3,
+		ta = info->ta, tb = info->tb, HPFL = info->HPFL, HPFR = info->HPFR,
+		LPFL = info->LPFL, LPFR = info->LPFR, EPFL = info->EPFL, EPFR = info->EPFR;
+	int32 *buf0_L = info->buf0_L.buf, *buf0_R = info->buf0_R.buf,
+		*buf1_L = info->buf1_L.buf, *buf1_R = info->buf1_R.buf,
+		*buf2_L = info->buf2_L.buf, *buf2_R = info->buf2_R.buf,
+		*buf3_L = info->buf3_L.buf, *buf3_R = info->buf3_R.buf;
+	FLOAT_T fbklev = info->fbklev, cmixlev = info->cmixlev,
+		hpflev = info->hpflev, lpflev = info->lpflev, lpfinp = info->lpfinp,
+		epflev = info->epflev, epfinp = info->epfinp, width = info->width,
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
 
-    for(i = 0; i < n; i++)
-    {
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_standard_reverb(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_standard_reverb(info);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
         /* L */
         fixp = reverb_effect_buffer[i];
-        reverb_effect_buffer[i] = 0;
 
-        LPFL = LPFL*REV_LPF_LEV + (buf2_L[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
+        LPFL = LPFL * lpflev + (buf2_L[spt2] + tb) * lpfinp + ta * width;
         ta = buf3_L[spt3];
         s  = buf3_L[spt3] = buf0_L[spt0];
         buf0_L[spt0] = -LPFL;
 
-        t = (HPFL + fixp) * REV_HPF_LEV;
+        t = (HPFL + fixp) * hpflev;
         HPFL = t - fixp;
 
-        buf2_L[spt2] = (s - fixp * REV_FBK_LEV) * REV_CMIX_LEV;
+        buf2_L[spt2] = (s - fixp * fbklev) * cmixlev;
         tb = buf1_L[spt1];
         buf1_L[spt1] = t;
 
-        EPFL = EPFL * REV_EPF_LEV + ta * REV_EPF_INP;
-        comp[i] += ta + EPFL;
-        direct_buffer[i] = 0;
+        EPFL = EPFL * epflev + ta * epfinp;
+        buf[i] += ta + EPFL;
 
         /* R */
         fixp = reverb_effect_buffer[++i];
-        reverb_effect_buffer[i] = 0;
 
-        LPFR = LPFR*REV_LPF_LEV + (buf2_R[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
+        LPFR = LPFR * lpflev + (buf2_R[spt2] + tb) * lpfinp + ta * width;
         ta = buf3_R[spt3];
         s  = buf3_R[spt3] = buf0_R[spt0];
         buf0_R[spt0] = LPFR;
 
-        t = (HPFR + fixp) * REV_HPF_LEV;
+        t = (HPFR + fixp) * hpflev;
         HPFR = t - fixp;
 
-        buf2_R[spt2] = (s - fixp * REV_FBK_LEV) * REV_CMIX_LEV;
+        buf2_R[spt2] = (s - fixp * fbklev) * cmixlev;
         tb = buf1_R[spt1];
         buf1_R[spt1] = t;
 
-        EPFR = EPFR * REV_EPF_LEV + ta * REV_EPF_INP;
-        comp[i] += ta + EPFR;
-        direct_buffer[i] = 0;
+        EPFR = EPFR * epflev + ta * epfinp;
+        buf[i] += ta + EPFR;
 
-        rev_ptinc();
-    }
+		if (++spt0 == rpt0) {spt0 = 0;}
+		if (++spt1 == rpt1) {spt1 = 0;}
+		if (++spt2 == rpt2) {spt2 = 0;}
+		if (++spt3 == rpt3) {spt3 = 0;}
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+	info->spt0 = spt0, info->spt1 = spt1, info->spt2 = spt2, info->spt3 = spt3,
+	info->ta = ta, info->tb = tb, info->HPFL = HPFL, info->HPFR = HPFR,
+	info->LPFL = LPFL, info->LPFR = LPFR, info->EPFL = EPFL, info->EPFR = EPFR;
 }
 #endif /* OPT_MODE != 0 */
 
-void do_reverb(int32 *comp, int32 n)
+static void do_ch_standard_reverb_mono(int32 *buf, int32 count, InfoStandardReverb *info)
 {
-    int32  fixp, s, t, i;
+	int32 i, fixp, s, t;
+	int32 spt0 = info->spt0, spt1 = info->spt1, spt2 = info->spt2, spt3 = info->spt3,
+		ta = info->ta, tb = info->tb, HPFL = info->HPFL, HPFR = info->HPFR,
+		LPFL = info->LPFL, LPFR = info->LPFR, EPFL = info->EPFL, EPFR = info->EPFR;
+	int32 *buf0_L = info->buf0_L.buf, *buf0_R = info->buf0_R.buf,
+		*buf1_L = info->buf1_L.buf, *buf1_R = info->buf1_R.buf,
+		*buf2_L = info->buf2_L.buf, *buf2_R = info->buf2_R.buf,
+		*buf3_L = info->buf3_L.buf, *buf3_R = info->buf3_R.buf;
+	FLOAT_T fbklev = info->fbklev, nmixlev = info->nmixlev, monolev = info->monolev,
+		hpflev = info->hpflev, lpflev = info->lpflev, lpfinp = info->lpfinp,
+		epflev = info->epflev, epfinp = info->epfinp, width = info->width,
+		rpt0 = info->rpt0, rpt1 = info->rpt1, rpt2 = info->rpt2, rpt3 = info->rpt3;
 
-    for(i = 0; i < n; i++)
-    {
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		init_standard_reverb(info);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_standard_reverb(info);
+		return;
+	}
+
+	for (i = 0; i < count; i++)
+	{
         /* L */
-        fixp = comp[i];
+        fixp = buf[i] * monolev;
 
-        LPFL = LPFL*REV_LPF_LEV + (buf2_L[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
+        LPFL = LPFL * lpflev + (buf2_L[spt2] + tb) * lpfinp + ta * width;
         ta = buf3_L[spt3];
         s  = buf3_L[spt3] = buf0_L[spt0];
         buf0_L[spt0] = -LPFL;
 
-        t = (HPFL + fixp) * REV_HPF_LEV;
+        t = (HPFL + fixp) * hpflev;
         HPFL = t - fixp;
 
-        buf2_L[spt2] = (s - fixp * REV_FBK_LEV) * REV_NMIX_LEV;
-        tb = buf1_L[spt1];
-        buf1_L[spt1] = t;
-
-        EPFL = EPFL * REV_EPF_LEV + ta * REV_EPF_INP;
-        comp[i] = ta + EPFL + fixp;
-
-        /* R */
-        fixp = comp[++i];
-
-        LPFR = LPFR*REV_LPF_LEV + (buf2_R[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
-        ta = buf3_R[spt3];
-        s  = buf3_R[spt3] = buf0_R[spt0];
-        buf0_R[spt0] = LPFR;
-
-        t = (HPFR + fixp) * REV_HPF_LEV;
-        HPFR = t - fixp;
-
-        buf2_R[spt2] = (s - fixp * REV_FBK_LEV) * REV_NMIX_LEV;
-        tb = buf1_R[spt1];
-        buf1_R[spt1] = t;
-
-        EPFR = EPFR * REV_EPF_LEV + ta * REV_EPF_INP;
-        comp[i] = ta + EPFR + fixp;
-
-        rev_ptinc();
-    }
-}
-
-void do_mono_reverb(int32 *comp, int32 n)
-{
-    int32  fixp, s, t, i;
-
-    for(i = 0; i < n; i++)
-    {
-        /* L */
-        fixp = comp[i] * REV_MONO_LEV;
-
-        LPFL = LPFL*REV_LPF_LEV + (buf2_L[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
-        ta = buf3_L[spt3];
-        s  = buf3_L[spt3] = buf0_L[spt0];
-        buf0_L[spt0] = -LPFL;
-
-        t = (HPFL + fixp) * REV_HPF_LEV;
-        HPFL = t - fixp;
-
-        buf2_L[spt2] = (s - fixp * REV_FBK_LEV) * REV_NMIX_LEV;
+        buf2_L[spt2] = (s - fixp * fbklev) * nmixlev;
         tb = buf1_L[spt1];
         buf1_L[spt1] = t;
 
         /* R */
-        LPFR = LPFR*REV_LPF_LEV + (buf2_R[spt2]+tb)*REV_LPF_INP + ta*REV_WIDTH;
+        LPFR = LPFR * lpflev + (buf2_R[spt2] + tb) * lpfinp + ta * width;
         ta = buf3_R[spt3];
         s  = buf3_R[spt3] = buf0_R[spt0];
         buf0_R[spt0] = LPFR;
 
-        t = (HPFR + fixp) * REV_HPF_LEV;
+        t = (HPFR + fixp) * hpflev;
         HPFR = t - fixp;
 
-        buf2_R[spt2] = (s - fixp * REV_FBK_LEV) * REV_NMIX_LEV;
+        buf2_R[spt2] = (s - fixp * fbklev) * nmixlev;
         tb = buf1_R[spt1];
         buf1_R[spt1] = t;
 
-        EPFR = EPFR * REV_EPF_LEV + ta * REV_EPF_INP;
-        comp[i] = ta + EPFR + fixp;
+        EPFR = EPFR * epflev + ta * epfinp;
+        buf[i] = ta + EPFR + fixp;
 
-        rev_ptinc();
-    }
+		if (++spt0 == rpt0) {spt0 = 0;}
+		if (++spt1 == rpt1) {spt1 = 0;}
+		if (++spt2 == rpt2) {spt2 = 0;}
+		if (++spt3 == rpt3) {spt3 = 0;}
+	}
+	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
+	info->spt0 = spt0, info->spt1 = spt1, info->spt2 = spt2, info->spt3 = spt3,
+	info->ta = ta, info->tb = tb, info->HPFL = HPFL, info->HPFR = HPFR,
+	info->LPFL = LPFL, info->LPFR = LPFR, info->EPFL = EPFL, info->EPFR = EPFR;
 }
 
 /* dummy */
@@ -1012,18 +1088,6 @@ static int combtunings[numcombs] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 16
 static int allpasstunings[numallpasses] = {225, 341, 441, 556};
 #define fixedgain 0.025f
 #define combfbk 3.5f
-
-static inline int isprime(int val)
-{
-	int i;
-	if (val == 2) {return 1;}
-	if (val & 1) {
-		for (i = 3; i < (int)sqrt((double)val) + 1; i += 2) {
-			if ((val % i) == 0) {return 0;}
-		}
-		return 1; /* prime */
-	} else {return 0;} /* even */
-}
 
 static double gs_revchar_to_roomsize(int character)
 {
@@ -1140,7 +1204,7 @@ static void update_freeverb(InfoFreeverb *rev)
 	int i;
 	double allpassfbk = gs_revchar_to_apfbk(reverb_status.character), rtbase, rt;
 
-	rev->wet = (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character);
+	rev->wet = (double)reverb_status.level / 127.0f * gs_revchar_to_level(reverb_status.character) * fixedgain;
 	rev->roomsize = gs_revchar_to_roomsize(reverb_status.character) * scaleroom + offsetroom;
 	rev->width = gs_revchar_to_width(reverb_status.character);
 
@@ -1181,7 +1245,7 @@ static void update_freeverb(InfoFreeverb *rev)
 	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
 	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
 
-	set_delay(&(rev->pdelay), (double)reverb_status.pre_delay_time * play_mode->rate / 1000.0f);
+	set_delay(&(rev->pdelay), (int32)((double)reverb_status.pre_delay_time * play_mode->rate / 1000.0f));
 }
 
 static void init_freeverb(InfoFreeverb *rev)
@@ -1280,11 +1344,20 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 	allpass *allpassL = rev->allpassL, *allpassR = rev->allpassR;
 	delay *pdelay = &(rev->pdelay);
 
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		alloc_freeverb_buf(rev);
+		update_freeverb(rev);
+		init_freeverb(rev);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_freeverb_buf(rev);
+		return;
+	}
+
 	for (k = 0; k < count; k++)
 	{
-		outl = outr = 0;
 		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
-		reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+		outl = outr = reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
 
 		do_delay(input, pdelay->buf, pdelay->size, pdelay->index);
 
@@ -1330,12 +1403,24 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 {
 	int32 i, k = 0;
 	int32 outl, outr, input;
+	delay *pdelay = &(rev->pdelay);
+
+	if(count == MAGIC_INIT_EFFECT_INFO) {
+		alloc_freeverb_buf(rev);
+		update_freeverb(rev);
+		init_freeverb(rev);
+		return;
+	} else if(count == MAGIC_FREE_EFFECT_INFO) {
+		free_freeverb_buf(rev);
+		return;
+	}
 
 	for (k = 0; k < count; k++)
 	{
-		outl = outr = 0;
 		input = reverb_effect_buffer[k] + reverb_effect_buffer[k + 1];
-		reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+		outl = outr = reverb_effect_buffer[k] = reverb_effect_buffer[k + 1] = 0;
+
+		do_delay(input, pdelay->buf, pdelay->size, pdelay->index);
 
 		for (i = 0; i < numcombs; i++) {
 			do_freeverb_comb(input, outl, rev->combL[i].buf, rev->combL[i].size, rev->combL[i].index,
@@ -1533,7 +1618,7 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 }
 
 /*! initialize Reverb Effect */
-void init_reverb(int32 output_rate)
+void init_reverb(void)
 {
 	init_filter_lowpass1(&(reverb_status.lpf));
 	/* Only initialize freeverb if stereo output */
@@ -1545,37 +1630,11 @@ void init_reverb(int32 output_rate)
 			do_ch_plate_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_plate_reverb));
 			REV_INP_LEV = reverb_status.info_plate_reverb.wet;
 		} else {	/* Freeverb */
-			alloc_freeverb_buf(&(reverb_status.info_freeverb));
-			update_freeverb(&(reverb_status.info_freeverb));
-			init_freeverb(&(reverb_status.info_freeverb));
-			REV_INP_LEV = fixedgain * reverb_status.info_freeverb.wet;
+			do_ch_freeverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_freeverb));
+			REV_INP_LEV = reverb_status.info_freeverb.wet;
 		}
 	} else {	/* Old Reverb */
-		ta = tb = 0;
-		HPFL = HPFR = LPFL = LPFR = EPFL = EPFR = 0;
-		spt0 = spt1 = spt2 = spt3 = 0;
-		rev_memset(buf0_L);
-		rev_memset(buf0_R);
-		rev_memset(buf1_L);
-		rev_memset(buf1_R);
-		rev_memset(buf2_L);
-		rev_memset(buf2_R);
-		rev_memset(buf3_L);
-		rev_memset(buf3_R);
-		if (output_rate > MAX_OUTPUT_RATE) {output_rate = MAX_OUTPUT_RATE;}
-		else if (output_rate < MIN_OUTPUT_RATE) {output_rate = MAX_OUTPUT_RATE;}
-		def_rpt0 = rpt0 = REV_VAL0 * output_rate / 1000;
-		def_rpt1 = rpt1 = REV_VAL1 * output_rate / 1000;
-		def_rpt2 = rpt2 = REV_VAL2 * output_rate / 1000;
-		def_rpt3 = rpt3 = REV_VAL3 * output_rate / 1000;
-		rpt0 = def_rpt0 * reverb_status.time_ratio;
-		rpt1 = def_rpt1 * reverb_status.time_ratio;
-		rpt2 = def_rpt2 * reverb_status.time_ratio;
-		rpt3 = def_rpt3 * reverb_status.time_ratio;
-		while (! isprime(rpt0)) {rpt0++;}
-		while (! isprime(rpt1))	{rpt1++;}
-		while (! isprime(rpt2))	{rpt2++;}
-		while (! isprime(rpt3))	{rpt3++;}
+		do_ch_standard_reverb(NULL, MAGIC_INIT_EFFECT_INFO, &(reverb_status.info_standard_reverb));
 		REV_INP_LEV = 1.0;
 	}
 	memset(reverb_effect_buffer, 0, reverb_effect_bufsize);
@@ -1597,8 +1656,13 @@ void do_ch_reverb(int32 *buf, int32 count)
 			do_ch_freeverb(buf, count, &(reverb_status.info_freeverb));
 		}
 	} else {	/* Old Reverb */
-		do_standard_reverb(buf, count);
+		do_ch_standard_reverb(buf, count, &(reverb_status.info_standard_reverb));
 	}
+}
+
+void do_mono_reverb(int32 *buf, int32 count)
+{
+	do_ch_standard_reverb_mono(buf, count, &(reverb_status.info_standard_reverb));
 }
 
 /*                   */
@@ -2675,7 +2739,8 @@ void convert_effect(EffectList *ef)
 
 void free_effect_buffers(void)
 {
-	free_freeverb_buf(&(reverb_status.info_freeverb));
+	do_ch_standard_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_standard_reverb));
+	do_ch_freeverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_freeverb));
 	do_ch_plate_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_plate_reverb));
 	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status.info_delay));
 	free_effect_list(ie_gs.ef);

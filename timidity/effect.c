@@ -82,7 +82,7 @@ void init_effect(void)
 	init_mtrand();
 	init_pink_noise(&global_pink_noise_light);
 	init_ns_tap();
-	init_reverb(play_mode->rate);
+	init_reverb();
 	init_ch_delay();
 	init_ch_chorus();
 	init_eq_gs();
@@ -250,7 +250,7 @@ void do_effect(int32 *buf, int32 count)
 			? count : count * 2;
 	int reverb_level = (opt_reverb_control < 0)
 			? -opt_reverb_control & 0x7f : DEFAULT_REVERB_SEND_LEVEL;
-	
+
 	/* reverb in mono */
 	if (opt_reverb_control && play_mode->encoding & PE_MONO)
 		do_mono_reverb(buf, count);
@@ -267,12 +267,12 @@ void do_effect(int32 *buf, int32 count)
 			set_ch_chorus(buf, nsamples, -opt_chorus_control);
 #endif
 		if (opt_reverb_control == 2 || opt_reverb_control == 4
-				|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
+			|| opt_reverb_control < 0 && ! (opt_reverb_control & 0x80))
 			set_ch_reverb(buf, nsamples, reverb_level);
 		mix_dry_signal(buf, nsamples);
-		/* chorus sounds horrible
-		 * if applied globally on top of channel chorus
-		 */
+			/* chorus sounds horrible
+			 * if applied globally on top of channel chorus
+			 */
 #if 0
 		if (opt_chorus_control < 0)
 			do_ch_chorus(buf, nsamples);

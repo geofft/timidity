@@ -3771,7 +3771,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Macro (%d)",val);
 			set_reverb_macro_gs(val);
 			recompute_reverb_status_gs();
-			init_reverb(play_mode->rate);
+			init_reverb();
 			break;
 		case 0x06:	/* Reverb Character */
 			if (val > 7) {val = 7;}
@@ -3779,7 +3779,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if (reverb_status.character != val) {
 				reverb_status.character = val;
 				recompute_reverb_status_gs();
-				init_reverb(play_mode->rate);
+				init_reverb();
 			}
 			break;
 		case 0x07:	/* Reverb Pre-LPF */
@@ -3795,7 +3795,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if(reverb_status.level != val) {
 				reverb_status.level = val;
 				recompute_reverb_status_gs();
-				init_reverb(play_mode->rate);
+				init_reverb();
 			}
 			break;
 		case 0x09:	/* Reverb Time */
@@ -3803,7 +3803,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			if(reverb_status.time != val) {
 				reverb_status.time = val;
 				recompute_reverb_status_gs();
-				init_reverb(play_mode->rate);
+				init_reverb();
 			}
 			break;
 		case 0x0A:	/* Reverb Delay Feedback */
@@ -4145,7 +4145,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Reverb Return (%d)", val);
 			reverb_status.level = val;
 			recompute_reverb_status_gs();
-			init_reverb(play_mode->rate);
+			init_reverb();
 			break;
 		case 0x01:	/* Chorus Return */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Chorus Return (%d)", val);
@@ -6357,7 +6357,7 @@ static int midi_play_end(void)
     }
 
     /* clear reverb echo sound */
-    init_reverb(play_mode->rate);
+    init_reverb();
     for(i = 0; i < MAX_CHANNELS; i++)
     {
 	channel[i].reverb_level = -1;

@@ -243,6 +243,15 @@ typedef struct {
 	int32 decayi, ddif1i, ddif2i, idif1i, idif2i, dryi, weti;
 } InfoPlateReverb;
 
+/*! Standard Reverb */
+typedef struct {
+	int32 spt0, spt1, spt2, spt3, rpt0, rpt1, rpt2, rpt3;
+	int32 ta, tb, HPFL, HPFR, LPFL, LPFR, EPFL, EPFR;
+	delay buf0_L, buf0_R, buf1_L, buf1_R, buf2_L, buf2_R, buf3_L, buf3_R;
+	double fbklev, nmixlev, cmixlev, monolev, hpflev, lpflev, lpfinp, epflev, epfinp, width;
+	int32 fbklevi, nmixlevi, cmixlevi, monolevi, hpflevi, lpflevi, lpfinpi, epflevi, epfinpi, widthi;
+} InfoStandardReverb;
+
 /*! Freeverb */
 #define numcombs 8
 #define numallpasses 4
@@ -268,28 +277,26 @@ typedef struct {
 /*        System Effect        */
 /*                             */
 /* Reverb Effect */
-extern void do_reverb(int32 *, int32);
 extern void do_ch_reverb(int32 *, int32);
-extern void set_ch_reverb(register int32 *, int32, int32);
+extern void set_ch_reverb(int32 *, int32, int32);
 extern void do_mono_reverb(int32 *, int32);
-extern void init_reverb(int32);
+extern void init_reverb(void);
 extern void reverb_rc_event(int, int32);
-extern void recompute_reverb_value(int32);
 
 /* Chorus Effect */
 extern void do_ch_chorus(int32 *, int32);
-extern void set_ch_chorus(register int32 *, int32, int32);
+extern void set_ch_chorus(int32 *, int32, int32);
 extern void init_chorus_lfo(void);
 extern void init_ch_chorus(void);
 
 /* Delay (Celeste) Effect */
 extern void do_ch_delay(int32 *, int32);
-extern void set_ch_delay(register int32 *, int32, int32);
+extern void set_ch_delay(int32 *, int32, int32);
 extern void init_ch_delay(void);
 
 /* EQ */
 extern void init_eq_gs(void);
-extern void set_ch_eq_gs(register int32 *, int32);
+extern void set_ch_eq_gs(int32 *, int32);
 extern void do_ch_eq_gs(int32 *, int32);
 extern void do_ch_eq_xg(int32 *, int32, struct part_eq_xg *); 
 extern void do_multi_eq_xg(int32 *, int32);
@@ -303,6 +310,7 @@ struct reverb_status_t
 	/* for pre-calculation */
 	double level_ratio, time_ratio;
 
+	InfoStandardReverb info_standard_reverb;
 	InfoPlateReverb info_plate_reverb;
 	InfoFreeverb info_freeverb;
 	filter_lowpass1 lpf;
