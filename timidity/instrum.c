@@ -1389,7 +1389,7 @@ static void free_tone_bank_list(ToneBank *tb[])
 		if (i > 0)
 		{
 			free(bank);
-			tonebank[i] = NULL;
+			tb[i] = NULL;
 		}
 	}
 }
