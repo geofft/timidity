@@ -181,7 +181,10 @@ static const struct option longopts[] = {
 	{ "random",                 optional_argument, NULL, 225 << 8 },
 	{ "no-sort",                no_argument,       NULL, 226 << 8 },
 	{ "sort",                   optional_argument, NULL, 226 << 8 },
-	{ "background",             no_argument,       NULL, 227 << 8 },
+#ifdef IA_ALSASEQ
+	{ "no-background",          no_argument,       NULL, 227 << 8 },
+	{ "background",             optional_argument, NULL, 227 << 8 },
+#endif
 	{ "no-realtime-load",       no_argument,       NULL, 'j' << 8 },
 	{ "realtime-load",          optional_argument, NULL, 'j' << 8 },
 	{ "adjust-key",             required_argument, NULL, 'K' << 8 },
@@ -229,6 +232,10 @@ static const struct option longopts[] = {
 	{ "config-string",          required_argument, NULL, 'x' << 8 },
 	{ "freq-table",             required_argument, NULL, 'Z' << 8 },
 	{ "pure-intonation",        optional_argument, NULL, 235 << 8 },
+#ifdef IA_ALSASEQ
+	{ "realtime-priority",      required_argument, NULL, 236 << 8 },
+	{ "sequencer-ports",        required_argument, NULL, 237 << 8 },
+#endif
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -307,7 +314,11 @@ static inline int parse_opt_i3(const char *);
 static inline int parse_opt_i4(const char *);
 static inline int parse_opt_i5(const char *);
 static inline int parse_opt_i6(const char *);
+#ifdef IA_ALSASEQ
 static inline int parse_opt_i7(const char *);
+static inline int parse_opt_rt_prio(const char *);
+static inline int parse_opt_seq_ports(const char *);
+#endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
 static inline int parse_opt_k(const char *);
@@ -2331,8 +2342,14 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_i5(arg);
 	case 226:
 		return parse_opt_i6(arg);
+#ifdef IA_ALSASEQ
 	case 227:
 		return parse_opt_i7(arg);
+	case 236:
+		return parse_opt_rt_prio(arg);
+	case 237:
+		return parse_opt_seq_ports(arg);
+#endif
 	case 'j':
 		return parse_opt_j(arg);
 	case 'K':
@@ -3163,6 +3180,12 @@ static inline int parse_opt_h(const char *arg)
 "  pure<n>(m) --pure-intonation=n(m)",
 "               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)",
 "                 'm' stands for minor mode",
+#ifdef IA_ALSASEQ
+"  --realtime-priority=n  (for alsaseq only)",
+"               Set the realtime priority (0-100)",
+"  --sequencer-ports=n    (for alsaseq only)",
+"               Set the number of opened sequencer ports (default = 4)",
+#endif
 		NULL
 	};
 	static char *help_args[3];
@@ -3262,8 +3285,10 @@ static inline int parse_opt_h(const char *arg)
 "  `t'          trace playing" NLS
 "  `l'          loop playing (some interface ignore this option)" NLS
 "  `r'          randomize file list arguments before playing" NLS
-"  `s'          sorting file list arguments before playing" NLS
-"  `D'          daemonize TiMidity++ in background (for alsaseq only)" NLS, fp);
+"  `s'          sorting file list arguments before playing" NLS, fp);
+#ifdef IA_ALSASEQ
+	fputs("  `D'          daemonize TiMidity++ in background (for alsaseq only)" NLS, fp);
+#endif
 	fputs(NLS, fp);
 	fputs("Alternative interface long options:" NLS
 "  --verbose=n" NLS
@@ -3271,9 +3296,10 @@ static inline int parse_opt_h(const char *arg)
 "  --[no-]trace" NLS
 "  --[no-]loop" NLS
 "  --[no-]random" NLS
-"  --[no-]sort" NLS
-"  --background" NLS, fp);
-	fputs(NLS, fp);
+"  --[no-]sort" NLS, fp);
+#ifdef IA_ALSASEQ
+	fputs("  --[no-]background" NLS, fp);
+#endif
 	fputs("Available output modes (-O, --output-mode option):" NLS, fp);
 	for (pmpp = play_mode_list; pmp = *pmpp; pmpp++)
 		fprintf(fp, "  -O%c          %s" NLS,
@@ -3449,9 +3475,11 @@ static inline int parse_opt_i(const char *arg)
 		case 'C':
 			cmp->flags ^= CTLF_NOT_CONTINUE;
 			break;
+#ifdef IA_ALSASEQ
 		case 'D':
 			cmp->flags ^= CTLF_DAEMONIZE;
 			break;
+#endif
 		default:
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Unknown interface option `%c'", *arg);
@@ -3499,11 +3527,29 @@ static inline int parse_opt_i6(const char *arg)
 	return set_flag(&(ctl->flags), CTLF_LIST_SORT, arg);
 }
 
+#ifdef IA_ALSASEQ
 static inline int parse_opt_i7(const char *arg)
 {
-	/* --background */
+	/* --[no-]background */
 	return set_flag(&(ctl->flags), CTLF_DAEMONIZE, arg);
 }
+
+static inline int parse_opt_rt_prio(const char *arg)
+{
+	/* --realtime-priority */
+	if (set_value(&opt_realtime_priority, atoi(arg), 0, 100, "Realtime priority"))
+		return 1;
+	return 0;
+}
+
+static inline int parse_opt_seq_ports(const char *arg)
+{
+	/* --sequencer-ports */
+	if (set_value(&opt_sequencer_ports, atoi(arg), 1, 16, "Number of sequencer ports"))
+		return 1;
+	return 0;
+}
+#endif
 
 static inline int parse_opt_j(const char *arg)
 {

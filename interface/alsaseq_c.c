@@ -64,16 +64,15 @@
 #include "timer.h"
 
 
-#define NUM_PORTS	4	/* number of ports;
-				 * this should be configurable via command line..
-				 */
+#define MAX_PORTS	16
 
 #define TICKTIME_HZ	100
 
 struct seq_context {
 	snd_seq_t *handle;	/* The snd_seq handle to /dev/snd/seq */
 	int client;		/* The client associated with this context */
-	int port[NUM_PORTS];	/* created sequencer ports */
+	int num_ports;		/* number of ports */
+	int *port[MAX_PORTS];	/* created sequencer ports */
 	int fd;			/* The file descriptor */
 	int used;		/* number of current connection */
 	int active;		/* */
@@ -196,6 +195,10 @@ ControlMode ctl=
     ctl_event
 };
 
+/* options */
+int opt_realtime_priority = 0;
+int opt_sequencer_ports = 4;
+
 static int buffer_time_advance;
 static long buffer_time_offset;
 static long start_time_base;
@@ -279,15 +282,27 @@ static RETSIGTYPE sig_reset(int sig)
 static int set_realtime_priority(void)
 {
 	struct sched_param schp;
+	int max_prio;
+
+	if (opt_realtime_priority <= 0)
+		return 0;
 
         memset(&schp, 0, sizeof(schp));
-        schp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+	max_prio = sched_get_priority_max(SCHED_FIFO);
+	if (max_prio < opt_realtime_priority)
+		opt_realtime_priority = max_prio;
 
+	schp.sched_priority = opt_realtime_priority;
         if (sched_setscheduler(0, SCHED_FIFO, &schp) != 0) {
 		printf("can't set sched_setscheduler - using normal priority\n");
                 return -1;
         }
-	printf("set SCHED_FIFO\n");
+	/* drop root priv. */
+	if (! geteuid() && getuid() != geteuid()) {
+		if (setuid(getuid()))
+			perror("dropping root priv");
+	}
+	printf("set SCHED_FIFO(%d)\n", opt_realtime_priority);
         return 0;
 }
 
@@ -313,9 +328,15 @@ static void ctl_pass_playing_list(int n, char *args[])
 	alsactx.fd = snd_seq_file_descriptor(alsactx.handle);
 	snd_seq_set_client_name(alsactx.handle, "TiMidity");
 	snd_seq_set_client_pool_input(alsactx.handle, 1000); /* enough? */
+	if (opt_sequencer_ports < 1)
+		alsactx.num_ports = 1;
+	else if (opt_sequencer_ports > MAX_PORTS)
+		alsactx.num_ports = MAX_PORTS;
+	else
+		alsactx.num_ports = opt_sequencer_ports;
 
 	printf("Opening sequencer port:");
-	for (i = 0; i < NUM_PORTS; i++) {
+	for (i = 0; i < alsactx.num_ports; i++) {
 		int port;
 		port = alsa_create_port(alsactx.handle, i);
 		if (port < 0)

@@ -1,3 +1,12 @@
+2003-09-12  Takashi Iwai <tiwai@suse.de>
+
+	* timidity/playmidi.h, timidity/timidity.c, interface/alsaseq_c.c:
+	  Added --realtime-priority and --sequencer-ports options for
+	  ALSA sequencer interface.
+	* Drop root privilege after chaging RT-priority.
+	* Enable background option only when ALSA seq. interface is
+	  built in.
+
 2003-09-12  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (new_chorus_voice_alternate): Revert
