@@ -90,6 +90,9 @@
 extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
 
+/* peek timidity.c */
+extern VOLATILE int intr;
+
 /* How often play data. */
 #define TICKTIME_HZ 100
 

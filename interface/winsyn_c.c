@@ -445,6 +445,7 @@ static void doit(void)
 		}
 		rtsyn_play_some_data();
 		rtsyn_play_calculate();
+		if(intr) seq_quit=~0;
 		sleep(0);
 	}
 #ifndef __W32__
