@@ -1,3 +1,7 @@
+2003-02-15  Daisuke Aoki <dai@sweetparty.ne.jp>
+	* 
+	  Bug fixed aborting (Windows synthesizer GUI version)
+
 2003-02-08  Saito <timidity@flashmail.com>
 	* 
 	  Obsoleted "Attack Env. (0..3)" option (W32GUI version)

@@ -412,6 +412,12 @@ int ctl_pass_playing_list2(int n, char *args[])
 	if (play_mode->encoding & PE_16BIT)
 		time_advance >>= 1;
 
+	{
+		double btime = (double)time_advance / play_mode->rate;
+		btime *= 1.01; /* to be sure */
+		aq_set_soft_queue(btime, 0.0);
+	}
+
 	if (opt_force_keysig != 8) {
 		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);
@@ -427,6 +433,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
 
+ 	seq_reset();
 
 /*
 	for(port=0;port<portnumber;port++){
@@ -469,7 +476,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 		printf("midiInStarterror\n");
 	}
 
-	seq_reset();
+//	seq_reset();
 	
 	system_mode=DEFAULT_SYSTEM_MODE;
 	change_system_mode(system_mode);
@@ -557,9 +564,11 @@ void seq_set_time(MidiEvent *ev)
 	ev->time = (int32)((past_time) * play_mode->rate);
 	ev->time += (int32)event_time_offset; 
 
+#if 0
 	btime = (double)((ev->time-current_sample/midi_time_ratio)/play_mode->rate);
 	btime *= 1.01; /* to be sure */
 	aq_set_soft_queue(btime, 0.0);
+#endif
 }
 
 static void stop_playing(void)
@@ -696,10 +705,10 @@ void winplaymidi(void){
 	}
 #endif
 	while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
-		play_one_data();
 #ifdef IA_W32G_SYN
 		winplaymidi_sleep_level = 0;
 #endif
+		play_one_data();
 	}
 #ifdef IA_W32G_SYN
 	if ( winplaymidi_sleep_level == 1 ) {
