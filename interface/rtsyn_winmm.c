@@ -56,6 +56,7 @@
 #ifdef __W32__
 #include <windows.h>
 #include <mmsystem.h>
+#define sleep(time) Sleep(time)
 #endif
 
 #include "timidity.h"

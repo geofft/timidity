@@ -1,6 +1,6 @@
 2003-09-21  Saito <timidity@flashmail.com>
 
-	* timidity/w32g_a.c, timidity/w32_a.c:
+	* timidity/w32_a.c:
 	  Add detect() functions.
 	* interface/rtsyn_winmm.c:
 	  Fix around sleep().

@@ -185,6 +185,8 @@ static void                         WaitForBuffer   (int WaitForAllBuffers);
 
 /*****************************************************************************************************************************/
 
+static int detect(void);
+
 #define dpm w32_play_mode
 
 PlayMode dpm =
@@ -199,7 +201,8 @@ PlayMode dpm =
     open_output,
     close_output,
     output_data,
-    acntl
+    acntl,
+	detect
 };
 
 /*****************************************************************************************************************************/
@@ -381,6 +384,13 @@ static void close_output(void)
         dpm.fd = -1;
     }
 }
+
+static int detect(void)
+{
+	if (waveOutGetNumDevs() == 0) {return 0;}	/* not found */
+	return 1;	/* found */
+}
+
 
 /*****************************************************************************************************************************/
 
