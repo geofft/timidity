@@ -1,3 +1,11 @@
+2004-06-09 Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+	* timidity/reverb.c
+	  timidity/tables.c
+	  doc/C/README.w32
+	  doc/ja_JP.eucJP/README.w32:
+	  small fixes for CbuilderX.
+
 2004-06-02  Kentaro Sato <kentaro@ranvis.com>
 
 	* utils/support.[ch]: Implemented subset of stat() for Mac OS.

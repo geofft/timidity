@@ -186,8 +186,8 @@ This file contains fllowing instructions.
              I don't know how to comple portaudio with bcc commandline tools.
 
 (3)Make TiMidity++ binaries
-        3-0-1) sed -e s/-o\ /-o/ configure >configure_bc
-                ( -o xxxx options are not wor with BCC -oxxxx is good.)
+        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+                ( -o xxxx options are not work correctly with BCC)
         3-0-2)Invoke sh rm_float.sh in timidity/timidity directory.
                 This removes f , F, l and L after sonst float valude( ex. 123.45f )
 <rmfloat.sh>

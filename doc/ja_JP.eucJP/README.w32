@@ -156,11 +156,11 @@ TiMidity++ をWindows用にコンパイルする方法
 	２−６）portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		（ここでは使わない）
 （３）TiMIdity++のコンパイル
-        3-0-1) sed -e s/-o\ /-o/ configure >configure_bc
-                (configure中の -o xxxx はＢＣＣが受け付けず -oxxxx なら受け付けるため)
+        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+                (configure中の -o xxxx はＢＣＣが受け付けないため)
         3-0-2)rm_float.sh を timidity/timidity ディレクトリの中で起動する。
                 数値定数のあとの f , F, l and L を取り除くスクリプト(  123.45f -> 123.45 )
-<rmfloat.sh>
+<rm_float.sh>
 -------------------- from here -----------------------
 #!/bin/sh
 
