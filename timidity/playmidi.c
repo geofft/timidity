@@ -749,6 +749,7 @@ void recompute_freq(int v)
 				vp->vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS) * channel[ch].vibrato_ratio);
 			}
 			vp->vibrato_delay = 0;
+			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Vibrato Depth: %d %d",vp->vibrato_depth,depth_range); 
 		}
 
 		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
