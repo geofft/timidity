@@ -336,18 +336,20 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 static int w32g_syn_create_win ( void )
 {
-	WNDCLASS wndclass ;
+	WNDCLASSEX wndclass ;
+	wndclass.cbSize        = sizeof(WNDCLASSEX);
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = SynWinProc ;
 	wndclass.cbClsExtra    = 0 ;
 	wndclass.cbWndExtra    = 0 ;
 	wndclass.hInstance     = hInst ;
 	wndclass.hIcon         = w32g_syn.hIcon;
+	wndclass.hIconSm       = w32g_syn.hIcon;
 	wndclass.hCursor       = LoadCursor(0,IDC_ARROW) ;
 	wndclass.hbrBackground = (HBRUSH)(COLOR_SCROLLBAR + 1);
 	wndclass.lpszMenuName  = NULL;
 	wndclass.lpszClassName =  W32G_SYNWIN_CLASSNAME;
-	RegisterClass(&wndclass);
+	RegisterClassEx(&wndclass);
 	w32g_syn.nid_hWnd = CreateWindowEx ( WS_EX_TOOLWINDOW, W32G_SYNWIN_CLASSNAME, 0,
 		WS_CLIPCHILDREN,
 		CW_USEDEFAULT,0, 10, 10,0,0,hInst,0 );
@@ -386,8 +388,12 @@ static int w32g_syn_main ( void )
 	while( GetMessage(&msg,NULL,0,0) ){
 		if ( msg.message == MYWM_QUIT ) {
 			if ( w32g_syn.quit_state < 1 ) w32g_syn.quit_state = 1;
-			if ( hConsoleWnd != NULL ) DestroyWindow ( hConsoleWnd );
+			if ( hConsoleWnd != NULL ) {
+				DestroyWindow ( hConsoleWnd );
+				hConsoleWnd = NULL;
+			}
 			DestroyWindow ( w32g_syn.nid_hWnd );
+			w32g_syn.nid_hWnd = NULL;
 		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -1642,8 +1648,10 @@ void ClearConsoleWnd(void);
 // Initialization
 void InitConsoleWnd(HWND hParentWnd)
 {
-	if (hConsoleWnd != NULL)
+	if (hConsoleWnd != NULL) {
 		DestroyWindow(hConsoleWnd);
+		hConsoleWnd = NULL;
+	}
 	switch(PlayerLanguage){
   	case LANGUAGE_ENGLISH:
 		hConsoleWnd = CreateDialog

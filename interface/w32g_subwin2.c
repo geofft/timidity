@@ -224,6 +224,7 @@ void InitWrdWnd(HWND hParentWnd)
 	}
 	if (hWrdWnd != NULL) {
 		DestroyWindow(hWrdWnd);
+		hWrdWnd = NULL;
 	}
 	TerminateWrdWnd ();
 

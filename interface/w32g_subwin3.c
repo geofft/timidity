@@ -277,6 +277,7 @@ void InitTracerWnd(HWND hParentWnd)
 	if (hTracerWnd != NULL) {
 		TRACER_LOCK();
 		DestroyWindow(hTracerWnd);
+		hTracerWnd = NULL;
 		DeleteObject ( (HGDIOBJ)w32g_tracer_wnd.hFontCommon );
 		DeleteObject ( (HGDIOBJ)w32g_tracer_wnd.hFontHalf );
 		DeleteDC ( w32g_tracer_wnd.hmdc );

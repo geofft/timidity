@@ -124,8 +124,10 @@ static int ConsoleWndInfoApply(void);
 // Initialization
 void InitConsoleWnd(HWND hParentWnd)
 {
-	if (hConsoleWnd != NULL)
+	if (hConsoleWnd != NULL) {
 		DestroyWindow(hConsoleWnd);
+		hConsoleWnd = NULL;
+	}
 	INILoadConsoleWnd();
 	switch(PlayerLanguage){
   	case LANGUAGE_ENGLISH:
@@ -373,8 +375,10 @@ static int DelListWnd(int nth);
 // Grobal Functions
 void InitListWnd(HWND hParentWnd)
 {
-	if (hListWnd != NULL)
+	if (hListWnd != NULL) {
 		DestroyWindow(hListWnd);
+		hListWnd = NULL;
+	}
 	ListWndInfoReset(hListWnd);
 	INILoadListWnd();
 	switch(PlayerLanguage){
@@ -902,8 +906,10 @@ void SetNumListWnd(int cursel, int nfiles)
 BOOL CALLBACK TracerWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 void InitTracerWnd(HWND hParentWnd)
 {
-	if (hTracerWnd != NULL)
+	if (hTracerWnd != NULL) {
 		DestroyWindow(hTracerWnd);
+		hTracerWnd = NULL;
+	}
 	hTracerWnd = CreateDialog
 		(hInst,MAKEINTRESOURCE(IDD_DIALOG_TRACER),hParentWnd,TracerWndProc);
 	ShowWindow(hTracerWnd,SW_HIDE);
@@ -973,8 +979,10 @@ void InitDocWnd(HWND hParentWnd)
 {
 	HMENU hMenu;
 	HICON hIcon;
-	if (hDocWnd != NULL)
+	if (hDocWnd != NULL) {
 		DestroyWindow(hDocWnd);
+		hDocWnd = NULL;
+	}
 	DocWndInfoReset2(hDocWnd);
 	INILoadDocWnd();
 	switch(PlayerLanguage){
@@ -1633,8 +1641,10 @@ BOOL CALLBACK ListSearchWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lPa
 void InitListSearchWnd(HWND hParentWnd)
 {
 	strcpy(ListSearchString,"");
-	if (hListSearchWnd != NULL)
+	if (hListSearchWnd != NULL) {
 		DestroyWindow(hListSearchWnd);
+		hListSearchWnd = NULL;
+	}
 	switch(PlayerLanguage){
 	case LANGUAGE_JAPANESE:
 		hListSearchWnd = CreateDialog
@@ -1757,8 +1767,10 @@ void HideListSearch(void)
 BOOL CALLBACK SoundSpecWndProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 void InitSoundSpecWnd(HWND hParentWnd)
 {
-	if (hSoundSpecWnd != NULL)
+	if (hSoundSpecWnd != NULL) {
 		DestroyWindow(hSoundSpecWnd);
+		hSoundSpecWnd = NULL;
+	}
 	hSoundSpecWnd = CreateDialog
 		(hInst,MAKEINTRESOURCE(IDD_DIALOG_SOUNDSPEC),hParentWnd,SoundSpecWndProc);
 	ShowWindow(hSoundSpecWnd,SW_HIDE);

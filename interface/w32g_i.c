@@ -362,22 +362,27 @@ static char StartWndClassName[] = "TiMidity++ Win32GUI";
 static LRESULT CALLBACK StartWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam);
 void InitStartWnd(int nCmdShow)
 {
-	WNDCLASS wndclass ;
+	WNDCLASSEX wndclass ;
 
-	if (hStartWnd != NULL) {DestroyWindow (hStartWnd);}
+	if (hStartWnd != NULL) {
+		DestroyWindow (hStartWnd);
+		hStartWnd = NULL;
+	}
 
+	wndclass.cbSize		   = sizeof(WNDCLASSEX);
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = StartWinProc;
 	wndclass.cbClsExtra    = 0;
 	wndclass.cbWndExtra    = 0;
 	wndclass.hInstance     = hInst;
-	wndclass.hIcon         = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
+	wndclass.hIcon         = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 32, 32, 0);
+	wndclass.hIconSm       = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
 	wndclass.hCursor       = LoadCursor(0, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_SCROLLBAR + 1);
 	wndclass.lpszMenuName  = NULL;
 	wndclass.lpszClassName = StartWndClassName;
 
-	if (!RegisterClass(&wndclass)) {return;}
+	if (!RegisterClassEx(&wndclass)) {return;}
 	hStartWnd = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_DLGMODALFRAME, StartWndClassName, 0,
 		WS_CLIPCHILDREN | WS_BORDER | WS_DLGFRAME, -32, -32, 0, 0, 0, 0, hInst, 0);
 	ShowWindow(hStartWnd, SW_SHOW);
@@ -533,8 +538,10 @@ static void UpdateOutputMenu(HWND hWnd, UINT wId)
 static void InitMainWnd(HWND hParentWnd)
 {
 	HICON hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, 0);
-	if ( hMainWnd != NULL )
+	if ( hMainWnd != NULL ) {
 		DestroyWindow ( hMainWnd );
+		hMainWnd = NULL;
+	}
 	INILoadMainWnd();
 	if (PlayerLanguage == LANGUAGE_JAPANESE)
 	  hMainWnd = CreateDialog(hInst,MAKEINTRESOURCE(IDD_DIALOG_MAIN),hParentWnd,MainProc);
@@ -682,6 +689,7 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			w32gSaveDefaultPlaylist();
 		}
 		DestroyWindow(hStartWnd);
+		hStartWnd = NULL;
 		break;
 
       case WM_SIZE:
@@ -812,14 +820,6 @@ MainProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		return FALSE;
-	/*
-	   case WM_SETFOCUS:
-	   HideCaret((HWND)wParam);
-	   break;
-	   case WM_KILLFOCUS:
-	   ShowCaret((HWND)wParam);
-	   break;
-	   */
       case WM_NOTIFY:
 		switch(wParam) {
 		  case IDC_TOOLBARWINDOW_MAIN:{
@@ -3749,7 +3749,7 @@ NLS
 ,
 timidity_version
 	);
-	MessageBox(hParentWnd, TiMidityText, "TiMidity", MB_OK);
+	MessageBox(hParentWnd, TiMidityText, "TiMidity++", MB_OK);
 }
 
 static void SupplementWnd(HWND hParentWnd)
