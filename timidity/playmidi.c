@@ -4974,6 +4974,10 @@ static void seek_forward(int32 until_time)
 
 	  case ME_SUSTAIN:
 		  channel[ch].sustain = current_event->a;
+		  if (channel[ch].redamper == 0) {	/* half-damper is not allowed. */
+			  if (channel[ch].sustain >= 64) {channel[ch].sustain = 127;}
+			  else {channel[ch].sustain = 0;}
+		  }
 	    break;
 
 	  case ME_SOSTENUTO:
@@ -6920,6 +6924,10 @@ int play_event(MidiEvent *ev)
 		update_redamper_controls(ch);
 	}
 	channel[ch].sustain = ev->a;
+	if (channel[ch].redamper == 0) {	/* half-damper is not allowed. */
+		if (channel[ch].sustain >= 64) {channel[ch].sustain = 127;}
+		else {channel[ch].sustain = 0;}
+	}
 	if(channel[ch].sustain == 0 && channel[ch].sostenuto == 0)
 	    drop_sustain(ch);
 	ctl_mode_event(CTLE_SUSTAIN, 1, ch, ev->a >= 64);
