@@ -1,3 +1,9 @@
+2003-06-17  s_keishi <s_keishi@mutt.freemail.ne.jp>
+
+	* interface/winsyn_c.c: To work under PortAudio
+	* interface/Makefile.am (EXTRA_DIST): Add entry for escape_sjis.pl
+	* interface/escape_sjis.pl: Add
+	* timidity/portaudio_a.c : Bug fix
 
 2003-06-16  Saito <timidity@flashmail.com>
 
@@ -9,7 +15,7 @@
 2003-06-15  mput<root@mput.dip.jp>
 
 	* configure.in, timidity/Makefile.am: Fix a bit to merge
-	s_keishi's patch
+	  s_keishi's patch
 
 2003-06-14  s_keishi <s_keishi@mutt.freemail.ne.jp>
 

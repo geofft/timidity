@@ -1,3 +1,4 @@
+
 /*
     TiMidity++ -- MIDI to WAVE converter and player
     Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
@@ -52,6 +53,8 @@
     I use MIDI Yoke. It can freely be obtained MIDI-OX site
     (http://www.midiox.com).
 */
+//#define  USE_PORTMIDI 1
+//#undef USE_CURSES 1
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -59,7 +62,18 @@
 #include "interface.h"
 
 #include <stdio.h>
+
+#if defined(__MINGW32__) && defined(USE_PDCURSES)
+#define _NO_OLDNAMES 1	/* avoid type mismatch of beep() */
+#ifndef sleep
+extern void sleep(unsigned long);
+#endif /* sleep */
 #include <stdlib.h>
+#undef _NO_OLDNAMES
+#else /* USE_PDCURSES */
+#include <stdlib.h>
+#endif
+
 #include <stdarg.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -78,8 +92,36 @@
 
 #include "server_defs.h"
 
-#include "windows.h"
-#include "mmsystem.h"
+#ifdef __W32__
+#include <windows.h>
+#include <mmsystem.h>
+#endif
+ 
+#ifdef USE_CURSES
+
+#ifdef __W32__
+#undef MOUSE_MOVED
+#endif
+#ifdef HAVE_NCURSES_H
+#	include <ncurses.h>
+#elif defined(HAVE_NCURSES_CURSES_H)
+#	include <ncurses/curses.h>
+#else
+#	include <curses.h>
+#endif
+
+#ifdef __W32__
+#undef MOUSE_MOVED
+#define MOUSE_MOVED  1                 //see windows.h
+#endif
+
+
+#endif
+
+#ifdef USE_PORTMIDI
+#include <portmidi.h>
+#include <porttime.h>
+#endif
 
 #include "timidity.h"
 #include "common.h"
@@ -92,10 +134,23 @@
 #include "aq.h"
 #include "timer.h"
 
+#ifndef __W32__
+#include <stdio.h>
+#include <termios.h>
+#include <term.h>
+#include <unistd.h>
+#endif
+
 extern char *opt_aq_max_buff,*opt_aq_fill_buff;
 extern  int midi_port_number;
 extern int32 current_sample;
 extern FLOAT_T midi_time_ratio;
+
+#ifndef __W32__
+#define UINT unsigned int
+static struct termios initial_settings, new_settings;
+static int peek_character = -1;
+#endif
 
 extern int volatile stream_max_compute;	// play_event() ÇÃ compute_data() Ç≈åvéZÇãñÇ∑ç≈ëÂéûä‘
 int playdone;
@@ -108,16 +163,17 @@ int system_mode=DEFAULT_SYSTEM_MODE;
 int portnumber=1;
 
 #define MAX_EXBUF 20
-#define BUFF_SIZE 256
+#define BUFF_SIZE 512
 
+
+#ifndef USE_PORTMIDI
+UINT InNum,portID[MAX_PORT];
 HMIDIIN  hMidiIn[MAX_PORT];
 HMIDIOUT hMidiOut[MAX_PORT];
-UINT InNum,wInID[MAX_PORT];
 MIDIHDR *IMidiHdr[MAX_PORT][MAX_EXBUF];
 
 char sIMidiHdr[MAX_PORT][MAX_EXBUF][sizeof(MIDIHDR)];
 char sImidiHdr_data[MAX_PORT][MAX_EXBUF][BUFF_SIZE];
-
 
 struct evbuf_t{
 	int status;
@@ -132,8 +188,20 @@ UINT  evbwpoint=0;
 UINT  evbrpoint=0;
 UINT evbsysexpoint;
 UINT  mvbuse=0;
-
 enum{B_OK, B_WORK, B_END};
+#else
+PmError pmerr;
+static UINT InNum;
+struct midistream_t{
+	PortMidiStream* stream;
+};
+static struct midistream_t  midistream[MAX_PORT];
+static PmDeviceID portID[MAX_PORT];
+#define PMBUFF_SIZE 8192
+#define EXBUFF_SIZE 512
+static PmEvent pmbuffer[PMBUFF_SIZE];
+static char    sysexbuffer[EXBUFF_SIZE];
+#endif
 
 
 double starttime;
@@ -177,6 +245,12 @@ static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void ctl_event(CtlEvent *e);
 static void ctl_pass_playing_list(int n, char *args[]);
+#ifndef __W32__
+static void init_keybord(void);
+static void close_keybord(void);
+static int kbhit(void);
+static char readch(void);
+#endif
 
 /**********************************/
 /* export the interface functions */
@@ -230,7 +304,8 @@ extern int ConsoleWndFlag;
 static int cmsg(int type, int verbosity_level, char *fmt, ...)
 {
 #ifndef IA_W32G_SYN
-/*	  va_list ap;
+
+	va_list ap;
 
   if ((type==CMSG_TEXT || type==CMSG_INFO || type==CMSG_WARNING) &&
       ctl.verbosity<verbosity_level)
@@ -250,7 +325,7 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
       fflush(outfp);
     }
   va_end(ap);
-*/
+
 #else
 	if ( !ConsoleWndFlag ) return 0;
 	{
@@ -261,7 +336,7 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
     va_end(ap);
 
     if((type==CMSG_TEXT || type==CMSG_INFO || type==CMSG_WARNING) &&
-       ctl.verbosity<verbosity_level)
+       ctl.verbosity<verbosity_level) 
 	return 0;
 //    if(type == CMSG_FATAL)
 //	w32g_msg_box(buffer, "TiMidity Error", MB_OK);
@@ -272,7 +347,6 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
 #endif
 
     return 0;
-
 }
 
 static void ctl_event(CtlEvent *e)
@@ -285,9 +359,11 @@ void seq_set_time(MidiEvent *);
 static void stop_playing(void);
 static void doit(void);
 void server_reset(void);
-void play_one_data (void);
+void play_some_data (void);
 void winplaymidi(void);
+#ifndef USE_PORTMIDI
 void CALLBACK MidiInProc(HMIDIIN,UINT,DWORD,DWORD,DWORD);
+#endif
 
 #ifdef IA_W32G_SYN
 extern void w32g_syn_doit(void);
@@ -306,13 +382,35 @@ int ctl_pass_playing_list2(int n, char *args[])
 #endif
 {
 	int i, j;
-	UINT ID[MAX_PORT];
 	MidiEvent ev;
 	UINT port=0 ;
+#ifdef USE_PORTMIDI
+	PmDeviceInfo *deviceinfo;
+#endif
+#ifdef USE_CURSES
+	int wlaw;
+#endif
 
+#ifdef USE_CURSES
+	initscr();
+	cbreak();
+	noecho();
+#endif
+
+
+#ifdef USE_PORTMIDI
+	pmerr=Pm_Initialize();
+	if( pmerr != pmNoError ) goto pmerror;
+#endif
 #ifndef IA_W32G_SYN
 	if(n > MAX_PORT ){
+#ifndef USE_CURSES
 		printf( "Usage: timidity -iW [Midi interface No s]\n");
+#else 
+		move(0,0);
+		printw( "Usage: timidity -iW [Midi interface No s]");
+		refresh();
+#endif
 		return;
 	}
 #endif
@@ -320,18 +418,23 @@ int ctl_pass_playing_list2(int n, char *args[])
 	if(n>0){
 		port=0;
 		while(port<n && n!=0){
-			if( (ID[port] = atoi(args[port]))==0 ){
+			if( (portID[port] = atoi(args[port]))==0 ){
 				n=0;
 			}else{
-				if(MMSYSERR_NOERROR==midiInOpen(&hMidiIn[port],ID[port]-1,(DWORD)NULL,(DWORD)0L,CALLBACK_NULL)){
+#ifdef USE_PORTMIDI
+				deviceinfo=(PmDeviceInfo *)Pm_GetDeviceInfo(portID[port]-1);
+				if(TRUE==(deviceinfo)->input) {
+#else
+				if(MMSYSERR_NOERROR==midiInOpen(&hMidiIn[port],portID[port]-1,(DWORD)NULL,(DWORD)0L,CALLBACK_NULL)){
 					midiInReset(hMidiIn[port]);
 					midiInClose(hMidiIn[port]);
+#endif
 				}else{
 					n=0;
 #ifdef IA_W32G_SYN
 					{
 						char buff[1024];
-						sprintf ( buff, "MIDI IN Device ID %d is not available. So set a proper ID for the MIDI port %d and restart.", ID[port], port );
+						sprintf ( buff, "MIDI IN Device ID %d is not available. So set a proper ID for the MIDI port %d and restart.", portID[port], port );
 						MessageBox ( NULL, buff, "Error", MB_OK );
 						return 2;
 					}
@@ -341,42 +444,104 @@ int ctl_pass_playing_list2(int n, char *args[])
 		port++;
 		}
 		portnumber=port;
-
 	}
 #ifndef IA_W32G_SYN
 	if(n==0){
-		MIDIINCAPS InCaps;
 		char cbuf[80];
-
-		printf("Opening Devicedriver:");
-		InNum = midiInGetNumDevs();
-		printf("Available Midi Input devices:\n");
-		for (ID[port]=1;ID[port] <=InNum;ID[port]++){
-			midiInGetDevCaps(ID[port]-1,(LPMIDIINCAPSA) &InCaps,sizeof(InCaps));
-			printf("%d:%s\n",ID[port],(LPSTR)InCaps.szPname);
-		}
-
+#ifndef USE_PORTMIDI
+		MIDIINCAPS InCaps;
+#endif
+#ifndef USE_CURSES
 		printf("Whow many ports do you use?(max %d)\n",MAX_PORT);
 		do{
 			if (0==scanf("%u",&portnumber)) scanf("%s",cbuf);
 		}while(portnumber == 0 ||portnumber > MAX_PORT);
 		printf("\n");
-
-		for(port=0;port<portnumber;port++){
-			printf("Keyin Input Device Number of port%d\n",port);
-			do{
-				if (0==scanf("%u",&ID[port])) scanf("%s",cbuf);
-			}while(ID[port] == 0 ||(ID[port] > InNum));
-			printf("\n");
+		printf("Opening Device drivers:");
+		printf("Available Midi Input devices:\n");
+#else 
+		move(0,0);
+		printw("Whow many ports do you use?(max %d)\n",MAX_PORT);
+		refresh();
+		do{
+#ifdef USE_PDCURSES
+			getstr(cbuf);
+#else
+			getnstr(cbuf,80);
+#endif
+			sscanf(cbuf,"%u",&portnumber);
+		}while(portnumber == 0 ||portnumber > MAX_PORT);
+		clear();
+		refresh();
+		wlaw=0;
+		move(wlaw++,0);
+		printw("Opening Device drivers:");
+		printw("Available Midi Input devices:");
+#endif
+#if USE_PORTMIDI
+		InNum = Pm_CountDevices();
+		for (portID[port]=1;portID[port] <=InNum;portID[port]++){
+			deviceinfo=(PmDeviceInfo *)Pm_GetDeviceInfo(portID[port]-1);
+#ifndef USE_CURSES
+			if(TRUE==deviceinfo->input){
+				printf("%d:%s\n",portID[port],deviceinfo->name);
+			}
+#else
+			if(TRUE==deviceinfo->input){
+				move (wlaw++,0);
+				printw("%d:%s",portID[port],deviceinfo->name);
+			}
+#endif			
 		}
+
+#else
+		InNum = midiInGetNumDevs();
+		for (portID[port]=1;portID[port] <=InNum;portID[port]++){
+			midiInGetDevCaps(portID[port]-1,(LPMIDIINCAPSA) &InCaps,sizeof(InCaps));
+#ifndef USE_CURSES
+			printf("%d:%s\n",portID[port],(LPSTR)InCaps.szPname);
+#else
+			move (wlaw++,0);
+			printw("%d:%s",portID[port],(LPSTR)InCaps.szPname);
+#endif			
+		}
+#endif
+
+#ifndef USE_CURSES
+		for(port=0;port<portnumber;port++){
+			printf("Keyin Input Device Number of port%d\n",port+1);
+			do{
+				if (0==scanf("%u",&portID[port])) scanf("%s",cbuf);
+			}while(portID[port] == 0 ||(portID[port] > InNum));
+			printf("\n");			
+		}
+#else
+		for(port=0;port<portnumber;port++){
+			move(wlaw++,0);
+			printw("Keyin Input Device Number of port%d",port+1);
+			refresh();
+			do{
+#ifdef USE_PDCURSES
+				getstr(cbuf);
+#else
+				getnstr(cbuf,80);
+#endif
+				sscanf(cbuf,"%u",&portID[port]); 
+			}while(portID[port] == 0 ||(portID[port] > InNum));
+			printf("\n");			
+		}
+		clear();
+		refresh();
+#endif		
 	}
 #endif
 
 	for(port=0;port<portnumber;port++){
-		wInID[port]=ID[port]-1;
+		portID[port]=portID[port]-1;
 	}
 
 #ifndef IA_W32G_SYN
+#ifndef USE_CURSES
 	printf("TiMidity starting in Windows Synthesizer mode\n");
 	printf("Usage: timidity -iW [Midi interface No]\n");
 	printf("\n");
@@ -387,12 +552,26 @@ int ctl_pass_playing_list2(int n, char *args[])
 	printf("m(GM reset) s(GS reset) x(XG reset)\n");
 	printf("\n");
 	printf("Press 'q' key to stop\n");
+#else
+	move(0,0);
+	printw("TiMidity starting in Windows Synthesizer mode\n");
+	printw("Usage: timidity -iW [Midi interface No]\n");
+	printw("\n");
+//	printw("Please wait for piano 'C' sound\n");
+	printw("\n");
+	printw("N (Normal mode) M(GM mode) S(GS mode) X(XG mode) \n");
+	printw("(Only in Normal mode, Mode can be changed by MIDI data)\n");
+	printw("m(GM reset) s(GS reset) x(XG reset)\n");
+	printw("\n");
+	printw("Press 'q' key to stop\n");
+	refresh();
+#endif
 #endif
 /*
 	for(port=0;port<portnumber;port++){		//trick for MIDI Yoke
-		midiInOpen(&hMidiIn[port],wInID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
+		midiInOpen(&hMidiIn[port],portID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
 		midiInStart(hMidiIn[port]);
-		midiOutOpen(&hMidiOut[port],wInID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
+		midiOutOpen(&hMidiOut[port],portID[port],(DWORD)NULL,(DWORD)0L,CALLBACK_NULL);
 		midiOutShortMsg(hMidiOut[port], 0x007f3c90);
 		midiOutShortMsg(hMidiOut[port], 0x00003c80);
 		midiOutReset(hMidiOut[port]);
@@ -440,6 +619,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 		}
 	}
 */
+#ifndef USE_PORTMIDI
 	for(port=0;port<portnumber;port++){
 		for (i=0;i<MAX_EXBUF;i++){
 			IMidiHdr[port][i] = sIMidiHdr[port][i];
@@ -449,16 +629,33 @@ int ctl_pass_playing_list2(int n, char *args[])
 			IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
 		}
 	}
-
 	evbuf[0].status=B_END;
 	evbwpoint=0;
 	evbrpoint=0;
 	mvbuse=0;
+#endif
 
 	seq_quit=0;
-
+		
+#ifdef USE_PORTMIDI
 	for(port=0;port<portnumber;port++){
-		midiInOpen(&hMidiIn[port],wInID[port],(DWORD)MidiInProc,(DWORD)port,CALLBACK_FUNCTION);
+		PortMidiStream* stream;
+		void* timeinfo;
+		pmerr=Pm_OpenInput( &stream,
+             	portID[port],
+                NULL,
+				(PMBUFF_SIZE),
+                NULL,
+                Pt_Time,
+                NULL);
+		midistream[port].stream=stream;
+		if( pmerr != pmNoError ) goto pmerror;
+			pmerr=Pm_SetFilter(midistream[port].stream,PM_FILT_CLOCK);
+		if( pmerr != pmNoError ) goto pmerror;
+	}
+#else
+	for(port=0;port<portnumber;port++){
+		midiInOpen(&hMidiIn[port],portID[port],(DWORD)MidiInProc,(DWORD)port,CALLBACK_FUNCTION);
 		for (i=0;i<MAX_EXBUF;i++){
 			midiInPrepareHeader(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
 			midiInAddBuffer(hMidiIn[port],IMidiHdr[port][i],sizeof(MIDIHDR));
@@ -468,7 +665,7 @@ int ctl_pass_playing_list2(int n, char *args[])
 	if(MMSYSERR_NOERROR !=midiInStart(hMidiIn[port]))
 		printf("midiInStarterror\n");
 	}
-
+#endif
 //	seq_reset();
 
 	system_mode=DEFAULT_SYSTEM_MODE;
@@ -495,7 +692,6 @@ int ctl_pass_playing_list2(int n, char *args[])
 
 	}
 */
-
 	while(seq_quit==0) {
 
 #ifndef IA_W32G_SYN
@@ -504,11 +700,19 @@ int ctl_pass_playing_list2(int n, char *args[])
 		w32g_syn_doit();
 #endif
 	}
-	midiInStop(hMidiIn[port]);
-
+	for(port=0;port<portnumber;port++){
+#ifdef USE_PORTMIDI
+		pmerr=Pm_Abort(midistream[port].stream);
+//		if( pmerr != pmNoError ) goto pmerror;
+#else
+		midiInStop(hMidiIn[port]);
+#endif
+	}
 	stop_playing();
-	play_mode->close_output();
-
+//	play_mode->close_output();
+#ifdef USE_PORTMIDI
+	Pm_Terminate();
+#else
 	for(port=0;port<portnumber;port++){
 		midiInReset(hMidiIn[port]);
 		for (i=0;i<MAX_EXBUF;i++){
@@ -522,14 +726,75 @@ int ctl_pass_playing_list2(int n, char *args[])
 		}
 */
 	}
+#endif
 
+#ifdef USE_CURSES
+		clear();
+		refresh();
+		endwin();
+#endif
 #ifdef IA_W32G_SYN
 	return 0;
 #endif
+	return;
+#ifdef USE_PORTMIDI
+pmerror:
+		Pm_Terminate();
+	ctl.cmsg(  CMSG_ERROR, VERB_NORMAL, "PortMIDI error: %s\n", Pm_GetErrorText( pmerr ) );
+	return ;
+#endif
 }
+
+#ifndef __W32__
+static void init_keybord(void){
+	tcgetattr(0,&initial_settings);
+	tcgetattr(0,&new_settings);
+	new_settings.c_lflag &= ~ICANON;
+	new_settings.c_lflag &= ~ECHO;
+	new_settings.c_lflag &= ~ISIG;
+	new_settings.c_cc[VMIN] = 1;
+	new_settings.c_cc[VTIME] = 0;
+	tcsetattr(0, TCSANOW, &new_settings);
+}
+
+static void close_keybord(void){
+	tcsetattr(0, TCSANOW, &initial_settings);
+}
+
+static int kbhit(void){
+	char ch;
+	int nread;
+	
+	if(peek_character != -1)
+		return 1;
+	new_settings.c_cc[VMIN]=0;
+	tcsetattr(0,TCSANOW, &new_settings);
+	nread = read(0, &ch, 1);
+	new_settings.c_cc[VMIN]=1;
+	tcsetattr(0,TCSANOW, &new_settings);
+	
+	if(nread == 1) {
+		peek_character = ch;
+		return 1;
+	}
+	return 0;
+}
+
+
+static char readch(void){
+	char ch;
+	if(peek_character != -1){
+		ch = peek_character;
+		peek_character = -1;
+		return ch;
+	}
+	read(0,&ch,1);
+	return ch;
+}
+#endif		
+
 static void seq_reset(void){
 		stop_playing();
-		play_mode->close_output();  //also in server_reset
 		free_instruments(0);        //also in server_reset
 		free_global_mblock();
 		server_reset();
@@ -580,12 +845,19 @@ static void stop_playing(void)
 static void doit(void)
 {
 	MidiEvent ev;
-	
-	playdone=0;
+#ifndef __W32__
+		init_keybord();
+#endif
 
+	playdone=0;
 	while(seq_quit==0){
+#ifdef __W32__
 		if(kbhit()){
 			switch(getch()){
+#else		
+		if(kbhit()){
+			switch(readch()){
+#endif
 				case 'Q':
 				case 'q':
 					seq_quit=~0;
@@ -660,12 +932,10 @@ static void doit(void)
 		}
 		winplaymidi();
 		sleep(0);
-/*		if(playdone!=0){
-			seq_reset();
-			playdone=0;
-		}
-*/
 	}
+#ifndef __W32__
+	close_keybord();
+#endif
 }
 #endif
 
@@ -681,13 +951,6 @@ void server_reset(void)
 	event_time_offset = 0;
 }
 
-
-static int evbp_ge(UINT evbpointa,UINT evbpointb){
-	if( evbpointb<=evbpointa && (evbwpoint<evbpointb || evbpointa<=evbwpoint) ) return ~0;
-	if( evbpointa< evbpointb && (evbpointa<=evbwpoint && evbwpoint<evbpointb) ) return ~0;
-	return 0;
-}
-
 #ifdef IA_W32G_SYN
 static int winplaymidi_sleep_level = 2;
 static DWORD winplaymidi_active_start_time = 0;
@@ -701,12 +964,12 @@ void winplaymidi(void){
 		winplaymidi_sleep_level = 1;
 	}
 #endif
-	while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
-#ifdef IA_W32G_SYN
+#if defined(IA_W32G_SYN) && !defined(USE_PORTMIDI)
+	if( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){ //playdata exist
 		winplaymidi_sleep_level = 0;
-#endif
-		play_one_data();
 	}
+#endif
+	play_some_data();
 #ifdef IA_W32G_SYN
 	if ( winplaymidi_sleep_level == 1 ) {
 		DWORD ct = GetCurrentTime ();
@@ -739,14 +1002,187 @@ void winplaymidi(void){
 	}
 #endif
 
-//	if((seq_playing == ~0) && (get_current_calender_time()-lastdintime>30)){
-//	playdone=~0;
-//	seq_playing =0;
-//	}
 }
 
+#ifdef USE_PORTMIDI
+void play_some_data (void){
+	PmMessage pmmsg;
+	MidiEvent ev;
+	MidiEvent evm[16];
+	int i,j,ii,port,exlen,data,shift,chk,ne;
+	long pmlength;
+	for(port=0;port<portnumber;port++){
+		pmerr=Pm_Read(midistream[port].stream, pmbuffer, PMBUFF_SIZE);
+		if(pmerr==pmBufferOverflow){
+			ctl.cmsg(  CMSG_ERROR, VERB_NORMAL, "PortMIDI buffer overflow: %s\n", Pm_GetErrorText( pmerr ) );
+		}else{
+			if(pmerr<0) goto pmerror;
+		}
+		pmlength=pmerr;
+		i=0;
+		while(i<pmlength){
+			pmmsg=pmbuffer[i].message;
+			i++;
+			ev.type = ME_NONE;
+			ev.channel = Pm_MessageStatus(pmmsg) & 0x0000000f;
+			ev.channel = ev.channel+port*16;
+			ev.a = Pm_MessageData1(pmmsg);
+			ev.b = Pm_MessageData2(pmmsg);
+			switch ((int) (Pm_MessageStatus(pmmsg) & 0x000000f0)) {
+			case 0x80:
+				ev.type = ME_NOTEOFF;
+//				seq_play_event(&ev);
+				break;
+			case 0x90:
+				ev.type = (ev.b) ? ME_NOTEON : ME_NOTEOFF;
+//				seq_play_event(&ev);
+				break;
+			case 0xa0:
+				ev.type = ME_KEYPRESSURE;
+//				seq_play_event(&ev);
+				break;
+			case 0xb0:
+				if (! convert_midi_control_change(ev.channel, ev.a, ev.b, &ev))
+					ev.type = ME_NONE;
+				break;
+			case 0xc0:
+				ev.type = ME_PROGRAM;
+//				seq_play_event(&ev);
+				break;
+			case 0xd0:
+				ev.type = ME_CHANNEL_PRESSURE;
+//				seq_play_event(&ev);
+				break;
+			case 0xe0:
+				ev.type = ME_PITCHWHEEL;
+//				seq_play_event(&ev);
+				break;
+			case 0x0f0:
+				if ( (Pm_MessageStatus(pmmsg) & 0x000000ff) == 0xf0) {
+					// SysEx
+					j=0;
+					sysexbuffer[j++] = 0xf0;
+					sysexbuffer[j++]=Pm_MessageData1(pmmsg);
+					sysexbuffer[j++]=Pm_MessageData2(pmmsg);
+					sysexbuffer[j++]=(pmmsg>> 24) & 0x0FF;
+					if(i>=pmlength){
+						{
+							pmerr=Pm_Read(midistream[port].stream, pmbuffer, 1);
+							if(pmerr<0){ printf("guha1\n");goto pmerror; }
+							sleep(0);
+						}while(pmerr==8);
+						pmlength=pmerr;
+						i=0;
+					}
+					data=0;
+					while(j<EXBUFF_SIZE-4){
+						for (shift = 0; shift < 32 && (data != 0x0f7); shift += 8) {
+                			data= (pmbuffer[i].message >> shift) & 0x0FF;
+							sysexbuffer[j++]=data;
+						}
+						if(data==0x0f7) break;
+						i++;
+						if( i>=pmlength ){
+							{
+								pmerr=Pm_Read(midistream[port].stream, pmbuffer, 1);
+								if(pmerr<0){ printf("guha2\n"); goto pmerror;}
+								sleep(0);
+							}while(pmerr==0);
+							pmlength=pmerr;
+							i=0;
+						}
+					}
 
-void play_one_data (void){
+					exlen=j;
+					for(ii=0;ii<EX_RESET_NO;ii++){
+						chk=0;
+						for(j=0;(j<exlen)&&(j<11);j++){
+							if(chk==0 && sysex_resets[ii][j]!=sysexbuffer[j]){
+								chk=~0;
+							}
+						}
+						if(chk==0){
+							 server_reset();
+						}
+					}
+/*
+					printf("SyeEx length=%x bytes \n", exlen);
+					for(ii=0;ii<exlen;ii++){
+						printf("%x ",sysexbuffer[ii]);
+					}
+					printf("\n");
+*/
+					if(parse_sysex_event(sysexbuffer+1,exlen-1,&ev)){
+						if(ev.type==ME_RESET && system_mode!=DEFAULT_SYSTEM_MODE)
+						ev.a=system_mode;
+						change_system_mode(system_mode);
+						seq_play_event(&ev);
+					}
+					if(ne=parse_sysex_event_multi(sysexbuffer+1,exlen-1, evm)){
+						for (ii = 0; ii < ne; ii++){
+							seq_play_event(&evm[ii]);
+						}
+					}
+						
+				}
+
+				if ((Pm_MessageStatus(pmmsg) & 0x000000ff) == 0xf2) {
+					ev.type = ME_PROGRAM;
+//					seq_play_event(&ev);
+				}
+#if 0
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xf1)
+					//MIDI Time Code Qtr. Frame (not need)
+					printf("MIDI Time Code Qtr\n");
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xf3)
+					//Song Select(Song #) (not need)
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xf6)
+					//Tune request (not need)
+					printf("Tune request\n");
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xf8)
+					//Timing Clock (not need)
+					printf("Timing Clock\n");
+				if ((Pm_MessageStatus(pmmsg) &0x000000ff)==0xfa)
+					//Start
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xfb)
+					//Continue
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xfc) {
+					//Stop
+					printf("Stop\n");
+					playdone = ~0;
+				}
+#endif
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xfe) {
+					//Active Sensing
+//					printf("Active Sensing\n");
+					active_sensing_flag = ~0;
+					active_sensing_time = get_current_calender_time();
+				}
+				if ((Pm_MessageStatus(pmmsg)  & 0x000000ff) == 0xff) {
+					//System Reset
+					printf("System Reset\n");
+					playdone = ~0;
+				}
+//				break;
+			default:
+//				printf("Unsup/ed event %d\n", aevp->type);
+				break;
+			}
+			if (ev.type != ME_NONE) {
+				seq_play_event(&ev);
+				seq_playing=~0;
+			}
+		}
+	}
+	return;
+pmerror:
+	Pm_Terminate();
+	ctl.cmsg(  CMSG_ERROR, VERB_NORMAL, "PortMIDI error: %s\n", Pm_GetErrorText( pmerr ) );
+	return;
+}
+
+#else
+void play_some_data (void){
 	UINT wMsg;
 	DWORD	dwInstance;
 	DWORD	dwParam1;
@@ -757,149 +1193,151 @@ void play_one_data (void){
 	UINT evbpoint;
 	MIDIHDR *IIMidiHdr;
 	int exlen;
-	char *exlbuf;
+	char *sysexbuffer;
 	int ne,i,j,chk;
-	
-	evbpoint=evbrpoint;
-	if (++evbrpoint >= EVBUFF_SIZE)
-			evbrpoint -= EVBUFF_SIZE;
 
-	wMsg=evbuf[evbpoint].wMsg;
-	dwInstance=evbuf[evbpoint].dwInstance;
-	dwParam1=evbuf[evbpoint].dwParam1;
-	dwParam2=evbuf[evbpoint].dwParam2;
+	while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
 
-	port=(UINT)dwInstance;
-	switch (wMsg) {
-	case MIM_DATA:
-		ev.type = ME_NONE;
-		ev.channel = dwParam1 & 0x0000000f;
-		ev.channel = ev.channel+port*16;
-		ev.a = (dwParam1 >> 8) & 0xff;
-		ev.b = (dwParam1 >> 16) & 0xff;
-		switch ((int) (dwParam1 & 0x000000f0)) {
-		case 0x80:
-			ev.type = ME_NOTEOFF;
-//			seq_play_event(&ev);
-			break;
-		case 0x90:
+		evbpoint=evbrpoint;
+		if (++evbrpoint >= EVBUFF_SIZE)
+				evbrpoint -= EVBUFF_SIZE;
+
+		wMsg=evbuf[evbpoint].wMsg;
+		dwInstance=evbuf[evbpoint].dwInstance;
+		dwParam1=evbuf[evbpoint].dwParam1;
+		dwParam2=evbuf[evbpoint].dwParam2;
+
+		port=(UINT)dwInstance;
+		switch (wMsg) {
+		case MIM_DATA:
+			ev.type = ME_NONE;
+			ev.channel = dwParam1 & 0x0000000f;
+			ev.channel = ev.channel+port*16;
+			ev.a = (dwParam1 >> 8) & 0xff;
+			ev.b = (dwParam1 >> 16) & 0xff;
+			switch ((int) (dwParam1 & 0x000000f0)) {
+			case 0x80:
+				ev.type = ME_NOTEOFF;
+//				seq_play_event(&ev);
+				break;
+			case 0x90:
 			ev.type = (ev.b) ? ME_NOTEON : ME_NOTEOFF;
-//			seq_play_event(&ev);
-			break;
-		case 0xa0:
-			ev.type = ME_KEYPRESSURE;
-//			seq_play_event(&ev);
-			break;
-		case 0xb0:
-			if (! convert_midi_control_change(ev.channel, ev.a, ev.b, &ev))
+//				seq_play_event(&ev);
+				break;
+			case 0xa0:
+				ev.type = ME_KEYPRESSURE;
+//				seq_play_event(&ev);
+				break;
+			case 0xb0:
+				if (! convert_midi_control_change(ev.channel, ev.a, ev.b, &ev))
 				ev.type = ME_NONE;
-			break;
-		case 0xc0:
-			ev.type = ME_PROGRAM;
-//			seq_play_event(&ev);
-			break;
-		case 0xd0:
-			ev.type = ME_CHANNEL_PRESSURE;
-//			seq_play_event(&ev);
-			break;
-		case 0xe0:
-			ev.type = ME_PITCHWHEEL;
-//			seq_play_event(&ev);
-			break;
-		case 0xf0:
-			if ((dwParam1 & 0x000000ff) == 0xf2) {
+				break;
+			case 0xc0:
 				ev.type = ME_PROGRAM;
 //				seq_play_event(&ev);
-			}
+				break;
+			case 0xd0:
+				ev.type = ME_CHANNEL_PRESSURE;
+//				seq_play_event(&ev);
+				break;
+			case 0xe0:
+				ev.type = ME_PITCHWHEEL;
+//				seq_play_event(&ev);
+				break;
+			case 0xf0:
+				if ((dwParam1 & 0x000000ff) == 0xf2) {
+					ev.type = ME_PROGRAM;
+//					seq_play_event(&ev);
+				}
 #if 0
-			if ((dwParam1 & 0x000000ff) == 0xf1)
-				//MIDI Time Code Qtr. Frame (not need)
-				printf("MIDI Time Code Qtr\n");
-			if ((dwParam1 & 0x000000ff) == 0xf3)
-				//Song Select(Song #) (not need)
-			if ((dwParam1 & 0x000000ff) == 0xf6)
-				//Tune request (not need)
-				printf("Tune request\n");
-			if ((dwParam1 & 0x000000ff) == 0xf8)
-				//Timing Clock (not need)
-				printf("Timing Clock\n");
-			if ((dwParam1&0x000000ff)==0xfa)
-				//Start
-			if ((dwParam1 & 0x000000ff) == 0xfb)
-				//Continue
-			if ((dwParam1 & 0x000000ff) == 0xfc) {
-				//Stop
-				printf("Stop\n");
-				playdone = ~0;
-			}
+				if ((dwParam1 & 0x000000ff) == 0xf1)
+					//MIDI Time Code Qtr. Frame (not need)
+					printf("MIDI Time Code Qtr\n");
+				if ((dwParam1 & 0x000000ff) == 0xf3)
+					//Song Select(Song #) (not need)
+				if ((dwParam1 & 0x000000ff) == 0xf6)
+					//Tune request (not need)
+					printf("Tune request\n");
+				if ((dwParam1 & 0x000000ff) == 0xf8)
+					//Timing Clock (not need)
+					printf("Timing Clock\n");
+				if ((dwParam1&0x000000ff)==0xfa)
+					//Start
+				if ((dwParam1 & 0x000000ff) == 0xfb)
+					//Continue
+				if ((dwParam1 & 0x000000ff) == 0xfc) {
+					//Stop
+					printf("Stop\n");
+					playdone = ~0;
+				}
 #endif
-			if ((dwParam1 & 0x000000ff) == 0xfe) {
-				//Active Sensing
-//				printf("Active Sensing\n");
-				active_sensing_flag = ~0;
-				active_sensing_time = get_current_calender_time();
+				if ((dwParam1 & 0x000000ff) == 0xfe) {
+					//Active Sensing
+//					printf("Active Sensing\n");
+					active_sensing_flag = ~0;
+					active_sensing_time = get_current_calender_time();
+				}
+				if ((dwParam1 & 0x000000ff) == 0xff) {
+					//System Reset
+					printf("System Reset\n");
+					playdone = ~0;
+				}
+				break;
+			default:
+//				printf("Unsup/ed event %d\n", aevp->type);
+				break;
 			}
-			if ((dwParam1 & 0x000000ff) == 0xff) {
-				//System Reset
-				printf("System Reset\n");
-				playdone = ~0;
+			if (ev.type != ME_NONE) {
+				seq_play_event(&ev);
+				seq_playing=~0;
 			}
 			break;
-		default:
-//			printf("Unsup/ed event %d\n", aevp->type);
-			break;
-		}
-		if (ev.type != ME_NONE) {
-			seq_play_event(&ev);
-			seq_playing=~0;
-		}
-		break;
-	case MIM_LONGDATA:
-		IIMidiHdr = (MIDIHDR *) dwParam1;
-		exlen=(int)IIMidiHdr->dwBytesRecorded;
-		exlbuf=IIMidiHdr->lpData;
-		if(exlbuf[exlen-1]=='\xf7'){            // I don't konw why this need
-			for(i=0;i<EX_RESET_NO;i++){
-				chk=0;
-				for(j=0;(j<exlen)&&(j<11);j++){
-					if(chk==0 && sysex_resets[i][j]!=exlbuf[j]){
-						chk=~0;
+		case MIM_LONGDATA:
+			IIMidiHdr = (MIDIHDR *) dwParam1;
+			exlen=(int)IIMidiHdr->dwBytesRecorded;
+			sysexbuffer=IIMidiHdr->lpData;
+			if(sysexbuffer[exlen-1]=='\xf7'){            // I don't konw why this need
+				for(i=0;i<EX_RESET_NO;i++){
+					chk=0;
+					for(j=0;(j<exlen)&&(j<11);j++){
+						if(chk==0 && sysex_resets[i][j]!=sysexbuffer[j]){
+							chk=~0;
+						}
+					}
+					if(chk==0){
+						 server_reset();
 					}
 				}
-				if(chk==0){
-					 server_reset();
-				}
-			}
-/*
-			printf("SyeEx length=%x bytes \n", exlen);
-			for(i=0;i<exlen;i++){
-			printf("%x ",exlbuf[i]);
-			}
-			printf("\n");
-*/
-			if(parse_sysex_event(exlbuf+1,exlen-1,&ev)){
-				if(ev.type==ME_RESET && system_mode!=DEFAULT_SYSTEM_MODE)
-					ev.a=system_mode;
-				change_system_mode(system_mode);
-				seq_play_event(&ev);
-			}
-			if(ne=parse_sysex_event_multi(exlbuf+1,exlen-1, evm)){
-				for (i = 0; i < ne; i++){
-					seq_play_event(&evm[i]);
-				}
-			}
-		}
-		if (MMSYSERR_NOERROR != midiInUnprepareHeader(
-				hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
-			printf("error1\n");
-		if (MMSYSERR_NOERROR != midiInPrepareHeader(
-				hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
-			printf("error5\n");
-		if (MMSYSERR_NOERROR != midiInAddBuffer(
-				hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
-			printf("error6\n");
-		break;
 
+				printf("SyeEx length=%x bytes \n", exlen);
+				for(i=0;i<exlen;i++){
+					printf("%x ",sysexbuffer[i]);
+				}
+				printf("\n");
+
+				if(parse_sysex_event(sysexbuffer+1,exlen-1,&ev)){
+					if(ev.type==ME_RESET && system_mode!=DEFAULT_SYSTEM_MODE)
+						ev.a=system_mode;
+					change_system_mode(system_mode);
+					seq_play_event(&ev);
+				}
+				if(ne=parse_sysex_event_multi(sysexbuffer+1,exlen-1, evm)){
+					for (i = 0; i < ne; i++){
+						seq_play_event(&evm[i]);
+					}
+				}
+			}
+			if (MMSYSERR_NOERROR != midiInUnprepareHeader(
+					hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
+				printf("error1\n");
+			if (MMSYSERR_NOERROR != midiInPrepareHeader(
+					hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
+				printf("error5\n");
+			if (MMSYSERR_NOERROR != midiInAddBuffer(
+					hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
+				printf("error6\n");
+			break;
+		}
 	}
 }
 
@@ -942,7 +1380,7 @@ void CALLBACK MidiInProc(HMIDIIN hMidiInL, UINT wMsg, DWORD dwInstance,
 		break;
 	}
 }
-
+#endif
 /*
  * interface_<id>_loader();
  */

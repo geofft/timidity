@@ -148,6 +148,10 @@ if ENABLE_W32GUI
 W32GUI_DEPS = w32g_res.res
 endif
 
+if ENABLE_W32G_SYN
+W32GUI_DEPS = w32g_res.res
+endif
+
 INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.o)
 
 libinterface_a_LIBADD = \
@@ -176,6 +180,7 @@ TCLF = tkmidity.tcl tkpanel.tcl browser.tcl misc.tcl
 ALLTCLF = $(TCLF) tclIndex
 
 EXTRA_DIST = \
+	escape_sjis.pl \
 	tkmidity.ptcl \
 	tkpanel.tcl \
 	browser.tcl \
@@ -189,7 +194,7 @@ EXTRA_DIST = \
 	interface_i.txt \
 	interface_m.txt \
 	interface_n.txt \
-	interface_s.txt
+	interface_s.txt 
 
 .ptcl.tcl:
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
@@ -235,9 +240,18 @@ install.el: $(ELFILES)
 	test -d $(DESTDIR)$(ELISP_DIR) || mkdir -p $(DESTDIR)$(ELISP_DIR)
 	for f in $(ELFILES) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(ELISP_DIR);; esac; done
 
+w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
+	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
+
+w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
+	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
+
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-	windres -o $@ -O coff w32g_res.rc
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
+	escape_sjis.pl
+	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
+	windres -o $@ -O coff w32g_res_escaped.rc
+	rm w32g_res_escaped.rc
 
 ## This needs to build japanese resource.
 #BRCC32 = c:/borland/bcc55/bin/brcc32.exe

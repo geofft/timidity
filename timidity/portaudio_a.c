@@ -69,7 +69,9 @@ static int numBuffers;
 static unsigned int framesPerInBuffer;
 static unsigned int bytesPerInBuffer;
 static int  firsttime;
-
+static int pa_active=0;
+PaDeviceID DeviceID;
+PaDeviceInfo *DeviceInfo;
 PortAudioStream *stream;
 PaError  err;
 typedef struct {
@@ -85,7 +87,7 @@ padata_t pa_data;
 #define dpm portaudio_play_mode
 
 PlayMode dpm = {
-    SAMPLE_RATE,
+	(SAMPLE_RATE),
     PE_16BIT|PE_SIGNED,
     PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
     -1,
@@ -100,13 +102,20 @@ PlayMode dpm = {
 
 
 int paCallback(  void *inputBuffer, void *outputBuffer,
+
                      unsigned long framesPerBuffer,
+
                      PaTimestamp outTime, void *userData )
+
 {
+
     unsigned int i;
 	int finished = 0;
+
 /* Cast data passed through stream to our structure type. */
+
 //    pa_data_t pa_data = (pa_data_t*)userData;
+
     char *out = (char*)outputBuffer;
 	if(pa_data.samplesToGo < framesPerBuffer*data_nbyte*stereo  ){
 		for(i=0;i<pa_data.samplesToGo;i++){
@@ -129,16 +138,35 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 		}
 		pa_data.samplesToGo -= framesPerBuffer*data_nbyte*stereo;
 	}
+
     return finished ;
+
 }
 
 
 static int open_output(void)
 {
+	double rate;
+	int n, nrates;
 	dpm.encoding = dpm.encoding  & !((int32)PE_ULAW) & !((int32)PE_ALAW) & !((int32)PE_BYTESWAP);
 	dpm.encoding = dpm.encoding|PE_SIGNED;
 	stereo=(dpm.encoding & PE_MONO)?1:2;
 	data_nbyte=(dpm.encoding & PE_16BIT)?sizeof(int16):sizeof(int8);
+	
+	DeviceID=Pa_GetDefaultInputDeviceID();
+	DeviceInfo=Pa_GetDeviceInfo( DeviceID);
+	nrates=DeviceInfo->numSampleRates;
+
+	if(nrates!=-1){
+		rate=DeviceInfo->sampleRates[nrates-1];
+		for(n=nrates-1;n>=0;n--){
+			if(dpm.rate < DeviceInfo->sampleRates[n]) rate=DeviceInfo->sampleRates[n];
+		}
+		dpm.rate=rate;
+	}else{
+		if(dpm.rate < DeviceInfo->sampleRates[0]) dpm.rate=DeviceInfo->sampleRates[0];
+		if(dpm.rate > DeviceInfo->sampleRates[1]) dpm.rate=DeviceInfo->sampleRates[1];
+	}
 
 	pa_data.samplesToGo=0;
 	pa_data.bufpoint=pa_data.buf;
@@ -148,24 +176,36 @@ static int open_output(void)
 	framesPerInBuffer=numBuffers*framesPerBuffer;
 	if(framesPerInBuffer<4096) framesPerInBuffer=4096;
 	bytesPerInBuffer=framesPerInBuffer*data_nbyte*stereo;
-	printf("%d\n",framesPerInBuffer);
-	
+//	printf("%d\n",framesPerInBuffer);
+
 	err = Pa_Initialize();
+	pa_active=1;
+
 	if( err != paNoError ) goto error;
 	err = Pa_OpenDefaultStream(
+
     	&stream,        /* passes back stream pointer */
+
     	0,              /* no input channels */
+
     	stereo,              /* 2:stereo 1:mono output */
+
     	(dpm.encoding & PE_16BIT)?paInt16:paInt8,      /* 16 bit 8bit output */
+
 		dpm.rate,          /* sample rate */
+
     	framesPerBuffer,            /* frames per buffer */
+
     	numBuffers,              /* number of buffers, if zero then use default minimum */
+
     	paCallback, /* specify our custom callback */
+
     	&pa_data);   /* pass our data through to callback */
 	if( err != paNoError ) goto error;
 	return 0;
+
 error:
-	Pa_Terminate();
+	Pa_Terminate(); pa_active=0;
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
@@ -187,36 +227,43 @@ static int output_data(char *buf, int32 nbytes)
 /*
 	if(firsttime==1){
 		err = Pa_StartStream( stream );
+
 		if( err != paNoError ) goto error;
 		firsttime=0;
 	}
 */
 	if( 0==Pa_StreamActive(stream)){
 		err = Pa_StartStream( stream );
+
 		if( err != paNoError ) goto error;
 	}
 	while(pa_data.samplesToGo > bytesPerInBuffer){ Pa_Sleep(1);};
 //	Pa_Sleep( (pa_data.samplesToGo - bytesPerInBuffer)/dpm.rate * 1000);
 	return 0;
+
 error:
-	Pa_Terminate();
+	Pa_Terminate(); pa_active=0;
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
 
 static void close_output(void)
 {	
+	if( pa_active==0) return;
 	if( 1==Pa_StreamActive(stream)){
 		Pa_Sleep(  bytesPerInBuffer/dpm.rate*1000  );
 	}
 	err = Pa_StopStream( stream );
+
 	if( err != paNoError ) goto error;
 	err = Pa_CloseStream( stream );
+
 	if( err != paNoError ) goto error;
-	Pa_Terminate();
+	Pa_Terminate(); pa_active=0;
 	return;
+
 error:
-	Pa_Terminate();
+	Pa_Terminate(); pa_active=0;
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return;
 }
