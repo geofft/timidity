@@ -1,18 +1,25 @@
+2003-06-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/mod2midi.c (Voice_SetVolume): converted linear volume
+	  events to non-linear events, so that mods will sound correct
+	  again
+
 2003-06-30  skeishi(s_keishi@mutt.freemail.ne.jp>
-        * interface/rtsyn.h,interface/rtsyn_common,
+
+	* interface/rtsyn.h,interface/rtsyn_common,
           /interface/rtsyn_wimm interface/rtsyn_portmidi: Changed 
 
 	 BugFix  Realteime Synthesizer Engine.
 
 
 2003-06-29  skeishi(s_keishi@mutt.freemail.ne.jp>
+
 	* interface/portmidisyn_c,interface/rtsyn.h,interface/rtsyn_common,
 	  interface/interface/rtsyn_wimm interface/rtsyn_portmidi: Added.
 	* interface/winsyn_c.c, interface/w32g_syn.c,
 	  timidity/timdity.c timidity/controls.c configure.in interface.h.in : Changed.
 	  Add PortMIDI synthesizer mode.
 
-	 
 2003-06-28  Saito <timidity@flashmail.com>
 
 	* timidity/sndfont.c:
@@ -22,7 +29,6 @@
 
 	* timidity/playmidi.c (reduce_voice_CPU): Bug fix (this is
 	  obsolate yet)
-
 	* timidity/playmidi.c (note_off): rx_note_off == 0 should only
 	  ignore drum Note Off if the sample is not looped, otherwise the
 	  note will get stuck
@@ -111,7 +117,7 @@
 	  Fix in channel layer.
 	  Change default -N to 0.
 
-2003-06-08  URABE  <shyouhei@YahooBB218133008108.bbtec.net>
+2003-06-08  mput <root@mput.dip.jp>
 
 	* Makefile.am (dist-hook): Not to change msc-config.h every time
 	* timidity/recache.c, timidity/resample.c, timidity/timidity.c:
