@@ -185,13 +185,13 @@ enum {
 	TIM_OPT_ADJUST_TEMPO,
 	TIM_OPT_CHARSET,
 	TIM_OPT_UNLOAD_INST,
+	TIM_OPT_VOLUME_CURVE,
 	TIM_OPT_VERSION,
 	TIM_OPT_WRD,
 	TIM_OPT_RCPCV_DLL,
 	TIM_OPT_CONFIG_STR,
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
-	TIM_OPT_VOLUME_CURVE,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -306,6 +306,7 @@ static const struct option longopts[] = {
 	{ "output-charset",         required_argument, NULL, TIM_OPT_CHARSET },
 	{ "no-unload-instruments",  no_argument,       NULL, TIM_OPT_UNLOAD_INST },
 	{ "unload-instruments",     optional_argument, NULL, TIM_OPT_UNLOAD_INST },
+	{ "volume-curve",           required_argument, NULL, TIM_OPT_VOLUME_CURVE },
 	{ "version",                no_argument,       NULL, TIM_OPT_VERSION },
 	{ "wrd",                    required_argument, NULL, TIM_OPT_WRD },
 #ifdef __W32__
@@ -314,7 +315,6 @@ static const struct option longopts[] = {
 	{ "config-string",          required_argument, NULL, TIM_OPT_CONFIG_STR },
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
-	{ "volume-curve",           required_argument, NULL, TIM_OPT_VOLUME_CURVE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -3040,27 +3040,27 @@ static inline int parse_opt_resample(const char *arg)
 	switch (*arg) {
 	case '0':
 	case 'd':	/* disable */
-		set_current_resampler(5);
+		set_current_resampler(RESAMPLE_NONE);
 		break;
 	case '1':
 	case 'l':	/* linear */
-		set_current_resampler(4);
+		set_current_resampler(RESAMPLE_LINEAR);
 		break;
 	case '2':
 	case 'c':	/* cspline */
-		set_current_resampler(0);
+		set_current_resampler(RESAMPLE_CSPLINE);
 		break;
 	case '3':
 	case 'L':	/* lagrange */
-		set_current_resampler(1);
+		set_current_resampler(RESAMPLE_LAGRANGE);
 		break;
 	case '4':
 	case 'n':	/* newton */
-		set_current_resampler(3);
+		set_current_resampler(RESAMPLE_NEWTON);
 		break;
 	case '5':
 	case 'g':	/* guass */
-		set_current_resampler(2);
+		set_current_resampler(RESAMPLE_GAUSS);
 		break;
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid resample type %s", arg);
@@ -3424,12 +3424,9 @@ static inline int parse_opt_h(const char *arg)
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f)[,level]" NLS
 "  --noise-shaping=n" NLS, fp);
-
 #ifndef FIXED_RESAMPLATION
 	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);
 #endif
-fputs("  --volume-curve=power" NLS, fp);
-
 	fputs(NLS, fp);
 	fputs("Available interfaces (-i, --interface option):" NLS, fp);
 	for (cmpp = ctl_list; cmp = *cmpp; cmpp++)
@@ -4080,6 +4077,20 @@ static inline int parse_opt_U(const char *arg)
 	return 0;
 }
 
+static inline int parse_opt_volume_curve(char *arg)
+{
+	if (atof(arg) < 0) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"Volume curve power must be >= 0", *arg);
+		return 1;
+	}
+	if (atof(arg) != 0) {
+		init_user_vol_table(atof(arg));
+		opt_user_volume_curve = 1;
+	}
+	return 0;
+}
+
 __attribute__((noreturn))
 static inline int parse_opt_v(const char *arg)
 {
@@ -4106,27 +4117,6 @@ static inline int parse_opt_v(const char *arg)
 		fputs(version_list[i], fp);
 	close_pager(fp);
 	exit(EXIT_SUCCESS);
-}
-
-static inline int parse_opt_volume_curve(char *arg)
-{
-	if (atof(arg) < 0)
-	{
-		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Volume curve power must be >= 0", *arg);
-		return 1;
-	}
-
-	if (atof(arg) == 0)
-	{
-		opt_user_volume_curve = 0;
-	}
-	else
-	{
-		opt_user_volume_curve = 1;
-		init_user_vol_table(atof(arg));
-	}
-
-	return 0;
 }
 
 static inline int parse_opt_W(char *arg)

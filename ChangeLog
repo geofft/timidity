@@ -1,3 +1,7 @@
+2003-11-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity.c: Rewrite a little around option handling
+
 2003-11-13  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* tables.h, playmidi.h, tables.c, playmidi.c, timidity.c:
@@ -22,7 +26,7 @@
 2003-11-08  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/timidity.c (parse_opt_p): max voices to be changeable
-	(timidity_init_player): ditto.
+	  (timidity_init_player): ditto.
 	* timidity/mac_dlog.c (mac_SetPlayOption): ditto.
 	* timidity/playmidi.h (max_voices): Add.
 	* timidity/playmidi.c (max_voices): Add.
@@ -44,7 +48,7 @@
 2003-11-04  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/readmidi.c (set_xg_reverb_type): Add.
-	(parse_sysex_event_multi): Support for XG SysEx. reverb/chorus types
+	  (parse_sysex_event_multi): Support for XG SysEx. reverb/chorus types
 
 2003-11-01  Saito <saito2@digitalme.com>
 
