@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /Zp16 /MTd /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /Zp16 /MTd /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,59 +85,59 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\aiff_a.c"
+SOURCE="..\timidity\aiff_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\aq.c"
+SOURCE="..\timidity\aq.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\au_a.c"
+SOURCE="..\timidity\au_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audio_cnv.c"
+SOURCE="..\timidity\audio_cnv.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\common.c"
+SOURCE="..\timidity\common.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\controls.c"
+SOURCE="..\timidity\controls.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\effect.c"
+SOURCE="..\timidity\effect.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\filter.c"
+SOURCE="..\timidity\filter.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\freq.c"
+SOURCE="..\timidity\freq.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\gogo_a.c"
+SOURCE="..\timidity\gogo_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\instrum.c"
+SOURCE="..\timidity\instrum.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\list_a.c"
+SOURCE="..\timidity\list_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\loadtab.c"
+SOURCE="..\timidity\loadtab.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\m2m.c"
+SOURCE="..\timidity\m2m.c"
 # End Source File
 # Begin Source File
 
@@ -145,27 +145,27 @@ SOURCE=.\mfi.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mfnode.c"
+SOURCE="..\timidity\mfnode.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\miditrace.c"
+SOURCE="..\timidity\miditrace.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mix.c"
+SOURCE="..\timidity\mix.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mod.c"
+SOURCE="..\timidity\mod.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mod2midi.c"
+SOURCE="..\timidity\mod2midi.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\modmid_a.c"
+SOURCE="..\timidity\modmid_a.c"
 # End Source File
 # Begin Source File
 
@@ -177,11 +177,11 @@ SOURCE=.\optcode.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\output.c"
+SOURCE="..\timidity\output.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\playmidi.c"
+SOURCE="..\timidity\playmidi.c"
 # End Source File
 # Begin Source File
 
@@ -189,43 +189,43 @@ SOURCE=.\quantity.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\raw_a.c"
+SOURCE="..\timidity\raw_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\rcp.c"
+SOURCE="..\timidity\rcp.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\readmidi.c"
+SOURCE="..\timidity\readmidi.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\recache.c"
+SOURCE="..\timidity\recache.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\resample.c"
+SOURCE="..\timidity\resample.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\reverb.c"
+SOURCE="..\timidity\reverb.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sbkconv.c"
+SOURCE="..\timidity\sbkconv.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sffile.c"
+SOURCE="..\timidity\sffile.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sfitem.c"
+SOURCE="..\timidity\sfitem.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\smfconv.c"
+SOURCE="..\timidity\smfconv.c"
 # End Source File
 # Begin Source File
 
@@ -233,23 +233,23 @@ SOURCE=.\smplfile.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sndfont.c"
+SOURCE="..\timidity\sndfont.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\tables.c"
+SOURCE="..\timidity\tables.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\timidity.c"
+SOURCE="..\timidity\timidity.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\version.c"
+SOURCE="..\timidity\version.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\vorbis_a.c"
+SOURCE="..\timidity\vorbis_a.c"
 
 !IF  "$(CFG)" == "timidity - Win32 Release"
 
@@ -262,23 +262,23 @@ SOURCE="..\..\TiMidity++\timidity\vorbis_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32_a.c"
+SOURCE="..\timidity\w32_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32_gogo.c"
+SOURCE="..\timidity\w32_gogo.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\wave_a.c"
+SOURCE="..\timidity\wave_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\wrd_read.c"
+SOURCE="..\timidity\wrd_read.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\wrdt.c"
+SOURCE="..\timidity\wrdt.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -286,71 +286,71 @@ SOURCE="..\..\TiMidity++\timidity\wrdt.c"
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\aenc.h"
+SOURCE="..\timidity\aenc.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\aq.h"
+SOURCE="..\timidity\aq.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audio_cnv.h"
+SOURCE="..\timidity\audio_cnv.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audriv.h"
+SOURCE="..\timidity\audriv.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\common.h"
+SOURCE="..\timidity\common.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\controls.h"
+SOURCE="..\timidity\controls.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\dlutils.h"
+SOURCE="..\timidity\dlutils.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\filter.h"
+SOURCE="..\timidity\filter.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\gogo_a.h"
+SOURCE="..\timidity\gogo_a.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\instrum.h"
+SOURCE="..\timidity\instrum.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_com.h"
+SOURCE="..\timidity\mac_com.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_main.h"
+SOURCE="..\timidity\mac_main.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mfnode.h"
+SOURCE="..\timidity\mfnode.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\miditrace.h"
+SOURCE="..\timidity\miditrace.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mix.h"
+SOURCE="..\timidity\mix.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mod.h"
+SOURCE="..\timidity\mod.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mod2midi.h"
+SOURCE="..\timidity\mod2midi.h"
 # End Source File
 # Begin Source File
 
@@ -362,43 +362,43 @@ SOURCE=.\optcode.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\output.h"
+SOURCE="..\timidity\output.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\playmidi.h"
+SOURCE="..\timidity\playmidi.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\readmidi.h"
+SOURCE="..\timidity\readmidi.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\recache.h"
+SOURCE="..\timidity\recache.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\resample.h"
+SOURCE="..\timidity\resample.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\reverb.h"
+SOURCE="..\timidity\reverb.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sffile.h"
+SOURCE="..\timidity\sffile.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sfitem.h"
+SOURCE="..\timidity\sfitem.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sflayer.h"
+SOURCE="..\timidity\sflayer.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\smfconv.h"
+SOURCE="..\timidity\smfconv.h"
 # End Source File
 # Begin Source File
 
@@ -406,19 +406,19 @@ SOURCE=.\sysdep.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\tables.h"
+SOURCE="..\timidity\tables.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\timidity.h"
+SOURCE="..\timidity\timidity.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32_gogo.h"
+SOURCE="..\timidity\w32_gogo.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\wrd.h"
+SOURCE="..\timidity\wrd.h"
 # End Source File
 # End Group
 # End Target

@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,91 +85,91 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_669.c"
+SOURCE="..\libunimod\load_669.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_amf.c"
+SOURCE="..\libunimod\load_amf.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_dsm.c"
+SOURCE="..\libunimod\load_dsm.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_far.c"
+SOURCE="..\libunimod\load_far.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_gdm.c"
+SOURCE="..\libunimod\load_gdm.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_imf.c"
+SOURCE="..\libunimod\load_imf.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_it.c"
+SOURCE="..\libunimod\load_it.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_m15.c"
+SOURCE="..\libunimod\load_m15.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_med.c"
+SOURCE="..\libunimod\load_med.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_mod.c"
+SOURCE="..\libunimod\load_mod.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_mtm.c"
+SOURCE="..\libunimod\load_mtm.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_okt.c"
+SOURCE="..\libunimod\load_okt.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_s3m.c"
+SOURCE="..\libunimod\load_s3m.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_stm.c"
+SOURCE="..\libunimod\load_stm.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_stx.c"
+SOURCE="..\libunimod\load_stx.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_ult.c"
+SOURCE="..\libunimod\load_ult.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_uni.c"
+SOURCE="..\libunimod\load_uni.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\load_xm.c"
+SOURCE="..\libunimod\load_xm.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\mloader.c"
+SOURCE="..\libunimod\mloader.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\mlutil.c"
+SOURCE="..\libunimod\mlutil.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\mmsup.c"
+SOURCE="..\libunimod\mmsup.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\munitrk.c"
+SOURCE="..\libunimod\munitrk.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -177,11 +177,11 @@ SOURCE="..\..\TiMidity++\libunimod\munitrk.c"
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\unimod.h"
+SOURCE="..\libunimod\unimod.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\libunimod\unimod_priv.h"
+SOURCE="..\libunimod\unimod_priv.h"
 # End Source File
 # End Group
 # End Target

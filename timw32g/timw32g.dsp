@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MT /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "_WINDOWS" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /GZ /c
+# ADD CPP /nologo /MT /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "_WINDOWS" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
@@ -93,7 +93,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_c.c"
+SOURCE="..\interface\w32g_c.c"
 # End Source File
 # Begin Source File
 
@@ -101,11 +101,11 @@ SOURCE=..\interface\w32g_dib.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_i.c"
+SOURCE="..\interface\w32g_i.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_ini.c"
+SOURCE="..\interface\w32g_ini.c"
 # End Source File
 # Begin Source File
 
@@ -113,23 +113,23 @@ SOURCE=..\interface\w32g_mag.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_ogg_dll.c"
+SOURCE="..\timidity\w32g_ogg_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_playlist.c"
+SOURCE="..\interface\w32g_playlist.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_pref.c"
+SOURCE="..\interface\w32g_pref.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_subwin.c"
+SOURCE="..\interface\w32g_subwin.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_subwin2.c"
+SOURCE="..\interface\w32g_subwin2.c"
 # End Source File
 # Begin Source File
 
@@ -137,23 +137,23 @@ SOURCE=..\interface\w32g_subwin3.c
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_ut2.c"
+SOURCE="..\interface\w32g_ut2.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_utl.c"
+SOURCE="..\interface\w32g_utl.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_vorbis_dll.c"
+SOURCE="..\timidity\w32g_vorbis_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_vorbisenc_dll.c"
+SOURCE="..\timidity\w32g_vorbisenc_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_w32g.c"
+SOURCE="..\interface\wrdt_w32g.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -161,15 +161,15 @@ SOURCE="..\..\TiMidity++\interface\wrdt_w32g.c"
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\config.h"
+SOURCE="..\config.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface.h"
+SOURCE="..\interface.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g.h"
+SOURCE="..\interface\w32g.h"
 # End Source File
 # Begin Source File
 
@@ -181,19 +181,19 @@ SOURCE=..\interface\w32g_mag.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_pref.h"
+SOURCE="..\interface\w32g_pref.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_rec.h"
+SOURCE="..\interface\w32g_rec.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_res.h"
+SOURCE="..\interface\w32g_res.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_subwin.h"
+SOURCE="..\interface\w32g_subwin.h"
 # End Source File
 # Begin Source File
 
@@ -201,15 +201,15 @@ SOURCE=..\interface\w32g_tracer.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_ut2.h"
+SOURCE="..\interface\w32g_ut2.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_utl.h"
+SOURCE="..\interface\w32g_utl.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_wrd.h"
+SOURCE="..\interface\w32g_wrd.h"
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -217,23 +217,23 @@ SOURCE="..\..\TiMidity++\interface\w32g_wrd.h"
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_btn.bmp"
+SOURCE="..\interface\w32g_btn.bmp"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_icon.ico"
+SOURCE="..\interface\w32g_icon.ico"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_res.rc"
+SOURCE="..\interface\w32g_res.rc"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_sleep.bmp"
+SOURCE="..\interface\w32g_sleep.bmp"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_subbtn.bmp"
+SOURCE="..\interface\w32g_subbtn.bmp"
 # End Source File
 # Begin Source File
 

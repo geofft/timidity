@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\" /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,27 +85,27 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\dumb_c.c"
+SOURCE="..\interface\dumb_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\vt100.c"
+SOURCE="..\interface\vt100.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\vt100_c.c"
+SOURCE="..\interface\vt100_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\VTPrsTbl.c"
+SOURCE="..\interface\VTPrsTbl.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_dumb.c"
+SOURCE="..\interface\wrdt_dumb.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_tty.c"
+SOURCE="..\interface\wrdt_tty.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -113,63 +113,63 @@ SOURCE="..\..\TiMidity++\interface\wrdt_tty.c"
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\gtk_h.h"
+SOURCE="..\interface\gtk_h.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_c.h"
+SOURCE="..\interface\mac_c.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_mag.h"
+SOURCE="..\interface\mac_mag.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_wrdwindow.h"
+SOURCE="..\interface\mac_wrdwindow.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\motif.h"
+SOURCE="..\interface\motif.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\server_defs.h"
+SOURCE="..\interface\server_defs.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\soundspec.h"
+SOURCE="..\interface\soundspec.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\vt100.h"
+SOURCE="..\interface\vt100.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\VTparse.h"
+SOURCE="..\interface\VTparse.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_utl.h"
+SOURCE="..\interface\w32g_utl.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_mag.h"
+SOURCE="..\interface\x_mag.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_sherry.h"
+SOURCE="..\interface\x_sherry.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_wrdwindow.h"
+SOURCE="..\interface\x_wrdwindow.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xaw.h"
+SOURCE="..\interface\xaw.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xskin.h"
+SOURCE="..\interface\xskin.h"
 # End Source File
 # End Group
 # End Target

@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "NDEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /D "_DEBUG" /D "_MT" /D "_WINDOWS" /D "_LIB" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /i "..\interface" /i "..\libarc" /i "..\libunimod" /i "..\timidity" /i "..\utils" /i ".." /i "timidity" /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,47 +85,47 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\bitset.c"
+SOURCE="..\utils\bitset.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\fft.c"
+SOURCE="..\utils\fft.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\fft4g.c"
+SOURCE="..\utils\fft4g.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mblock.c"
+SOURCE="..\utils\mblock.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\memb.c"
+SOURCE="..\utils\memb.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\net.c"
+SOURCE="..\utils\net.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\nkflib.c"
+SOURCE="..\utils\nkflib.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\readdir_win.c"
+SOURCE="..\utils\readdir_win.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\strtab.c"
+SOURCE="..\utils\strtab.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\support.c"
+SOURCE="..\utils\support.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\timer.c"
+SOURCE="..\utils\timer.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -133,51 +133,51 @@ SOURCE="..\..\TiMidity++\utils\timer.c"
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\bitset.h"
+SOURCE="..\utils\bitset.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\fft.h"
+SOURCE="..\utils\fft.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mac_readdir.h"
+SOURCE="..\utils\mac_readdir.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mac_util.h"
+SOURCE="..\utils\mac_util.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mblock.h"
+SOURCE="..\utils\mblock.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\memb.h"
+SOURCE="..\utils\memb.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\net.h"
+SOURCE="..\utils\net.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\nkflib.h"
+SOURCE="..\utils\nkflib.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\readdir.h"
+SOURCE="..\utils\readdir.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\strtab.h"
+SOURCE="..\utils\strtab.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\support.h"
+SOURCE="..\utils\support.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\timer.h"
+SOURCE="..\utils\timer.h"
 # End Source File
 # End Group
 # End Target

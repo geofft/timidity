@@ -61,227 +61,227 @@ MTL=midl.exe
 # Name "nouse - Win32 Debug"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\alsa_a.c"
+SOURCE="..\timidity\alsa_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audriv_a.c"
+SOURCE="..\timidity\audriv_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audriv_al.c"
+SOURCE="..\timidity\audriv_al.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audriv_mme.c"
+SOURCE="..\timidity\audriv_mme.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\audriv_none.c"
+SOURCE="..\timidity\audriv_none.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\bsd20_a.c"
+SOURCE="..\timidity\bsd20_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\dl_dld.c"
+SOURCE="..\timidity\dl_dld.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\dl_dlopen.c"
+SOURCE="..\timidity\dl_dlopen.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\dl_hpux.c"
+SOURCE="..\timidity\dl_hpux.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\dl_w32.c"
+SOURCE="..\timidity\dl_w32.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\dynamic_c.c"
+SOURCE="..\interface\dynamic_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\emacs_c.c"
+SOURCE="..\interface\emacs_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\esd_a.c"
+SOURCE="..\timidity\esd_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\gtk_c.c"
+SOURCE="..\interface\gtk_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\gtk_i.c"
+SOURCE="..\interface\gtk_i.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\gtk_p.c"
+SOURCE="..\interface\gtk_p.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\hpux_a.c"
+SOURCE="..\timidity\hpux_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\hpux_d_a.c"
+SOURCE="..\timidity\hpux_d_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_a.c"
+SOURCE="..\timidity\mac_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_c.c"
+SOURCE="..\interface\mac_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_dlog.c"
+SOURCE="..\timidity\mac_dlog.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_mag.c"
+SOURCE="..\interface\mac_mag.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_main.c"
+SOURCE="..\timidity\mac_main.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_qt_a.c"
+SOURCE="..\timidity\mac_qt_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mac_readdir.c"
+SOURCE="..\utils\mac_readdir.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\mac_soundspec.c"
+SOURCE="..\timidity\mac_soundspec.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_trace.c"
+SOURCE="..\interface\mac_trace.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\utils\mac_util.c"
+SOURCE="..\utils\mac_util.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\mac_wrdwindow.c"
+SOURCE="..\interface\mac_wrdwindow.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\motif_c.c"
+SOURCE="..\interface\motif_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\motif_i.c"
+SOURCE="..\interface\motif_i.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\motif_p.c"
+SOURCE="..\interface\motif_p.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\nas_a.c"
+SOURCE="..\timidity\nas_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\ncurs_c.c"
+SOURCE="..\interface\ncurs_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\oss_a.c"
+SOURCE="..\timidity\oss_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\server_c.c"
+SOURCE="..\interface\server_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\slang_c.c"
+SOURCE="..\interface\slang_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\soundspec.c"
+SOURCE="..\interface\soundspec.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\sun_a.c"
+SOURCE="..\timidity\sun_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\tk_c.c"
+SOURCE="..\interface\tk_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_a.c"
+SOURCE="..\timidity\w32g_a.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_wrdwindow.c"
+SOURCE="..\interface\w32g_wrdwindow.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_mac.c"
+SOURCE="..\interface\wrdt_mac.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_w32g.c"
+SOURCE="..\interface\wrdt_w32g.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_wcon.c"
+SOURCE="..\interface\wrdt_wcon.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\wrdt_x.c"
+SOURCE="..\interface\wrdt_x.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_mag.c"
+SOURCE="..\interface\x_mag.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_sherry.c"
+SOURCE="..\interface\x_sherry.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\x_wrdwindow.c"
+SOURCE="..\interface\x_wrdwindow.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xaw_c.c"
+SOURCE="..\interface\xaw_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xaw_i.c"
+SOURCE="..\interface\xaw_i.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xaw_redef.c"
+SOURCE="..\interface\xaw_redef.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xskin_c.c"
+SOURCE="..\interface\xskin_c.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xskin_i.c"
+SOURCE="..\interface\xskin_i.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xskin_loadBMP.c"
+SOURCE="..\interface\xskin_loadBMP.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\xskin_spectrum.c"
+SOURCE="..\interface\xskin_spectrum.c"
 # End Source File
 # End Target
 # End Project

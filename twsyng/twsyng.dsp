@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I "..\..\timidity++" /I "..\..\timidity++\interface" /I "..\..\timidity++\libarc" /I "..\..\timidity++\libunimod" /I "..\..\timidity++\timidity" /I "..\..\timidity++\utils" /I "..\..\include" /D "WIN32" /D "__DEBUG" /D "_WINDOWS" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
+# ADD CPP /nologo /Zp16 /MT /W3 /GX /O2 /Ob2 /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I ".." /I ".." /I "..\interface" /I "..\libarc" /I "..\libunimod" /I "..\timidity" /I "..\utils" /I "..\..\include" /D "WIN32" /D "__DEBUG" /D "_WINDOWS" /D "_MBCS" /D "HAVE_CONFIG_H" /D "_MT" /YX /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
@@ -92,35 +92,35 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_ini.c"
+SOURCE="..\interface\w32g_ini.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_ogg_dll.c"
+SOURCE="..\timidity\w32g_ogg_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_pref.c"
+SOURCE="..\interface\w32g_pref.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_syn.c"
+SOURCE="..\interface\w32g_syn.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_utl.c"
+SOURCE="..\interface\w32g_utl.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_vorbis_dll.c"
+SOURCE="..\timidity\w32g_vorbis_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\timidity\w32g_vorbisenc_dll.c"
+SOURCE="..\timidity\w32g_vorbisenc_dll.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\winsyn_c.c"
+SOURCE="..\interface\winsyn_c.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -132,7 +132,7 @@ SOURCE="..\..\TiMidity++\interface\winsyn_c.c"
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE="..\..\TiMidity++\interface\w32g_res.rc"
+SOURCE="..\interface\w32g_res.rc"
 # End Source File
 # End Group
 # Begin Source File
