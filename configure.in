@@ -475,7 +475,6 @@ AC_CHECK_FUNCS( \
   select \
   signal \
   socket \
-  socket \
   sleep \
   vsnprintf \
   snprintf \

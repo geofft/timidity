@@ -5,7 +5,7 @@
 
 2003-07-29  mput <root@mput.dip.jp>
 
-	* timidity/timidity.c (help): rewrite to fit with long optoins.
+	* timidity/timidity.c (help): rewrite to fit with long options.
 	(set_tim_opt_short): Rename from set_tim_opt().
 	(set_tim_opt_long): Add.
 	(version): Add.
