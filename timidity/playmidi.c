@@ -4059,7 +4059,6 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			temp = insertion_effect_gs.type;
 			insertion_effect_gs.type_msb = val;
 			insertion_effect_gs.type = ((int32)insertion_effect_gs.type_msb << 8) | (int32)insertion_effect_gs.type_lsb;
-			set_insertion_effect_def_gs();
 			if(temp == insertion_effect_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
@@ -4071,12 +4070,10 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			temp = insertion_effect_gs.type;
 			insertion_effect_gs.type_lsb = val;
 			insertion_effect_gs.type = ((int32)insertion_effect_gs.type_msb << 8) | (int32)insertion_effect_gs.type_lsb;
-			set_insertion_effect_def_gs();
 			if(temp == insertion_effect_gs.type) {
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
-			/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",insertion_effect_gs.type_msb,insertion_effect_gs.type_lsb);*/
 			}
 			break;
 		case 0x29:

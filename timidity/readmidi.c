@@ -6687,59 +6687,19 @@ void init_insertion_effect_gs(void)
 	st->send_eq_switch = 0x01;
 }
 
-/*! set GS default insertion effect parameters according to effect type. */
-void set_insertion_effect_def_gs(void)
+static void set_effect_param_gs(struct insertion_effect_gs_t *st, int msb, int lsb)
 {
-	struct insertion_effect_gs_t *st = &insertion_effect_gs;
-	int8 *param = st->parameter;
-
-	switch(st->type) {
-	case 0x0110: /* Overdrive */
-		param[0] = 48;
-		param[1] = 1;
-		param[2] = 1;
-		param[16] = 0x40;
-		param[17] = 0x40;
-		param[18] = 0x40;
-		param[19] = 96;
-		break;
-	case 0x0111: /* Distortion */
-		param[0] = 76;
-		param[1] = 3;
-		param[2] = 1;
-		param[16] = 0x40;
-		param[17] = 0x38;
-		param[18] = 0x40;
-		param[19] = 84;
-		break;
-	case 0x1103: /* OD1 / OD2 */
-		param[0] = 0;
-		param[1] = 48;
-		param[2] = 1;
-		param[3] = 1;
-		param[15] = 0x40;
-		param[16] = 96;
-		param[5] = 1;
-		param[6] = 76;
-		param[7] = 3;
-		param[8] = 1;
-		param[17] = 0x40;
-		param[18] = 84;
-		param[19] = 127;
-		break;
-	case 0x0140: /* HEXA-CHORUS */
-		param[0] = 0x18;
-		param[1] = 0x08;
-		param[2] = 127;
-		param[3] = 5;
-		param[4] = 66;
-		param[5] = 16;
-		param[15] = 64;
-		param[16] = 0x40;
-		param[17] = 0x40;
-		param[19] = 112;
-		break;
-	default: break;
+	int i, j;
+	for (i = 0; effect_parameter_gs[i].type_msb != -1
+		&& effect_parameter_gs[i].type_lsb != -1; i++) {
+		if (msb == effect_parameter_gs[i].type_msb
+			&& lsb == effect_parameter_gs[i].type_lsb) {
+			for (j = 0; j < 20; j++) {
+				st->parameter[j] = effect_parameter_gs[i].param[j];
+			}
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "GS EFX: %s", effect_parameter_gs[i].name);
+			break;
+		}
 	}
 }
 
@@ -6762,28 +6722,41 @@ void recompute_insertion_effect_gs(void)
 void realloc_insertion_effect_gs(void)
 {
 	struct insertion_effect_gs_t *st = &insertion_effect_gs;
+	int type_msb = st->type_msb, type_lsb = st->type_lsb;
 
 	free_effect_list(st->ef);
 	st->ef = NULL;
 
-	switch(st->type) {
-	case 0x0110: /* Overdrive */
-		st->ef = push_effect(st->ef, EFFECT_EQ2);
-		st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1);
+	switch(type_msb) {
+	case 0x01:
+		switch(type_lsb) {
+		case 0x10: /* Overdrive */
+			st->ef = push_effect(st->ef, EFFECT_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_OVERDRIVE1);
+			break;
+		case 0x11: /* Distortion */
+			st->ef = push_effect(st->ef, EFFECT_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_DISTORTION1);
+			break;
+		case 0x40: /* Hexa-Chorus */
+			st->ef = push_effect(st->ef, EFFECT_EQ2);
+			st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS);
+			break;
+		default: break;
+		}
 		break;
-	case 0x0111: /* Distortion */
-		st->ef = push_effect(st->ef, EFFECT_EQ2);
-		st->ef = push_effect(st->ef, EFFECT_DISTORTION1);
-		break;
-	case 0x0140: /* Hexa-Chorus */
-		st->ef = push_effect(st->ef, EFFECT_EQ2);
-		st->ef = push_effect(st->ef, EFFECT_HEXA_CHORUS);
-		break;
-	case 0x1103: /* OD1 / OD2 */
-		st->ef = push_effect(st->ef, EFFECT_OD1OD2);
+	case 0x11:
+		switch(type_lsb) {
+		case 0x03: /* OD1 / OD2 */
+			st->ef = push_effect(st->ef, EFFECT_OD1OD2);
+			break;
+		default: break;
+		}
 		break;
 	default: break;
 	}
+
+	set_effect_param_gs(st, type_msb, type_lsb);
 
 	recompute_insertion_effect_gs();
 }

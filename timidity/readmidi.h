@@ -157,7 +157,6 @@ extern void recompute_reverb_status_gs(void);
 extern void set_reverb_macro_gs(int);
 extern void set_reverb_macro_gm2(int);
 extern void recompute_eq_status_gs(void);
-extern void set_insertion_effect_def_gs(void);
 extern void realloc_insertion_effect_gs(void);
 extern void recompute_insertion_effect_gs(void);
 extern void recompute_multi_eq_xg(void);

@@ -226,6 +226,14 @@ struct _EffectEngine {
 
 extern struct _EffectEngine effect_engine[];
 
+struct effect_parameter_gs_t {
+	int8 type_msb, type_lsb;
+	char *name;
+	int8 param[20];
+};
+
+extern struct effect_parameter_gs_t effect_parameter_gs[];
+
 struct effect_parameter_xg_t {
 	int8 type_msb, type_lsb;
 	char *name;
@@ -233,6 +241,7 @@ struct effect_parameter_xg_t {
 };
 
 extern struct effect_parameter_xg_t effect_parameter_xg[];
+
 
 extern EffectList *push_effect(EffectList *, int);
 extern void do_effect_list(int32 *, int32, EffectList *);
