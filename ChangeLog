@@ -1,3 +1,10 @@
+2004-03-08  Saito <saito@intaa.net>
+
+	* timidity/playmidi.c:
+	  Fix bug of adjust_panning().
+	* interface/w32g_res.{h,rc}, interface/w32g_pref.c:
+	  Add "Edit" button to preference window.
+
 2004-03-08  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c (midi_program_change): #if 0 out the useless

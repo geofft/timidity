@@ -470,6 +470,12 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 						SetDlgItemText(hwnd,IDC_EDIT_CONFIG_FILE,TEXT(filename));
 	   }
 			break;
+		case IDC_BUTTON_CFG_EDIT:
+			ShellExecute(NULL, "open", "notepad.exe", ConfigFile, NULL, SW_SHOWNORMAL);
+			break;
+/*		case IDC_BUTTON_CFG_DIR:
+			ShellExecute(NULL, "open", ConfigFileOpenDir, NULL, NULL, SW_SHOWNORMAL);
+			break;*/
 		case IDC_BUTTON_CFG_RELOAD:
 		{
 			int i;

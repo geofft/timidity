@@ -2989,7 +2989,7 @@ static void adjust_panning(int c)
 	    (voice[i].status & (VOICE_ON | VOICE_SUSTAINED)))
 	{
             /* adjust pan to include drum/sample pan offsets */
-			pan = get_panning(c,i,i);
+            pan = get_panning(c, voice[i].note, i);
 
 	    /* Hack to handle -EFchorus=2 in a "reasonable" way */
 #ifdef USE_DSP_EFFECT

@@ -83,6 +83,7 @@
 #define IDC_EDIT_CONFIG_FILE            1050
 #define IDC_BUTTON_CONFIG_FILE          1051
 #define IDD_PREF_TIMIDITY1              1052
+#define IDC_BUTTON_CFG_EDIT             1052
 #define IDD_PREF_TIMIDITY2              1053
 #define IDC_CHECKBOX_REDUCE_VOICE       1054
 #define IDC_CHECKBOX_SPECIAL_TONEBANK   1055
