@@ -1,6 +1,7 @@
 2004-03-29  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
-	* configure.in: version to 'development'
+	* Makefile.am (EXTRA_DIST): Add entry for ChangeLog.2
+	* configure.in: Chaneg version to 'development'
 	* ChangeLog.2: Add
 	* ChangeLog : Wipe
 
