@@ -478,23 +478,36 @@ typedef struct {
 extern int opt_default_module;
 
 enum {
+	MODULE_TIMIDITY_DEFAULT = 0x0,
 	/* GS modules */
-	MODULE_GENERIC_GS = 0x0,
 	MODULE_SC55 = 0x1,
 	MODULE_SC88 = 0x2,
 	MODULE_SC88PRO = 0x3,
 	MODULE_SC8850 = 0x4,
 	/* XG modules */
-	MODULE_GENERIC_XG = 0x10,
-	MODULE_MU50 = 0x11,
-	MODULE_MU80 = 0x12,
-	MODULE_MU90 = 0x13,
-	MODULE_MU100 = 0x14,
+	MODULE_MU50 = 0x10,
+	MODULE_MU80 = 0x11,
+	MODULE_MU90 = 0x12,
+	MODULE_MU100 = 0x13,
 	/* GM modules */
-	MODULE_GENERIC_GM = 0x20,
-	MODULE_SBLIVE = 0x21,
-	MODULE_SBAUDIGY = 0x22,
+	MODULE_SBLIVE = 0x20,
+	MODULE_SBAUDIGY = 0x21,
+	/* Special modules */
+	MODULE_TIMIDITY_SPECIAL1 = 0x70,
+	MODULE_TIMIDITY_DEBUG = 0x7f,
 };
+
+static inline int is_gs_module(void)
+{
+    return (opt_default_module >= MODULE_SC55
+            && opt_default_module <= MODULE_MU100);
+}
+
+static inline int is_xg_module(void)
+{
+    return (opt_default_module >= MODULE_MU50
+            && opt_default_module <= MODULE_MU100);
+}
 
 extern Channel channel[];
 extern Voice *voice;

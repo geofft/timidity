@@ -4508,6 +4508,14 @@ void change_system_mode(int mode)
 	vol_table = xg_vol_table;
 	break;
       default:
+	/* --module option */
+	if (is_gs_module()) {
+		play_system_mode = GS_SYSTEM_MODE;
+		break;
+	} else if (is_xg_module()) {
+		play_system_mode = XG_SYSTEM_MODE;
+		break;
+	}
 	switch(mid)
 	{
 	  case 0x41:

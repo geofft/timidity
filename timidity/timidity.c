@@ -190,6 +190,7 @@ enum {
 	TIM_OPT_WRD,
 	TIM_OPT_RCPCV_DLL,
 	TIM_OPT_CONFIG_STR,
+	TIM_OPT_MODULE,
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	/* last entry */
@@ -312,6 +313,7 @@ static const struct option longopts[] = {
 	{ "rcpcv-dll",              required_argument, NULL, TIM_OPT_RCPCV_DLL },
 #endif
 	{ "config-string",          required_argument, NULL, TIM_OPT_CONFIG_STR },
+	{ "module",					required_argument, NULL, TIM_OPT_MODULE },
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ NULL,                     no_argument,       NULL, '\0'     }
@@ -374,6 +376,7 @@ static inline int parse_opt_reverb(const char *);
 static inline int parse_opt_voice_lpf(const char *);
 static inline int parse_opt_noise_shaping(const char *);
 static inline int parse_opt_resample(const char *);
+static inline int parse_opt_default_module(const char *);
 static inline int parse_opt_e(const char *);
 static inline int parse_opt_F(const char *);
 static inline int parse_opt_f(const char *);
@@ -2681,6 +2684,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 #endif
 	case TIM_OPT_CONFIG_STR:
 		return parse_opt_x(arg);
+	case TIM_OPT_MODULE:
+		return parse_opt_default_module(arg);
 	case TIM_OPT_FREQ_TABLE:
 		return parse_opt_Z(arg);
 	case TIM_OPT_PURE_INT:
@@ -3953,6 +3958,14 @@ static inline int parse_opt_m(const char *arg)
 	min_sustain_time = atoi(arg);
 	if (min_sustain_time < 0)
 		min_sustain_time = 0;
+	return 0;
+}
+
+static inline int parse_opt_default_module(const char *arg)
+{
+	opt_default_module = atoi(arg);
+	if (opt_default_module < 0)
+		opt_default_module = 0;
 	return 0;
 }
 

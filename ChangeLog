@@ -1,3 +1,8 @@
+2004-02-04  Saito <saito2@digitalme.com>
+
+	* timidity/readmidi.c, timidity/timidity.c, timidity/playmidi.[ch]:
+	  Add --module [n] option.
+
 2004-02-04  mput <root@mput.dip.jp>
 
 	* Makefile.am (dist-hook): Fix to preserve timestamp.
@@ -29,7 +34,6 @@
 	* interface/w32g_utl.c:
 	  Fix bug about number of voices.
 
->>>>>>> 1.260
 2004-02-02  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/instrum.c, timidity/timidity.c:
