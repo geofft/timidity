@@ -1,3 +1,8 @@
+2003-11-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.c, timidity/tables.c:
+	  Adjust Pythagoras tuning and pure intonation in a stricter theory
+
 2003-11-05  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/alsa_a.c: Fixed bogus calculation of GETSAMPLES.
@@ -9,7 +14,7 @@
 2003-11-04  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/readmidi.c (set_xg_reverb_type): Add.
-	(parse_sysex_event_multi): Support for XG SysEx. reverb/chorus types
+	  (parse_sysex_event_multi): Support for XG SysEx. reverb/chorus types
 
 2003-11-01  Saito <saito2@digitalme.com>
 
@@ -17,13 +22,13 @@
 	  Fix behaviour of SoundFont's scale-tuning like SB-Live!.
 	* timidity/playmidi.c:
 	  Add opt_pan_delay.
-	  
+
 2003-11-01  mput <root@mput.dip.jp>
 
 	* timidity/timidity.c (parse_opt_h): Fix in help message
-	(parse_opt_j): Enforce returning a int value
-	(parse_opt_Z1): ditto
-	(parse_opt_fail): Change exit status to EXIT_FAILURE
+	  (parse_opt_j): Enforce returning a int value
+	  (parse_opt_Z1): ditto
+	  (parse_opt_fail): Change exit status to EXIT_FAILURE
 
 2003-10-31  Saito <saito2@digitalme.com>
 
@@ -49,7 +54,8 @@
 
 	* timidity/mix.c, timidity/tables.[ch], playmidi.[ch]:
 	  Implement phase difference between left and right experimentally.
-	  If you want to disable this function, please #undef "ENABLE_PAN_DELAY".
+	  If you want to disable this function, please
+	  #undef "ENABLE_PAN_DELAY".
 
 2003-10-25  skeishi <s_keishi@mutt.freemail.ne.jp>
 
@@ -179,7 +185,7 @@
 	* timidity/optcode.c, timidity/optcode.h:
 	  Use macros instead of functions for imuldiv*() on generic
 	  architectures.
-	
+
 2003-10-01  Takashi Iwai <tiwai@suse.de>
 
 	* timidity/aRts_a.c, timidity/output.c: Removed arts2 output mode,
@@ -284,8 +290,8 @@
 2003-09-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/tables.c:
-	  Adjust minor of not Pythagoras tuning but both
-	  mean-tone tuning and pure intonation by syntonic comma
+	  Adjust minor of mean-tone tuning and pure intonation
+	  by syntonic comma, instead of Pythagoras tuning
 
 2003-09-03  Takashi Iwai <tiwai@suse.de>
 
