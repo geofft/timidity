@@ -1,3 +1,8 @@
+2003-12-26  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.c, timidity/readmidi.c:
+	  Fix around channel pressure.
+
 2003-12-25  Kentaro Sato <kentaro@ranvis.com>
 	* timidity/playmidi.c, timidity/readmidi.c,
 	  timidity/tables.[ch], timidity/timidity.c:

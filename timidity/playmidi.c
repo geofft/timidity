@@ -3078,6 +3078,16 @@ void midi_program_change(int ch, int prog)
 	}
 }
 
+static int16 conv_lfo_pitch_depth(float val)
+{
+	return (int16)(0.0318f * val * val + 0.6858f * val + 0.5f);
+}
+
+static int16 conv_lfo_filter_depth(float val)
+{
+	return (int16)((0.0318f * val * val + 0.6858f * val) * 4.0f + 0.5f);
+}
+
 /*! process system exclusive sent from parse_sysex_event_multi(). */
 static void process_sysex_event(int ev, int ch, int val, int b)
 {
@@ -3096,6 +3106,287 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 		msb = channel[ch].sysex_msb_addr;
 		note = channel[ch].sysex_msb_val;
 		channel[ch].sysex_msb_addr = channel[ch].sysex_msb_val = 0;
+		switch(b)
+		{
+		case 0x00:	/* CAf Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].caf.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf Pitch Control (CH:%d %d semitones)", ch, channel[ch].caf.pitch);
+			break;
+		case 0x01:	/* CAf Filter Cutoff Control */
+			channel[ch].caf.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].caf.cutoff);
+			break;
+		case 0x02:	/* CAf Amplitude Control */
+			channel[ch].caf.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf Amplitude Control (CH:%d %.2f)", ch, channel[ch].caf.amp);
+			break;
+		case 0x03:	/* CAf LFO1 Rate Control */
+			channel[ch].caf.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].caf.lfo1_rate);
+			break;
+		case 0x04:	/* CAf LFO1 Pitch Depth */
+			channel[ch].caf.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].caf.lfo1_pitch_depth); 
+			break;
+		case 0x05:	/* CAf LFO1 Filter Depth */
+			channel[ch].caf.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].caf.lfo1_tvf_depth); 
+			break;
+		case 0x06:	/* CAf LFO1 Amplitude Depth */
+			channel[ch].caf.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].caf.lfo1_tva_depth); 
+			break;
+		case 0x07:	/* CAf LFO2 Rate Control */
+			channel[ch].caf.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].caf.lfo2_rate);
+			break;
+		case 0x08:	/* CAf LFO2 Pitch Depth */
+			channel[ch].caf.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].caf.lfo2_pitch_depth); 
+			break;
+		case 0x09:	/* CAf LFO2 Filter Depth */
+			channel[ch].caf.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].caf.lfo2_tvf_depth); 
+			break;
+		case 0x0A:	/* CAf LFO2 Amplitude Depth */
+			channel[ch].caf.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].caf.lfo2_tva_depth); 
+			break;
+		case 0x0B:	/* PAf Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].paf.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf Pitch Control (CH:%d %d semitones)", ch, channel[ch].paf.pitch);
+			break;
+		case 0x0C:	/* PAf Filter Cutoff Control */
+			channel[ch].paf.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].paf.cutoff);
+			break;
+		case 0x0D:	/* PAf Amplitude Control */
+			channel[ch].paf.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf Amplitude Control (CH:%d %.2f)", ch, channel[ch].paf.amp);
+			break;
+		case 0x0E:	/* PAf LFO1 Rate Control */
+			channel[ch].paf.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].paf.lfo1_rate);
+			break;
+		case 0x0F:	/* PAf LFO1 Pitch Depth */
+			channel[ch].paf.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].paf.lfo1_pitch_depth); 
+			break;
+		case 0x10:	/* PAf LFO1 Filter Depth */
+			channel[ch].paf.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].paf.lfo1_tvf_depth); 
+			break;
+		case 0x11:	/* PAf LFO1 Amplitude Depth */
+			channel[ch].paf.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].paf.lfo1_tva_depth); 
+			break;
+		case 0x12:	/* PAf LFO2 Rate Control */
+			channel[ch].paf.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].paf.lfo2_rate);
+			break;
+		case 0x13:	/* PAf LFO2 Pitch Depth */
+			channel[ch].paf.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].paf.lfo2_pitch_depth); 
+			break;
+		case 0x14:	/* PAf LFO2 Filter Depth */
+			channel[ch].paf.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].paf.lfo2_tvf_depth); 
+			break;
+		case 0x15:	/* MOD LFO2 Amplitude Depth */
+			channel[ch].mod.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].mod.lfo2_tva_depth); 
+			break;
+		case 0x16:	/* MOD Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].mod.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD Pitch Control (CH:%d %d semitones)", ch, channel[ch].mod.pitch);
+			break;
+		case 0x17:	/* MOD Filter Cutoff Control */
+			channel[ch].mod.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].mod.cutoff);
+			break;
+		case 0x18:	/* MOD Amplitude Control */
+			channel[ch].mod.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD Amplitude Control (CH:%d %.2f)", ch, channel[ch].mod.amp);
+			break;
+		case 0x19:	/* MOD LFO1 Rate Control */
+			channel[ch].mod.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].mod.lfo1_rate);
+			break;
+		case 0x1A:	/* MOD LFO1 Pitch Depth */
+			channel[ch].mod.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].mod.lfo1_pitch_depth); 
+			break;
+		case 0x1B:	/* MOD LFO1 Filter Depth */
+			channel[ch].mod.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].mod.lfo1_tvf_depth); 
+			break;
+		case 0x1C:	/* MOD LFO1 Amplitude Depth */
+			channel[ch].mod.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].mod.lfo1_tva_depth); 
+			break;
+		case 0x1D:	/* MOD LFO2 Rate Control */
+			channel[ch].mod.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].mod.lfo2_rate);
+			break;
+		case 0x1E:	/* MOD LFO2 Pitch Depth */
+			channel[ch].mod.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].mod.lfo2_pitch_depth); 
+			break;
+		case 0x1F:	/* MOD LFO2 Filter Depth */
+			channel[ch].mod.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].mod.lfo2_tvf_depth); 
+			break;
+		case 0x20:	/* MOD LFO2 Amplitude Depth */
+			channel[ch].mod.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].mod.lfo2_tva_depth); 
+			break;
+		case 0x21:	/* BEND Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].bend.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Pitch Control (CH:%d %d semitones)", ch, channel[ch].bend.pitch);
+			break;
+		case 0x22:	/* BEND Filter Cutoff Control */
+			channel[ch].bend.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].bend.cutoff);
+			break;
+		case 0x23:	/* BEND Amplitude Control */
+			channel[ch].bend.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Amplitude Control (CH:%d %.2f)", ch, channel[ch].bend.amp);
+			break;
+		case 0x24:	/* BEND LFO1 Rate Control */
+			channel[ch].bend.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].bend.lfo1_rate);
+			break;
+		case 0x25:	/* BEND LFO1 Pitch Depth */
+			channel[ch].bend.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].bend.lfo1_pitch_depth); 
+			break;
+		case 0x26:	/* BEND LFO1 Filter Depth */
+			channel[ch].bend.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].bend.lfo1_tvf_depth); 
+			break;
+		case 0x27:	/* BEND LFO1 Amplitude Depth */
+			channel[ch].bend.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].bend.lfo1_tva_depth); 
+			break;
+		case 0x28:	/* BEND LFO2 Rate Control */
+			channel[ch].bend.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].bend.lfo2_rate);
+			break;
+		case 0x29:	/* BEND LFO2 Pitch Depth */
+			channel[ch].bend.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].bend.lfo2_pitch_depth); 
+			break;
+		case 0x2A:	/* BEND LFO2 Filter Depth */
+			channel[ch].bend.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].bend.lfo2_tvf_depth); 
+			break;
+		case 0x2B:	/* BEND LFO2 Amplitude Depth */
+			channel[ch].bend.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].bend.lfo2_tva_depth); 
+			break;
+		case 0x2C:	/* CC1 Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].cc1.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Pitch Control (CH:%d %d semitones)", ch, channel[ch].cc1.pitch);
+			break;
+		case 0x2D:	/* CC1 Filter Cutoff Control */
+			channel[ch].cc1.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].cc1.cutoff);
+			break;
+		case 0x2E:	/* CC1 Amplitude Control */
+			channel[ch].cc1.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Amplitude Control (CH:%d %.2f)", ch, channel[ch].cc1.amp);
+			break;
+		case 0x2F:	/* CC1 LFO1 Rate Control */
+			channel[ch].cc1.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].cc1.lfo1_rate);
+			break;
+		case 0x30:	/* CC1 LFO1 Pitch Depth */
+			channel[ch].cc1.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].cc1.lfo1_pitch_depth); 
+			break;
+		case 0x31:	/* CC1 LFO1 Filter Depth */
+			channel[ch].cc1.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].cc1.lfo1_tvf_depth); 
+			break;
+		case 0x32:	/* CC1 LFO1 Amplitude Depth */
+			channel[ch].cc1.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].cc1.lfo1_tva_depth); 
+			break;
+		case 0x33:	/* CC1 LFO2 Rate Control */
+			channel[ch].cc1.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].cc1.lfo2_rate);
+			break;
+		case 0x34:	/* CC1 LFO2 Pitch Depth */
+			channel[ch].cc1.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].cc1.lfo2_pitch_depth); 
+			break;
+		case 0x35:	/* CC1 LFO2 Filter Depth */
+			channel[ch].cc1.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].cc1.lfo2_tvf_depth); 
+			break;
+		case 0x36:	/* CC1 LFO2 Amplitude Depth */
+			channel[ch].cc1.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].cc1.lfo2_tva_depth); 
+			break;
+		case 0x37:	/* CC2 Pitch Control */
+			if(val > 0x58) {val = 0x58;}
+			else if(val < 0x28) {val = 0x28;}
+			channel[ch].cc2.pitch = val - 64;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Pitch Control (CH:%d %d semitones)", ch, channel[ch].cc2.pitch);
+			break;
+		case 0x38:	/* CC2 Filter Cutoff Control */
+			channel[ch].cc2.cutoff = (val - 64) * 150;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].cc2.cutoff);
+			break;
+		case 0x39:	/* CC2 Amplitude Control */
+			channel[ch].cc2.amp = (float)val / 64.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Amplitude Control (CH:%d %.2f)", ch, channel[ch].cc2.amp);
+			break;
+		case 0x3A:	/* CC2 LFO1 Rate Control */
+			channel[ch].cc2.lfo1_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO1 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].cc2.lfo1_rate);
+			break;
+		case 0x3B:	/* CC2 LFO1 Pitch Depth */
+			channel[ch].cc2.lfo1_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO1 Pitch Depth (CH:%d %d cents)", ch, channel[ch].cc2.lfo1_pitch_depth); 
+			break;
+		case 0x3C:	/* CC2 LFO1 Filter Depth */
+			channel[ch].cc2.lfo1_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO1 Filter Depth (CH:%d %d cents)", ch, channel[ch].cc2.lfo1_tvf_depth); 
+			break;
+		case 0x3D:	/* CC2 LFO1 Amplitude Depth */
+			channel[ch].cc2.lfo1_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO1 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].cc2.lfo1_tva_depth); 
+			break;
+		case 0x3E:	/* CC2 LFO2 Rate Control */
+			channel[ch].cc2.lfo2_rate = (float)(val - 64) / 6.4f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO2 Rate Control (CH:%d %.1f Hz)", ch, channel[ch].cc2.lfo2_rate);
+			break;
+		case 0x3F:	/* CC2 LFO2 Pitch Depth */
+			channel[ch].cc2.lfo2_pitch_depth = conv_lfo_pitch_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO2 Pitch Depth (CH:%d %d cents)", ch, channel[ch].cc2.lfo2_pitch_depth); 
+			break;
+		case 0x40:	/* CC2 LFO2 Filter Depth */
+			channel[ch].cc2.lfo2_tvf_depth = conv_lfo_filter_depth(val);
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO2 Filter Depth (CH:%d %d cents)", ch, channel[ch].cc2.lfo2_tvf_depth); 
+			break;
+		case 0x41:	/* CC2 LFO2 Amplitude Depth */
+			channel[ch].cc2.lfo2_tva_depth = (float)val / 127.0f;
+			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 LFO2 Amplitude Depth (CH:%d %.2f)", ch, channel[ch].cc2.lfo2_tva_depth); 
+			break;
+		default:
+			break;
+		}
 		return;
 	} else if(ev == ME_SYSEX_GS_LSB) {	/* GS system exclusive message */
 		msb = channel[ch].sysex_gs_msb_addr;

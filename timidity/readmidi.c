@@ -4600,8 +4600,8 @@ void recompute_delay_status_gs(void)
 	p->level_ratio_c = (double)p->level * (double)p->level_center / 16129.0;
 	p->level_ratio_l = (double)p->level * (double)p->level_left / 16129.0;
 	p->level_ratio_r = (double)p->level * (double)p->level_right / 16129.0;
-	p->feedback_ratio = (double)(p->feedback - 64) * 0.0153125;
-	p->send_reverb_ratio = (double)p->send_reverb / 127.0;
+	p->feedback_ratio = (double)(p->feedback - 64) * 0.763f * 2.0f / 100.0f;
+	p->send_reverb_ratio = (double)p->send_reverb * 0.787f / 100.0f;
 
 	if(p->level_left || p->level_right && p->type == 0) {
 		p->type = 1;
@@ -4686,22 +4686,19 @@ void init_chorus_status_gs(void)
 	init_chorus_lfo();
 }
 
-#define CHORUS_WIDTH_RATIO 0.85
-
 /*! recompute Chorus Effect (GS) */
 void recompute_chorus_status_gs()
 {
 	struct chorus_param_t *p = &chorus_param;
 	p->delay_in_sample = chorus_delay_time_table[p->chorus_delay] * (double)play_mode->rate / 1000.0;
-	p->depth_in_sample = p->delay_in_sample * (double)p->chorus_depth / 127.0 * CHORUS_WIDTH_RATIO;
-	p->delay_in_sample -= p->depth_in_sample;	/* NOMINAL_DELAY to delay */
-	if(p->delay_in_sample <= 1) {p->delay_in_sample = 1;}
-	p->depth_in_sample *= 2;	/* CHORUS_WIDTH to depth */
-	p->cycle_in_sample = play_mode->rate / rate1_table[p->chorus_rate];
-	p->feedback_ratio = (double)p->chorus_feedback / (127.0 + 1.0);
-	p->level_ratio = (double)p->chorus_level / 127.0;
-	p->send_reverb_ratio = (double)p->chorus_send_level_to_reverb / 127.0;
-	p->send_delay_ratio = (double)p->chorus_send_level_to_delay / 127.0;
+	p->depth_in_sample = (double)(p->chorus_depth + 1) / 3.2f * (double)play_mode->rate / 1000.0;
+	p->delay_in_sample -= p->depth_in_sample / 2;	/* NOMINAL_DELAY to delay */
+	if(p->delay_in_sample < 1) {p->delay_in_sample = 1;}
+	p->cycle_in_sample = play_mode->rate / ((double)p->chorus_rate * 0.122f);
+	p->feedback_ratio = (double)p->chorus_feedback * 0.763f / 100.0f;
+	p->level_ratio = (double)p->chorus_level / 127.0f;
+	p->send_reverb_ratio = (double)p->chorus_send_level_to_reverb * 0.787f / 100.0f;
+	p->send_delay_ratio = (double)p->chorus_send_level_to_delay * 0.787f / 100.0f;
 
 	if(p->chorus_pre_lpf) {
 		p->lpf.a = (double)(7 - p->chorus_pre_lpf) / 7.0 * 0.9 + 0.05;
@@ -5171,12 +5168,11 @@ static void *conv_gsie_to_hexa_chorus(struct insertion_effect_gs *ieffect, Effec
 		info = (InfoHexaChorus *)ef->info;
 	}
 
-	info->level = (double)ieffect->parameter[19] / 127.0;
-	info->pdelay = pre_delay_time_table[ieffect->parameter[0]] * (double)play_mode->rate / 1000.0;
-	info->depth = info->pdelay * (double)ieffect->parameter[2] / 127.0 * CHORUS_WIDTH_RATIO;
-	info->pdelay -= info->depth;
+	info->level = (double)ieffect->parameter[19] / 127.0f;
+	info->pdelay = pre_delay_time_table[ieffect->parameter[0]] * (double)play_mode->rate / 1000.0f;
+	info->depth = (double)(ieffect->parameter[2] + 1) / 3.2f  * (double)play_mode->rate / 1000.0f;
+	info->pdelay -= info->depth / 2;
 	if(info->pdelay <= 1) {info->pdelay = 1;}
-	info->depth *= 2;
 	info->lfo0.freq = rate1_table[ieffect->parameter[1]];
 	info->pdelay_dev = ieffect->parameter[3];
 	info->depth_dev = ieffect->parameter[4] - 64;
