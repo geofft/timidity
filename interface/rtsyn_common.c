@@ -276,7 +276,7 @@ void rtsyn_init(void){
 
 	if (opt_force_keysig != 8) {
 		i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
-		while (i != opt_force_keysig)
+		while (i != opt_force_keysig && i != opt_force_keysig + 12)
 			i += (i > 0) ? -5 : 7, j++;
 		note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 	}

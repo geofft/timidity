@@ -7917,7 +7917,7 @@ int play_event(MidiEvent *ev)
 		ctl_mode_event(CTLE_KEYSIG, 1, current_keysig, 0);
 		if (opt_force_keysig != 8) {
 			i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
-			while (i != opt_force_keysig)
+			while (i != opt_force_keysig && i != opt_force_keysig + 12)
 				i += (i > 0) ? -5 : 7, j++;
 			note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 			kill_all_voices();
@@ -8483,7 +8483,7 @@ int play_midi_file(char *fn)
 	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, 0, 0);
 	if (opt_force_keysig != 8) {
 		i = current_keysig - ((current_keysig < 8) ? 0 : 16), j = 0;
-		while (i != opt_force_keysig)
+		while (i != opt_force_keysig && i != opt_force_keysig + 12)
 			i += (i > 0) ? -5 : 7, j++;
 		note_key_offset = (j != 0 && opt_force_keysig < 0) ? j - 12 : j;
 	}
