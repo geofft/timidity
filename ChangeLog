@@ -1,3 +1,7 @@
+2004-01-18  mput <root@mput.dip.jp>
+
+	* timidity/playmidi.c (calc_random_delay): tiny bug fix
+
 2004-01-18  Saito <saito2@digitalme.com>
 
 	* timidity/readmidi.c:

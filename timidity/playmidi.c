@@ -1214,7 +1214,7 @@ static int32 calc_random_delay(int ch, int note)
 		if (bank == NULL) {bank = drumset[0];}
 	} else {
 		nprog = channel[ch].program;
-		if(nprog == SPECIAL_PROGRAM) {return;}
+		if(nprog == SPECIAL_PROGRAM) {return 0;}
 		instrument_map(channel[ch].mapID, &nbank, &nprog);
 		bank = tonebank[nbank];
 		if(bank == NULL) {bank = tonebank[0];}
