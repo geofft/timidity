@@ -56,15 +56,17 @@
 
 #ifdef VOICE_LPF
 static int32 a1, a2, b0, b1, b2, hist1, hist2, centernode;
-static int8 filter_on;
-#define MIXATION(a) \
-	if (filter_on) { \
-		centernode = (a) * s - imuldiv16(a1, hist1) - imuldiv16(a2, hist2); \
-		*lp++ += imuldiv16(b0, centernode) \
-				+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2); \
-		hist2 = hist1, hist1 = centernode; \
-	} else \
-		*lp++ += (a) * s
+static inline void mixation_norm(sample_t s,int32 a,int32* lp) {
+	*lp += a * s;
+}
+static inline void mixation_filt(sample_t s,int32 a,int32* lp) {
+	centernode = a * s - imuldiv16(a1, hist1) - imuldiv16(a2, hist2);
+	*lp += imuldiv16(b0, centernode)
+			+ imuldiv16(b1, hist1) + imuldiv16(b2, hist2);
+	hist2 = hist1, hist1 = centernode;
+}
+static void (*mixation_func)(sample_t,int32,int32*);
+#define MIXATION(a) (*mixation_func)(s,(a),lp++);
 #else
 #ifdef LOOKUP_HACK
 #define MIXATION(a) *lp++ += mixup[(a << 8) | (uint8) s]
@@ -178,14 +180,14 @@ static inline void set_voice_filter(int v)
 	FilterCoefficients *fc = &(voice[v].fc);
 	
 	if(fc->freq == -1)
-		filter_on = 0;
+		mixation_func = mixation_norm;
 	else {
 		recalc_voice_resonance(v);
 		recalc_voice_fc(v);
 		hist1 = fc->hist1, hist2 = fc->hist2;
 		a1 = fc->a1, a2 = fc->a2;
 		b0 = fc->b0, b1 = fc->b1, b2 = fc->b2;
-		filter_on = 1;
+		mixation_func = mixation_filt;
 	}
 }
 

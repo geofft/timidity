@@ -120,6 +120,10 @@ enum midi_event_t
     ME_KEYSIG,			/* Key signature */
     ME_SCALE_TUNING,		/* Scale tuning */
 
+	ME_SYSEX_GS1,	/* GS system exclusive message (1) */
+	ME_SYSEX_GS2,	/* GS system exclusive message (2) */
+	ME_SYSEX_XG,	/* XG system exclusive message */
+
     ME_WRD,			/* for MIMPI WRD tracer */
     ME_SHERRY,			/* for Sherry WRD tracer */
     ME_BARMARKER,
@@ -155,8 +159,6 @@ enum rpn_data_address_t /* NRPN/RPN */
     NRPN_ADDR_1D00,
     NRPN_ADDR_1E00,
     NRPN_ADDR_1F00,
-	NRPN_ADDR_3000,
-	NRPN_ADDR_3100,
     RPN_ADDR_0000,
     RPN_ADDR_0001,
     RPN_ADDR_0002,
