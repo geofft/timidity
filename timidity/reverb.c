@@ -422,6 +422,7 @@ void calc_filter_lpf18(filter_lpf18 *p)
 /*! 1st order lowpass filter */
 void init_filter_lowpass1(filter_lowpass1 *p)
 {
+	if (p->a > 1.0f) {p->a = 1.0f;}
 	p->x1l = p->x1r = 0;
 	p->ai = TIM_FSCALE(p->a, 24);
 	p->iai = TIM_FSCALE(1.0 - p->a, 24);
@@ -2299,19 +2300,42 @@ void do_variation_effect_xg(int32 *buf, int32 count)
 {
 }
 
+void alloc_effect(EffectList *ef)
+{
+	int i;
+
+	ef->engine = NULL;
+	for(i = 0; i < EFFECT_ENGINE_NUM; i++) {
+		if (effect_engine[i].type == ef->type) {
+			ef->engine = &(effect_engine[i]);
+			break;
+		}
+	}
+
+	if (ef->info != NULL) {
+		free(ef->info);
+		ef->info = NULL;
+	}
+	ef->info = safe_malloc(ef->engine->info_size);
+
+	/* initialize */
+	(*ef->engine->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, ef);
+
+	ctl->cmsg(CMSG_INFO, VERB_NOISY, "Effect Engine: %s", ef->engine->name);
+}
+
 /*! allocate new effect item and add it into the tail of effect list.
     EffectList *efc: pointer to the top of effect list.
     int8 type: type of new effect item.
     void *info: pointer to infomation of new effect item. */
-EffectList *push_effect(EffectList *efc, int8 type, void *info)
+EffectList *push_effect(EffectList *efc, int type)
 {
 	EffectList *eft, *efn;
 	if(type == EFFECT_NONE) {return NULL;}
 	efn = (EffectList *)safe_malloc(sizeof(EffectList));
 	efn->type = type;
 	efn->next_ef = NULL;
-	efn->info = info;
-	convert_effect(efn);
+	alloc_effect(efn);
 
 	if(efc == NULL) {
 		efc = efn;
@@ -2330,9 +2354,9 @@ void do_effect_list(int32 *buf, int32 count, EffectList *ef)
 {
 	EffectList *efc = ef;
 	if(ef == NULL) {return;}
-	while(efc != NULL && efc->do_effect != NULL)
+	while(efc != NULL && efc->engine->do_effect != NULL)
 	{
-		(*efc->do_effect)(buf, count, efc);
+		(*efc->engine->do_effect)(buf, count, efc);
 		efc = efc->next_ef;
 	}
 }
@@ -2346,11 +2370,11 @@ void free_effect_list(EffectList *ef)
 	do {
 		efn = efc->next_ef;
 		if(efc->info != NULL) {
-			(*efc->do_effect)(NULL, MAGIC_FREE_EFFECT_INFO, efc);
+			(*efc->engine->do_effect)(NULL, MAGIC_FREE_EFFECT_INFO, efc);
 			free(efc->info);
 			efc->info = NULL;
 		}
-		efc->do_effect = NULL;
+		efc->engine = NULL;
 		free(efc);
 		efc = NULL;
 	} while ((efc = efn) != NULL);
@@ -2788,36 +2812,6 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 	info->hist3 = hist3, info->hist4 = hist4, info->hist5 = hist5;
 }
 
-/*! assign effect engine according to effect type. */
-void convert_effect(EffectList *ef)
-{
-	ef->do_effect = NULL;
-	switch(ef->type)
-	{
-	case EFFECT_NONE:
-		break;
-	case EFFECT_EQ2:
-		ef->do_effect = do_eq2;
-		break;
-	case EFFECT_OVERDRIVE1:
-		ef->do_effect = do_overdrive1;
-		break;
-	case EFFECT_DISTORTION1:
-		ef->do_effect = do_distortion1;
-		break;
-	case EFFECT_HEXA_CHORUS:
-		ef->do_effect = do_hexa_chorus;
-		break;
-	case EFFECT_OD1OD2:
-		ef->do_effect = do_dual_od;
-		break;
-	default:
-		break;
-	}
-
-	(*ef->do_effect)(NULL, MAGIC_INIT_EFFECT_INFO, ef);
-}
-
 void free_effect_buffers(void)
 {
 	do_ch_standard_reverb(NULL, MAGIC_FREE_EFFECT_INFO, &(reverb_status.info_standard_reverb));
@@ -2828,3 +2822,70 @@ void free_effect_buffers(void)
 	do_ch_3tap_delay(NULL, MAGIC_FREE_EFFECT_INFO, &(delay_status.info_delay));
 	free_effect_list(ie_gs.ef);
 }
+
+/*! convert GS insertion effect parameters for internal 2-Band EQ. */
+static void conv_gs_eq2(struct insertion_effect_gs *ieffect, EffectList *ef)
+{
+	InfoEQ2 *eq = (InfoEQ2 *)ef->info; 
+
+	eq->high_freq = 4000;
+	eq->high_gain = ieffect->parameter[16] - 0x40;
+	eq->low_freq = 400;
+	eq->low_gain = ieffect->parameter[17] - 0x40;
+}
+
+/*! convert GS insertion effect parameters for Overdrive1 / Distortion 1. */
+static void conv_gs_overdrive1(struct insertion_effect_gs *ieffect, EffectList *ef)
+{
+	InfoOverdrive1 *od = (InfoOverdrive1 *)ef->info;
+	
+	od->level = (double)ieffect->parameter[19] / 127.0;
+	od->drive = ieffect->parameter[0];
+	od->pan = ieffect->parameter[18];
+}
+
+/*! convert GS insertion effect parameters for OD1 / OD2. */
+static void conv_gs_dual_od(struct insertion_effect_gs *ieffect, EffectList *ef)
+{
+	InfoOD1OD2 *od = (InfoOD1OD2 *)ef->info;
+
+	od->level = (double)ieffect->parameter[19] / 127.0;
+	od->levell = (double)ieffect->parameter[16] / 127.0;
+	od->levelr = (double)ieffect->parameter[18] / 127.0;
+	od->drivel = ieffect->parameter[1];
+	od->driver = ieffect->parameter[6];
+	od->panl = ieffect->parameter[15];
+	od->panr = ieffect->parameter[17];
+	od->typel = ieffect->parameter[0];
+	od->typer = ieffect->parameter[5];
+}
+
+/*! convert GS insertion effect parameters for Hexa-Chorus. */
+static void conv_gs_hexa_chorus(struct insertion_effect_gs *ieffect, EffectList *ef)
+{
+	InfoHexaChorus *info = (InfoHexaChorus *)ef->info;
+	
+	info->level = (double)ieffect->parameter[19] / 127.0f;
+	info->pdelay = pre_delay_time_table[ieffect->parameter[0]] * (double)play_mode->rate / 1000.0f;
+	info->depth = (double)(ieffect->parameter[2] + 1) / 3.2f  * (double)play_mode->rate / 1000.0f;
+	info->pdelay -= info->depth / 2;
+	if(info->pdelay <= 1) {info->pdelay = 1;}
+	info->lfo0.freq = rate1_table[ieffect->parameter[1]];
+	info->pdelay_dev = ieffect->parameter[3];
+	info->depth_dev = ieffect->parameter[4] - 64;
+	info->pan_dev = ieffect->parameter[5];
+	info->dry = (double)(127 - ieffect->parameter[19]) / 63.0;
+	if(info->dry > 1.0) {info->dry = 1.0;}
+	info->wet = (double)ieffect->parameter[19] / 64.0;
+	if(info->wet > 1.0) {info->wet = 1.0;}
+}
+
+struct _EffectEngine effect_engine[] = {
+	EFFECT_NONE, "None", NULL, NULL, NULL, 0,
+	EFFECT_EQ2, "2-Band EQ", do_eq2, conv_gs_eq2, NULL, sizeof(InfoEQ2),
+	EFFECT_OVERDRIVE1, "Overdrive (GS)", do_overdrive1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
+	EFFECT_DISTORTION1, "Distortion (GS)", do_distortion1, conv_gs_overdrive1, NULL, sizeof(InfoOverdrive1),
+	EFFECT_OD1OD2, "OD1/OD2", do_dual_od, conv_gs_dual_od, NULL, sizeof(InfoOD1OD2),
+	EFFECT_HEXA_CHORUS, "Hexa-Chorus", do_hexa_chorus, conv_gs_hexa_chorus, NULL, sizeof(InfoHexaChorus),
+	EFFECT_EOF, "None", NULL, NULL, NULL, 0, 
+};

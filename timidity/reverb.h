@@ -34,9 +34,9 @@
 
 extern int opt_reverb_control;
 
-extern void set_dry_signal(register int32 *, int32);
-extern void set_dry_signal_xg(register int32 *, int32, int32);
-extern void mix_dry_signal(register int32 *, int32);
+extern void set_dry_signal(int32 *, int32);
+extern void set_dry_signal_xg(int32 *, int32, int32);
+extern void mix_dry_signal(int32 *, int32);
 extern void free_effect_buffers(void);
 
 /*                    */
@@ -169,22 +169,46 @@ enum {
 	EFFECT_EQ2,
 	EFFECT_OVERDRIVE1,
 	EFFECT_DISTORTION1,
-	EFFECT_HEXA_CHORUS,
 	EFFECT_OD1OD2,
+	EFFECT_HEXA_CHORUS,
+	EFFECT_EOF,
 };
 
 #define MAGIC_INIT_EFFECT_INFO -1
 #define MAGIC_FREE_EFFECT_INFO -2
 
+struct insertion_effect_gs {
+	int32 type;
+	int8 type_lsb, type_msb, parameter[20], send_reverb,
+		send_chorus, send_delay, control_source1, control_depth1,
+		control_source2, control_depth2, send_eq_switch;
+	struct _EffectList *ef;
+} ie_gs;
+
+struct insertion_effect_xg {	/* under construction... */
+	int32 type;
+} ie_xg;
+
 typedef struct _EffectList {
-	int8 type;
-	void *info;	/* private effect information struct */
-	void (*do_effect)(int32 *, int32, struct _EffectList *);
+	int type;
+	void *info;
+	struct _EffectEngine *engine;
 	struct _EffectList *next_ef;
 } EffectList;
 
-extern void convert_effect(EffectList *);
-extern EffectList *push_effect(EffectList *, int8, void *);
+struct _EffectEngine {
+	int type;
+	char *name;
+	void (*do_effect)(int32 *, int32, struct _EffectList *);
+	void (*conv_gs)(struct insertion_effect_gs *, struct _EffectList *);
+	void (*conv_xg)(struct insertion_effect_xg *, struct _EffectList *);
+	int info_size;
+};
+
+extern struct _EffectEngine effect_engine[];
+#define EFFECT_ENGINE_NUM EFFECT_EOF
+
+extern EffectList *push_effect(EffectList *, int);
 extern void do_effect_list(int32 *, int32, EffectList *);
 extern void free_effect_list(EffectList *);
 
@@ -381,14 +405,6 @@ struct multi_eq_xg_t
 	filter_shelving eq1s, eq5s;
 	filter_peaking eq1p, eq2p, eq3p, eq4p, eq5p;
 } multi_eq_xg;
-
-struct insertion_effect_gs {
-	int32 type;
-	int8 type_lsb, type_msb, parameter[20], send_reverb,
-		send_chorus, send_delay, control_source1, control_depth1,
-		control_source2, control_depth2, send_eq_switch;
-	struct _EffectList *ef;
-} ie_gs;
 
 pink_noise global_pink_noise_light;
 

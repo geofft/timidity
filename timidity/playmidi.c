@@ -4074,7 +4074,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 				recompute_insertion_effect_gs();
 			} else {
 				realloc_insertion_effect_gs();
-				ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",ie_gs.type_msb,ie_gs.type_lsb);
+			/*	ctl->cmsg(CMSG_INFO,VERB_NOISY,"EFX TYPE (%02X %02X)",ie_gs.type_msb,ie_gs.type_lsb);*/
 			}
 			break;
 		case 0x29:

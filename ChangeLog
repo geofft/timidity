@@ -16,6 +16,8 @@
 	  Fix about Win32 GUI.
 	* interface/w32g_icon.ico:
 	  Fix large icon.
+	* timidity/readmidi.c, timidity/playmidi.c, timidity/reverb.[ch]:
+	  Fix around effects.
 
 2004-02-27  Takashi Iwai <tiwai@suse.de>
 
