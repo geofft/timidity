@@ -205,7 +205,7 @@ static const struct option longopts[] = {
 	{ "no-output-swab",         no_argument,       NULL, 229 << 8 },
 	{ "output-swab",            optional_argument, NULL, 229 << 8 },
 	{ "output-file",            required_argument, NULL, 'o' << 8 },
-	{ "patch",                  required_argument, NULL, 'P' << 8 },
+	{ "patch-file",             required_argument, NULL, 'P' << 8 },
 	{ "polyphony",              required_argument, NULL, 'p' << 8 },
 	{ "no-polyphony-reduction", no_argument,       NULL, 230 << 8 },
 	{ "polyphony-reduction",    optional_argument, NULL, 230 << 8 },
@@ -2917,11 +2917,11 @@ static inline int parse_opt_h(const char *arg)
 "Options:",
 "  -A n,m     --volume=n, --drum-power=m",
 "               Amplify volume by n percent (may cause clipping),",
-"               and amplify drum power by m percent",
+"                 and amplify drum power by m percent",
 "     (a)     --[no-]volume-compensation",
 "               Toggle amplify compensation (disabled by default)",
 "  -a         --[no-]anti-alias",
-"               Enable the antialiasing filter",
+"               Enable the anti-aliasing filter",
 "  -B n,m     --buffer-fragments=n,m",
 "               Set number of buffer fragments(n), and buffer size(2^m)",
 "  -C n       --control-ratio=n",
@@ -3035,45 +3035,46 @@ static inline int parse_opt_h(const char *arg)
 "               Append dir to search path",
 "  -M name    --pcm-file=name",
 "               Specify PCM filename (*.wav or *.aiff) to be played or:",
-"               \"auto\": Play *.mid.wav or *.mid.aiff",
-"               \"none\": Disable this feature (default)",
+"                 \"auto\" : Play *.mid.wav or *.mid.aiff",
+"                 \"none\" : Disable this feature (default)",
 "  -m msec    --decay-time=msec",
 "               Minimum time for a full volume sustained note to decay,",
-"               0 disables",
+"                 0 disables",
 #if defined(CSPLINE_INTERPOLATION) || defined(LAGRANGE_INTERPOLATION)
 "  -N         --interpolation",
-"               Toggle 4-point interpolation (default on),",
-"               Linear interpolation is used if audio queue < 99%%",
+"                 Toggle 4-point interpolation (default on),",
+"                 Linear interpolation is used if audio queue < 99%%",
 #elif defined(NEWTON_INTERPOLATION)
 "  -N n       --interpolation=n",
 "               n'th order Newton polynomial interpolation, n=1-57 odd,",
-"               0 disables",
-"               Linear interpolation is used if audio queue < 99%%",
+"                 0 disables",
+"                 Linear interpolation is used if audio queue < 99%%",
 #elif defined(GAUSS_INTERPOLATION)
 "  -N n       --interpolation=n",
 "               n+1 point Gauss-like interpolation, n=1-34 (default 25),",
-"               0 disables",
-"               Linear interpolation is used if audio queue < 99%%",
+"                 0 disables",
+"                 Linear interpolation is used if audio queue < 99%%",
 #endif
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
 "  -o file    --output-file=file",
 "               Output to another file (or device/server) (Use \"-\" for stdout)",
-"  -P file    --patch=file",
+"  -P file    --patch-file=file",
 "               Use patch file for all programs",
 "  -p n       --polyphony=n",
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
 "     (a)     --[no-]auto-poly-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
 "  -Q ch      --mute=ch",
-"               Ignore channel n (0: ignore all, -n: resume channel n)",
+"               Ignore channel ch (0: ignore all, -ch: resume channel ch)",
 "     t<n>    --temper-mute=n",
-"               Quiet temperament type n (0..3: preset, 4..7: user-defined)",
-"  -q n/m     --audio=buffer=n/m",
+"               Quiet temperament type <n> (0..3: preset, 4..7: user-defined)",
+"  -q sec/n   --audio-buffer=sec/n",
 "               Specify audio buffer in seconds",
-"               m:Maxmum buffer, n:Filled to start (default is 5.0/100%%)",
-"               (size of 100%% equals device buffer size)",
-"  -R n         Pseudo reveb effect. Set every instrument's release to n ms",
+"                 sec: Maxmum buffer, n: Filled to start (default is 5.0/100%%)",
+"                 (size of 100%% equals device buffer size)",
+"  -R n         Pseudo reveb effect (set every instrument's release to n ms)",
+"                 if n=0, n is set to 800",
 "  -S n       --cache-size=n",
 "               Cache size (0 means no cache)",
 "  -s freq    --sampling-freq=freq",
@@ -3109,8 +3110,8 @@ static inline int parse_opt_h(const char *arg)
 "  -Z file    --freq-table=file",
 "               Load frequency table (Use \"pure\" for pure intonation)",
 "  pure<n>(m) --pure-intonation=n(m)",
-"               Initial keysig number n of sharp(+)/flat(-) (-7..7)",
-"               'm' stands for minor mode",
+"               Initial keysig number <n> of sharp(+)/flat(-) (-7..7)",
+"                 'm' stands for minor mode",
 		NULL
 	};
 	static char *help_args[3];
@@ -3140,31 +3141,31 @@ static inline int parse_opt_h(const char *arg)
 	fputs("Effect options (-EF, --effects=F option):" NLS
 "  -EFdelay=d   Disable delay effect (default)" NLS
 "  -EFdelay=l   Enable Left delay" NLS
-"    [,msec]    `msec' is optional to specify left-right delay time" NLS
+"    [,msec]      `msec' is optional to specify left-right delay time" NLS
 "  -EFdelay=r   Enable Right delay" NLS
-"    [,msec]    `msec' is optional to specify left-right delay time" NLS
+"    [,msec]      `msec' is optional to specify left-right delay time" NLS
 "  -EFdelay=b   Enable rotate Both left and right" NLS
-"    [,msec]    `msec' is optional to specify left-right delay time" NLS
+"    [,msec]      `msec' is optional to specify left-right delay time" NLS
 "  -EFchorus=d  Disable MIDI chorus effect control" NLS
 "  -EFchorus=n  Enable Normal MIDI chorus effect control" NLS
-"    [,level]   `level' is optional to specify chorus level [0..127]" NLS
-"               (default)" NLS
+"    [,level]     `level' is optional to specify chorus level [0..127]" NLS
+"                 (default)" NLS
 "  -EFchorus=s  Surround sound, chorus detuned to a lesser degree" NLS
-"    [,level]   `level' is optional to specify chorus level [0..127]" NLS
+"    [,level]     `level' is optional to specify chorus level [0..127]" NLS
 "  -EFreverb=d  Disable MIDI reverb effect control" NLS
 "  -EFreverb=n  Enable Normal MIDI reverb effect control" NLS
-"    [,level]   `level' is optional to specify reverb level [0..127]" NLS
-"               This effect is only available in stereo" NLS
+"    [,level]     `level' is optional to specify reverb level [0..127]" NLS
+"                 This effect is only available in stereo" NLS
 "  -EFreverb=g  Global reverb effect" NLS
 "  -EFreverb=f  Enable Freeverb MIDI reverb effect control" NLS
-"               This effect is only available in stereo (default)" NLS
-"  -EFreverb=p  Pseudo reveb effect" NLS
-"    [,n]       Set every instrument's release to n ms" NLS
+"                 This effect is only available in stereo (default)" NLS
+"  -EFreverb=p  Pseudo reveb effect (set every instrument's release to n ms)" NLS
+"    [,n]         if n=0, n is set to 800" NLS
 "  -EFns=n      Enable the n th degree noise shaping filter" NLS
-"               n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
-"               n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
+"                 n:[0..4] (for 8-bit linear encoding, default is 4)" NLS
+"                 n:[0..2] (for 16-bit linear encoding, default is 2)" NLS, fp);
 	fputs(NLS, fp);
-	fputs("Alternative effect long options:" NLS
+	fputs("Alternative TiMidity sequencer extensional mode long options:" NLS
 "  --[no-]mod-wheel" NLS
 "  --[no-]portamento" NLS
 "  --[no-]vibrato" NLS
@@ -3210,7 +3211,7 @@ static inline int parse_opt_h(const char *arg)
 "  `l'          loop playing (some interface ignore this option)" NLS
 "  `r'          randomize file list arguments before playing" NLS
 "  `s'          sorting file list arguments before playing" NLS
-"  `D'          daemonize timidity++ in background (for alsaseq only)" NLS, fp);
+"  `D'          daemonize TiMidity++ in background (for alsaseq only)" NLS, fp);
 	fputs(NLS, fp);
 	fputs("Alternative interface long options:" NLS
 "  --verbose=n" NLS
@@ -3238,7 +3239,7 @@ static inline int parse_opt_h(const char *arg)
 "  `A'          A-Law encoding" NLS
 "  `x'          byte-swapped output" NLS, fp);
 	fputs(NLS, fp);
-	fputs("Alternative output long options:" NLS
+	fputs("Alternative output format long options:" NLS
 "  --output-stereo" NLS
 "  --output-mono" NLS
 "  --output-signed" NLS

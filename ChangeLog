@@ -1,3 +1,8 @@
+2003-08-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix typo around long options
+	  Rename --patch -> --patch-file
+
 2003-08-12 TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Fix typo around long options
