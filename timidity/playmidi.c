@@ -277,7 +277,13 @@ static void set_user_temper_entry(int, int, int);
 static void init_voice_filter(int);
 void init_part_eq_xg(struct part_eq_xg *);
 void recompute_part_eq_xg(struct part_eq_xg *);
-void init_midi_controller(midi_controller *); 
+static void init_midi_controller(midi_controller *);
+static float get_midi_controller_amp(midi_controller *);
+static float get_midi_controller_filter_cutoff(midi_controller *);
+static float get_midi_controller_filter_depth(midi_controller *);
+static int32 get_midi_controller_pitch(midi_controller *);
+static int16 get_midi_controller_pitch_depth(midi_controller *);
+static int16 get_midi_controller_amp_depth(midi_controller *);
 
 #define IS_SYSEX_EVENT_TYPE(event) ((event)->type == ME_NONE || (event)->type >= ME_RANDOM_PAN || (event)->b == SYSEX_TAG)
 
@@ -528,7 +534,7 @@ static void reset_nrpn_controllers(int c)
   init_midi_controller(&(channel[c].paf)); 
   init_midi_controller(&(channel[c].cc1)); 
   init_midi_controller(&(channel[c].cc2)); 
-  /* channel[c].bend.pitch = 2; */
+  channel[c].bend.pitch = 2;
   channel[c].mod.lfo1_pitch_depth = 10;
 
   channel[c].sysex_gs_msb_addr = channel[c].sysex_gs_msb_val =
@@ -553,10 +559,10 @@ static void reset_controllers(int c)
     }
   }
 
-  channel[c].expression=127; /* SCC-1 does this. */
-  channel[c].sustain=0;
-  channel[c].pitchbend=0x2000;
-  channel[c].pitchfactor=0; /* to be computed */
+  channel[c].expression = 127; /* SCC-1 does this. */
+  channel[c].sustain = 0;
+  channel[c].pitchbend = 0x2000;
+  channel[c].pitchfactor = 0; /* to be computed */
   channel[c].modulation_wheel = 0;
   channel[c].portamento_time_lsb = 0;
   channel[c].portamento_time_msb = 0;
@@ -686,11 +692,24 @@ void recompute_freq(int v)
 		/* This instrument has vibrato. Invalidate any precomputed
 		 * sample_increments.
 		 */
-		if (voice[v].modulation_wheel > 0) {
-			voice[v].vibrato_control_ratio = play_mode->rate / 2.0
-					* MODULATION_WHEEL_RATE / VIBRATO_SAMPLE_INCREMENTS;
-			voice[v].vibrato_delay = 0;
+
+		/* MIDI controllers LFO pitch depth */
+		if (opt_channel_pressure) {
+			voice[v].vibrato_depth += get_midi_controller_pitch_depth(&(channel[ch].mod))
+				+ get_midi_controller_pitch_depth(&(channel[ch].bend))
+				+ get_midi_controller_pitch_depth(&(channel[ch].caf))
+				+ get_midi_controller_pitch_depth(&(channel[ch].paf))
+				+ get_midi_controller_pitch_depth(&(channel[ch].cc1))
+				+ get_midi_controller_pitch_depth(&(channel[ch].cc2));
+			if (voice[v].vibrato_depth > 255) {voice[v].vibrato_depth = 255;}
 		}
+		
+		if (voice[v].modulation_wheel > 0) {
+			if(voice[v].vibrato_control_ratio == 0) {
+				voice[v].vibrato_control_ratio = (int)((double)(play_mode->rate) / (5.0 * 2 * VIBRATO_SAMPLE_INCREMENTS));
+			}
+		}
+
 		for (i = 0; i < VIBRATO_SAMPLE_INCREMENTS; i++)
 			voice[v].vibrato_sample_increment[i] = 0;
 		voice[v].cache = NULL;
@@ -707,6 +726,15 @@ void recompute_freq(int v)
 			|| channel[ch].drums[note]->coarse)) {
 		tuning += (channel[ch].drums[note]->fine
 				+ channel[ch].drums[note]->coarse * 64) << 7;
+	}
+	/* MIDI controllers pitch control */
+	if (opt_channel_pressure) {
+		tuning += get_midi_controller_pitch(&(channel[ch].mod))
+			+ get_midi_controller_pitch(&(channel[ch].bend))
+			+ get_midi_controller_pitch(&(channel[ch].caf))
+			+ get_midi_controller_pitch(&(channel[ch].paf))
+			+ get_midi_controller_pitch(&(channel[ch].cc1))
+			+ get_midi_controller_pitch(&(channel[ch].cc2));
 	}
 	if (opt_modulation_envelope) {
 		if (voice[v].sample->tremolo_to_pitch)
@@ -831,9 +859,25 @@ static int32 calc_velocity(int32 ch,int32 vel)
 	return velocity;
 }
 
+static void recompute_voice_tremolo(int v)
+{
+	Voice *vp = &(voice[v]);
+	int ch = vp->channel;
+	int32 depth = vp->sample->tremolo_depth;
+	depth += get_midi_controller_amp_depth(&(channel[ch].mod))
+		+ get_midi_controller_amp_depth(&(channel[ch].bend))
+		+ get_midi_controller_amp_depth(&(channel[ch].caf))
+		+ get_midi_controller_amp_depth(&(channel[ch].paf))
+		+ get_midi_controller_amp_depth(&(channel[ch].cc1))
+		+ get_midi_controller_amp_depth(&(channel[ch].cc2));
+	if(depth > 256) {depth = 256;}
+	vp->tremolo_depth = depth;
+}
+
 static void recompute_amp(int v)
 {
 	FLOAT_T tempamp;
+	int ch = voice[v].channel;
 
 	/* master_volume and sample->volume are percentages, used to scale
 	 *  amplitude directly, NOT perceived volume
@@ -844,33 +888,33 @@ static void recompute_amp(int v)
 	if (opt_user_volume_curve) {
 	tempamp = master_volume *
 		   voice[v].sample->volume *
-		   user_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
-		   user_vol_table[channel[voice[v].channel].volume] *
-		   user_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+		   user_vol_table[calc_velocity(ch, voice[v].velocity)] *
+		   user_vol_table[channel[ch].volume] *
+		   user_vol_table[channel[ch].expression]; /* 21 bits */
 	} else if (play_system_mode == GM2_SYSTEM_MODE) {
 	tempamp = master_volume *
 		  voice[v].sample->volume *
-		  gm2_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *	/* velocity: not in GM2 standard */
-		  gm2_vol_table[channel[voice[v].channel].volume] *
-		  gm2_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+		  gm2_vol_table[calc_velocity(ch, voice[v].velocity)] *	/* velocity: not in GM2 standard */
+		  gm2_vol_table[channel[ch].volume] *
+		  gm2_vol_table[channel[ch].expression]; /* 21 bits */
 	} else if(play_system_mode == GS_SYSTEM_MODE) {	/* use measured curve */ 
 	tempamp = master_volume *
 		   voice[v].sample->volume *
-		   sc_vel_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
-		   sc_vol_table[channel[voice[v].channel].volume] *
-		   sc_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+		   sc_vel_table[calc_velocity(ch, voice[v].velocity)] *
+		   sc_vol_table[channel[ch].volume] *
+		   sc_vol_table[channel[ch].expression]; /* 21 bits */
 	} else if (IS_CURRENT_MOD_FILE) {	/* use linear curve */
 	tempamp = master_volume *
 		  voice[v].sample->volume *
-		  calc_velocity(voice[v].channel,voice[v].velocity) *
-		  channel[voice[v].channel].volume *
-		  channel[voice[v].channel].expression; /* 21 bits */
+		  calc_velocity(ch, voice[v].velocity) *
+		  channel[ch].volume *
+		  channel[ch].expression; /* 21 bits */
 	} else {	/* use generic exponential curve */
 	tempamp = master_volume *
 		  voice[v].sample->volume *
-		  perceived_vol_table[calc_velocity(voice[v].channel,voice[v].velocity)] *
-		  perceived_vol_table[channel[voice[v].channel].volume] *
-		  perceived_vol_table[channel[voice[v].channel].expression]; /* 21 bits */
+		  perceived_vol_table[calc_velocity(ch, voice[v].velocity)] *
+		  perceived_vol_table[channel[ch].volume] *
+		  perceived_vol_table[channel[ch].expression]; /* 21 bits */
 	}
 
 	/* every digital effect increases amplitude,
@@ -885,13 +929,25 @@ static void recompute_amp(int v)
 		tempamp *= 1.35f;
 
 	/* NRPN - drum instrument tva level */
-	if(ISDRUMCHANNEL(voice[v].channel)) {
-		if(channel[voice[v].channel].drums[voice[v].note] != NULL) {
-			tempamp *= channel[voice[v].channel].drums[voice[v].note]->drum_level;
+	if(ISDRUMCHANNEL(ch)) {
+		if(channel[ch].drums[voice[v].note] != NULL) {
+			tempamp *= channel[ch].drums[voice[v].note]->drum_level;
 		}
-		tempamp *= (double)opt_drum_power * 0.01f;
+		tempamp *= (double)opt_drum_power * 0.01f;	/* global drum power */
 	}
 
+	/* MIDI controllers amplitude control */
+	if(opt_channel_pressure) {
+		tempamp *= get_midi_controller_amp(&(channel[ch].mod))
+			* get_midi_controller_amp(&(channel[ch].bend))
+			* get_midi_controller_amp(&(channel[ch].caf))
+			* get_midi_controller_amp(&(channel[ch].paf))
+			* get_midi_controller_amp(&(channel[ch].cc1))
+			* get_midi_controller_amp(&(channel[ch].cc2));
+		recompute_voice_tremolo(v);
+	}
+
+	/* applying panning to amplitude */
 	if(!(play_mode->encoding & PE_MONO))
     	{
 		if(voice[v].panning == 64)
@@ -989,8 +1045,7 @@ void init_voice_filter(int i)
 void recompute_voice_filter(int v)
 {
 	int ch = voice[v].channel, note = voice[v].note;
-	double coef = 1.0, reso = 0, cent = 0;
-	int32 freq;
+	double coef = 1.0, reso = 0, cent = 0, depth_cent = 0, freq;
 	FilterCoefficients *fc = &(voice[v].fc);
 	Sample *sp = (Sample *) &voice[v].sample;
 
@@ -1003,6 +1058,22 @@ void recompute_voice_filter(int v)
 		coef *= pow(1.26, (double)(channel[ch].drums[note]->drum_cutoff_freq) / 8.0f);
 		/* NRPN Drum Instrument Filter Resonance */
 		reso += (double)channel[ch].drums[note]->drum_resonance * 0.5f;
+	}
+
+	/* MIDI controllers filter cutoff control and LFO filter depth */
+	if(opt_channel_pressure) {
+		cent += get_midi_controller_filter_cutoff(&(channel[ch].mod))
+			+ get_midi_controller_filter_cutoff(&(channel[ch].bend))
+			+ get_midi_controller_filter_cutoff(&(channel[ch].caf))
+			+ get_midi_controller_filter_cutoff(&(channel[ch].paf))
+			+ get_midi_controller_filter_cutoff(&(channel[ch].cc1))
+			+ get_midi_controller_filter_cutoff(&(channel[ch].cc2));
+		depth_cent += get_midi_controller_filter_depth(&(channel[ch].mod))
+			+ get_midi_controller_filter_depth(&(channel[ch].bend))
+			+ get_midi_controller_filter_depth(&(channel[ch].caf))
+			+ get_midi_controller_filter_depth(&(channel[ch].paf))
+			+ get_midi_controller_filter_depth(&(channel[ch].cc1))
+			+ get_midi_controller_filter_depth(&(channel[ch].cc2));
 	}
 
 	if(sp->vel_to_fc) {	/* velocity to filter cutoff frequency */
@@ -1019,8 +1090,8 @@ void recompute_voice_filter(int v)
 	}
 
 	if(opt_modulation_envelope) {
-		if(voice[v].sample->tremolo_to_fc) {
-			cent += (double)voice[v].sample->tremolo_to_fc * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT);
+		if(voice[v].sample->tremolo_to_fc + (int16)depth_cent) {
+			cent += ((double)voice[v].sample->tremolo_to_fc + depth_cent) * lookup_triangular(voice[v].tremolo_phase >> RATE_SHIFT);
 		}
 		if(voice[v].sample->modenv_to_fc) {
 			cent += (double)voice[v].sample->modenv_to_fc * voice[v].last_modenv_volume;
@@ -1034,7 +1105,7 @@ void recompute_voice_filter(int v)
 	if (freq > play_mode->rate / 2) {freq = play_mode->rate / 2;}
 	else if(freq < 5) {freq = 5;}
 	else if(freq > 20000) {freq = 20000;}
-	fc->freq = freq;
+	fc->freq = (int32)freq;
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
 	if(fc->reso_dB < 0.0f) {fc->reso_dB = 0.0f;}
@@ -1044,7 +1115,6 @@ void recompute_voice_filter(int v)
 		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
 		if(fc->reso_dB > 24.0) {fc->reso_dB = 24.0;}
 	} else if(fc->type == 2) {	/* Moog VCF */
-		/* if necessary... */
 	}
 }
 
@@ -2718,19 +2788,18 @@ static void all_sounds_off(int c)
       vidq_head[c * 128 + i] = vidq_tail[c * 128 + i] = 0;
 }
 
+/*! adjust polyphonic key pressure (PAf, PAT) */
 static void adjust_pressure(MidiEvent *e)
 {
- /*   int i, uv = upper_voices;
+    int i, uv = upper_voices;
     int note, ch;
-	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl, coef;
 
+    if(opt_channel_pressure)
+    {
 	ch = e->channel;
-	pressure = (FLOAT_T)e->b / 127.0f;
-	amp_ctl = channel[ch].caf_amp_ctl * pressure;
-	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
-	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
-	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
     note = MIDI_EVENT_NOTE(e);
+	channel[ch].paf.val = e->b;
+	if(channel[ch].paf.pitch != 0) {channel[ch].pitchfactor = 0;}
 
     for(i = 0; i < uv; i++)
     if(voice[i].status == VOICE_ON &&
@@ -2738,54 +2807,36 @@ static void adjust_pressure(MidiEvent *e)
        voice[i].note == note)
     {
 		recompute_amp(i);
-		voice[i].tremolo_depth = amp_ctl * 255;
 		apply_envelope_to_amp(i);
-		voice[i].vibrato_control_ratio *= rate_ctl1;
-		voice[i].vibrato_depth *= pitch_depth1;
 		recompute_freq(i);
-		if(opt_lpf_def && voice[i].sample->cutoff_freq) {
-			coef = channel[ch].cutoff_freq_coef;
-			channel[ch].cutoff_freq_coef *= cutoff_ctl;
-			recompute_voice_filter(i);
-			channel[ch].cutoff_freq_coef = coef;
-		}
-    }*/
+		recompute_voice_filter(i);
+    }
+	}
 }
 
+/*! adjust channel pressure (channel aftertouch, CAf, CAT) */
 static void adjust_channel_pressure(MidiEvent *e)
 {
- /*   if(opt_channel_pressure)
+    if(opt_channel_pressure)
     {
 	int i, uv = upper_voices;
 	int ch;
-	FLOAT_T pressure, amp_ctl, rate_ctl1, pitch_depth1, cutoff_ctl, coef;
 
 	ch = e->channel;
-	pressure = (FLOAT_T)e->a / 127.0f;
-	amp_ctl = channel[ch].caf_amp_ctl * pressure;
-	rate_ctl1 = channel[ch].caf_rate_ctl1 * pressure + 1.0f;
-	pitch_depth1 = channel[ch].caf_pitch_depth1 * pressure + 1.0f;
-	cutoff_ctl = channel[ch].caf_cutoff_ctl * pressure + 1.0f;
+	channel[ch].caf.val = e->a;
+	if(channel[ch].caf.pitch != 0) {channel[ch].pitchfactor = 0;}
 	  
 	for(i = 0; i < uv; i++)
 	{
 	    if(voice[i].status == VOICE_ON && voice[i].channel == ch)
 	    {
 		recompute_amp(i);
-		voice[i].tremolo_depth = amp_ctl * 255;
 		apply_envelope_to_amp(i);
-		voice[i].vibrato_control_ratio *= rate_ctl1;
-		voice[i].vibrato_depth *= pitch_depth1;
 		recompute_freq(i);
-		if(opt_lpf_def && voice[i].sample->cutoff_freq) {
-			coef = channel[ch].cutoff_freq_coef;
-			channel[ch].cutoff_freq_coef *= cutoff_ctl;
-			recompute_voice_filter(i);
-			channel[ch].cutoff_freq_coef = coef;
+		recompute_voice_filter(i);
 		}
-	    }
 	}
-    }*/
+    }
 }
 
 static void adjust_panning(int c)
@@ -3119,7 +3170,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].caf.cutoff);
 			break;
 		case 0x02:	/* CAf Amplitude Control */
-			channel[ch].caf.amp = (float)val / 64.0f;
+			channel[ch].caf.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CAf Amplitude Control (CH:%d %.2f)", ch, channel[ch].caf.amp);
 			break;
 		case 0x03:	/* CAf LFO1 Rate Control */
@@ -3165,7 +3216,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].paf.cutoff);
 			break;
 		case 0x0D:	/* PAf Amplitude Control */
-			channel[ch].paf.amp = (float)val / 64.0f;
+			channel[ch].paf.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "PAf Amplitude Control (CH:%d %.2f)", ch, channel[ch].paf.amp);
 			break;
 		case 0x0E:	/* PAf LFO1 Rate Control */
@@ -3211,7 +3262,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].mod.cutoff);
 			break;
 		case 0x18:	/* MOD Amplitude Control */
-			channel[ch].mod.amp = (float)val / 64.0f;
+			channel[ch].mod.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "MOD Amplitude Control (CH:%d %.2f)", ch, channel[ch].mod.amp);
 			break;
 		case 0x19:	/* MOD LFO1 Rate Control */
@@ -3257,7 +3308,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].bend.cutoff);
 			break;
 		case 0x23:	/* BEND Amplitude Control */
-			channel[ch].bend.amp = (float)val / 64.0f;
+			channel[ch].bend.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "BEND Amplitude Control (CH:%d %.2f)", ch, channel[ch].bend.amp);
 			break;
 		case 0x24:	/* BEND LFO1 Rate Control */
@@ -3303,7 +3354,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].cc1.cutoff);
 			break;
 		case 0x2E:	/* CC1 Amplitude Control */
-			channel[ch].cc1.amp = (float)val / 64.0f;
+			channel[ch].cc1.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC1 Amplitude Control (CH:%d %.2f)", ch, channel[ch].cc1.amp);
 			break;
 		case 0x2F:	/* CC1 LFO1 Rate Control */
@@ -3349,7 +3400,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Filter Cutoff Control (CH:%d %d cents)", ch, channel[ch].cc2.cutoff);
 			break;
 		case 0x39:	/* CC2 Amplitude Control */
-			channel[ch].cc2.amp = (float)val / 64.0f;
+			channel[ch].cc2.amp = (float)val / 64.0f - 1.0f;
 			ctl->cmsg(CMSG_INFO, VERB_NOISY, "CC2 Amplitude Control (CH:%d %.2f)", ch, channel[ch].cc2.amp);
 			break;
 		case 0x3A:	/* CC2 LFO1 Rate Control */
@@ -7688,13 +7739,43 @@ void recompute_part_eq_xg(struct part_eq_xg *p)
 	p->valid = vbass || vtreble;
 }
 
-void init_midi_controller(midi_controller *p)
+static void init_midi_controller(midi_controller *p)
 {
+	p->val = 0;
 	p->pitch = 0;
 	p->cutoff = 0;
 	p->amp = 0.0;
 	p->lfo1_rate = p->lfo2_rate = p->lfo1_tva_depth = p->lfo2_tva_depth = 0;
 	p->lfo1_pitch_depth = p->lfo2_pitch_depth = p->lfo1_tvf_depth = p->lfo2_tvf_depth = 0;
 	p->variation_control_depth = p->insertion_control_depth = 0;
-	p->valid = 0;
+}
+
+static float get_midi_controller_amp(midi_controller *p)
+{
+	return (1.0 + (float)p->val * (1.0f / 127.0f) * p->amp);
+}
+
+static float get_midi_controller_filter_cutoff(midi_controller *p)
+{
+	return ((float)p->val * (1.0f / 127.0f) * (float)p->cutoff);
+}
+
+static float get_midi_controller_filter_depth(midi_controller *p)
+{
+	return ((float)p->val * (1.0f / 127.0f) * (float)p->lfo1_tvf_depth);
+}
+
+static int32 get_midi_controller_pitch(midi_controller *p)
+{
+	return ((int32)(p->val * p->pitch) << 6);
+}
+
+static int16 get_midi_controller_pitch_depth(midi_controller *p)
+{
+	return (int16)((float)p->val * (float)p->lfo1_pitch_depth * (1.0f / 127.0f * 256.0 / 400.0));
+}
+
+static int16 get_midi_controller_amp_depth(midi_controller *p)
+{
+	return (int16)((float)p->val * (float)p->lfo1_tva_depth * (1.0f / 127.0f * 256.0));
 }

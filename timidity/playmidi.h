@@ -207,17 +207,17 @@ struct part_eq_xg {
 #endif /* PART_EQ_XG */
 
 typedef struct {
+  int16 val;
   int8 pitch;	/* in +-semitones [-24, 24] */
   int16 cutoff;	/* in +-cents [-9600, 9600] */
-  float amp;	/* in +-pct [-100.0, 100.0] */
+  float amp;	/* [-1.0, 1.0] */
   /* in GS, LFO1 means LFO for voice 1, LFO2 means LFO for voice2.
      LFO2 is not supported. */
   float lfo1_rate, lfo2_rate;	/* in +-Hz [-10.0, 10.0] */
   int16 lfo1_pitch_depth, lfo2_pitch_depth;	/* in cents [0, 600] */
   int16 lfo1_tvf_depth, lfo2_tvf_depth;	/* in cents [0, 2400] */
-  float lfo1_tva_depth, lfo2_tva_depth;	/* in pct [0, 100.0] */
+  float lfo1_tva_depth, lfo2_tva_depth;	/* [0, 1.0] */
   int8 variation_control_depth, insertion_control_depth;
-  int8 valid;
 } midi_controller;
 
 struct DrumParts
