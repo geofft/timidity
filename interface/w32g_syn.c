@@ -371,7 +371,7 @@ static int w32g_syn_main ( void )
 
 	w32g_syn.nid_uID = W32G_SYN_NID_UID;
 	w32g_syn.nid_hWnd = NULL;
-	w32g_syn.hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TWSYNG), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
+	w32g_syn.hIcon = LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON_TIMIDITY), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
 	processPriority = NORMAL_PRIORITY_CLASS;
 	syn_ThreadPriority = THREAD_PRIORITY_NORMAL;
 	for ( i = 0; i <= MAX_PORT; i ++ ) {

@@ -21,7 +21,6 @@
 #define IDD_PREF_SYN1                   127
 #define IDD_PREF_SYN1_EN                128
 #define IDD_DIALOG_PREF                 132
-#define IDI_ICON_TWSYNG                 156
 #define IDC_CHECK_SEACHDIRRECURSIVE     1001
 #define IDC_CHECK_DOCWNDINDEPENDENT     1002
 #define IDC_CHECK_INIFILE_AUTOSAVE      1003

@@ -1627,7 +1627,6 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON_TWSYNG         ICON    DISCARDABLE     "w32g_syn_icon.ico"
 IDI_ICON_TIMIDITY       ICON    DISCARDABLE     "w32g_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
