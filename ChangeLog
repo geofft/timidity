@@ -1,3 +1,10 @@
+2004-01-04  Saito <saito2@digitalme.com>
+
+	* timidity/playmidi.[ch], timidity/mix.c, timidity/sndfont.c:
+	  Fix resonance of MoogVCF.
+	  Fix around LPF.
+	  Fix around SoundFont.
+
 2004-01-03  Saito <saito2@digitalme.com>
 
 	* timidity/playmidi.c:

@@ -431,8 +431,6 @@ typedef struct {
 
   int32 delay_counter;
 
-  int8 key_pressure;
-
 #ifdef ENABLE_PAN_DELAY
   int32 pan_delay_buf[PAN_DELAY_BUF_MAX];
   int32 pan_delay_rpt, pan_delay_wpt;

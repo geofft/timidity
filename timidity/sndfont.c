@@ -65,11 +65,17 @@
  * compile flags
  *----------------------------------------------------------------*/
 
+#ifdef CFG_FOR_SF
+#define SF_SUPPRESS_ENVELOPE
+#define SF_SUPPRESS_TREMOLO
+#define SF_SUPPRESS_VIBRATO
+#else
 /*#define SF_CLOSE_EACH_FILE*/
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
 /*#define SF_EMULATE_SBLIVE*/
+#endif /* CFG_FOR_SF */
 
 /* return value */
 #define AWE_RET_OK		0	/* successfully loaded */
@@ -1147,8 +1153,8 @@ static int make_patch(SFInfo *sf, int pridx, LayerTable *tbl)
     if(bank == 128) {
 		if(tbl->set[SF_keynum]) {
 			sp->v.note_to_use = (int)tbl->val[SF_keynum];
-		} else {
-			sp->v.note_to_use = keynote;
+		} else if(tbl->set[SF_rootKey]) {
+			sp->v.note_to_use = (int)tbl->val[SF_rootKey];
 		}
 	}
     make_info(sf, sp, tbl);
@@ -1455,8 +1461,9 @@ static void set_rootkey(SFInfo *sf, SampleList *vp, LayerTable *tbl)
     }
 
     /* orverride root key */
-    if(tbl->set[SF_rootKey])
-	vp->root += (int)tbl->val[SF_rootKey] - sp->originalPitch;
+    if(tbl->set[SF_rootKey]) {
+		vp->root += (int)tbl->val[SF_rootKey] - sp->originalPitch;
+	}
 
     vp->tune += (int)tbl->val[SF_coarseTune] * 100 +
 	(int)tbl->val[SF_fineTune];

@@ -238,7 +238,7 @@ static inline void recalc_voice_resonance(int v)
 			fc->q = TIM_FSCALE(q, 24);
 			if(fc->q <= 0) {fc->q = 1;}	/* must never be 0. */
 		} else if(fc->type == 2) {
-			fc->reso_lin = pow(10, (fc->reso_dB - 96) / 20);
+			fc->reso_lin = log(fc->reso_dB) * 0.065833333f + 0.673103862f;
 		}
 		fc->last_freq = -1;
 	}
@@ -1615,7 +1615,7 @@ static inline void update_tremolo(int v)
 {
 	Voice *vp = &voice[v];
 	int32 depth = vp->tremolo_depth << 7;
-	
+
 	if(vp->tremolo_delay > 0)
 	{
 		vp->tremolo_delay -= vp->delay_counter;

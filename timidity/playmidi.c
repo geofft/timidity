@@ -1083,12 +1083,14 @@ void init_voice_filter(int i)
   if(opt_lpf_def && voice[i].sample->cutoff_freq) {
 	  voice[i].fc.orig_freq = voice[i].sample->cutoff_freq;
 	  voice[i].fc.orig_reso_dB = (double)voice[i].sample->resonance / 10.0f;
-	  if(opt_lpf_def == 1) {voice[i].fc.type = 1;}
-	  else if(opt_lpf_def == 2) {voice[i].fc.type = 2;}
+	  if(opt_lpf_def == 2 || opt_effect_quality >= 3) {voice[i].fc.type = 2;}
+	  else if(opt_lpf_def == 1) {voice[i].fc.type = 1;}
   } else {
 	  voice[i].fc.type = 0;
   }
 }
+
+#define CHAMBERLIN_RESONANCE_MAX 24.0
 
 void recompute_voice_filter(int v)
 {
@@ -1098,7 +1100,6 @@ void recompute_voice_filter(int v)
 	Sample *sp = (Sample *) &voice[v].sample;
 
 	if(fc->type == 0) {return;}
-
 	coef = channel[ch].cutoff_freq_coef;
 
 	if(ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL) {
@@ -1161,7 +1162,7 @@ void recompute_voice_filter(int v)
 
 	if(fc->type == 1) {	/* Chamberlin filter */
 		if(fc->freq > play_mode->rate / 6) {fc->type = 0;}	/* turn off. */ 
-		if(fc->reso_dB > 24.0) {fc->reso_dB = 24.0;}
+		if(fc->reso_dB > CHAMBERLIN_RESONANCE_MAX) {fc->reso_dB = CHAMBERLIN_RESONANCE_MAX;}
 	} else if(fc->type == 2) {	/* Moog VCF */
 	}
 }
