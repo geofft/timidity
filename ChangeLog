@@ -1,7 +1,12 @@
+2003-10-11  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Fix temperament control to fit with channel layer
+
 2003-10-10  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/readmidi.c:
-	  Fix around channel layer
+	  Fix around channel layer (GS - maybe completed)
 
 2003-10-08  Takashi Iwai <tiwai@suse.de>
 
@@ -34,7 +39,7 @@
 2003-10-07  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/readmidi.[ch]:
-	  Fix around channel layer
+	  Fix around channel layer (to be continued)
 	* timidity/newton_table.c: move to configs/msc-project.zip
 
 2003-10-07  Saito <saito2@digitalme.com>
@@ -54,12 +59,12 @@
 2003-10-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/readmidi.c:
-	  Fix around channel layer
+	  Fix around channel layer (to be continued)
 
 2003-10-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.[ch], timidity/readmidi.[ch]:
-	  Hack up around channel layer
+	  Hack up around channel layer (to be continued)
 	* timidity/timidity.c:
 	  Rewrite help a little
 	  Rename --effects -> --ext

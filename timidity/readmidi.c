@@ -613,7 +613,7 @@ static int block_to_part(int block, int port)
 int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 {
     int num_events = 0;				/* Number of events added */
-	uint16 channel_tt;
+	uint32 channel_tt;
 	int i, j;
 
     if(current_file_info->mid == 0 || current_file_info->mid >= 0x7e)
@@ -1609,8 +1609,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 		case 0x08:	/* MIDI Tuning Standard */
 			switch (val[3]) {
 			case 0x01:
-				SETMIDIEVENT(evm[0], 0, ME_BULK_TUNING_DUMP,
-						0, val[4], 0);
+				SETMIDIEVENT(evm[0], 0, ME_BULK_TUNING_DUMP, 0, val[4], 0);
 				for (i = 0; i < 128; i++) {
 					SETMIDIEVENT(evm[i * 2 + 1], 0, ME_BULK_TUNING_DUMP,
 							1, i, val[i * 3 + 21]);
@@ -1631,17 +1630,18 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 				num_events += val[5] * 2 + 1;
 				break;
 			case 0x0b:
-				channel_tt = val[4] << 14 | val[5] << 7 | val[6];
+				channel_tt = ((val[4] & 0x03) << 14 | val[5] << 7 | val[6])
+						<< ((val[4] >> 2) * 16);
 				if (val[1] == 0x7f) {
 					SETMIDIEVENT(evm[0], 0, ME_MASTER_TEMPER_TYPE,
-							0, val[7], (val[0] == 0x7f) ? 1 : 0);
+							0, val[7], (val[0] == 0x7f));
 					num_events++;
 				} else {
-					for (i = 0, j = 0; i < 16; i++)
+					for (i = j = 0; i < MAX_CHANNELS; i++)
 						if (channel_tt & 1 << i) {
 							SETMIDIEVENT(evm[j], 0, ME_TEMPER_TYPE,
 									MERGE_CHANNEL_PORT(i),
-									val[7], (val[0] == 0x7f) ? 1 : 0);
+									val[7], (val[0] == 0x7f));
 							j++;
 						}
 					num_events += j;
@@ -1922,8 +1922,7 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 			switch (val[3]) {
 			case 0x0a:
 				SETMIDIEVENT(*ev, 0, ME_TEMPER_KEYSIG, 0,
-						val[4] - 0x40 + val[5] * 16,
-						(val[0] == 0x7f) ? 1 : 0);
+						val[4] - 0x40 + val[5] * 16, (val[0] == 0x7f));
 				return 1;
 			}
 			break;

@@ -99,9 +99,6 @@ enum midi_event_t
 	ME_SCALE_TUNING,		/* Scale tuning */
 	ME_BULK_TUNING_DUMP,	/* Bulk tuning dump */
 	ME_SINGLE_NOTE_TUNING,	/* Single-note tuning */
-	ME_TEMPER_KEYSIG,		/* Temperament key signature */
-	ME_TEMPER_TYPE,			/* Temperament type */
-	ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
 	ME_RANDOM_PAN,
 	ME_SET_PATCH,			/* Install special instrument */
 	ME_DRUMPART,
@@ -125,6 +122,9 @@ enum midi_event_t
 	
 	ME_TIMESIG,				/* Time signature */
 	ME_KEYSIG,				/* Key signature */
+	ME_TEMPER_KEYSIG,		/* Temperament key signature */
+	ME_TEMPER_TYPE,			/* Temperament type */
+	ME_MASTER_TEMPER_TYPE,	/* Master Temperament type */
 	
 	ME_SYSEX_LSB,			/* Universal system exclusive message (LSB) */
 	ME_SYSEX_MSB,			/* Universal system exclusive message (MSB) */
