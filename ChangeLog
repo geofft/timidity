@@ -1,3 +1,11 @@
+2003-06-26  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (reduce_voice_CPU): Bug fix
+
+	* timidity/playmidi.c (note_off): rx_note_off == 0 should only
+	  ignore drum Note Off if the sample is not looped, otherwise the
+	  note will get stuck
+
 2003-06-24  mput <root@mput.dip.jp>
 
 	* bootstrap.sh, autoconf/Makefile.boot : Deleted.
