@@ -588,20 +588,26 @@ static Instrument *load_from_file(SFInsts *rec, InstList *ip)
 		sample->envelope_offset[0] = to_offset(255);
 		sample->envelope_rate[0] = calc_rate(255, sp->attack);
 
-		sample->envelope_offset[1] = to_offset(250);
-		sample->envelope_rate[1] = calc_rate(5, sp->hold);
+		sample->envelope_offset[1] = to_offset(/*250*/254);
+		sample->envelope_rate[1] = calc_rate(/*5*/1, sp->hold);
 
 		sample->envelope_offset[2] = to_offset(sp->sustain);
-		sample->envelope_rate[2] = calc_rate(250 - sp->sustain, sp->decay);
+		sample->envelope_rate[2] = calc_rate(255/*250 - sp->sustain*/, sp->decay);
 
-		sample->envelope_offset[3] = to_offset(5);
+		sample->envelope_offset[3] = 0/*to_offset(5)*/;
 		sample->envelope_rate[3] = calc_rate(255, sp->release);
 
-		sample->envelope_offset[4] = to_offset(4);
+		sample->envelope_offset[4] = 0;
+		sample->envelope_rate[4] = sample->envelope_rate[3];
+
+		sample->envelope_offset[5] = 0;
+		sample->envelope_rate[5] = sample->envelope_rate[3];
+
+/*		sample->envelope_offset[4] = to_offset(4);
 		sample->envelope_rate[4] = to_offset(200);
 
 		sample->envelope_offset[5] = to_offset(4);
-		sample->envelope_rate[5] = to_offset(200);
+		sample->envelope_rate[5] = to_offset(200);*/
 
 #if 0
 		sample->envelope_offset[3] = to_offset(1);
@@ -1325,6 +1331,13 @@ static void set_init_info(SFInfo *sf, SampleList *vp, LayerTable *tbl)
 		vp->v.panning = 0;
 	} else if(sample->sampletype == 8) {	/* linkedSample = 8 */
 		ctl->cmsg(CMSG_ERROR,VERB_NOISY,"error: linkedSample is not supported.");
+	}
+
+	if(tbl->set[SF_autoHoldEnv2]) {
+		vp->v.envelope_keyf[1] = (FLOAT_T)tbl->val[SF_autoHoldEnv2] / 1200.0f;
+	}
+	if(tbl->set[SF_autoDecayEnv2]) {
+		vp->v.envelope_keyf[2] = (FLOAT_T)tbl->val[SF_autoDecayEnv2] / 1200.0f;
 	}
 
 #if 0 /* Not supported */

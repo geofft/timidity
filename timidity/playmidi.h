@@ -214,6 +214,7 @@ typedef struct {
 
   /* For RPN */
   uint8 rpnmap[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
+  uint8 rpnmap2[RPN_MAX_DATA_ADDR]; /* pseudo RPN address map */
   uint8 lastlrpn, lastmrpn;
   int8  nrpn; /* 0:RPN, 1:NRPN, -1:Undefined */
   int rpn_7f7f_flag;		/* Boolean flag used for RPN 7F/7F */

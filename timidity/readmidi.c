@@ -992,14 +992,16 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				case 0x1A:	/* Velocity Sense Depth */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x21);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x21,0);
+					num_events += 4;
 					break;
 				case 0x1B:	/* Velocity Sense Offset */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x22);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x22,0);
+					num_events += 4;
 					break;
 				case 0x1C:
 					if (val[7] == 0) {
@@ -1123,166 +1125,193 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				case 0x30:	/* Reverb Macro */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x05);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x05,0);
+					num_events += 4;
 					break;
 				case 0x31:	/* Reverb Character */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x06);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x06,0);
+					num_events += 4;
 					break;
 				case 0x32:	/* Reverb Pre-LPF */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x07);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0)
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x07,0);
+					num_events += 4;
 					break;
 				case 0x33:	/* Reverb Level */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x08);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x08,0);
+					num_events += 4;
 					break;
 				case 0x34:	/* Reverb Time */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x09);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x09,0);
+					num_events += 4;
 					break;
 				case 0x35:	/* Reverb Delay Feedback */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x0A);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x0A,0);
+					num_events += 4;
 					break;
 				case 0x36:	/* Unknown Reverb Parameter */
 					break;
 				case 0x37:	/* Reverb Predelay Time */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x0C);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x0C,0);
+					num_events += 4;
 					break;
 				case 0x38:	/* Chorus Macro */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x0D);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x0D,0);
+					num_events += 4;
 					break;
 				case 0x39:	/* Chorus Pre-LPF */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x0E);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x0E,0);
+					num_events += 4;
 					break;
 				case 0x3A:	/* Chorus Level */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x0F);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x0F,0);
+					num_events += 4;
 					break;
 				case 0x3B:	/* Chorus Feedback */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x10);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x10,0);
+					num_events += 4;
 					break;
 				case 0x3C:	/* Chorus Delay */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x11);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x11,0);
+					num_events += 4;
 					break;
 				case 0x3D:	/* Chorus Rate */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x12);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x12,0);
+					num_events += 4;
 					break;
 				case 0x3E:	/* Chorus Depth */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x13);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x13,0);
+					num_events += 4;
 					break;
 				case 0x3F:	/* Chorus Send Level to Reverb */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x14);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x14,0);
+					num_events += 4;
 					break;
 				case 0x40:	/* Chorus Send Level to Delay */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x15);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x15,0);
+					num_events += 4;
 					break;
 				case 0x50:	/* Delay Macro */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x16);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x16,0);
+					num_events += 4;
 					break;
 				case 0x51:	/* Delay Pre-LPF */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x17);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x17,0);
+					num_events += 4;
 					break;
 				case 0x52:	/* Delay Time Center */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x18);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x18,0);
+					num_events += 4;
 					break;
 				case 0x53:	/* Delay Time Ratio Left */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x19);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x19,0);
+					num_events += 4;
 					break;
 				case 0x54:	/* Delay Time Ratio Right */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1A);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1A,0);
+					num_events += 4;
 					break;
 				case 0x55:	/* Delay Level Center */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1B);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1B,0);
+					num_events += 4;
 					break;
 				case 0x56:	/* Delay Level Left */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1C);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1C,0);
+					num_events += 4;
 					break;
 				case 0x57:	/* Delay Level Right */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1D);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1D,0);
+					num_events += 4;
 					break;
 				case 0x58:	/* Delay Level */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1E);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1E,0);
+					num_events += 4;
 					break;
 				case 0x59:	/* Delay Feedback */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x1F);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x1F,0);
+					num_events += 4;
 					break;
 				case 0x5A:	/* Delay Send Level to Reverb */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x20);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x20,0);
+					num_events += 4;
 					break;
 				default:
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
@@ -1293,26 +1322,30 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				case 0x00:	/* EQ LOW FREQ */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x01);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x01,0);
+					num_events += 4;
 					break;
 				case 0x01:	/* EQ LOW GAIN */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x02);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x02,0);
+					num_events += 4;
 					break;
 				case 0x02:	/* EQ HIGH FREQ */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x03);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x03,0);
+					num_events += 4;
 					break;
 				case 0x03:	/* EQ HIGH GAIN */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x04);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x04,0);
+					num_events += 4;
 					break;
 				default:
 					ctl->cmsg(CMSG_INFO,VERB_NOISY,"Unsupported GS SysEx. (ADDR:%02X %02X %02X VAL:%02X %02X)",val[4],val[5],val[6],val[7],val[8]);
@@ -1461,8 +1494,9 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *ev, int32 at)
 				case 0x20:	/* EQ ON/OFF */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x30,0);
 					MIDIEVENT(at,ME_NRPN_LSB,p,0x00,0);
-					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0x00);
-					num_events += 3;
+					MIDIEVENT(at,ME_DATA_ENTRY_MSB,p,val[7],0);
+					MIDIEVENT(at,ME_DATA_ENTRY_LSB,p,0x00,0);
+					num_events += 4;
 					break;
 				case 0x22:	/* EFX ON/OFF */
 					MIDIEVENT(at,ME_NRPN_MSB,p,0x31,0);

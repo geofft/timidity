@@ -46,7 +46,10 @@ typedef struct _Sample {
     modes, data_alloced,
     low_vel, high_vel;
   int16 cutoff_freq,resonance;
-  double resonance_dB;
+  FLOAT_T resonance_dB;
+  int32
+    mod_envelope_rate[6], mod_envelope_offset[6];
+  FLOAT_T envelope_keyf[6], envelope_velf[6];
 } Sample;
 
 /* Bits in modes: */

@@ -1046,7 +1046,9 @@ static inline int next_stage(int v)
 	FLOAT_T tmp;
 	Voice *vp = &voice[v];
 	
-	stage = vp->envelope_stage++;
+	stage = vp->envelope_stage;
+	vp->envelope_stage++;
+
 	offset = vp->sample->envelope_offset[stage];
 	if (vp->envelope_volume == offset
 			|| stage > 2 && vp->envelope_volume < offset)
@@ -1054,15 +1056,19 @@ static inline int next_stage(int v)
 	ch = vp->channel;
 	tmp = vp->sample->envelope_rate[stage];
 	if (vp->sample->modes & MODES_ENVELOPE) {
-/*		if (stage == 1 && channel[ch].env_velf) {
-			tmp *= pow((double)channel[ch].env_velf / 64.0f + 1.0f,(double)voice[v].velocity / 127.0f);
-		}*/
 		if (ISDRUMCHANNEL(ch))
 			val = (channel[ch].drums[vp->note] != NULL)
 					? channel[ch].drums[vp->note]->drum_envelope_rate[stage]
 					: -1;
-		else
+		else {
+			if (vp->sample->envelope_keyf[stage]) {
+				tmp *= pow(2.0f,((double)voice[v].note - 60.0f) * vp->sample->envelope_keyf[stage]);
+			}
+			if (vp->sample->envelope_velf[stage]) {
+				tmp *= pow(2.0f,((double)voice[v].velocity - 64.0f) * vp->sample->envelope_velf[stage]);
+			}
 			val = channel[ch].envelope_rate[stage];
+		}
 		if (val != -1)
 			tmp *= envelope_coef[val & 0x7f];
 		if (tmp > ((stage < 2) ? 4 : 2) * 0x10000000)
