@@ -4616,7 +4616,7 @@ __attribute__((noreturn))
 static inline int parse_opt_v(const char *arg)
 {
 	const char *version_list[] = {
-#if defined(__BORLANDC__) || defined(__MRC__)
+#if defined(__BORLANDC__) || defined(__MRC__) || defined(__WATCOMC__)
 		"TiMidity++ ",
 				"",
 				NULL, NLS,

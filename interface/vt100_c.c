@@ -42,6 +42,10 @@
 #include <sys/time.h>
 #endif /* HAVE_SYS_TIME_H */
 
+#ifdef __W32__
+#include <windows.h>
+#endif
+
 #include "timidity.h"
 #include "common.h"
 #include "instrum.h"

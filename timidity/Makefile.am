@@ -224,6 +224,24 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/utils/utils.lib \
 	$(W32GUI_RES)
 else
+if WATCOM
+timidity_LDADD = \
+      interface.lib \
+      arc.lib \
+      unimod.lib \
+      utils.lib
+WATCOM_LINK_OPTIONS = \
+      LIBPath ..\\interface \
+      LibPath ..\\libarc \
+      LibPath ..\\libunimod \
+      LibPath ..\\utils
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+else
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/interface/libinterface.a \
@@ -239,7 +257,7 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/utils/libutils.a \
 	$(W32GUI_RES)
 endif
-
+endif
 endif
 
 if VCPP
@@ -268,12 +286,27 @@ calcnewt.$(OBJEXT): calcnewt.c
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
 	$(CCLD) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
+else
+
+if WATCOM
+WATCOM_LINK = wlink.exe 
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+	@rm -f timidity$(EXEEXT)
+	$(WATCOM_LINK) $(WATCOM_LDFLAGS) `for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)); do echo "File $$foo "; done;` Name $@ `for foo in  $(timidity_LDADD) $(LIBS); do echo "Library $$foo"; done;` $(WATCOM_LINK_OPTIONS)  `if test x$(W32GUI_RES) != x ; then  echo Option RESource=$(W32GUI_RES); fi;`
+calcnewt.$(OBJEXT): calcnewt.c
+	$(CCLD)  -c calcnewt.c
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+	@rm -f calcnewt$(EXEEXT)
+	$(WATCOM_LINK) File calcnewt.$(OBJEXT) Name $@
+endif
+
 endif
 
 endif
 
 version.$(OBJEXT): version.c ../configure
-	$(CC) $(CFLAGS) -DTIMID_VERSION=\"$(VERSION)\" -c $(srcdir)/version.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(CFLAGS) -c $(srcdir)/version.c
 
 resample.c: newton_table.c
 
@@ -282,9 +315,15 @@ newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt $@
 
 else
+if WATCOM
 newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt > $@
 
+else
+newton_table.c: calcnewt$(EXEEXT)
+	./calcnewt > $@
+
+endif
 endif
 
 $(top_builddir)/interface/libinterface.a $(W32GUI_RES):

@@ -25,7 +25,7 @@
 #ifndef __TMDY_GETOPT_H__
 #define __TMDY_GETOPT_H__
 
-#ifdef HAVE_UNISTD_H
+#if defined(HAVE_UNISTD_H) && !defined(__WATCOMC__)
 /* getopt() declaration here */
 #include <unistd.h>
 #else

@@ -1001,7 +1001,7 @@ static int __stdcall MPGEthread(void)
 	MPGE_getVersion(&gogo_vercode,gogo_verstring);
 	ctl->cmsg(CMSG_INFO, VERB_NORMAL, "Gogo: %s", gogo_verstring);
 	memset(&mcp_inpdev_userfunc,0,sizeof(struct MCP_INPDEV_USERFUNC));
-	mcp_inpdev_userfunc.pUserFunc = gogoUserFunc;
+	mcp_inpdev_userfunc.pUserFunc = (MPGE_USERFUNC)gogoUserFunc;
 	mcp_inpdev_userfunc.nSize = MC_INPDEV_MEMORY_NOSIZE;
 	mcp_inpdev_userfunc.nBit = (dpm.encoding & PE_16BIT) ? 16 : 8;
 	mcp_inpdev_userfunc.nFreq = dpm.rate;

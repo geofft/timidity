@@ -121,12 +121,12 @@ typedef unsigned long uint32;
 typedef          long long  int64;
 typedef unsigned long long uint64;
 #define TIMIDITY_HAVE_INT64 1
-#elif _MSC_VER
+#elif defined(_MSC_VER) && !defined(__WATCOMC__)
 /* VC++. */
 typedef          _int64  int64;
 typedef unsigned _int64 uint64;
 #define TIMIDITY_HAVE_INT64 1
-#elif __BORLANDC__
+#elif defined(__BORLANDC__) || defined(__WATCOMC__)
 typedef 	__int64 int64;
 typedef unsigned __int64 uint64;
 #define TIMIDITY_HAVE_INT64 1
@@ -349,7 +349,7 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #undef MAIL_NAME
 #endif /* __W32__ */
 
-#ifdef __BORLANDC__
+#if defined(__BORLANDC__) || defined(__WATCOMC__)
 /* strncasecmp() -> strncmpi(char *,char *,size_t) */
 //#define strncasecmp(a,b,c) strncmpi(a,b,c)
 //#define strcasecmp(a,b) strcmpi(a,b)
@@ -357,7 +357,7 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #define strcasecmp(a,b) stricmp(a,b)
 #endif /* __BORLANDC__ */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__WATCOMC__)
 #define strncasecmp(a,b,c)	_strnicmp((a),(b),(c))
 #define strcasecmp(a,b)		_stricmp((a),(b))
 #define open _open

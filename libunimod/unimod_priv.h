@@ -34,12 +34,14 @@ extern "C"
 {
 #endif
 
-#ifdef HAVE_MALLOC_H
+#if defined(HAVE_MALLOC_H) && !defined(_MSC_VER) && !defined(__BORLANDC__) && !defined(__WATCOMC__)
 #include <malloc.h>
 #endif
 #include <stdarg.h>
 #if defined(__OS2__)||defined(__EMX__)||defined(__W32__)
+#ifndef strcasecmp
 #define strcasecmp(s,t) stricmp(s,t)
+#endif
 #endif
 
 #include "unimod.h"

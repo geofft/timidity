@@ -149,7 +149,7 @@ tmdy_mkstemp(char *tmpl)
     v /= 62;
     XXXXXX[5] = letters[v % 62];
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__WATCOMC__)
 #define S_IRUSR 0
 #define S_IWUSR 0
 #endif
