@@ -1,6 +1,6 @@
 2003-09-29  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity/playmidi.c, timidity/readmidi.c:
+	* timidity/playmidi.[ch], timidity/readmidi.c:
 	  Hack up around channel layer
 
 2003-09-26  Kentaro Sato <kentaro@ranvis.com>
