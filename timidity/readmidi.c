@@ -4554,6 +4554,8 @@ void recompute_insertion_effect()
 	void *info;
 
 	free_effect_list(st->ef);
+	st->ef = NULL;
+
 	switch(st->type) {
 	case 0x0110: /* Overdrive */
 		info = conv_gs_ie_to_eq2(st);
