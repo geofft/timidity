@@ -996,7 +996,7 @@ if test "x$au_enable_esd" = xyes; then
     EXTRADEFS="$EXTRADEFS -DAU_ESD"
     SYSEXTRAS="$SYSEXTRAS esd_a.c"
     EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$ESD_CFLAGS)
-    LIBS="$LIBS"
+    LIBS="$LIBS $ESD_LIBS"
   else
     AC_MSG_WARN(EsounD: Couldn't configure)
   fi

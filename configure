@@ -11836,7 +11836,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     esac
 done
 
-    LIBS="$LIBS"
+    LIBS="$LIBS $ESD_LIBS"
   else
     { echo "$as_me:$LINENO: WARNING: EsounD: Couldn't configure" >&5
 echo "$as_me: WARNING: EsounD: Couldn't configure" >&2;}
