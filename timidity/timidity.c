@@ -5445,7 +5445,7 @@ static int CoInitializeOK = 0;
 /* Cygwin or Console */
 int __cdecl main(int argc, char **argv)
 #else
-/* _MSC_VER, _BORLANDC_ */
+/* _MSC_VER, _BORLANDC_, __WATCOMC__ */
 int win_main(int argc, char **argv)
 #endif
 #else /* UNIX */

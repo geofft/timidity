@@ -121,7 +121,7 @@ typedef unsigned long uint32;
 typedef          long long  int64;
 typedef unsigned long long uint64;
 #define TIMIDITY_HAVE_INT64 1
-#elif defined(_MSC_VER) && !defined(__WATCOMC__)
+#elif defined(_MSC_VER) 
 /* VC++. */
 typedef          _int64  int64;
 typedef unsigned _int64 uint64;
@@ -357,7 +357,7 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #define strcasecmp(a,b) stricmp(a,b)
 #endif /* __BORLANDC__ */
 
-#if defined(_MSC_VER) && !defined(__WATCOMC__)
+#if defined(_MSC_VER)
 #define strncasecmp(a,b,c)	_strnicmp((a),(b),(c))
 #define strcasecmp(a,b)		_stricmp((a),(b))
 #define open _open

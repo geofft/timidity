@@ -47,7 +47,7 @@ typedef struct argc_argv_t_ {
 	char **argv;
 } argc_argv_t;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 //typedef void (__cdecl *MSVC_BEGINTHREAD_START_ADDRESS)(void *);
 typedef LPTHREAD_START_ROUTINE MSVC_BEGINTHREAD_START_ADDRESS;
 #elif defined(_BORLANDC_)
@@ -58,7 +58,7 @@ typedef LPTHREAD_START_ROUTINE BCC_BEGINTHREAD_START_ADDRESS;
 // beginthread for C RUNTIME LIBRARY
 
 // HANDLE crt_beginthread(LPTHREAD_START_ROUTINE start_address, DWORD stack_size, LPVOID arglist);
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 #define crt_beginthread(start_address,stack_size,arglist) \
 (HANDLE)_beginthread((MSVC_BEGINTHREAD_START_ADDRESS)start_address,(unsigned)stack_size,(void *)arglist)
 #elif defined(_BORLANDC_)
@@ -70,7 +70,7 @@ typedef LPTHREAD_START_ROUTINE BCC_BEGINTHREAD_START_ADDRESS;
 #endif
 
 // (HANDLE)crt_beginthreadex(LPSECURITY_ATTRIBUTES security, DWORD stack_size, LPTHREAD_START_ROUTINE start_address, LPVOID arglist, DWORD initflag, LPDWORD thrdaddr );
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 #define crt_beginthreadex(security,stack_size,start_address,arglist,initflag,thrdaddr ) \
 (HANDLE)_beginthreadex((void *)security,(unsigned)stack_size,(MSVC_BEGINTHREAD_START_ADDRESS)start_address,(void *)arglist,(unsigned)initflag,(unsigned *)thrdaddr)
 #elif defined(_BORLANDC_)
@@ -81,7 +81,7 @@ typedef LPTHREAD_START_ROUTINE BCC_BEGINTHREAD_START_ADDRESS;
 (HANDLE)CreateThread((LPSECURITY_ATTRIBUTES)security,(DWORD)stack_size,(LPTHREAD_START_ROUTINE)start_address,(LPVOID)arglist,(DWORD)initflag,(LPDWORD)thrdaddr)
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 #define crt_endthread() _endthread()
 #elif defined(_BORLANDC_)
 #define crt_endthread() _endthread()

@@ -94,7 +94,7 @@ PlayMode dpm = {
 static char *tag_title = NULL;
 
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 //typedef void (__cdecl *MSVC_BEGINTHREAD_START_ADDRESS)(void *);
 typedef LPTHREAD_START_ROUTINE MSVC_BEGINTHREAD_START_ADDRESS;
 #elif defined(_BORLANDC_)
@@ -102,7 +102,7 @@ typedef LPTHREAD_START_ROUTINE MSVC_BEGINTHREAD_START_ADDRESS;
 typedef LPTHREAD_START_ROUTINE BCC_BEGINTHREAD_START_ADDRESS;
 #endif
 // (HANDLE)crt_beginthreadex(LPSECURITY_ATTRIBUTES security, DWORD stack_size, LPTHREAD_START_ROUTINE start_address, LPVOID arglist, DWORD initflag, LPDWORD thrdaddr );
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 #define crt_beginthreadex(security,stack_size,start_address,arglist,initflag,thrdaddr ) \
 (HANDLE)_beginthreadex((void *)security,(unsigned)stack_size,(MSVC_BEGINTHREAD_START_ADDRESS)start_address,(void *)arglist,(unsigned)initflag,(unsigned *)thrdaddr)
 #elif defined(_BORLANDC_)
