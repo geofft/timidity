@@ -1484,44 +1484,67 @@ int recompute_envelope(int v)
 		voice_ran_out(v);
 		return 1;
 	}
-	/* EAW -- Routine to decay the sustain envelope
+
+	/* Routine to decay the sustain envelope
 	 *
 	 * Disabled if !min_sustain_time.
-	 * min_sustain_time is given in msec, and is the time
-	 *  it will take to decay a note at maximum volume.
+	 * min_sustain_time is given in msec, and is the minimum
+	 *  time it will take to decay a note to zero.
 	 * 2000-3000 msec seem to be decent values to use.
-	 *
-	 * 08/24/00 changed behavior to not begin the decay until
-	 *  after the sample plays past it's loop start
-	 *
 	 */
 	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
-			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+	    && vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+
+		int32 new_rate;
+			
 		ch = vp->channel;
-		/* Default behavior */
-		if (min_sustain_time <= 0 && channel[ch].loop_timeout <= 0)
-			/* Freeze envelope until note turns off */
-			vp->envelope_increment = 0;
-		else {
+
+		/* Don't adjust the current rate if VOICE_ON */
+		if (vp->status & VOICE_ON)
+			return 0;
+		
+		if (min_sustain_time > 0 || channel[ch].loop_timeout > 0) {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return next_stage(v);
-			if (channel[ch].loop_timeout * 1000 > min_sustain_time) {
-				sustain_time = min_sustain_time;
-			} else {
+
+			if (channel[ch].loop_timeout > 0 &&
+			    channel[ch].loop_timeout * 1000 < min_sustain_time) {
 				/* timeout (See also "#extension timeout" line in *.cfg file */
 				sustain_time = channel[ch].loop_timeout * 1000;
 			}
-			if (channel[ch].sostenuto == 0) {
+			else {
+				sustain_time = min_sustain_time;
+			}
+
+			/* Sustain must not be 0 or else lots of dead notes! */
+			if (channel[ch].sostenuto == 0 &&
+			    channel[ch].sustain > 0) {
 				sustain_time *= (double)channel[ch].sustain / 127.0f;
 			}
-			/* Calculate the release phase speed. */
-			envelope_width = sustain_time * play_mode->rate
-				/ (1000.0f * (double)control_ratio);
 
-			vp->envelope_increment = -1;
-			vp->envelope_target = vp->envelope_volume - envelope_width;
-			if (vp->envelope_target < 0) {vp->envelope_target = 0;}
+			/* Calculate the width of the envelope */
+			envelope_width = sustain_time * play_mode->rate
+					 / (1000.0f * (double)control_ratio);
+
+			vp->envelope_target = 0;
+			new_rate = vp->envelope_volume / envelope_width;
+
+			/* Use the Release1 rate if slower than new rate */
+			if (vp->sample->envelope_rate[EG_GUS_RELEASE1] &&
+			    vp->sample->envelope_rate[EG_GUS_RELEASE1] < new_rate)
+			        new_rate = vp->sample->envelope_rate[EG_GUS_RELEASE1];
+
+			/* Use the Sustain rate if slower than new rate */
+			if (vp->sample->envelope_rate[EG_GUS_SUSTAIN] &&
+			    vp->sample->envelope_rate[EG_GUS_SUSTAIN] < new_rate)
+			        new_rate = vp->sample->envelope_rate[EG_GUS_SUSTAIN];
+
+			/* Avoid freezing */
+			if (!new_rate)
+				new_rate = 1;
+			
+			vp->envelope_increment = -new_rate;
 		}
 		return 0;
 	}
@@ -1896,33 +1919,66 @@ int recompute_modulation_envelope(int v)
 		return 1;
 	}
 
+	/* Routine to decay the sustain envelope
+	 *
+	 * Disabled if !min_sustain_time.
+	 * min_sustain_time is given in msec, and is the minimum
+	 *  time it will take to decay a note to zero.
+	 * 2000-3000 msec seem to be decent values to use.
+	 */
 	if (stage == EG_GUS_RELEASE1 && vp->sample->modes & MODES_ENVELOPE
-			&& vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+	    && vp->status & (VOICE_ON | VOICE_SUSTAINED)) {
+
+		int32 new_rate;
+			
 		ch = vp->channel;
-		/* Default behavior */
-		if (min_sustain_time <= 0 && channel[ch].loop_timeout <= 0)
-			/* Freeze envelope until note turns off */
-			vp->modenv_increment = 0;
-		else {
+
+		/* Don't adjust the current rate if VOICE_ON */
+		if (vp->status & VOICE_ON)
+			return 0;
+		
+		if (min_sustain_time > 0 || channel[ch].loop_timeout > 0) {
 			if (min_sustain_time == 1)
 				/* The sustain stage is ignored. */
 				return modenv_next_stage(v);
-			if (channel[ch].loop_timeout * 1000 > min_sustain_time) {
-				sustain_time = min_sustain_time;
-			} else {
+
+			if (channel[ch].loop_timeout > 0 &&
+			    channel[ch].loop_timeout * 1000 < min_sustain_time) {
 				/* timeout (See also "#extension timeout" line in *.cfg file */
 				sustain_time = channel[ch].loop_timeout * 1000;
 			}
-			if (channel[ch].sostenuto == 0) {
+			else {
+				sustain_time = min_sustain_time;
+			}
+
+			/* Sustain must not be 0 or else lots of dead notes! */
+			if (channel[ch].sostenuto == 0 &&
+			    channel[ch].sustain > 0) {
 				sustain_time *= (double)channel[ch].sustain / 127.0f;
 			}
-			/* Calculate the release phase speed. */
+
+			/* Calculate the width of the envelope */
 			modenv_width = sustain_time * play_mode->rate
-				/ (1000.0f * (double)control_ratio);
+				       / (1000.0f * (double)control_ratio);
+
+			vp->modenv_target = 0;
+			new_rate = vp->modenv_volume / modenv_width;
+
+			/* Use the Release1 rate if slower than new rate */
+			if (vp->sample->envelope_rate[EG_GUS_RELEASE1] &&
+			    vp->sample->envelope_rate[EG_GUS_RELEASE1] < new_rate)
+			        new_rate = vp->sample->envelope_rate[EG_GUS_RELEASE1];
+
+			/* Use the Sustain rate if slower than new rate */
+			if (vp->sample->envelope_rate[EG_GUS_SUSTAIN] &&
+			    vp->sample->envelope_rate[EG_GUS_SUSTAIN] < new_rate)
+			        new_rate = vp->sample->envelope_rate[EG_GUS_SUSTAIN];
+
+			/* Avoid freezing */
+			if (!new_rate)
+				new_rate = 1;
 			
-			vp->modenv_increment = -1;
-			vp->modenv_target = vp->modenv_volume - modenv_width;
-			if (vp->modenv_target < 0) {vp->modenv_target = 0;}
+			vp->modenv_increment = -new_rate;
 		}
 		return 0;
 	}
