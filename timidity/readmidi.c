@@ -4550,7 +4550,7 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
     int32 sample_cum, samples_to_do, at, st, dt, counting_time;
     int ch, gch;
     uint8 current_set[MAX_CHANNELS],
-	warn_tonebank[128], warn_drumset[128];
+	warn_tonebank[128 + MAP_BANK_COUNT], warn_drumset[128 + MAP_BANK_COUNT];
     int8 bank_lsb[MAX_CHANNELS], bank_msb[MAX_CHANNELS], mapID[MAX_CHANNELS];
     int current_program[MAX_CHANNELS];
     int wrd_args[WRD_MAXPARAM];

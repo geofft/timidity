@@ -176,6 +176,7 @@ enum instrument_mapID
     NUM_INST_MAP
 };
 
+#define MAP_BANK_COUNT 256
 extern ToneBank *tonebank[], *drumset[];
 
 extern Instrument *default_instrument;

@@ -58,7 +58,6 @@ struct InstrumentCache
 };
 static struct InstrumentCache *instrument_cache[INSTRUMENT_HASH_SIZE];
 
-#define MAP_BANK_COUNT 256
 /* Some functions get aggravated if not even the standard banks are
    available. */
 static ToneBank standard_tonebank, standard_drumset;
@@ -72,6 +71,7 @@ struct bank_map_elem {
 	int bankno;
 };
 static struct bank_map_elem map_bank[MAP_BANK_COUNT], map_drumset[MAP_BANK_COUNT];
+static int map_bank_counter;
 
 /* This is a special instrument, used for all melodic programs */
 Instrument *default_instrument=0;
@@ -146,7 +146,7 @@ void clear_magic_instruments(void)
 {
     int i, j;
 
-    for(j = 0; j < 128; j++)
+    for(j = 0; j < 128 + map_bank_counter; j++)
     {
 	if(tonebank[j])
 	{
@@ -1277,7 +1277,7 @@ static int fill_bank(int dr, int b, int *rc)
 
 int load_missing_instruments(int *rc)
 {
-  int i=128,errors=0;
+  int i = 128 + map_bank_counter, errors = 0;
   if(rc != NULL)
       *rc = RC_NONE;
   while (i--)
@@ -1379,7 +1379,7 @@ static void free_tone_bank_list(ToneBank *tb[])
 	int i, j;
 	ToneBank *bank;
 	
-	for (i = 0; i < 128 + MAP_BANK_COUNT; i++)
+	for (i = 0; i < 128 + map_bank_counter; i++)
 	{
 		bank = tb[i];
 		if (!bank)
@@ -1494,7 +1494,7 @@ void free_tone_bank_element(ToneBankElement *elm)
 
 void free_instruments(int reload_default_inst)
 {
-    int i=128, j;
+    int i = 128 + map_bank_counter, j;
     struct InstrumentCache *p;
     ToneBank *bank;
     Instrument *ip;
@@ -1668,6 +1668,8 @@ int alloc_instrument_map_bank(int dr, int map, int bk)
 		bm[i].used = 1;
 		bm[i].mapid = map;
 		bm[i].bankno = bk;
+		if (map_bank_counter < i + 1)
+			map_bank_counter = i + 1;
 		i += 128;
 		alloc_instrument_bank(dr, i);
 	}
@@ -1753,8 +1755,9 @@ void free_instrument_map(void)
 {
   int i, j;
 
-  for(i = 0; i < MAP_BANK_COUNT; i++)
+  for(i = 0; i < map_bank_counter; i++)
     map_bank[i].used = map_drumset[i].used = 0;
+  /* map_bank_counter = 0; never shrinks rather than assuming tonebank was already freed */
   for (i = 0; i < NUM_INST_MAP; i++) {
     for (j = 0; j < 128; j++) {
       struct inst_map_elem *map;

@@ -2,6 +2,8 @@
 
 	* timidity/timidity.c:
 	  Fixed copybank bug.
+	* timidity/instrum.[ch], timidity/readmidi.c:
+	  Fixed problem freeing recently extended banks.
 
 2004-02-03  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
