@@ -236,6 +236,9 @@ done
 
 3.OpenWatcom C++ in Msys environment
 
+======= CAUTION !! ===========
+You cannnat distribute generated TiMidity++ binary!!. Because of LICENCE issue.
+==============================
 (1)OpenWatcom and MSYS
     1)Set OpenWatcom(http://www.openwatcom.org)
        1-1)Download OpenWatcom, install and configure them
@@ -307,7 +310,6 @@ done
            ./configure --enable-network --enable-w32gui \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
             (make)
              make
              mv timidity.exe timw32g.exe
@@ -317,7 +319,6 @@ done
             ./configure --enable-network --enable-winsyng \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
              (make)
              make
              mv timidity.exe twsyng.exe
@@ -327,7 +328,6 @@ done
             ./configure --enable-network --enable-winsyng \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
             add config.h following line
                 #define TWSYNSRV 1
              (make)
@@ -354,7 +354,7 @@ done
             Microsoft Platform SDK
         install and configure them.
 ======= CAUTION !! ===========
-If you plan to distribute TiMidity++ binary, use "Visual C++" or "Visual Studio" not "Microsoft Visual C++ Toolkit 2003". because of LICENCE issue.
+If you plan to distribute TiMidity++ binary, use "Visual C++" or "Visual Studio" not "Microsoft Visual C++ Toolkit 2003". because of LICENCE issue. And link msvcrt.lib instead of libcmt.lib
 ==============================
 
    2)Setup Mngw and MSYS (See MingwWiki(http://mingw.sourceforge.net/MinGWiki/))

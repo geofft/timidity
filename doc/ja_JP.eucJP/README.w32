@@ -205,6 +205,9 @@ done
 
 
 ３．Msys環境下でOpenWatcomでコンパイル
+======= CAUTION !! ===========
+Open Watcom でコンパイルしたバイナリはライセンス上配布できない。
+============================== 
 （１）OpenWatcomとMSYSのセットアップ
 	１）OpenWatcomのセットアップ(http://www.openwatcom.org)
 		１−１）OpenWatcomをダウンロードしてくる。
@@ -271,7 +274,6 @@ done
            ./configure --enable-network --enable-w32gui \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
             (make)
              make
              mv timidity.exe timw32g.exe
@@ -281,7 +283,6 @@ done
             ./configure --enable-network --enable-winsyng \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
              (make)
              make
              mv timidity.exe twsyng.exe
@@ -291,7 +292,6 @@ done
             ./configure --enable-network --enable-winsyng \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
-            ( cl386(except cl)  is need for watcom detection in configure script. )
             add config.h following line
                 #define TWSYNSRV 1
              (make)
@@ -315,8 +315,9 @@ done
 		Microsoft Platform SDK
 		をダウンロードしてインストールする。
 ======= CAUTION !! ===========
-Microsoft Visual C++ Toolkit 2003でコンパイルしたライブラリはライセンス上配布できない。
+Microsoft Visual C++ Toolkit 2003でコンパイルしたバイナリはライセンス上配布できない。
 配布するバイナリは、"Visual C++" か "Visual Studio"で作る必要がある。
+その際は　libcmt.lib ではなく　msvcrt.libをリンクすること
 ============================== 
 		
 	２）MSYSのセットアップ(http://sourceforge.net/projects/mingw/　http://mingw.sourceforge.net/MinGWiki/))
