@@ -1411,7 +1411,7 @@ static void ctl_temper_keysig(int8 tk, int ko)
 		" G", " D", " A", " E", " B", "F#", "C#", "G#",
 		"D#", "A#"
 	};
-	int i, j;
+	int adj, i, j;
 	
 	if (tk == CTL_STATUS_UPDATE)
 		tk = lastkeysig;
@@ -1423,6 +1423,7 @@ static void ctl_temper_keysig(int8 tk, int ko)
 		lastoffset = ko;
 	if (ctl_ncurs_mode != NCURS_MODE_TRACE)
 		return;
+	adj = tk + 8 & 0x20, tk = (tk + 8) % 32 - 8;
 	i = tk + ((tk < 8) ? 7 : -6);
 	if (ko > 0)
 		for (j = 0; j < ko; j++)
@@ -1431,7 +1432,11 @@ static void ctl_temper_keysig(int8 tk, int ko)
 		for (j = 0; j < abs(ko); j++)
 			i += (i < 7) ? 5 : -7;
 	wmove(dftwin, TITLE_LINE, COLS - 24);
+	if (adj)
+		wattron(dftwin, A_BOLD);
 	wprintw(dftwin, "%s%c", keysig_name[i], (tk < 8) ? ' ' : 'm');
+	if (adj)
+		wattroff(dftwin, A_BOLD);
 	N_ctl_refresh();
 }
 

@@ -1299,7 +1299,7 @@ static int tracer_temper_keysig_draw(RECT *lprc, int8 tk, int ko, int lockflag)
 {
 	static int8 lastkeysig = CTL_STATUS_UPDATE;
 	static int lastoffset = CTL_STATUS_UPDATE;
-	int i, j;
+	int adj, i, j;
 	HDC hdc;
 	
 	if (tk == CTL_STATUS_UPDATE)
@@ -1310,6 +1310,7 @@ static int tracer_temper_keysig_draw(RECT *lprc, int8 tk, int ko, int lockflag)
 		ko = lastoffset;
 	else
 		lastoffset = ko;
+	adj = tk + 8 & 0x20, tk = (tk + 8) % 32 - 8;
 	i = tk + ((tk < 8) ? 7 : -9);
 	if (ko > 0)
 		for (j = 0; j < ko; j++)
@@ -1326,7 +1327,7 @@ static int tracer_temper_keysig_draw(RECT *lprc, int8 tk, int ko, int lockflag)
 	BitBlt(hdc, lprc->left, lprc->top,
 			lprc->right - lprc->left, lprc->bottom - lprc->top,
 			tracer_bmp.hmdc, tracer_bmp.rc_temper_keysig[i].left,
-			tracer_bmp.rc_temper_keysig[i].top, SRCCOPY);
+			tracer_bmp.rc_temper_keysig[i].top, (adj) ? NOTSRCCOPY : SRCCOPY);
 	if (lockflag)
 		TRACER_UNLOCK();
 	InvalidateRect(w32g_tracer_wnd.hwnd, lprc, FALSE);

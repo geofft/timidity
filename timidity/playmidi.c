@@ -111,6 +111,7 @@ int max_voices = DEFAULT_VOICES;
 Voice *voice = NULL;
 int8 current_keysig = 0;
 int8 current_temper_keysig = 0;
+int temper_adj = 0;
 int8 opt_init_keysig = 0;
 int8 opt_force_keysig = 8;
 int32 current_play_tempo = 500000;
@@ -716,22 +717,28 @@ void recompute_freq(int v)
 			break;
 		case 2:
 			if (current_temper_keysig < 8)
-				f = freq_table_meantone[current_freq_table][note];
+				f = freq_table_meantone[current_freq_table
+						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_meantone[current_freq_table + 12][note];
+				f = freq_table_meantone[current_freq_table
+						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		case 3:
 			if (current_temper_keysig < 8)
-				f = freq_table_pureint[current_freq_table][note];
+				f = freq_table_pureint[current_freq_table
+						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_pureint[current_freq_table + 12][note];
+				f = freq_table_pureint[current_freq_table
+						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		default:	/* user-defined temperaments */
 			if ((tt -= 0x40) >= 0 && tt < 4) {
 				if (current_temper_keysig < 8)
-					f = freq_table_user[tt][current_freq_table][note];
+					f = freq_table_user[tt][current_freq_table
+							+ ((temper_adj) ? 36 : 0)][note];
 				else
-					f = freq_table_user[tt][current_freq_table + 12][note];
+					f = freq_table_user[tt][current_freq_table
+							+ ((temper_adj) ? 24 : 12)][note];
 			} else
 				f = freq_table[note];
 			break;
@@ -1748,22 +1755,28 @@ static int select_play_sample(Sample *splist,
 			break;
 		case 2:
 			if (current_temper_keysig < 8)
-				f = freq_table_meantone[current_freq_table][note];
+				f = freq_table_meantone[current_freq_table
+						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_meantone[current_freq_table + 12][note];
+				f = freq_table_meantone[current_freq_table
+						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		case 3:
 			if (current_temper_keysig < 8)
-				f = freq_table_pureint[current_freq_table][note];
+				f = freq_table_pureint[current_freq_table
+						+ ((temper_adj) ? 36 : 0)][note];
 			else
-				f = freq_table_pureint[current_freq_table + 12][note];
+				f = freq_table_pureint[current_freq_table
+						+ ((temper_adj) ? 24 : 12)][note];
 			break;
 		default:	/* user-defined temperaments */
 			if ((tt -= 0x40) >= 0 && tt < 4) {
 				if (current_temper_keysig < 8)
-					f = freq_table_user[tt][current_freq_table][note];
+					f = freq_table_user[tt][current_freq_table
+							+ ((temper_adj) ? 36 : 0)][note];
 				else
-					f = freq_table_user[tt][current_freq_table + 12][note];
+					f = freq_table_user[tt][current_freq_table
+							+ ((temper_adj) ? 24 : 12)][note];
 			} else
 				f = freq_table[note];
 			break;
@@ -4168,7 +4181,6 @@ static void seek_forward(int32 until_time)
 
 	case ME_KEYSIG:
 		current_keysig = current_event->a + current_event->b * 16;
-		current_temper_keysig = current_keysig;
 		break;
 
 	case ME_SCALE_TUNING:
@@ -4184,7 +4196,8 @@ static void seek_forward(int32 until_time)
 		break;
 
 	case ME_TEMPER_KEYSIG:
-		current_temper_keysig = current_event->a;
+		current_temper_keysig = (current_event->a + 8) % 32 - 8;
+		temper_adj = (current_event->a + 8 & 0x20) ? 1 : 0;
 		break;
 
 	case ME_TEMPER_TYPE:
@@ -6047,8 +6060,6 @@ int play_event(MidiEvent *ev)
 	case ME_KEYSIG:
 		current_keysig = current_event->a + current_event->b * 16;
 		ctl_mode_event(CTLE_KEYSIG, 1, current_keysig, 0);
-		current_temper_keysig = current_keysig;
-		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
 		if (opt_force_keysig != 8) {
 			i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 			note_key_offset -= floor(note_key_offset / 12.0) * 12;
@@ -6085,8 +6096,9 @@ int play_event(MidiEvent *ev)
 		break;
 
 	case ME_TEMPER_KEYSIG:
-		current_temper_keysig = current_event->a;
-		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_temper_keysig, 0);
+		current_temper_keysig = (current_event->a + 8) % 32 - 8;
+		temper_adj = (current_event->a + 8 & 0x20) ? 1 : 0;
+		ctl_mode_event(CTLE_TEMPER_KEYSIG, 1, current_event->a, 0);
 		i = current_temper_keysig + ((current_temper_keysig < 8) ? 7 : -9);
 		j = 0;
 		while (i != 7 && i != 19)
@@ -6494,7 +6506,7 @@ int play_midi_file(char *fn)
 	return rc;
 
     /* Reset key & speed each files */
-    current_keysig = current_temper_keysig = opt_init_keysig;
+    current_keysig = opt_init_keysig;
     note_key_offset = 0;
     midi_time_ratio = 1.0;
 	for (i = 0; i < MAX_CHANNELS; i++) {
@@ -6525,7 +6537,7 @@ int play_midi_file(char *fn)
 
 	ctl_mode_event(CTLE_METRONOME, 0, 0, 0);
 	ctl_mode_event(CTLE_KEYSIG, 0, current_keysig, 0);
-	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, current_temper_keysig, 0);
+	ctl_mode_event(CTLE_TEMPER_KEYSIG, 0, 0, 0);
 	if (opt_force_keysig != 8) {
 		i = current_keysig + ((current_keysig < 8) ? 7 : -6);
 		j = opt_force_keysig + ((current_keysig < 8) ? 7 : 10);

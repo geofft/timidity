@@ -265,7 +265,7 @@ void rtsyn_init(void){
 	opt_realtime_playing = 1; /* Enable loading patch while playing */
 	allocate_cache_size = 0; /* Don't use pre-calclated samples */
 	auto_reduce_polyphony = 0;
-	current_keysig = current_temper_keysig = opt_init_keysig;
+	current_keysig = opt_init_keysig;
 	note_key_offset = 0;
 	time_advance=play_mode->rate/TICKTIME_HZ*2;
 	if (!(play_mode->encoding & PE_MONO))

@@ -43,9 +43,9 @@
 int32 freq_table[128];
 int32 freq_table_tuning[128][128];
 int32 freq_table_pytha[24][128];
-int32 freq_table_meantone[24][128];
-int32 freq_table_pureint[24][128];
-int32 freq_table_user[4][24][128];
+int32 freq_table_meantone[48][128];
+int32 freq_table_pureint[48][128];
+int32 freq_table_user[4][48][128];
 
 void init_freq_table(void)
 {
@@ -71,12 +71,12 @@ void init_freq_table_pytha(void)
 {
 	int i, j, k, l;
 	double f;
-	static double major_ratio[] = {
+	static const double major_ratio[] = {
 		  1.0 /  1, 256.0 / 243,   9.0 /   8,  32.0 /  27,
 		 81.0 / 64,   4.0 /   3, 729.0 / 512,   3.0 /   2,
 		128.0 / 81,  27.0 /  16,  16.0 /   9, 243.0 / 128
 	};
-	static double minor_ratio[] = {
+	static const double minor_ratio[] = {
 		   1.0 /    1, 2187.0 / 2048,   9.0 /   8, 19683.0 / 16384,
 		  81.0 /   64,    4.0 /    3, 729.0 / 512,     3.0 /     2,
 		6561.0 / 4096,   27.0 /   16,  16.0 /   9,   243.0 /   128
@@ -100,7 +100,7 @@ void init_freq_table_meantone(void)
 	int i, j, k, l;
 	double f;
 	static double major_ratio[12], minor_ratio[12];
-	static double sc = 81.0 / 80;
+	static const double sc = 81.0 / 80;
 	
 	major_ratio[0] = 1;
 	major_ratio[1] = 8 / pow(5.0, 5.0 / 4);
@@ -137,6 +137,10 @@ void init_freq_table_meantone(void)
 						f * major_ratio[k] * 1000 + 0.5;
 				freq_table_meantone[i + 12][l] =
 						f * minor_ratio[k] * sc * 1000 + 0.5;
+				freq_table_meantone[i + 24][l] =
+						f * minor_ratio[k] * 1000 + 0.5;
+				freq_table_meantone[i + 36][l] =
+						f * major_ratio[k] * sc * 1000 + 0.5;
 			}
 		}
 }
@@ -145,15 +149,15 @@ void init_freq_table_pureint(void)
 {
 	int i, j, k, l;
 	double f;
-	static double major_ratio[] = {
+	static const double major_ratio[] = {
 		 1.0 /  1, 16.0 / 15, 9.0 / 8, 6.0 / 5, 5.0 / 4,  4.0 / 3,
 		45.0 / 32,  3.0 /  2, 8.0 / 5, 5.0 / 3, 9.0 / 5, 15.0 / 8
 	};
-	static double minor_ratio[] = {
+	static const double minor_ratio[] = {
 		 1.0 /  1, 25.0 / 24, 10.0 /  9, 75.0 / 64,  5.0 / 4,  4.0 / 3,
 		25.0 / 18,  3.0 /  2, 25.0 / 16,  5.0 /  3, 16.0 / 9, 15.0 / 8
 	};
-	static double sc = 81.0 / 80;
+	static const double sc = 81.0 / 80;
 	
 	for (i = 0; i < 12; i++)
 		for (j = -1; j < 11; j++) {
@@ -166,6 +170,10 @@ void init_freq_table_pureint(void)
 						f * major_ratio[k] * 1000 + 0.5;
 				freq_table_pureint[i + 12][l] =
 						f * minor_ratio[k] * sc * 1000 + 0.5;
+				freq_table_pureint[i + 24][l] =
+						f * minor_ratio[k] * 1000 + 0.5;
+				freq_table_pureint[i + 36][l] =
+						f * major_ratio[k] * sc * 1000 + 0.5;
 			}
 		}
 }
@@ -185,6 +193,8 @@ void init_freq_table_user(void)
 						continue;
 					freq_table_user[p][i][l] = f * 1000 + 0.5;
 					freq_table_user[p][i + 12][l] = f * 1000 + 0.5;
+					freq_table_user[p][i + 24][l] = f * 1000 + 0.5;
+					freq_table_user[p][i + 36][l] = f * 1000 + 0.5;
 				}
 			}
 }

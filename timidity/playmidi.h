@@ -439,6 +439,7 @@ extern ChannelBitMask channel_mute;
 extern int temper_type_mute;
 extern int8 current_keysig;
 extern int8 current_temper_keysig;
+extern int temper_adj;
 extern int8 opt_init_keysig;
 extern int8 opt_force_keysig;
 extern int key_adjust;

@@ -1,10 +1,17 @@
+2003-11-14  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/alsaseq_c.c, interface/rtsyn_common.c,
+	  interface/ncurs_c.c, interface/w32g_subwin3.c,
+	  timidity/playmidi.[ch], timidity/tables.[ch]:
+	  Support for temperament adjustment by syntonic comma
+
 2003-11-13  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* timidity.c: Rewrite a little around option handling
+	* timidity/timidity.c: Rewrite option handling a little
 
 2003-11-13  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* tables.h, playmidi.h, tables.c, playmidi.c, timidity.c:
+	* timidity/playmidi.[ch], timidity/tables.[ch], timidity/timidity.c:
 	  new option -V power, --volume-curve=power
 
 2003-11-10  TAMUKI Shoichi <tamuki@linet.gr.jp>

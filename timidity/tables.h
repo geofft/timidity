@@ -38,7 +38,7 @@ extern int32 freq_table_tuning[][128];
 extern int32 freq_table_pytha[][128];
 extern int32 freq_table_meantone[][128];
 extern int32 freq_table_pureint[][128];
-extern int32 freq_table_user[][24][128];
+extern int32 freq_table_user[][48][128];
 extern FLOAT_T *vol_table;
 extern FLOAT_T def_vol_table[];
 extern FLOAT_T gs_vol_table[];
