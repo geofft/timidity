@@ -87,7 +87,7 @@ static int32 estimate_queue_size(void);
 
 /* effect.c */
 extern void init_effect(void);
-extern int do_effect(int32* buf, int32 count);
+extern void do_effect(int32* buf, int32 count);
 
 int aq_calc_fragsize(void)
 {

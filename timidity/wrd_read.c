@@ -1765,7 +1765,10 @@ static char *wrd_name_string(int cmd)
 
 #ifdef ENABLE_SHERRY
 /*******************************************************************************/
+#if 0
+/* for mac only */
 #pragma mark -
+#endif
 
 static int sherry_started;	/* 0 - before start command 0x01*/
 				/* 1 - after start command 0x01*/

@@ -636,14 +636,14 @@ SL_LoadSamples (void)
 	  s->sample->flags = (s->sample->flags & ~SF_FORMATMASK) | s->outfmt;
 	  if (s->sample->data == NULL)
 	    {
-	      FreeSampleList (musiclist);
+	      FreeSampleList ();
 	      return 1;
 	    }
 	}
       s = s->next;
     }
 
-  FreeSampleList (musiclist);
+  FreeSampleList ();
   return 0;
 }
 

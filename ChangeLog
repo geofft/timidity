@@ -1,3 +1,14 @@
+2004-10-17  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* libunimod/mloader.c (SL_LoadSamples):
+	  too many arguments to function `FreeSampleList'
+	* timidity/common.c, timidiyt/timidiyt.c: avoid confliction of
+	  time.h and sys/time.h
+	* timidity/aq.c: fix wrong prototype (int -> void)
+	* timidity/wrd_read.c: #ifdef-out unknown pragma
+	* configure.in, timidity/timidity.c : no need of <stdbool.h>
+	* timidity/Makefile.am : bug fix
+
 2004-10-14  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* interface/w32g_i.c (MPanelMessageHaveMesssage): fix typo
