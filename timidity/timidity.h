@@ -304,7 +304,7 @@ typedef double FLOAT_T;
 #ifdef SUPPORT_SOCKET
 /* Please define your mail domain address. */
 #ifndef MAIL_DOMAIN
-#define MAIL_DOMAIN "@someware.domain.com"
+#define MAIL_DOMAIN "@localhost"
 #endif /* MAIL_DOMAIN */
 
 /* Please define your mail name if you are at Windows.

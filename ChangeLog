@@ -1,3 +1,19 @@
+2003-06-05  mput <root@mput.dip.jp>
+
+	* timidity/timidity.c (main): Add check codes for interface
+	  exsitence (thanks Bernhard Rosenkraenzer <bero@redhat.com>)
+
+	* timidity/arts_a.c, timidity/output.c: Merged Bernhard
+	  Rosenkraenzer <bero@redhat.com> 's implementation.
+
+	* configure.in: Fix to fit with David's patch
+
+	* timidity/esd_a.c (open_output, close_output): dlopen() libesd
+	  rather than introducing yet another requirement (thanks David
+	  Walser and Bernhard Rosenkraenzer <bero@redhat.com>)
+
+	* timidity/timidity.h (MAIL_DOMAIN): to localhost (thanks David
+	  Walser and Maurizio De Cecco)
 
 2003-06-04  Saito <timidity@flashmail.com>
 
