@@ -60,7 +60,7 @@ extern char *get_mfi_file_title(struct timidity_file *tf);
 #define MARKER_END_CHAR		')'
 
 static uint8 rhythm_part[2];	/* for GS */
-static uint8 drum_setup_xg[5];	/* for XG */
+static uint8 drum_setup_xg[6];	/* for XG */
 
 enum
 {
