@@ -196,7 +196,27 @@ static void PanelReset(void)
 			Panel->GSLCD[i][j] = 0;
 		}
 	}
+	Panel->gslcd_displayed_flag = 0;
     Panel->changed = 1;
+}
+
+#define GS_LCD_CLEAR_TIME 2.88
+
+static void ctl_gslcd_update(void)
+{
+	double t;
+	int i, j;
+	t = get_current_calender_time();
+	if(t - Panel->gslcd_last_display_time > GS_LCD_CLEAR_TIME && Panel->gslcd_displayed_flag)
+	{
+		for (i = 0; i < 16; i++) {
+			for (j = 0; j < 16; j++) {
+				Panel->GSLCD[i][j] = 0;
+			}
+		}
+		CanvasClear();
+		Panel->gslcd_displayed_flag = 0;
+	}
 }
 
 static void CanvasUpdateInterval(void)
@@ -213,8 +233,10 @@ static void CanvasUpdateInterval(void)
 	    CanvasUpdate(0);
 	    CanvasPaint();
 	    lasttime = t;
+	} 
+	} else if (CanvasGetMode() == CANVAS_MODE_GSLCD) {
+		ctl_gslcd_update();
 	}
-    }
 }
 
 static int ctl_drop_file(HDROP hDrop)
@@ -584,6 +606,7 @@ static void ctl_metronome(int meas, int beat)
 	Panel->meas = meas;
 	Panel->beat = beat;
 	Panel->changed = 1;
+
 	ctl_panel_refresh();
 }
 
@@ -884,6 +907,8 @@ static void ctl_gslcd(int id)
 	    }
 	}
     }
+	Panel->gslcd_displayed_flag = 1;
+	Panel->gslcd_last_display_time = get_current_calender_time();
 	Panel->changed = 1;
 }
 
