@@ -1,5 +1,11 @@
 2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
+	* timidity/timidity.c:
+	  Separate independence of --auto-volume-conpensation
+	  Merge --buffer-bits to --buffer-fragments
+
+2003-08-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
 	* timidity/timidity.c: Fix typo around long options
 
 2003-08-03  TAMUKI Shoichi <tamuki@linet.gr.jp>

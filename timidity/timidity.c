@@ -117,6 +117,8 @@ static const struct option longopts[] = {
     { "4-point-interpolation"   , optional_argument, NULL, '4' << 8 },
 #endif
     { "volume"                  , required_argument, NULL, 'A' << 8 },
+    { "drum-power"              , required_argument, NULL, 227 << 8 },
+    { "auto-volume-conpansation", required_argument, NULL, 228 << 8 },
     { "buffer-size"             , required_argument, NULL, 'B' << 8 },
     { "control-ratio"           , required_argument, NULL, 'C' << 8 },
     { "drums"                   , required_argument, NULL, 'D' << 8 },
@@ -203,8 +205,6 @@ static const struct option longopts[] = {
     { "delay"                   , required_argument, NULL, 224 << 8 },
     { "noise-shaper"            , required_argument, NULL, 225 << 8 },
     { "temperament"             , required_argument, NULL, 226 << 8 },
-    { "drum-power"              , required_argument, NULL, 227 << 8 },
-    { "buffer-bits"             , required_argument, NULL, 228 << 8 },
     { "stereo"                  , optional_argument, NULL, 229 << 8 },
     { "mono"                    , optional_argument, NULL, 229 << 8 },
     { "no-auto-start"           ,       no_argument, NULL, 230 << 8 },
@@ -252,10 +252,10 @@ MAIN_INTERFACE bool set_tim_opt_long(int, char *, int);
 static inline bool parse_opt_4(const char *);
 #endif
 static inline bool parse_opt_A(const char *);
-static inline bool parse_opt_227(const char *);	/* --drums */
+static inline bool parse_opt_A1(const char *);
+static inline bool parse_opt_A2(const char *);
 static inline bool parse_opt_a(const char *);
 static inline bool parse_opt_B(const char *);
-static inline bool parse_opt_228(const char *);	/* --buffer-bits */
 static inline bool parse_opt_b(const char *);
 static inline bool parse_opt_C(const char *);
 static inline bool parse_opt_c(char *);
@@ -330,7 +330,7 @@ static inline bool parse_opt_U(const char *);
 static inline bool parse_opt_v(const char *);
 static inline bool parse_opt_W(const char *);
 static inline bool parse_opt_238(char *);		/* --wrd-read-opts */
-static inline bool parse_opt_x(const char *);
+static inline bool parse_opt_x(char *);
 static inline bool parse_opt_Z(char *);
 static inline bool parse_opt_226(const char *);	/* --temperament */
 __attribute__((noreturn))
@@ -3479,6 +3479,10 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 #endif
 		case 'A':
 			return parse_opt_A(arg);
+		case 227:
+			return parse_opt_A1(arg);
+		case 228:
+			return parse_opt_A2(arg);
 		case 'B':
 			return parse_opt_B(arg);
 		case 'C':
@@ -3606,10 +3610,6 @@ MAIN_INTERFACE bool set_tim_opt_long(int c, char *optarg, int index)
 			return parse_opt_225(arg);
 		case 226:
 			return parse_opt_226(arg);
-		case 227:
-			return parse_opt_227(arg);
-		case 228:
-			return parse_opt_228(arg);
 		case 229:
 			return parse_opt_229(arg);
 		case 230:
@@ -3646,18 +3646,16 @@ static inline bool parse_opt_4(const char *arg)
 
 static inline bool parse_opt_A(const char *arg)
 {
-	/* amplify volume by n percent */
+	/* --volume */
 	int32 tmpi32;
 	
 	if (set_value(&tmpi32, atoi(arg), 0, MAX_AMPLIFICATION, "Amplification"))
 		return 1;
 	amplification = tmpi32;
-	if (strchr(arg, 'a'))
-		opt_amp_compensation = 1;
 	return 0;
 }
 
-static inline bool parse_opt_227(const char *arg)
+static inline bool parse_opt_A1(const char *arg)
 {
 	/* --drum-power */
 	int32 tmpi32;
@@ -3665,6 +3663,13 @@ static inline bool parse_opt_227(const char *arg)
 	if (set_value(&tmpi32, atoi(arg), 0, MAX_AMPLIFICATION, "Drum power"))
 		return 1;
 	opt_drum_power = tmpi32;
+	return 0;
+}
+
+static inline bool parse_opt_A2(const char *arg)
+{
+	/* --auto-volume-conpensation */
+	opt_amp_compensation = y_or_n_p(arg);
 	return 0;
 }
 
@@ -3677,29 +3682,21 @@ static inline bool parse_opt_a(const char *arg)
 static inline bool parse_opt_B(const char *arg)
 {
 	int32 tmpi32;
-	const char *arg2;
+	const char *p;
 	
-	if (set_value(&tmpi32, atoi(arg), 0, 1000, "Buffer Fragments"))
-		return 1;
-	opt_buffer_fragments = tmpi32;
-	if (arg2 = strchr(arg, ','))
-		/* --buffer-size can take the second parameter `bits' for
-		 * backward compatibility, but this feature has never been
-		 * documented at all :) This parameter should be obsolate
-		 * for later version. -- mput
-		 */
-		return parse_opt_228(arg2);
-	return 0;
-}
-
-static inline bool parse_opt_228(const char *arg)
-{
-	/* --buffer-bits */
-	int32 tmpi32;
-	
-	if (set_value(&tmpi32, atoi(arg), 1, AUDIO_BUFFER_BITS, "Buffer bits"))
-		return 1;
-	audio_buffer_bits = tmpi32;
+	/* num */
+	if (*arg != ',') {
+		if (set_value(&tmpi32, atoi(arg), 0, 1000, "Buffer Fragments (num)"))
+			return 1;
+		opt_buffer_fragments = tmpi32;
+	}
+	/* bits */
+	if (p = strchr(arg, ',')) {
+		if (set_value(&tmpi32, atoi(p + 1), 1, AUDIO_BUFFER_BITS,
+				"Buffer Fragments (bit)"))
+			return 1;
+		audio_buffer_bits = tmpi32;
+	}
 	return 0;
 }
 
@@ -4605,7 +4602,7 @@ static inline bool parse_opt_238(char *arg)
 	return 0;
 }
 
-static inline bool parse_opt_x(const char *arg)
+static inline bool parse_opt_x(char *arg)
 {
 	StringTableNode *st;
 	
