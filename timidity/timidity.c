@@ -2973,6 +2973,7 @@ static inline int parse_opt_reverb(const char *arg)
 	case '0':
 	case 'd':	/* disable */
 		opt_reverb_control = 0;
+		opt_effect_quality = 0;
 		break;
 	case '1':
 	case 'n':	/* normal */

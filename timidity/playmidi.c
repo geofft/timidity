@@ -2799,24 +2799,35 @@ static void adjust_volume(int c)
 
 static void set_reverb_level(int ch, int level)
 {
-    if(opt_reverb_control <= 0)
+    if (level == -1)
     {
-	channel[ch].reverb_level = channel[ch].reverb_id =
-	    -opt_reverb_control;
 	make_rvid_flag = 1;
+
+    	if (opt_reverb_control < 0)
+    	{
+	    channel[ch].reverb_level = channel[ch].reverb_id =
+	    	-opt_reverb_control;
+	    return;
+    	}
+
+	channel[ch].reverb_level = channel[ch].reverb_id =
+	    DEFAULT_REVERB_SEND_LEVEL;
 	return;
     }
+
     channel[ch].reverb_level = level;
     make_rvid_flag = 0;	/* to update reverb_id */
 }
 
 int get_reverb_level(int ch)
 {
-    if(opt_reverb_control <= 0)
-	return -opt_reverb_control;
-
     if(channel[ch].reverb_level == -1)
-	return DEFAULT_REVERB_SEND_LEVEL;
+    {
+    	if (opt_reverb_control < 0)
+    	    return -opt_reverb_control;
+    	else
+    	    return DEFAULT_REVERB_SEND_LEVEL;
+    }
     return channel[ch].reverb_level;
 }
 

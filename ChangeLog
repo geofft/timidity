@@ -1,3 +1,9 @@
+2003-10-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/playmidi.c (set_reverb_level, get_reverb_level):
+	  More flexibility for reverb level
+	* timidity/timidity.c (parse_opt_reverb): Fix for case 0
+
 2003-10-28  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/playmidi.c, timidity/effect.c, timidity/timidity.c:
