@@ -25,7 +25,7 @@ Adds \fIdirectory\fP to the search path in the same manner as the
 .br
 Archive file are also allowed.
 .sp
-Example:
+For example:
 .br
 dir /usr/local/share/timidity/inst/foo.zip#
 .br
@@ -62,6 +62,7 @@ that follow are set and displayed as the numbers from \fB1\fP to
 \fB128\fP.
 .TP
 .BI "drumset " "[MapID2] number"
+Selects the drum set to modify.  Patch mappings that follow will
 affect this drum set.  You can indicate specific map as a target, by
 specifing any ofthe following to \fIMapID2\fP: \fBgm2drum\fP,
 \fBsc55drum\fP, \fBsc88drum\fP, \fBsc88prodrum\fP, \fBsc8850drum\fP,
@@ -253,7 +254,7 @@ read SoundFont, and then search for insufficient samples in GUS/patch.
 When \fBorder=1\fP, after reading GUS/patch, search for SoundFont.
 .TP
 .BI amp= amplification
-set the amplification of the whole SoundFont as \fIamplification\fP%.
+Set the amplification of the whole SoundFont as \fIamplification\fP%.
 If the value is not specified, it is set by \fB100\fP%.
 .TP
 .BI cutoff= number
@@ -339,7 +340,8 @@ Instrument TVA Level of NRPN.  Unless Drum Instrument TVA Level is
 specified at playing, the amplification is no influenced.
 .TP
 .BI "#extension redamper " "progno " {0|1}
-Specifies whether redamper is enable (\fB1\fP) or disable (\fB0\fP).
+Specifies whether redamper is enable (\fB1\fP) or disable (\fB0\fP) on
+\fIprogno\fP.
 .TP
 .BI "#extension playnote " "progno note"
 Set the frequency of pronounce to \fBnote\fP.  If the frequency of
@@ -349,7 +351,7 @@ package specification by `,' and/or [\fIstart\fP]\-[\fIend\fP].  An
 abbreviation of start and end considers that they are \fB0\fP and
 \fB127\fP respectively.
 .sp
-Example:
+For example:
 .br
 drumset 0
 .br
