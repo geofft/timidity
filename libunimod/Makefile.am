@@ -68,7 +68,7 @@ if BORLANDC
 	done
 	if test -f unimod.lib ; then touch $@ ; fi
 else
-if WATCOM
+if WATCOM_C
 	rm -f libunimod.a
 	rm -f unimod.lib
 	for foo in  $(libunimod_a_OBJECTS);do \

@@ -264,6 +264,18 @@ done
            Move curses.h to include path and libpdcurses.lib libarary path.
         2-2)oggvorbis(http://www.vorbis.com/)
            Get OggVorbis-win32sdk-1.0.1.zip and extract it.
+           Edit include\ogg\os_types.h.
+              (os_types.h)
+              29 #  if defined(__WATCOMC__)
+              30 /* MSVC/Borland */
+              31 typedef __int64 ogg_int64_t;
+              32 typedef int ogg_int32_t;
+              33 typedef unsigned int ogg_uint32_t;
+              34 typedef short ogg_int16_t;
+              35 typedef unsigned short ogg_uint16_t;
+              36 #  else
+                   -----
+              52 #  endif
            Make inport Libraries from dll
            Set environment variables in batch file like this.
                 REM OggVorbis

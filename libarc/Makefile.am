@@ -84,7 +84,7 @@ if BORLANDC
 	done
 	if test -f arc.lib ; then touch $@ ; fi
 else
-if WATCOM
+if WATCOM_C
 	rm -f libarc.a
 	rm -f arc.lib
 	for foo in $(libarc_a_OBJECTS) $(libarc_a_LIBADD);do \

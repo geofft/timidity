@@ -96,7 +96,7 @@ if BORLANDC
 	done
 	if test -f utils.lib ; then touch $@ ; fi
 else
-if WATCOM
+if WATCOM_C
 	rm -f libutils.a
 	rm -f utils.lib
 	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \

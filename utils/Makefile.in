@@ -220,9 +220,9 @@ VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
 W32READDIR_FALSE = @W32READDIR_FALSE@
 W32READDIR_TRUE = @W32READDIR_TRUE@
-WATCOM_FALSE = @WATCOM_FALSE@
+WATCOM_C_FALSE = @WATCOM_C_FALSE@
+WATCOM_C_TRUE = @WATCOM_C_TRUE@
 WATCOM_LDFLAGS = @WATCOM_LDFLAGS@
-WATCOM_TRUE = @WATCOM_TRUE@
 WISH = @WISH@
 W_so_libs = @W_so_libs@
 X_CFLAGS = @X_CFLAGS@
@@ -694,15 +694,15 @@ libutils.a: $(libutils_a_OBJECTS) $(libutils_a_DEPENDENCIES)
 @BORLANDC_TRUE@@VCPP_FALSE@	  tlib utils.lib +$$foo; \
 @BORLANDC_TRUE@@VCPP_FALSE@	done
 @BORLANDC_TRUE@@VCPP_FALSE@	if test -f utils.lib ; then touch $@ ; fi
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	rm -f libutils.a
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	rm -f utils.lib
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	wlib -q utils.lib +$$foo; \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	done
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_TRUE@	if test -f utils.lib ; then touch $@ ; fi
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_FALSE@	-rm -f libutils.a
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_FALSE@	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_FALSE@	$(RANLIB) libutils.a
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	rm -f libutils.a
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	rm -f utils.lib
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	for foo in  $(libutils_a_OBJECTS) $(libutils_a_LIBADD);do \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	wlib -q utils.lib +$$foo; \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	done
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	if test -f utils.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	-rm -f libutils.a
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libutils.a
 
 clean:
 	rm -f *.$(OBJEXT)

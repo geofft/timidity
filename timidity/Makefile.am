@@ -224,7 +224,7 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/utils/utils.lib \
 	$(W32GUI_RES)
 else
-if WATCOM
+if WATCOM_C
 timidity_LDADD = \
       interface.lib \
       arc.lib \
@@ -289,7 +289,7 @@ calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 
 else
 
-if WATCOM
+if WATCOM_C
 WATCOM_LINK = wlink.exe 
 timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
 	@rm -f timidity$(EXEEXT)
@@ -315,7 +315,7 @@ newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt $@
 
 else
-if WATCOM
+if WATCOM_C
 newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt > $@
 

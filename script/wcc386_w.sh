@@ -60,6 +60,9 @@ compilelink(){
        *.lib)
          liblist="$liblist Library $foo"
          ;;
+       -l*)
+         echo "Ignoreing $foo"
+         ;;
        *)
        complist="$complist $foo"
        esac
@@ -115,7 +118,7 @@ case $foo0 in
            fname=`echo $foo|perl -pe 's/(.*)\.exe/$1/' -`
 	       found=no
 	     else
-	       bar="$complist $foo"
+	       bar="$bar $foo"
          fi
          ;;
        esac

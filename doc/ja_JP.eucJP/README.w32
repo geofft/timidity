@@ -237,6 +237,18 @@ done
 		起動バッチファイルにエントリを書き込む		
     ２−２）oggvorbis(http://www.vorbis.com/)
     	"OggVorbis-win32sdk-1.0.1.zip”をとってくる
+           include\ogg\os_types.hを編集する。
+              (os_types.h)
+              29 #  if defined(__WATCOMC__)
+              30 /* MSVC/Borland */
+              31 typedef __int64 ogg_int64_t;
+              32 typedef int ogg_int32_t;
+              33 typedef unsigned int ogg_uint32_t;
+              34 typedef short ogg_int16_t;
+              35 typedef unsigned short ogg_uint16_t;
+              36 #  else
+                   -----
+              52 #  endif
 		dllファイルからインポートライブラリをつくる
 		起動バッチファイルにエントリを書き込む		
     ２−３）午後のコーダー(http://www.marinecat.net/mct_top.htm)

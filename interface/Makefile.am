@@ -193,7 +193,7 @@ if BORLANDC
 	done
 	if test -f interface.lib ; then touch $@ ; fi
 else
-if WATCOM
+if WATCOM_C
 	rm -f libinterface.a
 	rm -f interface.lib
 	for foo in   $(libinterface_a_OBJECTS) $(libinterface_LIBADD) ;do \
@@ -287,7 +287,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 	rc w32g_res.rc
 else
-if WATCOM
+if WATCOM_C
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 	rc w32g_res.rc
