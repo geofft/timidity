@@ -408,7 +408,7 @@ static inline int parse_opt_h(const char *);
 #ifdef IA_DYNAMIC
 static inline void list_dyna_interface(FILE *, char *, char *);
 static inline char *dynamic_interface_info(char *);
-char *dynamic_interface_module(char *);
+ControlMode *dynamic_interface_module(int);
 #endif
 static inline int parse_opt_i(const char *);
 static inline int parse_opt_verbose(const char *);
@@ -3943,8 +3943,7 @@ static inline void list_dyna_interface(FILE *fp, char *path, char *mark)
 			if (! id || mark[id])
 				continue;
 			mark[id] = 1;
-			if ((info = dynamic_interface_info(name)) == NULL)
-				info = dynamic_interface_module(name);
+			info = dynamic_interface_info(name);
 			if (info != NULL)
 				fprintf(fp, "  -i%c          %s" NLS, id, info);
 		}
@@ -3976,17 +3975,40 @@ static inline char *dynamic_interface_info(char *name)
 	return libinfo;
 }
 
-char *dynamic_interface_module(char *name)
+ControlMode *dynamic_interface_module(int id_char)
 {
-	static char shared_library[MAXPATHLEN];
-	int fd;
-	
-	sprintf(shared_library, "%s" PATH_STRING "if_%s%s",
-			dynamic_lib_root, name, SHARED_LIB_EXT);
-	if ((fd = open(shared_library, 0)) < 0)
+	URL url;
+	char fname[BUFSIZ], name[16], *info;
+	ControlMode *ctl = NULL;
+	int cwd;
+	void *handle;
+	ControlMode *(* inferface_loader)(void);
+
+	if ((url = url_dir_open(dynamic_lib_root)) == NULL)
 		return NULL;
-	close(fd);
-	return shared_library;
+	cwd = open(".", 0);
+	if(chdir(dynamic_lib_root) != 0)
+		return NULL;
+	while (url_gets(url, fname, sizeof(fname)) != NULL) {
+		if (strncmp(fname, "if_", 3) == 0) {
+			char path[NAME_MAX], buff[20];
+			snprintf(path, NAME_MAX-1, ".%c%s", PATH_SEP, fname);
+			if((handle = dl_load_file(path)) == NULL)
+				return NULL;
+			sprintf(buff, "interface_%c_loader", id_char);
+			if((inferface_loader = dl_find_symbol(handle, buff)) == NULL) {
+				dl_free(handle);
+				continue;
+			}
+			ctl = inferface_loader();
+			if(ctl->id_character == id_char)
+				break;
+		}
+	}
+	fchdir(cwd);
+	close(cwd);
+	url_close(url);
+	return ctl;
 }
 #endif	/* IA_DYNAMIC */
 
@@ -4010,23 +4032,11 @@ static inline int parse_opt_i(const char *arg)
 		}
 #ifdef IA_DYNAMIC
 		if (cmp->id_character == dynamic_interface_id) {
-			for (cmpp2 = ctl_list; (cmp2 = *cmpp2) != NULL; cmpp2++)
-				if (cmp2->id_character == *arg) {
-					strcpy(name, cmp2->id_short_name);
-					break;
-				}
-			if (! dynamic_interface_module(name))
-				continue;
-			/* Dynamic interface loader */
-			found = 1;
-			ctl = cmp;
-			if (dynamic_interface_id != *arg) {
-				cmp->id_character = dynamic_interface_id = *arg;
-				cmp->verbosity = 1;
-				cmp->trace_playing = 0;
-				cmp->flags = 0;
+			ctl = cmp = dynamic_interface_module(*arg);
+			if(ctl) {
+				found = 1;
+				break;
 			}
-			break;
 		}
 #endif	/* IA_DYNAMIC */
 	}

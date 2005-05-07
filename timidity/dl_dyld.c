@@ -51,17 +51,20 @@ void* dl_find_symbol(void* libhandle, char* symbol)
 {
     
     /* avoid a bug of how to treat '_'. */
-    char buf[BUFSIZ];
+    size_t len = strlen(symbol);
+    char buf[len+2]; /* +2 for '_' and '\0' */
     sprintf(buf,"_%s",symbol);
     
-    if(NSIsSymbolNameDefined(symbol)) {
+    if(!NSIsSymbolNameDefined(buf)) {
 	fprintf(stderr,"dl_find_symbol:Failed to find %.200s\n",symbol);
+	return NULL;
     }
-    return NSAddressOfSymbol(NSLookupAndBindSymbol(buf));
+    else {
+        return NSAddressOfSymbol(NSLookupAndBindSymbol(buf));
+    }
 }
 
 void dl_free(void *libhandle)
 {
-    /* sorry but I honestly don't know how to free dynamic library.
-     * Someone please implement it. */
+    NSUnLinkModule(libhandle, 0);
 }

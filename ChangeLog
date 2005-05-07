@@ -1,3 +1,9 @@
+2005-05-08  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/timidity.c (dynamic_interface_module): rewrite.
+	* timidity/dl_dyld.c (dl_find_symbol): fix potential buffer overflow
+	* timidity/dl_dyld.c (dl_free): implement of dl_free()
+
 2005-04-03  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/sndfont.c: Fixed to compile cfgforsf.
