@@ -402,7 +402,7 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 		int32		sample_rate, root_freq;
 		uint32		loopStart, loopEnd;
 		
-		sample_rate = 1000000000 / samplerc.dwSamplePeriod;
+		sample_rate = samplerc.dwSamplePeriod == 0 ? 0 : 1000000000 / samplerc.dwSamplePeriod;
 		root_freq = freq_table[samplerc.dwMIDIUnityNote];
 		if (samplerc.dwMIDIPitchFraction != 0
 				&& samplerc.dwMIDIUnityNote != 127)	/* no table data */
@@ -425,7 +425,8 @@ static int import_wave_load(char *sample_file, Instrument *inst)
 		for(i = 0; i < samples; i++)
 		{
 			sample = &inst->sample[i];
-			sample->sample_rate = sample_rate;
+			if (sample_rate != 0)
+				sample->sample_rate = sample_rate;
 			sample->root_freq = root_freq;
 			if (modes != 0)
 			{

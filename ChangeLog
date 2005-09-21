@@ -1,3 +1,8 @@
+2005-09-22  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/smplfile.c: Fixed possible crash when Sampler chunk's
+	  dwSamplePeriod is erroneously 0.
+
 2005-05-08  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (dynamic_interface_module): rewrite.
