@@ -4166,7 +4166,7 @@ static void process_sysex_event(int ev, int ch, int val, int b)
 			break;
 		case 0x20:	/* Delay Send Level to Reverb */
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"Delay Send Level to Reverb (%d)",val);
-			if (delay_status_gs.send_reverb = val) {
+			if (delay_status_gs.send_reverb != val) {
 				delay_status_gs.send_reverb = val;
 				recompute_delay_status_gs();
 				init_ch_delay();

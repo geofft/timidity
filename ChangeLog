@@ -1,3 +1,7 @@
+2005-09-22  Mikhail Teterin <mi@aldan.algebra.com>
+
+	* timidity/playmidi.c (process_sysex_event): fix typo
+
 2005-09-22  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/smplfile.c: Fixed possible crash when Sampler chunk's
