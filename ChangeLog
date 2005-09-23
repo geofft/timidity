@@ -1,5 +1,7 @@
 2005-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
+	* configure.in: FreeBSD has tcltk named libtcl84 and libtk84
+
 	* timidity/timidity.c (list_dyna_interface): change dynamic
 	  interface lister to some try-and-error mechanizm.
 	* interface/*.txt : deleted. (not used any longer)
