@@ -1,3 +1,7 @@
+2005-09-23 Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c (cmd_open): Security fix.
+
 2005-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: FreeBSD has tcltk named libtcl84 and libtk84

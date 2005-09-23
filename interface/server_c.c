@@ -882,13 +882,16 @@ static int cmd_open(int argc, char **argv)
     }
     close(sock);
 
-    if(control_client.sin_addr.s_addr != in.sin_addr.s_addr)
+    if(control_port && control_client.sin_addr.s_addr != in.sin_addr.s_addr) {
+	close(data_fd);
+	data_fd = -1;
 	return send_status(513, "Security violation:  Address mismatch");
+    }
 
-    send_status(200, "Ready data connection");
     data_buffer_len = 0;
     do_sysex(NULL, 0); /* Initialize SysEx buffer */
     tmr_reset();
+    send_status(200, "Ready data connection");
 
     return 0;
 }
