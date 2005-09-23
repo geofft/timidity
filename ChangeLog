@@ -1,3 +1,9 @@
+2005-09-23  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/timidity.c (list_dyna_interface): change dynamic
+	  interface lister to some try-and-error mechanizm.
+	* interface/*.txt : deleted. (not used any longer)
+
 2005-09-22  Mikhail Teterin <mi@aldan.algebra.com>
 
 	* timidity/playmidi.c (process_sysex_event): fix typo
