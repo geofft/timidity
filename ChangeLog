@@ -1,3 +1,7 @@
+2005-09-26 Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c: usr stdout instead when stdin is a pipe.
+
 2005-09-23 Stas Sergeev <stsp@aknet.ru>
 
 	* interface/server_c.c (cmd_open): Security fix.

@@ -231,7 +231,9 @@ static int is_system_prefix = 0;
 static struct sockaddr_in control_client;
 static double low_time_at = 0.3;
 static double high_time_at = 0.5;
-static FILE *outfp;
+static FILE *outfp = NULL;
+
+#define CONTROL_FD_OUT (control_port ? control_fd : STDOUT_FILENO)
 
 /*ARGSUSED*/
 static int ctl_open(int using_stdin, int using_stdout)
@@ -325,7 +327,7 @@ static int pasv_open(int *port)
     }
     if(*port == 0)
     {
-	int len = sizeof(server);
+	socklen_t len = sizeof(server);
 	if(getsockname(sfd, (struct sockaddr *)&server, &len) < 0)
 	{
 	    perror("getsockname");
@@ -391,7 +393,7 @@ static void ctl_pass_playing_list(int n, char *args[])
     play_mode->close_output();
     while(1)
     {
-	int addrlen;
+	socklen_t addrlen;
 
 	addrlen = sizeof(control_client);
 	memset(&control_client, 0, addrlen);
@@ -419,7 +421,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 			play_mode->id_name, play_mode->id_character);
 	    if (control_port) {
 		close(control_fd);
-		control_fd = 1;
+		control_fd = -1;
 	    }
 	    continue;
 	}
@@ -488,7 +490,7 @@ static int send_status(int status, char *message, ...)
     va_end(ap);
     strncat(buff, "\n", BUFSIZ - strlen(buff) - 1);
     buff[BUFSIZ-1] = '\0';      /* force terminate */
-    if(write(control_fd, buff, strlen(buff)) == -1)
+    if(write(CONTROL_FD_OUT, buff, strlen(buff)) == -1)
 	return -1;
     return 0;
 }
@@ -837,19 +839,19 @@ static int cmd_help(int argc, char **argv)
 
     for(i = 0; cmd_table[i].cmd; i++)
     {
-	if(fdputs(cmd_table[i].help, control_fd))
+	if(fdputs(cmd_table[i].help, CONTROL_FD_OUT))
 	    return -1;
-	if(fdputs("\n", control_fd))
+	if(fdputs("\n", CONTROL_FD_OUT))
 	    return -1;
     }
-    return fdputs(".\n", control_fd);
+    return fdputs(".\n", CONTROL_FD_OUT);
 }
 
 static int cmd_open(int argc, char **argv)
 {
     int sock;
     struct sockaddr_in in;
-    int addrlen;
+    socklen_t addrlen;
     int port;
 
     if(data_fd != -1)
@@ -1142,8 +1144,8 @@ static int do_sequencer(void)
     {
 	int i;
 	for(i = 0; i < n; i++)
-	    printf("%02x", data_buffer[data_buffer_len + i]);
-	putchar('\n');
+	    fprintf(stderr, "%02x", data_buffer[data_buffer_len + i]);
+	fprintf(stderr, "\n");
     }
 #endif /* DEBUG_DUMP_SEQ */
 
@@ -1484,7 +1486,7 @@ static void do_timing(uint8 *data)
       case TMR_WAIT_ABS:
 
 /*
-   printf("## TMR_WAIT_ABS: %d %d %d %g\n",
+   fprintf(stderr, "## TMR_WAIT_ABS: %d %d %d %g\n",
        curr_tick,
        curr_tick - (time2tick(get_current_calender_time()
 			      - start_time) + tick_offs),
@@ -1505,7 +1507,7 @@ static void do_timing(uint8 *data)
       case TMR_SPP:
 #endif
       default:
-/* printf("## TMR=0x%02x is not supported\n", data[1]); */
+/* fprintf(stderr, "## TMR=0x%02x is not supported\n", data[1]); */
 	break;
     }
 }
