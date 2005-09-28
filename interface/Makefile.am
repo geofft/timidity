@@ -221,17 +221,7 @@ EXTRA_DIST = \
 	browser.tcl \
 	misc.tcl \
 	timidity.el \
-	tclIndex \
-	if_ncurses.txt \
-	if_slang.txt \
-	if_motif.txt \
-	if_tcltk.txt \
-	if_emacs.txt \
-	if_vt100.txt \
-	if_xaw.txt \
-	if_xskin.txt \
-	if_gtk.txt \
-	if_alsaseq.txt
+	tclIndex
 
 .ptcl.tcl:
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
