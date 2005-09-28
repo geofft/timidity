@@ -460,23 +460,14 @@ EXTRA_timidity_SOURCES = \
 
 
 calcnewt_SOURCES = calcnewt.c
-@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
-@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = w32g_res.res
 
 @BORLANDC_TRUE@@ENABLE_W32GUI_TRUE@W32GUI_RES = w32g_res.res
+@BORLANDC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
+@BORLANDC_TRUE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_TRUE@W32GUI_RES = w32g_res.res
 
 @BORLANDC_FALSE@@ENABLE_W32GUI_TRUE@W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 
 @BORLANDC_FALSE@CLEANFILES = newton_table.c
-
-@VCPP_TRUE@timidity_LDADD = \
-@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
-@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
-@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
-@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
-@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
-@VCPP_TRUE@	$(W32GUI_RES)
-
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@timidity_LDADD = \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(top_builddir)/interface/libinterface.a \
@@ -485,13 +476,6 @@ calcnewt_SOURCES = calcnewt.c
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(top_builddir)/utils/libutils.a \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(W32GUI_RES)
 
-
-@BORLANDC_TRUE@@VCPP_FALSE@timidity_LDADD = \
-@BORLANDC_TRUE@@VCPP_FALSE@      interface.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@      arc.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@      unimod.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@      utils.lib
-
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timidity_LDADD = \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@      interface.lib \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@      arc.lib \
@@ -499,7 +483,15 @@ calcnewt_SOURCES = calcnewt.c
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@      utils.lib
 
 
-@VCPP_TRUE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_TRUE@@VCPP_FALSE@timidity_LDADD = \
+@BORLANDC_TRUE@@VCPP_FALSE@      interface.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@      arc.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@      unimod.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@      utils.lib
+
+
+@VCPP_TRUE@timidity_LDADD = \
+@VCPP_TRUE@	$(SYSEXTRAS:.c=.$(OBJEXT)) \
 @VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
 @VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
 @VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
@@ -514,6 +506,13 @@ calcnewt_SOURCES = calcnewt.c
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(top_builddir)/utils/libutils.a \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(W32GUI_RES)
 
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/interface/interface.lib \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/libarc/arc.lib \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/utils/utils.lib \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(W32GUI_RES)
+
 @BORLANDC_TRUE@@VCPP_FALSE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/interface.lib \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/arc.lib \
@@ -521,12 +520,13 @@ calcnewt_SOURCES = calcnewt.c
 @BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)/utils/utils.lib \
 @BORLANDC_TRUE@@VCPP_FALSE@	$(W32GUI_RES)
 
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/interface/interface.lib \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/libarc/arc.lib \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/libunimod/unimod.lib \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(top_builddir)/utils/utils.lib \
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(W32GUI_RES)
+
+@VCPP_TRUE@timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+@VCPP_TRUE@	$(top_builddir)/interface/interface.lib \
+@VCPP_TRUE@	$(top_builddir)/libarc/arc.lib \
+@VCPP_TRUE@	$(top_builddir)/libunimod/unimod.lib \
+@VCPP_TRUE@	$(top_builddir)/utils/utils.lib \
+@VCPP_TRUE@	$(W32GUI_RES)
 
 @BORLANDC_TRUE@@VCPP_FALSE@BORLANDC_LINK_OPTIONS = \
 @BORLANDC_TRUE@@VCPP_FALSE@      -L..\\interface \

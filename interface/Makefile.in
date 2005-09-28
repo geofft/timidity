@@ -442,9 +442,9 @@ EXTRA_libinterface_a_SOURCES = \
 @ENABLE_SOUND_SPEC_TRUE@	soundspec.$(OBJEXT)
 
 
-@ENABLE_W32GUI_TRUE@W32GUI_DEPS = w32g_res.res
-
 @ENABLE_W32G_SYN_TRUE@W32GUI_DEPS = w32g_res.res
+
+@ENABLE_W32GUI_TRUE@W32GUI_DEPS = w32g_res.res
 
 INTERFACE_OBJS = $(INTERFACE_SRCS:.c=.$(OBJEXT))
 
@@ -481,9 +481,9 @@ EXTRA_DIST = \
 	timidity.el \
 	tclIndex
 
+@ENABLE_DYNAMIC_TCLTK_TRUE@install_tk = install.tk
 
 @ENABLE_TCLTK_TRUE@install_tk = install.tk
-@ENABLE_DYNAMIC_TCLTK_TRUE@install_tk = install.tk
 @ENABLE_DYNAMIC_XAW_TRUE@install_xaw = install.xaw
 
 @ENABLE_XAW_TRUE@install_xaw = install.xaw
@@ -1229,7 +1229,7 @@ install.el: $(ELFILES)
 
 @NEEDDLOPEN_TRUE@install.dynamics: $(dynamic_targets)
 @NEEDDLOPEN_TRUE@	test -d $(DESTDIR)$(SHLIB_DIR) || mkdir -p $(DESTDIR)$(SHLIB_DIR)
-@NEEDDLOPEN_TRUE@	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR) ; $(INSTALL_DATA) $${f%%$(so)}txt $(DESTDIR)$(SHLIB_DIR);; esac; done
+@NEEDDLOPEN_TRUE@	for f in $(dynamic_targets) ''; do case ".$$f" in .);; *) $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SHLIB_DIR) ;; esac; done
 
 @NEEDDLOPEN_TRUE@.c.$(so):
 @NEEDDLOPEN_TRUE@	$(COMPILE) $(SHCFLAGS) -c $< -o $@
