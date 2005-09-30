@@ -208,7 +208,7 @@ URL url_file_open(char *fname)
 #endif /* __W32__ */
 
 #ifdef DEBUG
-    printf("url_file_open(%s)\n", fname);
+    fprintf(stderr, "url_file_open(%s)\n", fname);
 #endif /* DEBUG */
 
     if(!strcmp(fname, "-"))
@@ -240,10 +240,10 @@ URL url_file_open(char *fname)
 
 #ifdef DEBUG
     if(mapptr != NULL)
-	printf("mmap - success. size=%d\n", mapsize);
+	fprintf(stderr, "mmap - success. size=%d\n", mapsize);
 #ifdef HAVE_MMAP
     else
-	printf("mmap - failure.\n");
+	fprintf(stderr, "mmap - failure.\n");
 #endif
 #endif /* DEBUG */
 

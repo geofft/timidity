@@ -207,7 +207,7 @@ static NewsConnection *open_news_server(char *host, unsigned short port)
     }
 
 #ifdef DEBUG
-    printf("Connect status: %s", buff);
+    fprintf(stderr, "Connect status: %s", buff);
 #endif /* DEBUG */
 
     if(buff[0] != NNTP_OK_ID)
@@ -257,7 +257,7 @@ URL url_news_open(char *name)
     int i;
 
 #ifdef DEBUG
-    printf("url_news_open(%s)\n", name);
+    fprintf(stderr, "url_news_open(%s)\n", name);
 #endif /* DEBUG */
 
     url = (URL_news *)alloc_url(sizeof(URL_news));
@@ -315,11 +315,11 @@ URL url_news_open(char *name)
 	messageID[i - 1] = '\0';
 
 #ifdef DEBUG
-    printf("messageID: <%s>\n", messageID);
+    fprintf(stderr, "messageID: <%s>\n", messageID);
 #endif /* DEBUG */
 
 #ifdef DEBUG
-    printf("open(host=`%s', port=`%d')\n", host, port);
+    fprintf(stderr, "open(host=`%s', port=`%d')\n", host, port);
 #endif /* DEBUG */
 
     if((url->news = open_news_server(host, port)) == NULL)
@@ -334,7 +334,7 @@ URL url_news_open(char *name)
     sprintf(buff, "ARTICLE <%s>\r\n", messageID);
 
 #ifdef DEBUG
-    printf("CMD> %s", buff);
+    fprintf(stderr, "CMD> %s", buff);
 #endif /* DEBUG */
 
     socket_write(url->news->fd, buff, (long)strlen(buff));
@@ -355,7 +355,7 @@ URL url_news_open(char *name)
     }
 
 #ifdef DEBUG
-    printf("CMD< %s", buff);
+    fprintf(stderr, "CMD< %s", buff);
 #endif /* DEBUG */
 
     if(buff[0] != NNTP_OK_ID)

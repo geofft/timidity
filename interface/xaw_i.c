@@ -3262,7 +3262,7 @@ void a_start_interface(int pipe_in) {
       }
       p++;
     }
-    *new = '\0'; puts(str);
+    *new = '\0'; fputs(str, stderr);
   }
   exit(0);
 #endif

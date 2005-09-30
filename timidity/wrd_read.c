@@ -262,7 +262,7 @@ int import_wrd_file(char *fn)
 	    wrdstep.timesig[wrdstep.ntimesig - 1];
 	wrdstep.timesig[wrdstep.ntimesig].time = 0x7fffffff; /* stopper */
 #ifdef DEBUG
-	printf("Time signatures:\n");
+	fprintf(stderr, "Time signatures:\n");
 	for(i = 0; i < wrdstep.ntimesig; i++)
 	    printf("  %d: %d/%d\n",
 		   wrdstep.timesig[i].time,
@@ -280,8 +280,8 @@ int import_wrd_file(char *fn)
     readmidi_set_track(0, 1);
 
 #ifdef DEBUG
-    printf("Timebase: %d\n", wrdstep.timebase);
-    printf("Step: %d\n", wrdstep.step_inc);
+    fprintf(stderr, "Timebase: %d\n", wrdstep.timebase);
+    fprintf(stderr, "Step: %d\n", wrdstep.step_inc);
 #endif /* DEBUG */
 
     while(!readmidi_error_flag && wrd_nexttok(tf))
@@ -296,7 +296,7 @@ int import_wrd_file(char *fn)
 	}
 
 #ifdef DEBUG
-	printf("%d: [%d,%d]/%d %s: ",
+	fprintf(stderr, "%d: [%d,%d]/%d %s: ",
 	       lineno,
 	       wrdstep.bar,
 	       wrdstep.step,
@@ -646,7 +646,7 @@ int import_wrd_file(char *fn)
 			    (wrdstep.wmode0 + 1) * wrdstep.timebase / 24;
 		}
 #ifdef DEBUG
-		printf("Step change: wmode=%s, step=%d\n",
+		fprintf(stderr, "Step change: wmode=%s, step=%d\n",
 		       wrdstep.wmode1 ? "char" : "line", wrdstep.step_inc);
 #endif /* DEBUG */
 		break;
@@ -914,7 +914,7 @@ int import_wrd_file(char *fn)
     reuse_mblock(&wrdstep.pool);
     close_file(tf);
 #ifdef DEBUG
-    fflush(stdout);
+    fflush(stderr);
 #endif /* DEBUG */
 
     return WRD_TRACE_MIMPI;
@@ -957,10 +957,10 @@ static struct wrd_delayed_event *wrd_delay_cmd(struct wrd_step_tracer *wrdstep,
     }
 
 #ifdef DEBUG
-    printf("Delay events:");
+    fprintf(stderr, "Delay events:");
     for(insp = wrdstep->de; insp != NULL; insp = insp->next)
-	printf(" @%s/%d", wrd_name_string(insp->cmd), insp->waittime);
-    printf("\n");
+	fprintf(stderr, " @%s/%d", wrd_name_string(insp->cmd), insp->waittime);
+    fprintf(stderr, "\n");
 #endif /* DEBUG */
 
     return p;
@@ -979,7 +979,7 @@ static void wrdstep_update_forward(struct wrd_step_tracer *wrdstep)
 	    wrdstep->timesig[wrdstep->timeidx].a * wrdstep->timebase * 4
 		/ wrdstep->timesig[wrdstep->timeidx].b;
 #ifdef DEBUG
-	printf("Time signature is changed: %d/%d barstep=%d\n",
+	fprintf(stderr, "Time signature is changed: %d/%d barstep=%d\n",
 	       wrdstep->timesig[wrdstep->timeidx].a,
 	       wrdstep->timesig[wrdstep->timeidx].b,
 	       wrdstep->barstep);
@@ -1002,7 +1002,7 @@ static void wrdstep_update_backward(struct wrd_step_tracer *wrdstep)
 	    wrdstep->timesig[wrdstep->timeidx].a * wrdstep->timebase * 4
 		/ wrdstep->timesig[wrdstep->timeidx].b;
 #ifdef DEBUG
-	printf("Time signature is changed: %d/%d barstep=%d\n",
+	fprintf(stderr, "Time signature is changed: %d/%d barstep=%d\n",
 	       wrdstep->timesig[wrdstep->timeidx].a,
 	       wrdstep->timesig[wrdstep->timeidx].b,
 	       wrdstep->barstep);
@@ -1906,9 +1906,9 @@ static void sry_timebase21(struct wrd_step_tracer* wrdstep, int timebase)
 #ifdef DEBUG
 	{
 	int i;
-	printf("Time signatures:\n");
+	fprintf(stderr, "Time signatures:\n");
 	for(i = 0; i < wrdstep->ntimesig; i++)
-	    printf("  %d: %d/%d\n",
+	    fprintf(stderr, "  %d: %d/%d\n",
 		   wrdstep->timesig[i].time,
 		   wrdstep->timesig[i].a,
 		   wrdstep->timesig[i].b);
@@ -1926,9 +1926,9 @@ static void sry_timebase21(struct wrd_step_tracer* wrdstep, int timebase)
     /* wrdstep.step_inc = wrdstep.timebase; */
 
 #ifdef DEBUG
-    printf("Timebase: %d, divisions:%d\n",
+    fprintf(stderr, "Timebase: %d, divisions:%d\n",
     		wrdstep->timebase, current_file_info->divisions);
-    printf("Step: %d\n", wrdstep->step_inc);
+    fprintf(stderr, "Step: %d\n", wrdstep->step_inc);
 #endif /* DEBUG */
 }
 
@@ -2111,7 +2111,7 @@ static int import_sherrywrd_file(const char * fn)
     reuse_mblock(&wrdstep.pool);
     close_file(tf);
 #ifdef DEBUG
-    fflush(stdout);
+    fflush(stderr);
 #endif /* DEBUG */
     return 1;
 }

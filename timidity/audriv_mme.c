@@ -241,7 +241,7 @@ Bool audriv_setup_audio(void)
     all_data_block[0].data = mmeAllocBuffer(DATA_BLOCK_NUM * DATA_BLOCK_SIZE);
 
 #ifdef DEBUG
-    printf("%d shared audio buffer memory is allocated.\n",
+    fprintf(stderr, "%d shared audio buffer memory is allocated.\n",
 	   DATA_BLOCK_NUM * DATA_BLOCK_SIZE);
 #endif /* DEBUG */
 
@@ -320,7 +320,7 @@ static void audriv_callback_mme(HANDLE Hwave, UINT wMsg, DWORD dwInstance,
 				LPARAM lParam1, LPARAM lParam2)
 {
 #ifdef DEBUGALL
-    printf("audriv_callback_mme: mMsg=%d (%s)\n",
+    fprintf(stderr, "audriv_callback_mme: mMsg=%d (%s)\n",
 	   wMsg, callback_message_string(wMsg));
 #endif
 
@@ -328,7 +328,7 @@ static void audriv_callback_mme(HANDLE Hwave, UINT wMsg, DWORD dwInstance,
     {
 	WAVEHDR *wp = (WAVEHDR *)lParam1;
 #ifdef DEBUGALL
-	printf("output wp->dwUser = %d\n", wp->dwUser);
+	fprintf(stderr, "output wp->dwUser = %d\n", wp->dwUser);
 #endif
 	reuse_data_block(wp->dwUser);
     }
@@ -372,10 +372,6 @@ static const char *ProductID_names(WORD id)
 #endif /* DEBUG */
 
 Bool audriv_play_open(void)
-/* audio を演奏用に開き，いつでも audriv_write() により演奏可能な
- * 状態にします．既に開いている場合はなにも行いません．
- * 成功した場合は True を，失敗した場合は False を返します．
- */
 {
     MMRESULT status;
 
@@ -419,22 +415,22 @@ Bool audriv_play_open(void)
     }
 
 #ifdef DEBUG
-    printf("Play Device ID: %d\n", play_wave_format->DevID);
+    fprintf(stderr, "Play Device ID: %d\n", play_wave_format->DevID);
 #ifdef MM_MICROSOFT
     if(wave_out_caps->wMid == MM_MICROSOFT)
-	puts("Manufacture: Microsoft Corp.");
+	fputs("Manufacture: Microsoft Corp.", stderr);
 #endif /* MM_MICROSOFT */
 #ifdef MM_DIGITAL
     if(wave_out_caps->wMid == MM_DIGITAL)
-	puts("Manufacture: Digital Eq. Corp.");
+	fputs("Manufacture: Digital Eq. Corp.", stderr);
 #endif /* MM_DIGITAL */
 
-    printf("Product: %s\n", ProductID_names(wave_out_caps->wPid));
-    printf("Version of the driver: %d\n", wave_out_caps->vDriverVersion);
-    printf("Product name: %s\n", wave_out_caps->szPname);
-    printf("Formats supported: 0x%x\n", wave_out_caps->dwFormats);
-    printf("number of sources supported: 0x%x\n", wave_out_caps->wChannels);
-    printf("functionality supported by driver: 0x%x\n",
+    fprintf(stderr, "Product: %s\n", ProductID_names(wave_out_caps->wPid));
+    fprintf(stderr, "Version of the driver: %d\n", wave_out_caps->vDriverVersion);
+    fprintf(stderr, "Product name: %s\n", wave_out_caps->szPname);
+    fprintf(stderr, "Formats supported: 0x%x\n", wave_out_caps->dwFormats);
+    fprintf(stderr, "number of sources supported: 0x%x\n", wave_out_caps->wChannels);
+    fprintf(stderr, "functionality supported by driver: 0x%x\n",
 	   wave_out_caps->dwSupport);
 #endif
 
@@ -444,9 +440,6 @@ Bool audriv_play_open(void)
 }
 
 void audriv_play_close(void)
-/* 演奏用にオープンされた audio を閉じます．すでに閉じている
- * 場合はなにも行いません．
- */
 {
     if(!IS_AUDIO_PLAY_OPEN)
 	return;

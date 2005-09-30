@@ -1,3 +1,10 @@
+2005-09-30 Stas Sergeev <stsp@aknet.ru>
+	* interface/xaw_i.c, interface/server_c.c, interface/soundspec.c,
+	  interface/motif_i.c, libarc/url_newsgroup.c, libarc/url_http.c,
+	  libarc/url.c, libarc/url_ftp.c, libarc/url_file.c,
+	  libarc/url_news.c, timidity/audriv_mme.c, timidity/wrd_read.c:
+	  use stderr instead of stdout
+
 2005-09-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
 	* timidity/mod2midi.c: Defining out the ME_KEYPRESSURE related code

@@ -204,7 +204,7 @@ static long search_near_color(Display *disp, int r, int g, int b)
     }
 
 #ifdef DEBUG
-    printf("color [%04x %04x %04x]->[%04x %04x %04x] (d^2=%f, k=%d)\n",
+    fprintf(stderr, "color [%04x %04x %04x]->[%04x %04x %04x] (d^2=%f, k=%d)\n",
 	   r, g, b,
 	   xc[k].red, xc[k].green, xc[k].blue,
 	   mind, (int)k);

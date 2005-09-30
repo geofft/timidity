@@ -570,7 +570,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&note);
 #ifdef DEBUG
-	    printf("NOTE chn%i %i\n",channel,note);
+	    fprintf(stderr, "NOTE chn%i %i\n",channel,note);
 #endif /* DEBUG */
 	}
 	    break;
@@ -582,7 +582,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&pgm);
 #ifdef DEBUG
-	    printf("NOTE chn%i %i\n",channel,pgm);
+	    fprintf(stderr, "NOTE chn%i %i\n",channel,pgm);
 #endif /* DEBUG */
 	}
 	    break;
@@ -594,7 +594,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&volume);
 #ifdef DEBUG
-	    printf("VOLUME= chn%i %i \n",channel, volume);
+	    fprintf(stderr, "VOLUME= chn%i %i \n",channel, volume);
 #endif /* DEBUG */
 	}
 	    break;
@@ -607,7 +607,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&express);
 #ifdef DEBUG
-	    printf("EXPRESSION= chn%i %i \n",channel, express);
+	    fprintf(stderr, "EXPRESSION= chn%i %i \n",channel, express);
 #endif /* DEBUG */
 	}
 	    break;
@@ -619,7 +619,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&pan);
 #ifdef DEBUG
-	    printf("PANNING= chn%i %i \n",channel, pan);
+	    fprintf(stderr, "PANNING= chn%i %i \n",channel, pan);
 #endif /* DEBUG */
 	}
 	    break;
@@ -631,7 +631,7 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&sust);
 #ifdef DEBUG
-	    printf("SUSTAIN= chn%i %i \n",channel, sust);
+	    fprintf(stderr, "SUSTAIN= chn%i %i \n",channel, sust);
 #endif /* DEBUG */
 	}
 	    break;
@@ -643,21 +643,21 @@ static void handle_input(client_data, source, id)
 	    m_pipe_int_read(&channel);
 	    m_pipe_int_read(&bend);
 #ifdef DEBUG
-	    printf("PITCH BEND= chn%i %i \n",channel, bend);
+	    fprintf(stderr, "PITCH BEND= chn%i %i \n",channel, bend);
 #endif /* DEBUG */
 	}
 	    break;
 
 	case RESET_MESSAGE : {
 #ifdef DEBUG
-	    printf("RESET_MESSAGE\n");
+	    fprintf(stderr, "RESET_MESSAGE\n");
 #endif /* DEBUG */
 	}
 	    break;
 
 	case CLOSE_MESSAGE : {
 #ifdef DEBUG
-	    printf("CLOSE_MESSAGE\n");
+	    fprintf(stderr, "CLOSE_MESSAGE\n");
 #endif /* DEBUG */
 	    exit(0);
 	}

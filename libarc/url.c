@@ -86,12 +86,12 @@ URL url_open(char *s)
     for(m = url_mod_list; m; m = m->chain)
     {
 #ifdef DEBUG
-	printf("Check URL type=%d\n", m->type);
+	fprintf(stderr, "Check URL type=%d\n", m->type);
 #endif /* DEBUG */
 	if(m->type != URL_none_t && m->name_check && m->name_check(s))
 	{
 #ifdef DEBUG
-	    printf("open url (type=%d, name=%s)\n", m->type, s);
+	    fprintf(stderr, "open url (type=%d, name=%s)\n", m->type, s);
 #endif /* DEBUG */
 	    if(m->url_init != url_init_nop)
 	    {

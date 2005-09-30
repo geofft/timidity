@@ -240,10 +240,7 @@ static int ctl_open(int using_stdin, int using_stdout)
 {
     ctl.opened = 1;
     ctl.flags &= ~(CTLF_LIST_RANDOM|CTLF_LIST_SORT);
-    if(using_stdout)
-	outfp = stderr;
-    else
-	outfp = stdout;
+    outfp = stderr;
     return 0;
 }
 
