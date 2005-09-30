@@ -1,3 +1,7 @@
+2005-09-30  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/mod2midi.c: Defining out the ME_KEYPRESSURE related code
+
 2005-09-28  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* interface/Makefile.am (EXTRA_DIST, install.dynamics):

@@ -50,7 +50,35 @@
 /* Define this to show all the notes touched by a bending in the
  * user interface's trace view.  This is interesting but disabled
  * because it needs tons of CPU power (tens of voices are activated
- * but unaudible). */
+ * but unaudible).
+ *
+ * EAW -- This is ancient code left over from an older method of handling
+ * pitch bends.  This method spawned a separate note for every pitch the
+ * pitch bend covered, each with an initial keypressure of 1.  As the pitch
+ * bend moved over a pitch covered by one of the spawned notes, the note
+ * covering the previous portion of the pitch bend was set back to a
+ * keypressure of 1, and the note covering the current portion of the pitch
+ * bend was set to 127.  The original pitch bend was modified locally for
+ * each spawned note so as to bend each note for its portion of the pitch
+ * bend.  This method had two major problems.  First, spawning off that many
+ * notes, especially for multiple large pitch bends, resulted in a HUGE number
+ * of voices.  This could sometimes max out the number of voices limit, and
+ * required a very large amount of CPU to process all the voices.  The second
+ * problem was that it could sound very strange when the sample used for the
+ * pitch bend switched to a different sample due to a different note being
+ * used as the root of the pitch bend.  When the new (current) pitch bend
+ * method was implemented, the older method was left as a define in order
+ * to visualize pitch bend ranges.  It looked "interesting", and may have
+ * been useful early on for debugging some pitch bend related problems.
+ * However, it looks like noone ever tried redefining it again after changes
+ * were made elsewhere in the code, so it doesn't work quite right anymore,
+ * and pitch bends sound a bit strange when it is defined.  I think that all
+ * of the ME_KEYPRESSURE related code in Voice_SetPeriod() may be left over
+ * from TRACE_SLIDE_NOTES support, so I have added some additional #ifdef's
+ * to get rid of code that looks like it might only be there for
+ * TRACE_SLIDE_NOTES support, and commented them as such.  They do not appear
+ * to break the current pitch bend method.
+ */
 /* #define TRACE_SLIDE_NOTES */
 
 /* Define this to give a volume envelope to a MOD's notes. This
@@ -277,7 +305,10 @@ Voice_SetPeriod (UBYTE v, ULONG period)
 
   if (ModV[v].noteon != new_noteon)
     {
+/* EAW -- I think this is only here for TRACE_SLIDE_NOTES support? */
+#ifdef TRACE_SLIDE_NOTES
       MIDIEVENT(at, ME_KEYPRESSURE, v, ModV[v].noteon, 1);
+#endif
 
       if (new_noteon < 0)
         {
@@ -286,12 +317,15 @@ Voice_SetPeriod (UBYTE v, ULONG period)
 			  ModV[v].period);
 	  return;
 	}
+
+/* EAW -- I think this is only here for TRACE_SLIDE_NOTES support? */
+#ifdef TRACE_SLIDE_NOTES
       else if (!bitmapGet(ModV[v].noteson, new_noteon))
 	{
 	  MIDIEVENT(ModV[v].time, ME_NOTEON, v, new_noteon, 1);
 	  bitmapSet(ModV[v].noteson, new_noteon);
 	}
-
+#endif
     }
 
   if (ModV[v].wheel != bend)
@@ -300,12 +334,14 @@ Voice_SetPeriod (UBYTE v, ULONG period)
       MIDIEVENT (at, ME_PITCHWHEEL, v, bend & 0x7F, (bend >> 7) & 0x7F);
     }
 
+/* EAW -- I think this is only here for TRACE_SLIDE_NOTES support? */
+#ifdef TRACE_SLIDE_NOTES
   if (ModV[v].noteon != new_noteon)
     {
       MIDIEVENT(at, ME_KEYPRESSURE, v, new_noteon, 127);
       ModV[v].noteon = new_noteon;
     }
-
+#endif
 }
 
 void
