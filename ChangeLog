@@ -1,3 +1,7 @@
+2005-10-22  Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c : fix for cmd_setbuf
+
 2005-09-30 Stas Sergeev <stsp@aknet.ru>
 	* interface/xaw_i.c, interface/server_c.c, interface/soundspec.c,
 	  interface/motif_i.c, libarc/url_newsgroup.c, libarc/url_http.c,

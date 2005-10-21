@@ -229,8 +229,8 @@ static int tmr_running;
 
 static int is_system_prefix = 0;
 static struct sockaddr_in control_client;
-static double low_time_at = 0.3;
-static double high_time_at = 0.5;
+static double low_time_at = DEFAULT_LOW_TIMEAT;
+static double high_time_at = DEFAULT_HIGH_TIMEAT;
 static FILE *outfp = NULL;
 
 #define CONTROL_FD_OUT (control_port ? control_fd : STDOUT_FILENO)
@@ -668,11 +668,6 @@ static void doit(void)
 
 	    if(n == 0)
 	    {
-		if(ctl.verbosity >= VERB_DEBUG)
-		{
-		    putchar(',');
-		    fflush(stdout);
-		}
 		do_timeout();
 		continue;
 	    }
@@ -1010,7 +1005,7 @@ static int cmd_autoreduce(int argc, char **argv)
 static int cmd_setbuf(int argc, char **argv)
 {
     low_time_at = atof(argv[1]);
-    high_time_at = atof(argv[1]);
+    high_time_at = atof(argv[2]);
     return send_status(200, "OK");
 }
 
