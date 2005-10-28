@@ -81,7 +81,7 @@ int rtsyn_nportlist;
 #define MAX_EXBUF 20
 #define BUFF_SIZE 512
 
-
+double pm_start_time;
 PmError pmerr;
 static unsigned int InNum;
 struct midistream_t{
@@ -123,16 +123,10 @@ pmerror:
 int rtsyn_synth_start(){
 	int i;
 	unsigned int port;
-	MidiEvent ev;
-
-	rtsyn_reset();
-	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
-	change_system_mode(rtsyn_system_mode);
-	ev.type=ME_RESET;
-	ev.a=GS_SYSTEM_MODE; //GM is mor better ???
-	rtsyn_play_event(&ev);
 	
 	port=0;
+	Pt_Start(1,NULL,NULL);
+	pm_start_time = get_current_calender_time();
 	pmerr=Pm_Initialize();
 	if( pmerr != pmNoError ) goto pmerror;
 	for(port=0;port<rtsyn_portnumber;port++){
@@ -143,7 +137,6 @@ int rtsyn_synth_start(){
 				portID[port],
 				NULL,
 				(PMBUFF_SIZE),
-				NULL,
 				Pt_Time,
 				NULL);
 		midistream[port].stream=stream;
@@ -182,6 +175,7 @@ void rtsyn_midiports_close(void){
 //		if( pmerr != pmNoError ) goto pmerror;
 	}
 	Pm_Terminate();
+	Pt_Stop();
 }
 
 int rtsyn_play_some_data (void){
@@ -189,9 +183,9 @@ int rtsyn_play_some_data (void){
 	int played;	
 	int j,port,exlen,data,shift;
 	long pmlength,pmbpoint;
+	double event_time;
 	
 	played=0;
-	do{
 		sleep(0);
 		for(port=0;port<rtsyn_portnumber;port++){
 			pmerr=Pm_Read(midistream[port].stream, pmbuffer, PMBUFF_SIZE);
@@ -201,8 +195,9 @@ int rtsyn_play_some_data (void){
 			while(pmbpoint<pmlength){
 				played=~0;
 				pmmsg=pmbuffer[pmbpoint].message;
+				event_time=((double)pmbuffer[pmbpoint].timestamp)/1000.0 + pm_start_time;
 				pmbpoint++;
-				if( 1==rtsyn_play_one_data (port, pmmsg) ){	
+				if( 1==rtsyn_play_one_data (port, pmmsg, event_time) ){	
 
 					j=0;
 					sysexbuffer[j++] = 0xf0;
@@ -239,12 +234,10 @@ int rtsyn_play_some_data (void){
 						}
 					}
 					exlen=j;
-					rtsyn_play_one_sysex (sysexbuffer,exlen );
+					rtsyn_play_one_sysex (sysexbuffer,exlen, event_time);
 				}
-
 			}
 		}
-	}while(rtsyn_reachtime>get_current_calender_time());
 	return played;
 pmerror:
 	Pm_Terminate();

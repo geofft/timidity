@@ -53,17 +53,13 @@
 #include <mmsystem.h>
 #endif
 
-#if !defined(__MACOS__)
-#define USE_WINSYN_TIMER_I 1
 
 #ifndef __W32__
-#include <pthread.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
 #endif
 
-#endif
 
 
 #include "timidity.h"
@@ -88,16 +84,18 @@
 
 /* peek playmidi.c */
 extern int32 current_sample;
-extern FLOAT_T midi_time_ratio;
 
 /* peek timidity.c */
 extern VOLATILE int intr;
 
-/* How often play data. */
+/* How often data pass to the buffer */
 #define TICKTIME_HZ 100
 
+/* latency (sec)  > 1.0 / TICKTIME_HZ * 2.0 */
+#define RTSYN_LATENCY 0.05
 
-extern double rtsyn_reachtime;
+
+extern double rtsyn_ratency;   /* = RTYSN_RATENCY */
 extern int rtsyn_system_mode;
 
 /* reset synth    */
@@ -115,12 +113,14 @@ void rtsyn_normal_modeset(void);
 
 void rtsyn_init(void);
 void rtsyn_close(void);
+void rtsyn_set_latency(double latency);
 void rtsyn_play_event(MidiEvent *ev);
+void rtsyn_play_event_time(MidiEvent *ev, double event_time);
 void rtsyn_server_reset(void);
 void rtsyn_reset(void);
 void rtsyn_stop_playing(void);
-int rtsyn_play_one_data (int port, int32 dwParam1);
-void rtsyn_play_one_sysex (char *sysexbuffer, int exlen );
+int rtsyn_play_one_data (int port, int32 dwParam1, double event_time);
+void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time );
 void rtsyn_play_calculate(void);
 
 

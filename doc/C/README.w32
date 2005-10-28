@@ -75,7 +75,7 @@ This file contains fllowing instructions.
 (3)Make TiMidity++ binaries
         3-1)timw32g.exe
             (configure)
-             CFLAGS="-O2" configure --enable-network --enable-w32gui \
+             CFLAGS="-O2" ./configure --enable-network --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -83,7 +83,7 @@ This file contains fllowing instructions.
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-             CFLAGS="-O2" configure --enable-network --enable-winsyng \
+             CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -92,7 +92,7 @@ This file contains fllowing instructions.
 
         3-3)twsynsrv.exe
             (configure)
-              CFLAGS="-O2" configure --enable-network --enable-winsyng \
+              CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              add config.h following line
                 #define TWSYNSRV 1
@@ -103,7 +103,7 @@ This file contains fllowing instructions.
 
         3-4)timidity.exe
             (configure)
-             CFLAGS="-O2" configure --enable-interface=ncurses,vt100,winsyn --enable-network \
+             CFLAGS="-O2" ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -202,7 +202,7 @@ done
                 
         3-1)timw32g.exe
             (configure)
-             CC="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui \
+             CC="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -210,7 +210,7 @@ done
         3-2)twsyng.exe
             (configure)
             CC="bcc32" CPP="cpp32" CFLAGS="" \
-            ./configure_bc --enable-network --enable-winsyng \
+            ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -218,7 +218,7 @@ done
         3-3)twsynsrv.exe
             (configure)
              CC="bcc32" CPP="cpp32" CFLAGS=""\
-             ./configure_bc --enable-network --enable-winsyng \
+             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              add config.h following line
                 #define TWSYNSRV 1
@@ -228,7 +228,7 @@ done
        3-4)timidity.exe
             (configure)
             CC="bcc32" CPP="cpp32" CFLAGS="" \
-             ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network \
+             ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -316,7 +316,7 @@ done
         3-1)timw32g.exe
             (configure)
             CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
-           ./configure --enable-network --enable-w32gui \
+           ./configure --enable-network --enable-w32gui --enable-spline=gauss \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
@@ -325,7 +325,7 @@ done
         3-2)twsyng.exe
             (configure)
             CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
-            ./configure --enable-network --enable-winsyng \
+            ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
              (make)
@@ -334,7 +334,7 @@ done
         3-3)twsynsrv.exe
             (configure)
             CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
-            ./configure --enable-network --enable-winsyng \
+            ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             add config.h following line
@@ -346,7 +346,7 @@ done
         3-4)timidity.exe
             (configure)
             CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
-            ./configure --enable-interface=ncurses,vt100,winsyn --enable-network \
+            ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
@@ -423,7 +423,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
         3-1)timw32g.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
-            ./configure --enable-network --enable-w32gui \
+            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
             make
@@ -431,7 +431,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
         3-2)twsyng.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
-            ./configure --enable-network --enable-winsyng \
+            ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
@@ -439,7 +439,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
         3-3)twsynsrv.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2"\
-             ./configure --enable-network --enable-winsyng \
+             ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              add config.h following line
                 #define TWSYNSRV 1
@@ -449,10 +449,10 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
         3-4)timidity.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
-             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network \
+             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
 
 
-2004.5.28 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)
+2005.10.24 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)

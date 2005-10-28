@@ -1,3 +1,19 @@
+2005-10-28  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+	New version of windows synthesizer mode.
+	Introduce --rtsyn-latency=(seconds) long-option.
+
+	* timidity/timidity.c, timidity/w32_gogo.h 
+	:small fix
+	*interface/w32g_utl.c, interface/w32g_syn.c
+	:changes for gcc4 windows
+	* interface/portmidisyn_c.c, interface/rtsyn_portmidi.c,
+	  interface/rtsyn_winmm.c, interface/winsyn_c, timidity/playmidi.c,
+	  interface/rtsyn.h, timidity/instrum.h, timidity/sndfont.c,
+	  interface/rtsyn_common.c, timidity/timidity.c
+	:new windows synth.
+	* doc/C/README.w32.orig, doc/ja_JP.eucJP/README.w32
+	:correlated changes.
+
 2005-10-22  Stas Sergeev <stsp@aknet.ru>
 
 	* interface/server_c.c : fix for cmd_setbuf

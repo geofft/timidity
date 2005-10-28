@@ -93,6 +93,7 @@
 #include "mix.h"
 #include "unimod.h"
 #include "quantity.h"
+#include "rtsyn.h"
 
 #ifdef IA_W32GUI
 #include "w32g.h"
@@ -197,6 +198,7 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
+	TIM_OPT_RTSYN_LATENCY,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -338,6 +340,7 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
+	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -476,6 +479,7 @@ static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
 static inline int parse_opt_default_module(const char *);
+static inline int parse_opt_rtsyn_latency(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
@@ -1575,6 +1579,9 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		if (*w[1] == '-') {
 			int optind_save = optind;
 			optind = 0;
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+        		optreset=1;
+#endif
 			c = getopt_long(words, w, optcommands, longopts, &longind);
 			err = set_tim_opt_long(c, optarg, longind);
 			optind = optind_save;
@@ -2841,6 +2848,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
+	case TIM_OPT_RTSYN_LATENCY:
+		return parse_opt_rtsyn_latency(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3828,7 +3837,8 @@ static inline int parse_opt_h(const char *arg)
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f|G)[,level]" NLS
 "  --voice-lpf=(d|c|m)" NLS
-"  --noise-shaping=n" NLS, fp);
+"  --noise-shaping=n" NLS
+"  --rtsyn-latency=sec" NLS, fp);
 #ifndef FIXED_RESAMPLATION
 	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);
 #endif
@@ -4784,6 +4794,17 @@ static inline int parse_opt_default_module(const char *arg)
 	return 0;
 }
 
+
+static inline int parse_opt_rtsyn_latency(const char *arg)
+{
+	double latency;
+	if(EOF == sscanf(arg, "%lf", &latency)) latency = RTSYN_LATENCY;
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+	rtsyn_set_latency(latency);
+#endif
+	return 0;
+}
+
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *arg)
 {
@@ -5600,13 +5621,27 @@ int main(int argc, char **argv)
 	}
     }
 
+#if !defined(IA_WINSYN) && !defined(IA_PORTMIDISYN) && !defined(IA_W32G_SYN)
     if((err = timidity_pre_load_configuration()) != 0)
 	return err;
-
+#else
+	 opt_sf_close_each_file = 0;
+#endif
+	
     optind = longind = 0;
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+	optreset=1;
+#endif
     while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
 	if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 	    break;
+
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+	if(got_a_configuration != 1){
+	if((err = timidity_pre_load_configuration()) != 0)
+	return err;
+	}
+#endif
 
     err += timidity_post_load_configuration();
 

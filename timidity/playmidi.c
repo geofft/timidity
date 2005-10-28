@@ -463,7 +463,7 @@ static void kill_note(int i)
 	ctl_note_event(i);
 }
 
-static void kill_all_voices(void)
+void kill_all_voices(void)
 {
     int i, uv = upper_voices;
 
@@ -7522,16 +7522,16 @@ int play_event(MidiEvent *ev)
     {
 	int rc;
 
-
+/*
     if(midi_streaming!=0){
     	if ( (cet - current_sample) * 1000 / play_mode->rate > stream_max_compute ) {
 			kill_all_voices();
-			/* reset_voices(); */
-/* 			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample); */
+			* reset_voices(); *
+* 			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample); *
 			current_sample = cet;
 		}
     }
-
+*/
 	rc = compute_data(cet - current_sample);
 	ctl_mode_event(CTLE_REFRESH, 0, 0, 0);
     if(rc == RC_JUMP)

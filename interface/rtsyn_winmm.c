@@ -88,7 +88,6 @@ char sIMidiHdr[MAX_PORT][MAX_EXBUF][sizeof(MIDIHDR)];
 char sImidiHdr_data[MAX_PORT][MAX_EXBUF][BUFF_SIZE];
 
 struct evbuf_t{
-	int status;
 	UINT wMsg;
 	DWORD	dwInstance;
 	DWORD	dwParam1;
@@ -100,7 +99,10 @@ UINT  evbwpoint=0;
 UINT  evbrpoint=0;
 UINT evbsysexpoint;
 UINT  mvbuse=0;
-enum{B_OK, B_WORK, B_END};
+
+CRITICAL_SECTION mim_section;
+
+double mim_start_time;
 
 void CALLBACK MidiInProc(HMIDIIN,UINT,DWORD,DWORD,DWORD);
 
@@ -118,21 +120,15 @@ void rtsyn_get_port_list(){
 int rtsyn_synth_start(){
 	int i;
 	UINT port;
-	MidiEvent ev;
+
 #ifdef __W32__
 	DWORD processPriority;
 	processPriority = GetPriorityClass(GetCurrentProcess());
 #endif
 
-	rtsyn_reset();
-	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
-	change_system_mode(rtsyn_system_mode);
-	ev.type=ME_RESET;
-	ev.a=GS_SYSTEM_MODE; //GM is mor better ???
-	rtsyn_play_event(&ev);
 	
 	port=0;
-
+	sleep(2);
 	for(port=0;port<rtsyn_portnumber;port++){
 		for (i=0;i<MAX_EXBUF;i++){
 			IMidiHdr[port][i] = (MIDIHDR *)sIMidiHdr[port][i];
@@ -142,7 +138,6 @@ int rtsyn_synth_start(){
 			IMidiHdr[port][i]->dwBufferLength = BUFF_SIZE;
 		}
 	}
-	evbuf[0].status=B_END;
 	evbwpoint=0;
 	evbrpoint=0;
 	mvbuse=0;
@@ -160,7 +155,6 @@ int rtsyn_synth_start(){
 	// HACK:midiInOpen()でリセットされてしまうため、再設定
 	SetPriorityClass(GetCurrentProcess(), processPriority);
 #endif
-
 	for(port=0;port<rtsyn_portnumber;port++){
 		if(MMSYSERR_NOERROR !=midiInStart(hMidiIn[port])){
 			int i;
@@ -172,7 +166,8 @@ int rtsyn_synth_start(){
 			goto winmmerror;
 		}
 	}
-
+	mim_start_time = get_current_calender_time();
+	InitializeCriticalSection(&mim_section);
 	return ~0;
 
 winmmerror:
@@ -184,6 +179,7 @@ void rtsyn_synth_stop(){
 	rtsyn_stop_playing();
 	//	play_mode->close_output();
 	rtsyn_midiports_close();
+	DeleteCriticalSection(&mim_section);
 
 	return;
 }
@@ -201,11 +197,11 @@ void rtsyn_midiports_close(void){
 }
 
 int rtsyn_buf_check(void){
-	if( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
-		return ~0;
-	}else{
-		return 0;
-	}
+	int retval;
+	EnterCriticalSection(&mim_section);
+	retval = (evbrpoint != evbwpoint) ? ~0 :  0;
+	LeaveCriticalSection(&mim_section);
+	return retval;
 }
 
 int rtsyn_play_some_data(void){
@@ -213,6 +209,7 @@ int rtsyn_play_some_data(void){
 	DWORD	dwInstance;
 	DWORD	dwParam1;
 	DWORD	dwParam2;
+	DWORD	timestamp;
 	MidiEvent ev;
 	MidiEvent evm[260];
 	int port;
@@ -221,15 +218,14 @@ int rtsyn_play_some_data(void){
 	int exlen;
 	char *sysexbuffer;
 	int ne,i,j,chk,played;
-	
+		
 	played=0;
-#ifndef USE_WINSYN_TIMER_I
-	do{
-		Sleep(1);
-#endif
-		if( !(evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ) played=~0;
-		while( (evbuf[evbrpoint].status==B_OK)&&(evbrpoint!=evbwpoint) ){
-
+		if( !rtsyn_buf_check() ){ 
+			played=~0;
+			return played;
+		}
+		do{
+			EnterCriticalSection(&mim_section);
 			evbpoint=evbrpoint;
 			if (++evbrpoint >= EVBUFF_SIZE)
 					evbrpoint -= EVBUFF_SIZE;
@@ -238,17 +234,18 @@ int rtsyn_play_some_data(void){
 			dwInstance=evbuf[evbpoint].dwInstance;
 			dwParam1=evbuf[evbpoint].dwParam1;
 			dwParam2=evbuf[evbpoint].dwParam2;
-
+			LeaveCriticalSection(&mim_section);
+		    
 			port=(UINT)dwInstance;
 			switch (wMsg) {
 			case MIM_DATA:
-				rtsyn_play_one_data (port, dwParam1);
+				rtsyn_play_one_data (port, dwParam1, mim_start_time+(double)dwParam2/1000.0);
 				break;
 			case MIM_LONGDATA:
 				IIMidiHdr = (MIDIHDR *) dwParam1;
 				exlen=(int)IIMidiHdr->dwBytesRecorded;
 				sysexbuffer=IIMidiHdr->lpData;
-				rtsyn_play_one_sysex (sysexbuffer,exlen );
+				rtsyn_play_one_sysex (sysexbuffer,exlen, mim_start_time+(double)dwParam2/1000.0);
 				if (MMSYSERR_NOERROR != midiInUnprepareHeader(
 						hMidiIn[port], IIMidiHdr, sizeof(MIDIHDR)))
 					ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"error1\n");
@@ -260,10 +257,7 @@ int rtsyn_play_some_data(void){
 					ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"error6\n");
 				break;
 			}
-		}	
-#ifndef USE_WINSYN_TIMER_I
-	}while(rtsyn_reachtime>get_current_calender_time());
-#endif 
+		}while(rtsyn_buf_check());	
 	return played;
 }
 
@@ -277,16 +271,15 @@ void CALLBACK MidiInProc(HMIDIIN hMidiInL, UINT wMsg, DWORD dwInstance,
 	switch (wMsg) {
 	case MIM_DATA:
 	case MIM_LONGDATA:
+		EnterCriticalSection(&mim_section);
 		evbpoint = evbwpoint;
 		if (++evbwpoint >= EVBUFF_SIZE)
 			evbwpoint -= EVBUFF_SIZE;
-		evbuf[evbwpoint].status = B_END;
-		evbuf[evbpoint].status = B_WORK;
 		evbuf[evbpoint].wMsg = wMsg;
 		evbuf[evbpoint].dwInstance = dwInstance;
 		evbuf[evbpoint].dwParam1 = dwParam1;
 		evbuf[evbpoint].dwParam2 = dwParam2;
-		evbuf[evbpoint].status = B_OK;
+		LeaveCriticalSection(&mim_section);
 		break;
 	case MIM_OPEN:
 //		ctl->cmsg(  CMSG_ERROR, VERB_NORMAL,"MIM_OPEN\n");

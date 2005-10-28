@@ -198,6 +198,7 @@ extern int cutoff_allowed;
 #define SPECIAL_PROGRAM -1
 
 /* sndfont.c */
+extern int opt_sf_close_each_file;
 extern void add_soundfont(char *sf_file, int sf_order,
 			  int cutoff_allowed, int resonance_allowed,
 			  int amp);

@@ -55,6 +55,7 @@
 #include "output.h"
 #include "filter.h"
 #include "resample.h"
+#include "interface.h"
 
 #define FILENAME_NORMALIZE(fname) url_expand_home_dir(fname)
 #define FILENAME_REDUCED(fname)   url_unexpand_home_dir(fname)
@@ -66,11 +67,12 @@
  *----------------------------------------------------------------*/
 
 #ifdef CFG_FOR_SF
+#define SF_CLOSE_EACH_FILE 0
 #define SF_SUPPRESS_ENVELOPE
 #define SF_SUPPRESS_TREMOLO
 #define SF_SUPPRESS_VIBRATO
 #else
-#define SF_CLOSE_EACH_FILE
+#define SF_CLOSE_EACH_FILE 1
 /*#define SF_SUPPRESS_ENVELOPE*/
 /*#define SF_SUPPRESS_TREMOLO*/
 /*#define SF_SUPPRESS_VIBRATO*/
@@ -208,7 +210,7 @@ static void convert_tremolo(SampleList *vp, LayerTable *tbl);
 static void convert_vibrato(SampleList *vp, LayerTable *tbl);
 
 /*----------------------------------------------------------------*/
-
+int opt_sf_close_each_file=SF_CLOSE_EACH_FILE;
 static SFInsts *sfrecs = NULL;
 static SFInsts *current_sfrec = NULL;
 #define def_drum_inst 0
@@ -352,11 +354,14 @@ static void init_sf(SFInsts *rec)
 		(char *)SFStrdup(rec, sfinfo.preset[i].hdr.name);
 	free_soundfont(&sfinfo);
 
-#ifndef SF_CLOSE_EACH_FILE
-	if(!IS_URL_SEEK_SAFE(rec->tf->url))
-#endif
-	{
-	    close_file(rec->tf);
+	if(!opt_sf_close_each_file){
+		if(!IS_URL_SEEK_SAFE(rec->tf->url))
+		{
+	    	close_file(rec->tf);
+	    	rec->tf = NULL;
+		}
+	}else{
+		close_file(rec->tf);
 	    rec->tf = NULL;
 	}
 }
@@ -419,10 +424,10 @@ static Instrument *try_load_soundfont(SFInsts *rec, int order, int bank,
 			end_soundfont(rec);
 			return NULL;
 		}
-#ifndef SF_CLOSE_EACH_FILE
-		if(!IS_URL_SEEK_SAFE(rec->tf->url))
-		    rec->tf->url = url_cache_open(rec->tf->url, 1);
-#endif /* SF_CLOSE_EACH_FILE */
+		if(!opt_sf_close_each_file){
+			if(!IS_URL_SEEK_SAFE(rec->tf->url))
+		    	rec->tf->url = url_cache_open(rec->tf->url, 1);
+		}
 	}
 
 	addr = INSTHASH(bank, preset, keynote);
@@ -436,10 +441,10 @@ static Instrument *try_load_soundfont(SFInsts *rec, int order, int bank,
 	if (ip && ip->samples)
 		inst = load_from_file(rec, ip);
 
-#ifdef SF_CLOSE_EACH_FILE
-	close_file(rec->tf);
-	rec->tf = NULL;
-#endif
+	if(opt_sf_close_each_file){
+		close_file(rec->tf);
+		rec->tf = NULL;
+	}
 
 	return inst;
 }
