@@ -780,7 +780,7 @@ static char S_ConfigFileOpenDir[MAXPATH + 32];
 static char S_PlaylistFileOpenDir[MAXPATH + 32];
 static char S_DocFileExt[256];
 static char S_OutputName[MAXPATH + 32];
-static char *OutputName;
+char *OutputName;
 static char S_w32g_output_dir[1024 + 32];
 static char S_SystemFont[256];
 static char S_PlayerFont[256];
@@ -788,12 +788,12 @@ static char S_WrdFont[256];
 static char S_DocFont[256];
 static char S_ListFont[256];
 static char S_TracerFont[256];
-static char *SystemFont = S_SystemFont;
+char *SystemFont = S_SystemFont;
 char *PlayerFont = S_PlayerFont;
-static char *WrdFont = S_WrdFont;
-static char *DocFont = S_DocFont;
-static char *ListFont = S_ListFont;
-static char *TracerFont = S_TracerFont;
+char *WrdFont = S_WrdFont;
+char *DocFont = S_DocFont;
+char *ListFont = S_ListFont;
+char *TracerFont = S_TracerFont;
 
 //static HFONT hSystemFont = 0;
 //static HFONT hPlayerFont = 0;
@@ -801,12 +801,12 @@ static char *TracerFont = S_TracerFont;
 //static HFONT hDocFont = 0;
 //static HFONT hListFont = 0;
 //static HFONT hTracerFont = 0;
-static int SystemFontSize = 9;
-static int PlayerFontSize = 16;
-static int WrdFontSize = 16;
-static int DocFontSize = 16;
-static int ListFontSize = 16;
-static int TracerFontSize = 16;
+int SystemFontSize = 9;
+int PlayerFontSize = 16;
+int WrdFontSize = 16;
+int DocFontSize = 16;
+int ListFontSize = 16;
+int TracerFontSize = 16;
 
 #define DEFAULT_DOCFILEEXT "doc;txt;hed"
 

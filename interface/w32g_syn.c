@@ -209,7 +209,7 @@ static int w32g_syn_create_win ( void );
 #define IDM_TIMIDITY 127
 
 #ifdef HAVE_SYN_CONSOLE
-static HWND hConsoleWnd;
+HWND hConsoleWnd;
 void InitConsoleWnd(HWND hParentWnd);
 #endif // HAVE_SYN_CONSOLE
 
