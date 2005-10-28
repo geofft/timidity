@@ -18,13 +18,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __W32_GOGO_H__
+#ifndef __W32_GOGO_H__
 #define __W32_GOGO_H__
 
 extern MERET MPGE_initializeWork(void);
 extern MERET MPGE_terminateWork(void);
-extern MERET MPGE_setConfigure(MPARAM mode, UPARAM dwPara1, UPARAM dwPara2 );
-extern MERET MPGE_getConfigure(MPARAM mode, void *para1 );
+extern MERET MPGE_setConfigure(UPARAM mode, UPARAM dwPara1, UPARAM dwPara2 );
+extern MERET MPGE_getConfigure(UPARAM mode, void *para1 );
 extern MERET MPGE_detectConfigure(void);
 extern MERET MPGE_processFrame(void);
 extern MERET MPGE_closeCoder(void);

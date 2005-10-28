@@ -69,7 +69,7 @@
 
 #include "interface.h"
 #include "timidity.h"
-#include "utils/tmdy_getopt.h"
+#include "tmdy_getopt.h"
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
