@@ -505,9 +505,8 @@ static void seq_play_event(MidiEvent *ev)
 	}
 	else
 	{
-	    double past_time = get_current_calender_time() - start_time;
-	    if(play_mode->flag & PF_PCM_STREAM)
-		past_time += high_time_at;
+	    double past_time = get_current_calender_time() - start_time -
+		    (double)(curr_event_samples + event_time_offset) / play_mode->rate;
 	    ev->time = (int32)(past_time * play_mode->rate);
 	}
     }
@@ -634,18 +633,16 @@ static void doit(void)
 		    double wait_time;
 		    int32 filled;
 
-		    filled = aq_filled();
-		    if(!tmr_running && filled <= 0)
-			usec = -1;
+		    if (IS_STREAM_TRACE)
+			filled = aq_filled();
 		    else
-		    {
-			wait_time = (double)filled / play_mode->rate
-			    - low_time_at;
-			if(wait_time <= 0)
-			    usec = 0;
-			else
-			    usec = (long)(wait_time * 1000000);
-		    }
+			filled = high_time_at * play_mode->rate;
+
+		    wait_time = (double)filled / play_mode->rate - low_time_at;
+		    if(wait_time <= 0)
+			usec = 0;
+		    else
+			usec = (long)(wait_time * 1000000);
 	    }
 	    else
 		usec = -1;
@@ -700,10 +697,14 @@ static void do_timeout(void)
 {
     double fill_time;
 
-    if(data_fd == -1 || !IS_STREAM_TRACE)
+    if(data_fd == -1)
 	return;
     aq_add(NULL, 0);
-    fill_time = high_time_at - (double)aq_filled() / play_mode->rate;
+    if (IS_STREAM_TRACE)
+	fill_time = high_time_at - (double)aq_filled() / play_mode->rate;
+    else
+	fill_time = get_current_calender_time() - start_time -
+		(double)(curr_event_samples + event_time_offset) / play_mode->rate;
     if(fill_time <= 0)
 	return;
 
