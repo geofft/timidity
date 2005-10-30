@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2005 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -154,6 +154,7 @@ enum {
 	TIM_OPT_BACKGROUND,
 	TIM_OPT_RT_PRIO,
 	TIM_OPT_SEQ_PORTS,
+	TIM_OPT_RTSYN_LATENCY,
 	TIM_OPT_REALTIME_LOAD,
 	TIM_OPT_ADJUST_KEY,
 	TIM_OPT_VOICE_QUEUE,
@@ -198,7 +199,6 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
-	TIM_OPT_RTSYN_LATENCY,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -278,6 +278,9 @@ static const struct option longopts[] = {
 	{ "realtime-priority",      required_argument, NULL, TIM_OPT_RT_PRIO },
 	{ "sequencer-ports",        required_argument, NULL, TIM_OPT_SEQ_PORTS },
 #endif
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
+#endif
 	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
 	{ "realtime-load",          optional_argument, NULL, TIM_OPT_REALTIME_LOAD },
 	{ "adjust-key",             required_argument, NULL, TIM_OPT_ADJUST_KEY },
@@ -340,7 +343,6 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
-	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
@@ -424,6 +426,9 @@ static inline int parse_opt_background(const char *);
 static inline int parse_opt_rt_prio(const char *);
 static inline int parse_opt_seq_ports(const char *);
 #endif
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+static inline int parse_opt_rtsyn_latency(const char *);
+#endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
 static inline int parse_opt_k(const char *);
@@ -479,7 +484,6 @@ static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
 static inline int parse_opt_default_module(const char *);
-static inline int parse_opt_rtsyn_latency(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
@@ -1580,7 +1584,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 			int optind_save = optind;
 			optind = 0;
 #if defined(__MINGW32__) || defined(__CYGWIN__)
-        		optreset=1;
+			optreset = 1;
 #endif
 			c = getopt_long(words, w, optcommands, longopts, &longind);
 			err = set_tim_opt_long(c, optarg, longind);
@@ -2734,6 +2738,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case TIM_OPT_SEQ_PORTS:
 		return parse_opt_seq_ports(arg);
 #endif
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+	case TIM_OPT_RTSYN_LATENCY:
+		return parse_opt_rtsyn_latency(arg);
+#endif
 	case TIM_OPT_REALTIME_LOAD:
 		return parse_opt_j(arg);
 	case TIM_OPT_ADJUST_KEY:
@@ -2848,8 +2856,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
-	case TIM_OPT_RTSYN_LATENCY:
-		return parse_opt_rtsyn_latency(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3607,6 +3613,10 @@ static inline int parse_opt_h(const char *arg)
 "             --sequencer-ports=n (for alsaseq only)",
 "               Set the number of opened sequencer ports (default is 4)",
 #endif
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+"             --rtsyn-latency=sec (for rtsyn only)",
+"               Set the realtime latency by second (default is 0.05)",
+#endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",
 "  -K n       --adjust-key=n",
@@ -3837,8 +3847,7 @@ static inline int parse_opt_h(const char *arg)
 "  --chorus=(d|n|s)[,level]" NLS
 "  --reverb=(d|n|g|f|G)[,level]" NLS
 "  --voice-lpf=(d|c|m)" NLS
-"  --noise-shaping=n" NLS
-"  --rtsyn-latency=sec" NLS, fp);
+"  --noise-shaping=n" NLS, fp);
 #ifndef FIXED_RESAMPLATION
 	fputs("  --resample=(d|l|c|L|n|g)" NLS, fp);
 #endif
@@ -4148,6 +4157,18 @@ static inline int parse_opt_seq_ports(const char *arg)
 	if (set_value(&opt_sequencer_ports, atoi(arg), 1, 16,
 			"Number of sequencer ports"))
 		return 1;
+	return 0;
+}
+#endif
+
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+static inline int parse_opt_rtsyn_latency(const char *arg)
+{
+	double latency;
+	
+	if (sscanf(arg, "%lf", &latency) == EOF)
+		latency = RTSYN_LATENCY;
+	rtsyn_set_latency(latency);
 	return 0;
 }
 #endif
@@ -4791,17 +4812,6 @@ static inline int parse_opt_default_module(const char *arg)
 	opt_default_module = atoi(arg);
 	if (opt_default_module < 0)
 		opt_default_module = 0;
-	return 0;
-}
-
-
-static inline int parse_opt_rtsyn_latency(const char *arg)
-{
-	double latency;
-	if(EOF == sscanf(arg, "%lf", &latency)) latency = RTSYN_LATENCY;
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
-	rtsyn_set_latency(latency);
-#endif
 	return 0;
 }
 
@@ -5621,26 +5631,24 @@ int main(int argc, char **argv)
 	}
     }
 
-#if !defined(IA_WINSYN) && !defined(IA_PORTMIDISYN) && !defined(IA_W32G_SYN)
-    if((err = timidity_pre_load_configuration()) != 0)
-	return err;
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+	opt_sf_close_each_file = 0;
 #else
-	 opt_sf_close_each_file = 0;
+	if ((err = timidity_pre_load_configuration()) != 0)
+		return err;
 #endif
-	
+
     optind = longind = 0;
 #if defined(__MINGW32__) || defined(__CYGWIN__)
-	optreset=1;
+	optreset = 1;
 #endif
     while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
 	if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 	    break;
-
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
-	if(got_a_configuration != 1){
-	if((err = timidity_pre_load_configuration()) != 0)
-	return err;
-	}
+	if (got_a_configuration != 1)
+		if ((err = timidity_pre_load_configuration()) != 0)
+			return err;
 #endif
 
     err += timidity_post_load_configuration();

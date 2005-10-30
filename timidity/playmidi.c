@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2005 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -7522,16 +7522,18 @@ int play_event(MidiEvent *ev)
     {
 	int rc;
 
-/*
-    if(midi_streaming!=0){
-    	if ( (cet - current_sample) * 1000 / play_mode->rate > stream_max_compute ) {
+#if ! defined(IA_WINSYN) && ! defined(IA_PORTMIDISYN) && ! defined(IA_W32G_SYN)
+	if (midi_streaming != 0)
+		if ((cet - current_sample) * 1000 / play_mode->rate
+				> stream_max_compute) {
 			kill_all_voices();
-			* reset_voices(); *
-* 			ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY, "play_event: discard %d samples", cet - current_sample); *
+			/* reset_voices(); */
+			/* ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
+					"play_event: discard %d samples", cet - current_sample); */
 			current_sample = cet;
 		}
-    }
-*/
+#endif
+
 	rc = compute_data(cet - current_sample);
 	ctl_mode_event(CTLE_REFRESH, 0, 0, 0);
     if(rc == RC_JUMP)
