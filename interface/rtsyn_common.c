@@ -80,6 +80,7 @@ static int rtsyn_played = 0;
 static double rtsyn_start_time;
 static int32 rtsyn_start_sample;
 static double last_event_time;
+static double last_calc_time;
 static int set_time_first=2;
 extern int volatile stream_max_compute;	// play_event() ‚Ì compute_data() ‚ÅŒvZ‚ğ‹–‚·Å‘åŠÔ
 
@@ -309,6 +310,7 @@ void rtsyn_server_reset(void){
 	rtsyn_start_time=get_current_calender_time();
 	rtsyn_start_sample=current_sample;
 	last_event_time=rtsyn_start_time + rtsyn_latency;
+	last_calc_time  = rtsyn_start_time;
 }
 
 void rtsyn_stop_playing(void)
@@ -343,11 +345,12 @@ void rtsyn_play_calculate(){
 	current_time = get_current_calender_time();
 	currenet_event_time = current_time + rtsyn_latency;
 	
-	if( (rtsyn_played == 0)  /* event buffer is empty */
+	if( (rtsyn_played == 0)  && (currenet_event_time > last_calc_time + 1.0/(double)TICKTIME_HZ) /* event buffer is empty */
 		||  (current_time + 1.0/(double)TICKTIME_HZ*2.0 > last_event_time) /* near miss */
 	){
 		ev.type = ME_NONE;
 		rtsyn_play_event_time(&ev, currenet_event_time);
+		last_calc_time=currenet_event_time;
 	}
 	rtsyn_played = 0;
 	

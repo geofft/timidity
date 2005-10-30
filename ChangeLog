@@ -1,3 +1,8 @@
+2005-10-31  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+        * timidity/portaudio_a.c: for ASIO4ALL fix
+        * interface/rtsyn.h interface/rtsyn_common.c: Change a bit
+
 2005-10-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/playmidi.c, timidity/sndfont.c, timidity/timidity.c:

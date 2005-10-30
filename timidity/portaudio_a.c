@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    portaudio_a.c by Avatar <avatar@deva.net>
+    portaudio_a.c by skeishi <s_keishi@mutt.freemail.ne.jp>
     based on esd_a.c
 
     Functions to play sound through EsounD
@@ -65,6 +65,7 @@ static int acntl(int request, void *arg);
 
 static int framesPerBuffer=256;
 static int stereo=2;
+static int conv16_32 =0;
 static int data_nbyte;
 static int numBuffers;
 static unsigned int framesPerInBuffer;
@@ -164,32 +165,72 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 	int finished = 0;
 
 /* Cast data passed through stream to our structure type. */
-
 //    pa_data_t pa_data = (pa_data_t*)userData;
-
     char *out = (char*)outputBuffer;
-	if(pa_data.samplesToGo < framesPerBuffer*data_nbyte*stereo  ){
-		for(i=0;i<pa_data.samplesToGo;i++){
-			*out++ = *(pa_data.bufpoint)++;
-			if( pa_data.buf+bytesPerInBuffer*2 <= pa_data.bufpoint ){
-				pa_data.bufpoint=pa_data.buf;
+	unsigned long datalength = framesPerBuffer*data_nbyte*stereo;
+	char * buflimit = pa_data.buf+bytesPerInBuffer*2;
+	
+	if(conv16_32){
+		if(pa_data.samplesToGo < datalength  ){		
+			for(i=0;i<pa_data.samplesToGo/2;i++){
+				*out++ = 0;
+				*out++ = 0;
+				*out++ = *(pa_data.bufpoint)++;
+				*out++ = *(pa_data.bufpoint)++;
+				if( buflimit <= pa_data.bufpoint ){
+					pa_data.bufpoint=pa_data.buf;
+				}
 			}
+			pa_data.samplesToGo=0;
+			for(;i<datalength/2;i++){
+				*out++ = 0;
+				*out++ = 0;
+				*out++ = 0;
+				*out++ = 0;
+			}
+			finished = 0;
+		}else{
+			for(i=0;i<datalength/2;i++){
+				*out++ = 0;
+				*out++ = 0;
+				*out++=*(pa_data.bufpoint)++;
+				*out++=*(pa_data.bufpoint)++;
+				if( buflimit <= pa_data.bufpoint ){
+					pa_data.bufpoint=pa_data.buf;
+				}
+			}
+			pa_data.samplesToGo -= datalength;
 		}
-		pa_data.samplesToGo=0;
-		for(;i<framesPerBuffer*data_nbyte*stereo;i++){
-			*out++=0;
-		}
-		finished = 0;
 	}else{
-		for(i=0;i<framesPerBuffer*data_nbyte*stereo;i++){
-			*out++=*(pa_data.bufpoint)++;
-			if( pa_data.buf+bytesPerInBuffer*2 <= pa_data.bufpoint ){
-				pa_data.bufpoint=pa_data.buf;
+		if(pa_data.samplesToGo < datalength  ){
+			if(pa_data.bufpoint+datalength <= buflimit){
+				memcpy(out, pa_data.bufpoint, datalength);
+				pa_data.bufpoint += datalength;
+			}else{
+				int32 send;
+				send = buflimit-pa_data.bufpoint;
+				memcpy(out, pa_data.bufpoint, send);
+				out +=send;
+				memcpy(out, pa_data.buf, datalength -send);
+				pa_data.bufpoint = pa_data.buf+datalength -send;
 			}
+			memset(out, 0x0, datalength-pa_data.samplesToGo);
+			finished = 0;
+		}else{
+			if(pa_data.bufpoint + datalength <= buflimit){
+				memcpy(out, pa_data.bufpoint, datalength);
+				pa_data.bufpoint += datalength;
+			}else{
+				int32 send;
+				send = buflimit-pa_data.bufpoint;
+				memcpy(out, pa_data.bufpoint, send);
+				out += send;
+				memcpy(out, pa_data.buf, datalength -send);
+				pa_data.bufpoint = pa_data.buf+datalength -send;
+			}
+			pa_data.samplesToGo -= datalength;
 		}
-		pa_data.samplesToGo -= framesPerBuffer*data_nbyte*stereo;
 	}
-
     return finished ;
 
 }
@@ -252,13 +293,21 @@ static int open_output(void)
 
 	exclude_enc = PE_ULAW | PE_ALAW | PE_BYTESWAP;
 	include_enc = PE_SIGNED;
-	if (!(nativeSampleFormats & paInt16)) {exclude_enc |= PE_16BIT;}
+	if (!(nativeSampleFormats & paInt16) && !(nativeSampleFormats & paInt32)) {exclude_enc |= PE_16BIT;}
 	if (!(nativeSampleFormats & paInt24)) {exclude_enc |= PE_24BIT;}
     dpm.encoding = validate_encoding(dpm.encoding, include_enc, exclude_enc);
 
-	if (dpm.encoding & PE_24BIT) {SampleFormat = paInt24;}
-	else if (dpm.encoding & PE_16BIT) {SampleFormat = paInt16;}
-	else {SampleFormat = paInt8;}
+	if (dpm.encoding & PE_24BIT) {
+		SampleFormat = paInt24;
+	}else if (dpm.encoding & PE_16BIT) {
+		if(nativeSampleFormats & paInt16) SampleFormat = paInt16;
+		else{
+			SampleFormat = paInt32;
+			conv16_32 = 1;
+		}
+	}else {
+		SampleFormat = paInt8;
+	}
 
 	stereo = (dpm.encoding & PE_MONO) ? 1 : 2;
 	data_nbyte = (dpm.encoding & PE_16BIT) ? 2 : 1;
@@ -316,11 +365,17 @@ static int output_data(char *buf, int32 nbytes)
 //	if(pa_data.samplesToGo > DATA_BLOCK_SIZE){ 
 //		Sleep(  (pa_data.samplesToGo - DATA_BLOCK_SIZE)/dpm.rate/4  );
 //	}
-	for(i=0;i<nbytes;i++){
-		*(pa_data.bufepoint)++ = *buf++ ;
-		if( pa_data.buf+bytesPerInBuffer*2 <= pa_data.bufepoint ){
-			pa_data.bufepoint=pa_data.buf;
-		}
+	if (pa_data.buf+bytesPerInBuffer*2 >= pa_data.bufepoint + nbytes){
+		memcpy(pa_data.bufepoint, buf, nbytes);
+		pa_data.bufepoint += nbytes;
+		buf += nbytes;
+	}else{
+		int32 send = pa_data.buf+bytesPerInBuffer*2 - pa_data.bufepoint;
+		memcpy(pa_data.bufepoint, buf, send);
+		buf += send;
+		memcpy(pa_data.buf, buf, nbytes - send);
+		pa_data.bufepoint = pa_data.buf + nbytes - send;
+		buf += nbytes-send;
 	}
 	pa_data.samplesToGo += nbytes;
 

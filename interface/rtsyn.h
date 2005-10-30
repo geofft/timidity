@@ -92,7 +92,7 @@ extern VOLATILE int intr;
 #define TICKTIME_HZ 100
 
 /* latency (sec)  > 1.0 / TICKTIME_HZ * 2.0 */
-#define RTSYN_LATENCY 0.05
+#define RTSYN_LATENCY 0.03
 
 
 extern double rtsyn_ratency;   /* = RTYSN_RATENCY */
