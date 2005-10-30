@@ -262,7 +262,11 @@ endif
 
 if VCPP
 
+if WINDRV
+VC_LINK = link.exe -lib
+else
 VC_LINK = link.exe
+endif
 VCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
 
 timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
@@ -299,11 +303,31 @@ calcnewt.$(OBJEXT): calcnewt.c
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
 	$(WATCOM_LINK) File calcnewt.$(OBJEXT) Name $@
+else
+if MINGWGCC
+if WINDRV
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
+	@rm -f calcnewt$(EXEEXT)
+	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) 
+	@rm -f timidity$(EXEEXT)
+	ar -cru timidity.exe $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) 
+else
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
+	@rm -f calcnewt$(EXEEXT)
+	$(LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) 
+	@rm -f timidity$(EXEEXT)
+	$(LINK) $(timidity_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS)
 endif
-
 endif
-
+#     MINGWGCC
 endif
+#     WATCOM_C
+endif
+#     BORLANDC
+endif
+#      VCPP
 
 version.$(OBJEXT): version.c ../configure
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(CFLAGS) -c $(srcdir)/version.c

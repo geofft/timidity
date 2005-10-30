@@ -108,6 +108,13 @@ This file contains fllowing instructions.
             (make)
              make
              strip timidity.exe
+        3-5)timiditydrv.dll
+            (configure)
+             CFLAGS="-O2" ./configure --enable-winsyn --enable-windrv --enable-spline=linear
+            (make)
+             make
+             cd windrv
+             strip timiditydrv.dll
 
 
 2.Borland C++ in Msys environment
@@ -453,6 +460,12 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
+        3-5)timiditydrv.dll
+            (configure)
+            CC="cl" CXX="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
+              ./configure --enable-winsyn --enable-windrv --enable-spline=linear
+            (make)
+             make
 
 
-2005.10.24 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)
+2005.10.28 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)

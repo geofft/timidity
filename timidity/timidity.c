@@ -202,15 +202,22 @@ enum {
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
-
+#ifdef IA_WINSYN
+const char *optcommands =
+#else
 static const char *optcommands =
+#endif
 		"4A:aB:b:C:c:D:d:E:eFfg:H:hI:i:jK:k:L:M:m:N:"
 		"O:o:P:p:Q:q:R:S:s:T:t:UV:vW:"
 #ifdef __W32__
 		"w:"
 #endif
 		"x:Z:";		/* Only GJlnruXYyz are remain... */
+#ifdef IA_WINSYN
+const struct option longopts[] = {
+#else
 static const struct option longopts[] = {
+#endif
 	{ "volume",                 required_argument, NULL, TIM_OPT_VOLUME },
 	{ "drum-power",             required_argument, NULL, TIM_OPT_DRUM_POWER },
 	{ "no-volume-compensation", no_argument,       NULL, TIM_OPT_DRUM_POWER },

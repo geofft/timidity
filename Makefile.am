@@ -27,6 +27,7 @@ SUBDIRS = \
 	libunimod \
 	interface \
 	timidity \
+	windrv \
 	doc \
 	script \
 	configs
