@@ -44,7 +44,8 @@ libtimiditydrv_a_SOURCES = \
 SYSEXTRAS: timiditydrv.h
 
 EXTRA_DIST = \
-	oemsetup.inf \
+	 oemsetup.inf \
+	 timiditydrv.inf \
 	 dlldata.c \
 	 timiditydrv_i.c \
 	 timiditydrv_p.c \
