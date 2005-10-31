@@ -432,6 +432,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Define to 1 if you cpmpile windos driver. */
+#undef WINDRV
+
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
