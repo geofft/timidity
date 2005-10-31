@@ -3622,7 +3622,8 @@ static inline int parse_opt_h(const char *arg)
 #endif
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 "             --rtsyn-latency=sec (for rtsyn only)",
-"               Set the realtime latency by second (default is 0.05)",
+"                Set the realtime latency (sec)",
+"                (default is 0.20 sec  minumum is 0.04 sec)",
 #endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",

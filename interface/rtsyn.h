@@ -92,7 +92,7 @@ extern VOLATILE int intr;
 #define TICKTIME_HZ 100
 
 /* latency (sec)  > 1.0 / TICKTIME_HZ * 2.0 */
-#define RTSYN_LATENCY 0.03
+#define RTSYN_LATENCY 0.20
 
 
 extern double rtsyn_ratency;   /* = RTYSN_RATENCY */
@@ -113,7 +113,7 @@ void rtsyn_normal_modeset(void);
 
 void rtsyn_init(void);
 void rtsyn_close(void);
-void rtsyn_set_latency(double latency);
+double rtsyn_set_latency(double latency);
 void rtsyn_play_event(MidiEvent *ev);
 void rtsyn_play_event_time(MidiEvent *ev, double event_time);
 void rtsyn_server_reset(void);

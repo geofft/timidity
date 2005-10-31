@@ -205,9 +205,10 @@ void rtsyn_normal_modeset(){
 	change_system_mode(rtsyn_system_mode);
 }
 
-void rtsyn_set_latency(double latency){
-	if(latency < 1.0 / TICKTIME_HZ * 3.0) latency = 1.0 / TICKTIME_HZ * 3.0;
+double rtsyn_set_latency(double latency){
+	if(latency < 1.0 / TICKTIME_HZ * 3.0) latency = 1.0 / TICKTIME_HZ * 4.0;
 	rtsyn_latency = latency;
+	return latency;
 }
 
 void rtsyn_init(void){
