@@ -1148,10 +1148,6 @@ if test "x$au_enable_vorbis" = xyes; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
-      if test "x$MSYS" = "xyes"; then
-      EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
-	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
-      fi
     ],[
       AC_MSG_WARN([Unable to configure vorbis, but ogg is there (???)])
     ])
