@@ -1,0 +1,62 @@
+/*
+    TiMidity++ -- MIDI to WAVE converter and player
+    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    aRts_a.c by Peter L Jones <peter@drealm.org.uk>
+    based on esd_a.c
+
+    Functions to play sound through aRts
+*/
+
+// This file will be processed by the MIDL tool to
+// produce the type library (timiditydrv.tlb) and marshalling code.
+
+//import "oaidl.idl";
+//import "ocidl.idl";
+	
+	[
+		object,
+		uuid(D908258C-4B41-41f0-AAD9-684FDAA84C75),
+		dual,
+		helpstring("Itim_synth Interface"),
+		pointer_default(unique)
+	]
+	interface Itim_synth : IDispatch
+	{
+	};
+
+[
+	uuid(6D98B569-D56A-4fff-870A-F2E27052A0DE),
+	version(1.0),
+	helpstring("timiditydrv 1.0 Type Library")
+]
+library TIM_DRVLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	
+	[
+		uuid(0FEC4C35-A705-41d7-A3BB-D587A231045A),
+		helpstring("tim_synth Class")
+	]
+	coclass tim_synth
+	{
+		[default] interface Itim_synth;
+	};
+};

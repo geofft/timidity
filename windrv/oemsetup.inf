@@ -1,0 +1,9 @@
+[Source Media Descriptions]
+1 = "TiMidity++ Driver Files" , TAGFILE = disk1
+
+[Installable.Drivers]
+timiditydrv = 1:timiditydrv.dll, "MIDI", "TiMidity++",,,
+
+[timiditydrv]
+
+
