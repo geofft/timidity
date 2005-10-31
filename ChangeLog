@@ -1,19 +1,23 @@
-2005-10-31  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
-	Windows Dirver merged
+2005-10-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-	* Makefile.am configure.in doc/C/README.w32 timidity/Makefile.am
-          timidity/timidity.c: Chnged files
-        * windrv/Makefile.am windrv/dlldata.c windrv/oemsetup.inf
-          windrv/timiditydrv.cpp windrv/timiditydrv.def
-          windrv/timiditydrv.h windrv/timiditydrv.i
-          windrv/timiditydrv.idl windrv/timiditydrv.inf
-	  windrv/timiditydrv_i.c windrv/timiditydrv_p.c
-          windrv/timiwp_timidity.c windrv/timiwp_timidity.h: New files
-	  
+	* timidity/timidity.c: Change a bit
+
 2005-10-31  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
 
-        * timidity/portaudio_a.c: for ASIO4ALL fix
-        * interface/rtsyn.h interface/rtsyn_common.c: Change a bit
+	* Makefile.am, configure.in, doc/C/README.w32, timidity/Makefile.am,
+	  timidity/timidity.c: Changed files
+	* windrv/Makefile.am, windrv/dlldata.c, windrv/oemsetup.inf,
+	  windrv/timiditydrv.cpp, windrv/timiditydrv.def,
+	  windrv/timiditydrv.h, windrv/timiditydrv.i,
+	  windrv/timiditydrv.idl, windrv/timiditydrv.inf,
+	  windrv/timiditydrv_i.c, windrv/timiditydrv_p.c,
+	  windrv/timiwp_timidity.c, windrv/timiwp_timidity.h:
+	  Windows Driver merged (New files)
+
+2005-10-31  Keishi Suenaga <s_keishi@mutt.freemail.ne.jp>
+
+	* timidity/portaudio_a.c: for ASIO4ALL fix
+	* interface/rtsyn.h, interface/rtsyn_common.c: Change a bit
 
 2005-10-30  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

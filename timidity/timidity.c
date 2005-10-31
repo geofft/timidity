@@ -202,6 +202,7 @@ enum {
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
+
 #ifdef IA_WINSYN
 const char *optcommands =
 #else
@@ -3622,8 +3623,8 @@ static inline int parse_opt_h(const char *arg)
 #endif
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 "             --rtsyn-latency=sec (for rtsyn only)",
-"                Set the realtime latency (sec)",
-"                (default is 0.20 sec  minumum is 0.04 sec)",
+"               Set the realtime latency (sec)",
+"                 (default is 0.2 sec, minimum is 0.04 sec)",
 #endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",
