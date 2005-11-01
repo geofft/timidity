@@ -1,3 +1,8 @@
+2005-11-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* doc/ja_JP.eucJP/README.tk : not -itt but -ikt
+	  (thanks AOKI Taichi @naist)
+
 2005-10-31  Stas Sergeev <stsp@aknet.ru>
 
 	* interface/server_c.c : fix for timing bugs
