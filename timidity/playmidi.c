@@ -269,6 +269,7 @@ static int find_samples(MidiEvent *, int *);
 static int select_play_sample(Sample *, int, int *, int *, MidiEvent *);
 static double get_play_note_ratio(int, int);
 static int find_voice(MidiEvent *);
+static void finish_note(int i);
 static void update_portamento_controls(int ch);
 static void update_rpn_map(int ch, int addr, int update_now);
 static void ctl_prog_event(int ch);
@@ -2118,8 +2119,7 @@ static int find_voice(MidiEvent *e)
 	AlternateAssign *altassign;
 	int i, lowest = -1;
 	
-	status_check = (opt_overlap_voice_allow)
-			? (VOICE_OFF | VOICE_SUSTAINED) : 0xff;
+	status_check = (opt_overlap_voice_allow) ? VOICE_SUSTAINED : 0xff;
 	mono_check = channel[ch].mono;
 	altassign = find_altassign(channel[ch].altassign, note);
 	for (i = 0; i < upper_voices; i++)
@@ -2129,14 +2129,18 @@ static int find_voice(MidiEvent *e)
 		}
 	for (i = 0; i < upper_voices; i++)
 		if (voice[i].status != VOICE_FREE && voice[i].channel == ch) {
-			if ((voice[i].note == note && (voice[i].status & status_check))
-			    || mono_check
-			    || (altassign && find_altassign(altassign, voice[i].note)))
+			if (voice[i].note == note && (voice[i].status & status_check)) {
+				if (opt_overlap_voice_allow)
+					finish_note(i);	/* drop sustain */
+				else
+					kill_note(i);
+			} else if (mono_check
+					|| (altassign && find_altassign(altassign, voice[i].note)))
 				kill_note(i);
 			else if (voice[i].note == note &&
 				 (channel[ch].assign_mode == 0
-				  || (channel[ch].assign_mode == 1
-				      && voice[i].proximate_flag == 0)))
+					|| (channel[ch].assign_mode == 1
+					&& voice[i].proximate_flag == 0)))
 				kill_note(i);
 		}
 	for (i = 0; i < upper_voices; i++)

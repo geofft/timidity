@@ -1,3 +1,9 @@
+2005-11-02  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.c: Changed sustained notes not to drop
+	  when opt_overlap_voice_allow is enabled.
+	* interface/rtsyn.h: Added #ifdef for <sys/types.h>.
+
 2005-11-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* doc/ja_JP.eucJP/README.tk : not -itt but -ikt
