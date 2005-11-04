@@ -280,10 +280,10 @@ static int open_output(void)
 		if( err != paNoError ) goto error;
 		pa_active = 1;
 	}
-	if(first == 1){
-		atexit(close_output);
-		first = 0;
-	}
+//	if(first == 1){
+//		atexit(close_output);
+//		first = 0;
+//	}
 
 	DeviceID = Pa_GetDefaultOutputDeviceID();
 	if(DeviceID==paNoDevice) goto error;
@@ -392,7 +392,7 @@ static int output_data(char *buf, int32 nbytes)
 
 		if( err != paNoError ) goto error;
 	}
-    while(pa_data.samplesToGo > bytesPerInBuffer){ Pa_Sleep(1);};
+    while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
 //	Pa_Sleep( (pa_data.samplesToGo - bytesPerInBuffer)/dpm.rate * 1000);
 	return 0;
 

@@ -95,7 +95,15 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              make
              strip timidity.exe
              
-             
+        3-5)timiditydrv.dll
+            (configure)
+             CFLAGS="-O2" ./configure --enable-winsyn --enable-windrv --enable-spline=linear
+            (make)
+             make
+             cd windrv
+             strip timiditydrv.dll
+
+
 £²¡¥Msys´Ä¶­²¼¤ÇBoraland C++¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËBorland C¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£±¡ËBorlandC¤Î¥»¥Ã¥È¥¢¥Ã¥×
@@ -405,6 +413,12 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
+        3-5)timiditydrv.dll
+            (configure)
+            CC="cl" CXX="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
+              ./configure --enable-winsyn --enable-windrv --enable-spline=linear
+            (make)
+             make
 
 
-2005.10.24 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+2005.10.28 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)

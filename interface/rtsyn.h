@@ -91,13 +91,13 @@ extern int32 current_sample;
 extern VOLATILE int intr;
 
 /* How often data pass to the buffer */
-#define TICKTIME_HZ 100
+#define TICKTIME_HZ 200
 
-/* latency (sec)  > 1.0 / TICKTIME_HZ * 2.0 */
+/* latency (sec)  > 1.0 / TICKTIME_HZ * 4.0 */
 #define RTSYN_LATENCY 0.20
 
 
-extern double rtsyn_ratency;   /* = RTYSN_RATENCY */
+extern double rtsyn_latency;   /* = RTYSN_LATENCY */
 extern int rtsyn_system_mode;
 
 /* reset synth    */

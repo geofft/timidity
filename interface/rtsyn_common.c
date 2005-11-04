@@ -220,6 +220,7 @@ void rtsyn_init(void){
 	auto_reduce_polyphony = 0;
 	opt_sf_close_each_file = 0;
 	
+	aq_set_soft_queue(rtsyn_latency*(double)1.01, 0.0);
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
 	while (i != 7)
 		i += (i < 7) ? 5 : -7, j++;

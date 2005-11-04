@@ -286,7 +286,7 @@ static const struct option longopts[] = {
 	{ "realtime-priority",      required_argument, NULL, TIM_OPT_RT_PRIO },
 	{ "sequencer-ports",        required_argument, NULL, TIM_OPT_SEQ_PORTS },
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 #endif
 	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
@@ -434,7 +434,7 @@ static inline int parse_opt_background(const char *);
 static inline int parse_opt_rt_prio(const char *);
 static inline int parse_opt_seq_ports(const char *);
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 static inline int parse_opt_rtsyn_latency(const char *);
 #endif
 static inline int parse_opt_j(const char *);
@@ -2746,7 +2746,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case TIM_OPT_SEQ_PORTS:
 		return parse_opt_seq_ports(arg);
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	case TIM_OPT_RTSYN_LATENCY:
 		return parse_opt_rtsyn_latency(arg);
 #endif
@@ -4170,6 +4170,12 @@ static inline int parse_opt_seq_ports(const char *arg)
 }
 #endif
 
+#if defined(IA_W32GUI)
+static inline int parse_opt_rtsyn_latency(const char *arg)
+{
+	return 0;
+}
+#endif
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 static inline int parse_opt_rtsyn_latency(const char *arg)
 {
