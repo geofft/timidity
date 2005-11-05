@@ -22,6 +22,8 @@
 
     Functions to play sound through EsounD
 */
+#define PORTAUDIO_V19 1
+
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -63,7 +65,7 @@ static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
 
-static int framesPerBuffer=256;
+static int framesPerBuffer=128;
 static int stereo=2;
 static int conv16_32 =0;
 static int data_nbyte;
@@ -73,10 +75,19 @@ static unsigned int bytesPerInBuffer=0;
 //static int  firsttime;
 static int pa_active=0;
 static int first=1;
+
+#if PORTAUDIO_V19
+PaDeviceIndex DeviceIndex;
+const PaDeviceInfo *DeviceInfo;
+PaStreamParameters StreamParameters;
+PaStream *stream;
+PaError  err;
+#else
 PaDeviceID DeviceID;
 const PaDeviceInfo *DeviceInfo;
 PortAudioStream *stream;
 PaError  err;
+#endif
 typedef struct {
 	char buf[DATA_BLOCK_SIZE*2];
 	int32 samplesToGo;
@@ -152,13 +163,18 @@ PlayMode dpm = {
 };
 #endif
 
-
-int paCallback(  void *inputBuffer, void *outputBuffer,
-
+#if PORTAUDIO_V19
+int paCallback(  const void *inputBuffer, void *outputBuffer,
                      unsigned long framesPerBuffer,
-
-                     PaTimestamp outTime, void *userData )
-
+                     const PaStreamCallbackTimeInfo* timeInfo,
+                     PaStreamCallbackFlags statusFlags,
+	                 void *userData )
+#else
+int paCallback(  void *inputBuffer, void *outputBuffer,
+                     unsigned long framesPerBuffer,
+                     PaTimestamp outTime, 
+                     void *userData )
+#endif
 {
 
     unsigned int i;
@@ -280,11 +296,65 @@ static int open_output(void)
 		if( err != paNoError ) goto error;
 		pa_active = 1;
 	}
-//	if(first == 1){
-//		atexit(close_output);
-//		first = 0;
-//	}
 
+#ifdef PORTAUDIO_V19
+	DeviceIndex = Pa_GetDefaultOutputDevice();
+	if(DeviceIndex==paNoDevice) goto error;
+	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
+	if(DeviceInfo==NULL) goto error;
+
+	if (dpm.encoding & PE_24BIT) {
+		SampleFormat = paInt24;
+	}else if (dpm.encoding & PE_16BIT) {
+		if(nativeSampleFormats & paInt16) SampleFormat = paInt16;
+		else{
+			SampleFormat = paInt32;
+			conv16_32 = 1;
+		}
+	}else {
+		SampleFormat = paInt8;
+	}
+
+	stereo = (dpm.encoding & PE_MONO) ? 1 : 2;
+	data_nbyte = (dpm.encoding & PE_16BIT) ? 2 : 1;
+	data_nbyte = (dpm.encoding & PE_24BIT) ? 3 : data_nbyte;
+	
+	pa_data.samplesToGo = 0;
+	pa_data.bufpoint = pa_data.buf;
+	pa_data.bufepoint = pa_data.buf;
+//	firsttime = 1;
+	numBuffers = 1; //Pa_GetMinNumBuffers( framesPerBuffer, dpm.rate );
+	framesPerInBuffer = numBuffers * framesPerBuffer;
+	if (framesPerInBuffer < 4096) framesPerInBuffer = 4096;
+	bytesPerInBuffer = framesPerInBuffer * data_nbyte * stereo;
+//	printf("%d\n",framesPerInBuffer);
+//	printf("%d\n",dpm.rate);
+
+	/* set StreamParameters */
+	StreamParameters.device = DeviceIndex;
+	StreamParameters.channelCount = stereo;
+	StreamParameters.sampleFormat = SampleFormat;
+	StreamParameters.suggestedLatency = DeviceInfo->defaultLowOutputLatency;
+	StreamParameters.hostApiSpecificStreamInfo = NULL;
+	
+	err = Pa_IsFormatSupported( NULL ,
+                             &StreamParameters,
+							(double) dpm.rate );
+	if ( err != paNoError) goto error;
+	err = Pa_OpenStream(
+		& stream,			/* passes back stream pointer */
+		NULL,				/* inputStreamParameters */
+		&StreamParameters,	/* outputStreamParameters */
+		(double) dpm.rate,	/* sample rate */
+		paFramesPerBufferUnspecified,	/* frames per buffer */
+		paFramesPerBufferUnspecified,	/* PaStreamFlags */
+		paCallback,			/* specify our custom callback */
+		&pa_data			/* pass our data through to callback */
+		);
+	if ( err != paNoError) goto error;
+	return 0;
+	
+#else
 	DeviceID = Pa_GetDefaultOutputDeviceID();
 	if(DeviceID==paNoDevice) goto error;
 	DeviceInfo = Pa_GetDeviceInfo( DeviceID);	
@@ -349,6 +419,7 @@ static int open_output(void)
 	if ( err != paNoError && err != paHostError) goto error;
 	return 0;
 
+#endif
 error:
 	Pa_Terminate(); pa_active = 0;
 #ifdef AU_PORTAUDIO_DLL
@@ -387,7 +458,11 @@ static int output_data(char *buf, int32 nbytes)
 		firsttime=0;
 	}
 */
+#if PORTAUDIO_V19
+	if( 0==Pa_IsStreamActive(stream)){
+#else
 	if( 0==Pa_StreamActive(stream)){
+#endif
 		err = Pa_StartStream( stream );
 
 		if( err != paNoError ) goto error;
@@ -405,7 +480,11 @@ error:
 static void close_output(void)
 {	
 	if( pa_active==0) return;
+#if PORTAUDIO_V19
+	if(Pa_IsStreamActive(stream)){
+#else
 	if(Pa_StreamActive(stream)){
+#endif
 		Pa_Sleep(  bytesPerInBuffer/dpm.rate*1000  );
 	}	
 	err = Pa_StopStream( stream );
