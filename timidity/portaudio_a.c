@@ -291,6 +291,8 @@ static int open_output(void)
 		}
   }
 #endif
+	/* if call twice Pa_OpenStream causes paDeviceUnavailable error  */
+	if(pa_active == 1) return 0; 
 	if(pa_active == 0){
 		err = Pa_Initialize();
 		if( err != paNoError ) goto error;
@@ -327,8 +329,6 @@ static int open_output(void)
 	framesPerInBuffer = numBuffers * framesPerBuffer;
 	if (framesPerInBuffer < 4096) framesPerInBuffer = 4096;
 	bytesPerInBuffer = framesPerInBuffer * data_nbyte * stereo;
-//	printf("%d\n",framesPerInBuffer);
-//	printf("%d\n",dpm.rate);
 
 	/* set StreamParameters */
 	StreamParameters.device = DeviceIndex;
@@ -341,9 +341,9 @@ static int open_output(void)
                              &StreamParameters,
 							(double) dpm.rate );
 	if ( err != paNoError) goto error;
-	err = Pa_OpenStream(
+	err = Pa_OpenStream(    
 		& stream,			/* passes back stream pointer */
-		NULL,				/* inputStreamParameters */
+		NULL,			 	/* inputStreamParameters */
 		&StreamParameters,	/* outputStreamParameters */
 		(double) dpm.rate,	/* sample rate */
 		paFramesPerBufferUnspecified,	/* frames per buffer */
@@ -351,6 +351,7 @@ static int open_output(void)
 		paCallback,			/* specify our custom callback */
 		&pa_data			/* pass our data through to callback */
 		);
+//		Pa_Sleeep(1);
 	if ( err != paNoError) goto error;
 	return 0;
 	
@@ -420,6 +421,7 @@ static int open_output(void)
 	return 0;
 
 #endif
+
 error:
 	Pa_Terminate(); pa_active = 0;
 #ifdef AU_PORTAUDIO_DLL
