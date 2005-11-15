@@ -80,7 +80,7 @@ extern int volatile_touch(void* dmy);
 
 
 /* integer type definitions: ISO C now knows a better way */
-#if __STDC_VERSION__ == 199901L || __GNUC__ >= 3
+#if defined(HAVE_STDINT_H) || __GNUC__ >= 3
 #include <stdint.h> // int types are defined here
 typedef  int8_t   int8;
 typedef uint8_t  uint8;
