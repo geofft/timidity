@@ -304,6 +304,7 @@ void rtsyn_server_reset(void){
 	play_mode->open_output();	// but w32_a.c does not have it.
 	readmidi_read_init();
 	playmidi_stream_init();
+	change_system_mode(rtsyn_system_mode);
 	if (free_instruments_afterwards)
 		free_instruments(0);
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *

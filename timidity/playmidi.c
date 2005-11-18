@@ -3330,7 +3330,7 @@ static void adjust_master_volume(void)
 int midi_drumpart_change(int ch, int isdrum)
 {
     if(IS_SET_CHANNELMASK(drumchannel_mask, ch))
-	return 0;
+    return 0;
     if(isdrum)
     {
 	SET_CHANNELMASK(drumchannels, ch);

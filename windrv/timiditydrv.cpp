@@ -18,12 +18,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
+//#define DEBUG
 #define STRICT
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
 #endif
-
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 #include <initguid.h>
 #include "timiditydrv.h"
 
@@ -253,6 +255,16 @@ int timsyn_play_some_data(void){
 				rtsyn_play_one_data (0, dwParam1, event_time);
 				break;
 			case MODM_LONGDATA:
+#ifdef DEBUG
+	FILE * logfile;
+	logfile = fopen("c:\\dbglog2.log","at");
+	if(logfile!=NULL) {
+		for(int i = 0 ; i < exlen ; i++)
+			fprintf(logfile,"%x ", sysexbuffer[i]);
+		fprintf(logfile,"\n");
+	}
+	fclose(logfile);
+#endif
 				rtsyn_play_one_sysex (sysexbuffer,exlen, event_time);
 				free(sysexbuffer);
 				break;
@@ -289,7 +301,7 @@ DWORD WINAPI threadfunc2(LPVOID lpV){
 			rtsyn_init();
 			hThread=CreateThread(NULL,0,threadfunc,0,0,&ThreadID);
 			SetPriorityClass(hThread, REALTIME_PRIORITY_CLASS);
-			SetThreadPriority(hThread, THREAD_PRIORITY_BELOW_NORMAL);
+			SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
 			opend = 1;
 		}
 		for(i = 0 ; i < 2 ; i++) free(argv[i]);
@@ -350,11 +362,22 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 		IIMidiHdr->dwFlags &= ~MHDR_DONE;
 		IIMidiHdr->dwFlags |= MHDR_INQUEUE;
 		IIMidiHdr = (MIDIHDR *) dwParam1;
-		exlen=(int)IIMidiHdr->dwBytesRecorded;
+		exlen=(int)IIMidiHdr->dwBufferLength;
 		if( NULL == (sysexbuffer = (char *)malloc(exlen * sizeof(char)))){
 			exlen = 0;
 		}else{
 			memcpy(sysexbuffer,IIMidiHdr->lpData,exlen);
+#ifdef DEBUG
+	FILE * logfile;
+	logfile = fopen("c:\\dbglog.log","at");
+	if(logfile!=NULL) {
+		fprintf(logfile,"sysex %d byete\n", exlen);
+		for(int i = 0 ; i < exlen ; i++)
+			fprintf(logfile,"%x ", sysexbuffer[i]);
+		fprintf(logfile,"\n");
+	}
+	fclose(logfile);
+#endif
 		}
 		IIMidiHdr->dwFlags &= ~MHDR_INQUEUE;
 		IIMidiHdr->dwFlags |= MHDR_DONE;
