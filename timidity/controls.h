@@ -150,11 +150,14 @@ typedef struct {
   void (*close)(void);
   void (*pass_playing_list)(int number_of_files, char *list_of_files[]);
   int  (*read)(int32 *valp);
+  int  (*write)(char *buf, int32 size);
   int  (*cmsg)(int type, int verbosity_level, char *fmt, ...);
   void (*event)(CtlEvent *ev);	/* Control events */
 } ControlMode;
 
 extern ControlMode *ctl_list[], *ctl;
 extern int dumb_error_count;
+
+extern int std_write(int fd, char *buffer, int size);
 
 #endif /* ___CONTROLS_H_ */

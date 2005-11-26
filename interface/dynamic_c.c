@@ -54,7 +54,7 @@ ControlMode dynamic_control_mode =
     "Dynamic interface", 0,
     "\0",
     1,0,0,0,
-    ctl_open, ctl_close, NULL, NULL, cmsg, ctl_event,
+    ctl_open, ctl_close, NULL, NULL, NULL, cmsg, ctl_event,
 };
 
 static int cmsg(int type, int verbosity_level, char *fmt, ...)

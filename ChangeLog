@@ -1,3 +1,13 @@
+2005-11-26 Stas Sergeev <stsp@aknet.ru>
+	* interface/ncurs_c.c, interface/dumb_c.c, interface/slang_c.c,
+	  interface/tk_c.c, interface/emacs_c.c, interface/xskin_c.c,
+	  interface/gtk_c.c, interface/server_c.c, interface/alsaseq_c.c,
+	  interface/dynamic_c.c, timidity/controls.h, timidity/tables.c,
+	  timidity/raw_a.c, timidity/controls.c, timidity/flac_a.c,
+	  timidity/vorbis_a.c, timidity/au_a.c, timidity/wave_a.c,
+	  timidity/aiff_a.c, timidity/speex_a.c:
+	  warn when output to stdout makes no sense
+
 2005-11-15  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/sysdep.h: [timidity-bugs-en:61] Add stdint.h check

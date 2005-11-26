@@ -176,6 +176,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static int ctl_read(int32 *valp);
+static int ctl_write(char *valp, int32 size);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void ctl_event(CtlEvent *e);
 
@@ -253,6 +254,7 @@ ControlMode ctl=
     ctl_close,
     ctl_pass_playing_list,
     ctl_read,
+    ctl_write,
     cmsg,
     ctl_event
 };
@@ -2865,6 +2867,17 @@ static int ctl_read(int32 *valp)
 #endif
 
   return RC_NONE;
+}
+
+static int ctl_write(char *valp, int32 size)
+{
+  static int warned = 0;
+  if (!warned) {
+    fprintf(stderr, "Warning: using stdout with ncurses interface will not\n"
+		    "give the desired effect.\n");
+    warned = 1;
+  }
+  return write(STDOUT_FILENO, valp, size);
 }
 
 #ifdef USE_PDCURSES

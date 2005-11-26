@@ -91,6 +91,7 @@ ControlMode ctl =
     ctl_close,
     ctl_pass_playing_list,
     ctl_read,
+    NULL,
     cmsg,
     ctl_event
 };

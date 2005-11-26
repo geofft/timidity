@@ -91,7 +91,7 @@ static int write_u32(uint32 value)
 {
     int n;
     value = BE_LONG(value);
-    if((n = write(dpm.fd, &value, 4)) == -1)
+    if((n = std_write(dpm.fd, &value, 4)) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -104,7 +104,7 @@ static int write_u32(uint32 value)
 static int write_str(const char *s)
 {
     int n;
-    if((n = write(dpm.fd, s, strlen(s))) == -1)
+    if((n = std_write(dpm.fd, s, strlen(s))) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -287,7 +287,7 @@ static int output_data(char *buf, int32 bytes)
     if(dpm.fd == -1)
       return -1;
 
-    while(((n = write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
+    while(((n = std_write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
 	;
     if(n == -1)
     {

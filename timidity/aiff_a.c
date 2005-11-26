@@ -90,7 +90,7 @@ static int write_u32(uint32 value)
 {
     int n;
     value = BE_LONG(value);
-    if((n = write(dpm.fd, (char *)&value, 4)) == -1)
+    if((n = std_write(dpm.fd, (char *)&value, 4)) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -104,7 +104,7 @@ static int write_u16(uint16 value)
 {
     int n;
     value = BE_SHORT(value);
-    if((n = write(dpm.fd, (char *)&value, 2)) == -1)
+    if((n = std_write(dpm.fd, (char *)&value, 2)) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -117,7 +117,7 @@ static int write_u16(uint16 value)
 static int write_str(const char *s)
 {
     int n;
-    if((n = write(dpm.fd, s, strlen(s))) == -1)
+    if((n = std_write(dpm.fd, s, strlen(s))) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -133,7 +133,7 @@ static int write_ieee_80bitfloat(double num)
     int n;
     ConvertToIeeeExtended(num, bytes);
 
-    if((n = write(dpm.fd, bytes, 10)) == -1)
+    if((n = std_write(dpm.fd, bytes, 10)) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
@@ -273,12 +273,12 @@ static int aiff_output_open(const char *fname)
   /* compression type */
   if(compressed) {
     if(write_str((dpm.encoding & PE_ULAW) ? "ulaw" : "alaw") == -1) return -1;
-    if(write(dpm.fd, &compressionNameLength, 1) == -1) return -1;
+    if(std_write(dpm.fd, &compressionNameLength, 1) == -1) return -1;
     if(write_str(compressionName) == -1) return -1;
   }
   if(comm_chunk_size & 1) {
     padByte = 0;
-    if(write(dpm.fd, &padByte, 1) == -1) return -1;
+    if(std_write(dpm.fd, &padByte, 1) == -1) return -1;
     comm_chunk_size++;
   }
 
@@ -373,7 +373,7 @@ static int output_data(char *buf, int32 bytes)
 
     if(dpm.fd == -1) return -1;
 
-    while(((n = write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
+    while(((n = std_write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
 	;
     if(n == -1)
     {

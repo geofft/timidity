@@ -231,3 +231,11 @@ ControlMode *ctl_list[]={
 };
 
 ControlMode *ctl=DEFAULT_CONTROL_MODE;
+
+int std_write(int fd, char *buffer, int size)
+{
+    /* redirect stdout writes */
+    if (fd == 1 && ctl->write)
+	return ctl->write(buffer, size);
+    return write(fd, buffer, size);
+}

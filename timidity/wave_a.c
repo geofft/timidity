@@ -175,7 +175,7 @@ static int wav_output_open(const char *fname)
     t *= 2;
   RIFFheader[32] = t;
 
-  if(write(fd, RIFFheader, 44) == -1) {
+  if(std_write(fd, RIFFheader, 44) == -1) {
     ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 	      dpm.name, strerror(errno));
     close_output();
@@ -276,14 +276,14 @@ static int update_header(void)
     }
 
     tmp = LE_LONG(bytes_output + 44 - 8);
-    if(write(dpm.fd, &tmp, 4) == -1)
+    if(std_write(dpm.fd, &tmp, 4) == -1)
     {
 	lseek(dpm.fd, save_point, SEEK_SET);
 	return -1;
     }
     lseek(dpm.fd, 40, SEEK_SET);
     tmp = LE_LONG(bytes_output);
-    write(dpm.fd, &tmp, 4);
+    std_write(dpm.fd, &tmp, 4);
 
     lseek(dpm.fd, save_point, SEEK_SET);
     ctl->cmsg(CMSG_INFO, VERB_DEBUG,
@@ -299,7 +299,7 @@ static int output_data(char *buf, int32 bytes)
     if(dpm.fd == -1)
       return -1;
 
-    while(((n = write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
+    while(((n = std_write(dpm.fd, buf, bytes)) == -1) && errno == EINTR)
 	;
     if(n == -1)
     {

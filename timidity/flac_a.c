@@ -649,7 +649,7 @@ ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder,
 
   ctx->out_bytes += bytes;
 
-  if (write(dpm.fd, buffer, bytes) != -1)
+  if (std_write(dpm.fd, buffer, bytes) != -1)
     return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   else
     return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
@@ -665,7 +665,7 @@ flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder,
 
   ctx->out_bytes += bytes;
 
-  if (write(dpm.fd, buffer, bytes) == bytes)
+  if (std_write(dpm.fd, buffer, bytes) == bytes)
     return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   else
     return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
@@ -685,7 +685,7 @@ flac_seekable_stream_encoder_write_callback(const FLAC__SeekableStreamEncoder *e
 
   ctx->out_bytes += bytes;
 
-  if (write(dpm.fd, buffer, bytes) == bytes)
+  if (std_write(dpm.fd, buffer, bytes) == bytes)
     return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   else
     return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;

@@ -211,8 +211,8 @@ void speex_set_option_nframes(int nframes)
 int oe_write_page(ogg_page *page, int fd)
 {
   int written = 0;
-  written += write(fd, page->header, page->header_len);
-  written += write(fd, page->body,   page->body_len);
+  written += std_write(fd, page->header, page->header_len);
+  written += std_write(fd, page->body,   page->body_len);
 
   return written;
 }

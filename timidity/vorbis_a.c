@@ -476,8 +476,8 @@ static int output_data(char *readbuffer, int32 bytes)
 
 		/* write out pages (if any) */
 		while(ogg_stream_pageout(&os, &og) != 0) {
-		  write(dpm.fd, og.header, og.header_len);
-		  write(dpm.fd, og.body, og.body_len);
+		  std_write(dpm.fd, og.header, og.header_len);
+		  std_write(dpm.fd, og.body, og.body_len);
 		}
 	}
   }
@@ -518,8 +518,8 @@ static void close_output(void)
       int result = ogg_stream_pageout(&os,&og);
       if(result == 0)
 	break;
-      write(dpm.fd, og.header, og.header_len);
-      write(dpm.fd, og.body, og.body_len);
+      std_write(dpm.fd, og.header, og.header_len);
+      std_write(dpm.fd, og.body, og.body_len);
 
       /* this could be set above, but for illustrative purposes, I do
 	 it here (to show that vorbis does know where the stream ends) */
