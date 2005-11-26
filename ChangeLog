@@ -1,3 +1,8 @@
+2005-11-26  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+
+	* timidity/timidity.c (parse_opt_i): fix for possible null-pointer
+	  dereference when interface plugin is not found.
+
 2005-11-26 Stas Sergeev <stsp@aknet.ru>
 	* interface/ncurs_c.c, interface/dumb_c.c, interface/slang_c.c,
 	  interface/tk_c.c, interface/emacs_c.c, interface/xskin_c.c,

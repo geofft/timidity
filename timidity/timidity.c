@@ -4041,8 +4041,9 @@ static inline int parse_opt_i(const char *arg)
 		}
 #ifdef IA_DYNAMIC
 		if (cmp->id_character == dynamic_interface_id) {
-			ctl = cmp = dynamic_interface_module(*arg);
-			if(ctl) {
+			cmp = dynamic_interface_module(*arg);
+			if(cmp) {
+				ctl = cmp;
 				found = 1;
 				break;
 			}
