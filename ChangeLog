@@ -1,3 +1,7 @@
+2005-12-03  Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c: Do not ignore SIGPIPE 
+
 2005-11-26  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (parse_opt_i): fix for possible null-pointer

@@ -278,7 +278,7 @@ static int ctl_write(char *buffer, int32 size)
 	warned = 1;
     }
     if(data_fd != -1)
-	return write(data_fd, buffer, size);
+	return send(data_fd, buffer, size, MSG_DONTWAIT);
     return -1;
 }
 
@@ -380,10 +380,6 @@ static void ctl_pass_playing_list(int n, char *args[])
 	return;
     }
 
-#ifdef SIGPIPE
-    signal(SIGPIPE, SIG_IGN);    /* Handle broken pipe */
-#endif /* SIGPIPE */
-
     control_port = atoi(args[0]);
     if(n == 2)
 	data_port = atoi(args[1]);
@@ -391,6 +387,9 @@ static void ctl_pass_playing_list(int n, char *args[])
 	data_port = 0;
 
     if (control_port) {
+#ifdef SIGPIPE
+	signal(SIGPIPE, SIG_IGN);    /* Handle broken pipe */
+#endif /* SIGPIPE */
 	sock = pasv_open(&control_port);
 	if(sock == -1)
 	    return;
