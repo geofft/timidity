@@ -1,3 +1,7 @@
+2005-12-19  Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c: Add server version.
+
 2005-12-03  Stas Sergeev <stsp@aknet.ru>
 
 	* interface/server_c.c: Do not ignore SIGPIPE 

@@ -74,6 +74,8 @@
 #include "aq.h"
 #include "timer.h"
 
+#define SERVER_VERSION"1.0.2"
+
 /* #define DEBUG_DUMP_SEQ 1 */
 #define MIDI_COMMAND_PER_SEC	100
 #define DEFAULT_LOW_TIMEAT	0.4
@@ -614,9 +616,9 @@ static void doit(void)
     memset(&control_fd_buffer, 0, sizeof(control_fd_buffer));
     control_fd_buffer.fd = control_fd;
 
-    send_status(220, "TiMidity++ %s%s ready",
+    send_status(220, "TiMidity++ %s%s ready (Server Version %s)",
     		(strcmp(timidity_version, "current")) ? "v" : "",
-    		timidity_version);
+    		timidity_version, SERVER_VERSION);
 
 /*    while(data_fd != -1 && control_fd != -1) */
     while(control_fd != -1)
