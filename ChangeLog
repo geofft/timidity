@@ -1,3 +1,7 @@
+2006-01-08  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* configure configure.in utils/tmdy_getopt.h: fix for OpenWatcom 1.4
+
 2005-12-19  Stas Sergeev <stsp@aknet.ru>
 
 	* interface/server_c.c: Add server version.
