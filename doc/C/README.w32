@@ -210,14 +210,14 @@ done
                 
         3-1)timw32g.exe
             (configure)
-             CC="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
+             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-            CC="bcc32" CPP="cpp32" CFLAGS="" \
+            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
@@ -225,7 +225,7 @@ done
              mv timidity.exe twsyng.exe
         3-3)twsynsrv.exe
             (configure)
-             CC="bcc32" CPP="cpp32" CFLAGS=""\
+             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS=""\
              ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              add config.h following line
@@ -235,7 +235,7 @@ done
              mv timidity.exe twsynsrv.exe
        3-4)timidity.exe
             (configure)
-            CC="bcc32" CPP="cpp32" CFLAGS="" \
+            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
@@ -323,7 +323,7 @@ done
             Use my wrapper wcc386_w.sh, instead of wcc386.exe
         3-1)timw32g.exe
             (configure)
-            CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -332,7 +332,7 @@ done
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-            CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -341,7 +341,7 @@ done
              mv timidity.exe twsyng.exe
         3-3)twsynsrv.exe
             (configure)
-            CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -353,7 +353,7 @@ done
 
         3-4)timidity.exe
             (configure)
-            CC="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -470,4 +470,4 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              make
 
 
-2005.11.06 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)
+2006.01.08 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)

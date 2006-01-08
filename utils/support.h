@@ -82,6 +82,8 @@ struct stat {
 };
 int stat(const char *filename, struct stat *st);
 #endif /* __W32__ */
+#else
+#include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H*/
 #endif /* ___SUPPORT_H_ */
 #ifndef S_ISDIR

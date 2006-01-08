@@ -47,6 +47,12 @@ compilelink(){
          fi
          clist="$clist $foo"
          ;;
+       *.cc)
+         if test "x$fname" = "x " ;then
+           fname=`echo $foo|perl -pe 's/(.*)\.cc/$1/' -`
+         fi
+         clist="$clist $foo"
+         ;;
        *.cpp)
          if test "x$fname" = "x " ;then
            fname=`echo $foo|perl -pe 's/(.*)\.cpp/$1/' -`
@@ -138,6 +144,11 @@ case $foo0 in
        *.c)
          if test "x$fname" = "x " ;then
            fname=`echo $foo|perl -pe 's/(.*)\.c/$1/' -`
+         fi
+         ;;
+       *.cc)
+         if test "x$fname" = "x " ;then
+           fname=`echo $foo|perl -pe 's/(.*)\.cc/$1/' -`
          fi
          ;;
        *.cpp)

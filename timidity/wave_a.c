@@ -276,14 +276,14 @@ static int update_header(void)
     }
 
     tmp = LE_LONG(bytes_output + 44 - 8);
-    if(std_write(dpm.fd, &tmp, 4) == -1)
+    if(std_write(dpm.fd, (char *)&tmp, 4) == -1)
     {
 	lseek(dpm.fd, save_point, SEEK_SET);
 	return -1;
     }
     lseek(dpm.fd, 40, SEEK_SET);
     tmp = LE_LONG(bytes_output);
-    std_write(dpm.fd, &tmp, 4);
+    std_write(dpm.fd, (char *)&tmp, 4);
 
     lseek(dpm.fd, save_point, SEEK_SET);
     ctl->cmsg(CMSG_INFO, VERB_DEBUG,

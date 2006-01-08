@@ -1,6 +1,14 @@
 2006-01-08  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	* configure configure.in utils/tmdy_getopt.h: fix for OpenWatcom 1.4
+	Changes for OpenWatcom 1.4
+	* configure configure.in 
+	* utils/tmdy_getopt.h
+	* doc/C/README.w32
+	* doc/ja_JP.eucJP/README.w32
+	* script/wcc386_w.sh
+   	* timidity/au_a.c 
+	* timidity/wave_a.c 
+	* utils/support.h
 
 2005-12-19  Stas Sergeev <stsp@aknet.ru>
 

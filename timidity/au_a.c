@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
+    along with this program; nclude <sys/stat.h>if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     au_a.c
@@ -91,7 +91,7 @@ static int write_u32(uint32 value)
 {
     int n;
     value = BE_LONG(value);
-    if((n = std_write(dpm.fd, &value, 4)) == -1)
+    if((n = std_write(dpm.fd, (char *)&value, 4)) == -1)
     {
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: write: %s",
 		  dpm.name, strerror(errno));
