@@ -45,11 +45,8 @@ SYSEXTRAS: timiditydrv.h
 
 EXTRA_DIST = \
 	 oemsetup.inf \
-	 timiditydrv.inf \
-	 dlldata.c \
-	 timiditydrv_i.c \
-	 timiditydrv_p.c \
-	 timiditydrv.h
+	 timiditydrv.inf  
+
 
 CLEANFILES = timiditydrv.tlb
 
@@ -92,14 +89,21 @@ timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 	midl -nologo timiditydrv.idl 
 else
 if BORLANDC
-# BOLANDC not Work
-#timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-#	midl -cpp_cmd cpp32.exe -cpp_opt "-P- -oCON" timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
 else
 if MINGWGCC
-# Mingw GCC not Work
-#timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-#	midl -cpp_cmd cpp -cpp_opt --traditional timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+else
+if WATCOM_C
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+endif
+#     WATCOM_C
 endif
 #     MINGWGCC
 endif
@@ -110,15 +114,25 @@ endif
 objs: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) 
 	@:
 
+if MINGWGCC
+timiditydrv.o: timiditydrv.cpp timiditydrv.h
+        source='$<' object='$@' libtool=no \
+        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
+        $(CXXDEPMODE) $(depcomp) \
+        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+else
 timiditydrv.obj: timiditydrv.cpp timiditydrv.h
         source='$<' object='$@' libtool=no \
         depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
         $(CXXDEPMODE) $(depcomp) \
         $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+endif
+#     MINGWGCC
 
 
 uninstall-info-am:
 
 clean:
 	-rm -f *.o *.a *.dll *.obj *.RES *.idb *.pch *.lib
+	-rm -f timiditydrv_i.c timiditydrv_p.c timiditydrv.h dlldata.c
 

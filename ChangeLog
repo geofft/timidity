@@ -1,3 +1,13 @@
+2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+	*configure.in: Add mkstemp check
+	*doc/C/README.w32
+	*doc/ja_JP.eucJP/README.w32: About timiditydrv compilation
+	*windrv/Makefile.am: Change to use midl.exe
+	*windrv/dlldata.c
+	*windrv/timiditydrv.h
+	*windrv/timiditydrv_i.c
+	*windrv/timiditydrv_p.c: Rmoved because will be ganerated by midl.exe.
+
 2006-01-08  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	Changes for OpenWatcom 1.4

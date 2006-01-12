@@ -392,11 +392,7 @@ libtimiditydrv_a_SOURCES = \
 
 EXTRA_DIST = \
 	 oemsetup.inf \
-	 timiditydrv.inf \
-	 dlldata.c \
-	 timiditydrv_i.c \
-	 timiditydrv_p.c \
-	 timiditydrv.h
+	 timiditydrv.inf  
 
 CLEANFILES = timiditydrv.tlb
 libtimiditydrv_a_LIBADD = \
@@ -410,10 +406,15 @@ libtimiditydrv_a_dep = \
 #	advapi32.lib shell32.lib ole32.lib oleaut32.lib odbc32.lib odbccp32.lib \
 #	ksguid.lib ksuser.lib
 @VCPP_TRUE@VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
-source = '$<' object='$@' libtool=no \
-        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
-        $(CXXDEPMODE) $(depcomp) \
-        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+@MINGWGCC_FALSE@source = '$<' object='$@' libtool=no \
+@MINGWGCC_FALSE@        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
+@MINGWGCC_FALSE@        $(CXXDEPMODE) $(depcomp) \
+@MINGWGCC_FALSE@        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+@MINGWGCC_TRUE@source = '$<' object='$@' libtool=no \
+@MINGWGCC_TRUE@        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
+@MINGWGCC_TRUE@        $(CXXDEPMODE) $(depcomp) \
+@MINGWGCC_TRUE@        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 all: all-am
 
@@ -673,12 +674,16 @@ libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $
 
 @VCPP_TRUE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 @VCPP_TRUE@	midl -nologo timiditydrv.idl 
-# BOLANDC not Work
-#timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-#	midl -cpp_cmd cpp32.exe -cpp_opt "-P- -oCON" timiditydrv.idl
-# Mingw GCC not Work
-#timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-#	midl -cpp_cmd cpp -cpp_opt --traditional timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+@BORLANDC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+#     WATCOM_C
 #     MINGWGCC
 #     BORLANDC
 #     VCPP
@@ -686,12 +691,15 @@ libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $
 objs: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) 
 	@:
 
-timiditydrv.obj: timiditydrv.cpp timiditydrv.h
+@MINGWGCC_TRUE@timiditydrv.o: timiditydrv.cpp timiditydrv.h
+@MINGWGCC_FALSE@timiditydrv.obj: timiditydrv.cpp timiditydrv.h
+#     MINGWGCC
 
 uninstall-info-am:
 
 clean:
 	-rm -f *.o *.a *.dll *.obj *.RES *.idb *.pch *.lib
+	-rm -f timiditydrv_i.c timiditydrv_p.c timiditydrv.h dlldata.c
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

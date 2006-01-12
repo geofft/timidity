@@ -521,6 +521,7 @@ AC_CHECK_FUNCS( \
   memchr \
   memmove \
   memset \
+  mkstemp \
   modf \
   munmap \
   popen \

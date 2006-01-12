@@ -58,8 +58,15 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
 	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
-¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-        3-1)timw32g.exe
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		    ¡Êmingw¤Îcpp.exe¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+        4-1)timw32g.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-network --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -67,7 +74,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              make
              strip timidity.exe
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -76,7 +83,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              strip timidity.exe
              mv timidity.exe twsyng.exe
 
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
               CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -87,7 +94,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              strip timidity.exe
              mv timidity.exe twsynsrv.exe
 
-        3-4)timidity.exe
+        4-4)timidity.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -95,7 +102,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              make
              strip timidity.exe
              
-        3-5)timiditydrv.dll
+        4-5)timiditydrv.dll
             (configure)
              CFLAGS="-O2" ./configure --enable-winsyn --enable-windrv --enable-spline=linear \
              --enable-audio=w32,portaudio
@@ -380,8 +387,11 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
 	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
-¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-        3-1)timw32g.exe
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+        4-1)timw32g.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
             ./configure --enable-network --enable-w32gui --enable-spline=gauss \
@@ -389,7 +399,7 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
             (make)
             make
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -397,7 +407,7 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
             (make)
              make
              mv timidity.exe twsyng.exe
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2"\
              ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -407,14 +417,14 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        3-4)timidity.exe
+        4-4)timidity.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
              ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
-        3-5)timiditydrv.dll
+        4-5)timiditydrv.dll
             (configure)
             CC="cl" CXX="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
               ./configure --enable-winsyn --enable-windrv --enable-spline=linear \
@@ -423,4 +433,4 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              make
 
 
-2006.01.08 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+2006.01.12 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
