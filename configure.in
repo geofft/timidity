@@ -231,7 +231,8 @@ case "$target" in
         ;;
       "xwcc386_w.sh "*)
          WATCOM_C=yes
-         CFLAGS="$CFLAGS -br -5s -zk0 -bm -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         CFLAGS="$CFLAGS -br -bm -5s -zk0 -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         DLLFLAG=" "
          WATCOM_LDFLAGS=
          EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
          ;;
@@ -1791,14 +1792,15 @@ dnl Window Driver interface
 AC_ARG_ENABLE(windrv,
   [  --enable-windrv         Windows Driver interface(requires winsyn) ],
   [ if test "$enableval" = "yes"; then
-      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes"  ; then
-	AC_MSG_ERROR(windrv: Only Support VC++ or Mingw Compiler)
+      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes"; then
+	AC_MSG_ERROR(windrv: Only Support VC++ or Mingw or Borland C or Open Watcom)
 	  elif test "x$WINSYN" != "xyes"; then
 	AC_MSG_ERROR(windrv: Driver must have winsyn interface)
 	  else
     AC_DEFINE(WINDRV,1,Define to 1 if you cpmpile windos driver.)
     WINDRV=yes
-    CFLAGS="$CFLAGS -DANOTHER_MAIN "
+    if test "x$WATCOM_C" = "xyes"; then DLLFLAG="-bd" ;fi
+    CFLAGS="$CFLAGS $DLLFLAG -DANOTHER_MAIN "
       fi
     fi ])
 

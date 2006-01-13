@@ -56,7 +56,7 @@ extern int opt_evil_mode;
 
 static BOOL WINAPI handler(DWORD dw)
 {
-    printf ("***BREAK" NLS); fflush(stdout);
+//    printf ("***BREAK" NLS); fflush(stdout);
     intr++;
     return TRUE;
 }
@@ -68,13 +68,13 @@ static	RETSIGTYPE sigterm_exit(int sig)
     /* NOTE: Here, fprintf is dangerous because it is not re-enterance
      * function.  It is possible coredump if the signal is called in printf's.
      */
-
+/*
     write(2, "Terminated sig=0x", 17);
     s[0] = "0123456789abcdef"[(sig >> 4) & 0xf];
     s[1] = "0123456789abcdef"[sig & 0xf];
     s[2] = '\n';
     write(2, s, 3);
-
+*/
     safe_exit(1);
 }
 
@@ -236,8 +236,9 @@ int timiwp_play_main_ini(int nfiles, char **files)
 
     if(ctl->open(0, 0))
     {
-	fprintf(stderr, "Couldn't open %s (`%c')" NLS,
+/*	fprintf(stderr, "Couldn't open %s (`%c')" NLS,
 		ctl->id_name, ctl->id_character);
+*/
 	play_mode->close_output();
 	return 3;
     }

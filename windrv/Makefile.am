@@ -50,15 +50,40 @@ EXTRA_DIST = \
 
 CLEANFILES = timiditydrv.tlb
 
-
+if MINGWGCC
 libtimiditydrv_a_LIBADD = \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
 	$(top_builddir)/timidity/timidity.exe
-
 libtimiditydrv_a_dep = \
-	$(top_builddir)/timidity/timidity.exe 	
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a \
+	$(top_builddir)/timidity/timidity.exe
+else
+libtimiditydrv_a_LIBADD = \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(top_builddir)/timidity/timidity.exe
+libtimiditydrv_a_dep = \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(top_builddir)/timidity/timidity.exe
+endif
+#    MINGWGCC
+
 
 
 DRV_LIBS =  \
+	kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib \
+	uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib winmm.lib
 #	kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
 #	advapi32.lib shell32.lib ole32.lib oleaut32.lib odbc32.lib odbccp32.lib \
 #	ksguid.lib ksuser.lib
@@ -68,16 +93,51 @@ VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timidi
 
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 	@rm -f libtimi_p_dll.a
-	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) $(DRV_LIBS) 
+	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+else
+if BORLANDC
+BORLANDC_LINK = ilink32.exe -Tpd
+timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+	@rm -f $@
+	$(BORLANDC_LINK) C0D32.OBJ $(libtimiditydrv_a_OBJECTS) \
+	$(top_builddir)\\interface\\interface.lib \
+	$(top_builddir)\\libarc\\arc.lib \
+	$(top_builddir)\\libunimod\\unimod.lib \
+	$(top_builddir)\\utils\\utils.lib \
+	$(top_builddir)\\timidity\\timidity.exe \
+	$(DRV_LIBS),$@,,import32.lib cw32mti.lib,timiditydrv.def
 else
 if MINGWGCC
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 	@rm -f libtimi_p_dll.a
-	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o timiditydrv.dll $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) \
-	$(top_builddir)/interface/libinterface.a $(top_builddir)/utils/libutils.a $(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/libarc/libarc.a $(LIBS) $(DRV_LIBS) 
+	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o $@ \
+	$(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+else
+if WATCOM_C
+WATCOM_LINK = link386.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+	@rm -f libtimi_p_dll.a
+	$(WATCOM_LINK) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+	
+#WATCOM_LINK = wlink
+#timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+#	@rm -f $@
+#	$(WATCOM_LINK) SYSTEM nt_dll initinstance terminstance \
+#	`for foo in $(libtimiditydrv_a_OBJECTS) ; do echo "File $$foo "; done;` \
+#	Name $@ \
+#	Library $(top_builddir)\\interface\\interface.lib \
+#	Library $(top_builddir)\\libarc\\arc.lib \
+#	Library $(top_builddir)\\libunimod\\unimod.lib \
+#	Library $(top_builddir)\\utils\\utils.lib \
+#	Library $(top_builddir)\\timidity\\timidity.exe \
+#	`for foo in  $(DRV_LIBS) ; do echo "Library $$foo"; done;` \
+#	EXPort DllCanUnloadNow,DllGetClassObject,DllRegisterServer,DllUnregisterServer,DriverProc,modMessage
+endif
+#     WATCOM_C
 endif
 #    MINGWGCC
+endif
+#     BORLANDC
 endif
 #    VCPP
 

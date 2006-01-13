@@ -33,15 +33,17 @@
 /* Use XP SDK's mmsystem.h. mingw's lacks some definitions */
 #include "mmsystem.h"
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(__WATCOMC__)
 #define __IID_DEFINED__ 1
 #endif
 #include "timiditydrv_i.c"
 #include "mmreg.h"	//Fom NTDDK
+
 extern "C" {
 #include "config.h"
 #include "sysdep.h"
 }
+
 #include "timiwp_timidity.h"
 
 
@@ -56,8 +58,7 @@ static volatile int stop_rtthread = 0;
 static HANDLE hCalcThread = NULL;
 static HANDLE hRtsynThread =NULL;
 
-
-extern "C"
+extern "C" 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved ){
 	if (fdwReason == DLL_PROCESS_ATTACH){
 		DisableThreadLibraryCalls(hinstDLL);
@@ -283,6 +284,7 @@ DWORD WINAPI threadfunc(LPVOID lpV){
 	}
 	stop_thread=0;
 	ExitThread(TRUE);
+	return 0;
 }
 
 DWORD WINAPI threadfunc2(LPVOID lpV){
@@ -317,6 +319,7 @@ DWORD WINAPI threadfunc2(LPVOID lpV){
 	timiwp_main_close();
 	stop_rtthread=0;
 	ExitThread(TRUE);
+	return 0;
 }
 
 STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1, DWORD dwParam2){

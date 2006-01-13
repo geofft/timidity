@@ -153,6 +153,7 @@ extern int ConsoleWndFlag;
 #endif
 static int cmsg(int type, int verbosity_level, char *fmt, ...)
 {
+#ifndef WINDRV
 #ifndef IA_W32G_SYN
 
 	va_list ap;
@@ -195,7 +196,7 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
     return 0;
 	}
 #endif
-
+#endif
     return 0;
 }
 

@@ -100,6 +100,11 @@
 #include "w32g_utl.h"
 #endif
 
+#ifdef WINDRV
+/* supress std outputs */
+#define fputs(a, b)
+#endif
+
 #ifndef __GNUC__
 #define __attribute__(x) /* ignore */
 #endif
@@ -3493,7 +3498,11 @@ static inline int parse_opt_H(const char *arg)
 }
 
 __attribute__((noreturn))
+#ifndef __BORLANDC__
 static inline int parse_opt_h(const char *arg)
+#else
+static int parse_opt_h(const char *arg)
+#endif
 {
 	static char *help_list[] = {
 "TiMidity++ %s (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>",

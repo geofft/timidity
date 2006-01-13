@@ -171,10 +171,17 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
 	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
-¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		    ¡ÊBorlandc¤Îcpp32.exe¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+        4-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
                 (configureÃæ¤Î -o xxxx ¤Ï£Â£Ã£Ã¤¬¼õ¤±ÉÕ¤±¤Ê¤¤¤¿¤á)
-        3-0-2)rm_float.sh ¤ò timidity/timidity ¥Ç¥£¥ì¥¯¥È¥ê¤ÎÃæ¤Çµ¯Æ°¤¹¤ë¡£
+        4-0-2)rm_float.sh ¤ò timidity/timidity ¥Ç¥£¥ì¥¯¥È¥ê¤ÎÃæ¤Çµ¯Æ°¤¹¤ë¡£
                 ¿ôÃÍÄê¿ô¤Î¤¢¤È¤Î f , F, l and L ¤ò¼è¤ê½ü¤¯¥¹¥¯¥ê¥×¥È(  123.45f -> 123.45 )
 <rm_float.sh>
 -------------------- from here -----------------------
@@ -186,14 +193,14 @@ mv $foo.rm $foo
 done
 -------------------- to here -------------------------
                 
-        3-1)timw32g.exe
+        4-1)timw32g.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -201,7 +208,7 @@ done
             (make)
              make
              mv timidity.exe twsyng.exe
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS=""\
              ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -211,11 +218,18 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-       3-4)timidity.exe
+       4-4)timidity.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+             make
+       4-5)timiditydrv.dll
+            (configure)
+            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
+             ./configure_bc  --enable-winsyn --enable-windrv --enable-spline=linear \
+             --enable-audio=w32,portaudio
             (make)
              make
 
@@ -288,32 +302,39 @@ done
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
 	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
-¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-        3-0)wcc386_w.sh ( scripts/¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤¢¤ë )
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		    ¡Ê'wcc386.exe -p'¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+        4-0)wcc386_w.sh & wpp386_w.sh( scripts/¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤¢¤ë )
             Wcc386 ¤ÏGNU¤Îauto Tool¤ÈÃç¤¬°­¤¤¤Î¤Ç¥é¥Ã¥Ñ¡¼¤ò¤Ä¤¯¤Ã¤¿¡£
             ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë°ÜÆ°¤µ¤»¤Æ¤ª¤¤¤Æ¡£
             wcc386.exe¤Î¤«¤ï¤ê¤Ëwcc386_w.sh¤ò¸Æ¤Ó½Ð¤·¤Æ»È¤¦¡£
-        3-1)timw32g.exe
+        4-1)timw32g.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp86_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
              make
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
              (make)
              make
              mv timidity.exe twsyng.exe
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -322,15 +343,21 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        3-4)timidity.exe
+        4-4)timidity.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
             make
-
+       4-5)timiditydrv.dll
+            (configure)
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+             ./configure  --enable-winsyn --enable-windrv --enable-spline=linear \
+             --enable-audio=w32,portaudio
+            (make)
+             make
 
 £´¡¥Msys´Ä¶­²¼¤ÇVisual C++¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËVisual C++¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
@@ -433,4 +460,4 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              make
 
 
-2006.01.12 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+2006.01.13 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)

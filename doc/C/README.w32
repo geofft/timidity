@@ -198,11 +198,19 @@ This file contains fllowing instructions.
              Only portaudio.h is needed for compiling TiMidity++.
         2-7)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
              I don't know how to comple portaudio with bcc commandline tools.
-
-(3)Make TiMidity++ binaries
-        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+             
+(3)Preparations for compiling timiditydrv.dll
+        3-1)install Microsoft Platform SDK
+        3-2)install Microsoft NTDDK
+        3-3)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
+        3-4)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
+            And move it to the PATH included PATH environment variable.
+            (cpp32.exe of BorlandC is not suitable for preprocessor of mild.exe)
+            
+(4)Make TiMidity++ binaries
+        4-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
                 ( -o xxxx options are not work correctly with BCC)
-        3-0-2)Invoke sh rm_float.sh in timidity/timidity directory.
+        4-0-2)Invoke sh rm_float.sh in timidity/timidity directory.
                 This removes f , F, l and L after sonst float valude( ex. 123.45f )
 <rmfloat.sh>
 -------------------- from here -----------------------
@@ -214,14 +222,14 @@ mv $foo.rm $foo
 done
 -------------------- to here -------------------------
                 
-        3-1)timw32g.exe
+        4-1)timw32g.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -229,7 +237,7 @@ done
             (make)
              make
              mv timidity.exe twsyng.exe
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS=""\
              ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -239,11 +247,18 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-       3-4)timidity.exe
+       4-4)timidity.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+             make
+       4-5)timiditydrv.dll
+            (configure)
+            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
+             ./configure_bc  --enable-winsyn --enable-windrv --enable-spline=linear \
+             --enable-audio=w32,portaudio
             (make)
              make
 
@@ -322,32 +337,40 @@ done
             Only port audio.h is needed for compling TiMidity++.
         2-7)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
             I don't know how to comple portmidi with OpenWatcom commandline tools..
+            
+(3)Preparations for compiling timiditydrv.dll
+        3-1)install Microsoft Platform SDK
+        3-2)install Microsoft NTDDK
+        3-3)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
+        3-4)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
+            And move it to the PATH included PATH environment variable.
+            ('wcc386 -p' is not suitable for preprocessor of mild.exe)
 
-(3)Make TiMidity++ binaries
-        3-0-1)wcc386_w.sh ( it is in scripts/directory )
+(4)Make TiMidity++ binaries
+        4-0-1)wcc386_w.sh & wpp386_w.sh( They are in scripts/directory )
             Wcc386 is not familier to GNU autoconf tools,
             Use my wrapper wcc386_w.sh, instead of wcc386.exe
-        3-1)timw32g.exe
+        4-1)timw32g.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
              make
              mv timidity.exe timw32g.exe
-        3-2)twsyng.exe
+        4-2)twsyng.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
              (make)
              make
              mv timidity.exe twsyng.exe
-        3-3)twsynsrv.exe
+        4-3)twsynsrv.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
@@ -356,15 +379,21 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-
-        3-4)timidity.exe
+        4-4)timidity.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wcc386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
             make
+       4-5)timiditydrv.dll
+            (configure)
+            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+             ./configure  --enable-winsyn --enable-windrv --enable-spline=linear \
+             --enable-audio=w32,portaudio
+            (make)
+             make
 
 
 4.Visual C++ in Msys environment
@@ -478,4 +507,4 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              make
 
 
-2006.01.12 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)
+2006.01.13 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)

@@ -280,11 +280,18 @@ calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 else
 
 if BORLANDC
+if WINDRV
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+	@rm -f $@
+	for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) ;do  \
+	  tlib $@ +$$foo ; \
+	done
+else
 BORLANDC_LINK = ilink32.exe -C -Gn
-
 timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
 	@rm -f timidity$(EXEEXT)
 	$(BORLANDC_LINK) $(BORLANDC_LINK_OPTIONS) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
+endif
 calcnewt.$(OBJEXT): calcnewt.c
 	$(CC)  -tWC  -c calcnewt.c
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
@@ -295,9 +302,17 @@ else
 
 if WATCOM_C
 WATCOM_LINK = wlink.exe 
+if WINDRV
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+	@rm -f $@
+	for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) ;do  \
+	  wlib $@ +$$foo ; \
+	done
+else
 timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
 	@rm -f timidity$(EXEEXT)
 	$(WATCOM_LINK) $(WATCOM_LDFLAGS) `for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)); do echo "File $$foo "; done;` Name $@ `for foo in  $(timidity_LDADD) $(LIBS); do echo "Library $$foo"; done;` $(WATCOM_LINK_OPTIONS)  `if test x$(W32GUI_RES) != x ; then  echo Option RESource=$(W32GUI_RES); fi;`
+endif
 calcnewt.$(OBJEXT): calcnewt.c
 	$(CCLD)  -c calcnewt.c
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
