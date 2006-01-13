@@ -4400,7 +4400,8 @@ case "$target" in
         ;;
       "xwcc386_w.sh "*)
          WATCOM_C=yes
-         CFLAGS="$CFLAGS -br -5s -zk0 -bm -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         CFLAGS="$CFLAGS -br -bm -5s -zk0 -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
+         DLLFLAG=" "
          WATCOM_LDFLAGS=
          EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
          ;;
@@ -19155,9 +19156,9 @@ esac
 if test "${enable_windrv+set}" = set; then
   enableval="$enable_windrv"
    if test "$enableval" = "yes"; then
-      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes"  ; then
-	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw Compiler" >&5
-echo "$as_me: error: windrv: Only Support VC++ or Mingw Compiler" >&2;}
+      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes"; then
+	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom" >&5
+echo "$as_me: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom" >&2;}
    { (exit 1); exit 1; }; }
 	  elif test "x$WINSYN" != "xyes"; then
 	{ { echo "$as_me:$LINENO: error: windrv: Driver must have winsyn interface" >&5
@@ -19170,7 +19171,8 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     WINDRV=yes
-    CFLAGS="$CFLAGS -DANOTHER_MAIN "
+    if test "x$WATCOM_C" = "xyes"; then DLLFLAG="-bd" ;fi
+    CFLAGS="$CFLAGS $DLLFLAG -DANOTHER_MAIN "
       fi
     fi
 fi;

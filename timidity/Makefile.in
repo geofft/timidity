@@ -662,7 +662,7 @@ calcnewt_SOURCES = calcnewt.c
 @VCPP_TRUE@@WINDRV_FALSE@VC_LINK = link.exe
 @VCPP_TRUE@@WINDRV_TRUE@VC_LINK = link.exe -lib
 @VCPP_TRUE@VCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
-@BORLANDC_TRUE@@VCPP_FALSE@BORLANDC_LINK = ilink32.exe -C -Gn
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_FALSE@BORLANDC_LINK = ilink32.exe -C -Gn
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@WATCOM_LINK = wlink.exe 
 all: all-am
 
@@ -1012,17 +1012,27 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 @VCPP_TRUE@	@rm -f calcnewt$(EXEEXT)
 @VCPP_TRUE@	$(VCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
 
-@BORLANDC_TRUE@@VCPP_FALSE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
-@BORLANDC_TRUE@@VCPP_FALSE@	@rm -f timidity$(EXEEXT)
-@BORLANDC_TRUE@@VCPP_FALSE@	$(BORLANDC_LINK) $(BORLANDC_LINK_OPTIONS) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_TRUE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_TRUE@	@rm -f $@
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_TRUE@	for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) ;do  \
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_TRUE@	  tlib $@ +$$foo ; \
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_TRUE@	done
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_FALSE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_FALSE@	@rm -f timidity$(EXEEXT)
+@BORLANDC_TRUE@@VCPP_FALSE@@WINDRV_FALSE@	$(BORLANDC_LINK) $(BORLANDC_LINK_OPTIONS) $(BORLANDC_START) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)), $@, ,$(timidity_LDADD) $(BORLANDC_LDFLAGS) $(LIBS), ,$(W32GUI_RES)
 @BORLANDC_TRUE@@VCPP_FALSE@calcnewt.$(OBJEXT): calcnewt.c
 @BORLANDC_TRUE@@VCPP_FALSE@	$(CC)  -tWC  -c calcnewt.c
 @BORLANDC_TRUE@@VCPP_FALSE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 @BORLANDC_TRUE@@VCPP_FALSE@	@rm -f calcnewt$(EXEEXT)
 @BORLANDC_TRUE@@VCPP_FALSE@	$(CCLD) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	@rm -f timidity$(EXEEXT)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(WATCOM_LINK) $(WATCOM_LDFLAGS) `for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)); do echo "File $$foo "; done;` Name $@ `for foo in  $(timidity_LDADD) $(LIBS); do echo "Library $$foo"; done;` $(WATCOM_LINK_OPTIONS)  `if test x$(W32GUI_RES) != x ; then  echo Option RESource=$(W32GUI_RES); fi;`
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_TRUE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_TRUE@	@rm -f $@
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_TRUE@	for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) ;do  \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_TRUE@	  wlib $@ +$$foo ; \
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_TRUE@	done
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_FALSE@timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_FALSE@	@rm -f timidity$(EXEEXT)
+@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@@WINDRV_FALSE@	$(WATCOM_LINK) $(WATCOM_LDFLAGS) `for foo in $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)); do echo "File $$foo "; done;` Name $@ `for foo in  $(timidity_LDADD) $(LIBS); do echo "Library $$foo"; done;` $(WATCOM_LINK_OPTIONS)  `if test x$(W32GUI_RES) != x ; then  echo Option RESource=$(W32GUI_RES); fi;`
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@calcnewt.$(OBJEXT): calcnewt.c
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(CCLD)  -c calcnewt.c
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
