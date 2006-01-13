@@ -80,7 +80,18 @@ AR = ar
 ARFLAGS = cru
 LIBRARIES = $(noinst_LIBRARIES)
 libtimiditydrv_a_AR = $(AR) $(ARFLAGS)
-libtimiditydrv_a_DEPENDENCIES = $(top_builddir)/timidity/timidity.exe
+@MINGWGCC_FALSE@libtimiditydrv_a_DEPENDENCIES =  \
+@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+@MINGWGCC_TRUE@libtimiditydrv_a_DEPENDENCIES =  \
+@MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
+@MINGWGCC_TRUE@	$(top_builddir)/interface/libinterface.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libarc/libarc.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@MINGWGCC_TRUE@	$(top_builddir)/utils/libutils.a
 am_libtimiditydrv_a_OBJECTS = timiditydrv.$(OBJEXT) \
 	timiwp_timidity.$(OBJEXT)
 libtimiditydrv_a_OBJECTS = $(am_libtimiditydrv_a_OBJECTS)
@@ -395,17 +406,45 @@ EXTRA_DIST = \
 	 timiditydrv.inf  
 
 CLEANFILES = timiditydrv.tlb
-libtimiditydrv_a_LIBADD = \
-	$(top_builddir)/timidity/timidity.exe
+@MINGWGCC_FALSE@libtimiditydrv_a_LIBADD = \
+@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
 
-libtimiditydrv_a_dep = \
-	$(top_builddir)/timidity/timidity.exe 	
+@MINGWGCC_TRUE@libtimiditydrv_a_LIBADD = \
+@MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
+@MINGWGCC_TRUE@	$(top_builddir)/interface/libinterface.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libarc/libarc.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@MINGWGCC_TRUE@	$(top_builddir)/utils/libutils.a 
 
+@MINGWGCC_FALSE@libtimiditydrv_a_dep = \
+@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+
+@MINGWGCC_TRUE@libtimiditydrv_a_dep = \
+@MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
+@MINGWGCC_TRUE@	$(top_builddir)/interface/libinterface.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libarc/libarc.a \
+@MINGWGCC_TRUE@	$(top_builddir)/libunimod/libunimod.a \
+@MINGWGCC_TRUE@	$(top_builddir)/utils/libutils.a 
+
+#    MINGWGCC
+DRV_LIBS = \
+	kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib \
+	uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib winmm.lib
 
 #	kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
 #	advapi32.lib shell32.lib ole32.lib oleaut32.lib odbc32.lib odbccp32.lib \
 #	ksguid.lib ksuser.lib
 @VCPP_TRUE@VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+@BORLANDC_TRUE@@VCPP_FALSE@BORLANDC_LINK = ilink32.exe -Tpd
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@WATCOM_LINK = link386.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
 @MINGWGCC_FALSE@source = '$<' object='$@' libtool=no \
 @MINGWGCC_FALSE@        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
 @MINGWGCC_FALSE@        $(CXXDEPMODE) $(depcomp) \
@@ -660,13 +699,40 @@ SYSEXTRAS: timiditydrv.h
 
 @VCPP_TRUE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 @VCPP_TRUE@	@rm -f libtimi_p_dll.a
-@VCPP_TRUE@	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) $(DRV_LIBS) 
-@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-@MINGWGCC_TRUE@@VCPP_FALSE@	@rm -f libtimi_p_dll.a
-@MINGWGCC_TRUE@@VCPP_FALSE@	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o timiditydrv.dll $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) \
-@MINGWGCC_TRUE@@VCPP_FALSE@	$(top_builddir)/interface/libinterface.a $(top_builddir)/utils/libutils.a $(top_builddir)/libunimod/libunimod.a \
-@MINGWGCC_TRUE@@VCPP_FALSE@	$(top_builddir)/libarc/libarc.a $(LIBS) $(DRV_LIBS) 
+@VCPP_TRUE@	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+@BORLANDC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_TRUE@@VCPP_FALSE@	@rm -f $@
+@BORLANDC_TRUE@@VCPP_FALSE@	$(BORLANDC_LINK) C0D32.OBJ $(libtimiditydrv_a_OBJECTS) \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\interface\\interface.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\libarc\\arc.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\libunimod\\unimod.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\utils\\utils.lib \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\timidity\\timidity.exe \
+@BORLANDC_TRUE@@VCPP_FALSE@	$(DRV_LIBS),$@,,import32.lib cw32mti.lib,timiditydrv.def
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	@rm -f libtimi_p_dll.a
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o $@ \
+@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	$(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	@rm -f libtimi_p_dll.a
+@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(WATCOM_LINK) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+
+#WATCOM_LINK = wlink
+#timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+#	@rm -f $@
+#	$(WATCOM_LINK) SYSTEM nt_dll initinstance terminstance \
+#	`for foo in $(libtimiditydrv_a_OBJECTS) ; do echo "File $$foo "; done;` \
+#	Name $@ \
+#	Library $(top_builddir)\\interface\\interface.lib \
+#	Library $(top_builddir)\\libarc\\arc.lib \
+#	Library $(top_builddir)\\libunimod\\unimod.lib \
+#	Library $(top_builddir)\\utils\\utils.lib \
+#	Library $(top_builddir)\\timidity\\timidity.exe \
+#	`for foo in  $(DRV_LIBS) ; do echo "Library $$foo"; done;` \
+#	EXPort DllCanUnloadNow,DllGetClassObject,DllRegisterServer,DllUnregisterServer,DriverProc,modMessage
+#     WATCOM_C
 #    MINGWGCC
+#     BORLANDC
 #    VCPP
 
 libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
