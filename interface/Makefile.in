@@ -1005,10 +1005,10 @@ install.el: $(ELFILES)
 
 @VCPP_TRUE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @VCPP_TRUE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
-@VCPP_TRUE@	rc w32g_res.rc
+@VCPP_TRUE@	rc -l0x11 w32g_res.rc
 @VCPP_FALSE@@WATCOM_C_TRUE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @VCPP_FALSE@@WATCOM_C_TRUE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
-@VCPP_FALSE@@WATCOM_C_TRUE@	rc w32g_res.rc
+@VCPP_FALSE@@WATCOM_C_TRUE@	rc -l0x11 w32g_res.rc
 @BORLANDC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @BORLANDC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
 @BORLANDC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc

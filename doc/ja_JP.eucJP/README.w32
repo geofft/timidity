@@ -239,6 +239,7 @@ done
 	１）OpenWatcomのセットアップ(http://www.openwatcom.org)
 		１−１）OpenWatcomをダウンロードしてくる。
 		２−１）Microsoft Platform SDKからrc.exeを取ってきてさしかえる。
+			または wine-prgs-0.9.5.zip(http://www.winehq.com/)からwrc.exeをとりだしrc.exeにリネームする。
 		（OpenWatomのrc.exeは使えない）
 	２）MSYSのセットアップ(http://sourceforge.net/projects/mingw/　http://mingw.sourceforge.net/MinGWiki/))
 		"/etc/fstab"からMINGWのパスの設定の行を消す

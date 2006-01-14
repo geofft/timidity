@@ -270,6 +270,7 @@ done
        1-1)Download OpenWatcom, install and configure them
        1-2)Download Microsoft Platform SDK install and configure them.
             Replace rc.exe of OpenWatom with the one of Platform SDK's one.
+            or get wrc.exe from wine-prgs-0.9.5.zip(http://www.winehq.com/), and rename rc.exe
             (OpenWatcom's rc.exe can't use).
   2)Setup Mngw and MSYS (See MingwWiki(http://mingw.sourceforge.net/MinGWiki/))
         Remove mingw path from /etc/fstab.

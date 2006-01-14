@@ -275,12 +275,12 @@ install.el: $(ELFILES)
 if VCPP
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
-	rc w32g_res.rc
+	rc -l0x11 w32g_res.rc
 else
 if WATCOM_C
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
-	rc w32g_res.rc
+	rc -l0x11 w32g_res.rc
 else
 if BORLANDC
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
