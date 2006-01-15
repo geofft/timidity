@@ -1,18 +1,26 @@
+2006-01-15  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* configure.in: MSVC compile fix
+	* windrv/timiditydrv.cpp: use _beginthreadex not CreateThread
+	* doc/ja_JP.eucJP/README.w32: typo
+	* script/Makefile.am: add script/wpp386_w.sh
+	* interface/ncurs_c.c: 
+	
 2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	*doc/C/README.w32
-	*doc/ja_JP.eucJP/README.w32: add wine wrc.exe discription
-	*interface/Makefile.am: ad rc.exe japanese language option -l0x11
+	* doc/C/README.w32
+	* doc/ja_JP.eucJP/README.w32: add wine wrc.exe discription
+	* interface/Makefile.am: ad rc.exe japanese language option -l0x11
 
 2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
-	*configure.in: Add mkstemp check
-	*doc/C/README.w32
-	*doc/ja_JP.eucJP/README.w32: About timiditydrv compilation
-	*windrv/Makefile.am: Change to use midl.exe
-	*windrv/dlldata.c
-	*windrv/timiditydrv.h
-	*windrv/timiditydrv_i.c
-	*windrv/timiditydrv_p.c: Rmoved because will be ganerated by midl.exe.
+	* configure.in: Add mkstemp check
+	* doc/C/README.w32
+	* doc/ja_JP.eucJP/README.w32: About timiditydrv compilation
+	* windrv/Makefile.am: Change to use midl.exe
+	* windrv/dlldata.c
+	* windrv/timiditydrv.h
+	* windrv/timiditydrv_i.c
+	* windrv/timiditydrv_p.c: Rmoved because will be ganerated by midl.exe.
 
 2006-01-08  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 

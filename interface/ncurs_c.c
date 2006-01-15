@@ -26,6 +26,9 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
+#if defined(__W32__)  && !defined(STDOUT_FILENO)
+#define STDOUT_FILENO 1
+#endif
 
 #if defined(__MINGW32__) && defined(USE_PDCURSES)
 #define _NO_OLDNAMES 1	/* avoid type mismatch of beep() */

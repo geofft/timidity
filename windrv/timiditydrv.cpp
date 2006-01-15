@@ -23,6 +23,8 @@
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
 #endif
+
+#include <process.h>
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -56,7 +58,7 @@ static CRITICAL_SECTION mim_section;
 static volatile int stop_thread = 0;
 static volatile int stop_rtthread = 0;
 static HANDLE hCalcThread = NULL;
-static HANDLE hRtsynThread =NULL;
+static HANDLE hRtsynThread = NULL;
 
 extern "C" 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved ){
@@ -86,7 +88,7 @@ STDAPI DllUnregisterServer(void)
 }
 
 
-DWORD WINAPI threadfunc2(LPVOID lpV);
+unsigned __stdcall threadfunc2(LPVOID lpV);
 STDAPI_(LONG) DefDriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, LONG lParam2);
 
 STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, LONG lParam2){
@@ -274,7 +276,7 @@ int timsyn_play_some_data(void){
 	return played;
 }
 
-DWORD WINAPI threadfunc(LPVOID lpV){
+unsigned __stdcall threadfunc(LPVOID lpV){
 	while(stop_thread == 0){
 		Sleep(1);
 		//EnterCriticalSection(&mim_section);
@@ -283,15 +285,15 @@ DWORD WINAPI threadfunc(LPVOID lpV){
 		//LeaveCriticalSection(&mim_section);
 	}
 	stop_thread=0;
-	ExitThread(TRUE);
+	_endthreadex(0);
 	return 0;
 }
 
-DWORD WINAPI threadfunc2(LPVOID lpV){
+unsigned __stdcall threadfunc2(LPVOID lpV){
 	int argc,i;
 	char *argv[2];
 	HANDLE hThread = NULL;
-	DWORD ThreadID;
+	unsigned int thrdaddr;
 	int opend=0;
 	;
 	while(opend == 0) {
@@ -301,7 +303,7 @@ DWORD WINAPI threadfunc2(LPVOID lpV){
 		argv[1] = strdup("-iW");
 		if ( 0 == timiwp_main_ini(argc, argv)){
 			rtsyn_init();
-			hThread=CreateThread(NULL,0,threadfunc,0,0,&ThreadID);
+			hThread=(HANDLE)_beginthreadex(NULL,0,threadfunc,0,0,&thrdaddr);
 			SetPriorityClass(hThread, REALTIME_PRIORITY_CLASS);
 			SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
 			opend = 1;
@@ -318,12 +320,12 @@ DWORD WINAPI threadfunc2(LPVOID lpV){
 	rtsyn_close();
 	timiwp_main_close();
 	stop_rtthread=0;
-	ExitThread(TRUE);
+	_endthreadex(0);
 	return 0;
 }
 
 STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1, DWORD dwParam2){
-	DWORD ThreadID;
+	unsigned int thrdaddr;
 	DWORD tstate;
 	int OCount;
 	DWORD Exit;
@@ -342,7 +344,7 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 		if ( OpenCount == 1 && modm_closed  == 1 ){
 			processPriority = GetPriorityClass(GetCurrentProcess());
 			SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-			hRtsynThread=CreateThread(NULL,0,threadfunc2,0,0,&ThreadID);
+			hRtsynThread=(HANDLE)_beginthreadex(NULL,0,threadfunc2,0,0,&thrdaddr);
 			modm_closed = 0;
 		}
 		

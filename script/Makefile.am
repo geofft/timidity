@@ -20,4 +20,5 @@ EXTRA_DIST = \
 	dllutl.rb \
 	lspatch.pl \
 	readme.txt \
-	wcc386_w.sh 
+	wcc386_w.sh \
+	wpp386_w.sh 
