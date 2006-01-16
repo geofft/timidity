@@ -118,13 +118,15 @@ WRDTracer *wrdt_list[] =
 #if defined(__W32__) && defined(IA_W32GUI)
 	&w32g_wrdt_mode,
 #endif /* __W32__ */
-#ifndef __MACOS__
+#if !defined(__MACOS__) && !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
     &tty_wrdt_mode,
-#endif /* __MACOS__ */
+#endif /* __MACOS__  IA_W32GUI IA_W32G_SYN */
 #ifdef __MACOS__
     &mac_wrdt_mode,
 #endif
+#if !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
     &dumb_wrdt_mode,
+#endif
     &null_wrdt_mode,
     0
 };

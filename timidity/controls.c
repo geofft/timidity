@@ -206,8 +206,8 @@ ControlMode *ctl_list[]={
 #ifdef IA_W32G_SYN
   &winsyn_control_mode,
 #endif /* IA_W32GUI */
-#ifndef __MACOS__
-  &dumb_control_mode,
+#if !defined(__MACOS__)  && !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
+	&dumb_control_mode,
 #endif
 #ifdef IA_DYNAMIC
   &dynamic_control_mode,

@@ -35,8 +35,7 @@ dnl LIBRARY_PATH
 dnl		- add to -L LDFLAGS
 dnl C_INCLUDE_PATH
 dnl		- add to -I CPPFLAGS
-dnl CYGNUS	- `yes' if cygnus windows environment.
-dnl MSYS	- `yes' if Mingw windows environment.
+dnl MSYS	- `yes' if cygnus or Mingw windows environment.
 dnl WISH	- wish
 dnl LN_S	- ln -s
 dnl tcltk_dep	- make dependencies for tcl/tk interface
@@ -255,7 +254,6 @@ case "$target" in
     esac
     so="dll"
     MSYS=yes
-    CYGNUS=yes
     lib_user32_test=-luser32
     ;;
   *-dec-*)
@@ -452,7 +450,7 @@ if test $timidity_cv_type_union_semun = yes; then
 fi
 
 dnl Cygnus and Mingw memory struct optiontest
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
 	case "x${CC}" in
 	"xgcc"*) 
 		msnative_struct=''
@@ -488,7 +486,7 @@ if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
 	esac
 fi
 dnl Cygnus Mingw32 mmsystem check
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
   AC_CACHE_CHECK(Cygwin new mmsystem,timidity_cv_header_new_mmsystem,
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <windows.h>
@@ -575,7 +573,7 @@ AC_CHECK_FUNC(getopt_long,
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
 # Checks on cygnus and MYSYS
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     AC_CHECK_FUNC(opendir,,
@@ -1094,7 +1092,7 @@ dnl portaudio E
 AC_MSG_CHECKING(enable_audio=portaudio)
 if test "x$au_enable_portaudio" = xyes; then
   AC_MSG_RESULT(yes)
-  if test "x$CYGNUS" = xyes ||test "x$MSYS" = xyes; then
+  if test "x$MSYS" = xyes ; then
 	SYSEXTRAS="$SYSEXTRAS portaudio_a.c w32_portaudio_dll.c"
   	EXTRALIBS="$EXTRALIBS -lportaudio"
   	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO -DAU_PORTAUDIO_DLL"
@@ -1146,7 +1144,7 @@ if test "x$au_enable_vorbis" = xyes; then
       SYSEXTRAS="$SYSEXTRAS vorbis_a.c"
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
-      if test "x$CYGNUS" = "xyes"; then
+      if test "x$MSYS" = "xyes"; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
@@ -1162,7 +1160,7 @@ else
 fi
 
 dnl libFLAC - Free Lossless Audio Codec
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes ; then
+if test "x$MSYS" = xyes ; then
   AC_MSG_CHECKING(enable_audio=flac)
   if test "x$au_enable_flac" = xyes; then
     AC_MSG_RESULT([yes, configuring flac])
@@ -1224,14 +1222,10 @@ fi
 dnl Win32 Gogo-no-coder
 AC_MSG_CHECKING(enable_audio=gogo)
 if test "x$au_enable_gogo" = xyes; then
-  if test "x$CYGNUS" = "xyes"; then
+  if test "x$MSYS" = "xyes"; then
     AC_MSG_RESULT(yes, configuring gogo)
   else
-    if test "x$MSYS" = "xyes"; then
-    AC_MSG_RESULT(yes, configuring gogo)
-    else
-      AC_MSG_WARN(May be gogo is not supported.  You need hack the gogo_a.c)
-    fi
+    AC_MSG_WARN(May be gogo is not supported.  You need hack the gogo_a.c)
   fi
   have_gogo=yes
   SYSEXTRAS="$SYSEXTRAS gogo_a.c w32_gogo.c"
@@ -1714,6 +1708,7 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
                                                           (default is no)],
   ,
   [ 
+  W32G_GUI=yes
   if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
@@ -1744,7 +1739,8 @@ AM_CONDITIONAL(ENABLE_W32GUI, false)
 CONFIG_INTERFACE(w32gui, W32GUI, w,
   [  --enable-w32gui         Enable Windows GUI interface    (default is no)],
   ,
-  [ 
+  [
+  W32G_GUI=yes 
   if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
@@ -1908,8 +1904,8 @@ dnl end of interfaces
 #
 
 AM_CONDITIONAL(ENABLE_WRD, test "x$enable_wrd" = "xyes")
+AM_CONDITIONAL(W32G_GUI, test "x$W32G_GUI" = xyes)
 AM_CONDITIONAL(WINDRV, test "x$WINDRV" = xyes)
-AM_CONDITIONAL(CYGNUS, test "x$CYGNUS" = xyes)
 AM_CONDITIONAL(MSYS, test "x$MSYS" = xyes)
 AM_CONDITIONAL(VCPP, test "x$VCPP" = xyes)
 AM_CONDITIONAL(BORLANDC, test "x$BORLANDC" = xyes)

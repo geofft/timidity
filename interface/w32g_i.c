@@ -4103,9 +4103,15 @@ void ClearDebugWnd(void)
 extern HWND hListSearchWnd;
 extern void HideListSearch(void);
 
+#ifndef __BORLANDC__
 DWORD volatile dwMainThreadId = 0;
+#endif
+
 void WINAPI MainThread(void *arglist)
 {
+#ifdef __BORLANDC__
+	DWORD volatile dwMainThreadId = 0;
+#endif
     MSG msg;
 
 	ThreadNumMax++;

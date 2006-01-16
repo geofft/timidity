@@ -1,3 +1,16 @@
+2006-01-16  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+	Supress linker errors about Windows GUI executables.
+
+	* configure.in: shape up.
+	* interface/Makefile.am: don't link tty and dumb objs to GUI executables.
+	* interface/w32g_i.c: borand C volatile link problem fix.
+	* interface/w32g_ut2.c.orig: small fix.
+	* timidity/controls.c
+	* timidity/timidity.c
+	* timidity/wrdt: GUI executables don't use dumb or tty controls.
+	* timidity/reverb.c
+	* timidity/reverb.c: don't define public variables in .h file.
+
 2006-01-15  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* configure.in: MSVC compile fix
@@ -5,7 +18,7 @@
 	* doc/ja_JP.eucJP/README.w32: typo
 	* script/Makefile.am: add script/wpp386_w.sh
 	* interface/ncurs_c.c: 
-	
+
 2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* doc/C/README.w32

@@ -29,10 +29,14 @@ INCLUDES = \
 
 noinst_LIBRARIES = libinterface.a
 
+if W32G_GUI
+libinterface_a_SOURCES =
+else
 libinterface_a_SOURCES = \
 	dumb_c.c \
 	wrdt_dumb.c \
 	wrdt_tty.c
+endif
 
 EXTRA_libinterface_a_SOURCES = \
 	ncurs_c.c \
@@ -136,11 +140,11 @@ WRD_OBJS = \
 	x_sherry.$(OBJEXT)
 endif
 
-if CYGNUS
+if MSYS
+if W32G_GUI
+else
 WRD_WINCON_OBJS = wrdt_wcon.$(OBJEXT)
 endif
-if MSYS
-WRD_WINCON_OBJS2 = wrdt_wcon.$(OBJEXT)
 endif
 
 if NEEDDLOPEN
@@ -166,7 +170,6 @@ libinterface_LIBADD = \
 	$(INTERFACE_OBJS) \
 	$(WRD_OBJS) \
 	$(WRD_WINCON_OBJS) \
-	$(WRD_WINCON_OBJS2) \
 	$(DYNAMIC_OBJS) \
 	$(SOUND_SPEC_OBJS)
 	

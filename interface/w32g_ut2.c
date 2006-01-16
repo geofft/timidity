@@ -41,7 +41,7 @@
 #include "w32g.h"
 #include "w32g_ut2.h"
 
-char *timidity_window_inifile;
+extern char *timidity_window_inifile;
 
 // ****************************************************************************
 // DlgChooseFont

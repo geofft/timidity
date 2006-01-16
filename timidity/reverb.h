@@ -30,6 +30,12 @@
 #ifndef ___REVERB_H_
 #define ___REVERB_H_
 
+#ifndef REVERB_PRIVATE
+#define EXTERN extern
+#else 
+#define EXTERN
+#endif
+
 #define DEFAULT_REVERB_SEND_LEVEL 40
 
 extern int opt_reverb_control;
@@ -219,7 +225,7 @@ enum {
 #define MAGIC_INIT_EFFECT_INFO -1
 #define MAGIC_FREE_EFFECT_INFO -2
 
-struct insertion_effect_gs_t {
+EXTERN struct insertion_effect_gs_t {
 	int32 type;
 	int8 type_lsb, type_msb, parameter[20], send_reverb,
 		send_chorus, send_delay, control_source1, control_depth1,
@@ -237,7 +243,7 @@ enum {
 #define XG_INSERTION_EFFECT_NUM 2
 #define XG_VARIATION_EFFECT_NUM 1
 
-struct effect_xg_t insertion_effect_xg[XG_INSERTION_EFFECT_NUM],
+EXTERN struct effect_xg_t insertion_effect_xg[XG_INSERTION_EFFECT_NUM],
 	variation_effect_xg[XG_VARIATION_EFFECT_NUM], reverb_status_xg, chorus_status_xg;
 
 typedef struct _EffectList {
@@ -523,7 +529,7 @@ extern void do_ch_eq_xg(int32 *, int32, struct part_eq_xg *);
 extern void do_multi_eq_xg(int32 *, int32);
 
 /* GS parameters of reverb effect */
-struct reverb_status_gs_t
+EXTERN struct reverb_status_gs_t
 {
 	/* GS parameters */
 	int8 character, pre_lpf, level, time, delay_feedback, pre_delay_time;
@@ -535,7 +541,7 @@ struct reverb_status_gs_t
 	filter_lowpass1 lpf;
 } reverb_status_gs;
 
-struct chorus_text_gs_t
+EXTERN struct chorus_text_gs_t
 {
     int status;
     uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
@@ -543,7 +549,7 @@ struct chorus_text_gs_t
 };
 
 /* GS parameters of chorus effect */
-struct chorus_status_gs_t
+EXTERN struct chorus_status_gs_t
 {
 	/* GS parameters */
 	int8 macro, pre_lpf, level, feedback, delay, rate, depth, send_reverb, send_delay;
@@ -555,7 +561,7 @@ struct chorus_status_gs_t
 } chorus_status_gs;
 
 /* GS parameters of delay effect */
-struct delay_status_gs_t
+EXTERN struct delay_status_gs_t
 {
 	/* GS parameters */
 	int8 type, level, level_center, level_left, level_right,
@@ -573,7 +579,7 @@ struct delay_status_gs_t
 } delay_status_gs;
 
 /* GS parameters of channel EQ */
-struct eq_status_gs_t
+EXTERN struct eq_status_gs_t
 {
 	/* GS parameters */
     int8 low_freq, high_freq, low_gain, high_gain;
@@ -582,7 +588,7 @@ struct eq_status_gs_t
 } eq_status_gs;
 
 /* XG parameters of Multi EQ */
-struct multi_eq_xg_t
+EXTERN struct multi_eq_xg_t
 {
 	/* XG parameters */
 	int8 type, gain1, gain2, gain3, gain4, gain5,
@@ -594,6 +600,8 @@ struct multi_eq_xg_t
 	filter_peaking eq1p, eq2p, eq3p, eq4p, eq5p;
 } multi_eq_xg;
 
-pink_noise global_pink_noise_light;
+EXTERN pink_noise global_pink_noise_light;
+
+#undef EXTERN
 
 #endif /* ___REVERB_H_ */

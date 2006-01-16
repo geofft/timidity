@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE EMACS EMACSLOADPATH lispdir CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTS_CONFIG ARTS_CFLAGS ARTS_LIBS ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE WINDRV_TRUE WINDRV_FALSE CYGNUS_TRUE CYGNUS_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS VCPP_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE EMACS EMACSLOADPATH lispdir CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTS_CONFIG ARTS_CFLAGS ARTS_LIBS ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE W32G_GUI_TRUE W32G_GUI_FALSE WINDRV_TRUE WINDRV_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS VCPP_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -4424,7 +4424,6 @@ case "$target" in
     esac
     so="dll"
     MSYS=yes
-    CYGNUS=yes
     lib_user32_test=-luser32
     ;;
   *-dec-*)
@@ -9462,7 +9461,7 @@ _ACEOF
 
 fi
 
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
 	case "x${CC}" in
 	"xgcc"*)
 		msnative_struct=''
@@ -9501,7 +9500,7 @@ echo "${ECHO_T}${msnative_struct}" >&6
 		;;
 	esac
 fi
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
   echo "$as_me:$LINENO: checking Cygwin new mmsystem" >&5
 echo $ECHO_N "checking Cygwin new mmsystem... $ECHO_C" >&6
 if test "${timidity_cv_header_new_mmsystem+set}" = set; then
@@ -11425,7 +11424,7 @@ fi
 
 
 # Checks on cygnus and MYSYS
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes; then
+if test "x$MSYS" = xyes ; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
     echo "$as_me:$LINENO: checking for opendir" >&5
@@ -13396,7 +13395,7 @@ echo $ECHO_N "checking enable_audio=portaudio... $ECHO_C" >&6
 if test "x$au_enable_portaudio" = xyes; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-  if test "x$CYGNUS" = xyes ||test "x$MSYS" = xyes; then
+  if test "x$MSYS" = xyes ; then
 	SYSEXTRAS="$SYSEXTRAS portaudio_a.c w32_portaudio_dll.c"
   	EXTRALIBS="$EXTRALIBS -lportaudio"
   	EXTRADEFS="$EXTRADEFS -DAU_PORTAUDIO -DAU_PORTAUDIO_DLL"
@@ -14065,7 +14064,7 @@ echo "${ECHO_T}yes" >&6
       SYSEXTRAS="$SYSEXTRAS vorbis_a.c"
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
-      if test "x$CYGNUS" = "xyes"; then
+      if test "x$MSYS" = "xyes"; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
@@ -14246,7 +14245,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-if test "x$CYGNUS" = xyes || test "x$MSYS" = xyes ; then
+if test "x$MSYS" = xyes ; then
   echo "$as_me:$LINENO: checking enable_audio=flac" >&5
 echo $ECHO_N "checking enable_audio=flac... $ECHO_C" >&6
   if test "x$au_enable_flac" = xyes; then
@@ -15167,17 +15166,12 @@ fi
 echo "$as_me:$LINENO: checking enable_audio=gogo" >&5
 echo $ECHO_N "checking enable_audio=gogo... $ECHO_C" >&6
 if test "x$au_enable_gogo" = xyes; then
-  if test "x$CYGNUS" = "xyes"; then
+  if test "x$MSYS" = "xyes"; then
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
   else
-    if test "x$MSYS" = "xyes"; then
-    echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-    else
-      { echo "$as_me:$LINENO: WARNING: May be gogo is not supported.  You need hack the gogo_a.c" >&5
+    { echo "$as_me:$LINENO: WARNING: May be gogo is not supported.  You need hack the gogo_a.c" >&5
 echo "$as_me: WARNING: May be gogo is not supported.  You need hack the gogo_a.c" >&2;}
-    fi
   fi
   have_gogo=yes
   SYSEXTRAS="$SYSEXTRAS gogo_a.c w32_gogo.c"
@@ -18774,6 +18768,7 @@ else
 fi
 
 
+  W32G_GUI=yes
   if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
@@ -18842,6 +18837,7 @@ else
 fi
 
 
+  W32G_GUI=yes
   if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
@@ -19711,22 +19707,22 @@ fi
 
 
 
+if test "x$W32G_GUI" = xyes; then
+  W32G_GUI_TRUE=
+  W32G_GUI_FALSE='#'
+else
+  W32G_GUI_TRUE='#'
+  W32G_GUI_FALSE=
+fi
+
+
+
 if test "x$WINDRV" = xyes; then
   WINDRV_TRUE=
   WINDRV_FALSE='#'
 else
   WINDRV_TRUE='#'
   WINDRV_FALSE=
-fi
-
-
-
-if test "x$CYGNUS" = xyes; then
-  CYGNUS_TRUE=
-  CYGNUS_FALSE='#'
-else
-  CYGNUS_TRUE='#'
-  CYGNUS_FALSE=
 fi
 
 
@@ -20282,17 +20278,17 @@ echo "$as_me: error: conditional \"ENABLE_WRD\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${W32G_GUI_TRUE}" && test -z "${W32G_GUI_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"W32G_GUI\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"W32G_GUI\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${WINDRV_TRUE}" && test -z "${WINDRV_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"WINDRV\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"WINDRV\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${CYGNUS_TRUE}" && test -z "${CYGNUS_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"CYGNUS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"CYGNUS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -21044,10 +21040,10 @@ s,@ENABLE_SOUND_SPEC_TRUE@,$ENABLE_SOUND_SPEC_TRUE,;t t
 s,@ENABLE_SOUND_SPEC_FALSE@,$ENABLE_SOUND_SPEC_FALSE,;t t
 s,@ENABLE_WRD_TRUE@,$ENABLE_WRD_TRUE,;t t
 s,@ENABLE_WRD_FALSE@,$ENABLE_WRD_FALSE,;t t
+s,@W32G_GUI_TRUE@,$W32G_GUI_TRUE,;t t
+s,@W32G_GUI_FALSE@,$W32G_GUI_FALSE,;t t
 s,@WINDRV_TRUE@,$WINDRV_TRUE,;t t
 s,@WINDRV_FALSE@,$WINDRV_FALSE,;t t
-s,@CYGNUS_TRUE@,$CYGNUS_TRUE,;t t
-s,@CYGNUS_FALSE@,$CYGNUS_FALSE,;t t
 s,@MSYS_TRUE@,$MSYS_TRUE,;t t
 s,@MSYS_FALSE@,$MSYS_FALSE,;t t
 s,@VCPP_TRUE@,$VCPP_TRUE,;t t
