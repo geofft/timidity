@@ -561,6 +561,7 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     else if(play_mode->rate == 0)
 	play_mode->rate = DEFAULT_RATE;
     voices = st->voices;
+	if( voices > max_voices) max_voices = voices;
 	auto_reduce_polyphony = st->auto_reduce_polyphony;
     quietchannels = st->quietchannels;
     temper_type_mute = st->temper_type_mute;

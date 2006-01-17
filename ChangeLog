@@ -1,3 +1,10 @@
+2006-01-17  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* interface/w32g.h: fix LCD array size mismatch hang up.
+	* interface/w32g_pref.c
+	* interface/w32g_utl.c: fix over 256 voces hang up about win GUI.
+	* timidity/reverb.h: small fix.
+
 2006-01-16  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 	Supress linker errors about Windows GUI executables.
 

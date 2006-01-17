@@ -192,7 +192,7 @@ typedef struct {
 	int changed;
 	char dummy[1024];
 
-	int8 GSLCD[16][16];
+	int8 GSLCD[20][16];
 	double gslcd_last_display_time;
 	int8 gslcd_displayed_flag;
 } PanelInfo;

@@ -1094,6 +1094,11 @@ PrefTiMidity2DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 		int i;
 		char *p;
 		st_temp->voices = GetDlgItemInt(hwnd,IDC_EDIT_VOICES,NULL,FALSE);
+		if(st_temp->voices > max_voices){
+			max_voices = st_temp->voices;
+			voice = (Voice *) safe_realloc(voice, max_voices * sizeof(Voice));
+			memset(voice, 0, max_voices * sizeof(Voice));
+		}
 		st_temp->amplification = GetDlgItemInt(hwnd,IDC_EDIT_AMPLIFICATION,NULL,FALSE);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_FREE_INST,st_temp->free_instruments_afterwards);
 		DLG_CHECKBUTTON_TO_FLAG(hwnd,IDC_CHECKBOX_ANTIALIAS,st_temp->antialiasing_allowed);

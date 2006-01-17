@@ -541,7 +541,7 @@ EXTERN struct reverb_status_gs_t
 	filter_lowpass1 lpf;
 } reverb_status_gs;
 
-EXTERN struct chorus_text_gs_t
+struct chorus_text_gs_t
 {
     int status;
     uint8 voice_reserve[18], macro[3], pre_lpf[3], level[3], feed_back[3],
