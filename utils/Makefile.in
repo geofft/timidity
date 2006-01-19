@@ -162,6 +162,9 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DMC_FALSE = @DMC_FALSE@
+DMC_LDFLAGS = @DMC_LDFLAGS@
+DMC_TRUE = @DMC_TRUE@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -678,9 +681,13 @@ libutils.a: $(libutils_a_OBJECTS) $(libutils_a_DEPENDENCIES)
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	wlib -q utils.lib +$$foo; \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	done
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	if test -f utils.lib ; then touch $@ ; fi
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	-rm -f libutils.a
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libutils.a
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f libutils.a
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f utils.lib
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	start lib -c utils.lib  $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	if test -f utils.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	-rm -f libutils.a
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libutils.a
 
 clean:
 	rm -f *.$(OBJEXT)

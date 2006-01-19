@@ -78,6 +78,20 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/libunimod.a \
 	$(top_builddir)/utils/libutils.a 
 else
+if DMC
+libtimiditydrv_a_LIBADD = \
+	$(top_builddir)\\timidity\\timidity.exe \
+	$(top_builddir)\\interface\\libinterface.a \
+	$(top_builddir)\\libarc\\libarc.a \
+	$(top_builddir)\\libunimod\\libunimod.a \
+	$(top_builddir)\\utils\\libutils.a 
+libtimiditydrv_a_dep = \
+	$(top_builddir)/timidity/timidity.exe \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a 
+else
 libtimiditydrv_a_LIBADD = \
 	$(top_builddir)/interface/interface.lib \
 	$(top_builddir)/libarc/arc.lib \
@@ -90,6 +104,8 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/unimod.lib \
 	$(top_builddir)/utils/utils.lib \
 	$(top_builddir)/timidity/timidity.exe
+endif
+#    DMC
 endif
 #    DMC
 endif

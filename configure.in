@@ -81,7 +81,10 @@ if test "x$timidity_cv_debug" = "xno"; then
 fi
 AC_MSG_RESULT($timidity_cv_debug)
 
-CFLAGS=${CFLAGS-"-O2"}
+dnl I don't know why this is needed.
+dnl This causes error in Watcom C and Digital Mars C in windows
+dnl then is commented out. (skeishi 06/01/19)
+dnl CFLAGS=${CFLAGS-"-O2"}
 
 dnl --with-x turns on if `--with-x' is NOT specified.
 if test "x$with_x" = x; then
@@ -226,6 +229,14 @@ case "$target" in
         BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
         BORLANDC_START='C0X32.OBJ'
         CFLAGS="$CFLAGS  -tWM -VM"
+        EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
+        ;;
+      "xdmc "*) 
+        test -n "$SHLD" || SHLD="dmc -WD"
+        DMC=yes
+        DMC_LDFLAGS="winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib"
+        CFLAGS="$CFLAGS  -mn -j0"
+        DLLFLAG=" "
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
       "xwcc386_w.sh "*)
@@ -585,7 +596,7 @@ if test "x$MSYS" = xyes ; then
     ;;
   esac
   if test "x$enable_network" = "xyes"; then
-  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
+  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
       EXTRALIBS="$EXTRALIBS  wsock32.lib"
       EXTRADEFS="$EXTRADEFS -DWINSOCK" 
     else
@@ -929,7 +940,7 @@ if test "x$au_enable_w32" = xyes; then
      ;;
   esac
   SYSEXTRAS="$SYSEXTRAS w32_a.c"
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
   	EXTRALIBS="$EXTRALIBS winmm.lib"
   else
     EXTRALIBS="$EXTRALIBS -lwinmm"
@@ -1436,7 +1447,7 @@ dnl configure must check ncurses header with -I/usr/include/ncurses option.
 		      enable_ncurses=no ])
 		  ;;
 		*)
-		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
+		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
 		    lib_curses_opt=libpdcurses.lib
 		    AC_DEFINE(USE_PDCURSES,1,Define to 1 if you use PDcurses)
 		  else
@@ -1709,7 +1720,7 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
   ,
   [ 
   W32G_GUI=yes
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -1724,6 +1735,10 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
 	if test "x$WATCOM_C" = xyes; then
 	  CFLAGS="$CFLAGS -bw"
 	  WATCOM_LDFLAGS="$WATCOM_LDFLAGS SYS nt_win"
+	fi
+	if test "x$DMC" = xyes; then
+	  DLLFLAG="-WA"
+	  lib_w32gui_opt="$lib_w32gui_opt -L/exet:nt/su:windows:4.0"
 	fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1741,7 +1756,7 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
   ,
   [
   W32G_GUI=yes 
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -1756,6 +1771,10 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
 	if test "x$WATCOM_C" = xyes; then
 	  CFLAGS="$CFLAGS -bw"
 	  WATCOM_LDFLAGS="$WATCOM_LDFLAGS SYS nt_win"
+	fi
+	if test "x$DMC" = xyes; then
+	  lib_w32gui_opt="$lib_w32gui_opt -L/SU:window"
+	  DLLFLAG="-WA"
 	fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
@@ -1796,9 +1815,11 @@ AC_ARG_ENABLE(windrv,
     AC_DEFINE(WINDRV,1,Define to 1 if you cpmpile windos driver.)
     WINDRV=yes
     if test "x$WATCOM_C" = "xyes"; then DLLFLAG="-bd" ;fi
-    CFLAGS="$CFLAGS $DLLFLAG -DANOTHER_MAIN "
+    if test "x$DMC" = "xyes"; then DLLFLAG="-WD" ;fi
+    CFLAGS="$CFLAGS -DANOTHER_MAIN "
       fi
     fi ])
+CFLAGS="$CFLAGS $DLLFLAG "
 
 dnl Offix support
 dnl this rely on  CFLAGS and LIBS
@@ -1910,6 +1931,7 @@ AM_CONDITIONAL(MSYS, test "x$MSYS" = xyes)
 AM_CONDITIONAL(VCPP, test "x$VCPP" = xyes)
 AM_CONDITIONAL(BORLANDC, test "x$BORLANDC" = xyes)
 AM_CONDITIONAL(WATCOM_C, test "x$WATCOM_C" = xyes)
+AM_CONDITIONAL(DMC, test "x$DMC" = xyes)
 AM_CONDITIONAL(MINGWGCC, test "x$MINGWGCC" = xyes)
 
 AM_CONDITIONAL(W32READDIR, test "x$W32READDIR" = "xyes")
@@ -1939,6 +1961,7 @@ AC_SUBST(BORLANDC_LDFLAGS)
 AC_SUBST(SHELL)
 AC_SUBST(timidity_LDFLAGS)
 AC_SUBST(WATCOM_LDFLAGS)
+AC_SUBST(DMC_LDFLAGS)
 AC_SUBST(VCPP_LDFLAGS)
 AC_SUBST(SYSEXTRAS)
 AC_SUBST(EXTRALIBS)

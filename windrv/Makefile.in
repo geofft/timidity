@@ -80,12 +80,16 @@ AR = ar
 ARFLAGS = cru
 LIBRARIES = $(noinst_LIBRARIES)
 libtimiditydrv_a_AR = $(AR) $(ARFLAGS)
-@MINGWGCC_FALSE@libtimiditydrv_a_DEPENDENCIES =  \
-@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+@DMC_FALSE@@MINGWGCC_FALSE@libtimiditydrv_a_DEPENDENCIES = $(top_builddir)/interface/interface.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+@DMC_TRUE@@MINGWGCC_FALSE@libtimiditydrv_a_DEPENDENCIES = $(top_builddir)\\timidity\\timidity.exe \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\interface\\libinterface.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\libarc\\libarc.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\libunimod\\libunimod.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\utils\\libutils.a
 @MINGWGCC_TRUE@libtimiditydrv_a_DEPENDENCIES =  \
 @MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
 @MINGWGCC_TRUE@	$(top_builddir)/interface/libinterface.a \
@@ -168,6 +172,9 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DMC_FALSE = @DMC_FALSE@
+DMC_LDFLAGS = @DMC_LDFLAGS@
+DMC_TRUE = @DMC_TRUE@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -406,12 +413,19 @@ EXTRA_DIST = \
 	 timiditydrv.inf  
 
 CLEANFILES = timiditydrv.tlb
-@MINGWGCC_FALSE@libtimiditydrv_a_LIBADD = \
-@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+@DMC_FALSE@@MINGWGCC_FALSE@libtimiditydrv_a_LIBADD = \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+
+@DMC_TRUE@@MINGWGCC_FALSE@libtimiditydrv_a_LIBADD = \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\timidity\\timidity.exe \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\interface\\libinterface.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\libarc\\libarc.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\libunimod\\libunimod.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)\\utils\\libutils.a 
 
 @MINGWGCC_TRUE@libtimiditydrv_a_LIBADD = \
 @MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
@@ -420,12 +434,19 @@ CLEANFILES = timiditydrv.tlb
 @MINGWGCC_TRUE@	$(top_builddir)/libunimod/libunimod.a \
 @MINGWGCC_TRUE@	$(top_builddir)/utils/libutils.a 
 
-@MINGWGCC_FALSE@libtimiditydrv_a_dep = \
-@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
-@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+@DMC_FALSE@@MINGWGCC_FALSE@libtimiditydrv_a_dep = \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/interface/interface.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libarc/arc.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/libunimod/unimod.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/utils/utils.lib \
+@DMC_FALSE@@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe
+
+@DMC_TRUE@@MINGWGCC_FALSE@libtimiditydrv_a_dep = \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)/timidity/timidity.exe \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)/interface/libinterface.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)/libarc/libarc.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)/libunimod/libunimod.a \
+@DMC_TRUE@@MINGWGCC_FALSE@	$(top_builddir)/utils/libutils.a 
 
 @MINGWGCC_TRUE@libtimiditydrv_a_dep = \
 @MINGWGCC_TRUE@	$(top_builddir)/timidity/timidity.exe \
@@ -434,6 +455,8 @@ CLEANFILES = timiditydrv.tlb
 @MINGWGCC_TRUE@	$(top_builddir)/libunimod/libunimod.a \
 @MINGWGCC_TRUE@	$(top_builddir)/utils/libutils.a 
 
+#    DMC
+#    DMC
 #    MINGWGCC
 DRV_LIBS = \
 	kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib \
@@ -443,8 +466,9 @@ DRV_LIBS = \
 #	advapi32.lib shell32.lib ole32.lib oleaut32.lib odbc32.lib odbccp32.lib \
 #	ksguid.lib ksuser.lib
 @VCPP_TRUE@VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
-@BORLANDC_TRUE@@VCPP_FALSE@BORLANDC_LINK = ilink32.exe -Tpd
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@WATCOM_LINK = link386.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+@DMC_TRUE@@VCPP_FALSE@DMC_LINK = dmc.exe -WD
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@BORLANDC_LINK = ilink32.exe -Tpd
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@WATCOM_LINK = link386.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
 @MINGWGCC_FALSE@source = '$<' object='$@' libtool=no \
 @MINGWGCC_FALSE@        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
 @MINGWGCC_FALSE@        $(CXXDEPMODE) $(depcomp) \
@@ -700,22 +724,27 @@ SYSEXTRAS: timiditydrv.h
 @VCPP_TRUE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 @VCPP_TRUE@	@rm -f libtimi_p_dll.a
 @VCPP_TRUE@	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
-@BORLANDC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-@BORLANDC_TRUE@@VCPP_FALSE@	@rm -f $@
-@BORLANDC_TRUE@@VCPP_FALSE@	$(BORLANDC_LINK) C0D32.OBJ $(libtimiditydrv_a_OBJECTS) \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\interface\\interface.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\libarc\\arc.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\libunimod\\unimod.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\utils\\utils.lib \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(top_builddir)\\timidity\\timidity.exe \
-@BORLANDC_TRUE@@VCPP_FALSE@	$(DRV_LIBS),$@,,import32.lib cw32mti.lib,timiditydrv.def
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	@rm -f libtimi_p_dll.a
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o $@ \
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	$(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	@rm -f libtimi_p_dll.a
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(WATCOM_LINK) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+# -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+
+@DMC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@DMC_TRUE@@VCPP_FALSE@	@rm -f libtimi_p_dll.a
+@DMC_TRUE@@VCPP_FALSE@	$(DMC_LINK) $(DMC_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) -output $@
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	@rm -f $@
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(BORLANDC_LINK) C0D32.OBJ $(libtimiditydrv_a_OBJECTS) \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(top_builddir)\\interface\\interface.lib \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(top_builddir)\\libarc\\arc.lib \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(top_builddir)\\libunimod\\unimod.lib \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(top_builddir)\\utils\\utils.lib \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(top_builddir)\\timidity\\timidity.exe \
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	$(DRV_LIBS),$@,,import32.lib cw32mti.lib,timiditydrv.def
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	@rm -f libtimi_p_dll.a
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o $@ \
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	$(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	@rm -f libtimi_p_dll.a
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	$(WATCOM_LINK) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
 
 #WATCOM_LINK = wlink
 #timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
@@ -733,6 +762,7 @@ SYSEXTRAS: timiditydrv.h
 #     WATCOM_C
 #    MINGWGCC
 #     BORLANDC
+#    DMC
 #    VCPP
 
 libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
@@ -741,17 +771,21 @@ libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $
 @VCPP_TRUE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 @VCPP_TRUE@	midl -nologo timiditydrv.idl 
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-@BORLANDC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-@BORLANDC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+@DMC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@DMC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-@BORLANDC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E -Ii:/dm/include/win32 timiditydrv.idl
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-@BORLANDC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_TRUE@@VCPP_FALSE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+@BORLANDC_FALSE@@DMC_FALSE@@MINGWGCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
 #     WATCOM_C
 #     MINGWGCC
 #     BORLANDC
+#     DMC
 #     VCPP
 
 objs: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) 

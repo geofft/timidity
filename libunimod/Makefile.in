@@ -166,6 +166,9 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DMC_FALSE = @DMC_FALSE@
+DMC_LDFLAGS = @DMC_LDFLAGS@
+DMC_TRUE = @DMC_TRUE@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -675,9 +678,13 @@ libunimod.a: $(libunimod_a_OBJECTS) $(libunimod_a_DEPENDENCIES)
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	  wlib -q unimod.lib +$$foo; \
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	done
 @BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	if test -f unimod.lib ; then touch $@ ; fi
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	-rm -f libunimod.a
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
-@BORLANDC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libunimod.a
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f libunimod.a
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f unimod.lib
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	start lib -c unimod.lib  $(libunimod_a_OBJECTS)
+@BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	if test -f unimod.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	-rm -f libunimod.a
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
+@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libunimod.a
 
 clean:
 	rm -f *.$(OBJEXT)

@@ -76,9 +76,16 @@ if WATCOM_C
 	done
 	if test -f unimod.lib ; then touch $@ ; fi
 else
+if DMC
+	rm -f libunimod.a
+	rm -f unimod.lib
+	start lib -c unimod.lib  $(libunimod_a_OBJECTS)
+	if test -f unimod.lib ; then touch $@ ; fi
+else
 	-rm -f libunimod.a
 	$(libunimod_a_AR) libunimod.a $(libunimod_a_OBJECTS) $(libunimod_a_LIBADD)
 	$(RANLIB) libunimod.a
+endif
 endif
 endif
 endif

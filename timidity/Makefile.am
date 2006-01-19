@@ -177,6 +177,15 @@ else
 
 CLEANFILES = newton_table.c
 
+if DMC
+if ENABLE_W32GUI
+W32GUI_RES = $(top_builddir)\\interface\\w32g_res.res
+else
+if ENABLE_W32G_SYN
+W32GUI_RES = $(top_builddir)\\interface\\w32g_res.res
+endif
+endif
+else
 if ENABLE_W32GUI
 W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 else
@@ -185,6 +194,7 @@ W32GUI_RES = $(top_builddir)/interface/w32g_res.res
 endif
 endif
 
+endif
 endif
 
 if VCPP
@@ -242,6 +252,22 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/utils/utils.lib \
 	$(W32GUI_RES)
 else
+if DMC
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)\\interface\\interface.lib \
+	$(top_builddir)\\libarc\\arc.lib \
+	$(top_builddir)\\libunimod\\unimod.lib \
+	$(top_builddir)\\utils\\utils.lib \
+	$(W32GUI_RES)
+
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+else
 timidity_LDADD = \
 	$(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/interface/libinterface.a \
@@ -256,6 +282,7 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 	$(top_builddir)/libunimod/libunimod.a \
 	$(top_builddir)/utils/libutils.a \
 	$(W32GUI_RES)
+endif
 endif
 endif
 endif
@@ -319,6 +346,24 @@ calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
 	$(WATCOM_LINK) File calcnewt.$(OBJEXT) Name $@
 else
+if DMC
+DMC_LINK = dmc.exe 
+if WINDRV
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+	@rm -f $@
+	start lib -c $@ $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT))
+else
+timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
+	@rm -f $@
+	$(CC) $(CFLAGS) $(DMC_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS) -output $@
+#	$(DMC_LINK) -WA $(DMC_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS) -output $@
+endif
+calcnewt.$(OBJEXT): calcnewt.c
+	$(CCLD)  -c calcnewt.c
+: $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+	@rm -f calcnewt$(EXEEXT)
+	$(DMC_LINK) calcnewt.$(OBJEXT) -output  $@
+else
 if MINGWGCC
 if WINDRV
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES) 
@@ -337,6 +382,8 @@ timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES)
 endif
 endif
 #     MINGWGCC
+endif
+#     DM
 endif
 #     WATCOM_C
 endif
