@@ -64,6 +64,20 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/libunimod.a \
 	$(top_builddir)/utils/libutils.a 
 else
+if DMC
+libtimiditydrv_a_LIBADD = \
+	$(top_builddir)\\timidity\\timidity.exe \
+	$(top_builddir)\\interface\\libinterface.a \
+	$(top_builddir)\\libarc\\libarc.a \
+	$(top_builddir)\\libunimod\\libunimod.a \
+	$(top_builddir)\\utils\\libutils.a 
+libtimiditydrv_a_dep = \
+	$(top_builddir)/timidity/timidity.exe \
+	$(top_builddir)/interface/libinterface.a \
+	$(top_builddir)/libarc/libarc.a \
+	$(top_builddir)/libunimod/libunimod.a \
+	$(top_builddir)/utils/libutils.a 
+else
 libtimiditydrv_a_LIBADD = \
 	$(top_builddir)/interface/interface.lib \
 	$(top_builddir)/libarc/arc.lib \
@@ -76,6 +90,8 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/unimod.lib \
 	$(top_builddir)/utils/utils.lib \
 	$(top_builddir)/timidity/timidity.exe
+endif
+#    DMC
 endif
 #    MINGWGCC
 
@@ -94,6 +110,14 @@ VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timidi
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 	@rm -f libtimi_p_dll.a
 	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+else
+if DMC
+DMC_LINK = dmc.exe -WD
+# -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+
+timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+	@rm -f libtimi_p_dll.a
+	$(DMC_LINK) $(DMC_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) -output $@
 else
 if BORLANDC
 BORLANDC_LINK = ilink32.exe -Tpd
@@ -139,6 +163,8 @@ endif
 endif
 #     BORLANDC
 endif
+#    DMC
+endif
 #    VCPP
 
 libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
@@ -148,10 +174,15 @@ if VCPP
 timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 	midl -nologo timiditydrv.idl 
 else
-if BORLANDC
+if DMC
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
 timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+else
+if BORLANDC
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+	midl -cpp_cmd fpcpp -cpp_opt -E -Ii:/dm/include/win32 timiditydrv.idl
 else
 if MINGWGCC
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
@@ -168,6 +199,8 @@ endif
 #     MINGWGCC
 endif
 #     BORLANDC
+endif
+#     DMC
 endif
 #     VCPP
 

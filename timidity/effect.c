@@ -67,8 +67,18 @@ static int32 ns_z0[4];
 static int32 ns_z1[4];
 static const int32 ns9_order = 9;
 static int32 ns9_histposl, ns9_histposr;
+/*                                         *
+ *  Fix me !!                              *
+ *  arreys are zerofilled in init_effct()  *
+ *  but cause noize without this.           *
+ *                                         */
+#ifdef __DMC__
+static int32 ns9_ehl[18] = {0};
+static int32 ns9_ehr[18] = {0};
+#else
 static int32 ns9_ehl[18];
 static int32 ns9_ehr[18];
+#endif
 static uint32 ns9_r1l, ns9_r2l, ns9_r1r, ns9_r2r;
 static const float ns9_coef[9] = {
 	2.412f, -3.370f, 3.937f, -4.174f, 3.353f,

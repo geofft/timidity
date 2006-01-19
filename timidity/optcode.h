@@ -127,7 +127,7 @@ static inline int32 imuldiv28(int32 a, int32 b)
     return result;
 }
 
-#elif _MSC_VER
+#elif defined(_MSC_VER) || defined(__DMC__)
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
 		mov eax, a

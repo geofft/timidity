@@ -4,7 +4,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 £²¡¥Msys´Ä¶­²¼¤ÇBoraland C++¤Ç¥³¥ó¥Ñ¥¤¥ë
 £³¡¥Msys´Ä¶­²¼¤ÇOpenWatcom¤Ç¥³¥ó¥Ñ¥¤¥ë
 £´¡¥Msys´Ä¶­²¼¤ÇVisual C++¤Ç¥³¥ó¥Ñ¥¤¥ë
-
+£µ¡¥Msys´Ä¶­²¼¤ÇDigital Mars¤Ç¥³¥ó¥Ñ¥¤¥ë(timiditydrv.dll¤¬¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡Ë
 
 £±¡¥Msys´Ä¶­²¼¤ÇMingw¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËMingw¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
@@ -289,11 +289,12 @@ done
     		move gogo.dll libgogo.a gogo\lib
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.0-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î35¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
 			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
-				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
+				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__) \
+				|| !defined(__WATCOMC__) || !defined(__DMC__)
 		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
 			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
@@ -460,5 +461,118 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
             (make)
              make
 
+£µ¡¥Msys´Ä¶­²¼¤ÇDigital Mars¤Ç¥³¥ó¥Ñ¥¤¥ë
+¡Ê£±¡ËDigital Mars¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
+	£±¡ËDigital Mars¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://www.digitalmars.com/)
+		£±¡Ý£±¡ËDigital Mars¤ò¥À¥¦¥ó¥í¡¼¥É¤·¤Æ¤¯¤ë¡£
+		£²¡Ý£±¡ËMicrosoft Platform SDK¤«¤érc.exe¤ò¼è¤Ã¤Æ¤­¤Æ¤µ¤·¤«¤¨¤ë¡£
+			¤Þ¤¿¤Ï wine-prgs-0.9.5.zip(http://www.winehq.com/)¤«¤éwrc.exe¤ò¤È¤ê¤À¤·rc.exe¤Ë¥ê¥Í¡¼¥à¤¹¤ë¡£
+		¡ÊDigital Mars¤Îrcc.exe¤Ï»È¤¨¤Ê¤¤¡Ë
+	£²¡ËMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://sourceforge.net/projects/mingw/¡¡http://mingw.sourceforge.net/MinGWiki/))
+		"/etc/fstab"¤«¤éMINGW¤Î¥Ñ¥¹¤ÎÀßÄê¤Î¹Ô¤ò¾Ã¤¹
+		"msys.bat"¤«¤é" dm_env.bat"¤ò¸Æ¤Ö¤è¤¦¤Ë¤¹¤ë¡£
+		(msys.bat¤ÎÀèÆ¬¹Ô¡Ë
+			call dm_env.bat
+		(dm_env.bat¤ÎÆâÍÆ¡Ë
+			set LIB=
+			set INCLUDE=
 
-2006.01.13 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+			Set PATH=i:\dm\bin;%PATH%
+			Set INCLUDE=i:\dm\include;i:\dm\include\win32;%INCLUDE%
+			Set LIB=i:\dm\lib;%LIB%
+			
+			Set PATH=i:\usr\local\gogo\bin;%PATH%
+			Set INCLUDE=i:\usr\local\gogo\include;%INCLUDE%
+			Set LIB=i:\usr\local\gogo\lib;%LIB%
+				¡ÊÂ³¤¯¡Ë
+				 ----
+¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
+	£²¡Ý£°¡Ëdll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ëÊýË¡
+		implib out.lib in.dll
+	£²¡Ý£±¡Ëpcurses
+		"pdcurses-2.5.0"¤òGnuWin32(http://sourceforge.net/projects/gnuwin32/)¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤¯¤ë
+		curses.h¤Î°Ê²¼¤Î¹Ô¤òÊÑ¹¹¤¹¤ë¡£
+		281 #if defined( _MSC_VER )|| defined(__DMC__)       /* defined by compiler */
+		977 #if !defined(PDC_STATIC_BUILD) && (defined(_MSC_VER) || defined(__DMC__))&& defined(WIN32) && !defined(CURSES_LIBRARY)
+		988 # if !defined(PDC_STATIC_BUILD) && (defined(_MSC_VER) || defined(__DMC__)) && defined(WIN32)
+		system ¥ª¥×¥·¥ç¥ó¤ò»È¤Ã¤Æ¡¢dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
+		$implib /system libpdcurses.lib pdcurses.dll
+		pccurses.lib¤Ïlibpdcuses.lib¤ËÌ¾Á°¤òÊÑ¤¨¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+    £²¡Ý£²¡Ëoggvorbis(http://www.vorbis.com/)
+    	"OggVorbis-win32sdk-1.0.1.zip¡É¤ò¤È¤Ã¤Æ¤¯¤ë
+           include\ogg\os_types.h¤òÊÔ½¸¤¹¤ë¡£
+              (os_types.h)
+              36 #  elif defined(__MINGW32__) || defined(__DMC__)
+		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+    £²¡Ý£³¡Ë¸á¸å¤Î¥³¡¼¥À¡¼(http://www.marinecat.net/mct_top.htm)
+    	Gogo.dll ¤ò¸á¸å¤Î¥³¡¼¥À¡¼¤«¤égogo.h¤ò¥½¡¼¥¹¥Õ¥¡¥¤¥ë¤«¤é¤È¤ê¤À¤¹¡£
+    	dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
+    		move gogo.h gogo\include\gogo
+    		move gogo.dll libgogo.a gogo\lib
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
+		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		include\*\export.h¤Î35¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+			(export.h)
+			35 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__) \
+				|| !defined(__WATCOMC__) || !defined(__DMC__)
+		include\FLAC\ordinals.h¤Î42¹ÔÌÜ¤òÊÑ¹¹
+			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
+		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
+		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
+	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
+		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		Digital Mars¤Ç¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡£
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+        4-0-1) unix->dos¤Î²þ¹Ô¥³¡¼¥ÉÊÑ´¹¡ÊLF->CRLF)
+           $sh script/unix2dos.sh
+        4-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure |perl -pe 's/CXX\s-o\s\S\S*\s/CXX /g' - >configure_dm
+                (configureÃæ¤Î -o xxxx ¤Ïdmc.exe¤¬¼õ¤±ÉÕ¤±¤Ê¤¤¤¿¤á)
+        4-0-2) Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+             cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+            ¡Êdmc.exe¤Ïgnu autotoolsÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
+
+        4-1)timw32g.exe
+            (configure)
+            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+             ./configure_dm --enable-network --enable-w32gui --enable-spline=gauss \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+             make
+             mv timidity.exe timw32g.exe
+        4-2)twsyng.exe
+            (configure)
+            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+             ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+             (make)
+             make
+             mv timidity.exe twsyng.exe
+        4-3)twsynsrv.exe
+            (configure)
+            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+             ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            add config.h ¤ÎºÇ¸å¤Ë°Ê²¼¤Î¹Ô¤òÄÉ²Ã¡£
+                #define TWSYNSRV 1
+             (make)
+             make
+             mv timidity.exe twsynsrv.exe
+        4-4)timidity.exe
+            (configure)
+            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+             ./configure_dm --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+            make
+       4-5)timiditydrv.dll
+           timiditydrv.dll¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡£
+
+2006.01.19 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)

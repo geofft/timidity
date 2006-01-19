@@ -825,3 +825,19 @@ strlcat(char *dst, const char *src, size_t siz)
 	return(dlen + (s - src));	/* count does not include NUL */
 }
 #endif  /* strlcat() */
+
+#ifdef __DMC__
+int strcasecmp(const char *s1, const char *s2)
+{
+	int	c1,c2,i;
+	
+	for( i=0; ; i++){
+		if( !s1[i] && !s2[i] ) return 0; //equal
+		if( !s1[i] || !s2[i] ) return 1;
+		c1= ( isupper(s1[i]) ? tolower(s1[i]) : s1[i] );
+		c2= ( isupper(s2[i]) ? tolower(s2[i]) : s2[i] );
+		if( c1 != c2 )	return 1;
+	}
+	return 0; //equal
+}
+#endif

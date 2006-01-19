@@ -100,7 +100,7 @@ static void start_list_a(void)
 	}
     memset(tonebank_counter, 0, sizeof(tonebank_counter));
     memset(drumset_counter, 0, sizeof(drumset_counter));
-    memset(channel, 0, sizeof(channel));
+    memset(channel, 0, sizeof(Channel)*MAX_CHANNELS);
     change_system_mode(DEFAULT_SYSTEM_MODE);
 }
 
@@ -177,7 +177,7 @@ static int do_event(MidiEvent *ev)
 	break;
       case ME_RESET:
 	change_system_mode(ev->a);
-	memset(channel, 0, sizeof(channel));
+	memset(channel, 0, sizeof(Channel)*MAX_CHANNELS);
 	break;
       case ME_EOT:
 	return RC_TUNE_END;
