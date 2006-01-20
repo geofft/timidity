@@ -1,3 +1,8 @@
+2006-01-21  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* timidity/portaudio_a.c: bug fix
+	* interface/w32g_syn.c: digital mars compile fix
+
 2006-01-19  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	Can compile with Digital Mars.

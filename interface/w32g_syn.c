@@ -66,6 +66,9 @@ int WINAPI timeKillEvent(UINT uTimerID);
 
 #ifdef TWSYNSRV
 #include <winsvc.h>
+#ifdef __DMC__
+#define SERVICE_ACCEPT_PARAMCHANGE    8
+#endif
 //#include <lmcons.h>
 #include <stdarg.h>
 #endif

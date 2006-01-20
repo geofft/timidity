@@ -90,7 +90,7 @@ PaError  err;
 #endif
 typedef struct {
 	char buf[DATA_BLOCK_SIZE*2];
-	int32 samplesToGo;
+	uint32 samplesToGo;
 	char *bufpoint;
 	char *bufepoint;
 } padata_t;
@@ -308,11 +308,7 @@ static int open_output(void)
 	if (dpm.encoding & PE_24BIT) {
 		SampleFormat = paInt24;
 	}else if (dpm.encoding & PE_16BIT) {
-		if(nativeSampleFormats & paInt16) SampleFormat = paInt16;
-		else{
-			SampleFormat = paInt32;
-			conv16_32 = 1;
-		}
+		SampleFormat = paInt16;
 	}else {
 		SampleFormat = paInt8;
 	}
@@ -333,10 +329,19 @@ static int open_output(void)
 	/* set StreamParameters */
 	StreamParameters.device = DeviceIndex;
 	StreamParameters.channelCount = stereo;
-	StreamParameters.sampleFormat = SampleFormat;
 	StreamParameters.suggestedLatency = DeviceInfo->defaultLowOutputLatency;
 	StreamParameters.hostApiSpecificStreamInfo = NULL;
 	
+	if( SampleFormat == paInt16){
+		StreamParameters.sampleFormat = paInt16;
+		if( paFormatIsSupported != Pa_IsFormatSupported( NULL , 
+							&StreamParameters,(double) dpm.rate )){
+			StreamParameters.sampleFormat = paInt32;
+			conv16_32 = 1;
+		}
+	}else{
+		StreamParameters.sampleFormat = SampleFormat;
+	}
 	err = Pa_IsFormatSupported( NULL ,
                              &StreamParameters,
 							(double) dpm.rate );
@@ -441,14 +446,14 @@ static int output_data(char *buf, int32 nbytes)
 	if (pa_data.buf+bytesPerInBuffer*2 >= pa_data.bufepoint + nbytes){
 		memcpy(pa_data.bufepoint, buf, nbytes);
 		pa_data.bufepoint += nbytes;
-		buf += nbytes;
+		//buf += nbytes;
 	}else{
 		int32 send = pa_data.buf+bytesPerInBuffer*2 - pa_data.bufepoint;
 		memcpy(pa_data.bufepoint, buf, send);
 		buf += send;
 		memcpy(pa_data.buf, buf, nbytes - send);
 		pa_data.bufepoint = pa_data.buf + nbytes - send;
-		buf += nbytes-send;
+		//buf += nbytes-send;
 	}
 	pa_data.samplesToGo += nbytes;
 
@@ -518,26 +523,26 @@ static int acntl(int request, void *arg)
       case PM_REQ_GETQSIZ:
 		 *(int *)arg = bytesPerInBuffer*2;
     	return 0;
-		break;
+		//break;
       case PM_REQ_GETFILLABLE:
 		 *(int *)arg = bytesPerInBuffer*2-pa_data.samplesToGo;
     	return 0;
-		break;
+		//break;
       case PM_REQ_GETFILLED:
 		 *(int *)arg = pa_data.samplesToGo;
     	return 0;
-		break;
+		//break;
       case PM_REQ_DISCARD:
     	Pa_StopStream( stream );
     	close_output();
 	    open_output();
 		return 0;
-		break;
+		//break;
       case PM_REQ_FLUSH:
     	close_output();
 	    open_output();
 		return 0;
-		break;
+		//break;
       case PM_REQ_RATE:  /* NOT WORK */
     	{
     		int i;
@@ -554,7 +559,7 @@ static int acntl(int request, void *arg)
     			return -1;
     		}
     	}
-    	break;
+    	//break;
     }
     return -1;
 }
