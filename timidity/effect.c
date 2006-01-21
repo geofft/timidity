@@ -536,7 +536,7 @@ static inline unsigned long frand(void)
 
 static inline int32 my_mod(int32 x, int32 n)
 {
-	if (x > n)
+	if (x >= n)
 		x -= n;
 	return x;
 }

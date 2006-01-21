@@ -2,6 +2,7 @@
 
 	* timidity/portaudio_a.c: bug fix
 	* interface/w32g_syn.c: digital mars compile fix
+	* timidity/effect.c.orig:  Noise shaping noise fix.
 
 2006-01-19  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
