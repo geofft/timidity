@@ -1,7 +1,7 @@
 2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* timidity/readmidi.c: XG reverb fix
-	* timidity/sysdep.h: Mingw hang up fix and digital mars fix
+	* timidity/sysdep.h: digital mars fix
 
 2006-01-21  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 

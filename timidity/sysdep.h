@@ -368,14 +368,6 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #pragma warning( 4 : 4305 4244 )
 #endif /* _MSC_VER */
 
-#if defined(__W32__) && (__GNUC__ < 4)
-#define open _open
-#define close _close
-#define write _write
-#define lseek _lseek
-#define unlink _unlink
-#endif
-
 #define SAFE_CONVERT_LENGTH(len) (6 * (len) + 1)
 
 #ifdef __MACOS__
