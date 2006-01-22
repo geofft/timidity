@@ -349,7 +349,7 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #undef MAIL_NAME
 #endif /* __W32__ */
 
-#if defined(__BORLANDC__) || defined(__WATCOMC__)
+#if defined(__BORLANDC__) || defined(__WATCOMC__) || defined(__DMC__)
 /* strncasecmp() -> strncmpi(char *,char *,size_t) */
 //#define strncasecmp(a,b,c) strncmpi(a,b,c)
 //#define strcasecmp(a,b) strcmpi(a,b)
@@ -367,6 +367,14 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #define unlink _unlink
 #pragma warning( 4 : 4305 4244 )
 #endif /* _MSC_VER */
+
+#if defined(__W32__) && (__GNUC__ < 4)
+#define open _open
+#define close _close
+#define write _write
+#define lseek _lseek
+#define unlink _unlink
+#endif
 
 #define SAFE_CONVERT_LENGTH(len) (6 * (len) + 1)
 
