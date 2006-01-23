@@ -150,6 +150,11 @@ static inline void print_ecmd(char*, int*, int);
 #include "mblock.h"
 #include "common.h"
 #include "controls.h"
+
+#ifdef __BORLANDC__
+extern void pr_ecmd(char *cmd, int *args, int narg);
+#define print_ecmd( a, b, c) pr_ecmd(a, b, c)
+#else
 static inline void print_ecmd(char *cmd, int *args, int narg)
 {
     char *p;
@@ -183,5 +188,6 @@ static inline void print_ecmd(char *cmd, int *args, int narg)
     ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "%s", p);
     reuse_mblock(&tmpbuffer);
 }
+#endif
 
 #endif /* ___WRD_H_ */

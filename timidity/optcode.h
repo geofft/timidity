@@ -127,7 +127,7 @@ static inline int32 imuldiv28(int32 a, int32 b)
     return result;
 }
 
-#elif defined(_MSC_VER) || defined(__DMC__)
+#elif defined(_MSC_VER) || defined(__DMC__) || defined(__WATCOMC__)
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
 		mov eax, a
@@ -171,6 +171,12 @@ inline int32 imuldiv28(int32 a, int32 b) {
 		or  eax, edx
 	}
 }
+
+#elif ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) )
+extern int32 imuldiv8(int32 a, int32 b) ;
+extern int32 imuldiv16(int32 a, int32 b) ;
+extern int32 imuldiv24(int32 a, int32 b) ;
+extern int32 imuldiv28(int32 a, int32 b) ;
 
 #elif defined(__GNUC__) && defined(__ppc__)
 static inline int32 imuldiv8(int32 a, int32 b)

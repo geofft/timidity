@@ -6604,7 +6604,11 @@ static void mix_signal(int32 *dest, int32 *src, int32 count)
 	}
 }
 
+#ifdef __BORLANDC__
+static int is_insertion_effect_xg(int ch)
+#else
 inline static int is_insertion_effect_xg(int ch)
+#endif
 {
 	int i;
 	for (i = 0; i < XG_INSERTION_EFFECT_NUM; i++) {

@@ -95,6 +95,11 @@
 #include "quantity.h"
 #include "rtsyn.h"
 
+#ifdef __BORLANDC__
+#undef inline
+#define inline
+#endif
+
 #ifdef IA_W32GUI
 #include "w32g.h"
 #include "w32g_utl.h"

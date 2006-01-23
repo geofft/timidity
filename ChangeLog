@@ -1,5 +1,12 @@
 2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
+	* timidity/mix.c
+	* timidity/optcode.c timidity/optcode.h timidity/playmidi.c
+	* timidity/reverb.c timidity/timidity.c timidity/wrd.h
+	* timidity/wrdt.c: supress Borland C inline warrings.
+
+2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
 	* timidity/readmidi.c: XG reverb fix
 	* timidity/sysdep.h: digital mars fix
 

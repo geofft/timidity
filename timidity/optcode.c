@@ -113,3 +113,49 @@ void v_set_dry_signal(void* destp, const int32* buf, int32 n)
     }
 }
 #endif /* USE_ALTIVEC */
+
+#if ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) )
+int32 imuldiv8(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 8
+		shl edx, 24
+		or  eax, edx
+	}
+}
+
+int32 imuldiv16(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 16
+		shl edx, 16
+		or  eax, edx
+	}
+}
+
+int32 imuldiv24(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 24
+		shl edx, 8
+		or  eax, edx
+	}
+}
+
+int32 imuldiv28(int32 a, int32 b) {
+	_asm {
+		mov eax, a
+		mov edx, b
+		imul edx
+		shr eax, 28
+		shl edx, 4
+		or  eax, edx
+	}
+}
+#endif
