@@ -1,3 +1,12 @@
+2006-01-25  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* windrv/mmddk.h: Added. LGPL version.
+	* windrv/Makefile.am
+	* doc/ja_JP.eucJP/README.w32
+	* doc/C/README.w32: no more depence on NTDDK.
+	* interface/rtsyn_common.c: call free_global_mblock() with option -U
+	* timidity/readmidi.c: Mingw gcc3 and Borland C hack
+
 2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* timidity/mix.c

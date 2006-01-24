@@ -52,7 +52,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 			set C_INCLUDE_PATH=/usr/local/flac-1.1.0-win/include:%C_INCLUDE_PATH%
 			set LD_LIBRARY_PATH=/usr/local/flac-1.1.0-win/bin:%LD_LIBRARY_PATH%	
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		portaudio v1.18¤ò¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë
+		portaudio v1.19¤ò¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë
 		asio¤Ë¤Ä¤¤¤Æ¤Ïcallasio¡Êhttp://www.audiomulch.com/~rossb/code/calliasio/)¤ÎHP¤Ë¾ðÊó¤¬¤¢¤ë¡£
 		portaudio.dll¤ò¤½¤ì¤¾¤ìpa_asio.dll¡¢pa_win_ds.dll¡¢pa_win_wmme.dll¤Î¤è¤¦¤ËÌ¾Á°¤ò¤«¤¨¤È¤¯¡£
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
@@ -60,9 +60,8 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
 ¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
 		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
-		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		3-2)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-3)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
 		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
 		    ¡Êmingw¤Îcpp.exe¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
 ¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
@@ -173,9 +172,8 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
 ¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
 		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
-		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		3-2)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-3)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
 		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
 		    ¡ÊBorlandc¤Îcpp32.exe¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
 ¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
@@ -306,9 +304,8 @@ done
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
 ¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
 		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-3)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
-		3-4)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		3-2)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-3)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
 		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
 		    ¡Ê'wcc386.exe -p'¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
 ¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
@@ -418,7 +415,6 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
 		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
 ¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
 		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-		3-2)Microsoft ¤Î NTDDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
 ¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
         4-1)timw32g.exe
             (configure)
@@ -575,4 +571,4 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
        4-5)timiditydrv.dll
            timiditydrv.dll¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡£
 
-2006.01.19 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+2006.01.25 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)

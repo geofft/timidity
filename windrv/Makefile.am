@@ -39,7 +39,8 @@ libtimiditydrv_a_SOURCES = \
 	timiditydrv.cpp \
 	timiwp_timidity.h \
 	timiwp_timidity.c \
-	timiditydrv.def 
+	timiditydrv.def \
+	mmddk.h
 
 SYSEXTRAS: timiditydrv.h
 

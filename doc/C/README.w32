@@ -63,7 +63,7 @@ This file contains fllowing instructions.
                 set LD_LIBRARY_PATH=/usr/local/flac-1.1.0-win/bin:%LD_LIBRARY_PATH%
 
         2-5)portaudio(http://www.portaudio.com/)
-            Download and make portaudio v1.18.
+            Download and make portaudio v1.19.
             (see callasio http://www.audiomulch.com/~rossb/code/calliasio/)
             Each portaudio.dll must be renamed  pa_asio.dllÅApa_win_ds.dllÅApa_win_wmme.dll.
             Only portaudo.h is needed for compiling TiMidity++.
@@ -73,9 +73,8 @@ This file contains fllowing instructions.
             Copy porttime.h libporttime.a portmidi.h libportmidi.a to appropriate directories.
 (3)Preparations for compiling timiditydrv.dll
         3-1)install Microsoft Platform SDK
-        3-2)install Microsoft NTDDK
-        3-3)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-4)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
+        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
+        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
             And move it to the PATH included PATH environment variable.
             (cpp.exe of Mingw is not suitable for preprocessor of mild.exe)
 (4)Make TiMidity++ binaries
@@ -201,9 +200,8 @@ This file contains fllowing instructions.
              
 (3)Preparations for compiling timiditydrv.dll
         3-1)install Microsoft Platform SDK
-        3-2)install Microsoft NTDDK
-        3-3)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-4)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
+        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
+        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
             And move it to the PATH included PATH environment variable.
             (cpp32.exe of BorlandC is not suitable for preprocessor of mild.exe)
             
@@ -341,9 +339,8 @@ done
             
 (3)Preparations for compiling timiditydrv.dll
         3-1)install Microsoft Platform SDK
-        3-2)install Microsoft NTDDK
-        3-3)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-4)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
+        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
+        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
             And move it to the PATH included PATH environment variable.
             ('wcc386 -p' is not suitable for preprocessor of mild.exe)
 
@@ -464,7 +461,6 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             I don't know how to comple portmidi with vc commandline tools..
 (3)Preparations for compiling timiditydrv.dll
         3-1)install Microsoft Platform SDK
-        3-2)install Microsoft NTDDK
 (4)Make TiMidity++ binaries
         4-1)timw32g.exe
             (configure)
@@ -508,4 +504,4 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              make
 
 
-2006.01.13 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)
+2006.01.25 Keishi Suenaga(skeishi@mutt.freemail.ne.jp)

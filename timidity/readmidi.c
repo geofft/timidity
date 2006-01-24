@@ -84,7 +84,10 @@ int readmidi_error_flag = 0;
 int readmidi_wrd_mode = 0;
 int play_system_mode = DEFAULT_SYSTEM_MODE;
 
-static MidiEventList *evlist, *current_midi_point;
+/* Mingw gcc3 and Borland C hack */
+/* If these are not NULL initialized cause Hang up */
+/* why ?  I dont know. (Keishi Suenaga) */
+static MidiEventList *evlist=NULL, *current_midi_point=NULL;
 static int32 event_count;
 static MBlockList mempool;
 static StringTable string_event_strtab;
@@ -4502,6 +4505,7 @@ MidiEvent *read_midi_file(struct timidity_file *tf, int32 *count, int32 *sp,
     MidiEvent *ev;
     int err, macbin_check, mtype, i;
 
+	init_mblock(&mempool);
     macbin_check = 1;
     current_file_info = get_midi_file_info(current_filename, 1);
     COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
