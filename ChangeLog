@@ -1,5 +1,19 @@
 2006-01-25  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
+	Rixes of memory leak (checked with win_and dumb win_gui)
+	* interface/w32g.h interface/w32g_mag.c interface/w32g_mag.h 
+	* interface/w32g_playlist.c interface/w32g_subwin.c interface/w32g_subwin.h
+	* interface/w32g_utl.c interface/w32g_utl.h libarc/arc.c
+	* timidity/aq.c timidity/aq.h timidity/instrum.c timidity/instrum.h
+	* timidity/playmidi.c timidity/readmidi.c timidity/readmidi.h
+	* timidity/recache.c timidity/recache.h timidity/resample.c
+	* timidity/resample.h timidity/sffile.c timidity/sndfont.c
+	* timidity/timidity.c timidity/wrdt.c windrv/timiwp_timidity.c
+
+	* interface/rtsyn_common.c: not free_global_mblock() bitween sound;
+
+2006-01-25  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
 	* windrv/mmddk.h: Added. LGPL version.
 	* windrv/Makefile.am
 	* doc/ja_JP.eucJP/README.w32

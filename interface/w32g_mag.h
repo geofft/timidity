@@ -51,5 +51,6 @@ extern void		mag_deletetab ( void );
 extern magdata	*mag_search ( char *file );
 extern void		mag_load_pixel ( char *image, int width, int height, magdata *mh );
 extern int pho_load_pixel ( char *image, int width, int height, char *filename );
+extern void mag_delete(magdata *mg);
 
 #endif	// __W32G_MAG_H__

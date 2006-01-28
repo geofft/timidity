@@ -811,8 +811,8 @@ int TracerFontSize = 16;
 
 #define DEFAULT_DOCFILEEXT "doc;txt;hed"
 
-SETTING_PLAYER *sp_default, *sp_current, *sp_temp;
-SETTING_TIMIDITY *st_default, *st_current, *st_temp;
+SETTING_PLAYER *sp_default=NULL, *sp_current=NULL, *sp_temp=NULL;
+SETTING_TIMIDITY *st_default=NULL, *st_current=NULL, *st_temp=NULL;
 char *timidity_window_inifile;
 char *timidity_output_inifile;
 
@@ -826,6 +826,16 @@ extern int vorbis_ConfigDialogInfoInit(void);
 extern int vorbis_ConfigDialogInfoSaveINI(void);
 extern int vorbis_ConfigDialogInfoLoadINI(void);
 #endif
+
+void w32g_uninitialize(void)
+{
+	if(sp_default != NULL) free(sp_default);
+	if(st_default != NULL) free(st_default);
+	if(sp_current != NULL) free(sp_current);
+	if(st_current != NULL) free(st_current);
+	if(sp_temp != NULL) free(sp_temp);
+	if(st_temp != NULL) free(st_temp);
+}
 
 void w32g_initialize(void)
 {

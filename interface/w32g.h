@@ -291,6 +291,7 @@ extern int w32g_refine_playlist(int *is_selected_removed);
 extern int w32g_uniq_playlist(int *is_selected_removed);
 extern void w32g_clear_playlist(void);
 extern void w32g_rotate_playlist(int dest);
+void w32g_free_playlist(void);
 
 #if 0
 /* w32g_panel.c */

@@ -723,9 +723,9 @@ URL url_arc_open(char *name)
 
     if((afl = find_arc_filelist(base)) == NULL)
 	afl = regist_archive(base);
+	reuse_mblock(&arc_buffer);	/* free `base' */
     if(afl == NULL)
 	return NULL;
-    reuse_mblock(&arc_buffer);	/* free `base' */
     name += len + 1;
     while(*name == '/') name++;	/* skip '/'s right after # (slash is always processed) */
 #if PATH_SEP != '/'

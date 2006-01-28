@@ -253,6 +253,7 @@ extern void TmInitColor(void);
 extern void TmFreeColor(void);
 extern void TmFillRect(HDC hdc, RECT *rc, int color);
 #endif
+extern void w32g_uninitialize(void);
 extern void w32g_initialize(void);
 extern int is_directory(char *path);
 extern int directory_form(char *path_in_out);

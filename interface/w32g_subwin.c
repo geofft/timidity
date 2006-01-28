@@ -1363,11 +1363,13 @@ stage1_end:
  	default:
 		strncpy(out,buffer,MAX2(buffer_size-1,out_size-1));
 		out[out_size-1] = '\0';
+		free(buffer);
 		break;
 	case LANGUAGE_JAPANESE:
 		strncpy(out,buffer,MAX2(buffer_size-1,out_size-1));
 		nkf_convert(buffer,out,out_size-1,NULL,"SJIS");
 		out[out_size-1] = '\0';
+		free(buffer);
 		break;
 	}
 }
@@ -1824,4 +1826,9 @@ void w32g_setup_doc(int idx)
 	if((filename = w32g_get_playlist(idx)) == NULL)
 		return;
 	DocWndSetMidifile(filename);
+}
+
+void w32g_free_doc(void)
+{
+	if(DocWndInfo.Text != NULL) free(DocWndInfo.Text);
 }

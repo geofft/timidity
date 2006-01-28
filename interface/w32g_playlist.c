@@ -838,3 +838,19 @@ char *w32g_get_playlist(int idx)
 	return NULL;
     return playlist.list[idx].filename;
 }
+
+void w32g_free_playlist(void)
+
+
+
+{
+	PlayListEntry *entry;
+	int i;
+	
+	for(i=0; i < playlist.nfiles; i++){
+		entry = &playlist.list[i];
+		if(entry->filename != NULL) free(entry->filename);
+	}
+	if(playlist.list != NULL) free(playlist.list);
+	if(playlist_shuffle.list != NULL) free(playlist_shuffle.list);
+}

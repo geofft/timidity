@@ -55,7 +55,7 @@ static const char *MAGSIG="MAKI02  ";
 		     )
 #define MAGHDRLEN 31
 
-static void mag_delete(magdata *mg);
+void mag_delete(magdata *mg);
 
 static magdata *top=NULL;
 struct magfilehdr{
@@ -169,7 +169,7 @@ void mag_deletetab(void)
 	top=NULL;
 }
 
-static void mag_delete(magdata *mg){
+void mag_delete(magdata *mg){
 	if(mg->next!=NULL)
 		mag_delete(mg->next);
 	free(mg->filename);

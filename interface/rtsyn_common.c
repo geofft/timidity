@@ -307,7 +307,6 @@ void rtsyn_server_reset(void){
 	change_system_mode(rtsyn_system_mode);
 	if (free_instruments_afterwards){
 		free_instruments(0);
-		free_global_mblock(); /* free unused memory */
 	}
 	free_special_patch(-1);
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
