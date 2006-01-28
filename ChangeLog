@@ -1,6 +1,7 @@
 2006-01-29  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 	
-	* interface/rtsyn_common.c: more complete rest event treatment.
+	* timidity/playmidy.c: export reet_midi();
+	* interface/rtsyn_common.c: bugfix
 	* timidity/portaudio_a.c: latency changes by interface charactor.
 
 2006-01-28  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>

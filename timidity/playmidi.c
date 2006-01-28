@@ -672,7 +672,7 @@ static void redraw_controllers(int c)
     ctl_mode_event(CTLE_REVERB_EFFECT, 1, c, get_reverb_level(c));
 }
 
-static void reset_midi(int playing)
+void reset_midi(int playing)
 {
 	int i, cnt;
 	

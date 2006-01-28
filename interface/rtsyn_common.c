@@ -69,7 +69,7 @@
 #include "rtsyn.h"
 
 extern int32 current_sample;
-
+extern void reset_midi(int playing);
 
 //int seq_quit;
 
@@ -167,6 +167,7 @@ void rtsyn_gm_modeset(){
 	ev.a=GM_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+	reset_midi(1);
 }
 
 
@@ -179,6 +180,7 @@ void rtsyn_gs_modeset(){
 	ev.a=GS_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+	reset_midi(1);
 }
 
 
@@ -191,6 +193,7 @@ void rtsyn_xg_modeset(){
 	ev.a=XG_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+	reset_midi(1);
 }
 
 
@@ -203,6 +206,7 @@ void rtsyn_normal_modeset(){
 	ev.a=GS_SYSTEM_MODE;
 	rtsyn_play_event(&ev);
 	change_system_mode(rtsyn_system_mode);
+	reset_midi(1);
 }
 
 double rtsyn_set_latency(double latency){
@@ -230,9 +234,7 @@ void rtsyn_init(void){
 	rtsyn_reset();
 	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
 	change_system_mode(rtsyn_system_mode);
-	ev.type=ME_RESET;
-	ev.a=GS_SYSTEM_MODE; //GM is mor better ???
-	rtsyn_play_event(&ev);
+	reset_midi(0);
 }
 
 void rtsyn_close(void){
@@ -300,26 +302,18 @@ void rtsyn_reset(void){
 
 void rtsyn_server_reset(void){
 	int i;
-	rtsyn_stop_playing();
-	for(i = 0; i < MAX_CHANNELS; i++)
-		memset(channel[i].drums, 0, sizeof(channel[i].drums));
 	kill_all_voices();
-	if (temper_type_mute) {
-		if (temper_type_mute & 1)
-			FILL_CHANNELMASK(channel_mute);
-		else
-			CLEAR_CHANNELMASK(channel_mute);
-	}
 	if (free_instruments_afterwards){
 		free_instruments(0);
 	}
-//	free_special_patch(-1); this cause hangup.
 	aq_flush(1);
 	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
 	play_mode->open_output();	// but w32_a.c does not have it.
+
 	readmidi_read_init();
 	playmidi_stream_init();
 	change_system_mode(rtsyn_system_mode);
+	reset_midi(1);
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
 	auto_reduce_polyphony = 0;
 	
