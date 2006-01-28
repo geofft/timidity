@@ -203,7 +203,7 @@ int timiwp_main_ini(int argc, char **argv)
 int timiwp_main_close(void)
 {
 	int i;
-	timiwp_play_main_close();
+/*	timiwp_play_main_close();
 
 	free_instruments(0);
     free_global_mblock();
@@ -212,6 +212,50 @@ int timiwp_main_close(void)
 	free_userinst();
     tmdy_free_config();
 	free_effect_buffers();
+	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
+*/
+#ifdef SUPPORT_SOCKET
+	if(url_user_agent)
+		free(url_user_agent);
+	if (url_http_proxy_host)
+		free(url_http_proxy_host);
+	if (url_ftp_proxy_host)
+		free(url_ftp_proxy_host);
+	if (user_mailaddr)
+		free(user_mailaddr);
+#endif
+#ifdef IA_DYNAMIC
+	if (dynamic_lib_root)
+		free(dynamic_lib_root);
+#endif
+//	if (pcm_alternate_file)
+//		free(pcm_alternate_file);
+//	if (opt_output_name)
+//		free(opt_output_name);
+//	if (opt_aq_max_buff)
+//		free(opt_aq_max_buff);
+//	if (opt_aq_fill_buff)
+//		free(opt_aq_fill_buff);
+//	if (output_text_code)
+//		free(output_text_code);
+//	if (wrdt_open_opts)
+//		free(wrdt_open_opts);
+
+//	for(i =0 ; i < nfiles ;i++) free(files[i]);
+//	free(files);
+	free_soft_queue();
+    free_instruments(0);
+	free_soundfonts();
+	free_cache_data();
+	free_global_mblock();
+    free_all_midi_file_info();
+	free_userdrum();
+	free_userinst();
+    tmdy_free_config();
+	free_reverb_buffer();
+	free_effect_buffers();
+	free(voice);
+	free_gauss_table();
 	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
 	return 0;
 }

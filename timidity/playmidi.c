@@ -8939,3 +8939,9 @@ static int32 get_rx_drum(struct DrumParts *p, int32 rx)
 {
 	return (p->rx & rx);
 }
+
+void free_reverb_buffer(void)
+{
+	free(reverb_buffer);
+}
+

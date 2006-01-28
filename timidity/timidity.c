@@ -1208,13 +1208,13 @@ static char *expand_variables(char *string, MBlockList *varbuf, const char *base
 MAIN_INTERFACE int read_config_file(char *name, int self)
 {
     struct timidity_file *tf;
-    char buf[1024], *tmp, *w[MAXWORDS + 1], *cp;
+    char buf[1024], tmp[1024], *w[MAXWORDS + 1], *cp;
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
     int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0x7FFFFFFF;
     int extension_flag, param_parse_err;
-    MBlockList varbuf;
+    static MBlockList varbuf;
     char *basedir, *sep;
 
     if(rcf_count > 50)
@@ -1278,7 +1278,9 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    i++;
 	if (buf[i] == '#' || buf[i] == '\0')	/* /^#|^$/ */
 	    continue;
-	tmp = expand_variables(buf, &varbuf, basedir);
+	//tmp = expand_variables(buf, &varbuf, basedir);
+    strncpy(tmp, expand_variables(buf, &varbuf, basedir),1024);
+    reuse_mblock(&varbuf);  /* why this is requied here? But this supress mem. leak. */
 	j = strcspn(tmp + i, " \t\r\n\240");
 	if (j == 0)
 		j = strlen(tmp + i);
@@ -5753,6 +5755,7 @@ int main(int argc, char **argv)
 #ifdef IA_W32G_SYN
     if(CoInitializeOK)
       CoUninitialize();
+	w32g_uninitialize();
 #endif /* IA_W32G_SYN */
 #else
 	w32gLoadDefaultPlaylist();
@@ -5764,14 +5767,53 @@ int main(int argc, char **argv)
     w32gSecondTiMidityExit();
     if(CoInitializeOK)
       CoUninitialize();
+	w32g_free_playlist();
+	w32g_uninitialize();
+	w32g_free_doc();
 #endif /* IA_W32GUI */
+
+
+#ifdef SUPPORT_SOCKET
+	if(url_user_agent)
+		free(url_user_agent);
+	if (url_http_proxy_host)
+		free(url_http_proxy_host);
+	if (url_ftp_proxy_host)
+		free(url_ftp_proxy_host);
+	if (user_mailaddr)
+		free(user_mailaddr);
+#endif
+#ifdef IA_DYNAMIC
+	if (dynamic_lib_root)
+		free(dynamic_lib_root);
+#endif
+	if (pcm_alternate_file)
+		free(pcm_alternate_file);
+	if (opt_output_name)
+		free(opt_output_name);
+	if (opt_aq_max_buff)
+		free(opt_aq_max_buff);
+	if (opt_aq_fill_buff)
+		free(opt_aq_fill_buff);
+	if (output_text_code)
+		free(output_text_code);
+	if (wrdt_open_opts)
+		free(wrdt_open_opts);
+
+	for(i =0 ; i < nfiles ;i++) free(files[i]);
+	free(files);
+	free_soft_queue();
     free_instruments(0);
-    free_global_mblock();
-    free_all_midi_file_info();
-	free_userdrum();
-	free_userinst();
+	free_soundfonts();
+	free_cache_data();
+	free_wrd();
+	free_readmidi();
+	free_global_mblock();   
     tmdy_free_config();
+	free_reverb_buffer();
 	free_effect_buffers();
+	free(voice);
+	free_gauss_table();
 	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
     return main_ret;
 }

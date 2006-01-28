@@ -299,16 +299,27 @@ void rtsyn_reset(void){
 }
 
 void rtsyn_server_reset(void){
+	int i;
+	rtsyn_stop_playing();
+	for(i = 0; i < MAX_CHANNELS; i++)
+		memset(channel[i].drums, 0, sizeof(channel[i].drums));
+	kill_all_voices();
+	if (temper_type_mute) {
+		if (temper_type_mute & 1)
+			FILL_CHANNELMASK(channel_mute);
+		else
+			CLEAR_CHANNELMASK(channel_mute);
+	}
+	if (free_instruments_afterwards){
+		free_instruments(0);
+	}
+//	free_special_patch(-1); this cause hangup.
 	aq_flush(1);
 	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
 	play_mode->open_output();	// but w32_a.c does not have it.
 	readmidi_read_init();
 	playmidi_stream_init();
 	change_system_mode(rtsyn_system_mode);
-	if (free_instruments_afterwards){
-		free_instruments(0);
-	}
-	free_special_patch(-1);
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
 	auto_reduce_polyphony = 0;
 	

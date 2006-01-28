@@ -746,7 +746,7 @@ static void free_layer(SFHeader *hdr)
 	int i;
 	for (i = 0; i < hdr->nlayers; i++) {
 		SFGenLayer *layp = &hdr->layer[i];
-		if (layp->nlists > 0)
+		if (layp->nlists >= 0)
 			free(layp->list);
 	}
 	if (hdr->nlayers > 0)

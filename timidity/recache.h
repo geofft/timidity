@@ -39,6 +39,7 @@ extern void resamp_cache_refer_off(int ch, int note, int32 sample_end);
 extern void resamp_cache_refer_alloff(int ch, int32 sample_end);
 extern void resamp_cache_create(void);
 extern struct cache_hash *resamp_cache_fetch(struct _Sample *sp, int note);
+extern void free_cache_data(void);
 
 extern int32 allocate_cache_size;
 

@@ -1,6 +1,11 @@
-2006-01-25  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+2006-01-29  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+	
+	* interface/rtsyn_common.c: more complete rest event treatment.
+	* timidity/portaudio_a.c: latency changes by interface charactor.
 
-	Rixes of memory leak (checked with win_and dumb win_gui)
+2006-01-28  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	Fixes of memory leak (checked with win_and dumb win_gui)
 	* interface/w32g.h interface/w32g_mag.c interface/w32g_mag.h 
 	* interface/w32g_playlist.c interface/w32g_subwin.c interface/w32g_subwin.h
 	* interface/w32g_utl.c interface/w32g_utl.h libarc/arc.c

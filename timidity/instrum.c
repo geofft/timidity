@@ -1362,7 +1362,8 @@ static void free_tone_bank_list(ToneBank *tb[])
 	int i, j;
 	ToneBank *bank;
 	
-	for (i = 0; i < 128 + map_bank_counter; i++)
+//	for (i = 0; i < 128 + map_bank_counter; i++)
+	for (i = 0; i < 256; i++)   /* Fix me is this true? But my soundfont have bank 255 */
 	{
 		bank = tb[i];
 		if (!bank)
@@ -1455,13 +1456,21 @@ void free_tone_bank_element(ToneBankElement *elm)
 
 void free_instruments(int reload_default_inst)
 {
-    int i = 128 + map_bank_counter, j;
+    int i = 128 + map_bank_counter, j, k;
     struct InstrumentCache *p;
     ToneBank *bank;
     Instrument *ip;
     struct InstrumentCache *default_entry;
-    int default_entry_addr;
-
+    int default_entry_addr;;
+	
+	/* free GS user drumset */
+	for(k=0;k<2;k++) {	/* allocate alternative assign */
+		if( (drumset[64 + k] != NULL) && (drumset[64 + k]->alt != NULL)){
+			free(drumset[64 + k]->alt);
+			drumset[64 + k]->alt=NULL;
+		}
+	}
+	
     clear_magic_instruments();
 
     /* Free soundfont instruments */

@@ -329,7 +329,11 @@ static int open_output(void)
 	/* set StreamParameters */
 	StreamParameters.device = DeviceIndex;
 	StreamParameters.channelCount = stereo;
-	StreamParameters.suggestedLatency = DeviceInfo->defaultLowOutputLatency;
+	if(ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P'){
+		StreamParameters.suggestedLatency = DeviceInfo->defaultHighOutputLatency;
+	}else{
+		StreamParameters.suggestedLatency = DeviceInfo->defaultLowOutputLatency;
+	}
 	StreamParameters.hostApiSpecificStreamInfo = NULL;
 	
 	if( SampleFormat == paInt16){
@@ -338,6 +342,9 @@ static int open_output(void)
 							&StreamParameters,(double) dpm.rate )){
 			StreamParameters.sampleFormat = paInt32;
 			conv16_32 = 1;
+		} else {
+			StreamParameters.sampleFormat = paInt16;
+			conv16_32 = 0;
 		}
 	}else{
 		StreamParameters.sampleFormat = SampleFormat;
@@ -474,7 +481,9 @@ static int output_data(char *buf, int32 nbytes)
 
 		if( err != paNoError ) goto error;
 	}
-    while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
+		
+	if(ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
+	    while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
 //	Pa_Sleep( (pa_data.samplesToGo - bytesPerInBuffer)/dpm.rate * 1000);
 	return 0;
 

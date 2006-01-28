@@ -4505,7 +4505,6 @@ MidiEvent *read_midi_file(struct timidity_file *tf, int32 *count, int32 *sp,
     MidiEvent *ev;
     int err, macbin_check, mtype, i;
 
-	init_mblock(&mempool);
     macbin_check = 1;
     current_file_info = get_midi_file_info(current_filename, 1);
     COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
@@ -5773,12 +5772,14 @@ UserDrumset *get_userdrum(int bank, int prog)
 void free_userdrum()
 {
 	UserDrumset *p, *next;
-
+	
 	for(p = userdrum_first; p != NULL; p = next){
 		next = p->next;
 		free(p);
     }
 	userdrum_first = userdrum_last = NULL;
+
+
 }
 
 /*! initialize GS user instrument. */
@@ -6158,4 +6159,19 @@ void remove_channel_layer(int ch)
 	for (i = offset; i < offset + REDUCE_CHANNELS; i++)
 		UNSET_CHANNELMASK(channel[i].channel_layer, ch);
 	SET_CHANNELMASK(channel[ch].channel_layer, ch);
+}
+
+void free_readmidi(void)
+{
+	free_all_midi_file_info();
+	free_userdrum();
+	free_userinst();
+	if(string_event_strtab.nstring > 0)
+		delete_string_table(&string_event_strtab);
+	if(string_event_table != NULL){
+		free(string_event_table[0]);
+		free(string_event_table);
+		string_event_table = NULL;
+		string_event_table_size = 0;
+    }
 }

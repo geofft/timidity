@@ -277,6 +277,11 @@ void wrd_sherry_event(int addr)
     wrdt->sherry(datapacket[addr].data, datapacket[addr].len);
 }
 
+void free_wrd(void)
+{
+	delete_string_table(&path_list);
+}
+
 #ifdef __BORLANDC__
 void print_ecmd(char *cmd, int *args, int narg)
 {

@@ -83,4 +83,7 @@ extern int aq_get_dev_queuesize(void);
 extern int aq_fill_buffer_flag;
 /* non-zero if aq_add() is in filling mode */
 
+extern void free_soft_queue(void);
+/* free soft_que memory */
+
 #endif /* ___AQ_H_ */

@@ -379,6 +379,19 @@ static void alloc_soft_queue(void)
     flush_buckets();
 }
 
+void free_soft_queue(void)
+{
+    int i;
+    char *base;
+
+    if(base_buckets)
+    {
+	free(base_buckets[0].data);
+	free(base_buckets);
+	base_buckets = NULL;
+    }
+}
+
 /* aq_fill_one() transfers one audio bucket to device. */
 static int aq_fill_one(void)
 {

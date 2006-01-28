@@ -212,7 +212,7 @@ extern int exclude_soundfont(int bank, int preset, int keynote);
 extern int order_soundfont(int bank, int preset, int keynote, int order);
 extern char *soundfont_preset_name(int bank, int preset, int keynote,
 				   char **sndfile);
-extern void free_soundfont_inst(void);
+extern void free_soundfonts(void);
 
 /* instrum.c */
 extern int load_missing_instruments(int *rc);

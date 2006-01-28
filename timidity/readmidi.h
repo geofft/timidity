@@ -172,4 +172,6 @@ extern void init_channel_layer(int);
 extern void add_channel_layer(int, int);
 extern void remove_channel_layer(int);
 
+extern void free_readmidi(void);
+
 #endif /* ___READMIDI_H_ */

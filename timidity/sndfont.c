@@ -276,6 +276,18 @@ void remove_soundfont(char *sf_file)
 	end_soundfont(sf);
 }
 
+void free_soundfonts()
+{
+	SFInsts *sf, *next;
+	
+	for(sf = sfrecs; sf != NULL; sf = next){
+		if((sf->tf != NULL) && (sf->tf->url != NULL)) free(sf->tf->url);
+		if(sf->tf != NULL)free(sf->tf);
+		reuse_mblock( & sf->pool);
+		next = sf->next;
+		free (sf);
+	}
+}
 char *soundfont_preset_name(int bank, int preset, int keynote,
 			    char **sndfile)
 {
@@ -333,7 +345,7 @@ static void init_sf(SFInsts *rec)
 
 		if (bank == 128)
 		    /* FIXME: why not allow exclusion of drumsets? */
-		    alloc_instrument_bank(1, preset);
+			alloc_instrument_bank(1, preset);
 		else {
 			if (is_excluded(rec, bank, preset, -1))
 				continue;
