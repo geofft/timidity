@@ -1462,15 +1462,8 @@ void free_instruments(int reload_default_inst)
     Instrument *ip;
     struct InstrumentCache *default_entry;
     int default_entry_addr;;
-	
-	/* free GS user drumset */
-	for(k=0;k<2;k++) {	/* allocate alternative assign */
-		if( (drumset[64 + k] != NULL) && (drumset[64 + k]->alt != NULL)){
-			free(drumset[64 + k]->alt);
-			drumset[64 + k]->alt=NULL;
-		}
-	}
-	
+
+
     clear_magic_instruments();
 
     /* Free soundfont instruments */
@@ -1498,6 +1491,11 @@ void free_instruments(int reload_default_inst)
 		    free_instrument(ip);
 		bank->tone[j].instrument = NULL;
 	    }
+	 if( (drumset[i] != NULL) && (drumset[i]->alt != NULL))
+    	{
+		free(drumset[i]->alt);
+		drumset[i]->alt=NULL;
+		}
     }
 
     /* Free GUS/patch instruments */

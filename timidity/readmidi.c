@@ -4410,6 +4410,7 @@ static int read_smf_file(struct timidity_file *tf)
 void readmidi_read_init(void)
 {
     int i;
+	static int first=1;
 
 	/* initialize effect status */
 	for (i = 0; i < MAX_CHANNELS; i++)
@@ -4446,14 +4447,18 @@ void readmidi_read_init(void)
 	string_event_table = NULL;
 	string_event_table_size = 0;
     }
-	if(string_event_strtab.nstring > 0)
-		delete_string_table(&string_event_strtab);
+	if(first != 1){
+		if(string_event_strtab.nstring > 0)
+			delete_string_table(&string_event_strtab);
+	}
     init_string_table(&string_event_strtab);
     karaoke_format = 0;
 
     for(i = 0; i < 256; i++)
 	default_channel_program[i] = -1;
     readmidi_wrd_mode = WRD_TRACE_NOTHING;
+	
+	first = 0;
 }
 
 static void insert_note_steps(void)
@@ -5706,9 +5711,8 @@ void recompute_userdrum_altassign(int bank, int group)
 
 	alloc_instrument_bank(1, bank);
 	bk = drumset[bank];
-	if(bk->alt != NULL) free(bk->alt);
 	bk->alt = add_altassign_string(bk->alt, params, number);
-	for(i = number - 1 ; i >= 0 ; i--)
+	 for(i = number - 1 ; i >= 0 ; i--)
 		free(params[number]);
 }
 
@@ -5724,7 +5728,6 @@ void init_userdrum()
 		alt = (AlternateAssign *)safe_malloc(sizeof(AlternateAssign));
 		memset(alt, 0, sizeof(AlternateAssign));
 		alloc_instrument_bank(1, 64 + i);
-		if(drumset[64 + i]->alt != NULL) free(drumset[64 + i]->alt);
 		drumset[64 + i]->alt = alt;
 	}
 }
