@@ -67,31 +67,17 @@ libtimiditydrv_a_dep = \
 else
 if DMC
 libtimiditydrv_a_LIBADD = \
-	$(top_builddir)\\timidity\\timidity.exe \
-	$(top_builddir)\\interface\\libinterface.a \
-	$(top_builddir)\\libarc\\libarc.a \
-	$(top_builddir)\\libunimod\\libunimod.a \
-	$(top_builddir)\\utils\\libutils.a 
+	interface.lib \
+	arc.lib \
+	unimod.lib \
+	utils.lib \
+	timidity.lib
 libtimiditydrv_a_dep = \
-	$(top_builddir)/timidity/timidity.exe \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a 
-else
-if DMC
-libtimiditydrv_a_LIBADD = \
-	$(top_builddir)\\timidity\\timidity.exe \
-	$(top_builddir)\\interface\\libinterface.a \
-	$(top_builddir)\\libarc\\libarc.a \
-	$(top_builddir)\\libunimod\\libunimod.a \
-	$(top_builddir)\\utils\\libutils.a 
-libtimiditydrv_a_dep = \
-	$(top_builddir)/timidity/timidity.exe \
-	$(top_builddir)/interface/libinterface.a \
-	$(top_builddir)/libarc/libarc.a \
-	$(top_builddir)/libunimod/libunimod.a \
-	$(top_builddir)/utils/libutils.a 
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(top_builddir)/timidity/timidity.lib
 else
 libtimiditydrv_a_LIBADD = \
 	$(top_builddir)/interface/interface.lib \
@@ -105,8 +91,6 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/unimod.lib \
 	$(top_builddir)/utils/utils.lib \
 	$(top_builddir)/timidity/timidity.exe
-endif
-#    DMC
 endif
 #    DMC
 endif
@@ -125,16 +109,17 @@ if VCPP
 VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
 
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-	@rm -f libtimi_p_dll.a
+	@rm -f $@
 	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
 else
 if DMC
 DMC_LINK = dmc.exe -WD
 # -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
 
-timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-	@rm -f libtimi_p_dll.a
-	$(DMC_LINK) $(DMC_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) -output $@
+timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_dep)
+	@rm -f $@ *.lib
+	cp $(libtimiditydrv_a_dep) .
+	$(DMC_LINK) $(DMC_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS) timiditydrv.def -output $@
 else
 if BORLANDC
 BORLANDC_LINK = ilink32.exe -Tpd
@@ -150,7 +135,7 @@ timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a
 else
 if MINGWGCC
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
-	@rm -f libtimi_p_dll.a
+	@rm -f $@
 	gcc -shared -def-file timiditydrv.def -Wl,--dll -Wl,--enable-stdcall-fixup -Wl,--out-implib libtimiditydrv.a -o $@ \
 	$(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
 else
@@ -184,7 +169,7 @@ endif
 endif
 #    VCPP
 
-libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS)  $(libtimiditydrv_a_dep)
 	touch $@ 
 
 if VCPP

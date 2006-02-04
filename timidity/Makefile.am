@@ -350,8 +350,10 @@ if DMC
 DMC_LINK = dmc.exe 
 if WINDRV
 timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
-	@rm -f $@
-	start lib -c $@ $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT))
+	@rm -f $@ $(@:.exe=.lib)
+	start lib -p128 -c  $(@:.exe=.lib) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT))
+	if [ -f $(@:.exe=.lib) ] ;then touch $@ ;fi
+
 else
 timidity$(EXEEXT): $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) $(timidity_dep) $(W32GUI_RES)
 	@rm -f $@

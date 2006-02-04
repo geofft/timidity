@@ -1,11 +1,9 @@
-; mt32emu.def : Declares the module parameters.
-
-LIBRARY      "timiditydrv.DLL"
-
+LIBRARY      "timiditydrv.dll"
+	EXETYPE NT
 EXPORTS
-	DllCanUnloadNow      PRIVATE
-	DllGetClassObject    PRIVATE
-	DllRegisterServer    PRIVATE
-	DllUnregisterServer	 PRIVATE
-	DriverProc			 PRIVATE
-	modMessage			 PRIVATE
+	DllCanUnloadNow  PRIVATE
+	DllGetClassObject PRIVATE
+	DllRegisterServer PRIVATE
+	DllUnregisterServer PRIVATE
+	DriverProc PRIVATE
+	modMessage PRIVATE

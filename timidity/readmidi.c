@@ -90,7 +90,7 @@ int play_system_mode = DEFAULT_SYSTEM_MODE;
 static MidiEventList *evlist=NULL, *current_midi_point=NULL;
 static int32 event_count;
 static MBlockList mempool;
-static StringTable string_event_strtab;
+static StringTable string_event_strtab = {0};
 static int current_read_track;
 static int karaoke_format, karaoke_title_flag;
 static struct midi_file_info *midi_file_info = NULL;
@@ -4446,6 +4446,8 @@ void readmidi_read_init(void)
 	string_event_table = NULL;
 	string_event_table_size = 0;
     }
+	if(string_event_strtab.nstring > 0)
+		delete_string_table(&string_event_strtab);
     init_string_table(&string_event_strtab);
     karaoke_format = 0;
 
@@ -5688,7 +5690,7 @@ void recompute_multi_eq_xg(void)
 /*! convert GS user drumset assign groups to internal "alternate assign". */
 void recompute_userdrum_altassign(int bank, int group)
 {
-	int number = 0;
+	int number = 0, i;
 	char *params[131], param[10];
 	ToneBank *bk;
 	UserDrumset *p;
@@ -5704,7 +5706,10 @@ void recompute_userdrum_altassign(int bank, int group)
 
 	alloc_instrument_bank(1, bank);
 	bk = drumset[bank];
+	if(bk->alt != NULL) free(bk->alt);
 	bk->alt = add_altassign_string(bk->alt, params, number);
+	for(i = number - 1 ; i >= 0 ; i--)
+		free(params[number]);
 }
 
 /*! initialize GS user drumset. */
@@ -5719,6 +5724,7 @@ void init_userdrum()
 		alt = (AlternateAssign *)safe_malloc(sizeof(AlternateAssign));
 		memset(alt, 0, sizeof(AlternateAssign));
 		alloc_instrument_bank(1, 64 + i);
+		if(drumset[64 + i]->alt != NULL) free(drumset[64 + i]->alt);
 		drumset[64 + i]->alt = alt;
 	}
 }
@@ -6163,6 +6169,7 @@ void remove_channel_layer(int ch)
 
 void free_readmidi(void)
 {
+	reuse_mblock(&mempool);
 	free_all_midi_file_info();
 	free_userdrum();
 	free_userinst();

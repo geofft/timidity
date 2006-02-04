@@ -1,3 +1,12 @@
+2006-02-04  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+	* configure.in doc/ja_JP.eucJP/README.w32
+	* timidity/Makefile.am windrv/Makefile.am windrv/timiditydrv.cpp
+	* windrv/timiditydrv.def: timiditydrv.dll can comple with digital Mars
+	* timidity/portaudio_a.c: enable WRD with portaudio.
+	* timidity/playmidi.c
+	* timidity/readmidi.c: fix unfreed memory.
+
 2006-01-29  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 	
 	* timidity/playmidy.c: export reet_midi();

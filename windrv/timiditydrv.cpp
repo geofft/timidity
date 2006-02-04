@@ -25,21 +25,34 @@
 #endif
 
 #include <process.h>
+#if __DMC__
+extern "C" 
+unsigned long _beginthreadex( void *security, unsigned stack_size,
+		unsigned ( __stdcall *start_address )( void * ), void *arglist,
+		unsigned initflag, unsigned *thrdaddr );
+extern "C" 
+void _endthreadex( unsigned retval );
+#endif
+
 #ifdef DEBUG
 #include <stdio.h>
+#endif
+
+#if __DMC__
+#include <objbase.h>
 #endif
 #include <initguid.h>
 #include "timiditydrv.h"
 
-#include "mmddk.h"  //Fom NTDDK
+#include "mmddk.h"  
 /* Use XP SDK's mmsystem.h. mingw's lacks some definitions */
-#include "mmsystem.h"
+#include "mmsystem.h" //From SDK (Digital mars can't use SDK's mmsystem.h)
 
 #if defined(__MINGW32__) || defined(__WATCOMC__)
 #define __IID_DEFINED__ 1
 #endif
 #include "timiditydrv_i.c"
-#include "mmreg.h"	//Fom NTDDK
+#include "mmreg.h"	//Fom SDK
 
 extern "C" {
 #include "config.h"
@@ -88,7 +101,7 @@ STDAPI DllUnregisterServer(void)
 }
 
 
-unsigned __stdcall threadfunc2(LPVOID lpV);
+//unsigned __stdcall threadfunc2(LPVOID lpV);
 STDAPI_(LONG) DefDriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, LONG lParam2);
 
 STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, LONG lParam2){
@@ -122,8 +135,10 @@ STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, 
 HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 	MIDIOUTCAPSA * myCapsA;
 	MIDIOUTCAPSW * myCapsW;
+#ifndef __DMC__
 	MIDIOUTCAPS2A * myCaps2A;
 	MIDIOUTCAPS2W * myCaps2W;
+#endif
 
 	CHAR synthName[] = "Timidity++ Driver\0";
 	WCHAR synthNameW[] = L"Timidity++ Driver\0";
@@ -159,6 +174,7 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		return MMSYSERR_NOERROR;
 
 		break;
+#ifndef __DMC__
 	case (sizeof(MIDIOUTCAPS2A)):
 		myCaps2A = (MIDIOUTCAPS2A *)capsPtr;
 		myCaps2A->wMid = MM_UNMAPPED;
@@ -190,6 +206,7 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		myCaps2W->ProductGuid = CLSID_tim_synth;
 		myCaps2W->NameGuid = CLSID_tim_synth;
 		return MMSYSERR_NOERROR;
+#endif
 
 	default:
 		return MMSYSERR_ERROR;

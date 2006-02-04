@@ -525,7 +525,10 @@ Microsoft Visual C++ Toolkit 2003§«•≥•Û•—•§•Î§∑§ø•–•§• •Í§œ•È•§•ª•Û•πæÂ«€…€§«§≠§
 	£≤°›£∂°Àportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		° §≥§≥§«§œª»§Ô§ §§°À
 ° £≥°Àtimiditydrv.dll§Ú•≥•Û•—•§•Î§π§ÎæÏπÁ§ŒΩ‡»˜
-		Digital Mars§«§œ•≥•Û•—•§•Î§«§≠§ §§°£
+		3-1)Microsoft Platform SDK§Ú•§•Û•π•»°º•Î§π§Î°£
+		3-2)Platform SDK§´§Èmidl.exe§ÚºË§ÍΩ–§∑•—•π§ŒƒÃ§√§ø•«•£•Ï•Ø•»•Í§À§™§Ø°£
+		3-3)Free Pascal Compiler(http://www.freepascal.org/)§´§È
+		    cpp.exe§ÚºË§ÍΩ–§∑fpcpp.exe§»Ãæ¡∞§Ú —§®§∆•—•π§ŒƒÃ§√§ø•«•£•Ï•Ø•»•Í§À§™§Ø°£
 ° £¥°ÀTiMIdity++§Œ•≥•Û•—•§•Î
         4-0-1) unix->dos§Œ≤˛π‘•≥°º•… —¥π° LF->CRLF)
            $sh script/unix2dos.sh
@@ -569,6 +572,14 @@ Microsoft Visual C++ Toolkit 2003§«•≥•Û•—•§•Î§∑§ø•–•§• •Í§œ•È•§•ª•Û•πæÂ«€…€§«§≠§
             (make)
             make
        4-5)timiditydrv.dll
-           timiditydrv.dll§œ•≥•Û•—•§•Î§«§≠§ §§°£
+            (configure)
+            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+             ./configure_dm --enable-interface=windrv,winsyn --enable-network --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+            make
+              commentout timiditydrv.h 23:
+              23 //#error this stub requires an updated version of <rpcndr.h>
+           	make
 
 2006.01.25 Àˆ± °°∑Ωª (skeishi@mutt.freemail.ne.jp)

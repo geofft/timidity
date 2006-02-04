@@ -105,7 +105,7 @@ static int open_output_win_wmme(void);
 PlayMode portaudio_asio_play_mode = {
 	(SAMPLE_RATE),
     PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT|PF_CAN_TRACE,
     -1,
     {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
 	"PortAudio(ASIO)", 'o',
@@ -118,7 +118,7 @@ PlayMode portaudio_asio_play_mode = {
 PlayMode portaudio_win_ds_play_mode = {
 	(SAMPLE_RATE),
     PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT|PF_CAN_TRACE,
     -1,
     {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
 	"PortAudio(DirectSound)", 'P',
@@ -131,7 +131,7 @@ PlayMode portaudio_win_ds_play_mode = {
 PlayMode portaudio_win_wmme_play_mode = {
 	(SAMPLE_RATE),
     PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT|PF_CAN_TRACE,
     -1,
     {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
 	"PortAudio(WMME)", 'p',
@@ -151,7 +151,7 @@ PlayMode * volatile portaudio_play_mode = &portaudio_win_wmme_play_mode;
 PlayMode dpm = {
 	(SAMPLE_RATE),
     PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT/*|PF_CAN_TRACE*/,
+    PF_PCM_STREAM|PF_BUFF_FRAGM_OPT|PF_CAN_TRACE,
     -1,
     {32}, /* PF_BUFF_FRAGM_OPT  is need for TWSYNTH */
 	"Portaudio Driver", 'p',

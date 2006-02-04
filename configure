@@ -19167,9 +19167,9 @@ esac
 if test "${enable_windrv+set}" = set; then
   enableval="$enable_windrv"
    if test "$enableval" = "yes"; then
-      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes"; then
-	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom" >&5
-echo "$as_me: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom" >&2;}
+      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$DMC" != "xyes"; then
+	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom and Digital Mars" >&5
+echo "$as_me: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom and Digital Mars" >&2;}
    { (exit 1); exit 1; }; }
 	  elif test "x$WINSYN" != "xyes"; then
 	{ { echo "$as_me:$LINENO: error: windrv: Driver must have winsyn interface" >&5
