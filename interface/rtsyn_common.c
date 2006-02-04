@@ -240,6 +240,7 @@ void rtsyn_init(void){
 void rtsyn_close(void){
 	rtsyn_stop_playing();
 	free_instruments(0);
+	playmidi_stream_free();
 	free_global_mblock();
 }
 
