@@ -74,7 +74,7 @@
 #include "aq.h"
 #include "timer.h"
 
-#define SERVER_VERSION"1.0.2"
+#define SERVER_VERSION "1.0.3"
 
 /* #define DEBUG_DUMP_SEQ 1 */
 #define MIDI_COMMAND_PER_SEC	100
@@ -229,7 +229,7 @@ static int32 sample_cum;
 static int32 curr_event_samples, event_time_offset;
 static int32 curr_tick, tick_offs;
 static double start_time;
-static int tmr_running;
+static int tmr_running, notmr_running;
 
 static int is_system_prefix = 0;
 static struct sockaddr_in control_client;
@@ -595,6 +595,8 @@ static void stop_playing(void)
 	seq_play_event(&ev);
 	aq_flush(0);
     }
+
+    notmr_running = 0;
 }
 
 static int do_control_command(void);
@@ -643,7 +645,7 @@ static void doit(void)
 	    else
 		maxfd = data_fd;
 
-	    if(data_fd != -1)
+	    if(data_fd != -1 && (tmr_running || notmr_running))
 	    {
 		    double wait_time;
 		    int32 filled;
@@ -694,6 +696,7 @@ static void doit(void)
 	    }
 	    else if(data_fd != -1 && FD_ISSET(data_fd, &fds))
 	    {
+		notmr_running = !tmr_running;
 		if(do_sequencer())
 		{
 		    close(data_fd);
@@ -801,7 +804,7 @@ static void server_reset(void)
     reduce_voice_threshold = 0; /* Disable auto reduction voice */
     compute_sample_increment();
     tmr_reset();
-    tmr_running = 0;
+    tmr_running = notmr_running = 0;
     start_time = get_current_calender_time();
 }
 

@@ -1,3 +1,9 @@
+2006-03-19  Stas Sergeev <stsp@aknet.ru>
+
+	* timidity/timidity.c (main): dynamic allocation of
+	  dynamic_lib_root
+	* interface/server_c.c: save CPU power
+
 2006-02-04  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* configure.in doc/ja_JP.eucJP/README.w32

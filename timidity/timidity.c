@@ -569,7 +569,7 @@ MAIN_INTERFACE struct URL_module *url_module_list[] =
 #ifndef SHARED_LIB_PATH
 #define SHARED_LIB_PATH PKGLIBDIR
 #endif /* SHARED_LIB_PATH */
-static char *dynamic_lib_root = SHARED_LIB_PATH;
+static char *dynamic_lib_root = NULL;
 #endif /* IA_DYNAMIC */
 
 #ifndef MAXPATHLEN
@@ -5615,6 +5615,7 @@ int main(int argc, char **argv)
 #ifdef XP_UNIX
 	argv[0] = "netscape";
 #endif /* XP_UNIX */
+	dynamic_lib_root = safe_strdup(SHARED_LIB_PATH);
 	dynamic_interface_id = 0;
 	dl_init(argc, argv);
     }
