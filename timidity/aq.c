@@ -161,12 +161,7 @@ void aq_setup(void)
     else
     {
 	device_qsize = 0;
-	if(base_buckets)
-	{
-	    free(base_buckets[0].data);
-	    free(base_buckets);
-	    base_buckets = NULL;
-	}
+	free_soft_queue();
 	nbuckets = 0;
     }
 
@@ -365,12 +360,7 @@ static void alloc_soft_queue(void)
     int i;
     char *base;
 
-    if(base_buckets)
-    {
-	free(base_buckets[0].data);
-	free(base_buckets);
-	base_buckets = NULL;
-    }
+    free_soft_queue();
 
     base_buckets = (AudioBucket *)safe_malloc(nbuckets * sizeof(AudioBucket));
     base = (char *)safe_malloc(nbuckets * bucket_size);
@@ -381,9 +371,6 @@ static void alloc_soft_queue(void)
 
 void free_soft_queue(void)
 {
-    int i;
-    char *base;
-
     if(base_buckets)
     {
 	free(base_buckets[0].data);
