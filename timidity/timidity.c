@@ -1208,13 +1208,13 @@ static char *expand_variables(char *string, MBlockList *varbuf, const char *base
 MAIN_INTERFACE int read_config_file(char *name, int self)
 {
     struct timidity_file *tf;
-    char buf[1024], tmp[1024], *w[MAXWORDS + 1], *cp;
+    char buf[1024], *tmp, *w[MAXWORDS + 1], *cp;
     ToneBank *bank = NULL;
     int i, j, k, line = 0, words, errcnt = 0;
     static int rcf_count = 0;
     int dr = 0, bankno = 0, mapid = INST_NO_MAP, origbankno = 0x7FFFFFFF;
     int extension_flag, param_parse_err;
-    static MBlockList varbuf;
+    MBlockList varbuf;
     char *basedir, *sep;
 
     if(rcf_count > 50)
@@ -1278,9 +1278,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    i++;
 	if (buf[i] == '#' || buf[i] == '\0')	/* /^#|^$/ */
 	    continue;
-	//tmp = expand_variables(buf, &varbuf, basedir);
-    strncpy(tmp, expand_variables(buf, &varbuf, basedir),1024);
-    reuse_mblock(&varbuf);  /* why this is requied here? But this supress mem. leak. */
+	tmp = expand_variables(buf, &varbuf, basedir);
 	j = strcspn(tmp + i, " \t\r\n\240");
 	if (j == 0)
 		j = strlen(tmp + i);
