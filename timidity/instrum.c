@@ -1362,8 +1362,7 @@ static void free_tone_bank_list(ToneBank *tb[])
 	int i, j;
 	ToneBank *bank;
 	
-//	for (i = 0; i < 128 + map_bank_counter; i++)
-	for (i = 0; i < 256; i++)   /* Fix me is this true? But my soundfont have bank 255 */
+	for (i = 0; i < 128 + map_bank_counter; i++)
 	{
 		bank = tb[i];
 		if (!bank)
@@ -1456,7 +1455,7 @@ void free_tone_bank_element(ToneBankElement *elm)
 
 void free_instruments(int reload_default_inst)
 {
-    int i = 128 + map_bank_counter, j, k;
+    int i = 128 + map_bank_counter, j;
     struct InstrumentCache *p;
     ToneBank *bank;
     Instrument *ip;
