@@ -727,13 +727,21 @@ URL url_arc_open(char *name)
     if(afl == NULL)
 	return NULL;
     name += len + 1;
-    while(*name == '/') name++;	/* skip '/'s right after # (slash is always processed) */
-#if PATH_SEP != '/'
-    while(*name == PATH_SEP) name++;	/* skip PATH_SEPs */
-#endif
-#if defined(PATH_SEP2) && (PATH_SEP2 != '/')
-    while(*name == PATH_SEP2) name++;	/* skip PATH_SEP2s */
-#endif
+    
+    /* skip path separators right after '#' */
+    for(;;)
+    {
+	if (*name != PATH_SEP
+		#if PATH_SEP != '/'	/* slash is always processed */
+			&& *name != '/'
+		#endif
+		#if defined(PATH_SEP2) && (PATH_SEP2 != '/')
+			&& *name != PATH_SEP2
+		#endif
+		)
+		break;
+	name++;
+    }
 
     for(entry = afl->entry_list; entry; entry = entry->next)
     {
