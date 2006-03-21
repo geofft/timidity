@@ -436,8 +436,7 @@ void initialize_gauss_table(int n)
     	zsin[i] = sin(i / (4*M_PI));
 
     x_inc = 1.0 / (1<<FRACTION_BITS);
-//    gptr = safe_realloc( gauss_table[0], (n+1)*sizeof(float)*(1<<FRACTION_BITS)); //why this need realloc? This cause memory leak.
-    gptr = safe_malloc(  (n+1)*sizeof(float)*(1<<FRACTION_BITS));
+    gptr = safe_realloc( gauss_table[0], (n+1)*sizeof(float)*(1<<FRACTION_BITS));
 	for (m = 0, x = 0.0; m < (1<<FRACTION_BITS); m++, x += x_inc)
     {
     	xz = (x + n_half) / (4*M_PI);
@@ -464,6 +463,7 @@ void initialize_gauss_table(int n)
 void free_gauss_table(void)
 {
 		 free(gauss_table[0]);
+		 gauss_table[0] = NULL;
 }
 #if 0 /* NOT USED */
 /* the was calculated statically in newton_table.c */
