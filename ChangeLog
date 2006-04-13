@@ -1,3 +1,7 @@
+2006-04-14  Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c: add midi protocol.
+
 2006-03-21  Kentaro Sato <kentaro@ranvis.com>
 	* timidity/aq.c: Made use of free-on-exit thingie.
 	* timidity/instrum.c: Reverted needless r1.24 changes.

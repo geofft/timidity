@@ -5799,8 +5799,13 @@ int main(int argc, char **argv)
 	if (wrdt_open_opts)
 		free(wrdt_open_opts);
 
-	for(i =0 ; i < nfiles ;i++) free(files[i]);
-	free(files);
+	if (	nfiles > 0 && ctl->id_character != 'r' &&
+		ctl->id_character != 'A' && ctl->id_character != 'W' &&
+		ctl->id_character != 'P') {
+	    for (i = 0; i < nfiles; i++)
+		free(files[i]);
+	    free(files);
+	}
 	free_soft_queue();
     free_instruments(0);
 	free_soundfonts();

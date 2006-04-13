@@ -8766,7 +8766,6 @@ void playmidi_stream_init(void)
 {
     int i;
     static int first = 1;
-	static char *seq_name="TiMidity server";
 
     note_key_offset = key_adjust;
     midi_time_ratio = tempo_adjust;
@@ -8786,8 +8785,7 @@ void playmidi_stream_init(void)
 
     /* Fill in current_file_info */
     current_file_info->readflag = 1;
-    //current_file_info->seq_name = safe_strdup("TiMidity server");
-	current_file_info->seq_name = seq_name;
+    current_file_info->seq_name = safe_strdup("TiMidity server");
     current_file_info->karaoke_title = current_file_info->first_text = NULL;
     current_file_info->mid = 0x7f;
     current_file_info->hdrsiz = 0;

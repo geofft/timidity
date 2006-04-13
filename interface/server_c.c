@@ -80,9 +80,7 @@
 #define MIDI_COMMAND_PER_SEC	100
 #define DEFAULT_LOW_TIMEAT	0.4
 #define DEFAULT_HIGH_TIMEAT	0.6
-#define DONT_STOP_AUDIO	1
 #define DEFAULT_TIMEBASE	100 /* HZ? */
-#define MAXTICKDIFF		150
 #define SIG_TIMEOUT_SEC		3
 
 
@@ -99,6 +97,7 @@ static int cmd_time(int argc, char **argv);
 static int cmd_nop(int argc, char **argv);
 static int cmd_autoreduce(int argc, char **argv);
 static int cmd_setbuf(int argc, char **argv);
+static int cmd_protocol(int argc, char **argv);
 
 struct
 {
@@ -154,6 +153,9 @@ struct
     {"SETBUF",
 	"SETBUF low hi\n\tSpecify low/hi sec of buffer queue",
 	3, 3, cmd_setbuf},
+    {"PROTOCOL",
+	"PROTOCOL [sequencer|midi]\n\tSpecify the protocol to use",
+	1, 2, cmd_protocol},
 
     {NULL, NULL, 0, 0, NULL} /* terminate */
 };
@@ -230,8 +232,9 @@ static int32 curr_event_samples, event_time_offset;
 static int32 curr_tick, tick_offs;
 static double start_time;
 static int tmr_running, notmr_running;
-
-static int is_system_prefix = 0;
+enum { PROTO_SEQ, PROTO_MIDI };
+static int proto;
+static int is_system_prefix, rstatus;
 static struct sockaddr_in control_client;
 static double low_time_at = DEFAULT_LOW_TIMEAT;
 static double high_time_at = DEFAULT_HIGH_TIMEAT;
@@ -798,6 +801,7 @@ static void server_reset(void)
     if(free_instruments_afterwards)
 	free_instruments(0);
     data_buffer_len = 0;
+    rstatus = 0;
     do_sysex(NULL, 0); /* Initialize SysEx buffer */
     low_time_at = DEFAULT_LOW_TIMEAT;
     high_time_at = DEFAULT_HIGH_TIMEAT;
@@ -806,6 +810,7 @@ static void server_reset(void)
     tmr_reset();
     tmr_running = notmr_running = 0;
     start_time = get_current_calender_time();
+    proto = PROTO_SEQ;
 }
 
 /* -1=error, 0=success, 1=connection-closed */
@@ -1028,6 +1033,21 @@ static int cmd_setbuf(int argc, char **argv)
     return send_status(200, "OK");
 }
 
+static int cmd_protocol(int argc, char **argv)
+{
+    if (argc < 2)
+	return send_status(200, "Current protocol is %s",
+		proto == PROTO_SEQ ? "sequencer" : "midi");
+    if (strcasecmp(argv[1], "sequencer") == 0)
+	proto = PROTO_SEQ;
+    else if (strcasecmp(argv[1], "midi") == 0)
+	proto = PROTO_MIDI;
+    else return send_status(500, "Invalid protocol name %s", argv[1]);
+
+    return send_status(200, "Protocol set to %s",
+	    proto == PROTO_SEQ ? "sequencer" : "midi");
+}
+
 static int cmd_nop(int argc, char **argv)
 {
     return send_status(200, "NOP OK");
@@ -1139,7 +1159,8 @@ static uint16 data2short(uint8* data)
 
 static int do_sequencer(void)
 {
-    int n, offset;
+    int n, offset, frame_size, data_offs, data_frame_num;
+    unsigned char status;
     MidiEvent ev;
 
     n = read(data_fd, data_buffer + data_buffer_len,
@@ -1162,13 +1183,14 @@ static int do_sequencer(void)
 
     data_buffer_len += n;
     offset = 0;
+    frame_size = (proto == PROTO_SEQ ? 4 : 1);
     while(offset < data_buffer_len)
     {
 	int cmd;
-	cmd = data_buffer[offset];
+	cmd = (proto == PROTO_SEQ ? data_buffer[offset] : SEQ_MIDIPUTC);
 
-#define READ_NEEDBUF(x) if(offset + x > data_buffer_len) goto done;
-#define READ_ADVBUF(x)  offset += x;
+#define READ_NEEDBUF(x) if(offset + (x) > data_buffer_len) goto done;
+#define READ_ADVBUF(x)  offset += (x);
 	switch(cmd)
 	{
 	  case EV_CHN_VOICE:
@@ -1194,104 +1216,126 @@ static int do_sequencer(void)
 	  case SEQ_MIDIPUTC:
 	    if(is_system_prefix)
 	    {
-		READ_NEEDBUF(4);
+		READ_NEEDBUF(frame_size);
 		do_sysex(data_buffer + offset + 1, 1);
 		if(data_buffer[offset + 1] == 0xf7)
 		    is_system_prefix = 0;  /* End SysEX */
-		READ_ADVBUF(4);
+		READ_ADVBUF(frame_size);
 		break;
 	    }
-	    READ_NEEDBUF(2);
-	    switch(data_buffer[offset + 1] & 0xf0)
+	    READ_NEEDBUF(proto == PROTO_SEQ ? 2 : 1);
+	    data_offs = (proto == PROTO_SEQ ? 1 : 0);
+	    data_frame_num = 0;
+	    status = data_buffer[offset + data_offs];
+	    if (status & 0x80) {
+		/* data bytes follows status byte */
+		data_frame_num++;
+	    } else {
+		/* use "running status" */
+		status = rstatus;
+		if (!(status & 0x80)) {
+		    /* no status byte, skip this crap */
+		    READ_NEEDBUF(frame_size);
+	    	    ctl.cmsg(CMSG_INFO, VERB_NORMAL, "no status byte for %d, skipping",
+			    data_buffer[offset + data_offs]);
+		    READ_ADVBUF(frame_size);
+		    break;
+		}
+	    }
+#define DATA_BYTE(num) (data_buffer[offset + data_offs + \
+    ((num) + data_frame_num) * frame_size])
+	    switch(status & 0xf0)
 	    {
 	      case MIDI_NOTEON:
-		READ_NEEDBUF(12);
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
-		ev.b       = data_buffer[offset + 9] & 0x7f;
+		READ_NEEDBUF((data_frame_num + 2) * frame_size);
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
+		ev.b       = DATA_BYTE(1) & 0x7f;
 		if(ev.b != 0)
 		    ev.type = ME_NOTEON;
 		else
 		    ev.type = ME_NOTEOFF;
 		seq_play_event(&ev);
-		READ_ADVBUF(12);
+		READ_ADVBUF((data_frame_num + 2) * frame_size);
 		break;
 
 	      case MIDI_NOTEOFF:
-		READ_NEEDBUF(12);
+		READ_NEEDBUF((data_frame_num + 2) * frame_size);
 		ev.type    = ME_NOTEOFF;
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
-		ev.b       = data_buffer[offset + 9] & 0x7f;
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
+		ev.b       = DATA_BYTE(1) & 0x7f;
 		seq_play_event(&ev);
-		READ_ADVBUF(12);
+		READ_ADVBUF((data_frame_num + 2) * frame_size);
 		break;
 
 	      case MIDI_KEY_PRESSURE:
-		READ_NEEDBUF(12);
+		READ_NEEDBUF((data_frame_num + 2) * frame_size);
 		ev.type    = ME_KEYPRESSURE;
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
-		ev.b       = data_buffer[offset + 9] & 0x7f;
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
+		ev.b       = DATA_BYTE(1) & 0x7f;
 		seq_play_event(&ev);
-		READ_ADVBUF(12);
+		READ_ADVBUF((data_frame_num + 2) * frame_size);
 		break;
 
 	      case MIDI_CTL_CHANGE:
-		READ_NEEDBUF(12);
-		if(convert_midi_control_change(data_buffer[offset + 1] & 0x0f,
-					       data_buffer[offset + 5],
-					       data_buffer[offset + 9],
+		READ_NEEDBUF((data_frame_num + 2) * frame_size);
+		if(convert_midi_control_change(status & 0x0f,
+					       DATA_BYTE(0),
+					       DATA_BYTE(1),
 					       &ev))
 		    seq_play_event(&ev);
-		READ_ADVBUF(12);
+		READ_ADVBUF((data_frame_num + 2) * frame_size);
 		break;
 
 	      case MIDI_PGM_CHANGE:
-		READ_NEEDBUF(8);
+		READ_NEEDBUF((data_frame_num + 1) * frame_size);
 		ev.type    = ME_PROGRAM;
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
 		ev.b       = 0;
 		seq_play_event(&ev);
-		READ_ADVBUF(8);
+		READ_ADVBUF((data_frame_num + 1) * frame_size);
 		break;
 
 	      case MIDI_CHN_PRESSURE:
-		READ_NEEDBUF(8);
+		READ_NEEDBUF((data_frame_num + 1) * frame_size);
 		ev.type    = ME_CHANNEL_PRESSURE;
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
 		ev.b       = 0;
 		seq_play_event(&ev);
-		READ_ADVBUF(8);
+		READ_ADVBUF((data_frame_num + 1) * frame_size);
 		break;
 
 	      case MIDI_PITCH_BEND:
-		READ_NEEDBUF(12);
+		READ_NEEDBUF((data_frame_num + 2) * frame_size);
 		ev.type    = ME_PITCHWHEEL;
-		ev.channel = data_buffer[offset + 1] & 0x0f;
-		ev.a       = data_buffer[offset + 5] & 0x7f;
-		ev.b       = data_buffer[offset + 9] & 0x7f;
+		ev.channel = status & 0x0f;
+		ev.a       = DATA_BYTE(0) & 0x7f;
+		ev.b       = DATA_BYTE(1) & 0x7f;
 		seq_play_event(&ev);
-		READ_ADVBUF(12);
+		READ_ADVBUF((data_frame_num + 2) * frame_size);
 		break;
 
 	      case MIDI_SYSTEM_PREFIX:
-		READ_NEEDBUF(4);
-		do_sysex(data_buffer + offset + 1, 1);
+		READ_NEEDBUF(frame_size);
+		do_sysex(data_buffer + offset + data_offs, 1);
 		is_system_prefix = 1; /* Start SysEX */
-		READ_ADVBUF(4);
+		READ_ADVBUF(frame_size);
+		status = 0;
 		break;
 
 	      default:
 		ctl.cmsg(CMSG_ERROR, VERB_NORMAL,
 			 "Undefined SEQ_MIDIPUTC 0x%02x",
-			 data_buffer[offset + 1]);
+			 data_buffer[offset + data_offs]);
 		send_status(402, "Undefined SEQ_MIDIPUTC 0x%02x",
-			    data_buffer[offset + 1]);
+			    data_buffer[offset + data_offs]);
 		return 1;
 	    }
+    	    rstatus = status;
 	    break;
 
 	  case SEQ_FULLSIZE:
@@ -1324,6 +1368,7 @@ static int do_sequencer(void)
 	}
 #undef READ_NEEDBUF
 #undef READ_ADVBUF
+#undef DATA_BYTE
     }
 
   done:
