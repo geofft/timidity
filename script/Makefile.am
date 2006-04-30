@@ -22,4 +22,4 @@ EXTRA_DIST = \
 	readme.txt \
 	wcc386_w.sh \
 	wpp386_w.sh \
-	dos2unix.sh
+	unix2dos.sh
