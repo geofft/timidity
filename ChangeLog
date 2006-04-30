@@ -3,6 +3,7 @@
 	* interface/server_c.c: add midi protocol.
 
 2006-03-21  Kentaro Sato <kentaro@ranvis.com>
+
 	* timidity/aq.c: Made use of free-on-exit thingie.
 	* timidity/instrum.c: Reverted needless r1.24 changes.
 	* timidity/resample.c: Reverted gauss_table to be realloc'ed to allow
@@ -18,15 +19,15 @@
 
 2006-02-04  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	* configure.in doc/ja_JP.eucJP/README.w32
-	* timidity/Makefile.am windrv/Makefile.am windrv/timiditydrv.cpp
-	* windrv/timiditydrv.def: timiditydrv.dll can comple with digital Mars
+	* configure.in, doc/ja_JP.eucJP/README.w32, timidity/Makefile.am,
+	  windrv/Makefile.am, windrv/timiditydrv.cpp, windrv/timiditydrv.def:
+	  timiditydrv.dll can comple with digital Mars
 	* timidity/portaudio_a.c: enable WRD with portaudio.
-	* timidity/playmidi.c interface/rtsyn_common.c timidity/instrum.c
-	* timidity/readmidi.c: fix unfreed memory.
+	* timidity/playmidi.c, interface/rtsyn_common.c, timidity/instrum.c,
+	  timidity/readmidi.c: fix unfreed memory.
 
 2006-01-29  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
-	
+
 	* timidity/playmidy.c: export reet_midi();
 	* interface/rtsyn_common.c: bugfix
 	* timidity/portaudio_a.c: latency changes by interface charactor.
@@ -34,32 +35,30 @@
 2006-01-28  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	Fixes of memory leak (checked with win_and dumb win_gui)
-	* interface/w32g.h interface/w32g_mag.c interface/w32g_mag.h 
-	* interface/w32g_playlist.c interface/w32g_subwin.c interface/w32g_subwin.h
-	* interface/w32g_utl.c interface/w32g_utl.h libarc/arc.c
-	* timidity/aq.c timidity/aq.h timidity/instrum.c timidity/instrum.h
-	* timidity/playmidi.c timidity/readmidi.c timidity/readmidi.h
-	* timidity/recache.c timidity/recache.h timidity/resample.c
-	* timidity/resample.h timidity/sffile.c timidity/sndfont.c
-	* timidity/timidity.c timidity/wrdt.c windrv/timiwp_timidity.c
-
-	* interface/rtsyn_common.c: not free_global_mblock() bitween sound;
+	* interface/w32g.h, interface/w32g_mag.c, interface/w32g_mag.h,
+	  interface/w32g_playlist.c, interface/w32g_subwin.c,
+	  interface/w32g_subwin.h, interface/w32g_utl.c, interface/w32g_utl.h,
+	  libarc/arc.c, timidity/aq.c, timidity/aq.h, timidity/instrum.c,
+	  timidity/instrum.h, timidity/playmidi.c, timidity/readmidi.c,
+	  timidity/readmidi.h, timidity/recache.c, timidity/recache.h,
+	  timidity/resample.c, timidity/resample.h, timidity/sffile.c,
+	  timidity/sndfont.c, timidity/timidity.c, timidity/wrdt.c,
+	  windrv/timiwp_timidity.c, interface/rtsyn_common.c:
+	  not free_global_mblock() bitween sound;
 
 2006-01-25  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* windrv/mmddk.h: Added. LGPL version.
-	* windrv/Makefile.am
-	* doc/ja_JP.eucJP/README.w32
-	* doc/C/README.w32: no more depence on NTDDK.
+	* windrv/Makefile.am, doc/ja_JP.eucJP/README.w32, doc/C/README.w32:
+	  no more depence on NTDDK.
 	* interface/rtsyn_common.c: call free_global_mblock() with option -U
 	* timidity/readmidi.c: Mingw gcc3 and Borland C hack
 
 2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	* timidity/mix.c
-	* timidity/optcode.c timidity/optcode.h timidity/playmidi.c
-	* timidity/reverb.c timidity/timidity.c timidity/wrd.h
-	* timidity/wrdt.c: supress Borland C inline warrings.
+	* timidity/mix.c, timidity/optcode.c, timidity/optcode.h,
+	  timidity/playmidi.c, timidity/reverb.c, timidity/timidity.c,
+	  timidity/wrd.h, timidity/wrdt.c: supress Borland C inline warrings.
 
 2006-01-23  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
@@ -70,37 +69,35 @@
 
 	* timidity/portaudio_a.c: bug fix
 	* interface/w32g_syn.c: digital mars compile fix
-	* timidity/effect.c.orig:  Noise shaping noise fix.
+	* timidity/effect.c: Noise shaping noise fix.
 
 2006-01-19  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	Can compile with Digital Mars.
-	* configure.in
-	* interface/Makefile.am libarc/Makefile.am libunimod/Makefile.am 
-	* timidity/Makefile.am utils/Makefile.am
-	* timidity/common.c.orig timidity/list_a.c.orig timidity/timidity.c 
-	* utils/support.c: Changes for Digital Mars.
-	* timidity/effect.c.orig:  Noise shaping noise hack.
+	* configure.in, interface/Makefile.am, libarc/Makefile.am,
+	  libunimod/Makefile.am, timidity/Makefile.am, utils/Makefile.am,
+	  timidity/common.c, timidity/list_a.c, timidity/timidity.c,
+	  utils/support.c: Changes for Digital Mars.
+	* timidity/effect.c.orig: Noise shaping noise hack.
 	* script/unix2dos.sh: Added. newline code conversion(LF->CRLF).
 
 2006-01-17  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
 	* interface/w32g.h: fix LCD array size mismatch hang up.
-	* interface/w32g_pref.c
-	* interface/w32g_utl.c: fix over 256 voces hang up about win GUI.
+	* interface/w32g_pref.c, interface/w32g_utl.c:
+	  fix over 256 voces hang up about win GUI.
 	* timidity/reverb.h: small fix.
 
 2006-01-16  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
-	Supress linker errors about Windows GUI executables.
 
+	Supress linker errors about Windows GUI executables.
 	* configure.in: shape up.
-	* interface/Makefile.am: don't link tty and dumb objs to GUI executables.
+	* interface/Makefile.am: don't link tty and dumb objs
+	  to GUI executables.
 	* interface/w32g_i.c: borand C volatile link problem fix.
 	* interface/w32g_ut2.c.orig: small fix.
-	* timidity/controls.c
-	* timidity/timidity.c
-	* timidity/wrdt: GUI executables don't use dumb or tty controls.
-	* timidity/reverb.c
+	* timidity/controls.c, timidity/timidity.c, timidity/wrdt.c:
+	  GUI executables don't use dumb or tty controls.
 	* timidity/reverb.c: don't define public variables in .h file.
 
 2006-01-15  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
@@ -109,35 +106,29 @@
 	* windrv/timiditydrv.cpp: use _beginthreadex not CreateThread
 	* doc/ja_JP.eucJP/README.w32: typo
 	* script/Makefile.am: add script/wpp386_w.sh
-	* interface/ncurs_c.c: 
+	* interface/ncurs_c.c: fix
 
 2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	* doc/C/README.w32
-	* doc/ja_JP.eucJP/README.w32: add wine wrc.exe discription
-	* interface/Makefile.am: ad rc.exe japanese language option -l0x11
+	* doc/C/README.w32, doc/ja_JP.eucJP/README.w32:
+	  add wine wrc.exe discription
+	* interface/Makefile.am: add rc.exe japanese language option -l0x11
 
 2006-01-12  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
 	* configure.in: Add mkstemp check
-	* doc/C/README.w32
-	* doc/ja_JP.eucJP/README.w32: About timiditydrv compilation
+	* doc/C/README.w32, doc/ja_JP.eucJP/README.w32:
+	  About timiditydrv compilation
 	* windrv/Makefile.am: Change to use midl.exe
-	* windrv/dlldata.c
-	* windrv/timiditydrv.h
-	* windrv/timiditydrv_i.c
-	* windrv/timiditydrv_p.c: Rmoved because will be ganerated by midl.exe.
+	* windrv/dlldata.c, windrv/timiditydrv.h, windrv/timiditydrv_i.c,
+	  windrv/timiditydrv_p.c:
+	  Removed because will be ganerated by midl.exe.
 
 2006-01-08  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-	Changes for OpenWatcom 1.4
-	* configure configure.in 
-	* utils/tmdy_getopt.h
-	* doc/C/README.w32
-	* doc/ja_JP.eucJP/README.w32
-	* script/wcc386_w.sh
-   	* timidity/au_a.c 
-	* timidity/wave_a.c 
-	* utils/support.h
+	* configure configure.in, utils/tmdy_getopt.h, doc/C/README.w32,
+	  doc/ja_JP.eucJP/README.w32, script/wcc386_w.sh, timidity/au_a.c,
+	  timidity/wave_a.c, utils/support.h: Changes for OpenWatcom 1.4
 
 2005-12-19  Stas Sergeev <stsp@aknet.ru>
 
@@ -145,14 +136,15 @@
 
 2005-12-03  Stas Sergeev <stsp@aknet.ru>
 
-	* interface/server_c.c: Do not ignore SIGPIPE 
+	* interface/server_c.c: Do not ignore SIGPIPE
 
-2005-11-26  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2005-11-26  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/timidity.c (parse_opt_i): fix for possible null-pointer
 	  dereference when interface plugin is not found.
 
 2005-11-26 Stas Sergeev <stsp@aknet.ru>
+
 	* interface/ncurs_c.c, interface/dumb_c.c, interface/slang_c.c,
 	  interface/tk_c.c, interface/emacs_c.c, interface/xskin_c.c,
 	  interface/gtk_c.c, interface/server_c.c, interface/alsaseq_c.c,
@@ -162,7 +154,7 @@
 	  timidity/aiff_a.c, timidity/speex_a.c:
 	  warn when output to stdout makes no sense
 
-2005-11-15  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2005-11-15  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* timidity/sysdep.h: [timidity-bugs-en:61] Add stdint.h check
 
@@ -172,14 +164,14 @@
 	  when opt_overlap_voice_allow is enabled.
 	* interface/rtsyn.h: Added #ifdef for <sys/types.h>.
 
-2005-11-01  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2005-11-01  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
-	* doc/ja_JP.eucJP/README.tk : not -itt but -ikt
+	* doc/ja_JP.eucJP/README.tk: not -itt but -ikt
 	  (thanks AOKI Taichi @naist)
 
 2005-10-31  Stas Sergeev <stsp@aknet.ru>
 
-	* interface/server_c.c : fix for timing bugs
+	* interface/server_c.c: fix for timing bugs
 
 2005-10-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

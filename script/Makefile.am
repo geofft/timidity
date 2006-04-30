@@ -21,4 +21,5 @@ EXTRA_DIST = \
 	lspatch.pl \
 	readme.txt \
 	wcc386_w.sh \
-	wpp386_w.sh 
+	wpp386_w.sh \
+	dos2unix.sh
