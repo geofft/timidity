@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE EMACS EMACSLOADPATH lispdir CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTS_CONFIG ARTS_CFLAGS ARTS_LIBS ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE W32G_GUI_TRUE W32G_GUI_FALSE WINDRV_TRUE WINDRV_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE DMC_TRUE DMC_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS DMC_LDFLAGS VCPP_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE EMACS EMACSLOADPATH lispdir CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTS_CONFIG ARTS_CFLAGS ARTS_LIBS ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE W32G_GUI_TRUE W32G_GUI_FALSE WINDRV_TRUE WINDRV_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE DMC_TRUE DMC_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS DMC_LDFLAGS VCPP_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1560,7 +1560,7 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
-am__api_version="1.8"
+am__api_version="1.9"
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -1711,20 +1711,28 @@ else
 echo "$as_me: WARNING: \`missing' script is too old or missing" >&2;}
 fi
 
-if mkdir -p -- . 2>/dev/null; then
-  # Keeping the `.' argument allows $(mkdir_p) to be used without
-  # argument.  Indeed, we sometimes output rules like
+if mkdir -p --version . >/dev/null 2>&1 && test ! -d ./--version; then
+  # We used to keeping the `.' as first argument, in order to
+  # allow $(mkdir_p) to be used without argument.  As in
   #   $(mkdir_p) $(somedir)
-  # where $(somedir) is conditionally defined.
-  # (`test -n '$(somedir)' && $(mkdir_p) $(somedir)' is a more
-  # expensive solution, as it forces Make to start a sub-shell.)
-  mkdir_p='mkdir -p -- .'
+  # where $(somedir) is conditionally defined.  However this is wrong
+  # for two reasons:
+  #  1. if the package is installed by a user who cannot write `.'
+  #     make install will fail,
+  #  2. the above comment should most certainly read
+  #     $(mkdir_p) $(DESTDIR)$(somedir)
+  #     so it does not work when $(somedir) is undefined and
+  #     $(DESTDIR) is not.
+  #  To support the latter case, we have to write
+  #     test -z "$(somedir)" || $(mkdir_p) $(DESTDIR)$(somedir),
+  #  so the `.' trick is pointless.
+  mkdir_p='mkdir -p --'
 else
   # On NextStep and OpenStep, the `mkdir' command does not
   # recognize any option.  It will interpret all options as
   # directories to create, and then abort because `.' already
   # exists.
-  for d in ./-p ./--;
+  for d in ./-p ./--version;
   do
     test -d $d && rmdir $d
   done
@@ -1862,9 +1870,6 @@ AUTOHEADER=${AUTOHEADER-"${am_missing_run}autoheader"}
 
 MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
-
-AMTAR=${AMTAR-"${am_missing_run}tar"}
-
 install_sh=${install_sh-"$am_aux_dir/install-sh"}
 
 # Installed binaries are usually stripped using `strip' when the user
@@ -1957,6 +1962,13 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
 # We need awk for the "check" target.  The system "awk" is bad on
 # some platforms.
+# Always define AMTAR for backward compatibility.
+
+AMTAR=${AMTAR-"${am_missing_run}tar"}
+
+am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
+
+
 
 
 
@@ -2649,7 +2661,9 @@ else
     : > sub/conftest.c
     for i in 1 2 3 4 5 6; do
       echo '#include "conftst'$i'.h"' >> sub/conftest.c
-      : > sub/conftst$i.h
+      # Using `: > sub/conftst$i.h' creates only sub/conftst1.h with
+      # Solaris 8's {/usr,}/bin/sh.
+      touch sub/conftst$i.h
     done
     echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
 
@@ -2677,9 +2691,14 @@ else
        grep sub/conftest.${OBJEXT-o} sub/conftest.Po > /dev/null 2>&1 &&
        ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
       # icc doesn't choke on unknown options, it will just issue warnings
-      # (even with -Werror).  So we grep stderr for any message
-      # that says an option was ignored.
-      if grep 'ignoring option' conftest.err >/dev/null 2>&1; then :; else
+      # or remarks (even with -Werror).  So we grep stderr for any message
+      # that says an option was ignored or not supported.
+      # When given -MP, icc 7.0 and 7.1 complain thusly:
+      #   icc: Command line warning: ignoring option '-M'; no argument required
+      # The diagnosis changed in icc 8.0:
+      #   icc: Command line remark: option '-MP' not supported
+      if (grep 'ignoring option' conftest.err ||
+          grep 'not supported' conftest.err) >/dev/null 2>&1; then :; else
         am_cv_CXX_dependencies_compiler_type=$depmode
         break
       fi
@@ -2769,6 +2788,13 @@ fi
 echo "$as_me:$LINENO: result: $timidity_cv_debug" >&5
 echo "${ECHO_T}$timidity_cv_debug" >&6
 
+case "x$CC" in
+"xwcc386_w.sh"*)
+                    ;;
+*)
+    CFLAGS=${CFLAGS-"-O2"}
+    ;;
+esac
 
 if test "x$with_x" = x; then
   with_x=yes
@@ -3728,7 +3754,9 @@ else
     : > sub/conftest.c
     for i in 1 2 3 4 5 6; do
       echo '#include "conftst'$i'.h"' >> sub/conftest.c
-      : > sub/conftst$i.h
+      # Using `: > sub/conftst$i.h' creates only sub/conftst1.h with
+      # Solaris 8's {/usr,}/bin/sh.
+      touch sub/conftst$i.h
     done
     echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
 
@@ -3756,9 +3784,14 @@ else
        grep sub/conftest.${OBJEXT-o} sub/conftest.Po > /dev/null 2>&1 &&
        ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
       # icc doesn't choke on unknown options, it will just issue warnings
-      # (even with -Werror).  So we grep stderr for any message
-      # that says an option was ignored.
-      if grep 'ignoring option' conftest.err >/dev/null 2>&1; then :; else
+      # or remarks (even with -Werror).  So we grep stderr for any message
+      # that says an option was ignored or not supported.
+      # When given -MP, icc 7.0 and 7.1 complain thusly:
+      #   icc: Command line warning: ignoring option '-M'; no argument required
+      # The diagnosis changed in icc 8.0:
+      #   icc: Command line remark: option '-MP' not supported
+      if (grep 'ignoring option' conftest.err ||
+          grep 'not supported' conftest.err) >/dev/null 2>&1; then :; else
         am_cv_CC_dependencies_compiler_type=$depmode
         break
       fi
@@ -20943,7 +20976,6 @@ s,@AUTOCONF@,$AUTOCONF,;t t
 s,@AUTOMAKE@,$AUTOMAKE,;t t
 s,@AUTOHEADER@,$AUTOHEADER,;t t
 s,@MAKEINFO@,$MAKEINFO,;t t
-s,@AMTAR@,$AMTAR,;t t
 s,@install_sh@,$install_sh,;t t
 s,@STRIP@,$STRIP,;t t
 s,@ac_ct_STRIP@,$ac_ct_STRIP,;t t
@@ -20952,6 +20984,9 @@ s,@mkdir_p@,$mkdir_p,;t t
 s,@AWK@,$AWK,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@am__leading_dot@,$am__leading_dot,;t t
+s,@AMTAR@,$AMTAR,;t t
+s,@am__tar@,$am__tar,;t t
+s,@am__untar@,$am__untar,;t t
 s,@MAINTAINER_MODE_TRUE@,$MAINTAINER_MODE_TRUE,;t t
 s,@MAINTAINER_MODE_FALSE@,$MAINTAINER_MODE_FALSE,;t t
 s,@MAINT@,$MAINT,;t t
@@ -21735,27 +21770,21 @@ echo X"$mf" |
   else
     continue
   fi
-  grep '^DEP_FILES *= *[^ #]' < "$mf" > /dev/null || continue
-  # Extract the definition of DEP_FILES from the Makefile without
-  # running `make'.
-  DEPDIR=`sed -n -e '/^DEPDIR = / s///p' < "$mf"`
+  # Extract the definition of DEPDIR, am__include, and am__quote
+  # from the Makefile without running `make'.
+  DEPDIR=`sed -n 's/^DEPDIR = //p' < "$mf"`
   test -z "$DEPDIR" && continue
+  am__include=`sed -n 's/^am__include = //p' < "$mf"`
+  test -z "am__include" && continue
+  am__quote=`sed -n 's/^am__quote = //p' < "$mf"`
   # When using ansi2knr, U may be empty or an underscore; expand it
-  U=`sed -n -e '/^U = / s///p' < "$mf"`
-  test -d "$dirpart/$DEPDIR" || mkdir "$dirpart/$DEPDIR"
-  # We invoke sed twice because it is the simplest approach to
-  # changing $(DEPDIR) to its actual value in the expansion.
-  for file in `sed -n -e '
-    /^DEP_FILES = .*\\\\$/ {
-      s/^DEP_FILES = //
-      :loop
-	s/\\\\$//
-	p
-	n
-	/\\\\$/ b loop
-      p
-    }
-    /^DEP_FILES = / s/^DEP_FILES = //p' < "$mf" | \
+  U=`sed -n 's/^U = //p' < "$mf"`
+  # Find all dependency output files, they are included files with
+  # $(DEPDIR) in their names.  We invoke sed twice because it is the
+  # simplest approach to changing $(DEPDIR) to its actual value in the
+  # expansion.
+  for file in `sed -n "
+    s/^$am__include $am__quote\(.*(DEPDIR).*\)$am__quote"'$/\1/p' <"$mf" | \
        sed -e 's/\$(DEPDIR)/'"$DEPDIR"'/g' -e 's/\$U/'"$U"'/g'`; do
     # Make sure the directory exists.
     test -f "$dirpart/$file" && continue
