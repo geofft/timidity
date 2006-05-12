@@ -5770,10 +5770,8 @@ int main(int argc, char **argv)
 	w32g_uninitialize();
 	w32g_free_doc();
 #endif /* IA_W32GUI */
-
-
 #ifdef SUPPORT_SOCKET
-	if(url_user_agent)
+	if (url_user_agent)
 		free(url_user_agent);
 	if (url_http_proxy_host)
 		free(url_http_proxy_host);
@@ -5798,13 +5796,12 @@ int main(int argc, char **argv)
 		free(output_text_code);
 	if (wrdt_open_opts)
 		free(wrdt_open_opts);
-
-	if (	nfiles > 0 && ctl->id_character != 'r' &&
-		ctl->id_character != 'A' && ctl->id_character != 'W' &&
-		ctl->id_character != 'P') {
-	    for (i = 0; i < nfiles; i++)
-		free(files[i]);
-	    free(files);
+	if (nfiles > 0
+			&& ctl->id_character != 'r' && ctl->id_character != 'A'
+			&& ctl->id_character != 'W' && ctl->id_character != 'P') {
+		for (i = 0; i < nfiles; i++)
+			free(files[i]);
+		free(files);
 	}
 	free_soft_queue();
     free_instruments(0);
@@ -5812,7 +5809,7 @@ int main(int argc, char **argv)
 	free_cache_data();
 	free_wrd();
 	free_readmidi();
-	free_global_mblock();   
+    free_global_mblock();
     tmdy_free_config();
 	free_reverb_buffer();
 	free_effect_buffers();

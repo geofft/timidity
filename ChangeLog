@@ -1,4 +1,8 @@
-2006-05-06  URABE Shyouhei  <shyouhei@ice.uec.ac.jp>
+2006-05-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* coufigure.in: Fix CFLAGS issue
+
+2006-05-06  URABE Shyouhei <shyouhei@ice.uec.ac.jp>
 
 	* configure.in: add wcc386 check.
 

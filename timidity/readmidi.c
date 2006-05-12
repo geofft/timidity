@@ -90,7 +90,7 @@ int play_system_mode = DEFAULT_SYSTEM_MODE;
 static MidiEventList *evlist=NULL, *current_midi_point=NULL;
 static int32 event_count;
 static MBlockList mempool;
-static StringTable string_event_strtab = {0};
+static StringTable string_event_strtab = { 0 };
 static int current_read_track;
 static int karaoke_format, karaoke_title_flag;
 static struct midi_file_info *midi_file_info = NULL;
@@ -4410,7 +4410,7 @@ static int read_smf_file(struct timidity_file *tf)
 void readmidi_read_init(void)
 {
     int i;
-	static int first=1;
+	static int first = 1;
 
 	/* initialize effect status */
 	for (i = 0; i < MAX_CHANNELS; i++)
@@ -4447,17 +4447,15 @@ void readmidi_read_init(void)
 	string_event_table = NULL;
 	string_event_table_size = 0;
     }
-	if(first != 1){
-		if(string_event_strtab.nstring > 0)
+	if (first != 1)
+		if (string_event_strtab.nstring > 0)
 			delete_string_table(&string_event_strtab);
-	}
     init_string_table(&string_event_strtab);
     karaoke_format = 0;
 
     for(i = 0; i < 256; i++)
 	default_channel_program[i] = -1;
     readmidi_wrd_mode = WRD_TRACE_NOTHING;
-	
 	first = 0;
 }
 
@@ -5712,7 +5710,7 @@ void recompute_userdrum_altassign(int bank, int group)
 	alloc_instrument_bank(1, bank);
 	bk = drumset[bank];
 	bk->alt = add_altassign_string(bk->alt, params, number);
-	 for(i = number - 1 ; i >= 0 ; i--)
+	for (i = number - 1; i >= 0; i--)
 		free(params[number]);
 }
 
@@ -5781,14 +5779,12 @@ UserDrumset *get_userdrum(int bank, int prog)
 void free_userdrum()
 {
 	UserDrumset *p, *next;
-	
+
 	for(p = userdrum_first; p != NULL; p = next){
 		next = p->next;
 		free(p);
     }
 	userdrum_first = userdrum_last = NULL;
-
-
 }
 
 /*! initialize GS user instrument. */
@@ -6176,12 +6172,13 @@ void free_readmidi(void)
 	free_all_midi_file_info();
 	free_userdrum();
 	free_userinst();
-	if(string_event_strtab.nstring > 0)
+	if (string_event_strtab.nstring > 0)
 		delete_string_table(&string_event_strtab);
-	if(string_event_table != NULL){
+	if (string_event_table != NULL) {
 		free(string_event_table[0]);
 		free(string_event_table);
 		string_event_table = NULL;
 		string_event_table_size = 0;
-    }
+	}
 }
+

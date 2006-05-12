@@ -82,7 +82,7 @@ static void insort_cache_array(struct cache_hash **, long);
 static int cache_resampling(struct cache_hash *);
 static void loop_connect(sample_t *, int32, int32);
 
-void free_cache_data(void){
+void free_cache_data(void) {
 	free(cache_data);
 	reuse_mblock(&hash_entry_pool);
 }

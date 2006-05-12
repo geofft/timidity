@@ -81,17 +81,9 @@ if test "x$timidity_cv_debug" = "xno"; then
 fi
 AC_MSG_RESULT($timidity_cv_debug)
 
-case "x$CC" in
-"xwcc386_w.sh"*)
-    dnl I don't know why this is needed.
-    dnl This causes error in Watcom C and Digital Mars C in windows
-    dnl then is commented out. (skeishi 06/01/19)
-    dnl CFLAGS=${CFLAGS-"-O2"}
-    ;;
-*)
-    CFLAGS=${CFLAGS-"-O2"}
-    ;;
-esac
+if test "x$CFLAGS" = "x"; then
+  NOCFLAGS="yes"
+fi
 
 dnl --with-x turns on if `--with-x' is NOT specified.
 if test "x$with_x" = x; then
@@ -174,6 +166,14 @@ AC_PROG_AWK
 AC_PROG_RANLIB
 AC_PROG_LN_S
 CHECK_COMPILER_OPTION(rdynamic)
+
+if test "x$NOCFLAGS" = "xyes"; then
+  if test "x$GCC" = "xyes"; then
+    CFLAGS="-O2"
+  else
+    CFLAGS=""
+  fi
+fi
 
 # Checks for target dependencies
 
