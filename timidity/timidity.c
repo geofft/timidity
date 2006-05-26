@@ -5799,8 +5799,7 @@ int main(int argc, char **argv)
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
 			&& ctl->id_character != 'W' && ctl->id_character != 'P') {
-		for (i = 0; i < nfiles; i++)
-			free(files[i]);
+		free(files[0]);
 		free(files);
 	}
 	free_soft_queue();

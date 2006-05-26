@@ -1,3 +1,12 @@
+2006-05-26  Eric A. Welsh <ewelsh@ccb.wustl.edu>
+
+	* timidity/timidity.c (main): The free(files[i]) loop was causing
+	  segfaults by free'ing previously free'd memory.  The strings
+	  within files[] are allocated as a single block pointed to by
+	  files[0], then the other string pointers point to the separate
+	  strings within the files[0] block.  Thus only files[0] should
+	  be free'd.
+
 2006-05-12  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* coufigure.in: Fix CFLAGS issue
