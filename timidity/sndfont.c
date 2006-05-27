@@ -1840,6 +1840,7 @@ ControlMode w32gui_control_mode =
     ctl_close,
     dumb_pass_playing_list,
     ctl_read,
+    NULL,
     cmsg,
     ctl_event
 };

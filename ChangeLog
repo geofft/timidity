@@ -1,4 +1,4 @@
-2006-06-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
+2006-05-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/mac_c.c, interface/motif_c.c, interface/vt100_c.c,
 	  interface/xaw_c.c, timidity/sndfont.c:

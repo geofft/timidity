@@ -140,6 +140,7 @@ ControlMode ctl=
     ctl_close,
     dumb_pass_playing_list,
     ctl_read,
+    ctl_write,
     cmsg,
     ctl_event
 };
