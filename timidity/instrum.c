@@ -1489,10 +1489,12 @@ void free_instruments(int reload_default_inst)
 		    free_instrument(ip);
 		bank->tone[j].instrument = NULL;
 	    }
+#if 0
 		if ((drumset[i] != NULL) && (drumset[i]->alt != NULL)) {
 			free(drumset[i]->alt);
 			drumset[i]->alt = NULL;
 		}
+#endif
     }
 
     /* Free GUS/patch instruments */

@@ -5711,7 +5711,7 @@ void recompute_userdrum_altassign(int bank, int group)
 	bk = drumset[bank];
 	bk->alt = add_altassign_string(bk->alt, params, number);
 	for (i = number - 1; i >= 0; i--)
-		free(params[number]);
+		free(params[i]);
 }
 
 /*! initialize GS user drumset. */

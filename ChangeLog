@@ -1,3 +1,8 @@
+2006-05-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/instrum.c, timidity/readmidi.c:
+	  Revert and fix around alternate assign
+
 2006-05-28  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/mac_c.c, interface/motif_c.c, interface/vt100_c.c,
