@@ -51,10 +51,12 @@ struct timidity_file
 extern void add_to_pathlist(char *s);
 extern void clean_up_pathlist(void);
 extern int is_url_prefix(const char *name);
-extern struct timidity_file *open_file(char *name,
-				       int decompress, int noise_mode);
+extern struct timidity_file *open_file(char *name, int decompress,
+		int noise_mode);
+extern struct timidity_file *open_file_r(char *name, int decompress,
+		int noise_mode);
 extern struct timidity_file *open_with_mem(char *mem, int32 memlen,
-					   int noise_mode);
+		int noise_mode);
 extern void close_file(struct timidity_file *tf);
 extern void skip(struct timidity_file *tf, size_t len);
 extern char *tf_gets(char *buff, int n, struct timidity_file *tf);

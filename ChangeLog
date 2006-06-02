@@ -1,3 +1,12 @@
+2006-06-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/common.c (open_file): Ignore directories only when
+	  loading a GUS/patch instrument in order to avoid the trouble
+	  in {gtk,motif,tcltk} interface and WRD display
+	* timidity/timidity.c (main): Revert fix supplying suffix '/'
+	  to each argv elements when the path *is* a directory but
+	  *is not* suffixed by '/'
+
 2006-05-31  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/instrum.c, timidity/readmidi.c:

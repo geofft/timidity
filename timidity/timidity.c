@@ -50,9 +50,6 @@
 #  include <time.h>
 # endif
 #endif  /* TIME_WITH_SYS_TIME */
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif /* NAVE_SYS_STAT_H */
 #include <fcntl.h> /* for open */
 
 #ifdef BORLANDC_EXCEPTION
@@ -5523,29 +5520,6 @@ extern int volatile save_playlist_once_before_exit_flag;
 static int CoInitializeOK = 0;
 #endif
 
-static inline int directory_p(const char* path)
-{
-#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-    return is_directory(path);
-#else
-    struct stat st;
-    if(stat(path, &st) != -1) return S_ISDIR(st.st_mode);
-    return 0;
-#endif
-}
-
-static inline void canonicalize_path(char* path)
-{
-#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-    directory_form(path);
-#else
-    int len = strlen(path);
-    if(!len || path[len-1]==PATH_SEP) return;
-    path[len] = PATH_SEP;
-    path[len+1] = '\0';
-#endif
-}
-
 #if !defined(ANOTHER_MAIN) || defined(__W32__)
 #ifdef __W32__ /* Windows */
 #if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
@@ -5649,18 +5623,19 @@ int main(int argc, char **argv)
 		return 0;
 	}
 #endif
-#endif
+	
     for(c = 1; c < argc; c++)
     {
-	if(directory_p(argv[c]))
+	if(is_directory(argv[c]))
 	{
 	    char *p;
 	    p = (char *)safe_malloc(strlen(argv[c]) + 2);
 	    strcpy(p, argv[c]);
-	    canonicalize_path(p);
+	    directory_form(p);
 	    argv[c] = p;
 	}
     }
+#endif
 
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 	opt_sf_close_each_file = 0;

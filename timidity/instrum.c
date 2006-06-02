@@ -662,7 +662,7 @@ static Instrument *load_gus_instrument(char *name,
 			return ip;
 		}
 	/* Open patch file */
-	if (! (tf = open_file(name, 2, OF_NORMAL))) {
+	if (! (tf = open_file_r(name, 2, OF_NORMAL))) {
 #ifdef PATCH_EXT_LIST
 		int name_len, ext_len;
 		static char *patch_ext[] = PATCH_EXT_LIST;
@@ -680,7 +680,7 @@ static Instrument *load_gus_instrument(char *name,
 					continue;	/* duplicated ext. */
 				strcpy((char *) tmp, name);
 				strcat((char *) tmp, patch_ext[i]);
-				if ((tf = open_file((char *) tmp, 1, OF_NORMAL))) {
+				if ((tf = open_file_r((char *) tmp, 1, OF_NORMAL))) {
 					noluck = 0;
 					break;
 				}
