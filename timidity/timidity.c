@@ -5536,6 +5536,7 @@ int main(int argc, char **argv)
     int c, err, i;
     int nfiles;
     char **files;
+    char *files_nbuf;
     int main_ret;
     int longind;
 
@@ -5719,6 +5720,7 @@ int main(int argc, char **argv)
     files  = argv + optind;
     if(nfiles > 0 && ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
 	files = expand_file_archives(files, &nfiles);
+	files_nbuf = files[0];
 #if !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
     if(dumb_error_count)
 	sleep(1);
@@ -5774,7 +5776,7 @@ int main(int argc, char **argv)
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
 			&& ctl->id_character != 'W' && ctl->id_character != 'P') {
-		free(files[0]);
+		free(files_nbuf);
 		free(files);
 	}
 	free_soft_queue();

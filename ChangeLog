@@ -1,3 +1,8 @@
+2006-07-27  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
+
+        * timidity/timidity.c (open_file): Fix coredump when random play.
+          (free files problem);
+
 2006-06-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/common.c (open_file): Ignore directories only when
