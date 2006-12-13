@@ -1,3 +1,7 @@
+2006-12-13  URABE Shyouhei  <shyouhei@ruby-lang.org>
+
+	* timidity/flac_a.c: merge patch from FLAC team.
+
 2006-07-27  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
         * timidity/timidity.c (open_file): Fix coredump when random play.
