@@ -91,7 +91,7 @@ static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void ctl_event(CtlEvent *e);
-static void ctl_pass_playing_list(int n, char *args[]);
+static int ctl_pass_playing_list(int n, char *args[]);
 
 #ifndef __W32__
 static void init_keybord(void);
@@ -212,17 +212,17 @@ static void doit(void);
 
 #ifdef IA_W32G_SYN
 extern void w32g_syn_doit(void);
-extern void w32g_syn_ctl_pass_playing_list(int n_, char *args_[]);
+extern int w32g_syn_ctl_pass_playing_list(int n_, char *args_[]);
 
 
-static void ctl_pass_playing_list(int n, char *args[])
+static int ctl_pass_playing_list(int n, char *args[])
 {
-	w32g_syn_ctl_pass_playing_list ( n, args );
+	return w32g_syn_ctl_pass_playing_list ( n, args );
 }
 #endif
 
 #ifndef IA_W32G_SYN
-static void ctl_pass_playing_list(int n, char *args[])
+static int ctl_pass_playing_list(int n, char *args[])
 #else
 // 0: OK, 2: Require to reset.
 int ctl_pass_playing_list2(int n, char *args[])
@@ -238,7 +238,7 @@ rtsyn_get_port_list();
 #ifndef IA_W32G_SYN
 	if(n > MAX_PORT ){
 		printf( "Usage: timidity -iW [Midi interface No s]\n");
-		return;
+		return 1;
 	}
 #endif
 
@@ -344,11 +344,7 @@ rtsyn_get_port_list();
 #endif /* USE_GTK_GUI */
 	rtsyn_close();
 
-#ifdef IA_W32G_SYN
 	return 0;
-#else
-	return;
-#endif
 }
 
 

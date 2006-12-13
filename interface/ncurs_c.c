@@ -177,7 +177,7 @@ static void display_aq_ratio(void);
 
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static int ctl_read(int32 *valp);
 static int ctl_write(char *valp, int32 size);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
@@ -3120,7 +3120,7 @@ static void shuffle_list(void)
     reuse_mblock(&tmpbuffer);
 }
 
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
     int i;
     int act_number_of_files;
@@ -3148,7 +3148,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 
     if (file_list.number<0) {
       cmsg(CMSG_FATAL, VERB_NORMAL, "No MIDI file to play!");
-      return;
+      return 1;
     }
 
     ctl_listmode_max=1;
@@ -3189,7 +3189,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		    if(!(ctl.flags & CTLF_LIST_LOOP) || stdin_check)
 		    {
 			aq_flush(0);
-			return;
+			return 0;
 		    }
 		    i = 0;
 		    if(rc == RC_TUNE_END)
@@ -3207,7 +3207,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 
 		/* else fall through */
 	    case RC_QUIT:
-		return;
+		return 0;
 	    }
 	  ctl_reset();
 	}

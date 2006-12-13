@@ -577,7 +577,7 @@ extern int opt_user_volume_curve;
 extern int opt_pan_delay;
 
 extern int play_midi_file(char *fn);
-extern void dumb_pass_playing_list(int number_of_files, char *list_of_files[]);
+extern int dumb_pass_playing_list(int number_of_files, char *list_of_files[]);
 extern void default_ctl_lyric(int lyricid);
 extern int check_apply_control(void);
 extern void recompute_freq(int v);

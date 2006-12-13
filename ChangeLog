@@ -2,6 +2,14 @@
 
 	* timidity/flac_a.c: merge patch from FLAC team.
 	* interface/xaw_i.c: merge patch fixing gcc4 compilation problem.
+	* interface/alsaseq_c.c, interface/emacs_c.c, interface/gtk_c.c,
+	  interface/mac_c.c, interface/motif_c.c, interface/ncurs_c.c,
+	  interface/portmidisyn_c.c, interface/server_c.c,
+	  interface/tk_c.c, interface/w32g_c.c, interface/w32g_syn.c,
+	  interface/winsyn_c.c, interface/xaw_c.c, interface/xskin_c.c,
+	  timidity/controls.h, timidity/playmidi.c, timidity/playmidi.h,
+	  timidity/sndfont.c, timidity/timidity.c:
+	  propagate return code
 
 2006-07-27  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 

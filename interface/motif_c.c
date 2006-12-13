@@ -59,7 +59,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static void ctl_event(CtlEvent *e);
 
 static int motif_ready = 0;
@@ -347,12 +347,13 @@ static int ctl_read(int32 *valp)
   return(ctl_blocking_read(valp));
 }
 
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
     int i=0;
     char file_to_play[1000];
     int command;
     int32 val;
+    int retval;
 
     motif_ready = 1;
 
@@ -382,12 +383,13 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 	    else
 		{
 		    if (command==RC_QUIT)
-			return;
+			return 0;
 
 		    switch(command)
 			{
 			case RC_ERROR:
 			    m_pipe_int_write(ERROR_MESSAGE);
+			    retval=1;
 			    break;
 			case RC_NONE:
 			    break;
@@ -412,6 +414,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		    command = ctl_blocking_read(&val);
 		}
 	}
+    return retval;
 }
 
 /*

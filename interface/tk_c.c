@@ -82,7 +82,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static int ctl_blocking_read(int32 *valp);
 static void ctl_note(int status, int ch, int note, int vel);
 static void ctl_event(CtlEvent *e);
@@ -585,7 +585,7 @@ static int ctl_read(int32 *valp)
 	return(ctl_blocking_read(valp));
 }
 
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
 	int i=0;
 	char local[1000];
@@ -616,7 +616,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 				/* if really QUIT */
 				k_pipe_gets(local, sizeof(local)-1);
 				if (*local == 'Z')
-					return;
+					return 0;
 				/* only stop playing..*/
 			}
 			if (command==RC_CHANGE_VOLUME) /* init volume */
@@ -644,6 +644,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 			command = ctl_blocking_read(&val);
 		}
 	}
+	return 0;
 }
 
 

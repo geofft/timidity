@@ -284,7 +284,7 @@ static void terminate_syn_thread ( void );
 static int wait_for_termination_of_syn_thread ( void );
 int w32g_message_set ( int cmd );
 int w32g_message_get ( w32g_syn_message_t *msg );
-void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] );
+int w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] );
 int w32g_syn_do_before_pref_apply ( void );
 int w32g_syn_do_after_pref_apply ( void );
 
@@ -1406,7 +1406,7 @@ void w32g_syn_doit(void)
 	}
 }
 
-void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
+int w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 {
 	int i;
 #ifndef TWSYNSRV
@@ -1474,6 +1474,7 @@ void w32g_syn_ctl_pass_playing_list ( int n_, char *args_[] )
 	}
 #endif
 	if ( w32g_syn.quit_state < 2 ) w32g_syn.quit_state = 2;
+	return 0;
 }
 
 int w32g_syn_do_before_pref_apply ( void )

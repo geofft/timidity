@@ -86,7 +86,7 @@ extern int w32g_msg_box(char *message, char *title, int type);
 
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static void ctl_event(CtlEvent *e);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
@@ -664,7 +664,7 @@ static void ctl_tempo(int t, int tr)
 }
 
 extern BOOL SetWrdWndActive(void);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
 	static int init_flag = 1;
     int rc;
@@ -781,7 +781,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		if(ctl.flags & CTLF_AUTOEXIT) {
 		    if(play_mode->fd != -1)
 			aq_flush(0);
-		    return;
+		    return 0;
 		}
 		break;
 	    }
@@ -805,7 +805,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 		if(ctl.flags & CTLF_AUTOEXIT){
 		    if(play_mode->fd != -1)
 			aq_flush(0);
-		    return;
+		    return 0;
 		}
 		if((ctl.flags & CTLF_LIST_LOOP) && w32g_nvalid_playlist())
 		{
@@ -841,7 +841,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 	  case RC_QUIT:
 	    if(play_mode->fd != -1)
 		aq_flush(1);
-	    return;
+	    return 0;
 
 	  case RC_CHANGE_VOLUME:
 	    amplification += value;
@@ -870,6 +870,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 	    PrefSettingApplyReally();
 	rc = RC_NONE;
     }
+	return 0;
 }
 
 static void ctl_lcd_mark(int flag, int x, int y)

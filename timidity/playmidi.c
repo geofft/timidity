@@ -8579,7 +8579,7 @@ int play_midi_file(char *fn)
     return rc;
 }
 
-void dumb_pass_playing_list(int number_of_files, char *list_of_files[])
+int dumb_pass_playing_list(int number_of_files, char *list_of_files[])
 {
     #ifndef CFG_FOR_SF
     int i = 0;
@@ -8603,12 +8603,12 @@ void dumb_pass_playing_list(int number_of_files, char *list_of_files[])
 	    aq_flush(0);
 
 	    if(!(ctl->flags & CTLF_LIST_LOOP))
-		return;
+		return 0;
 	    i = 0;
 	    break;
 
 	    case RC_QUIT:
-		return;
+		return 0;
 	}
     }
     #endif

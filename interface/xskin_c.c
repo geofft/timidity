@@ -55,7 +55,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static void ctl_event(CtlEvent *e);
 static void ctl_speana_data(double *val, int size);
 static void initialize_exp_hz_table( void );
@@ -344,7 +344,7 @@ static void shuffle(int n,int *a) {
   }
 }
 
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]) {
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]) {
 
   int current_no,command,i;
   int32 val;
@@ -405,7 +405,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]) {
       command=play_midi_file(list_of_files[file_table[current_no]]);
     } else {
       /* Quit timidity*/
-      if (exitflag) return;
+      if (exitflag) return 0;
       /* Stop playing */
       if (command==RC_QUIT) {
 	sprintf(local_buf,"T 00:00");
@@ -463,6 +463,7 @@ static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]) {
       command=ctl_blocking_read(&val);
     }
   }
+  return 0;
 }
 
 /* ------ Pipe handlers ----- */

@@ -5345,6 +5345,7 @@ MAIN_INTERFACE int timidity_play_main(int nfiles, char **files)
     int need_stdin = 0, need_stdout = 0;
     int i;
     int output_fail = 0;
+    int retval;
 
     if(nfiles == 0 && !strchr(INTERACTIVE_INTERFACE_IDS, ctl->id_character))
 	return 0;
@@ -5464,7 +5465,7 @@ MAIN_INTERFACE int timidity_play_main(int nfiles, char **files)
 	ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 		  "pass_playing_list() nfiles=%d", nfiles);
 
-	ctl->pass_playing_list(nfiles, files);
+	retval=ctl->pass_playing_list(nfiles, files);
 
 	if(intr)
 	    aq_flush(1);
@@ -5505,7 +5506,7 @@ MAIN_INTERFACE int timidity_play_main(int nfiles, char **files)
     url_news_connection_cache(URL_NEWS_CLOSE_CACHE);
 #endif /* SUPPORT_SOCKET */
 
-    return 0;
+    return retval;
 }
 
 #ifdef IA_W32GUI

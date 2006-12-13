@@ -148,7 +148,7 @@ typedef struct {
 
   int  (*open)(int using_stdin, int using_stdout);
   void (*close)(void);
-  void (*pass_playing_list)(int number_of_files, char *list_of_files[]);
+  int (*pass_playing_list)(int number_of_files, char *list_of_files[]);
   int  (*read)(int32 *valp);
   int  (*write)(char *buf, int32 size);
   int  (*cmsg)(int type, int verbosity_level, char *fmt, ...);

@@ -78,7 +78,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static void ctl_event(CtlEvent *e);
 static int read_ready(void);
 static int emacs_type = 0; /* 0:emacs, 1:mule, 2:??
@@ -251,7 +251,7 @@ static char *chomp(char *s)
     return s;
 }
 
-static void ctl_pass_playing_list(int argc, char *argv[])
+static int ctl_pass_playing_list(int argc, char *argv[])
 {
     int i;
     char cmd[BUFSIZ];
@@ -276,7 +276,7 @@ static void ctl_pass_playing_list(int argc, char *argv[])
     {
 	for(i = 1; i < argc; i++)
 	    play_midi_file(argv[i]);
-	return;
+	return 0;
     }
 
     /* Main Loop */
@@ -298,11 +298,11 @@ static void ctl_pass_playing_list(int argc, char *argv[])
 		ctl_refresh();
 		break;
 	      case RC_QUIT:
-		return;
+		return 0;
 	    } /* skipping others command */
 	}
 	else if(!strncmp(cmd, "QUIT", 4))
-	    return;
+	    return 0;
 	else
 	    continue; /* skipping unknown command */
     }

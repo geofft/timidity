@@ -177,7 +177,7 @@ static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void ctl_event(CtlEvent *e);
-static void ctl_pass_playing_list(int n, char *args[]);
+static int ctl_pass_playing_list(int n, char *args[]);
 
 /**********************************/
 /* export the interface functions */
@@ -310,7 +310,7 @@ static int set_realtime_priority(void)
         return 0;
 }
 
-static void ctl_pass_playing_list(int n, char *args[])
+static int ctl_pass_playing_list(int n, char *args[])
 {
 	double btime;
 	int i, j;
@@ -325,7 +325,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 
 	if (alsa_seq_open(&alsactx.handle) < 0) {
 		fprintf(stderr, "error in snd_seq_open\n");
-		return;
+		return 1;
 	}
 	alsactx.queue = -1;
 	alsactx.client = snd_seq_client_id(alsactx.handle);
@@ -344,7 +344,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		int port;
 		port = alsa_create_port(alsactx.handle, i);
 		if (port < 0)
-			return;
+			return 1;
 		alsactx.port[i] = port;
 		alsa_set_timestamping(&alsactx, port);
 		printf(" %d:%d", alsactx.client, alsactx.port[i]);
@@ -413,6 +413,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		server_reset();
 		doit(&alsactx);
 	}
+	return 0;
 }
 
 /*

@@ -181,7 +181,7 @@ static int ctl_read(int32 *valp);
 static int ctl_write(char *buffer, int32 size);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
 static void ctl_event(CtlEvent *e);
-static void ctl_pass_playing_list(int n, char *args[]);
+static int ctl_pass_playing_list(int n, char *args[]);
 
 /**********************************/
 /* export the interface functions */
@@ -375,14 +375,14 @@ static int send_status(int status, char *message, ...);
 static void compute_sample_increment(void);
 static void server_reset(void);
 
-static void ctl_pass_playing_list(int n, char *args[])
+static int ctl_pass_playing_list(int n, char *args[])
 {
     int sock;
 
     if(n != 2 && n != 1)
     {
 	fprintf(stderr, "Usage: timidity -ir control-port [data-port]\n");
-	return;
+	return 1;
     }
 
     control_port = atoi(args[0]);
@@ -397,7 +397,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 #endif /* SIGPIPE */
 	sock = pasv_open(&control_port);
 	if(sock == -1)
-	    return;
+	    return 1;
     }
     opt_realtime_playing = 1; /* Enable loading patch while playing */
     allocate_cache_size = 0; /* Don't use pre-calclated samples */
@@ -422,7 +422,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 		    continue;
 		perror("accept");
 		close(sock);
-		return;
+		return 1;
 	    }
 	}
 	else control_fd = 0;
@@ -464,6 +464,7 @@ static void ctl_pass_playing_list(int n, char *args[])
 	if (!control_port)
 	    break;
     }
+    return 0;
 }
 
 #define MAX_GETCMD_PARAMS 8

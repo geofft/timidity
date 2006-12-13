@@ -1912,7 +1912,7 @@ static void cfgforsf_usage(const char *program_name, int status)
 
 #if CFG_FOR_SF_SUPPORT_FFT
 int check_apply_control(void) { return 0; } // not pass
-void dumb_pass_playing_list(int number_of_files, char *list_of_files[]) {}
+int dumb_pass_playing_list(int number_of_files, char *list_of_files[]) {return 0;}
 void recompute_freq(int v) {} // not pass
 int32 control_ratio = 0;
 int reduce_quality_flag = 0;

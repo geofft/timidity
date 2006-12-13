@@ -55,7 +55,7 @@ static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
 static int cmsg(int type, int verbosity_level, char *fmt, ...);
-static void ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
+static int ctl_pass_playing_list(int number_of_files, char *list_of_files[]);
 static void ctl_event(CtlEvent *e);
 
 static void a_pipe_open(void);
@@ -465,7 +465,7 @@ static void shuffle(int n,int *a) {
   }
 }
 
-static void ctl_pass_playing_list(int init_number_of_files,
+static int ctl_pass_playing_list(int init_number_of_files,
                   char *init_list_of_files[]) {
   int current_no,command=RC_NONE,i,j;
   int32 val;
