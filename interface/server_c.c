@@ -74,7 +74,7 @@
 #include "aq.h"
 #include "timer.h"
 
-#define SERVER_VERSION "1.0.3"
+#define SERVER_VERSION "1.0.4"
 
 /* #define DEBUG_DUMP_SEQ 1 */
 #define MIDI_COMMAND_PER_SEC	100
@@ -1215,18 +1215,20 @@ static int do_sequencer(void)
 	    READ_ADVBUF(8);
 	    break;
 	  case SEQ_MIDIPUTC:
+	    READ_NEEDBUF(proto == PROTO_SEQ ? 2 : 1);
+	    data_offs = (proto == PROTO_SEQ ? 1 : 0);
+	    data_frame_num = 0;
+
 	    if(is_system_prefix)
 	    {
 		READ_NEEDBUF(frame_size);
-		do_sysex(data_buffer + offset + 1, 1);
-		if(data_buffer[offset + 1] == 0xf7)
+		do_sysex(data_buffer + offset + data_offs, 1);
+		if(data_buffer[offset + data_offs] == 0xf7)
 		    is_system_prefix = 0;  /* End SysEX */
 		READ_ADVBUF(frame_size);
 		break;
 	    }
-	    READ_NEEDBUF(proto == PROTO_SEQ ? 2 : 1);
-	    data_offs = (proto == PROTO_SEQ ? 1 : 0);
-	    data_frame_num = 0;
+
 	    status = data_buffer[offset + data_offs];
 	    if (status & 0x80) {
 		/* data bytes follows status byte */
@@ -1237,7 +1239,7 @@ static int do_sequencer(void)
 		if (!(status & 0x80)) {
 		    /* no status byte, skip this crap */
 		    READ_NEEDBUF(frame_size);
-	    	    ctl.cmsg(CMSG_INFO, VERB_NORMAL, "no status byte for %d, skipping",
+	    	    ctl.cmsg(CMSG_INFO, VERB_NORMAL, "no status byte for %#x, skipping",
 			    data_buffer[offset + data_offs]);
 		    READ_ADVBUF(frame_size);
 		    break;
@@ -1321,10 +1323,95 @@ static int do_sequencer(void)
 		break;
 
 	      case MIDI_SYSTEM_PREFIX:
-		READ_NEEDBUF(frame_size);
-		do_sysex(data_buffer + offset + data_offs, 1);
-		is_system_prefix = 1; /* Start SysEX */
-		READ_ADVBUF(frame_size);
+	        switch (status & 0x0f) {
+	          /* Common System Messages */
+	          case 0x00:		/* SysEx */
+		    READ_NEEDBUF(frame_size);
+		    do_sysex(data_buffer + offset + data_offs, 1);
+		    is_system_prefix = 1; /* Start SysEX */
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x01:		/* Quarter Frame */
+		    READ_NEEDBUF(frame_size * 2);
+		    READ_ADVBUF(frame_size * 2);
+		    break;
+
+		  case 0x02:		/* Song Position */
+		    READ_NEEDBUF(frame_size * 3);
+		    READ_ADVBUF(frame_size * 3);
+		    break;
+
+		  case 0x03:		/* Song Select */
+		    READ_NEEDBUF(frame_size * 2);
+		    READ_ADVBUF(frame_size * 2);
+		    break;
+
+		  case 0x04:
+		  case 0x05:		/* Undef */
+		    ctl.cmsg(CMSG_ERROR, VERB_NORMAL,
+			"Undefined Common system message %x\n", status & 0x0f);
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x06:		/* Tune Request */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x07:		/* EOX */
+		    ctl.cmsg(CMSG_ERROR, VERB_NORMAL, "Unexpected EOX\n");
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  /* System Real Time Messages */
+		  case 0x08:		/* MIDI Clock */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x09:		/* MIDI Tick */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0A:		/* MIDI Start */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0B:		/* MIDI Continue */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0C:		/* MIDI Stop */
+		    READ_NEEDBUF(frame_size);
+		    stop_playing();
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0D:		/* Undef */
+		    ctl.cmsg(CMSG_ERROR, VERB_NORMAL,
+			"Undefined Real-Time system message %x\n", status & 0x0f);
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0E:		/* Active Sensing */
+		    READ_NEEDBUF(frame_size);
+		    READ_ADVBUF(frame_size);
+		    break;
+
+		  case 0x0F:		/* Reset */
+		    ctl.cmsg(CMSG_ERROR, VERB_NORMAL, "MIDI Reset\n");
+		    READ_NEEDBUF(frame_size);
+		    tmr_reset();
+		    READ_ADVBUF(frame_size);
+		    break;
+		}
 		status = 0;
 		break;
 

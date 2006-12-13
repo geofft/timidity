@@ -1,3 +1,7 @@
+2006-12-14  Stas Sergeev <stsp@aknet.ru>
+
+	* interface/server_c.c: extend midi protocol.
+
 2006-12-13  URABE Shyouhei  <shyouhei@ruby-lang.org>
 
 	* timidity/flac_a.c: merge patch from FLAC team.
