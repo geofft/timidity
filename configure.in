@@ -585,12 +585,16 @@ if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes;
 fi
 
 AC_CHECK_FUNC(getopt_long,
-	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long function'])
+	 AC_DEFINE([HAVE_GETOPT_LONG],1,[Define to 1 if you have `getopt_long' function])
 	 tm_cv_needgetopt="no",
 	 tm_cv_needgetopt="yes")
 AM_CONDITIONAL([NEEDGETOPT], test "x$tm_cv_needgetopt" = "xyes")
 
-# Checks on cygnus and MYSYS
+AC_CHECK_FUNC(open_memstream, [
+	 AC_DEFINE([HAVE_OPEN_MEMSTREAM],1,[Define to 1 if you have `open_memstream' function])
+	 ])
+
+# Checks on cygnus and MSYS
 if test "x$MSYS" = xyes ; then
   case "$ac_cv_header_dirent_dirent_h$ac_cv_header_dirent_sys_ndir_h$ac_cv_header_dirent_sys_dir_h$ac_cv_header_dirent_ndir_h" in
   *yes*)
@@ -1062,19 +1066,35 @@ dnl aRts of KDE
 AC_MSG_CHECKING(enable_audio=arts)
 if test "x$au_enable_arts" = xyes; then
   AC_MSG_RESULT([yes, configuring aRts])
-  KEEPCFLAGS=$CFLAGS
-  KEEPLIBS=$LIBS
-  KEEPLDFLAGS=$LDFLAGS
-  AM_PATH_ARTS()
-  CFLAGS=$KEEPCFLAGS
-  LIBS=$KEEPLIBS
-  LDFLAGS=$KEEPLDFLAGS
-  if test "x$no_arts" = x; then
+  dnl **** Check for aRts Sound Server ****
+  AC_PATH_PROG(ARTSCCONFIG, artsc-config)
+  if test x$ARTSCCONFIG != x -a x$ARTSCCONFIG != x'"$ARTSCCONFIG"';
+  then
+    ARTSC_CFLAGS=""
+    for i in `$ARTSCCONFIG --cflags`
+    do
+      case "$i" in
+        -I*) ARTSC_CFLAGS="$ARTSC_CFLAGS $i";;
+      esac
+    done
+    ARTSC_LIBS=`$ARTSCCONFIG --libs`
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $ARTSC_CFLAGS"
+    AC_TRY_COMPILE([#include <artsc.h>],[arts_stream_t stream;],
+        [AC_SUBST(ARTSLIBS, $ARTSC_LIBS)
+         AC_SUBST(ARTSINCL, $ARTSC_CFLAGS)
+         AC_DEFINE(HAVE_ARTS, 1, [Define if you have ARTS sound server])
+	 have_arts="yes"
+         ])
+    CFLAGS="$save_CFLAGS"
+  fi
+
+  if test "$have_arts" = "yes"; then
     dnl AC_MSG_RESULT(aRts: Enabled)
     EXTRADEFS="$EXTRADEFS -DAU_ARTS"
     SYSEXTRAS="$SYSEXTRAS aRts_a.c"
-    EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$ARTS_CFLAGS)
-    LIBS="$LIBS $ARTS_LIBS"
+    EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$ARTSC_CFLAGS)
+    LIBS="$LIBS $ARTSC_LIBS"
   else
     AC_MSG_WARN(aRts: Couldn't configure)
   fi
@@ -1156,8 +1176,8 @@ dnl ogg's vorbis
 AC_MSG_CHECKING(enable_audio=vorbis)
 if test "x$au_enable_vorbis" = xyes; then
   AC_MSG_RESULT([yes, configuring vorbis])
-  AM_PATH_OGG([
-    AM_PATH_VORBIS([
+  XIPH_PATH_OGG([
+    XIPH_PATH_VORBIS([
       have_vorbis=yes
       SYSEXTRAS="$SYSEXTRAS vorbis_a.c"
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"

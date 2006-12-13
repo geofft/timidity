@@ -120,6 +120,7 @@ extern int parse_sysex_event(uint8 *data, int32 datalen, MidiEvent *ev_ret);
 extern int parse_sysex_event_multi(uint8 *data, int32 datalen, MidiEvent *ev_ret);
 extern int convert_midi_control_change(int chn, int type, int val,
 				       MidiEvent *ev_ret);
+extern int unconvert_midi_control_change(MidiEvent *ev);
 extern char *readmidi_make_string_event(int type, char *string, MidiEvent *ev,
 					int cnv);
 extern MidiEvent *read_midi_file(struct timidity_file *mtf,
@@ -173,5 +174,7 @@ extern void add_channel_layer(int, int);
 extern void remove_channel_layer(int);
 
 extern void free_readmidi(void);
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 #endif /* ___READMIDI_H_ */

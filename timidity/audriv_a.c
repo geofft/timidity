@@ -253,6 +253,10 @@ static int acntl(int request, void *arg)
 	audriv_play_stop(); /* Reset audriv's sample counter */
 	Audio_On();
 	return 0;
+
+      case PM_REQ_PLAY_START: /* Called just before playing */
+      case PM_REQ_PLAY_END: /* Called just after playing */
+        return 0;
     }
     return -1;
 }

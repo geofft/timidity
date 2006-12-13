@@ -180,6 +180,10 @@ static int acntl(int request, void *arg)
 	  /* not implemented yet */
           break;
 	}
+
+      case PM_REQ_PLAY_START: /* Called just before playing */
+      case PM_REQ_PLAY_END: /* Called just after playing */
+        return 0;
     }
     return -1;
 }

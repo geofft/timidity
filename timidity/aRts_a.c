@@ -242,10 +242,11 @@ static int acntl(int request, void *arg)
       case PM_REQ_FLUSH: /* Wait until playback is complete */
       case PM_REQ_MIDI: /* Send MIDI event */
       case PM_REQ_INST_NAME: /* Get instrument name */
+	return -1;
       case PM_REQ_OUTPUT_FINISH: /* Sent after last output_data */
       case PM_REQ_PLAY_START: /* Called just before playing */
       case PM_REQ_PLAY_END: /* Called just after playing */
-	return -1;
+	return 0;
     }
     return -1;
 }

@@ -146,6 +146,10 @@ static int acntl(int request, void *arg)
     {
       case PM_REQ_DISCARD:
 	return ioctl(dpm.fd, DSP_IOCTL_RESET);
+
+      case PM_REQ_PLAY_START: /* Called just before playing */
+      case PM_REQ_PLAY_END: /* Called just after playing */
+        return 0;
     }
     return -1;
 }

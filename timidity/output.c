@@ -130,6 +130,7 @@ extern PlayMode gogo_play_mode;
 #endif /* AU_GOGO */
 #endif /* !__MACOS__ */
 
+extern PlayMode midi_play_mode;
 extern PlayMode modmidi_play_mode;
 
 PlayMode *play_mode_list[] = {
@@ -194,6 +195,7 @@ PlayMode *play_mode_list[] = {
 #endif /* AU_GOGO */
   &list_play_mode,
 #endif /* __MACOS__ */
+  &midi_play_mode,
   &modmidi_play_mode,
   0
 };

@@ -103,10 +103,13 @@ enum {
 			 * Get filled device queue size
 			 */
 
-    PM_REQ_OUTPUT_FINISH /* ARG: not-used
+    PM_REQ_OUTPUT_FINISH, /* ARG: not-used
 			  * PM_REQ_OUTPUT_FINISH calls just after the last
 			  * output_data(), and TiMidity would into
 			  * waiting to flush the audio buffer.
+			  */
+
+    PM_REQ_DIVISIONS,	  /* ARG: int32* - pointer to divisions number
 			  */
 };
 

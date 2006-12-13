@@ -519,52 +519,63 @@ static void check_chorus_text_start(void)
     }
 }
 
+struct ctl_chg_types {
+    unsigned char mtype;
+    int ttype;
+} ctl_chg_list[] = {
+      { 0, ME_TONE_BANK_MSB },
+      { 1, ME_MODULATION_WHEEL },
+      { 2, ME_BREATH },
+      { 4, ME_FOOT },
+      { 5, ME_PORTAMENTO_TIME_MSB },
+      { 6, ME_DATA_ENTRY_MSB },
+      { 7, ME_MAINVOLUME },
+      { 8, ME_BALANCE },
+      { 10, ME_PAN },
+      { 11, ME_EXPRESSION },
+      { 32, ME_TONE_BANK_LSB },
+      { 37, ME_PORTAMENTO_TIME_LSB },
+      { 38, ME_DATA_ENTRY_LSB },
+      { 64, ME_SUSTAIN },
+      { 65, ME_PORTAMENTO },
+      { 66, ME_SOSTENUTO },
+      { 67, ME_SOFT_PEDAL },
+      { 68, ME_LEGATO_FOOTSWITCH },
+      { 69, ME_HOLD2 },
+      { 71, ME_HARMONIC_CONTENT },
+      { 72, ME_RELEASE_TIME },
+      { 73, ME_ATTACK_TIME },
+      { 74, ME_BRIGHTNESS },
+      { 84, ME_PORTAMENTO_CONTROL },
+      { 91, ME_REVERB_EFFECT },
+      { 92, ME_TREMOLO_EFFECT },
+      { 93, ME_CHORUS_EFFECT },
+      { 94, ME_CELESTE_EFFECT },
+      { 95, ME_PHASER_EFFECT },
+      { 96, ME_RPN_INC },
+      { 97, ME_RPN_DEC },
+      { 98, ME_NRPN_LSB },
+      { 99, ME_NRPN_MSB },
+      { 100, ME_RPN_LSB },
+      { 101, ME_RPN_MSB },
+      { 120, ME_ALL_SOUNDS_OFF },
+      { 121, ME_RESET_CONTROLLERS },
+      { 123, ME_ALL_NOTES_OFF },
+      { 126, ME_MONO },
+      { 127, ME_POLY },
+};
+
 int convert_midi_control_change(int chn, int type, int val, MidiEvent *ev_ret)
 {
-    switch(type)
-    {
-      case   0: type = ME_TONE_BANK_MSB; break;
-      case   1: type = ME_MODULATION_WHEEL; break;
-      case   2: type = ME_BREATH; break;
-      case   4: type = ME_FOOT; break;
-      case   5: type = ME_PORTAMENTO_TIME_MSB; break;
-      case   6: type = ME_DATA_ENTRY_MSB; break;
-      case   7: type = ME_MAINVOLUME; break;
-      case   8: type = ME_BALANCE; break;
-      case  10: type = ME_PAN; break;
-      case  11: type = ME_EXPRESSION; break;
-      case  32: type = ME_TONE_BANK_LSB; break;
-      case  37: type = ME_PORTAMENTO_TIME_LSB; break;
-      case  38: type = ME_DATA_ENTRY_LSB; break;
-      case  64: type = ME_SUSTAIN; break;
-      case  65: type = ME_PORTAMENTO; break;
-      case  66: type = ME_SOSTENUTO; break;
-      case  67: type = ME_SOFT_PEDAL; break;
-      case  68: type = ME_LEGATO_FOOTSWITCH; break;
-      case  69: type = ME_HOLD2; break;
-      case  71: type = ME_HARMONIC_CONTENT; break;
-      case  72: type = ME_RELEASE_TIME; break;
-      case  73: type = ME_ATTACK_TIME; break;
-      case  74: type = ME_BRIGHTNESS; break;
-      case  84: type = ME_PORTAMENTO_CONTROL; break;
-      case  91: type = ME_REVERB_EFFECT; break;
-      case  92: type = ME_TREMOLO_EFFECT; break;
-      case  93: type = ME_CHORUS_EFFECT; break;
-      case  94: type = ME_CELESTE_EFFECT; break;
-      case  95: type = ME_PHASER_EFFECT; break;
-      case  96: type = ME_RPN_INC; break;
-      case  97: type = ME_RPN_DEC; break;
-      case  98: type = ME_NRPN_LSB; break;
-      case  99: type = ME_NRPN_MSB; break;
-      case 100: type = ME_RPN_LSB; break;
-      case 101: type = ME_RPN_MSB; break;
-      case 120: type = ME_ALL_SOUNDS_OFF; break;
-      case 121: type = ME_RESET_CONTROLLERS; break;
-      case 123: type = ME_ALL_NOTES_OFF; break;
-      case 126: type = ME_MONO; break;
-      case 127: type = ME_POLY; break;
-      default: type = -1; break;
+    int i;
+    for (i = 0; i < ARRAY_SIZE(ctl_chg_list); i++) {
+	if (ctl_chg_list[i].mtype == type) {
+	    type = ctl_chg_list[i].ttype;
+	    break;
+	}
     }
+    if (i >= ARRAY_SIZE(ctl_chg_list))
+	type = -1;
 
     if(type != -1)
     {
@@ -577,6 +588,19 @@ int convert_midi_control_change(int chn, int type, int val, MidiEvent *ev_ret)
 	return 1;
     }
     return 0;
+}
+
+int unconvert_midi_control_change(MidiEvent *ev)
+{
+    int i;
+    for (i = 0; i < ARRAY_SIZE(ctl_chg_list); i++) {
+	if (ctl_chg_list[i].ttype == ev->type)
+	    break;
+    }
+    if (i >= ARRAY_SIZE(ctl_chg_list))
+	return -1;
+
+    return ctl_chg_list[i].mtype;
 }
 
 static int block_to_part(int block, int port)
@@ -4344,6 +4368,9 @@ static int read_smf_file(struct timidity_file *tf)
     }
     else
 	divisions = (int32)divisions_tmp;
+
+    if(play_mode->flag & PF_MIDI_EVENT)
+	play_mode->acntl(PM_REQ_DIVISIONS, &divisions);
 
     if(len > 6)
     {

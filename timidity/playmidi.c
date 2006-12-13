@@ -8827,7 +8827,6 @@ void playmidi_tmr_reset(void)
     buffer_pointer = common_buffer;
     for(i = 0; i < MAX_CHANNELS; i++)
 	channel[i].lasttime = 0;
-    play_mode->acntl(PM_REQ_PLAY_START, NULL);
 }
 
 void playmidi_stream_free(void)

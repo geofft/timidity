@@ -405,7 +405,6 @@ static int ctl_pass_playing_list(int n, char *args[])
     alarm(0);
     signal(SIGALRM, sig_timeout);
 
-    play_mode->close_output();
     while(1)
     {
 	socklen_t addrlen;
@@ -427,18 +426,18 @@ static int ctl_pass_playing_list(int n, char *args[])
 	}
 	else control_fd = 0;
 
-	if(play_mode->open_output() < 0)
+	if (play_mode->acntl(PM_REQ_PLAY_START, NULL) < 0)
 	{
 	    ctl.cmsg(CMSG_FATAL, VERB_NORMAL,
-		     "Couldn't open %s (`%c')",
+		     "Couldn't start %s (`%c')",
 		     play_mode->id_name, play_mode->id_character);
-	    send_status(510, "Couldn't open %s (`%c')",
+	    send_status(510, "Couldn't start %s (`%c')",
 			play_mode->id_name, play_mode->id_character);
 	    if (control_port) {
 		close(control_fd);
 		control_fd = -1;
 	    }
-	    continue;
+	    break;
 	}
 
 	server_reset();
@@ -447,7 +446,7 @@ static int ctl_pass_playing_list(int n, char *args[])
 	doit();
 	ctl.cmsg(CMSG_INFO, VERB_NOISY, "Connection closed");
 
-	play_mode->close_output();
+	play_mode->acntl(PM_REQ_PLAY_END, NULL);
 
 	if(control_fd != -1 && control_port)
 	{
@@ -651,15 +650,14 @@ static void doit(void)
 
 	    if(data_fd != -1 && (tmr_running || notmr_running))
 	    {
-		    double wait_time;
-		    int32 filled;
+		    double wait_time, filled;
 
 		    if (IS_STREAM_TRACE)
 			filled = aq_filled();
 		    else
 			filled = high_time_at * play_mode->rate;
 
-		    wait_time = (double)filled / play_mode->rate - low_time_at;
+		    wait_time = filled / play_mode->rate - low_time_at;
 		    if(wait_time <= 0)
 			usec = 0;
 		    else

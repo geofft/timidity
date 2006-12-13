@@ -287,11 +287,9 @@ static int acntl(int request, void *arg)
     switch(request)
     {
       case PM_REQ_DISCARD:
-	/* Must be defined this request but I don't know how to do */
-/*	fprintf(stderr,
-		"hpux_a.c: acntl(): PM_REQ_DISCARD is not implemented.");
- */
-	return -1;
+      case PM_REQ_PLAY_START: /* Called just before playing */
+      case PM_REQ_PLAY_END: /* Called just after playing */
+        return 0;
     }
     return -1;
 }

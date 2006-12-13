@@ -390,8 +390,6 @@ static int ctl_pass_playing_list(int n, char *args[])
 	j += note_key_offset, j -= floor(j / 12.0) * 12;
 	current_freq_table = j;
 
-	play_mode->close_output();
-
 	if (ctl.flags & CTLF_DAEMONIZE)
 	{
 		int pid = fork();
@@ -560,9 +558,9 @@ static void server_reset(void)
 
 static int start_sequencer(struct seq_context *ctxp)
 {
-	if (play_mode->open_output() < 0) {
+	if (play_mode->acntl(PM_REQ_PLAY_START, NULL) < 0) {
 		ctl.cmsg(CMSG_FATAL, VERB_NORMAL,
-			 "Couldn't open %s (`%c')",
+			 "Couldn't start %s (`%c')",
 			 play_mode->id_name, play_mode->id_character);
 		return 0;
 	}
@@ -592,7 +590,7 @@ static void stop_sequencer(struct seq_context *ctxp)
 		snd_seq_stop_queue(ctxp->handle, ctxp->queue, NULL);
 		snd_seq_drain_output(ctxp->handle);
 	}
-	play_mode->close_output();
+	play_mode->acntl(PM_REQ_PLAY_END, NULL);
 	free_instruments(0);
 	free_global_mblock();
 	ctxp->used = 0;

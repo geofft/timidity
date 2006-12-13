@@ -517,6 +517,10 @@ static int acntl(int request, void *arg)
 	    open_output();
             return 0;
         }
+
+        case PM_REQ_PLAY_START: /* Called just before playing */
+        case PM_REQ_PLAY_END: /* Called just after playing */
+    	    return 0;
     }
 
     return -1;

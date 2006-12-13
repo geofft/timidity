@@ -36,6 +36,7 @@ timidity_SOURCES = \
 	aq.c \
 	aq.h \
 	au_a.c \
+	midi_a.c \
 	audio_cnv.c \
 	audio_cnv.h \
 	common.c \
