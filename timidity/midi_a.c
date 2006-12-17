@@ -100,7 +100,7 @@ PlayMode dmp = {
     acntl
 };
 
-#define CARR(...) ((u_int8_t []) {__VA_ARGS__})
+#define CARR(...) ((uint8_t []) {__VA_ARGS__})
 #define M_FWRITE(...) m_fwrite(CARR(__VA_ARGS__), sizeof(CARR(__VA_ARGS__)))
 #define M_FWRITE_STR(s) m_fwrite((s), sizeof(s) - 1)
 

@@ -41,6 +41,8 @@
 #include <FLAC/export.h> /* need export.h to figure out API version from FLAC_API_VERSION_CURRENT */
 #undef FLAC_API
 #undef OggFLAC_API
+#define FLAC_API
+#define OggFLAC_API
 #endif
 
 /* by LEGACY_FLAC we mean before FLAC 1.1.3 */
