@@ -219,18 +219,20 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 		}
 	}else{
 		if(pa_data.samplesToGo < datalength  ){
-			if(pa_data.bufpoint+datalength <= buflimit){
-				memcpy(out, pa_data.bufpoint, datalength);
-				pa_data.bufpoint += datalength;
+			if(pa_data.bufpoint+pa_data.samplesToGo <= buflimit){
+				memcpy(out, pa_data.bufpoint, pa_data.samplesToGo);
+				pa_data.bufpoint += pa_data.samplesToGo;
 			}else{
 				int32 send;
 				send = buflimit-pa_data.bufpoint;
-				memcpy(out, pa_data.bufpoint, send);
+				if (send !=0) memcpy(out, pa_data.bufpoint, send);
 				out +=send;
-				memcpy(out, pa_data.buf, datalength -send);
-				pa_data.bufpoint = pa_data.buf+datalength -send;
+				memcpy(out, pa_data.buf, pa_data.samplesToGo -send);
+				pa_data.bufpoint = pa_data.buf+pa_data.samplesToGo -send;
+				out += pa_data.samplesToGo -send;
 			}
 			memset(out, 0x0, datalength-pa_data.samplesToGo);
+			pa_data.samplesToGo=0;
 			finished = 0;
 		}else{
 			if(pa_data.bufpoint + datalength <= buflimit){
@@ -239,7 +241,7 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 			}else{
 				int32 send;
 				send = buflimit-pa_data.bufpoint;
-				memcpy(out, pa_data.bufpoint, send);
+				if (send !=0) memcpy(out, pa_data.bufpoint, send);
 				out += send;
 				memcpy(out, pa_data.buf, datalength -send);
 				pa_data.bufpoint = pa_data.buf+datalength -send;
@@ -456,7 +458,7 @@ static int output_data(char *buf, int32 nbytes)
 		//buf += nbytes;
 	}else{
 		int32 send = pa_data.buf+bytesPerInBuffer*2 - pa_data.bufepoint;
-		memcpy(pa_data.bufepoint, buf, send);
+		if (send != 0) memcpy(pa_data.bufepoint, buf, send);
 		buf += send;
 		memcpy(pa_data.buf, buf, nbytes - send);
 		pa_data.bufepoint = pa_data.buf + nbytes - send;
@@ -503,8 +505,8 @@ static void close_output(void)
 #endif
 		Pa_Sleep(  bytesPerInBuffer/dpm.rate*1000  );
 	}	
-	err = Pa_StopStream( stream );
-//	if( err != paNoError ) goto error;
+	err = Pa_AbortStream( stream );
+    if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
 	err = Pa_CloseStream( stream );
 //	if( err != paNoError ) goto error;
 	Pa_Terminate(); 
@@ -529,6 +531,7 @@ static int acntl(int request, void *arg)
 {
     switch(request)
     {
+
       case PM_REQ_GETQSIZ:
 		 *(int *)arg = bytesPerInBuffer*2;
     	return 0;
@@ -542,21 +545,23 @@ static int acntl(int request, void *arg)
     	return 0;
 		//break;
       case PM_REQ_DISCARD:
-    	Pa_StopStream( stream );
-    	close_output();
-	    open_output();
-		return 0;
-		//break;
       case PM_REQ_FLUSH:
-    	close_output();
-	    open_output();
+    	pa_data.samplesToGo=0;
+    	pa_data.bufpoint=pa_data.bufepoint;
+    	err = Pa_AbortStream( stream );
+    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
 		return 0;
 		//break;
-      case PM_REQ_RATE:  /* NOT WORK */
+//      case PM_REQ_FLUSH:
+//    	err = Pa_StopStream( stream );
+//    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
+//		return -1;
+		//break;
+      case PM_REQ_RATE:  //* NOT WORK *
     	{
     		int i;
     		double sampleRateBack;
-    		i = *(int *)arg; /* sample rate in and out */
+    		i = *(int *)arg; //* sample rate in and out *
     		close_output();
     		sampleRateBack=dpm.rate;
     		dpm.rate=i;
@@ -570,9 +575,22 @@ static int acntl(int request, void *arg)
     	}
     	//break;
 
-      case PM_REQ_PLAY_START: /* Called just before playing */
-      case PM_REQ_PLAY_END: /* Called just after playing */
+      case PM_REQ_PLAY_START: //* Called just before playing *
+      case PM_REQ_PLAY_END: //* Called just after playing *
         return 0;
+      
+      default:
+    	return -1;
+
     }
-    return -1;
+	return -1;
+error:
+/*
+	Pa_Terminate(); pa_active=0;
+#ifdef AU_PORTAUDIO_DLL
+  free_portaudio_dll();
+#endif
+*/
+	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error in acntl : %s\n", Pa_GetErrorText( err ) );
+	return -1;
 }

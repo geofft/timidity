@@ -1,11 +1,12 @@
 # Configure paths for libvorbis
 # Jack Moffitt <jack@icecast.org> 10-21-2000
 # Shamelessly stolen from Owen Taylor and Manish Singh
+# thomasvs added check for vorbis_bitrate_addblock which is new in rc3
 
-dnl AM_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl XIPH_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libvorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
 dnl
-AC_DEFUN([AM_PATH_VORBIS],
+AC_DEFUN([XIPH_PATH_VORBIS],
 [dnl 
 dnl Get the cflags and libraries
 dnl
@@ -43,7 +44,7 @@ AC_ARG_ENABLE(vorbistest, [  --disable-vorbistest       Do not try to compile an
     ac_save_CFLAGS="$CFLAGS"
     ac_save_LIBS="$LIBS"
     CFLAGS="$CFLAGS $VORBIS_CFLAGS $OGG_CFLAGS"
-    LIBS="$LIBS $VORBIS_LIBS $OGG_LIBS"
+    LIBS="$LIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
 dnl
 dnl Now check if the installed Vorbis is sufficiently new.
 dnl
@@ -53,11 +54,23 @@ dnl
 #include <stdlib.h>
 #include <string.h>
 #include <vorbis/codec.h>
+#include <vorbis/vorbisenc.h>
 
 int main ()
 {
-  system("touch conf.vorbistest");
-  return 0;
+    vorbis_block 	vb;
+    vorbis_dsp_state	vd;
+    vorbis_info		vi;
+
+    vorbis_info_init (&vi);
+    vorbis_encode_init (&vi, 2, 44100, -1, 128000, -1);
+    vorbis_analysis_init (&vd, &vi);
+    vorbis_block_init (&vd, &vb);
+    /* this function was added in 1.0rc3, so this is what we're testing for */
+    vorbis_bitrate_addblock (&vb);
+
+    system("touch conf.vorbistest");
+    return 0;
 }
 
 ],, no_vorbis=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
