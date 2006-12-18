@@ -24,6 +24,9 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
+/* Define if you have ARTS sound server */
+#undef HAVE_ARTS
+
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
@@ -67,7 +70,7 @@
 /* Define to 1 if you have the <getopt.h> header file. */
 #undef HAVE_GETOPT_H
 
-/* Define to 1 if you have `getopt_long function' */
+/* Define to 1 if you have `getopt_long' function */
 #undef HAVE_GETOPT_LONG
 
 /* Define to 1 if you have the `getpagesize' function. */
@@ -168,6 +171,9 @@
 
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
+
+/* Define to 1 if you have `open_memstream' function */
+#undef HAVE_OPEN_MEMSTREAM
 
 /* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
@@ -468,7 +474,7 @@
 #undef inline
 #endif
 
-/* Define to `long' if <sys/types.h> does not define. */
+/* Define to `long int' if <sys/types.h> does not define. */
 #undef off_t
 
 /* for VC */
@@ -480,7 +486,7 @@
 /* for VC */
 #undef popen
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* for VC */
