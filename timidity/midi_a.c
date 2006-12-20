@@ -44,7 +44,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#ifndef __WIN32__
+#ifndef WIN32
 #include <arpa/inet.h>
 #else
 #include <winsock.h>
@@ -54,6 +54,14 @@
 #else
 #include "server_defs.h"
 #endif /* HAVE_SYS_SOUNDCARD_H */
+#ifndef __GNUC__
+#include <stdarg.h>
+#endif
+#ifdef WIN32
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#endif
 
 #include "timidity.h"
 #include "common.h"
@@ -100,8 +108,24 @@ PlayMode dmp = {
     acntl
 };
 
+static size_t m_fwrite(const void *ptr, size_t size);
+#ifdef __GNUC__
 #define CARR(...) ((uint8_t []) {__VA_ARGS__})
-#define M_FWRITE(...) m_fwrite(CARR(__VA_ARGS__), sizeof(CARR(__VA_ARGS__)))
+#define M_FWRITE(a, ...) m_fwrite(CARR(__VA_ARGS__), sizeof(CARR(__VA_ARGS__)))
+#else
+void M_FWRITE(int n, ...)
+{
+	uint8 a;
+	va_list ap;
+	va_start(ap, n);
+	while(n--){
+		a=(uint8)va_arg(ap, int);
+		m_fwrite(&a, sizeof(uint8));
+	};
+	va_end(ap);
+}
+	
+#endif
 #define M_FWRITE_STR(s) m_fwrite((s), sizeof(s) - 1)
 
 static size_t m_fwrite(const void *ptr, size_t size)
@@ -153,7 +177,7 @@ static void finalize_midi_header(void)
 static void set_tempo(void)
 {
     M_FWRITE_STR("\xff\x51\3");
-    M_FWRITE(tempo >> 16, tempo >> 8, tempo);
+    M_FWRITE(3, tempo >> 16, tempo >> 8, tempo);
 }
 
 static void set_time_sig(void)
@@ -194,10 +218,10 @@ static void midout_write_delta_time(int32 time)
     for (idx = 0; idx < 3; idx++) {
 	if (started_printing || c[idx]) {
 	    started_printing = 1;
-	    M_FWRITE(c[idx] | 0x80);
+	    M_FWRITE(1, c[idx] | 0x80);
 	}
     }
-    M_FWRITE(c[3]);
+    M_FWRITE(1, c[3]);
 }
 
 static void start_midi_track(void)
@@ -261,7 +285,15 @@ static void close_output(void)
 	if (strcmp(dmp.name, "-") == 0)
 	    dmp.fd = STDOUT_FILENO;
 	else
+#ifndef WIN32
 	    dmp.fd = creat(dmp.name, 0666);
+#else
+#ifdef __DMC__
+		dmp.fd = open(dmp.name, O_BINARY|O_CREAT|O_WRONLY,S_IREAD|S_IWRITE);
+#else
+        dmp.fd = _open(dmp.name, _O_BINARY|_O_CREAT|_O_WRONLY,_S_IREAD|_S_IWRITE);
+#endif
+#endif
 	if (dmp.fd != -1) {
 	    std_write(dmp.fd, midibuf, midi_pos);
 	    if (strcmp(dmp.name, "-") != 0)
@@ -275,43 +307,43 @@ static void close_output(void)
 static void midout_noteon(int chn, int note, int vel, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_NOTEON, note & 0x7f, vel & 0x7f);
+    M_FWRITE(3,(chn & 0x0f) | MIDI_NOTEON, note & 0x7f, vel & 0x7f);
 }
 
 static void midout_noteoff(int chn, int note, int vel, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_NOTEOFF, note & 0x7f, vel & 0x7f);
+    M_FWRITE(3, (chn & 0x0f) | MIDI_NOTEOFF, note & 0x7f, vel & 0x7f);
 }
 
 static void midout_control(int chn, int control, int value, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_CTL_CHANGE, control & 0x7f, value & 0x7f);
+    M_FWRITE(3, (chn & 0x0f) | MIDI_CTL_CHANGE, control & 0x7f, value & 0x7f);
 }
 
 static void midout_keypressure(int chn, int control, int value, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_KEY_PRESSURE, control & 0x7f, value & 0x7f);
+    M_FWRITE(3, (chn & 0x0f) | MIDI_KEY_PRESSURE, control & 0x7f, value & 0x7f);
 }
 
 static void midout_channelpressure(int chn, int vel, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_CHN_PRESSURE, vel & 0x7f);
+    M_FWRITE(2, (chn & 0x0f) | MIDI_CHN_PRESSURE, vel & 0x7f);
 }
 
 static void midout_bender(int chn, int pitch, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_PITCH_BEND, pitch & 0x7f, (pitch >> 7) & 0x7f);
+    M_FWRITE(3, (chn & 0x0f) | MIDI_PITCH_BEND, pitch & 0x7f, (pitch >> 7) & 0x7f);
 }
 
 static void midout_program(int chn, int pgm, int32 time)
 {
     midout_write_delta_time(time);
-    M_FWRITE((chn & 0x0f) | MIDI_PGM_CHANGE, pgm & 0x7f);
+    M_FWRITE(2, (chn & 0x0f) | MIDI_PGM_CHANGE, pgm & 0x7f);
 }
 
 static void midout_tempo(int chn, int a, int b, int32 time)
@@ -342,7 +374,7 @@ static void midout_timesig(int chn, int a, int b, int32 time)
 	midout_write_delta_time(time);
 	M_FWRITE_STR("\xff\x58\4");
     }
-    M_FWRITE(a, b);
+    M_FWRITE(2, a, b);
 }
 
 static int do_event(MidiEvent * ev)
