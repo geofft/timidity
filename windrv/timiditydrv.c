@@ -26,11 +26,9 @@
 
 #include <process.h>
 #if __DMC__
-extern "C" 
 unsigned long _beginthreadex( void *security, unsigned stack_size,
 		unsigned ( __stdcall *start_address )( void * ), void *arglist,
 		unsigned initflag, unsigned *thrdaddr );
-extern "C" 
 void _endthreadex( unsigned retval );
 #endif
 
@@ -45,19 +43,55 @@ void _endthreadex( unsigned retval );
 #include "timiditydrv.h"
 
 #include "mmddk.h"  
-/* Use XP SDK's mmsystem.h. mingw's lacks some definitions */
-#include "mmsystem.h" //From SDK (Digital mars can't use SDK's mmsystem.h)
+
+#include <mmsystem.h>
+
+// some compilers' mmsystem.h lacks MIDIOUTCAPS2 definitions,
+// so followings are imported from wine's mmsystem.h
+#if !( defined(_MSC_VER) || \
+	( defined(__POCC__) && (__POCC__ >= 450) ) || \
+	( defined(__BORLANDC__) && (__BORLANDC__ >= 0x582) ) )
+	
+typedef struct tagMIDIOUTCAPS2A {
+    WORD	wMid;
+    WORD	wPid;
+    MMVERSION	vDriverVersion;
+    CHAR	szPname[MAXPNAMELEN];
+    WORD	wTechnology;
+    WORD	wVoices;
+    WORD	wNotes;
+    WORD	wChannelMask;
+    DWORD	dwSupport;
+    GUID	ManufacturerGuid;
+    GUID	ProductGuid;
+    GUID	NameGuid;
+} MIDIOUTCAPS2A, *LPMIDIOUTCAPS2A;
+
+typedef struct tagMIDIOUTCAPS2W {
+    WORD	wMid;
+    WORD	wPid;
+    MMVERSION	vDriverVersion;
+    WCHAR	szPname[MAXPNAMELEN];
+    WORD	wTechnology;
+    WORD	wVoices;
+    WORD	wNotes;
+    WORD	wChannelMask;
+    DWORD	dwSupport;
+    GUID	ManufacturerGuid;
+    GUID	ProductGuid;
+    GUID	NameGuid;
+} MIDIOUTCAPS2W, *LPMIDIOUTCAPS2W;
+#endif
 
 #if defined(__MINGW32__) || defined(__WATCOMC__)
 #define __IID_DEFINED__ 1
 #endif
 #include "timiditydrv_i.c"
-#include "mmreg.h"	//Fom SDK
 
-extern "C" {
+//#include "mmreg.h"	//Fom SDK for MM_UNMAPPED & MM_PID_UNMAPPED
+
 #include "config.h"
 #include "sysdep.h"
-}
 
 #include "timiwp_timidity.h"
 
@@ -73,7 +107,6 @@ static volatile int stop_rtthread = 0;
 static HANDLE hCalcThread = NULL;
 static HANDLE hRtsynThread = NULL;
 
-extern "C" 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved ){
 	if (fdwReason == DLL_PROCESS_ATTACH){
 		DisableThreadLibraryCalls(hinstDLL);
@@ -135,21 +168,16 @@ STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, 
 HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 	MIDIOUTCAPSA * myCapsA;
 	MIDIOUTCAPSW * myCapsW;
-#ifndef __DMC__
 	MIDIOUTCAPS2A * myCaps2A;
 	MIDIOUTCAPS2W * myCaps2W;
-#endif
-
 	CHAR synthName[] = "Timidity++ Driver\0";
 	WCHAR synthNameW[] = L"Timidity++ Driver\0";
-
-
 	
 	switch (capsSize) {
 	case (sizeof(MIDIOUTCAPSA)):
 		myCapsA = (MIDIOUTCAPSA *)capsPtr;
-		myCapsA->wMid = MM_UNMAPPED;
-		myCapsA->wPid = MM_MPU401_MIDIOUT;
+		myCapsA->wMid = 0xffff; //MM_UNMAPPED
+		myCapsA->wPid = 0xffff; //MM_PID_UNMAPPED
 		memcpy(myCapsA->szPname, synthName, sizeof(synthName));
 		myCapsA->wTechnology = MOD_MIDIPORT;
 		myCapsA->vDriverVersion = 0x0090;
@@ -162,8 +190,8 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		break;
 	case (sizeof(MIDIOUTCAPSW)):
 		myCapsW = (MIDIOUTCAPSW *)capsPtr;
-		myCapsW->wMid = MM_UNMAPPED;
-		myCapsW->wPid = MM_MPU401_MIDIOUT;
+		myCapsW->wMid = 0xffff;
+		myCapsW->wPid = 0xffff;
 		memcpy(myCapsW->szPname, synthNameW, sizeof(synthNameW));
 		myCapsW->wTechnology = MOD_MIDIPORT;
 		myCapsW->vDriverVersion = 0x0090;
@@ -174,11 +202,11 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		return MMSYSERR_NOERROR;
 
 		break;
-#ifndef __DMC__
+
 	case (sizeof(MIDIOUTCAPS2A)):
 		myCaps2A = (MIDIOUTCAPS2A *)capsPtr;
-		myCaps2A->wMid = MM_UNMAPPED;
-		myCaps2A->wPid = MM_MPU401_MIDIOUT;
+		myCaps2A->wMid = 0xffff;
+		myCaps2A->wPid = 0xffff;
 		memcpy(myCaps2A->szPname, synthName, sizeof(synthName));
 		myCaps2A->wTechnology = MOD_MIDIPORT;
 		myCaps2A->vDriverVersion = 0x0090;
@@ -193,8 +221,8 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 
 	case (sizeof(MIDIOUTCAPS2W)):
 		myCaps2W = (MIDIOUTCAPS2W *)capsPtr;
-		myCaps2W->wMid = MM_UNMAPPED;
-		myCaps2W->wPid = MM_MPU401_MIDIOUT;
+		myCaps2W->wMid = 0xffff;
+		myCaps2W->wPid = 0xffff;
 		memcpy(myCaps2W->szPname, synthNameW, sizeof(synthNameW));
 		myCaps2W->wTechnology = MOD_MIDIPORT;
 		myCaps2W->vDriverVersion = 0x0090;
@@ -206,7 +234,6 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		myCaps2W->ProductGuid = CLSID_tim_synth;
 		myCaps2W->NameGuid = CLSID_tim_synth;
 		return MMSYSERR_NOERROR;
-#endif
 
 	default:
 		return MMSYSERR_ERROR;

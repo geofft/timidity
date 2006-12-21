@@ -18,7 +18,7 @@
 
 include $(top_srcdir)/common.makefile.in
 
-AM_CXXFLAGS = $(CFLAGS)
+AM_FLAGS = $(CFLAGS)
 
 INCLUDES = \
 	-I$(top_srcdir) \
@@ -36,7 +36,7 @@ endif
 
 libtimiditydrv_a_SOURCES = \
 	timiditydrv.idl \
-	timiditydrv.cpp \
+	timiditydrv.c \
 	timiwp_timidity.h \
 	timiwp_timidity.c \
 	timiditydrv.def \
@@ -100,7 +100,7 @@ endif
 
 DRV_LIBS =  \
 	kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib \
-	uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib winmm.lib
+	uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib winmm.lib wsock32.lib
 #	kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
 #	advapi32.lib shell32.lib ole32.lib oleaut32.lib odbc32.lib odbccp32.lib \
 #	ksguid.lib ksuser.lib
@@ -210,17 +210,17 @@ objs: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES)
 	@:
 
 if MINGWGCC
-timiditydrv.o: timiditydrv.cpp timiditydrv.h
+timiditydrv.o: timiditydrv.c timiditydrv.h
         source='$<' object='$@' libtool=no \
         depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
-        $(CXXDEPMODE) $(depcomp) \
-        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+        $(DEPMODE) $(depcomp) \
+        $(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 else
-timiditydrv.obj: timiditydrv.cpp timiditydrv.h
+timiditydrv.obj: timiditydrv.c timiditydrv.h
         source='$<' object='$@' libtool=no \
         depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
-        $(CXXDEPMODE) $(depcomp) \
-        $(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+        $(DEPMODE) $(depcomp) \
+        $(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 endif
 #     MINGWGCC
 

@@ -57,7 +57,6 @@ AM_INIT_AUTOMAKE([gnu dist-bzip2])
 AC_CONFIG_SRCDIR([timidity/timidity.c])
 AC_CONFIG_HEADERS([config.h interface.h])
 AM_MAINTAINER_MODE
-AC_PROG_CXX
 
 SHELL=${CONFIG_SHELL-"/bin/sh"}
 WISH=${WISH-"wish"}
@@ -606,20 +605,18 @@ if test "x$MSYS" = xyes ; then
     W32READDIR=yes
     ;;
   esac
-  if test "x$enable_network" = "xyes"; then
-  	if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
-      EXTRALIBS="$EXTRALIBS  wsock32.lib"
-      EXTRADEFS="$EXTRADEFS -DWINSOCK" 
-    else
-      AC_CHECK_FUNC(socket,,
-       WAPI_CHECK_LIB(wsock32,WSAStartup,
-  	     [#include <winsock.h>],
-  	     [WSAStartup(0,0);],
-         [ EXTRALIBS="$EXTRALIBS -lwsock32"
-          EXTRADEFS="$EXTRADEFS -DWINSOCK" ]
-       )
-      )
-    fi
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+    EXTRALIBS="$EXTRALIBS  wsock32.lib"
+    EXTRADEFS="$EXTRADEFS -DWINSOCK" 
+  else
+    AC_CHECK_FUNC(socket,,
+     WAPI_CHECK_LIB(wsock32,WSAStartup,
+  	   [#include <winsock.h>],
+  	   [WSAStartup(0,0);],
+       [ EXTRALIBS="$EXTRALIBS -lwsock32"
+        EXTRADEFS="$EXTRADEFS -DWINSOCK" ]
+     )
+    )
   fi
 fi
 
