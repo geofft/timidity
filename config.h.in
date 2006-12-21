@@ -474,7 +474,7 @@
 #undef inline
 #endif
 
-/* Define to `long int' if <sys/types.h> does not define. */
+/* Define to `long' if <sys/types.h> does not define. */
 #undef off_t
 
 /* for VC */
@@ -486,7 +486,7 @@
 /* for VC */
 #undef popen
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
 
 /* for VC */
