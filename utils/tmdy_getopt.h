@@ -68,6 +68,19 @@ extern int getopt (int __argc, char *const *__argv, const char *__shortopts);
 #ifdef HAVE_GETOPT_H
 /* gtopt_long() declared here */
 #include <getopt.h>
+
+#if __POCC__
+struct option {
+const char *name;
+int has_arg;
+int *flag;
+int val;
+};
+# define no_argument		0
+# define required_argument	1
+# define optional_argument	2
+#endif
+
 #else
 
 /* Describe the long-named options requested by the application.

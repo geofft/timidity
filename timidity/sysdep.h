@@ -122,9 +122,14 @@ typedef          long long  int64;
 typedef unsigned long long uint64;
 #define TIMIDITY_HAVE_INT64 1
 #elif defined(_MSC_VER) 
-/* VC++. */
+/* VC++. or PellesC */
+# ifdef __POCC__
+typedef          __int64  int64;
+typedef unsigned __int64 uint64;
+# else
 typedef          _int64  int64;
 typedef unsigned _int64 uint64;
+# endif
 #define TIMIDITY_HAVE_INT64 1
 #elif defined(__BORLANDC__) || defined(__WATCOMC__)
 typedef 	__int64 int64;
@@ -360,12 +365,28 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #if defined(_MSC_VER)
 #define strncasecmp(a,b,c)	_strnicmp((a),(b),(c))
 #define strcasecmp(a,b)		_stricmp((a),(b))
+#ifndef __POCC__
 #define open _open
 #define close _close
 #define write _write
 #define lseek _lseek
 #define unlink _unlink
 #pragma warning( 4 : 4305 4244 )
+#else
+#ifndef EPERM
+#define EPERM 1
+#endif
+#ifndef EINTR
+#define EINTR 4
+#endif
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#ifndef _MAX_PATH
+#define _MAX_PATH 260
+#endif
+#undef strncasecmp
+#endif
 #endif /* _MSC_VER */
 
 #define SAFE_CONVERT_LENGTH(len) (6 * (len) + 1)

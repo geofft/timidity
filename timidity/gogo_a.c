@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
 #include "interface.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -1009,7 +1012,7 @@ static int __stdcall MPGEthread(void)
 #if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
 	if(use_gogo_commandline_options && gogo_commandline_options!=NULL){
 		gogo_opts_reset();
-		set_gogo_opts_use_commandline_options(gogo_commandline_options);
+		set_gogo_opts_use_commandline_options((char *)gogo_commandline_options);
 	}
 #else
 	gogo_ConfigDialogInfoApply();

@@ -217,6 +217,23 @@ timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
 
 else
 
+if POCC
+timidity_LDADD = \
+	$(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+timidity_dep = $(SYSEXTRAS:.c=.$(OBJEXT)) \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(W32GUI_RES)
+
+else
+
 if BORLANDC
 timidity_LDADD = \
       interface.lib \
@@ -287,6 +304,7 @@ endif
 endif
 endif
 endif
+endif
 
 if VCPP
 
@@ -304,6 +322,30 @@ timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) 
 calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
 	@rm -f calcnewt$(EXEEXT)
 	$(VCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
+
+else
+
+if POCC
+
+if WINDRV
+POCC_LINK = polib.exe
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+	@rm -f timidity$(EXEEXT)
+	$(POCC_LINK) $(timidity_OBJECTS) $(SYSEXTRAS:.c=.$(OBJEXT)) -out:timidity.lib
+	touch timidity$(EXEEXT)
+	
+else
+POCC_LINK = polink.exe
+timidity$(EXEEXT): $(timidity_OBJECTS) $(timidity_DEPENDENCIES) $(timidity_dep) $(W32GUI_RES)
+	@rm -f timidity$(EXEEXT)
+	$(POCC_LINK) $(POCC_LDFLAGS) $(timidity_OBJECTS) $(timidity_LDADD) $(LIBS) -out:timidity.exe
+	
+endif
+
+POCCC_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
+calcnewt$(EXEEXT): $(calcnewt_OBJECTS) $(calcnewt_DEPENDENCIES)
+	@rm -f calcnewt$(EXEEXT)
+	$(POCCC_LINK) $(calcnewt_LDFLAGS) $(calcnewt_OBJECTS) $(calcnewt_LDADD) $(LIBS)
 
 else
 
@@ -392,6 +434,8 @@ endif
 endif
 #     BORLANDC
 endif
+#     POCC
+endif
 #      VCPP
 
 version.$(OBJEXT): version.c ../configure
@@ -404,6 +448,11 @@ newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt $@
 
 else
+if POCC
+newton_table.c: calcnewt$(EXEEXT)
+	./calcnewt $@
+
+else
 if WATCOM_C
 newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt > $@
@@ -412,6 +461,7 @@ else
 newton_table.c: calcnewt$(EXEEXT)
 	./calcnewt > $@
 
+endif
 endif
 endif
 

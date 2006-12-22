@@ -236,6 +236,6 @@ int std_write(int fd, const char *buffer, int size)
 {
     /* redirect stdout writes */
     if (fd == 1 && ctl->write)
-	return ctl->write(buffer, size);
+	return ctl->write((char*)buffer, size);
     return write(fd, buffer, size);
 }

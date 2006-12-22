@@ -79,6 +79,20 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/utils/utils.lib \
 	$(top_builddir)/timidity/timidity.lib
 else
+if POCC
+libtimiditydrv_a_LIBADD = \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(top_builddir)/timidity/timidity.lib
+libtimiditydrv_a_dep = \
+	$(top_builddir)/interface/interface.lib \
+	$(top_builddir)/libarc/arc.lib \
+	$(top_builddir)/libunimod/unimod.lib \
+	$(top_builddir)/utils/utils.lib \
+	$(top_builddir)/timidity/timidity.lib
+else
 libtimiditydrv_a_LIBADD = \
 	$(top_builddir)/interface/interface.lib \
 	$(top_builddir)/libarc/arc.lib \
@@ -91,6 +105,8 @@ libtimiditydrv_a_dep = \
 	$(top_builddir)/libunimod/unimod.lib \
 	$(top_builddir)/utils/utils.lib \
 	$(top_builddir)/timidity/timidity.exe
+endif
+#   POCC
 endif
 #    DMC
 endif
@@ -111,6 +127,13 @@ VC_LINK = link.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timidi
 timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
 	@rm -f $@
 	$(VC_LINK) $(VCPP_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
+else
+if POCC
+POCC_LINK = polink.exe -dll -def:timiditydrv.def -implib:timiditydrv.lib -out:timiditydrv.dll
+
+timiditydrv.dll: libtimiditydrv.a $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) $(libtimiditydrv_a_dep)
+	@rm -f $@
+	$(POCC_LINK) $(POCC_LDFLAGS) $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_LIBADD) $(LIBS)
 else
 if DMC
 DMC_LINK = dmc.exe -WD
@@ -167,6 +190,8 @@ endif
 endif
 #    DMC
 endif
+#    POCC
+endif
 #    VCPP
 
 libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS)  $(libtimiditydrv_a_dep)
@@ -195,6 +220,13 @@ if WATCOM_C
 #Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
 timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
 	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+else
+if POCC
+#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
+timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
+	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
+endif
+#     POCC
 endif
 #     WATCOM_C
 endif

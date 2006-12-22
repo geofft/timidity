@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
 #include <stdio.h>
 #if defined(__W32__)  && !defined(STDOUT_FILENO)
 #define STDOUT_FILENO 1
@@ -56,6 +59,9 @@ extern void sleep(unsigned long);
 
 #ifdef __W32__
 #include <windows.h>
+#ifdef MOUSE_MOVED
+#undef MOUSE_MOVED
+#endif
 #endif /* __W32__ */
 
 #ifdef HAVE_NCURSES_H

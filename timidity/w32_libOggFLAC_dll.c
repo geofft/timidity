@@ -385,10 +385,10 @@ int g_load_libOggFLAC_dll ( char *path )
 	g_libOggFLAC_dll = load_libOggFLAC_dll ( path );
 	if ( g_libOggFLAC_dll == NULL ) return -1;
 #ifndef IGNORE_libOggFLAC_OggFLAC__StreamEncoderStateString
-	g_libOggFLAC_OggFLAC__StreamEncoderStateString = g_libOggFLAC_dll->OggFLAC__StreamEncoderStateString;
+	g_libOggFLAC_OggFLAC__StreamEncoderStateString = (OggFLAC_API const char * const* *)g_libOggFLAC_dll->OggFLAC__StreamEncoderStateString;
 #endif
 #ifndef IGNORE_libOggFLAC_OggFLAC__StreamDecoderStateString
-	g_libOggFLAC_OggFLAC__StreamDecoderStateString = g_libOggFLAC_dll->OggFLAC__StreamDecoderStateString;
+	g_libOggFLAC_OggFLAC__StreamDecoderStateString = (OggFLAC_API const char * const* *)g_libOggFLAC_dll->OggFLAC__StreamDecoderStateString;
 #endif
 	return 0;
 }

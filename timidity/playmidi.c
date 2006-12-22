@@ -23,6 +23,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __POCC__
+#include <sys/types.h>
+#endif // for off_t
 #ifdef __W32__
 #include "interface.h"
 #endif

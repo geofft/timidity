@@ -36,6 +36,11 @@
 #include <dir.h>
 #endif /* __BORLANDC__ */
 
+/* PellesC */
+#ifdef __POCC__
+#define _MAX_FNAME 256
+#endif /* __POCC___ */
+
 #if 0
 #define API_EXPORT(type)    __declspec(dllexport) type __stdcall
 #else

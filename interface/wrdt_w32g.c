@@ -47,7 +47,18 @@
 #include "controls.h"
 #include "wrd.h"
 
+#ifdef __POCC__
+#ifdef RC_NONE
+#undef RC_NONE
+#endif
 #include <windows.h>
+#ifdef RC_NONE
+#undef RC_NONE
+#define RC_NONE 0
+#endif
+#else
+#include <windows.h>
+#endif
 #include "w32g_dib.h"
 #include "w32g_wrd.h"
 

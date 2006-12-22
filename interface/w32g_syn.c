@@ -1183,7 +1183,7 @@ static BOOL InstallService()
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, regKeyTwSynSrv,
 		0, KEY_WRITE | KEY_READ, &srvKey) == ERROR_SUCCESS)
 	{
-		if (RegSetValueEx(srvKey, "Description", NULL, REG_SZ,
+		if (RegSetValueEx(srvKey, "Description", (unsigned long int)NULL, REG_SZ,
 			(const BYTE *)serviceDescription, strlen(serviceDescription)) != ERROR_SUCCESS)
 		{
 			OutputWindowLastError("RegSetValueEx() != ERROR_SUCCESS");

@@ -39,6 +39,8 @@
 #endif
 #include <windows.h>
 
+extern void *safe_malloc(size_t count);
+
 extern CRITICAL_SECTION critSect;
 
 /*****************************************************************************************************************************/
@@ -677,7 +679,7 @@ static struct MMBuffer * GetBuffer()
 
     if (FreeBuffers)
     {
-        b           = FreeBuffers;
+    	b           = (struct MMBuffer *)FreeBuffers;
         FreeBuffers = FreeBuffers->Next;
         NumBuffersInUse++;
 
@@ -708,7 +710,7 @@ static void PutBuffer(struct MMBuffer * b)
 {
     { CHAR  b[256]; wsprintf(b, "%2d: Putting buffer...\n", NumBuffersInUse); OutputDebugString(b); }
 
-    b->Next     = FreeBuffers;
+    b->Next     = (struct MMBuffer *)FreeBuffers;
     FreeBuffers = b;
     NumBuffersInUse--;
 

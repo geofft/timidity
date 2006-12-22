@@ -228,7 +228,7 @@ case "$target" in
     EXTRADEFS="-D__W32__"
     # ??
     case "x${CC} " in
-      "xbcc32 "*) 
+      "xbcc32 "*|xbcc32) 
 #        test -n "$SHLD" || SHLD="tlink32 -Tpd"
         test -n "$SHLD" || SHLD="BCC32 -WD"
         BORLANDC=yes
@@ -237,7 +237,19 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xdmc "*) 
+      "xcc "*|xcc) 
+        test -n "$SHLD" || SHLD="polink -DLL"
+        POCC=yes
+         case " $CFLAGS " in
+           *" -MT "*)  NODEF="-nodefaultlib:pocrt.lib -nodefaultlib:crt.lib -defaultlib:crtmt.lib"  ;;
+           *" -MD "*)  NODEF="-nodefaultlib:crtmt.lib -nodefaultlib:crt.lib -defaultlib:pocrt.lib"  ;;
+           *) CFLAGS="$CFLAGS -MT"; NODEF="-nodefaultlib:pocrt.lib -nodefaultlib:crtmt.lib -defaultlib:crt.lib" ;;
+         esac
+        POCC_LDFLAGS="$NODEF winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib oldnames.lib"
+        CFLAGS="$CFLAGS -Ze -D__POCC__OLDNAMES"
+        EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
+        ;;
+      "xdmc "*|xdmc) 
         test -n "$SHLD" || SHLD="dmc -WD"
         DMC=yes
         DMC_LDFLAGS="winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib"
@@ -245,14 +257,14 @@ case "$target" in
         DLLFLAG=" "
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xwcc386_w.sh "*)
+      "xwcc386_w.sh "*|xwcc386)
          WATCOM_C=yes
          CFLAGS="$CFLAGS -br -bm -5s -zk0 -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
          DLLFLAG=" "
          WATCOM_LDFLAGS=
          EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
          ;;
-      "xcl "*) 
+      "xcl "*|xcl) 
          test -n "$SHLD" || SHLD="link -dll"
          VCPP=yes
          case " $CFLAGS " in
@@ -319,7 +331,7 @@ AC_CHECK_LIB(m,sqrt)
 AC_CHECK_LIB(socket,socket)
 AC_CHECK_LIB(dl,dlopen,lib_dl_opt=-ldl)
 AC_CHECK_LIB(objc,NSLinkModule,lib_dl_opt=-lobjc) # Mac OS X need this.
-if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes"; then
+if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$POCC" != "xyes"; then
 AC_CHECK_LIB(xpg4,setlocale) # Mac OS X (and maybe NetBSD) need this.
 fi
 AC_CHECK_FUNCS(gethostbyname,,[ AC_CHECK_LIB(nsl,gethostbyname) ])
@@ -445,8 +457,10 @@ AC_C_STRINGIZE
 AC_C_PROTOTYPES
 AC_STRUCT_TM
 AC_TYPE_SIZE_T
+if test "x$POCC" != xyes ; then
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
+fi
 
 dnl keyword "volatile" check
 AC_CACHE_CHECK(volatile declaration,timidity_cv_type_volatile,
@@ -521,7 +535,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
 AC_TYPE_SIGNAL
-if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM_C" != "xyes"; then
+if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM_C" != "xyes" && test "x$POCC" != "xyes"; then
 AC_FUNC_VPRINTF
 fi
 AC_CHECK_FUNCS( \
@@ -563,7 +577,22 @@ AC_CHECK_FUNCS( \
   usleep])
 if test "x$VCPP" = xyes; then
   AC_DEFINE(RETSIGTYPE,int)
-  AC_DEFINE(HAVE_GETCWD,int)
+  AC_DEFINE(HAVE_GETCWD,1)
+fi
+if test "x$POCC" = xyes; then
+  AC_DEFINE(HAVE_GETCWD,1)
+  AC_DEFINE(HAVE_GETHOSTBYNAME,1)
+  AC_DEFINE(HAVE_POPEN,1)
+  AC_DEFINE(HAVE_SELECT,1)
+  AC_DEFINE(HAVE_SNPRINTF,1)
+  AC_DEFINE(HAVE_STRDUP,1)
+  AC_DEFINE(HAVE_STRERROR,1)
+  AC_DEFINE(HAVE_STRCASECMP,1)
+  AC_DEFINE(HAVE_STRSTR,1)
+  AC_DEFINE(HAVE_SOCKET,1)
+  AC_DEFINE(HAVE_VSNPRINTF,1)
+  AC_DEFINE(HAVE_GETOPT,1)
+  AC_DEFINE(TIMID_VERSION,[$(PACKAGE_VERSION)],[for windows gui])
 fi
 if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes; then
   AC_DEFINE(HAVE_GETHOSTBYNAME,1)
@@ -605,7 +634,7 @@ if test "x$MSYS" = xyes ; then
     W32READDIR=yes
     ;;
   esac
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
     EXTRALIBS="$EXTRALIBS  wsock32.lib"
     EXTRADEFS="$EXTRADEFS -DWINSOCK" 
   else
@@ -948,7 +977,7 @@ if test "x$au_enable_w32" = xyes; then
      ;;
   esac
   SYSEXTRAS="$SYSEXTRAS w32_a.c"
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
   	EXTRALIBS="$EXTRALIBS winmm.lib"
   else
     EXTRALIBS="$EXTRALIBS -lwinmm"
@@ -1173,13 +1202,17 @@ dnl ogg's vorbis
 AC_MSG_CHECKING(enable_audio=vorbis)
 if test "x$au_enable_vorbis" = xyes; then
   AC_MSG_RESULT([yes, configuring vorbis])
+  if test "x$MSYS" = "xyes" && test "x$MINGWGCC" != "xyes" ; then
+    EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
+	SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
+  else
   XIPH_PATH_OGG([
     XIPH_PATH_VORBIS([
       have_vorbis=yes
       SYSEXTRAS="$SYSEXTRAS vorbis_a.c"
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
-      if test "x$MSYS" = "xyes"; then
+      if test "x$MSYS" = "xyes" && test "x$MINGWGCC" = "xyes" ; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
@@ -1190,6 +1223,7 @@ if test "x$au_enable_vorbis" = xyes; then
     AC_MSG_WARN(Unable to configure vorbis!)
     have_vorbis=no
   ])
+  fi
 else
   AC_MSG_RESULT(no)
 fi
@@ -1471,7 +1505,7 @@ dnl configure must check ncurses header with -I/usr/include/ncurses option.
 		      enable_ncurses=no ])
 		  ;;
 		*)
-		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
 		    lib_curses_opt=libpdcurses.lib
 		    AC_DEFINE(USE_PDCURSES,1,Define to 1 if you use PDcurses)
 		  else
@@ -1744,7 +1778,7 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
   ,
   [ 
   W32G_GUI=yes
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -1764,6 +1798,9 @@ CONFIG_INTERFACE(winsyng,W32G_SYN,W,
 	  DLLFLAG="-WA"
 	  lib_w32gui_opt="$lib_w32gui_opt -L/exet:nt/su:windows:4.0"
 	fi
+    if test "x$POCC" = xyes; then
+	  POCC_LDFLAGS="$POCC_LDFLAGS -subsystem:windows "
+    fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
@@ -1780,7 +1817,7 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
   ,
   [
   W32G_GUI=yes 
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -1800,6 +1837,9 @@ CONFIG_INTERFACE(w32gui, W32GUI, w,
 	  lib_w32gui_opt="$lib_w32gui_opt -L/SU:window"
 	  DLLFLAG="-WA"
 	fi
+    if test "x$POCC" = xyes; then
+	  POCC_LDFLAGS="$POCC_LDFLAGS -subsystem:windows "
+    fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
@@ -1831,8 +1871,8 @@ dnl Window Driver interface
 AC_ARG_ENABLE(windrv,
   [  --enable-windrv         Windows Driver interface(requires winsyn) ],
   [ if test "$enableval" = "yes"; then
-      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$DMC" != "xyes"; then
-	AC_MSG_ERROR(windrv: Only Support VC++ or Mingw or Borland C or Open Watcom and Digital Mars)
+      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$DMC" != "xyes" && test "x$POCC" != "xyes"; then
+	AC_MSG_ERROR(windrv: Only Support VC++ or Mingw or Borland C or Open Watcom PellesC and Digital Mars)
 	  elif test "x$WINSYN" != "xyes"; then
 	AC_MSG_ERROR(windrv: Driver must have winsyn interface)
 	  else
@@ -1953,6 +1993,7 @@ AM_CONDITIONAL(W32G_GUI, test "x$W32G_GUI" = xyes)
 AM_CONDITIONAL(WINDRV, test "x$WINDRV" = xyes)
 AM_CONDITIONAL(MSYS, test "x$MSYS" = xyes)
 AM_CONDITIONAL(VCPP, test "x$VCPP" = xyes)
+AM_CONDITIONAL(POCC, test "x$POCC" = xyes)
 AM_CONDITIONAL(BORLANDC, test "x$BORLANDC" = xyes)
 AM_CONDITIONAL(WATCOM_C, test "x$WATCOM_C" = xyes)
 AM_CONDITIONAL(DMC, test "x$DMC" = xyes)
@@ -1987,6 +2028,7 @@ AC_SUBST(timidity_LDFLAGS)
 AC_SUBST(WATCOM_LDFLAGS)
 AC_SUBST(DMC_LDFLAGS)
 AC_SUBST(VCPP_LDFLAGS)
+AC_SUBST(POCC_LDFLAGS)
 AC_SUBST(SYSEXTRAS)
 AC_SUBST(EXTRALIBS)
 AC_SUBST(NETSRCS)

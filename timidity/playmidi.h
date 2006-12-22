@@ -499,15 +499,15 @@ enum {
 	MODULE_TIMIDITY_DEBUG = 0x7f,
 };
 
-static inline int get_module() {return opt_default_module;}
+static inline int get_module(void) {return opt_default_module;}
 
-static inline int is_gs_module()
+static inline int is_gs_module(void)
 {
 	int module = get_module();
     return (module >= MODULE_SC55 && module <= MODULE_MU100);
 }
 
-static inline int is_xg_module()
+static inline int is_xg_module(void)
 {
 	int module = get_module();
     return (module >= MODULE_MU50 && module <= MODULE_MU100);

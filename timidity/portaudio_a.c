@@ -28,6 +28,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
 #define _GNU_SOURCE
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H

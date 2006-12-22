@@ -110,9 +110,16 @@ if DMC
 	start lib -c utils.lib  $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
 	if test -f utils.lib ; then touch $@ ; fi
 else
+if POCC
+	rm -f libutils.a
+	rm -f utils.lib
+	polib -OUT:utils.lib  $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
+	if test -f utils.lib ; then touch $@ ; fi
+else
 	-rm -f libutils.a
 	$(libutils_a_AR) libutils.a $(libutils_a_OBJECTS) $(libutils_a_LIBADD)
 	$(RANLIB) libutils.a
+endif
 endif
 endif
 endif

@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
 #include <stdio.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -506,7 +509,7 @@ static int flac_output_open(const char *fname, const char *comment)
 
     /* set callback */
 /*    FLAC__seekable_stream_encoder_set_metadata_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_metadata_callback); /* */
-#ifndef __BORLANDC__
+#if (!defined(__BORLANDC__) && !defined(__POCC__))
     FLAC__stream_encoder_set_metadata_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_metadata_callback); /* */
 #endif
     FLAC__seekable_stream_encoder_set_write_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_write_callback);

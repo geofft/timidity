@@ -33,6 +33,10 @@
 #endif /* HAVE_CONFIG_H */
 #include "interface.h"
 
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
+
 #include <stdio.h>
 
 #include <stdarg.h>

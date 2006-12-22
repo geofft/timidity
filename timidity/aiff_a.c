@@ -48,6 +48,7 @@
 #include "playmidi.h"
 #include "readmidi.h"
 
+
 static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 bytes);
@@ -514,3 +515,4 @@ static void ConvertToIeeeExtended(double num, char *bytes)
     bytes[8] = (char)(loMant >> 8);
     bytes[9] = (char)loMant;
 }
+

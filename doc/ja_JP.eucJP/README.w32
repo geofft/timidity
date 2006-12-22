@@ -1,10 +1,11 @@
 TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 
-£±¡¥Msys´Ä¶­²¼¤ÇMingw¤Ç¥³¥ó¥Ñ¥¤¥ë
-£²¡¥Msys´Ä¶­²¼¤ÇBoraland C++¤Ç¥³¥ó¥Ñ¥¤¥ë
-£³¡¥Msys´Ä¶­²¼¤ÇOpenWatcom¤Ç¥³¥ó¥Ñ¥¤¥ë
-£´¡¥Msys´Ä¶­²¼¤ÇVisual C++¤Ç¥³¥ó¥Ñ¥¤¥ë
-£µ¡¥Msys´Ä¶­²¼¤ÇDigital Mars¤Ç¥³¥ó¥Ñ¥¤¥ë(timiditydrv.dll¤¬¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡Ë
+£±¡¥Msys´Ä¶­²¼¤Ç Mingw ¤Ç¥³¥ó¥Ñ¥¤¥ë
+£²¡¥Msys´Ä¶­²¼¤Ç Boraland C++ ¤Ç¥³¥ó¥Ñ¥¤¥ë
+£³¡¥Msys´Ä¶­²¼¤Ç OpenWatcom ¤Ç¥³¥ó¥Ñ¥¤¥ë
+£´¡¥Msys´Ä¶­²¼¤Ç Visual C++ ¤Ç¥³¥ó¥Ñ¥¤¥ë
+£µ¡¥Msys´Ä¶­²¼¤Ç Digital Mars ¤Ç¥³¥ó¥Ñ¥¤¥ë(timiditydrv.dll¤¬¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡Ë
+£¶¡¥Msys´Ä¶­²¼¤Ç Pelles C ¤Ç¥³¥ó¥Ñ¥¤¥ë
 
 £±¡¥Msys´Ä¶­²¼¤ÇMingw¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËMingw¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
@@ -582,4 +583,100 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
               23 //#error this stub requires an updated version of <rpcndr.h>
            	make
 
-2006.01.25 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+£¶¡¥Msys´Ä¶­²¼¤Ç Pelles C ¤Ç¥³¥ó¥Ñ¥¤¥ë
+¡Ê£±¡ËPelles C ¤È MSYS ¤Î¥»¥Ã¥È¥¢¥Ã¥×
+	£±¡ËPelles C ¤Î¥»¥Ã¥È¥¢¥Ã¥×
+		Pelles C ¤Î¥Û¡¼¥à¥Ú¡¼¥¸¡Êhttp://www.smorgasbordet.com/pellesc/¡Ë¤«¤é¥À¥¦¥ó¥í¡¼¥É¤·¤Æ¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+	£²¡ËMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://sourceforge.net/projects/mingw/¡¡http://mingw.sourceforge.net/MinGWiki/))
+		"/etc/fstab"¤«¤éMINGW¤Î¥Ñ¥¹¤ÎÀßÄê¤Î¹Ô¤ò¾Ã¤¹
+		"msys.bat"¤«¤é"pocc_env.bat"¤ò¸Æ¤Ö¤è¤¦¤Ë¤¹¤ë¡£
+		(msys.bat¤ÎÀèÆ¬¹Ô¡Ë
+			call pocc_env.bat
+		(vcc_env.bat¤ÎÆâÍÆ¡Ë
+			@echo off
+			call call c:\PellesC\bin\povars32.bat
+
+			Set INCLUDE=c:\DXSDK\include;%INCLUDE%
+			Set LIB=c:\DXSDK\lib;%LIB%
+				¡ÊÂ³¤¯¡Ë
+				 ----
+¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
+	£²¡Ý£±¡Ëpcurses
+		"pdcurses-2.6.0-src.tar.bz2"¤òMingw¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¡£
+		pccurses.lib¤Ïlibpdcuses.lib¤ËÌ¾Á°¤òÊÑ¤¨¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+    £²¡Ý£²¡Ëoggvorbis(http://www.vorbis.com/)
+    	"OggVorbis-win32sdk-1.0.1.zip¡É¤ò¤È¤Ã¤Æ¤¯¤ë
+    	(http://www.vorbis.com/files/1.0.1/windows/OggVorbis-win32sdk-1.0.1.zip)
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+    £²¡Ý£³¡Ë¸á¸å¤Î¥³¡¼¥À¡¼(http://www.marinecat.net/mct_top.htm)
+    	Gogo.dll ¤ò¸á¸å¤Î¥³¡¼¥À¡¼¤«¤égogo.h¤ò¥½¡¼¥¹¥Õ¥¡¥¤¥ë¤«¤é¤È¤ê¤À¤¹¡£
+    		move gogo.h gogo\include\gogo
+    		move gogo.dll libgogo.a gogo\lib
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
+		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+			(export.h)
+			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
+		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
+			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
+		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
+		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
+	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
+		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+¡Ê£³¡Ëtimiditydrv.dll¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¾ì¹ç¤Î½àÈ÷
+		3-1)Microsoft Platform SDK¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
+		3-2)Platform SDK¤«¤émidl.exe¤ò¼è¤ê½Ð¤·¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		3-3)Free Pascal Compiler(http://www.freepascal.org/)¤«¤é
+		    cpp.exe¤ò¼è¤ê½Ð¤·fpcpp.exe¤ÈÌ¾Á°¤òÊÑ¤¨¤Æ¥Ñ¥¹¤ÎÄÌ¤Ã¤¿¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤ª¤¯¡£
+		    "cc.exe -E" ¤Ïmidl.exeÍÑ¤Î¥×¥ê¥×¥í¥»¥Ã¥µ¤Ë¤ÏÉÔ¸þ¤­¡Ë
+¡Ê£´¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
+		4-0) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_pocc
+                (configureÃæ¤Î -o xxxx ¤Ï Pelles C ¤¬¼õ¤±ÉÕ¤±¤Ê¤¤¤¿¤á)
+        4-1)timw32g.exe
+            (configure)
+            CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
+            --enable-network --enable-w32gui --enable-spline=gauss \
+            --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+            make
+             mv timidity.exe timw32g.exe
+        4-2)twsyng.exe
+            (configure)
+            CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
+            --enable-network --enable-winsyng --enable-spline=linear \
+            --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+             make
+             mv timidity.exe twsyng.exe
+        4-3)twsynsrv.exe
+            (configure)
+             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
+             --enable-network --enable-winsyng --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+             add config.h following line
+                #define TWSYNSRV 1
+             (make)
+             make
+             mv timidity.exe twsynsrv.exe
+        4-4)timidity.exe
+            (configure)
+            CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
+            --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
+             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
+            (make)
+             make
+        4-5)timiditydrv.dll
+            (configure)
+            CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
+            --enable-winsyn --enable-windrv --enable-spline=linear \
+              --enable-audio=w32,portaudio
+            (make)
+             make
+
+
+2006.12.22 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)

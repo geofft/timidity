@@ -210,9 +210,16 @@ if DMC
 	start lib -c interface.lib  $(libinterface_a_OBJECTS) $(libinterface_LIBADD)
 	if test -f interface.lib ; then touch $@ ; fi
 else
+if POCC
+	rm -f libinterface.a
+	rm -f interface.lib
+	polib -OUT:interface.lib  $(libinterface_a_OBJECTS) $(libinterface_LIBADD)
+	if test -f interface.lib ; then touch $@ ; fi
+else
 	rm -f libinterface.a
 	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
 	$(RANLIB) libinterface.a
+endif
 endif
 endif
 endif
@@ -297,6 +304,11 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 	rc -D__NT__ -l0x11 w32g_res.rc
 else
+if POCC
+w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
+	porc  w32g_res.rc
+else
 if BORLANDC
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
@@ -318,6 +330,7 @@ w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	windres -o $@ -O coff w32g_res.rc 2>&1|grep escape - >/dev/null && \
 	windres -o $@ -O coff w32g_res_escaped.rc || echo
 	rm w32g_res_escaped.rc
+endif
 endif
 endif
 endif

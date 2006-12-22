@@ -98,9 +98,16 @@ if DMC
 	start lib -c arc.lib  $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
 	if test -f arc.lib ; then touch $@ ; fi
 else
+if POCC
+	rm -f libarc.a
+	rm -f arc.lib
+	polib -OUT:arc.lib  $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
+	if test -f arc.lib ; then touch $@ ; fi
+else
 	-rm -f libarc.a
 	$(libarc_a_AR) libarc.a $(libarc_a_OBJECTS) $(libarc_a_LIBADD)
 	$(RANLIB) libarc.a
+endif
 endif
 endif
 endif

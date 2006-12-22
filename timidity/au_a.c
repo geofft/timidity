@@ -27,6 +27,10 @@
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
 
+#ifdef __POCC__
+#include <sys/types.h>
+#endif //for off_t
+
 #ifdef __W32__
 #include <stdlib.h>
 #include <io.h>

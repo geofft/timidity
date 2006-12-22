@@ -46,7 +46,6 @@
 #include "math.h"
 #include "freq.h"
 
-
 /* Define this to show all the notes touched by a bending in the
  * user interface's trace view.  This is interesting but disabled
  * because it needs tons of CPU power (tens of voices are activated

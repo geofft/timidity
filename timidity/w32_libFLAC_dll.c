@@ -1912,13 +1912,13 @@ int g_load_libFLAC_dll ( char *path )
 	g_libFLAC_dll = load_libFLAC_dll ( path );
 	if ( g_libFLAC_dll == NULL ) return -1;
 #ifndef IGNORE_libFLAC_FLAC__StreamEncoderStateString
-	g_libFLAC_FLAC__StreamEncoderStateString = g_libFLAC_dll->FLAC__StreamEncoderStateString;
+	g_libFLAC_FLAC__StreamEncoderStateString = (FLAC_API const char * const* *)g_libFLAC_dll->FLAC__StreamEncoderStateString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__StreamEncoderWriteStatusString
 	g_libFLAC_FLAC__StreamEncoderWriteStatusString = g_libFLAC_dll->FLAC__StreamEncoderWriteStatusString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__StreamDecoderStateString
-	g_libFLAC_FLAC__StreamDecoderStateString = g_libFLAC_dll->FLAC__StreamDecoderStateString;
+	g_libFLAC_FLAC__StreamDecoderStateString = (FLAC_API const char * const* *)g_libFLAC_dll->FLAC__StreamDecoderStateString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__StreamDecoderReadStatusString
 	g_libFLAC_FLAC__StreamDecoderReadStatusString = g_libFLAC_dll->FLAC__StreamDecoderReadStatusString;
@@ -1930,13 +1930,13 @@ int g_load_libFLAC_dll ( char *path )
 	g_libFLAC_FLAC__StreamDecoderErrorStatusString = g_libFLAC_dll->FLAC__StreamDecoderErrorStatusString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__SeekableStreamEncoderStateString
-	g_libFLAC_FLAC__SeekableStreamEncoderStateString = g_libFLAC_dll->FLAC__SeekableStreamEncoderStateString;
+	g_libFLAC_FLAC__SeekableStreamEncoderStateString = (FLAC_API const char * const* *)g_libFLAC_dll->FLAC__SeekableStreamEncoderStateString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__SeekableStreamEncoderSeekStatusString
 	g_libFLAC_FLAC__SeekableStreamEncoderSeekStatusString = g_libFLAC_dll->FLAC__SeekableStreamEncoderSeekStatusString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__SeekableStreamDecoderStateString
-	g_libFLAC_FLAC__SeekableStreamDecoderStateString = g_libFLAC_dll->FLAC__SeekableStreamDecoderStateString;
+	g_libFLAC_FLAC__SeekableStreamDecoderStateString = (FLAC_API const char * const* *)g_libFLAC_dll->FLAC__SeekableStreamDecoderStateString;
 #endif
 #ifndef IGNORE_libFLAC_FLAC__SeekableStreamDecoderReadStatusString
 	g_libFLAC_FLAC__SeekableStreamDecoderReadStatusString = g_libFLAC_dll->FLAC__SeekableStreamDecoderReadStatusString;
