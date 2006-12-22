@@ -1,3 +1,26 @@
+2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* configure.in doc/C/README.w32 doc/ja_JP.eucJP/README.w32
+	interface/Makefile.am interface/ncurs_c.c
+	interface/rtsyn_common.c interface/rtsyn_winmm.c
+	interface/w32g_syn.c interface/winsyn_c.c
+	interface/wrdt_w32g.c libarc/Makefile.am libarc/url_file.c
+	libarc/url_ftp.c libarc/url_http.c libarc/url_mem.c
+	libarc/url_news.c libarc/url_newsgroup.c libunimod/Makefile.am
+	libunimod/unimod.h timidity/Makefile.am timidity/aiff_a.c
+	timidity/aq.c timidity/au_a.c timidity/controls.c
+	timidity/flac_a.c timidity/gogo_a.c timidity/list_a.c
+	timidity/midi_a.c timidity/miditrace.c timidity/mod2midi.c
+	timidity/playmidi.c timidity/playmidi.h timidity/portaudio_a.c
+	timidity/raw_a.c timidity/readmidi.c timidity/recache.c
+	timidity/sndfont.c timidity/sysdep.h timidity/timidity.c
+	timidity/w32_a.c timidity/w32_gogo.c
+	timidity/w32_libFLAC_dll.c timidity/w32_libOggFLAC_dll.c
+	timidity/wave_a.c utils/Makefile.am utils/mblock.c
+	utils/readdir.h utils/readdir_win.c utils/support.c
+	utils/tmdy_getopt.h windrv/Makefile.am
+	ChangeLog:   Pelles C Compiler support
+	
 2006-12-21  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	C++ dependency is removed.
