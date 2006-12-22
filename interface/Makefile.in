@@ -295,6 +295,9 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+POCC_FALSE = @POCC_FALSE@
+POCC_LDFLAGS = @POCC_LDFLAGS@
+POCC_TRUE = @POCC_TRUE@
 P_so_libs = @P_so_libs@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
@@ -969,9 +972,13 @@ libinterface.a: $(libinterface_a_OBJECTS) $(libinterface_a_DEPENDENCIES) $(libin
 @BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f interface.lib
 @BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	start lib -c interface.lib  $(libinterface_a_OBJECTS) $(libinterface_LIBADD)
 @BORLANDC_FALSE@@DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	if test -f interface.lib ; then touch $@ ; fi
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f libinterface.a
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libinterface.a
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f libinterface.a
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f interface.lib
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	polib -OUT:interface.lib  $(libinterface_a_OBJECTS) $(libinterface_LIBADD)
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	if test -f interface.lib ; then touch $@ ; fi
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm -f libinterface.a
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(AR) cru libinterface.a $(libinterface_a_OBJECTS) $(libinterface_a_LIBADD)
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	$(RANLIB) libinterface.a
 
 .ptcl.tcl:
 	sed -e 's@%TCL_DIR%@$(TCL_DIR)@g' $< > $@
@@ -1011,25 +1018,28 @@ install.el: $(ELFILES)
 @DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 @DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
 @DMC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	rc -D__NT__ -l0x11 w32g_res.rc
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	brcc32 -ic:/borland/bcc55/include w32g_res_bc.rc
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	mv w32g_res_bc.RES w32g_res.res
-@BORLANDC_TRUE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm w32g_res_bc.rc
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
+@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp 
+@DMC_FALSE@@POCC_TRUE@@VCPP_FALSE@@WATCOM_C_FALSE@	porc  w32g_res.rc
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	brcc32 -ic:/borland/bcc55/include w32g_res_bc.rc
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	mv w32g_res_bc.RES w32g_res.res
+@BORLANDC_TRUE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm w32g_res_bc.rc
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_syn_escaped.c:w32g_syn.c escape_sjis.pl
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl < w32g_syn.c > w32g_syn_escaped.c
 
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_subwin_escaped.c:w32g_subwin.c escape_sjis.pl
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl < w32g_subwin.c > w32g_subwin_escaped.c
 
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res.rc 2>&1|grep escape - >/dev/null && \
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc || echo
-@BORLANDC_FALSE@@DMC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm w32g_res_escaped.rc
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp \
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	escape_sjis.pl <w32g_res.rc >w32g_res_escaped.rc
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res.rc 2>&1|grep escape - >/dev/null && \
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	windres -o $@ -O coff w32g_res_escaped.rc || echo
+@BORLANDC_FALSE@@DMC_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_FALSE@	rm w32g_res_escaped.rc
 #n_so_libs = @n_so_libs@
 #s_so_libs = @s_so_libs@
 #m_so_libs = @m_so_libs@

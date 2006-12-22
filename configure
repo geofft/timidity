@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT EMACS EMACSLOADPATH lispdir CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTSCCONFIG ARTSLIBS ARTSINCL ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE W32G_GUI_TRUE W32G_GUI_FALSE WINDRV_TRUE WINDRV_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE DMC_TRUE DMC_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS DMC_LDFLAGS VCPP_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT EMACS EMACSLOADPATH lispdir CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP RANLIB ac_ct_RANLIB LN_S X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS NEEDGETOPT_TRUE NEEDGETOPT_FALSE ALSA_CFLAGS ALSA_LIBS ARTSCCONFIG ARTSLIBS ARTSINCL ESD_CONFIG ESD_CFLAGS ESD_LIBS AO_CFLAGS AO_LIBS VORBIS_CFLAGS VORBIS_LIBS VORBISFILE_LIBS VORBISENC_LIBS OGG_CFLAGS OGG_LIBS LIBFLAC_CFLAGS LIBFLAC_LIBS LIBOGGFLAC_CFLAGS LIBOGGFLAC_LIBS NEEDDLOPEN_TRUE NEEDDLOPEN_FALSE ENABLE_NCURSES_TRUE ENABLE_NCURSES_FALSE n_so_libs ENABLE_SLANG_TRUE ENABLE_SLANG_FALSE s_so_libs ENABLE_MOTIF_TRUE ENABLE_MOTIF_FALSE m_so_libs ENABLE_TCLTK_TRUE ENABLE_TCLTK_FALSE k_so_libs ENABLE_DYNAMIC_TCLTK_TRUE ENABLE_DYNAMIC_TCLTK_FALSE ENABLE_EMACS_TRUE ENABLE_EMACS_FALSE e_so_libs ENABLE_VT100_TRUE ENABLE_VT100_FALSE T_so_libs ENABLE_XAW_TRUE ENABLE_XAW_FALSE a_so_libs ENABLE_DYNAMIC_XAW_TRUE ENABLE_DYNAMIC_XAW_FALSE ENABLE_XSKIN_TRUE ENABLE_XSKIN_FALSE i_so_libs ENABLE_GTK_TRUE ENABLE_GTK_FALSE PKG_CONFIG GTK_CONFIG GTK_CFLAGS GTK_LIBS g_so_libs ENABLE_SERVER_TRUE ENABLE_SERVER_FALSE r_so_libs ENABLE_ALSASEQ_TRUE ENABLE_ALSASEQ_FALSE A_so_libs ENABLE_WINSYN_TRUE ENABLE_WINSYN_FALSE W_so_libs ENABLE_PORTMIDISYN_TRUE ENABLE_PORTMIDISYN_FALSE P_so_libs ENABLE_W32G_SYN_TRUE ENABLE_W32G_SYN_FALSE ENABLE_W32GUI_TRUE ENABLE_W32GUI_FALSE w_so_libs ENABLE_PLUGIN_TRUE ENABLE_PLUGIN_FALSE p_so_libs ENABLE_NETWORK_TRUE ENABLE_NETWORK_FALSE ENABLE_SOUND_SPEC_TRUE ENABLE_SOUND_SPEC_FALSE ENABLE_WRD_TRUE ENABLE_WRD_FALSE W32G_GUI_TRUE W32G_GUI_FALSE WINDRV_TRUE WINDRV_FALSE MSYS_TRUE MSYS_FALSE VCPP_TRUE VCPP_FALSE POCC_TRUE POCC_FALSE BORLANDC_TRUE BORLANDC_FALSE WATCOM_C_TRUE WATCOM_C_FALSE DMC_TRUE DMC_FALSE MINGWGCC_TRUE MINGWGCC_FALSE W32READDIR_TRUE W32READDIR_FALSE BORLANDC_START BORLANDC_LDFLAGS timidity_LDFLAGS WATCOM_LDFLAGS DMC_LDFLAGS VCPP_LDFLAGS POCC_LDFLAGS SYSEXTRAS EXTRALIBS NETSRCS ELFILES SHLD SHCFLAGS dynamic_targets so WISH tcltk_dep INTERFACE_SRCS pkgdatadir pkglibdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -3930,7 +3930,7 @@ case "$target" in
     EXTRADEFS="-D__W32__"
     # ??
     case "x${CC} " in
-      "xbcc32 "*)
+      "xbcc32 "*|xbcc32)
 #        test -n "$SHLD" || SHLD="tlink32 -Tpd"
         test -n "$SHLD" || SHLD="BCC32 -WD"
         BORLANDC=yes
@@ -3939,7 +3939,19 @@ case "$target" in
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xdmc "*)
+      "xcc "*|xcc)
+        test -n "$SHLD" || SHLD="polink -DLL"
+        POCC=yes
+         case " $CFLAGS " in
+           *" -MT "*)  NODEF="-nodefaultlib:pocrt.lib -nodefaultlib:crt.lib -defaultlib:crtmt.lib"  ;;
+           *" -MD "*)  NODEF="-nodefaultlib:crtmt.lib -nodefaultlib:crt.lib -defaultlib:pocrt.lib"  ;;
+           *) CFLAGS="$CFLAGS -MT"; NODEF="-nodefaultlib:pocrt.lib -nodefaultlib:crtmt.lib -defaultlib:crt.lib" ;;
+         esac
+        POCC_LDFLAGS="$NODEF winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib oldnames.lib"
+        CFLAGS="$CFLAGS -Ze -D__POCC__OLDNAMES"
+        EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
+        ;;
+      "xdmc "*|xdmc)
         test -n "$SHLD" || SHLD="dmc -WD"
         DMC=yes
         DMC_LDFLAGS="winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib"
@@ -3947,14 +3959,14 @@ case "$target" in
         DLLFLAG=" "
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
-      "xwcc386_w.sh "*)
+      "xwcc386_w.sh "*|xwcc386)
          WATCOM_C=yes
          CFLAGS="$CFLAGS -br -bm -5s -zk0 -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
          DLLFLAG=" "
          WATCOM_LDFLAGS=
          EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
          ;;
-      "xcl "*)
+      "xcl "*|xcl)
          test -n "$SHLD" || SHLD="link -dll"
          VCPP=yes
          case " $CFLAGS " in
@@ -4307,7 +4319,7 @@ if test $ac_cv_lib_objc_NSLinkModule = yes; then
   lib_dl_opt=-lobjc
 fi
  # Mac OS X need this.
-if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes"; then
+if test "x$VCPP" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$POCC" != "xyes"; then
 
 echo "$as_me:$LINENO: checking for setlocale in -lxpg4" >&5
 echo $ECHO_N "checking for setlocale in -lxpg4... $ECHO_C" >&6
@@ -8751,6 +8763,7 @@ _ACEOF
 
 fi
 
+if test "x$POCC" != xyes ; then
 echo "$as_me:$LINENO: checking for off_t" >&5
 echo $ECHO_N "checking for off_t... $ECHO_C" >&6
 if test "${ac_cv_type_off_t+set}" = set; then
@@ -8883,6 +8896,7 @@ _ACEOF
 
 fi
 
+fi
 
 echo "$as_me:$LINENO: checking volatile declaration" >&5
 echo $ECHO_N "checking volatile declaration... $ECHO_C" >&6
@@ -10406,7 +10420,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM_C" != "xyes"; then
+if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM_C" != "xyes" && test "x$POCC" != "xyes"; then
 
 for ac_func in vprintf
 do
@@ -10788,7 +10802,62 @@ if test "x$VCPP" = xyes; then
 _ACEOF
 
   cat >>confdefs.h <<\_ACEOF
-#define HAVE_GETCWD int
+#define HAVE_GETCWD 1
+_ACEOF
+
+fi
+if test "x$POCC" = xyes; then
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_GETCWD 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_GETHOSTBYNAME 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_POPEN 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_SELECT 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_SNPRINTF 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_STRDUP 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_STRERROR 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_STRCASECMP 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_STRSTR 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_SOCKET 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_VSNPRINTF 1
+_ACEOF
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_GETOPT 1
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define TIMID_VERSION $(PACKAGE_VERSION)
 _ACEOF
 
 fi
@@ -11179,7 +11248,7 @@ fi
     W32READDIR=yes
     ;;
   esac
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
     EXTRALIBS="$EXTRALIBS  wsock32.lib"
     EXTRADEFS="$EXTRADEFS -DWINSOCK"
   else
@@ -11757,7 +11826,7 @@ echo "$as_me: WARNING: may not work on $target" >&2;}
      ;;
   esac
   SYSEXTRAS="$SYSEXTRAS w32_a.c"
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
   	EXTRALIBS="$EXTRALIBS winmm.lib"
   else
     EXTRALIBS="$EXTRALIBS -lwinmm"
@@ -13312,6 +13381,10 @@ echo $ECHO_N "checking enable_audio=vorbis... $ECHO_C" >&6
 if test "x$au_enable_vorbis" = xyes; then
   echo "$as_me:$LINENO: result: yes, configuring vorbis" >&5
 echo "${ECHO_T}yes, configuring vorbis" >&6
+  if test "x$MSYS" = "xyes" && test "x$MINGWGCC" != "xyes" ; then
+    EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
+	SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
+  else
 
 # Check whether --with-ogg or --without-ogg was given.
 if test "${with_ogg+set}" = set; then
@@ -13559,7 +13632,7 @@ echo "${ECHO_T}yes" >&6
       SYSEXTRAS="$SYSEXTRAS vorbis_a.c"
       EXTRADEFS="$EXTRADEFS -DAU_VORBIS $OGG_CFLAGS $VORBIS_CFLAGS"
       EXTRALIBS="$EXTRALIBS $VORBIS_LIBS $VORBISENC_LIBS $OGG_LIBS"
-      if test "x$MSYS" = "xyes"; then
+      if test "x$MSYS" = "xyes" && test "x$MINGWGCC" = "xyes" ; then
       EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	  SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
       fi
@@ -13734,6 +13807,7 @@ echo "$as_me: WARNING: Unable to configure vorbis!" >&2;}
 
   rm -f conf.oggtest
 
+  fi
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -15915,7 +15989,7 @@ fi
 
 		  ;;
 		*)
-		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+		  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
 		    lib_curses_opt=libpdcurses.lib
 
 cat >>confdefs.h <<\_ACEOF
@@ -18263,7 +18337,7 @@ fi
 
 
   W32G_GUI=yes
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
     INTERFACE_SRCS="$INTERFACE_SRCS w32g_ini.c w32g_pref.c w32g_syn.c w32g_utl.c winsyn_c.c rtsyn_common.c rtsyn_winmm.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -18283,6 +18357,9 @@ fi
 	  DLLFLAG="-WA"
 	  lib_w32gui_opt="$lib_w32gui_opt -L/exet:nt/su:windows:4.0"
 	fi
+    if test "x$POCC" = xyes; then
+	  POCC_LDFLAGS="$POCC_LDFLAGS -subsystem:windows "
+    fi
   else
   	lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
@@ -18336,7 +18413,7 @@ fi
 
 
   W32G_GUI=yes
-  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes; then
+  if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
  	INTERFACE_SRCS="$INTERFACE_SRCS w32g_c.c w32g_ini.c w32g_i.c w32g_playlist.c w32g_utl.c w32g_pref.c w32g_subwin.c w32g_subwin2.c w32g_subwin3.c w32g_ut2.c w32g_dib.c  wrdt_w32g.c w32g_mag.c"
     lib_w32gui_opt='gdi32.lib comctl32.lib comdlg32.lib ole32.lib'
     lib_user32_opt='user32.lib'
@@ -18356,6 +18433,9 @@ fi
 	  lib_w32gui_opt="$lib_w32gui_opt -L/SU:window"
 	  DLLFLAG="-WA"
 	fi
+    if test "x$POCC" = xyes; then
+	  POCC_LDFLAGS="$POCC_LDFLAGS -subsystem:windows "
+    fi
   else
     lib_w32gui_opt='-lgdi32 -lcomctl32 -lcomdlg32 -lole32'
     lib_user32_opt='-luser32'
@@ -18654,9 +18734,9 @@ esac
 if test "${enable_windrv+set}" = set; then
   enableval="$enable_windrv"
    if test "$enableval" = "yes"; then
-      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$DMC" != "xyes"; then
-	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom and Digital Mars" >&5
-echo "$as_me: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom and Digital Mars" >&2;}
+      if test "x$VCPP" != "xyes" && test "x$MINGWGCC" != "xyes" && test "x$BORLANDC" != "xyes" && test "x$WATCOM_C" != "xyes" && test "x$DMC" != "xyes" && test "x$POCC" != "xyes"; then
+	{ { echo "$as_me:$LINENO: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom PellesC and Digital Mars" >&5
+echo "$as_me: error: windrv: Only Support VC++ or Mingw or Borland C or Open Watcom PellesC and Digital Mars" >&2;}
    { (exit 1); exit 1; }; }
 	  elif test "x$WINSYN" != "xyes"; then
 	{ { echo "$as_me:$LINENO: error: windrv: Driver must have winsyn interface" >&5
@@ -19251,6 +19331,16 @@ fi
 
 
 
+if test "x$POCC" = xyes; then
+  POCC_TRUE=
+  POCC_FALSE='#'
+else
+  POCC_TRUE='#'
+  POCC_FALSE=
+fi
+
+
+
 if test "x$BORLANDC" = xyes; then
   BORLANDC_TRUE=
   BORLANDC_FALSE='#'
@@ -19375,6 +19465,7 @@ if test "x$with_x" = xyes; then
 fi
 LIBS="$LIBS $lib_dl_opt $lib_png_opt $lib_zip_opt $lib_user32_opt $lib_w32gui_opt $EXTRALIBS"
 SHLD="$SHLD $SHLDFLAGS"
+
 
 
 
@@ -19811,6 +19902,13 @@ if test -z "${VCPP_TRUE}" && test -z "${VCPP_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"VCPP\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"VCPP\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${POCC_TRUE}" && test -z "${POCC_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"POCC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"POCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -20557,6 +20655,8 @@ s,@MSYS_TRUE@,$MSYS_TRUE,;t t
 s,@MSYS_FALSE@,$MSYS_FALSE,;t t
 s,@VCPP_TRUE@,$VCPP_TRUE,;t t
 s,@VCPP_FALSE@,$VCPP_FALSE,;t t
+s,@POCC_TRUE@,$POCC_TRUE,;t t
+s,@POCC_FALSE@,$POCC_FALSE,;t t
 s,@BORLANDC_TRUE@,$BORLANDC_TRUE,;t t
 s,@BORLANDC_FALSE@,$BORLANDC_FALSE,;t t
 s,@WATCOM_C_TRUE@,$WATCOM_C_TRUE,;t t
@@ -20573,6 +20673,7 @@ s,@timidity_LDFLAGS@,$timidity_LDFLAGS,;t t
 s,@WATCOM_LDFLAGS@,$WATCOM_LDFLAGS,;t t
 s,@DMC_LDFLAGS@,$DMC_LDFLAGS,;t t
 s,@VCPP_LDFLAGS@,$VCPP_LDFLAGS,;t t
+s,@POCC_LDFLAGS@,$POCC_LDFLAGS,;t t
 s,@SYSEXTRAS@,$SYSEXTRAS,;t t
 s,@EXTRALIBS@,$EXTRALIBS,;t t
 s,@NETSRCS@,$NETSRCS,;t t
