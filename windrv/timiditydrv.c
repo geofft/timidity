@@ -24,7 +24,6 @@
 #define _WIN32_WINNT 0x0400
 #endif
 
-#include <process.h>
 #if __DMC__
 unsigned long _beginthreadex( void *security, unsigned stack_size,
 		unsigned ( __stdcall *start_address )( void * ), void *arglist,
@@ -36,59 +35,10 @@ void _endthreadex( unsigned retval );
 #include <stdio.h>
 #endif
 
-#if __DMC__
-#include <objbase.h>
-#endif
-#include <initguid.h>
-#include "timiditydrv.h"
-
+#include <windows.h>
 #include "mmddk.h"  
-
 #include <mmsystem.h>
 
-// some compilers' mmsystem.h lacks MIDIOUTCAPS2 definitions,
-// so followings are imported from wine's mmsystem.h
-#if !( defined(_MSC_VER) || \
-	( defined(__POCC__) && (__POCC__ >= 450) ) || \
-	( defined(__BORLANDC__) && (__BORLANDC__ >= 0x582) ) )
-	
-typedef struct tagMIDIOUTCAPS2A {
-    WORD	wMid;
-    WORD	wPid;
-    MMVERSION	vDriverVersion;
-    CHAR	szPname[MAXPNAMELEN];
-    WORD	wTechnology;
-    WORD	wVoices;
-    WORD	wNotes;
-    WORD	wChannelMask;
-    DWORD	dwSupport;
-    GUID	ManufacturerGuid;
-    GUID	ProductGuid;
-    GUID	NameGuid;
-} MIDIOUTCAPS2A, *LPMIDIOUTCAPS2A;
-
-typedef struct tagMIDIOUTCAPS2W {
-    WORD	wMid;
-    WORD	wPid;
-    MMVERSION	vDriverVersion;
-    WCHAR	szPname[MAXPNAMELEN];
-    WORD	wTechnology;
-    WORD	wVoices;
-    WORD	wNotes;
-    WORD	wChannelMask;
-    DWORD	dwSupport;
-    GUID	ManufacturerGuid;
-    GUID	ProductGuid;
-    GUID	NameGuid;
-} MIDIOUTCAPS2W, *LPMIDIOUTCAPS2W;
-#endif
-
-#if defined(__MINGW32__) || defined(__WATCOMC__)
-#define __IID_DEFINED__ 1
-#endif
-#include "timiditydrv_i.c"
-
-//#include "mmreg.h"	//Fom SDK for MM_UNMAPPED & MM_PID_UNMAPPED
 
 #include "config.h"
 #include "sysdep.h"
@@ -168,8 +118,6 @@ STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, 
 HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 	MIDIOUTCAPSA * myCapsA;
 	MIDIOUTCAPSW * myCapsW;
-	MIDIOUTCAPS2A * myCaps2A;
-	MIDIOUTCAPS2W * myCaps2W;
 	CHAR synthName[] = "Timidity++ Driver\0";
 	WCHAR synthNameW[] = L"Timidity++ Driver\0";
 	
@@ -202,39 +150,6 @@ HRESULT modGetCaps(PVOID capsPtr, DWORD capsSize) {
 		return MMSYSERR_NOERROR;
 
 		break;
-
-	case (sizeof(MIDIOUTCAPS2A)):
-		myCaps2A = (MIDIOUTCAPS2A *)capsPtr;
-		myCaps2A->wMid = 0xffff;
-		myCaps2A->wPid = 0xffff;
-		memcpy(myCaps2A->szPname, synthName, sizeof(synthName));
-		myCaps2A->wTechnology = MOD_MIDIPORT;
-		myCaps2A->vDriverVersion = 0x0090;
-		myCaps2A->wVoices = 0;
-		myCaps2A->wNotes = 0;
-		myCaps2A->wChannelMask = 0xffff;
-		myCaps2A->dwSupport = 0;
-		myCaps2A->ManufacturerGuid = CLSID_tim_synth;
-		myCaps2A->ProductGuid = CLSID_tim_synth;
-		myCaps2A->NameGuid = CLSID_tim_synth;
-		return MMSYSERR_NOERROR;
-
-	case (sizeof(MIDIOUTCAPS2W)):
-		myCaps2W = (MIDIOUTCAPS2W *)capsPtr;
-		myCaps2W->wMid = 0xffff;
-		myCaps2W->wPid = 0xffff;
-		memcpy(myCaps2W->szPname, synthNameW, sizeof(synthNameW));
-		myCaps2W->wTechnology = MOD_MIDIPORT;
-		myCaps2W->vDriverVersion = 0x0090;
-		myCaps2W->wVoices = 0;
-		myCaps2W->wNotes = 0;
-		myCaps2W->wChannelMask = 0xffff;
-		myCaps2W->dwSupport = 0;
-		myCaps2W->ManufacturerGuid = CLSID_tim_synth;
-		myCaps2W->ProductGuid = CLSID_tim_synth;
-		myCaps2W->NameGuid = CLSID_tim_synth;
-		return MMSYSERR_NOERROR;
-
 	default:
 		return MMSYSERR_ERROR;
 

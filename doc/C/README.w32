@@ -72,14 +72,8 @@ This file contains fllowing instructions.
         2-6)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
             Download portmidi18jun03.zip, extract it and compile it.
             Copy porttime.h libporttime.a portmidi.h libportmidi.a to appropriate directories.
-(3)Preparations for compiling timiditydrv.dll
-        3-1)install Microsoft Platform SDK
-        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
-            And move it to the PATH included PATH environment variable.
-            (cpp.exe of Mingw is not suitable for preprocessor of mild.exe)
-(4)Make TiMidity++ binaries
-        4-1)timw32g.exe
+(3)Make TiMidity++ binaries
+        3-1)timw32g.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-network --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -87,7 +81,7 @@ This file contains fllowing instructions.
              make
              strip timidity.exe
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -96,7 +90,7 @@ This file contains fllowing instructions.
              strip timidity.exe
              mv timidity.exe twsyng.exe
 
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
               CFLAGS="-O2" ./configure --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
@@ -107,14 +101,14 @@ This file contains fllowing instructions.
              strip timidity.exe
              mv timidity.exe twsynsrv.exe
 
-        4-4)timidity.exe
+        3-4)timidity.exe
             (configure)
              CFLAGS="-O2" ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              strip timidity.exe
-        4-5)timiditydrv.dll
+        3-5)timiditydrv.dll
             (configure)
              CFLAGS="-O2" ./configure --enable-winsyn --enable-windrv --enable-spline=linear \
              --enable-audio=w32,portaudio
@@ -199,17 +193,10 @@ This file contains fllowing instructions.
         2-7)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
              I don't know how to comple portaudio with bcc commandline tools.
              
-(3)Preparations for compiling timiditydrv.dll
-        3-1)install Microsoft Platform SDK
-        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
-            And move it to the PATH included PATH environment variable.
-            (cpp32.exe of BorlandC is not suitable for preprocessor of mild.exe)
-            
-(4)Make TiMidity++ binaries
-        4-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+(3)Make TiMidity++ binaries
+        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
                 ( -o xxxx options are not work correctly with BCC)
-        4-0-2)Invoke sh rm_float.sh in timidity/timidity directory.
+        3-0-2)Invoke sh rm_float.sh in timidity/timidity directory.
                 This removes f , F, l and L after sonst float valude( ex. 123.45f )
 <rmfloat.sh>
 -------------------- from here -----------------------
@@ -221,14 +208,14 @@ mv $foo.rm $foo
 done
 -------------------- to here -------------------------
                 
-        4-1)timw32g.exe
+        3-1)timw32g.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -236,7 +223,7 @@ done
             (make)
              make
              mv timidity.exe twsyng.exe
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
              CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS=""\
              ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
@@ -246,14 +233,14 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-       4-4)timidity.exe
+       3-4)timidity.exe
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
-       4-5)timiditydrv.dll
+       3-5)timiditydrv.dll
             (configure)
             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc  --enable-winsyn --enable-windrv --enable-spline=linear \
@@ -338,18 +325,11 @@ done
         2-7)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
             I don't know how to comple portmidi with OpenWatcom commandline tools..
             
-(3)Preparations for compiling timiditydrv.dll
-        3-1)install Microsoft Platform SDK
-        3-2)Get midl.exe form Platform SDK and move it to the PATH included PATH environment variable.
-        3-3)Rename cpp.exe from Free Pascal Compiler(http://www.freepascal.org/) to fpcpp.exe.
-            And move it to the PATH included PATH environment variable.
-            ('wcc386 -p' is not suitable for preprocessor of mild.exe)
-
-(4)Make TiMidity++ binaries
-        4-0-1)wcc386_w.sh & wpp386_w.sh( They are in scripts/directory )
+(3)Make TiMidity++ binaries
+        3-0-1)wcc386_w.sh & wpp386_w.sh( They are in scripts/directory )
             Wcc386 is not familier to GNU autoconf tools,
             Use my wrapper wcc386_w.sh, instead of wcc386.exe
-        4-1)timw32g.exe
+        3-1)timw32g.exe
             (configure)
             CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
@@ -358,7 +338,7 @@ done
             (make)
              make
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
             CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -367,7 +347,7 @@ done
              (make)
              make
              mv timidity.exe twsyng.exe
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
             CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -378,7 +358,7 @@ done
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        4-4)timidity.exe
+        3-4)timidity.exe
             (configure)
             CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
@@ -386,7 +366,7 @@ done
             --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
             (make)
             make
-       4-5)timiditydrv.dll
+       3-5)timiditydrv.dll
             (configure)
             CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
              ./configure  --enable-winsyn --enable-windrv --enable-spline=linear \
@@ -460,10 +440,8 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             But for compling TiMidity++ only portaudio.h is needed.
         2-7)portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
             I don't know how to comple portmidi with vc commandline tools..
-(3)Preparations for compiling timiditydrv.dll
-        3-1)install Microsoft Platform SDK
-(4)Make TiMidity++ binaries
-        4-1)timw32g.exe
+(3)Make TiMidity++ binaries
+        3-1)timw32g.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
             ./configure --enable-network --enable-w32gui --enable-spline=gauss \
@@ -471,7 +449,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             (make)
             make
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -479,7 +457,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             (make)
              make
              mv timidity.exe twsyng.exe
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
              CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2"\
              ./configure --enable-network --enable-winsyng --enable-spline=linear \
@@ -489,14 +467,14 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        4-4)timidity.exe
+        3-4)timidity.exe
             (configure)
             CC="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
              ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
-        4-5)timiditydrv.dll
+        3-5)timiditydrv.dll
             (configure)
             CC="cl" CXX="cl" CPP="cl.exe -EP"  CFLAGS="-O2" \
               ./configure --enable-winsyn --enable-windrv --enable-spline=linear \
@@ -574,21 +552,16 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
 	2-6) portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		（Not used here）
 
-(3) If you plan to complile timiditydrv.dll, adittional process requied.
-		3-1) Insltall "Microsoft Platform SDK".
-		3-2)Place midl.exe from "Platform SDK"  in the directory included PATH environment valiable.
-		3-3)Get cpp.exe from Free Pascal Compiler(http://www.freepascal.org/),
-		    and rename it to fpcpp.exe.
-(4) Compiling TiMIdity++
-        4-0-1) "LF -> CRLF" conversion
+(3) Compiling TiMIdity++
+        3-0-1) "LF -> CRLF" conversion
            $sh script/unix2dos.sh
-        4-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure |perl -pe 's/CXX\s-o\s\S\S*\s/CXX /g' - >configure_dm
+        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure |perl -pe 's/CXX\s-o\s\S\S*\s/CXX /g' - >configure_dm
                 (because "-o xxxx" is not suitbable dmc.exe )
-        4-0-2) Get cpp.exe from Free Pascal Compiler(http://www.freepascal.org/),
+        3-0-2) Get cpp.exe from Free Pascal Compiler(http://www.freepascal.org/),
              and rename it as fpcpp.exe. 
             （preprocessor of dmc.exe is not compatible "gnu autotools"）
 
-        4-1)timw32g.exe
+        3-1)timw32g.exe
             (configure)
             CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-w32gui --enable-spline=gauss \
@@ -596,7 +569,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             (make)
              make
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
             CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
@@ -604,7 +577,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              (make)
              make
              mv timidity.exe twsyng.exe
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
             CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
@@ -614,14 +587,14 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        4-4)timidity.exe
+        3-4)timidity.exe
             (configure)
             CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
             make
-       4-5)timiditydrv.dll
+       3-5)timiditydrv.dll
             (configure)
             CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-interface=windrv,winsyn --enable-network --enable-spline=linear \
@@ -682,17 +655,10 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
 	2-6) portmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
 		（not used here）
 
-(3)If you want to compile timiditydrv.dll
-		3-1)Install Microsoft Platform SDK.
-		3-2)Get midl.exe from Platform SDK.
-		3-3)Get cpp.exe from Free Pascal Compiler(http://www.freepascal.org/),
-		    and rename cpp.exe tofpcpp.exe.
-		    ("cc.exe -E" si not suitable  midl.exe）
-
-(4)Compiling TiMIdity++
-		4-0) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_pocc
+(3)Compiling TiMIdity++
+		3-0) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_pocc
                 (configure中の -o xxxx は Pelles C が受け付けないため)
-        4-1)timw32g.exe
+        3-1)timw32g.exe
             (configure)
             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
             --enable-network --enable-w32gui --enable-spline=gauss \
@@ -700,7 +666,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             (make)
             make
              mv timidity.exe timw32g.exe
-        4-2)twsyng.exe
+        3-2)twsyng.exe
             (configure)
             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
             --enable-network --enable-winsyng --enable-spline=linear \
@@ -708,7 +674,7 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
             (make)
              make
              mv timidity.exe twsyng.exe
-        4-3)twsynsrv.exe
+        3-3)twsynsrv.exe
             (configure)
              CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
              --enable-network --enable-winsyng --enable-spline=linear \
@@ -718,14 +684,14 @@ Use -MD option insted of -MT and link msvcrt.lib instead of libcmt.lib.
              (make)
              make
              mv timidity.exe twsynsrv.exe
-        4-4)timidity.exe
+        3-4)timidity.exe
             (configure)
             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
             --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
-        4-5)timiditydrv.dll
+        3-5)timiditydrv.dll
             (configure)
             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
             --enable-winsyn --enable-windrv --enable-spline=linear \

@@ -1,5 +1,14 @@
 2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
 
+	* windrv/Makefile.am
+	  windrv/timiditydrv.c:       free from idl
+	* windrv/timiditydrv.idl:     removed
+	* windrv/oemsetup.inf:        removed
+	* doc/ja_JP.eucJP/README.w32,
+	  doc/C/README.w32:           updated
+
+2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
+
 	* configure.in doc/C/README.w32 doc/ja_JP.eucJP/README.w32
 	interface/Makefile.am interface/ncurs_c.c
 	interface/rtsyn_common.c interface/rtsyn_winmm.c

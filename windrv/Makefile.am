@@ -35,7 +35,6 @@ noinst_LIBRARIES = libtimiditydrv.a
 endif
 
 libtimiditydrv_a_SOURCES = \
-	timiditydrv.idl \
 	timiditydrv.c \
 	timiwp_timidity.h \
 	timiwp_timidity.c \
@@ -45,11 +44,9 @@ libtimiditydrv_a_SOURCES = \
 SYSEXTRAS: timiditydrv.h
 
 EXTRA_DIST = \
-	 oemsetup.inf \
 	 timiditydrv.inf  
 
 
-CLEANFILES = timiditydrv.tlb
 
 if MINGWGCC
 libtimiditydrv_a_LIBADD = \
@@ -197,69 +194,14 @@ endif
 libtimiditydrv.a: $(libtimiditydrv_a_OBJECTS)  $(libtimiditydrv_a_dep)
 	touch $@ 
 
-if VCPP
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -nologo timiditydrv.idl 
-else
-if DMC
-#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
-else
-if BORLANDC
-#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -cpp_cmd fpcpp -cpp_opt -E -Ii:/dm/include/win32 timiditydrv.idl
-else
-if MINGWGCC
-#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
-else
-if WATCOM_C
-#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
-else
-if POCC
-#Get cpp.exe from Free Pascal and rename it to fpcpp.exe.
-timiditydrv_i.c timiditydrv_p.c timiditydrv.h:timiditydrv.idl
-	midl -cpp_cmd fpcpp -cpp_opt -E timiditydrv.idl
-endif
-#     POCC
-endif
-#     WATCOM_C
-endif
-#     MINGWGCC
-endif
-#     BORLANDC
-endif
-#     DMC
-endif
-#     VCPP
 
 objs: $(libtimiditydrv_a_OBJECTS) $(libtimiditydrv_a_DEPENDENCIES) 
 	@:
 
-if MINGWGCC
-timiditydrv.o: timiditydrv.c timiditydrv.h
-        source='$<' object='$@' libtool=no \
-        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
-        $(DEPMODE) $(depcomp) \
-        $(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-else
-timiditydrv.obj: timiditydrv.c timiditydrv.h
-        source='$<' object='$@' libtool=no \
-        depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' \
-        $(DEPMODE) $(depcomp) \
-        $(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-endif
-#     MINGWGCC
 
 
 uninstall-info-am:
 
 clean:
-	-rm -f *.o *.a *.dll *.obj *.RES *.idb *.pch *.lib
-	-rm -f timiditydrv_i.c timiditydrv_p.c timiditydrv.h dlldata.c
+	-rm -f *.o *.a *.dll *.obj *.RES  *.lib
 
