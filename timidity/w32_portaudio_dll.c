@@ -31,24 +31,15 @@
 
 #include "w32_portaudio.h"
 
-extern int load_portaudio_dll(int type);
-extern void free_portaudio_dll(void);
 
 #ifdef PORTAUDIO_V19
+
+extern int load_portaudio_dll(int);
+extern void free_portaudio_dll(void);
+
 /***************************************************************
  name: portaudio_dll  dll: portaudio.dll 
 ***************************************************************/
-
-// (PaError)0 -> paDeviceUnavailable
-// (PaDeviceID)0 -> paNoDevice
-
-// #define PA_DLL_ASIO     1
-// #define PA_DLL_WIN_DS   2
-// #define PA_DLL_WIN_WMME 3
-#define PA_DLL_ASIO_FILE     "pa_asio.dll"
-#define PA_DLL_WIN_DS_FILE   "pa_win_ds.dll"
-#define PA_DLL_WIN_WMME_FILE "pa_win_wmme.dll"
-
 
 typedef int(*type_Pa_GetVersion)( void );
 typedef const char*(*type_Pa_GetVersionText)( void );
@@ -128,24 +119,10 @@ void free_portaudio_dll(void)
 	}
 }
 
-int load_portaudio_dll(int type)
+int load_portaudio_dll(int a)
 {
-	char* dll_file = NULL;
-	switch(type){
-	case PA_DLL_ASIO:
-		dll_file = PA_DLL_ASIO_FILE;
-		break;
-	case PA_DLL_WIN_DS:
-		dll_file = PA_DLL_WIN_DS_FILE;
-		break;
-	case PA_DLL_WIN_WMME:
-		dll_file = PA_DLL_WIN_WMME_FILE;
-		break;
-	default:
-		return -1;
-	}
 	if(!h_portaudio_dll){
-		h_portaudio_dll = LoadLibrary(dll_file);
+		h_portaudio_dll = LoadLibrary("portaudio.dll");
 		if(!h_portaudio_dll) return -1;
 	}
 	portaudio_dll.Pa_GetVersion = (type_Pa_GetVersion)GetProcAddress(h_portaudio_dll,"Pa_GetVersion");
@@ -470,7 +447,16 @@ void Pa_Sleep( long msec )
 }
 
 /***************************************************************/
+
+
+
 #else
+
+
+
+extern int load_portaudio_dll(int type);
+extern void free_portaudio_dll(void);
+
 /***************************************************************
  name: portaudio_dll  dll: portaudio.dll 
 ***************************************************************/

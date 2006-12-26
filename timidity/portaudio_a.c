@@ -80,6 +80,8 @@ static int pa_active=0;
 static int first=1;
 
 #if PORTAUDIO_V19
+PaHostApiTypeId HostApiTypeId;
+const PaHostApiInfo  *HostApiInfo;
 PaDeviceIndex DeviceIndex;
 const PaDeviceInfo *DeviceInfo;
 PaStreamParameters StreamParameters;
@@ -281,6 +283,21 @@ static int open_output(void)
 	PaSampleFormat SampleFormat, nativeSampleFormats;
 
 #ifdef AU_PORTAUDIO_DLL
+#if PORTAUDIO_V19
+  {
+		if(&dpm == &portaudio_asio_play_mode){
+			HostApiTypeId = paASIO;
+		} else if(&dpm == &portaudio_win_ds_play_mode){
+			HostApiTypeId = paDirectSound;
+		} else if(&dpm == &portaudio_win_wmme_play_mode){
+			HostApiTypeId = paMME;
+		} else {
+			return -1;
+		}
+		if(load_portaudio_dll(0))
+				return -1;
+  }
+#else
   {
 		if(&dpm == &portaudio_asio_play_mode){
 			if(load_portaudio_dll(PA_DLL_ASIO))
@@ -296,6 +313,7 @@ static int open_output(void)
 		}
   }
 #endif
+#endif
 	/* if call twice Pa_OpenStream causes paDeviceUnavailable error  */
 	if(pa_active == 1) return 0; 
 	if(pa_active == 0){
@@ -305,7 +323,18 @@ static int open_output(void)
 	}
 
 #ifdef PORTAUDIO_V19
-	DeviceIndex = Pa_GetDefaultOutputDevice();
+	{
+		PaHostApiIndex i, ApiCount;
+		i = 0;
+		ApiCount = Pa_GetHostApiCount();
+		do{
+			HostApiInfo=Pa_GetHostApiInfo(i);
+			if( HostApiInfo->type == HostApiTypeId ) break;
+	    	i++;
+		}while ( i < ApiCount );
+		if ( i == ApiCount ) goto error;
+    }
+	DeviceIndex = HostApiInfo->defaultOutputDevice;
 	if(DeviceIndex==paNoDevice) goto error;
 	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
 	if(DeviceInfo==NULL) goto error;

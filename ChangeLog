@@ -1,3 +1,8 @@
+2006-12-26  Keishi Suenaga <skeishi@yahoo.co.jp>
+	* timidity/portaudio_a.c
+	  timidity/w32_portaudio_dll.c: fix portaudio v19 support
+	  now use only one dll named portaudio.dll.
+
 2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	* windrv/Makefile.am
