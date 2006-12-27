@@ -20,10 +20,9 @@
     portaudio_a.c by skeishi <s_keishi@mutt.freemail.ne.jp>
     based on esd_a.c
 
-    Functions to play sound through EsounD
+    Functions to play sound through Portaudio
 */
 #define PORTAUDIO_V19 1
-
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -44,8 +43,13 @@
 #include <strings.h>
 #endif
 
-//#include <windows.h>
+#if defined(PORTAUDIO_V19) && defined(__W32__)
+#include <windows.h>
+#endif
 #include <portaudio.h>
+#if defined(PORTAUDIO_V19) && defined(__W32__)
+#include <pa_asio.h>
+#endif
 
 #ifdef AU_PORTAUDIO_DLL
 #include "w32_portaudio.h"
@@ -323,6 +327,7 @@ static int open_output(void)
 	}
 
 #ifdef PORTAUDIO_V19
+#ifdef AU_PORTAUDIO_DLL
 	{
 		PaHostApiIndex i, ApiCount;
 		i = 0;
@@ -339,6 +344,13 @@ static int open_output(void)
 	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
 	if(DeviceInfo==NULL) goto error;
 
+#else
+	DeviceIndex = Pa_GetDefaultOutputDevice();
+	if(DeviceIndex==paNoDevice) goto error;
+	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
+	if(DeviceInfo==NULL) goto error;
+#endif
+	
 	if (dpm.encoding & PE_24BIT) {
 		SampleFormat = paInt24;
 	}else if (dpm.encoding & PE_16BIT) {
@@ -403,9 +415,9 @@ static int open_output(void)
 	
 #else
 	DeviceID = Pa_GetDefaultOutputDeviceID();
-	if(DeviceID==paNoDevice) goto error;
+	if(DeviceID==paNoDevice) goto error2;
 	DeviceInfo = Pa_GetDeviceInfo( DeviceID);	
-	if(DeviceInfo==NULL) goto error;
+	if(DeviceInfo==NULL) goto error2;
 	nativeSampleFormats = DeviceInfo->nativeSampleFormats;
 
 	exclude_enc = PE_ULAW | PE_ALAW | PE_BYTESWAP;
@@ -469,11 +481,15 @@ static int open_output(void)
 #endif
 
 error:
+	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
+error2:
 	Pa_Terminate(); pa_active = 0;
 #ifdef AU_PORTAUDIO_DLL
+#ifndef PORTAUDIO_V19
   free_portaudio_dll();
 #endif
-	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
+#endif
+
 	return -1;
 }
 static int output_data(char *buf, int32 nbytes)
@@ -530,7 +546,7 @@ error:
 static void close_output(void)
 {	
 	if( pa_active==0) return;
-#if PORTAUDIO_V19
+#ifdef PORTAUDIO_V19
 	if(Pa_IsStreamActive(stream)){
 #else
 	if(Pa_StreamActive(stream)){
@@ -545,7 +561,9 @@ static void close_output(void)
 	pa_active=0;
 
 #ifdef AU_PORTAUDIO_DLL
+#ifndef PORTAUDIO_V19
   free_portaudio_dll();
+#endif
 #endif
 
 	return;
@@ -553,7 +571,9 @@ static void close_output(void)
 error:
 	Pa_Terminate(); pa_active=0;
 #ifdef AU_PORTAUDIO_DLL
+#ifndef PORTAUDIO_V19
   free_portaudio_dll();
+#endif
 #endif
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 	return;

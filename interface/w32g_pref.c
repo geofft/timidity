@@ -1507,6 +1507,11 @@ PrefTiMidity3DialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					gogoConfigDialog();
 				}
 #endif
+#ifdef AU_PORTAUDIO_DLL
+				if(st_temp->opt_playmode[0]=='o'){
+					asioConfigDialog();
+				}
+#endif
 			}
 			break;
 		case IDC_COMBO_OUTPUT_MODE:
@@ -3551,3 +3556,72 @@ int vorbis_ConfigDialogInfoLoadINI(void)
 }
 
 #endif	// AU_VORBIS
+
+
+#ifdef AU_PORTAUDIO_DLL
+///////////////////////////////////////////////////////////////////////
+//
+// asioConfigDialog
+//
+///////////////////////////////////////////////////////////////////////
+#include <portaudio.h>
+#include <pa_asio.h>
+#include "w32_portaudio.h"
+
+
+int asioConfigDialog(void)
+{
+	extern HWND hMainWnd;
+
+	PaHostApiTypeId HostApiTypeId;
+	const PaHostApiInfo  *HostApiInfo;
+	PaDeviceIndex DeviceIndex;
+	PaError err;
+	HWND hWnd;
+	int buffered_data;
+
+	PaHostApiIndex i, ApiCount;
+	
+	
+	if(load_portaudio_dll(0))
+		return -1;
+	
+	play_mode->acntl(PM_REQ_GETFILLED, &buffered_data);
+	if (buffered_data != 0) return -1;
+	
+	play_mode->close_output();
+	err = Pa_Initialize();
+	if( err != paNoError ) goto error1;
+
+
+	HostApiTypeId = paASIO;
+	i = 0;
+	hWnd = hPrefWnd;
+	ApiCount = Pa_GetHostApiCount();
+	do{
+		HostApiInfo=Pa_GetHostApiInfo(i);
+		if( HostApiInfo->type == HostApiTypeId ) break;
+	    i++;
+	}while ( i < ApiCount );
+	if ( i == ApiCount ) goto error2;
+    DeviceIndex = HostApiInfo->defaultOutputDevice;
+	if(DeviceIndex==paNoDevice) goto error2;
+
+	if (HostApiTypeId ==  paASIO){
+    	err = PaAsio_ShowControlPanel( DeviceIndex, (void*) hWnd);
+		if( err != paNoError ) goto error1;
+	}
+	Pa_Terminate();
+	play_mode->open_output();
+//  	free_portaudio_dll();
+	return 0;
+	
+error1:
+//  	free_portaudio_dll();
+	MessageBox(NULL, Pa_GetErrorText( err ), "Port Audio (asio) error", IDOK);
+error2:
+	Pa_Terminate();
+	return -1;
+}
+
+#endif //AU_PORTAUDIO_DLL

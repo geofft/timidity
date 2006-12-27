@@ -95,5 +95,10 @@ extern int vorbisConfigDialog(void);
 
 #endif // AU_VORBIS
 
+#ifdef AU_PORTAUDIO_DLL
+
+extern int asioConfigDialog(void);
+
+#endif //AU_PORTAUDIO_DLL
 
 #endif /* __W32G2_PREF_H__ */

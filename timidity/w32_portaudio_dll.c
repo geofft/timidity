@@ -26,13 +26,18 @@
 
 #ifdef AU_PORTAUDIO_DLL
 
+#ifdef __W32__
 #include <windows.h>
+#endif
 #include <portaudio.h>
+
 
 #include "w32_portaudio.h"
 
 
 #ifdef PORTAUDIO_V19
+
+#include <pa_asio.h>
 
 extern int load_portaudio_dll(int);
 extern void free_portaudio_dll(void);
@@ -73,6 +78,7 @@ typedef signed long(*type_Pa_GetStreamReadAvailable)( PaStream* stream );
 typedef signed long(*type_Pa_GetStreamWriteAvailable)( PaStream* stream );
 typedef PaError(*type_Pa_GetSampleSize)( PaSampleFormat format );
 typedef void(*type_Pa_Sleep)( long msec );
+typedef PaError(*type_PaAsio_ShowControlPanel)( PaDeviceIndex device, void* systemSpecific );
 
 static struct portaudio_dll_ {
 	 type_Pa_GetVersion Pa_GetVersion;
@@ -107,6 +113,7 @@ static struct portaudio_dll_ {
 	 type_Pa_GetStreamWriteAvailable Pa_GetStreamWriteAvailable;
 	 type_Pa_GetSampleSize Pa_GetSampleSize;
 	 type_Pa_Sleep Pa_Sleep;
+	 type_PaAsio_ShowControlPanel PaAsio_ShowControlPanel;
 } portaudio_dll;
 
 static volatile HANDLE h_portaudio_dll = NULL;
@@ -189,6 +196,8 @@ int load_portaudio_dll(int a)
 	if(!portaudio_dll.Pa_GetSampleSize){ free_portaudio_dll(); return -1; }
 	portaudio_dll.Pa_Sleep = (type_Pa_Sleep)GetProcAddress(h_portaudio_dll,"Pa_Sleep");
 	if(!portaudio_dll.Pa_Sleep){ free_portaudio_dll(); return -1; }
+	portaudio_dll.PaAsio_ShowControlPanel = (type_PaAsio_ShowControlPanel)GetProcAddress(h_portaudio_dll,"PaAsio_ShowControlPanel");
+	if(!portaudio_dll.PaAsio_ShowControlPanel){ free_portaudio_dll(); return -1; }
 	return 0;
 }
 
@@ -444,6 +453,13 @@ void Pa_Sleep( long msec )
 	if(h_portaudio_dll){
 		portaudio_dll.Pa_Sleep(msec);
 	}
+}
+PaError PaAsio_ShowControlPanel( PaDeviceIndex device, void* systemSpecific )
+{
+	if(h_portaudio_dll){
+		return portaudio_dll.PaAsio_ShowControlPanel(device,systemSpecific);
+	}
+	return (PaError)0;
 }
 
 /***************************************************************/
