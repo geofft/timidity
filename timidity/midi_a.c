@@ -44,15 +44,11 @@
 #else
 #include <strings.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <sys/stat.h>
+#endif
 #include <fcntl.h>
 #include <stdlib.h>
-#ifndef WIN32
-#include <arpa/inet.h>
-#else
-#include <winsock.h>
-#endif
 #ifdef HAVE_SYS_SOUNDCARD_H
 #include <sys/soundcard.h>
 #else
@@ -172,7 +168,7 @@ static void write_midi_header(void)
 
 static void finalize_midi_header(void)
 {
-    unsigned short tpqn = htons(ticks_per_quarter_note);
+    uint16 tpqn = BE_SHORT(ticks_per_quarter_note);
 
     fflush(fp);
     memcpy(midibuf + TICKS_OFFSET, &tpqn, 2);	/* #ticks / quarter note */
@@ -262,7 +258,7 @@ static void end_midi_track(void)
 
     fflush(fp);
 
-    track_bytes = htonl(midi_pos - track_size_pos - 4);
+    track_bytes = BE_LONG(midi_pos - track_size_pos - 4);
     memcpy(midibuf + track_size_pos, &track_bytes, 4);
 }
 
@@ -286,18 +282,12 @@ static void close_output(void)
 
     fclose(fp);
     if (dmp.name) {
+	#ifndef __MACOS__
 	if (strcmp(dmp.name, "-") == 0)
 	    dmp.fd = STDOUT_FILENO;
 	else
-#ifndef WIN32
-	    dmp.fd = creat(dmp.name, 0666);
-#else
-#ifdef __DMC__
-		dmp.fd = open(dmp.name, O_BINARY|O_CREAT|O_WRONLY,S_IREAD|S_IWRITE);
-#else
-        dmp.fd = _open(dmp.name, _O_BINARY|_O_CREAT|_O_WRONLY,_S_IREAD|_S_IWRITE);
-#endif
-#endif
+	#endif
+	    dmp.fd = open(dmp.name, FILE_OUTPUT_MODE);
 	if (dmp.fd != -1) {
 	    std_write(dmp.fd, midibuf, midi_pos);
 	    if (strcmp(dmp.name, "-") != 0)
