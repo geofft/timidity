@@ -232,7 +232,7 @@ ControlMode *ctl_list[]={
 
 ControlMode *ctl=DEFAULT_CONTROL_MODE;
 
-int std_write(int fd, const char *buffer, int size)
+int std_write(int fd, const void *buffer, int size)
 {
     /* redirect stdout writes */
     if (fd == 1 && ctl->write)

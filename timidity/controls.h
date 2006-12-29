@@ -158,6 +158,6 @@ typedef struct {
 extern ControlMode *ctl_list[], *ctl;
 extern int dumb_error_count;
 
-extern int std_write(int fd, const char *buffer, int size);
+extern int std_write(int fd, const void *buffer, int size);
 
 #endif /* ___CONTROLS_H_ */
