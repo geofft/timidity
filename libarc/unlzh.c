@@ -68,6 +68,8 @@
 #define MAGIC5 19
 #define INBUFSIZ BUFSIZ
 
+#define MIN(a,b)  ((a) < (b) ? (a) : (b))
+
 struct _UNLZHHandler
 {
     void *user_val;
@@ -407,7 +409,7 @@ static void read_pt_len(UNLZHHandler decoder,
 	    if(i == i_special)
 	    {
 		c = getbits(decoder, 2);
-		while(--c >= 0)
+		while(--c >= 0 && i < NPT)
 		    decoder->pt_len[i++] = 0;
 	    }
 	}
@@ -433,6 +435,7 @@ static void read_c_len(UNLZHHandler decoder)
     else
     {
 	i = 0;
+	n = MIN(n, NC);
 	while(i < n)
 	{
 	    c = decoder->pt_table[decoder->bitbuf >> (16 - 8)];
@@ -446,7 +449,7 @@ static void read_c_len(UNLZHHandler decoder)
 		    else
 			c = decoder->left[c];
 		    mask >>= 1;
-		} while(c >= NT);
+		} while(c >= NT && (mask || c != decoder->left[c]));
 	    }
 	    fillbuf(decoder, decoder->pt_len[c]);
 	    if(c <= 2)
@@ -495,7 +498,7 @@ static unsigned short decode_c_st1(UNLZHHandler decoder)
 	    else
 		j = decoder->left[j];
 	    mask >>= 1;
-	} while(j >= NC);
+	} while(j >= NC && (mask || j != decoder->left[j]));
 	fillbuf(decoder, decoder->c_len[j] - 12);
     }
     return j;
@@ -520,7 +523,7 @@ static unsigned short decode_p_st1(UNLZHHandler decoder)
 	    else
 		j = decoder->left[j];
 	    mask >>= 1;
-	} while(j >= np);
+	} while(j >= np && (mask || j != decoder->left[j]));
 	fillbuf(decoder, decoder->pt_len[j] - 8);
     }
     if(j != 0)
@@ -1063,9 +1066,10 @@ static int make_table(UNLZHHandler decoder,
     unsigned short start[17];  /* first code of bitlen */
     unsigned short total;
     unsigned int i;
-    int j, k, l, m, n, available;
+    int j, k, l, m, n, available, tablelimit;
     unsigned short *p;
 
+    tablelimit = 1 << tablebits;
     available = nchar;
 
 /* initialize */
@@ -1077,7 +1081,14 @@ static int make_table(UNLZHHandler decoder,
 
 /* cnttable */
     for(i = 0; i < nchar; i++)
+    {
+	if(bitlen[i] > 16)
+	{
+	    fprintf(stderr, "Decode: Bad table (4)\n");
+	    return 1;
+	}
 	cnttable[bitlen[i]]++;
+    }
 
 /* calculate first code */
     total = 0;
@@ -1103,10 +1114,12 @@ static int make_table(UNLZHHandler decoder,
 
 /* initialize */
     j = start[tablebits + 1] >> m;
-    k = 1 << tablebits;
     if(j != 0)
+    {
+	k = MIN(1 << tablebits, tablelimit);
 	for(i = j; i < k; i++)
 	    table[i] = 0;
+    }
 
 /* create table and tree */
     for(j = 0; j < nchar; j++)
@@ -1118,13 +1131,20 @@ static int make_table(UNLZHHandler decoder,
 	if(k <= tablebits)
 	{
 	    /* code in table */
+	    l = MIN(l, tablelimit);
 	    for(i = start[k]; i < l; i++)
 		table[i] = j;
 	}
 	else
 	{
 	    /* code not in table */
-	    p = &table[(i = start[k]) >> m];
+	    i = start[k];
+	    if ((i >> m) >= tablelimit)
+	    {
+		fprintf(stderr, "Decode: Bad table (6)\n");
+		return 1;
+	    }
+	    p = &table[i >> m];
 	    i <<= tablebits;
 	    n = k - tablebits;
 	    /* make tree (n length) */
