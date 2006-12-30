@@ -1,3 +1,8 @@
+2006-12-30  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* interfece/w32g_pref.c can change timidity.cfg editor
+	  by environment valiable TIMiDITY_CFG_EDITOR.
+
 2006-12-29  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/controls.[ch]: Changed argument type of std_write().

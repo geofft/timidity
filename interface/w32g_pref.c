@@ -471,9 +471,16 @@ PrefPlayerDialogProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 	   }
 			break;
 		case IDC_BUTTON_CFG_EDIT:
+
+		if(getenv("TIMIDITY_CFG_EDITOR") != NULL){
+			ShellExecute(NULL, "open", getenv("TIMIDITY_CFG_EDITOR"), ConfigFile, NULL, SW_SHOWNORMAL);
+		}else{	
 			ShellExecute(NULL, "open", "notepad.exe", ConfigFile, NULL, SW_SHOWNORMAL);
+		}
+			break;		 
+/*			ShellExecute(NULL, "open", "notepad.exe", ConfigFile, NULL, SW_SHOWNORMAL);
 			break;
-/*		case IDC_BUTTON_CFG_DIR:
+		case IDC_BUTTON_CFG_DIR:
 			ShellExecute(NULL, "open", ConfigFileOpenDir, NULL, NULL, SW_SHOWNORMAL);
 			break;*/
 		case IDC_BUTTON_CFG_RELOAD:
