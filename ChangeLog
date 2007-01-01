@@ -1,3 +1,9 @@
+2007-1-1  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* timidity/timidity.c
+	  timidity/w32_a.c
+	  timidity/portaudio_a.c: can select optput device.
+	  
 2007-01-01  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c:

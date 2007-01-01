@@ -178,6 +178,7 @@ enum {
 	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
+	TIM_OPT_OUTPUT_DEVICE,
 	TIM_OPT_FLAC_VERIFY,
 	TIM_OPT_FLAC_PADDING,
 	TIM_OPT_FLAC_COMPLEVEL,
@@ -320,6 +321,9 @@ static const struct option longopts[] = {
 	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "no-output-swab",         no_argument,       NULL, TIM_OPT_OUTPUT_SWAB },
 	{ "output-swab",            optional_argument, NULL, TIM_OPT_OUTPUT_SWAB },
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	{ "output-device",          required_argument, NULL, TIM_OPT_OUTPUT_DEVICE },
+#endif
 #ifdef AU_FLAC
 	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
 	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
@@ -383,6 +387,12 @@ char *opt_aq_max_buff = NULL,
      *opt_aq_fill_buff = NULL;
 void timidity_init_aq_buff(void);
 int opt_control_ratio = 0; /* Save -C option */
+#ifdef AU_PORTAUDIO
+extern int opt_pa_device_id;
+#endif
+#ifdef AU_W32
+extern int opt_wmme_device_id;
+#endif
 
 int set_extension_modes(char *);
 int set_ctl(char *);
@@ -460,6 +470,9 @@ static inline int parse_opt_output_signed(const char *);
 static inline int parse_opt_output_bitwidth(const char *);
 static inline int parse_opt_output_format(const char *);
 static inline int parse_opt_output_swab(const char *);
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+static inline int parse_opt_output_device(const char *);
+#endif
 #ifdef AU_FLAC
 static inline int parse_opt_flac_verify(const char *);
 static inline int parse_opt_flac_padding(const char *);
@@ -2804,6 +2817,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_output_format(arg);
 	case TIM_OPT_OUTPUT_SWAB:
 		return parse_opt_output_swab(arg);
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	case TIM_OPT_OUTPUT_DEVICE:
+		return parse_opt_output_device(arg);
+#endif
 #ifdef AU_FLAC
 	case TIM_OPT_FLAC_VERIFY:
 		return parse_opt_flac_verify(arg);
@@ -3940,6 +3957,11 @@ static int parse_opt_h(const char *arg)
 "  `A'          A-Law encoding" NLS
 "  `x'          byte-swapped output" NLS, fp);
 	fputs(NLS, fp);
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	fputs("Output device options (append to -O? option):" NLS
+"  `d(num)'     OutputDeviceID(if blank show available device list)" NLS, fp);
+	fputs(NLS, fp);
+#endif
 	fputs("Alternative output format long options:" NLS
 "  --output-stereo" NLS
 "  --output-mono" NLS
@@ -3953,6 +3975,12 @@ static int parse_opt_h(const char *arg)
 "  --output-alaw" NLS
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	fputs("Output device long options:" NLS
+"  --output-device=n  (if n=-1 show available device list)" NLS, fp);
+	fputs(NLS, fp);
+#endif
+
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
 	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
@@ -4330,6 +4358,36 @@ static inline int parse_opt_O(const char *arg)
 			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
 			break;
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+		case 'd':
+#ifdef AU_PORTAUDIO
+			if (play_mode->id_character == 'p' || play_mode->id_character == 'P'||play_mode->id_character == 'o'){
+				int ret;
+				ret = sscanf(arg+1,"%d",&opt_pa_device_id);
+				if( (ret != 0) && (ret != EOF) ){
+					while( *(arg+1) >= '0' && *(arg + 1) <= '9') { arg++; }
+				}else{
+					opt_pa_device_id=-2;
+					play_mode->open_output();
+					return 1;
+				}
+			}
+#endif
+#ifdef AU_W32
+			if (play_mode->id_character == 'd'){
+				int ret;
+				ret = sscanf(arg+1,"%d",&opt_wmme_device_id);
+				if( (ret != 0) && (ret != EOF) ){
+					while( *(arg+1) >= '0' && *(arg + 1) <= '9') { arg++; }
+				}else{					
+					opt_wmme_device_id=-2;
+					play_mode->open_output();
+					return 1;
+				}
+			}
+#endif
+			break;
+#endif
 		default:
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Unknown format modifier `%c'", *arg);
@@ -4415,6 +4473,37 @@ static inline int parse_opt_output_swab(const char *arg)
 	return 0;
 }
 
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+static inline int parse_opt_output_device(const char *arg)
+{
+	if (arg == NULL) return 1;
+#ifdef AU_PORTAUDIO
+	if ( (play_mode->id_character == 'p') || (play_mode->id_character == 'P') || (play_mode->id_character == 'o') ){
+		int ret;
+		ret = sscanf(arg,"%d",&opt_pa_device_id);
+		if( (ret == 0) || (ret == EOF) ) return 1;		
+		if( opt_pa_device_id  ==  -1){
+			opt_pa_device_id=-2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+#endif
+#ifdef AU_W32
+	if (play_mode->id_character == 'd'){
+		int ret;
+		ret = sscanf(arg,"%d",&opt_wmme_device_id);
+		if( (ret == 0) || (ret == EOF) ) return 1;		
+		if( opt_wmme_device_id  ==  -1){
+			opt_wmme_device_id=-2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+#endif
+	return 0;
+}
+#endif
 #ifdef AU_FLAC
 extern void flac_set_option_verify(int);
 extern void flac_set_option_padding(int);

@@ -43,6 +43,8 @@ extern void *safe_malloc(size_t count);
 
 extern CRITICAL_SECTION critSect;
 
+int opt_wmme_device_id = -1;
+
 /*****************************************************************************************************************************/
 
 #if defined(__CYGWIN32__) || defined(__MINGW32__)
@@ -143,6 +145,8 @@ static void close_output    (void);
 static int  output_data     (char * Data, int32 Size);
 static int  acntl           (int request, void * arg);
 
+static void print_device_list(void);
+
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 //#if defined ( IA_W32GUI )
 volatile int data_block_bits = DEFAULT_AUDIO_BUFFER_BITS;
@@ -219,6 +223,11 @@ static int open_output(void)
     MMRESULT        Result;
     UINT            DeviceID;
 
+	if (opt_wmme_device_id == -2){
+		print_device_list();
+		return -1;
+	}
+
     if (dpm.extra_param[0] < 8)
     {
         ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Too small -B option: %d", dpm.extra_param[0]);
@@ -282,12 +291,19 @@ static int open_output(void)
 
     { CHAR  b[256]; wsprintf(b, "Opening device...\n"); OutputDebugString(b); }
 
-    hDevice = 0;
+		hDevice = 0;
+
+	UINT uDeviceID;
+	if (opt_wmme_device_id == -1){
+		uDeviceID = WAVE_MAPPER;
+    }else{
+    	uDeviceID= (UINT)opt_wmme_device_id;
+	}
 
     if (AllowSynchronousWaveforms)
-        Result = waveOutOpen(&hDevice, WAVE_MAPPER, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
+        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
     else
-        Result = waveOutOpen(&hDevice, WAVE_MAPPER, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION);
+        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION);
 
     if (Result)
     {
@@ -761,4 +777,30 @@ static void WaitForBuffer(int WaitForAllBuffers)
 
         { CHAR  b[256]; wsprintf(b, "%2d: Wait finished.\n", NumBuffersInUse); OutputDebugString(b); }
     }
+}
+
+/*****************************************************************************************************************************/
+
+#define DEVLIST_MAX 20
+static void print_device_list(void){
+	UINT num;
+	int i, list_num;
+	WAVEOUTCAPS woc;
+	typedef struct tag_DEVICELIST{
+		int  deviceID;
+		char name[256];
+	} DEVICELIST;
+	DEVICELIST device[DEVLIST_MAX];
+	num = waveOutGetNumDevs();
+	list_num=0;
+	for(i = 0 ; i < num  && i < DEVLIST_MAX ; i++){
+		if (MMSYSERR_NOERROR == waveOutGetDevCaps((UINT)i, &woc, sizeof(woc)) ){
+			device[list_num].deviceID=i;
+			strcpy(device[list_num].name, woc.szPname);
+			list_num++;
+		}
+	}
+	for(i=0;i<list_num;i++){
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%2d %s", device[i].deviceID, device[i].name);
+	}
 }

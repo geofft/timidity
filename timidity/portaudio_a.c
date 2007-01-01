@@ -64,6 +64,8 @@
 #include "playmidi.h"
 #include "miditrace.h"
 
+int opt_pa_device_id = -1;
+
 #define DATA_BLOCK_SIZE     (27648*4) /* WinNT Latency is 600 msec read pa_dsound.c */
 #define SAMPLE_RATE         (44100)
 
@@ -71,6 +73,8 @@ static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
 static int acntl(int request, void *arg);
+
+static void print_device_list(void);
 
 static int framesPerBuffer=128;
 static int stereo=2;
@@ -85,6 +89,7 @@ static int first=1;
 
 #if PORTAUDIO_V19
 PaHostApiTypeId HostApiTypeId;
+PaHostApiIndex HostApiIndex;
 const PaHostApiInfo  *HostApiInfo;
 PaDeviceIndex DeviceIndex;
 const PaDeviceInfo *DeviceInfo;
@@ -285,7 +290,7 @@ static int open_output(void)
 	double rate;
 	int n, nrates, include_enc, exclude_enc;
 	PaSampleFormat SampleFormat, nativeSampleFormats;
-
+	
 #ifdef AU_PORTAUDIO_DLL
 #if PORTAUDIO_V19
   {
@@ -326,31 +331,42 @@ static int open_output(void)
 		pa_active = 1;
 	}
 
+	if (opt_pa_device_id == -2){
+		print_device_list();
+		goto error2;
+	}
 #ifdef PORTAUDIO_V19
 #ifdef AU_PORTAUDIO_DLL
-	{
-		PaHostApiIndex i, ApiCount;
-		i = 0;
-		ApiCount = Pa_GetHostApiCount();
-		do{
-			HostApiInfo=Pa_GetHostApiInfo(i);
-			if( HostApiInfo->type == HostApiTypeId ) break;
-	    	i++;
-		}while ( i < ApiCount );
-		if ( i == ApiCount ) goto error;
-    }
+	PaHostApiIndex i, ApiCount;
+	i = 0;
+	ApiCount = Pa_GetHostApiCount();
+	do{
+		HostApiInfo=Pa_GetHostApiInfo(i);
+		if( HostApiInfo->type == HostApiTypeId ) break;
+		i++;
+	}while ( i < ApiCount );
+	if ( i == ApiCount ) goto error;
+	
 	DeviceIndex = HostApiInfo->defaultOutputDevice;
 	if(DeviceIndex==paNoDevice) goto error;
-	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
-	if(DeviceInfo==NULL) goto error;
-
 #else
 	DeviceIndex = Pa_GetDefaultOutputDevice();
 	if(DeviceIndex==paNoDevice) goto error;
+#endif
 	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
 	if(DeviceInfo==NULL) goto error;
-#endif
-	
+
+	if(opt_pa_device_id != -1){
+		const PaDeviceInfo *id_DeviceInfo;
+    	id_DeviceInfo=Pa_GetDeviceInfo((PaDeviceIndex)opt_pa_device_id);
+		if(id_DeviceInfo==NULL) goto error;
+		if( DeviceInfo->hostApi == id_DeviceInfo->hostApi){
+			DeviceIndex=(PaDeviceIndex)opt_pa_device_id;
+			DeviceInfo = id_DeviceInfo;
+		}
+    }
+
+
 	if (dpm.encoding & PE_24BIT) {
 		SampleFormat = paInt24;
 	}else if (dpm.encoding & PE_16BIT) {
@@ -414,8 +430,12 @@ static int open_output(void)
 	return 0;
 	
 #else
-	DeviceID = Pa_GetDefaultOutputDeviceID();
-	if(DeviceID==paNoDevice) goto error2;
+	if(opt_pa_device_id != -1){
+		DeviceID = Pa_GetDefaultOutputDeviceID();
+	    if(DeviceID==paNoDevice) goto error2;
+	}else{
+		DeviceID = opt_pa_device_id;
+	}
 	DeviceInfo = Pa_GetDeviceInfo( DeviceID);	
 	if(DeviceInfo==NULL) goto error2;
 	nativeSampleFormats = DeviceInfo->nativeSampleFormats;
@@ -646,3 +666,29 @@ error:
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error in acntl : %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
+
+static void print_device_list(void){
+	PaDeviceIndex maxDeviceIndex, i;
+	PaHostApiIndex HostApiIndex;
+	const PaDeviceInfo* DeviceInfo;
+
+#if PORTAUDIO_V19
+	HostApiIndex=Pa_HostApiTypeIdToHostApiIndex(HostApiTypeId);
+#endif
+	
+	maxDeviceIndex=Pa_GetDeviceCount();
+	
+	for( i = 0; i < maxDeviceIndex; i++){
+		DeviceInfo=Pa_GetDeviceInfo(i);
+#if PORTAUDIO_V19
+		if( DeviceInfo->hostApi == HostApiIndex){
+#endif
+			if( DeviceInfo->maxOutputChannels > 0){
+				ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "%2d %s",i,DeviceInfo->name);
+			}
+#if PORTAUDIO_V19
+		}
+#endif
+	}
+}
+
