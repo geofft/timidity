@@ -97,6 +97,7 @@ enum midi_event_t
 #if 0
 	ME_VOLUME_ONOFF,		/* Not supported */
 #endif
+	ME_MASTER_TUNING,		/* Master tuning */
 	ME_SCALE_TUNING,		/* Scale tuning */
 	ME_BULK_TUNING_DUMP,	/* Bulk tuning dump */
 	ME_SINGLE_NOTE_TUNING,	/* Single-note tuning */

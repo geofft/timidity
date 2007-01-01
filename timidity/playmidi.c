@@ -129,6 +129,7 @@ FLOAT_T tempo_adjust = 1.0;
 int opt_pure_intonation = 0;
 int current_freq_table = 0;
 int current_temper_freq_table = 0;
+static int master_tuning = 0;
 
 static void set_reverb_level(int ch, int level);
 static int make_rvid_flag = 0; /* For reverb optimization */
@@ -280,7 +281,7 @@ static void ctl_timestamp(void);
 static void ctl_updatetime(int32 samples);
 static void ctl_pause_event(int pause, int32 samples);
 static void update_legato_controls(int ch);
-static void update_channel_freq(int ch);
+static void set_master_tuning(int);
 static void set_single_note_tuning(int, int, int, int);
 static void set_user_temper_entry(int, int, int);
 void recompute_bank_parameter(int, int);
@@ -361,6 +362,7 @@ static char *event_name(int type)
 #if 0
 	EVENT_NAME(ME_VOLUME_ONOFF);		/* Not supported */
 #endif
+	EVENT_NAME(ME_MASTER_TUNING);
 	EVENT_NAME(ME_SCALE_TUNING);
 	EVENT_NAME(ME_BULK_TUNING_DUMP);
 	EVENT_NAME(ME_SINGLE_NOTE_TUNING);
@@ -731,6 +733,7 @@ void reset_midi(int playing)
 	master_volume_ratio = 0xffff;
 	adjust_amplification();
 	init_freq_table_tuning();
+	master_tuning = 0;
 	if (current_file_info) {
 		COPY_CHANNELMASK(drumchannels, current_file_info->drumchannels);
 		COPY_CHANNELMASK(drumchannel_mask,
@@ -801,11 +804,13 @@ void recompute_freq(int v)
 			vp->vibrato_sample_increment[i] = 0;
 		vp->cache = NULL;
 	}
+	/* At least for GM2, it's recommended not to apply master_tuning for drum channels */
+	tuning = ISDRUMCHANNEL(ch) ? 0 : master_tuning;
 	/* fine: [0..128] => [-256..256]
 	 * 1 coarse = 256 fine (= 1 note)
 	 * 1 fine = 2^5 tuning
 	 */
-	tuning = (channel[ch].rpnmap[RPN_ADDR_0001] - 0x40
+	tuning += (channel[ch].rpnmap[RPN_ADDR_0001] - 0x40
 			+ (channel[ch].rpnmap[RPN_ADDR_0002] - 0x40) * 64) << 7;
 	/* for NRPN Coarse Pitch of Drum (GS) & Fine Pitch of Drum (XG) */
 	if (ISDRUMCHANNEL(ch) && channel[ch].drums[note] != NULL
@@ -837,7 +842,7 @@ void recompute_freq(int v)
 	}
 	/* GS/XG - Scale Tuning */
 	if (! ISDRUMCHANNEL(ch)) {
-		tuning += (st << 13) / 100.0 + 0.5;
+		tuning += ((st << 13) + 50) / 100;
 		if (st != channel[ch].prev_scale_tuning) {
 			channel[ch].pitchfactor = 0;
 			channel[ch].prev_scale_tuning = st;
@@ -3174,6 +3179,17 @@ static void drop_sustain(int c)
       finish_note(i);
 }
 
+static void adjust_all_pitch(void)
+{
+	int ch, i, uv = upper_voices;
+	
+	for (ch = 0; ch < MAX_CHANNELS; ch++)
+		channel[ch].pitchfactor = 0;
+	for (i = 0; i < uv; i++)
+		if (voice[i].status != VOICE_FREE)
+			recompute_freq(i);
+}
+
 static void adjust_pitch(int c)
 {
   int i, uv = upper_voices;
@@ -5128,6 +5144,7 @@ static void play_midi_prescan(MidiEvent *ev)
 	    reset_midi(0);
 	    break;
 
+	  case ME_MASTER_TUNING:
 	  case ME_PITCHWHEEL:
 	  case ME_ALL_NOTES_OFF:
 	  case ME_ALL_SOUNDS_OFF:
@@ -5282,14 +5299,6 @@ static int last_rpn_addr(int ch)
 	return -1;
 }
 
-static void update_channel_freq(int ch)
-{
-	int i, uv = upper_voices;
-	for (i = 0; i < uv; i++)
-		if (voice[i].status != VOICE_FREE && voice[i].channel == ch)
-	recompute_freq(i);
-}
-
 static void update_rpn_map(int ch, int addr, int update_now)
 {
 	int val, drumflag, i, note;
@@ -5304,7 +5313,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			channel[ch].vibrato_ratio = gs_cnv_vib_rate(val);
 		}
 		if (update_now)
-			update_channel_freq(ch);
+			adjust_pitch(ch);
 		break;
 	case NRPN_ADDR_0109:	/* Vibrato Depth */
 		if (opt_nrpn_vibrato) {
@@ -5313,7 +5322,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			channel[ch].vibrato_depth = gs_cnv_vib_depth(val);
 		}
 		if (update_now)
-			update_channel_freq(ch);
+			adjust_pitch(ch);
 		break;
 	case NRPN_ADDR_010A:	/* Vibrato Delay */
 		if (opt_nrpn_vibrato) {
@@ -5322,7 +5331,7 @@ static void update_rpn_map(int ch, int addr, int update_now)
 			channel[ch].vibrato_delay = gs_cnv_vib_delay(val);
 		}
 		if (update_now)
-			update_channel_freq(ch);
+			adjust_pitch(ch);
 		break;
 	case NRPN_ADDR_0120:	/* Filter Cutoff Frequency */
 		if (opt_lpf_def) {
@@ -5903,6 +5912,10 @@ static void seek_forward(int32 until_time)
 		if (opt_init_keysig != 8)
 			break;
 		current_keysig = current_event->a + current_event->b * 16;
+		break;
+
+	case ME_MASTER_TUNING:
+		set_master_tuning((current_event->b << 8) | current_event->a);
 		break;
 
 	case ME_SCALE_TUNING:
@@ -7964,6 +7977,11 @@ int play_event(MidiEvent *ev)
 		current_freq_table = j;
 		break;
 
+	case ME_MASTER_TUNING:
+		set_master_tuning((ev->b << 8) | ev->a);
+		adjust_all_pitch();
+		break;
+
 	case ME_SCALE_TUNING:
 		resamp_cache_refer_alloff(ch, current_event->time);
 		channel[ch].scale_tuning[current_event->a] = current_event->b;
@@ -8088,6 +8106,17 @@ int play_event(MidiEvent *ev)
 #endif
 
     return RC_NONE;
+}
+
+static void set_master_tuning(int tune)
+{
+	if (tune & 0x4000)	/* 1/8192 semitones + 0x2000 | 0x4000 */
+		tune = (tune & 0x3FFF) - 0x2000;
+	else if (tune & 0x8000)	/* 1 semitones | 0x8000 */
+		tune = ((tune & 0x7F) - 0x40) << 13;
+	else	/* millisemitones + 0x400 */
+		tune = (((tune - 0x400) << 13) + 500) / 1000;
+	master_tuning = tune;
 }
 
 static void set_single_note_tuning(int part, int a, int b, int rt)
