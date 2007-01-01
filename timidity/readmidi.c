@@ -2985,6 +2985,18 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	    return 1;
 	}
 
+	if(addr == 0x400000) /* Master Tune, not for SMF */
+	{
+		uint16 tune = ((body[1] & 0xF) << 8) | ((body[2] & 0xF) << 4) | (body[3] & 0xF);
+		
+		if (tune < 0x18)
+			tune = 0x18;
+		else if (tune > 0x7E8)
+			tune = 0x7E8;
+		SETMIDIEVENT(*ev, 0, ME_MASTER_TUNING, 0, tune & 0xFF, (tune >> 8) & 0x7F);
+		return 1;
+	}
+
 	if(addr == 0x400004) /* Master Volume */
 	{
 	    vol = gs_convert_master_vol(*body);
@@ -3122,16 +3134,48 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
     if(len >= 8 &&
        val[0] == 0x43 &&
        val[1] == 0x10 &&
-       val[2] == 0x4C &&
-       val[3] == 0x00 &&
-       val[4] == 0x00 &&
-       val[5] == 0x7E)
+       val[2] == 0x4C)
     {
-	/* XG SYSTEM ON */
-	SETMIDIEVENT(*ev, 0, ME_RESET, 0, XG_SYSTEM_MODE, SYSEX_TAG);
-	return 1;
+	int addr = (val[3] << 16) | (val[4] << 8) | val[5];
+	
+	if (addr == 0x00007E)	/* XG SYSTEM ON */
+	{
+		SETMIDIEVENT(*ev, 0, ME_RESET, 0, XG_SYSTEM_MODE, SYSEX_TAG);
+		return 1;
+	}
+	else if (addr == 0x000000 && len >= 12)	/* XG Master Tune */
+	{
+		uint16 tune = ((val[7] & 0xF) << 8) | ((val[8] & 0xF) << 4) | (val[9] & 0xF);
+		
+		if (tune > 0x7FF)
+			tune = 0x7FF;
+		SETMIDIEVENT(*ev, 0, ME_MASTER_TUNING, 0, tune & 0xFF, (tune >> 8) & 0x7F);
+		return 1;
+	}
     }
 
+    if (len >= 7 && val[0] == 0x7F && val[1] == 0x7F)
+    {
+	if (val[2] == 0x04 && val[3] == 0x03)	/* GM2 Master Fine Tune */
+	{
+		uint16 tune = (val[4] & 0x7F) | (val[5] << 7) | 0x4000;
+		
+		SETMIDIEVENT(*ev, 0, ME_MASTER_TUNING, 0, tune & 0xFF, (tune >> 8) & 0x7F);
+		return 1;
+	}
+	if (val[2] == 0x04 && val[3] == 0x04)	/* GM2 Master Coarse Tune */
+	{
+		uint8 tune = val[5];
+		
+		if (tune < 0x28)
+			tune = 0x28;
+		else if (tune > 0x58)
+			tune = 0x58;
+		SETMIDIEVENT(*ev, 0, ME_MASTER_TUNING, 0, tune, 0x80);
+		return 1;
+	}
+    }
+    
 	/* Non-RealTime / RealTime Universal SysEx messages
 	 * 0 0x7e(Non-RealTime) / 0x7f(RealTime)
 	 * 1 SysEx device ID.  Could be from 0x00 to 0x7f.
