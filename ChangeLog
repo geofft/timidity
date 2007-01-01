@@ -1,3 +1,10 @@
+2007-01-01  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/playmidi.[ch], timidity/readmidi.c:
+	  Added support for GM2 Master Fine/Coarse Tuning, GS Master Tune
+	  and XG Master Tuning (4C not 27) SysEx.
+	* libarc/unlzh.c: Reverted a useless fix of the previous commit.
+
 2006-12-30  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	* interfece/w32g_pref.c can change timidity.cfg editor
