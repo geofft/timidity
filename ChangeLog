@@ -3,6 +3,7 @@
 	* timidity/playmidi.[ch], timidity/readmidi.c:
 	  Added support for GM2 Master Fine/Coarse Tuning, GS Master Tune
 	  and XG Master Tuning (4C not 27) SysEx.
+	* timidity/readmidi.c: Fix suspected typo.
 	* libarc/unlzh.c: Reverted a useless fix of the previous commit.
 
 2006-12-30  Keishi Suenaga <skeishi@yahoo.co.jp>
