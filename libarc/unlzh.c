@@ -1116,7 +1116,7 @@ static int make_table(UNLZHHandler decoder,
     j = start[tablebits + 1] >> m;
     if(j != 0)
     {
-	k = MIN(1 << tablebits, tablelimit);
+	k = 1 << tablebits;
 	for(i = j; i < k; i++)
 	    table[i] = 0;
     }
