@@ -1,14 +1,13 @@
 2007-1-3  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-    Fix -iW and timiditydrv.dll sound problem.
+	Fix -iW and timiditydrv.dll sound problem.
 	* timidity/portaudio_a.c: remove broken acntl()s.
 
 2007-1-1  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* timidity/timidity.c
-	  timidity/w32_a.c
+	* timidity/timidity.c, timidity/w32_a.c,
 	  timidity/portaudio_a.c: can select optput device.
-	  
+
 2007-01-01  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/playmidi.[ch], timidity/readmidi.c:
@@ -19,8 +18,8 @@
 
 2006-12-30  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* interfece/w32g_pref.c can change timidity.cfg editor
-	  by environment valiable TIMiDITY_CFG_EDITOR.
+	* interfece/w32g_pref.c: can change timidity.cfg editor
+	  by environment valuable TIMIDITY_CFG_EDITOR.
 
 2006-12-29  Kentaro Sato <kentaro@ranvis.com>
 
@@ -31,53 +30,49 @@
 
 2006-12-27  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* timidity/portaudio_a.c:  bug fix
+	* timidity/portaudio_a.c: bug fix
 	* interface/w32g_pref.c, interface/w32g_pref.h,
 	  w32_portaudio_dll.c: asio dialog in win GUI.
-	  
+
 2006-12-26  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* timidity/portaudio_a.c
+	* timidity/portaudio_a.c,
 	  timidity/w32_portaudio_dll.c: fix portaudio v19 support
 	  now use only one dll named portaudio.dll.
 
 2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* windrv/Makefile.am
-	  windrv/timiditydrv.c:       free from idl
-	* windrv/timiditydrv.idl:     removed
-	* windrv/oemsetup.inf:        removed
-	* doc/ja_JP.eucJP/README.w32,
-	  doc/C/README.w32:           updated
+	* windrv/Makefile.am, windrv/timiditydrv.c: free from idl
+	* windrv/timiditydrv.idl: removed
+	* windrv/oemsetup.inf: removed
+	* doc/C/README.w32, doc/ja_JP.eucJP/README.w32: updated
 
 2006-12-23  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* configure.in doc/C/README.w32 doc/ja_JP.eucJP/README.w32
-	interface/Makefile.am interface/ncurs_c.c
-	interface/rtsyn_common.c interface/rtsyn_winmm.c
-	interface/w32g_syn.c interface/winsyn_c.c
-	interface/wrdt_w32g.c libarc/Makefile.am libarc/url_file.c
-	libarc/url_ftp.c libarc/url_http.c libarc/url_mem.c
-	libarc/url_news.c libarc/url_newsgroup.c libunimod/Makefile.am
-	libunimod/unimod.h timidity/Makefile.am timidity/aiff_a.c
-	timidity/aq.c timidity/au_a.c timidity/controls.c
-	timidity/flac_a.c timidity/gogo_a.c timidity/list_a.c
-	timidity/midi_a.c timidity/miditrace.c timidity/mod2midi.c
-	timidity/playmidi.c timidity/playmidi.h timidity/portaudio_a.c
-	timidity/raw_a.c timidity/readmidi.c timidity/recache.c
-	timidity/sndfont.c timidity/sysdep.h timidity/timidity.c
-	timidity/w32_a.c timidity/w32_gogo.c
-	timidity/w32_libFLAC_dll.c timidity/w32_libOggFLAC_dll.c
-	timidity/wave_a.c utils/Makefile.am utils/mblock.c
-	utils/readdir.h utils/readdir_win.c utils/support.c
-	utils/tmdy_getopt.h windrv/Makefile.am
-	ChangeLog:   Pelles C Compiler support
-	
+	* configure.in, doc/C/README.w32, doc/ja_JP.eucJP/README.w32,
+	  interface/Makefile.am, interface/ncurs_c.c,
+	  interface/rtsyn_common.c, interface/rtsyn_winmm.c,
+	  interface/w32g_syn.c, interface/winsyn_c.c,
+	  interface/wrdt_w32g.c, libarc/Makefile.am, libarc/url_file.c,
+	  libarc/url_ftp.c, libarc/url_http.c, libarc/url_mem.c,
+	  libarc/url_news.c, libarc/url_newsgroup.c, libunimod/Makefile.am,
+	  libunimod/unimod.h, timidity/Makefile.am, timidity/aiff_a.c,
+	  timidity/aq.c, timidity/au_a.c, timidity/controls.c,
+	  timidity/flac_a.c, timidity/gogo_a.c, timidity/list_a.c,
+	  timidity/midi_a.c, timidity/miditrace.c, timidity/mod2midi.c,
+	  timidity/playmidi.c, timidity/playmidi.h, timidity/portaudio_a.c,
+	  timidity/raw_a.c, timidity/readmidi.c, timidity/recache.c,
+	  timidity/sndfont.c, timidity/sysdep.h, timidity/timidity.c,
+	  timidity/w32_a.c, timidity/w32_gogo.c,
+	  timidity/w32_libFLAC_dll.c, timidity/w32_libOggFLAC_dll.c,
+	  timidity/wave_a.c, utils/Makefile.am, utils/mblock.c,
+	  utils/readdir.h, utils/readdir_win.c, utils/support.c,
+	  utils/tmdy_getopt.h, windrv/Makefile.am: Pelles C Compiler support
+
 2006-12-21  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	C++ dependency is removed.
-	* configure.in: remove AC_PROG_CXX,
-	                always link winsock32 for midi_a.c
+	* configure.in: remove AC_PROG_CXX, always link winsock32 for midi_a.c
 	* windrv/timiditydrv.cpp: removed
 	* windrv/timiditydrv.c: added
 	* windrv/Makefile_am: remove C++ dependency
@@ -89,8 +84,8 @@
 
 2006-12-18  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* timidity/midi_a.c:  u_int8_t  must be uint8_t.
-	* timidity/flac_a.c:  fix for mingw.
+	* timidity/midi_a.c: u_int8_t must be uint8_t.
+	* timidity/flac_a.c: fix for mingw.
 
 2006-12-18  Keishi Suenaga <skeishi@yahoo.co.jp>
 
@@ -103,7 +98,7 @@
 	* interface/server_c.c: extend midi protocol.
 	* timidity/midi_a.c: new file.
 
-2006-12-13  URABE Shyouhei  <shyouhei@ruby-lang.org>
+2006-12-13  URABE Shyouhei <shyouhei@ruby-lang.org>
 
 	* timidity/flac_a.c: merge patch from FLAC team.
 	* interface/xaw_i.c: merge patch fixing gcc4 compilation problem.
@@ -118,8 +113,8 @@
 
 2006-07-27  Keishi Suenaga <s_keishi@mutt.freemai.ne.jp>
 
-        * timidity/timidity.c (open_file): Fix coredump when random play.
-          (free files problem);
+	* timidity/timidity.c (open_file): Fix coredump when random play.
+	  (free files problem)
 
 2006-06-02  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
