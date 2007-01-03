@@ -516,7 +516,7 @@ static int output_data(char *buf, int32 nbytes)
 {
 	unsigned int i;
 
-
+    if(pa_active == 0) return -1; 
 //	if(pa_data.samplesToGo > DATA_BLOCK_SIZE){ 
 //		Sleep(  (pa_data.samplesToGo - DATA_BLOCK_SIZE)/dpm.rate/4  );
 //	}
@@ -599,24 +599,26 @@ error:
 	return;
 }
 
+
 static int acntl(int request, void *arg)
 {
     switch(request)
     {
-/// NOT WORK
+/*  // NOT WORK
       case PM_REQ_GETQSIZ:
-//		 *(int *)arg = bytesPerInBuffer*2;
+		 *(int *)arg = bytesPerInBuffer*2;
     	return 0;
 		//break;
       case PM_REQ_GETFILLABLE:
-//		 *(int *)arg = bytesPerInBuffer*2-pa_data.samplesToGo;
+		 *(int *)arg = bytesPerInBuffer*2-pa_data.samplesToGo;
     	return 0;
 		//break;
       case PM_REQ_GETFILLED:
-//		 *(int *)arg = pa_data.samplesToGo;
+		 *(int *)arg = pa_data.samplesToGo;
     	return 0;
 		//break;
-
+*/
+    	
    	case PM_REQ_DISCARD:
     case PM_REQ_FLUSH:
 //    	pa_data.samplesToGo=0;
@@ -644,10 +646,9 @@ static int acntl(int request, void *arg)
     		}
     	}
     	//break;
- */
-    case PM_REQ_RATE: {
-          break;
-	}
+*/
+    case PM_REQ_RATE: 
+          return -1;
     	
     case PM_REQ_PLAY_START: //* Called just before playing *
     case PM_REQ_PLAY_END: //* Called just after playing *
@@ -668,6 +669,7 @@ error:
 	ctl->cmsg(  CMSG_ERROR, VERB_NORMAL, "PortAudio error in acntl : %s\n", Pa_GetErrorText( err ) );
 	return -1;
 }
+
 
 static void print_device_list(void){
 	PaDeviceIndex maxDeviceIndex, i;
