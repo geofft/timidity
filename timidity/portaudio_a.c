@@ -603,7 +603,7 @@ static int acntl(int request, void *arg)
 {
     switch(request)
     {
-
+/*	// NOT WORK
       case PM_REQ_GETQSIZ:
 		 *(int *)arg = bytesPerInBuffer*2;
     	return 0;
@@ -616,20 +616,18 @@ static int acntl(int request, void *arg)
 		 *(int *)arg = pa_data.samplesToGo;
     	return 0;
 		//break;
-      case PM_REQ_DISCARD:
+*/
+    	case PM_REQ_DISCARD:
       case PM_REQ_FLUSH:
-    	pa_data.samplesToGo=0;
-    	pa_data.bufpoint=pa_data.bufepoint;
-    	err = Pa_AbortStream( stream );
-    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
-		return 0;
-		//break;
-//      case PM_REQ_FLUSH:
-//    	err = Pa_StopStream( stream );
+//    	pa_data.samplesToGo=0;
+//    	pa_data.bufpoint=pa_data.bufepoint;
+//    	err = Pa_AbortStream( stream );
 //    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
-//		return -1;
+		return 0;
+
 		//break;
-      case PM_REQ_RATE:  //* NOT WORK *
+/*
+    case PM_REQ_RATE:  //* NOT WORK *
     	{
     		int i;
     		double sampleRateBack;
@@ -646,7 +644,7 @@ static int acntl(int request, void *arg)
     		}
     	}
     	//break;
-
+ */
       case PM_REQ_PLAY_START: //* Called just before playing *
       case PM_REQ_PLAY_END: //* Called just after playing *
         return 0;
