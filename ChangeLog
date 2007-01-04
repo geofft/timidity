@@ -1,3 +1,8 @@
+2007-1-4  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+    Fix -iW and timiditydrv.dll sound problem.
+	* timidity/portaudio_a.c: fix buffer overlow.
+
 2007-01-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/midi_a.c (M_FWRITE):

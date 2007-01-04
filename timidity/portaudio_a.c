@@ -517,6 +517,9 @@ static int output_data(char *buf, int32 nbytes)
 	unsigned int i;
 
     if(pa_active == 0) return -1; 
+	
+	while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
+	
 //	if(pa_data.samplesToGo > DATA_BLOCK_SIZE){ 
 //		Sleep(  (pa_data.samplesToGo - DATA_BLOCK_SIZE)/dpm.rate/4  );
 //	}
@@ -552,8 +555,8 @@ static int output_data(char *buf, int32 nbytes)
 		if( err != paNoError ) goto error;
 	}
 		
-	if(ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
-	    while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
+//	if(ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
+//	    while((pa_active==1) && (pa_data.samplesToGo > bytesPerInBuffer)){ Pa_Sleep(1);};
 //	Pa_Sleep( (pa_data.samplesToGo - bytesPerInBuffer)/dpm.rate * 1000);
 	return 0;
 
@@ -604,7 +607,7 @@ static int acntl(int request, void *arg)
 {
     switch(request)
     {
-/*  // NOT WORK
+ 
       case PM_REQ_GETQSIZ:
 		 *(int *)arg = bytesPerInBuffer*2;
     	return 0;
@@ -617,19 +620,19 @@ static int acntl(int request, void *arg)
 		 *(int *)arg = pa_data.samplesToGo;
     	return 0;
 		//break;
-*/
+
     	
    	case PM_REQ_DISCARD:
     case PM_REQ_FLUSH:
-//    	pa_data.samplesToGo=0;
-//    	pa_data.bufpoint=pa_data.bufepoint;
-//    	err = Pa_AbortStream( stream );
-//    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
+    	pa_data.samplesToGo=0;
+    	pa_data.bufpoint=pa_data.bufepoint;
+    	err = Pa_AbortStream( stream );
+    	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
 		return 0;
 
 		//break;
-/*
-    case PM_REQ_RATE:  //* NOT WORK *
+
+    case PM_REQ_RATE:  
     	{
     		int i;
     		double sampleRateBack;
@@ -646,9 +649,9 @@ static int acntl(int request, void *arg)
     		}
     	}
     	//break;
-*/
-    case PM_REQ_RATE: 
-          return -1;
+
+//    case PM_REQ_RATE: 
+//          return -1;
     	
     case PM_REQ_PLAY_START: //* Called just before playing *
     case PM_REQ_PLAY_END: //* Called just after playing *
