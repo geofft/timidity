@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+    Copyright (C) 1999-2007 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
     midi_a.c - write midi file
 
@@ -54,7 +54,7 @@
 #else
 #include "server_defs.h"
 #endif /* HAVE_SYS_SOUNDCARD_H */
-#ifndef __GNUC__
+#if !defined(__GNUC__) || __GNUC__ == 2 && __GNUC_MINOR__ <= 95
 #include <stdarg.h>
 #endif
 #ifdef WIN32
@@ -109,7 +109,7 @@ PlayMode dmp = {
 };
 
 static size_t m_fwrite(const void *ptr, size_t size);
-#ifdef __GNUC__
+#if defined(__GNUC__) && (__GNUC__ != 2 || __GNUC_MINOR__ > 95)
 #define CARR(...) ((uint8_t []) {__VA_ARGS__})
 #define M_FWRITE(a, ...) m_fwrite(CARR(__VA_ARGS__), sizeof(CARR(__VA_ARGS__)))
 #else

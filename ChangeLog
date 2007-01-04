@@ -1,12 +1,18 @@
-2007-1-3  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-01-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/midi_a.c (M_FWRITE):
+	  Keep backward compatibility for gcc-2.95 or earlier
+	* timidity/timidity.c (parse_opt_output_device): Change a bit
+
+2007-01-03  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	Fix -iW and timiditydrv.dll sound problem.
 	* timidity/portaudio_a.c: remove broken acntl()s.
 
-2007-1-1  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-01-01  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	* timidity/timidity.c, timidity/w32_a.c,
-	  timidity/portaudio_a.c: can select optput device.
+	  timidity/portaudio_a.c: can select output device.
 
 2007-01-01  Kentaro Sato <kentaro@ranvis.com>
 

@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2005 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2007 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -3959,7 +3959,7 @@ static int parse_opt_h(const char *arg)
 	fputs(NLS, fp);
 #if defined(AU_PORTAUDIO) || defined(AU_WIN32)
 	fputs("Output device options (append to -O? option):" NLS
-"  `d(num)'     OutputDeviceID(if blank show available device list)" NLS, fp);
+"  `d(n)'       Output device ID (blank shows available device list)" NLS, fp);
 	fputs(NLS, fp);
 #endif
 	fputs("Alternative output format long options:" NLS
@@ -3976,8 +3976,8 @@ static int parse_opt_h(const char *arg)
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
 #if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	fputs("Output device long options:" NLS
-"  --output-device=n  (if n=-1 show available device list)" NLS, fp);
+	fputs("Alternative output device long options:" NLS
+"  --output-device=n  (n=-1 shows available device list)" NLS, fp);
 	fputs(NLS, fp);
 #endif
 
@@ -4361,26 +4361,32 @@ static inline int parse_opt_O(const char *arg)
 #if defined(AU_PORTAUDIO) || defined(AU_W32)
 		case 'd':
 #ifdef AU_PORTAUDIO
-			if (play_mode->id_character == 'p' || play_mode->id_character == 'P'||play_mode->id_character == 'o'){
+			if (play_mode->id_character == 'p'
+					|| play_mode->id_character == 'P'
+					|| play_mode->id_character == 'o') {
 				int ret;
-				ret = sscanf(arg+1,"%d",&opt_pa_device_id);
-				if( (ret != 0) && (ret != EOF) ){
-					while( *(arg+1) >= '0' && *(arg + 1) <= '9') { arg++; }
-				}else{
-					opt_pa_device_id=-2;
+				
+				ret = sscanf(arg + 1, "%d", &opt_pa_device_id);
+				if (ret != 0 && ret != EOF)
+					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
+						arg++;
+				else {
+					opt_pa_device_id = -2;
 					play_mode->open_output();
 					return 1;
 				}
 			}
 #endif
 #ifdef AU_W32
-			if (play_mode->id_character == 'd'){
+			if (play_mode->id_character == 'd') {
 				int ret;
-				ret = sscanf(arg+1,"%d",&opt_wmme_device_id);
-				if( (ret != 0) && (ret != EOF) ){
-					while( *(arg+1) >= '0' && *(arg + 1) <= '9') { arg++; }
-				}else{					
-					opt_wmme_device_id=-2;
+				
+				ret = sscanf(arg + 1, "%d", &opt_wmme_device_id);
+				if (ret != 0 && ret != EOF)
+					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
+						arg++;
+				else {
+					opt_wmme_device_id = -2;
 					play_mode->open_output();
 					return 1;
 				}
@@ -4476,26 +4482,33 @@ static inline int parse_opt_output_swab(const char *arg)
 #if defined(AU_PORTAUDIO) || defined(AU_W32)
 static inline int parse_opt_output_device(const char *arg)
 {
-	if (arg == NULL) return 1;
+	if (arg == NULL)
+		return 1;
 #ifdef AU_PORTAUDIO
-	if ( (play_mode->id_character == 'p') || (play_mode->id_character == 'P') || (play_mode->id_character == 'o') ){
+	if ((play_mode->id_character == 'p')
+			|| (play_mode->id_character == 'P')
+			|| (play_mode->id_character == 'o')) {
 		int ret;
-		ret = sscanf(arg,"%d",&opt_pa_device_id);
-		if( (ret == 0) || (ret == EOF) ) return 1;		
-		if( opt_pa_device_id  ==  -1){
-			opt_pa_device_id=-2;
+		
+		ret = sscanf(arg, "%d", &opt_pa_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_pa_device_id == -1) {
+			opt_pa_device_id = -2;
 			play_mode->open_output();
 			return 1;
 		}
 	}
 #endif
 #ifdef AU_W32
-	if (play_mode->id_character == 'd'){
+	if (play_mode->id_character == 'd') {
 		int ret;
-		ret = sscanf(arg,"%d",&opt_wmme_device_id);
-		if( (ret == 0) || (ret == EOF) ) return 1;		
-		if( opt_wmme_device_id  ==  -1){
-			opt_wmme_device_id=-2;
+		
+		ret = sscanf(arg, "%d", &opt_wmme_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_wmme_device_id == -1) {
+			opt_wmme_device_id = -2;
 			play_mode->open_output();
 			return 1;
 		}
@@ -4504,6 +4517,7 @@ static inline int parse_opt_output_device(const char *arg)
 	return 0;
 }
 #endif
+
 #ifdef AU_FLAC
 extern void flac_set_option_verify(int);
 extern void flac_set_option_padding(int);

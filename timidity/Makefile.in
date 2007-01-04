@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 # TiMidity++ -- MIDI to WAVE converter and player
-# Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+# Copyright (C) 1999-2007 Masanao Izumo <iz@onicos.co.jp>
 # Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 # Define follows if you want to change.
 # Note that the definition of beginning with just one `#' implies
@@ -342,7 +342,6 @@ timidity_SOURCES = \
 	aq.c \
 	aq.h \
 	au_a.c \
-	midi_a.c \
 	audio_cnv.c \
 	audio_cnv.h \
 	common.c \
@@ -365,6 +364,7 @@ timidity_SOURCES = \
 	mid.defs \
 	miditrace.c \
 	miditrace.h \
+	midi_a.c \
 	mix.c \
 	mix.h \
 	mod.c \
@@ -614,20 +614,19 @@ calcnewt_LDADD = $(LDADD)
 calcnewt_DEPENDENCIES =
 calcnewt_LDFLAGS =
 am_timidity_OBJECTS = aiff_a.$(OBJEXT) aq.$(OBJEXT) au_a.$(OBJEXT) \
-	midi_a.$(OBJEXT) audio_cnv.$(OBJEXT) common.$(OBJEXT) \
-	controls.$(OBJEXT) effect.$(OBJEXT) filter.$(OBJEXT) \
-	freq.$(OBJEXT) instrum.$(OBJEXT) list_a.$(OBJEXT) \
-	loadtab.$(OBJEXT) m2m.$(OBJEXT) mfi.$(OBJEXT) \
-	miditrace.$(OBJEXT) mix.$(OBJEXT) mod.$(OBJEXT) \
-	mod2midi.$(OBJEXT) modmid_a.$(OBJEXT) mt19937ar.$(OBJEXT) \
-	optcode.$(OBJEXT) output.$(OBJEXT) playmidi.$(OBJEXT) \
-	quantity.$(OBJEXT) raw_a.$(OBJEXT) rcp.$(OBJEXT) \
-	readmidi.$(OBJEXT) recache.$(OBJEXT) resample.$(OBJEXT) \
-	reverb.$(OBJEXT) sbkconv.$(OBJEXT) sffile.$(OBJEXT) \
-	sfitem.$(OBJEXT) smfconv.$(OBJEXT) smplfile.$(OBJEXT) \
-	sndfont.$(OBJEXT) tables.$(OBJEXT) timidity.$(OBJEXT) \
-	version.$(OBJEXT) wave_a.$(OBJEXT) wrd_read.$(OBJEXT) \
-	wrdt.$(OBJEXT)
+	audio_cnv.$(OBJEXT) common.$(OBJEXT) controls.$(OBJEXT) \
+	effect.$(OBJEXT) filter.$(OBJEXT) freq.$(OBJEXT) \
+	instrum.$(OBJEXT) list_a.$(OBJEXT) loadtab.$(OBJEXT) \
+	m2m.$(OBJEXT) mfi.$(OBJEXT) miditrace.$(OBJEXT) \
+	midi_a.$(OBJEXT) mix.$(OBJEXT) mod.$(OBJEXT) mod2midi.$(OBJEXT) \
+	modmid_a.$(OBJEXT) mt19937ar.$(OBJEXT) optcode.$(OBJEXT) \
+	output.$(OBJEXT) playmidi.$(OBJEXT) quantity.$(OBJEXT) \
+	raw_a.$(OBJEXT) rcp.$(OBJEXT) readmidi.$(OBJEXT) \
+	recache.$(OBJEXT) resample.$(OBJEXT) reverb.$(OBJEXT) \
+	sbkconv.$(OBJEXT) sffile.$(OBJEXT) sfitem.$(OBJEXT) \
+	smfconv.$(OBJEXT) smplfile.$(OBJEXT) sndfont.$(OBJEXT) \
+	tables.$(OBJEXT) timidity.$(OBJEXT) version.$(OBJEXT) \
+	wave_a.$(OBJEXT) wrd_read.$(OBJEXT) wrdt.$(OBJEXT)
 timidity_OBJECTS = $(am_timidity_OBJECTS)
 @BORLANDC_FALSE@@DMC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@timidity_DEPENDENCIES = \
 @BORLANDC_FALSE@@DMC_FALSE@@ENABLE_W32GUI_FALSE@@ENABLE_W32G_SYN_FALSE@@POCC_FALSE@@VCPP_FALSE@@WATCOM_C_TRUE@	interface.lib \
