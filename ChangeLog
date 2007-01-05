@@ -1,6 +1,11 @@
-2007-1-4  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-01-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-    Fix -iW and timiditydrv.dll sound problem.
+	* timidity/timidity.c (main): Fix to avoid segmentation fault
+	  when "." or nonexistent archive name is given
+
+2007-01-04  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	Fix -iW and timiditydrv.dll sound problem.
 	* timidity/portaudio_a.c: fix buffer overlow.
 
 2007-01-04  TAMUKI Shoichi <tamuki@linet.gr.jp>

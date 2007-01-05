@@ -5806,7 +5806,8 @@ int main(int argc, char **argv)
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
 			&& ctl->id_character != 'W' && ctl->id_character != 'P')
 		files = expand_file_archives(files, &nfiles);
-	files_nbuf = files[0];
+	if (nfiles > 0)
+		files_nbuf = files[0];
 #if !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
 	if (dumb_error_count)
 		sleep(1);
