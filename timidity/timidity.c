@@ -5629,230 +5629,208 @@ static int CoInitializeOK = 0;
 
 #if !defined(ANOTHER_MAIN) || defined(__W32__)
 #ifdef __W32__ /* Windows */
-#if ( (!defined(IA_W32GUI) || defined(__CYGWIN32__) || defined(__MINGW32__)) && !defined(IA_W32G_SYN) )
-/* Cygwin or Console */
-int __cdecl main(int argc, char **argv)
-#else
-/* _MSC_VER, _BORLANDC_, __WATCOMC__ */
+#if defined(IA_W32GUI) && !defined(__CYGWIN32__) && !defined(__MINGW32__) \
+		|| defined(IA_W32G_SYN) /* _MSC_VER, _BORLANDC_, __WATCOMC__ */
 int win_main(int argc, char **argv)
+#else /* Cygwin, MinGW or console */
+int __cdecl main(int argc, char **argv)
 #endif
 #else /* UNIX */
 int main(int argc, char **argv)
 #endif
 {
-    int c, err, i;
-    int nfiles;
-    char **files;
-    char *files_nbuf;
-    int main_ret;
-    int longind;
-
+	int c, err, i;
+	int nfiles;
+	char **files;
+	char *files_nbuf;
+	int main_ret;
+	int longind;
 #if defined(DANGEROUS_RENICE) && !defined(__W32__) && !defined(main)
-    /*
-     * THIS CODES MUST EXECUT BEGINNING OF MAIN FOR SECURITY.
-     * DONT PUT ANY CODES ABOVE.
-     */
+	/*
+	 * THIS CODES MUST EXECUTE BEGINNING OF MAIN FOR SECURITY.
+	 * DON'T PUT ANY CODES ABOVE.
+	 */
 #include <sys/resource.h>
-    int uid;
+	int uid;
 #ifdef sun
-    extern int setpriority(int which, id_t who, int prio);
-    extern int setreuid(int ruid, int euid);
+	extern int setpriority(int which, id_t who, int prio);
+	extern int setreuid(int ruid, int euid);
 #endif
-
-    uid = getuid();
-    if(setpriority(PRIO_PROCESS, 0, DANGEROUS_RENICE) < 0)
-    {
-	perror("setpriority");
-	fprintf(stderr, "Couldn't set priority to %d.", DANGEROUS_RENICE);
-    }
-    setreuid(uid, uid);
-#endif
-
-#if defined(REDIRECT_STDOUT)
-    memcpy(stdout, fopen(REDIRECT_STDOUT, "a+"), sizeof(FILE));
-    printf("TiMidity++ start\n");fflush(stdout);
-#endif
-
-#ifdef main
-    {
-	static int maincnt = 0;
-	if(maincnt++ > 0)
-	{
-	    argv++;
-	    argc--;
-	    while(argv[0][0] == '-') {
-		argv++;
-		argc--;
-	    }
-	    ctl->pass_playing_list(argc, argv);
-	    return 0;
+	
+	uid = getuid();
+	if (setpriority(PRIO_PROCESS, 0, DANGEROUS_RENICE) < 0) {
+		perror("setpriority");
+		fprintf(stderr, "Couldn't set priority to %d.", DANGEROUS_RENICE);
 	}
-    }
+	setreuid(uid, uid);
 #endif
-
+#if defined(REDIRECT_STDOUT)
+	memcpy(stdout, fopen(REDIRECT_STDOUT, "a+"), sizeof(FILE));
+	printf("TiMidity++ start\n");
+	fflush(stdout);
+#endif
+#ifdef main
+{
+	static int maincnt = 0;
+	
+	if (maincnt++ > 0) {
+		do {
+			argc--, argv++;
+		} while (argv[0][0] == '-');
+		ctl->pass_playing_list(argc, argv);
+		return 0;
+	}
+}
+#endif
 #ifdef IA_DYNAMIC
-    {
+{
 #ifdef XP_UNIX
 	argv[0] = "netscape";
 #endif /* XP_UNIX */
 	dynamic_lib_root = safe_strdup(SHARED_LIB_PATH);
 	dynamic_interface_id = 0;
 	dl_init(argc, argv);
-    }
+}
 #endif /* IA_DYNAMIC */
-
-    if((program_name=pathsep_strrchr(argv[0]))) program_name++;
-    else program_name=argv[0];
-
-    if(strncmp(program_name,"timidity",8) == 0);
-    else if(strncmp(program_name,"kmidi",5) == 0) set_ctl("q");
-    else if(strncmp(program_name,"tkmidi",6) == 0) set_ctl("k");
-    else if(strncmp(program_name,"gtkmidi",6) == 0) set_ctl("g");
-    else if(strncmp(program_name,"xmmidi",6) == 0) set_ctl("m");
-    else if(strncmp(program_name,"xawmidi",7) == 0) set_ctl("a");
-    else if(strncmp(program_name,"xskinmidi",9) == 0) set_ctl("i");
-
-    if(argc == 1 && !strchr(INTERACTIVE_INTERFACE_IDS, ctl->id_character))
-    {
-	interesting_message();
-	return 0;
-    }
-
-    timidity_start_initialize();
-#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-    if(CoInitialize(NULL)==S_OK)
-      CoInitializeOK = 1;
-    w32g_initialize();
-
+	if (program_name = pathsep_strrchr(argv[0]))
+		program_name++;
+	else
+		program_name = argv[0];
+	if (strncmp(program_name, "timidity", 8) == 0)
+		;
+	else if (strncmp(program_name, "kmidi", 5) == 0)
+		set_ctl("q");
+	else if (strncmp(program_name, "tkmidi", 6) == 0)
+		set_ctl("k");
+	else if (strncmp(program_name, "gtkmidi", 6) == 0)
+		set_ctl("g");
+	else if (strncmp(program_name, "xmmidi", 6) == 0)
+		set_ctl("m");
+	else if (strncmp(program_name, "xawmidi", 7) == 0)
+		set_ctl("a");
+	else if (strncmp(program_name, "xskinmidi", 9) == 0)
+		set_ctl("i");
+	if (argc == 1 && !strchr(INTERACTIVE_INTERFACE_IDS, ctl->id_character)) {
+		interesting_message();
+		return 0;
+	}
+	timidity_start_initialize();
+#if defined (IA_W32GUI) || defined (IA_W32G_SYN)
+	if (CoInitialize(NULL) == S_OK)
+		CoInitializeOK = 1;
+	w32g_initialize();
 #ifdef IA_W32GUI
 	/* Secondary TiMidity Execute */
 	/*	FirstLoadIniFile(); */
-	if(w32gSecondTiMidity(SecondMode,argc,argv)==FALSE){
+	if (w32gSecondTiMidity(SecondMode,argc,argv) == FALSE)
 		return 0;
-	}
 #endif
-	
-    for(c = 1; c < argc; c++)
-    {
-	if(is_directory(argv[c]))
-	{
-	    char *p;
-	    p = (char *)safe_malloc(strlen(argv[c]) + 2);
-	    strcpy(p, argv[c]);
-	    directory_form(p);
-	    argv[c] = p;
-	}
-    }
-#endif
-
+	for (c = 1; c < argc; c++)
+		if (is_directory(argv[c])) {
+			char *p;
+			
+			p = (char *) safe_malloc(strlen(argv[c]) + 2);
+			strcpy(p, argv[c]);
+			directory_form(p);
+			argv[c] = p;
+		}
+#endif /* IA_W32GUI || IA_W32G_SYN */
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 	opt_sf_close_each_file = 0;
 #else
 	if ((err = timidity_pre_load_configuration()) != 0)
 		return err;
 #endif
-
-    optind = longind = 0;
-#if defined(__MINGW32__) || defined(__CYGWIN__)
+	optind = longind = 0;
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 	optreset = 1;
 #endif
-    while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
-	if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
-	    break;
+	while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
+		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
+			break;
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
 	if (got_a_configuration != 1)
 		if ((err = timidity_pre_load_configuration()) != 0)
 			return err;
 #endif
-
-    err += timidity_post_load_configuration();
-
-    /* If there were problems, give up now */
-    if(err || (optind >= argc &&
-	       !strchr(INTERACTIVE_INTERFACE_IDS, ctl->id_character)))
-    {
-	if(!got_a_configuration)
-	{
+	err += timidity_post_load_configuration();
+	/* If there were problems, give up now */
+	if (err || (optind >= argc
+			&& !strchr(INTERACTIVE_INTERFACE_IDS, ctl->id_character))) {
+		if (!got_a_configuration) {
 #ifdef __W32__
-	    char config1[1024];
-	    char config2[1024];
-
-	    memset(config1, 0, sizeof(config1));
-	    memset(config2, 0, sizeof(config2));
-#if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
-	    {
-		extern char *ConfigFile;
-		strncpy(config1, ConfigFile, sizeof(config1) - 1);
-	    }
-#else
-	    /* !IA_W32GUI */
-	    GetWindowsDirectory(config1, 1023 - 13);
-	    strcat(config1, "\\TIMIDITY.CFG");
+			char config1[1024], config2[1024];
+			
+			memset(config1, 0, sizeof(config1));
+			memset(config2, 0, sizeof(config2));
+#if defined(IA_W32GUI) || defined(IA_W32G_SYN)
+{
+			extern char *ConfigFile;
+			
+			strncpy(config1, ConfigFile, sizeof(config1) - 1);
+}
+#else /* !IA_W32GUI && !IA_W32G_SYN */
+			GetWindowsDirectory(config1, 1023 - 13);
+			strcat(config1, "\\TIMIDITY.CFG");
 #endif
-
-	    if(GetModuleFileName(NULL, config2, 1023))
-	    {
-		char *strp;
-		config2[1023] = '\0';
-		if(strp = strrchr(config2, '\\'))
-		{
-		    *(++strp)='\0';
-		    strncat(config2,"TIMIDITY.CFG",sizeof(config2)-strlen(config2)-1);
-		}
-	    }
-
-	    ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
-		      "%s: Can't read any configuration file.\nPlease check "
-		      "%s or %s", program_name, config1, config2);
+			if (GetModuleFileName(NULL, config2, 1023)) {
+				char *strp;
+				
+				config2[1023] = '\0';
+				if (strp = strrchr(config2, '\\')) {
+					*(++strp) = '\0';
+					strncat(config2, "TIMIDITY.CFG",
+							sizeof(config2) - strlen(config2) - 1);
+				}
+			}
+			ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
+					"%s: Can't read any configuration file.\n"
+					"Please check %s or %s", program_name, config1, config2);
 #else
-	    ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
-		      "%s: Can't read any configuration file.\nPlease check "
-		      CONFIG_FILE, program_name);
+			ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
+					"%s: Can't read any configuration file.\n"
+					"Please check " CONFIG_FILE, program_name);
 #endif /* __W32__ */
-	}
-	else
-	{
-	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-		      "Try %s -h for help", program_name);
-	}
-
-#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN ) /* Try to continue if it is Windows version */
-	return 1; /* problems with command line */
+		} else
+			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+					"Try %s -h for help", program_name);
+/* Try to continue if it is Windows version */
+#if !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
+		return 1; /* problems with command line */
 #endif
-    }
-
-    timidity_init_player();
-
-    nfiles = argc - optind;
-    files  = argv + optind;
-    if(nfiles > 0 && ctl->id_character != 'r' && ctl->id_character != 'A' && ctl->id_character != 'W' && ctl->id_character != 'P')
-	files = expand_file_archives(files, &nfiles);
+	}
+	timidity_init_player();
+	nfiles = argc - optind;
+	files  = argv + optind;
+	if (nfiles > 0
+			&& ctl->id_character != 'r' && ctl->id_character != 'A'
+			&& ctl->id_character != 'W' && ctl->id_character != 'P')
+		files = expand_file_archives(files, &nfiles);
 	files_nbuf = files[0];
 #if !defined(IA_W32GUI) && !defined(IA_W32G_SYN)
-    if(dumb_error_count)
-	sleep(1);
+	if (dumb_error_count)
+		sleep(1);
 #endif
-
-#ifndef IA_W32GUI
-    main_ret = timidity_play_main(nfiles, files);
-#ifdef IA_W32G_SYN
-    if(CoInitializeOK)
-      CoUninitialize();
-	w32g_uninitialize();
-#endif /* IA_W32G_SYN */
-#else
+#ifdef IA_W32GUI
 	w32gLoadDefaultPlaylist();
-    main_ret = timidity_play_main(nfiles, files);
-	if(save_playlist_once_before_exit_flag) {
+	main_ret = timidity_play_main(nfiles, files);
+	if (save_playlist_once_before_exit_flag) {
 		save_playlist_once_before_exit_flag = 0;
 		w32gSaveDefaultPlaylist();
 	}
-    w32gSecondTiMidityExit();
-    if(CoInitializeOK)
-      CoUninitialize();
+	w32gSecondTiMidityExit();
+	if (CoInitializeOK)
+		CoUninitialize();
 	w32g_free_playlist();
 	w32g_uninitialize();
 	w32g_free_doc();
+#else
+	main_ret = timidity_play_main(nfiles, files);
+#ifdef IA_W32G_SYN
+	if (CoInitializeOK)
+		CoUninitialize();
+	w32g_uninitialize();
+#endif /* IA_W32G_SYN */
 #endif /* IA_W32GUI */
 #ifdef SUPPORT_SOCKET
 	if (url_user_agent)
@@ -5887,18 +5865,20 @@ int main(int argc, char **argv)
 		free(files);
 	}
 	free_soft_queue();
-    free_instruments(0);
+	free_instruments(0);
 	free_soundfonts();
 	free_cache_data();
 	free_wrd();
 	free_readmidi();
-    free_global_mblock();
-    tmdy_free_config();
+	free_global_mblock();
+	tmdy_free_config();
 	free_reverb_buffer();
 	free_effect_buffers();
 	free(voice);
 	free_gauss_table();
-	for (i = 0; i < MAX_CHANNELS; i++) {free_drum_effect(i);}
-    return main_ret;
+	for (i = 0; i < MAX_CHANNELS; i++)
+		free_drum_effect(i);
+	return main_ret;
 }
-#endif /* ANOTHER_MAIN */
+#endif /* !ANOTHER_MAIN || __W32__ */
+
