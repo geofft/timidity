@@ -1,3 +1,7 @@
+2007-01-012  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+    * timidity/wave_a.c: fix for autofilname.
+
 2007-01-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c (main): Fix to avoid segmentation fault
