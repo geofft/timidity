@@ -239,6 +239,8 @@ static int open_output(void)
 
 #ifndef __W32G__
     if(dpm.name == NULL) {
+	  if ( (ctl->id_character == 'r') && (!current_file_info || !current_file_info->filename) )
+        return -1;
       dpm.flag |= PF_AUTO_SPLIT_FILE;
       dpm.name = NULL;
     } else {

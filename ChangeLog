@@ -1,4 +1,8 @@
-2007-01-012  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-01-13  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+    * timidity/wave_a.c: fix for server interface.
+
+2007-01-12  Keishi Suenaga <skeishi@yahoo.co.jp>
 
     * timidity/wave_a.c: fix for autofilname.
 
