@@ -539,7 +539,7 @@ char *create_auto_output_name(const char *input_filename, char *ext_str, char *o
   int32 dir_len = 0;
   char ext_str_tmp[65];
 
-  output_filename = (char *)safe_malloc((output_dir?strlen(output_dir):0) + strlen(input_filename) + 6);
+  output_filename = (char *)safe_malloc((output_dir!=NULL?strlen(output_dir):0) + strlen(input_filename) + 6);
   if(output_filename==NULL)
     return NULL;
   output_filename[0] = '\0';

@@ -711,8 +711,6 @@ static int open_output(void)
 
 #ifndef __W32G__
   if(dpm.name == NULL) {
-    if (!current_file_info || !current_file_info->filename)
-      return -1;
     dpm.flag |= PF_AUTO_SPLIT_FILE;
   } else {
     dpm.flag &= ~PF_AUTO_SPLIT_FILE;
@@ -990,8 +988,11 @@ static int acntl(int request, void *arg)
 {
   switch(request) {
   case PM_REQ_PLAY_START:
-    if(dpm.flag & PF_AUTO_SPLIT_FILE)
+    if(dpm.flag & PF_AUTO_SPLIT_FILE){
+      if(  ( NULL == current_file_info ) || (NULL == current_file_info->filename ) )
+        return auto_flac_output_open("Output.mid",NULL);
       return auto_flac_output_open(current_file_info->filename, current_file_info->seq_name);
+   }
     return 0;
   case PM_REQ_PLAY_END:
     if(dpm.flag & PF_AUTO_SPLIT_FILE)

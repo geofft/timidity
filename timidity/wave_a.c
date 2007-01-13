@@ -239,10 +239,7 @@ static int open_output(void)
 
 #ifndef __W32G__
     if(dpm.name == NULL) {
-	  if ( (ctl->id_character == 'r') && (!current_file_info || !current_file_info->filename) )
-        return -1;
       dpm.flag |= PF_AUTO_SPLIT_FILE;
-      dpm.name = NULL;
     } else {
       dpm.flag &= ~PF_AUTO_SPLIT_FILE;
       if((dpm.fd = wav_output_open(dpm.name)) == -1)
@@ -341,8 +338,11 @@ static int acntl(int request, void *arg)
 {
   switch(request) {
   case PM_REQ_PLAY_START:
-    if(dpm.flag & PF_AUTO_SPLIT_FILE)
+    if(dpm.flag & PF_AUTO_SPLIT_FILE){
+      if(  ( NULL == current_file_info ) || (NULL == current_file_info->filename ) )
+        return auto_wav_output_open("Output.mid");
       return auto_wav_output_open(current_file_info->filename);
+   }
     return 0;
   case PM_REQ_PLAY_END:
     if(dpm.flag & PF_AUTO_SPLIT_FILE)
