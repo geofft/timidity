@@ -44,7 +44,8 @@ libtimiditydrv_a_SOURCES = \
 SYSEXTRAS: timiditydrv.h
 
 EXTRA_DIST = \
-	 timiditydrv.inf  
+	 timiditydrv.inf  \
+	 timiditydrv.idl
 
 
 

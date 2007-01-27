@@ -1,3 +1,14 @@
+2007-01-28  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* interface/rtsyn_common.c: fix sysex check 
+	* timidity/portaudio_a.c    small fix for compiling
+	* timidity/timidity.c       w32 cfg file sequence changed
+	                            option > exe dir > win dir
+	* timidity/w32_a.c          small fix for compiling
+	* windrv/Makefile.am        re-add add timidity.idl
+	* windrv/timiditydrv.c      re-add MIDIOUTCAPS2A(W)
+	* windrv/timiditydrv.idl    re-add
+
 2007-01-14  Keishi Suenaga <skeishi@yahoo.co.jp>
 
     * timidity/flac_a.c

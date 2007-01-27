@@ -5246,15 +5246,6 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
       strcat(ConfigFile, "\\TIMIDITY.CFG");
     }
     strncpy(local, ConfigFile, sizeof(local) - 1);
-#else
-    /* !IA_W32GUI */
-    GetWindowsDirectory(local, 1023 - 13);
-    strcat(local, "\\TIMIDITY.CFG");
-#endif
-
-    /* First, try read system configuration file.
-     * Default is C:\WINDOWS\TIMIDITY.CFG
-     */
     if((check = open(local, 0)) >= 0)
     {
 	close(check);
@@ -5263,8 +5254,9 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 		return 0;
 	}
     }
+#endif
 
-    /* Next, try read configuration file which is in the
+	/* First, try read configuration file which is in the
      * TiMidity directory.
      */
     if(GetModuleFileName(NULL, local, 1023))
@@ -5283,6 +5275,22 @@ MAIN_INTERFACE int timidity_pre_load_configuration(void)
 		}
 	    }
 	}
+#if !defined ( IA_W32GUI ) && !defined ( IA_W32G_SYN )
+    /* Next, try read system configuration file.
+     * Default is C:\WINDOWS\TIMIDITY.CFG
+     */
+    GetWindowsDirectory(local, 1023 - 13);
+    strcat(local, "\\TIMIDITY.CFG");
+    if((check = open(local, 0)) >= 0)
+    {
+	close(check);
+	if(!read_config_file(local, 0)) {
+	    got_a_configuration = 1;
+		return 0;
+	}
+    }
+#endif
+
     }
 
 #else
@@ -5735,7 +5743,7 @@ int main(int argc, char **argv)
 			argv[c] = p;
 		}
 #endif /* IA_W32GUI || IA_W32G_SYN */
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#ifdef __WIN32__
 	opt_sf_close_each_file = 0;
 #else
 	if ((err = timidity_pre_load_configuration()) != 0)
@@ -5748,7 +5756,7 @@ int main(int argc, char **argv)
 	while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
 		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 			break;
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#ifdef __WIN32__
 	if (got_a_configuration != 1)
 		if ((err = timidity_pre_load_configuration()) != 0)
 			return err;

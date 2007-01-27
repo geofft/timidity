@@ -45,6 +45,8 @@ extern CRITICAL_SECTION critSect;
 
 int opt_wmme_device_id = -1;
 
+UINT uDeviceID;
+
 /*****************************************************************************************************************************/
 
 #if defined(__CYGWIN32__) || defined(__MINGW32__)
@@ -293,7 +295,6 @@ static int open_output(void)
 
 		hDevice = 0;
 
-	UINT uDeviceID;
 	if (opt_wmme_device_id == -1){
 		uDeviceID = WAVE_MAPPER;
     }else{

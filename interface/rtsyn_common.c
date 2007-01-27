@@ -479,18 +479,20 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 	
 	event_time = event_time + rtsyn_latency;
 
-	if(sysexbuffer[exlen-1] == '\xf7'){            // I don't konw why this need
-		for(i=0;i<EX_RESET_NO;i++){
-			chk=0;
-			for(j=0;(j<exlen)&&(j<11);j++){
-				if(chk==0 && sysex_resets[i][j]!=sysexbuffer[j]){
-					chk=~0;
-				}
-			}
-			if(chk==0){
-				 rtsyn_server_reset();
+	if(   ((sysexbuffer[0] != '\xf0') && (sysexbuffer[0] != '\xf7')) ||
+	((sysexbuffer[0] == '\xf0') && (sysexbuffer[exlen-1] != '\xf7'))  ) return ;
+
+	for(i=0;i<EX_RESET_NO;i++){
+		chk=0;
+		for(j=0;(j<exlen)&&(j<11);j++){
+			if(chk==0 && sysex_resets[i][j]!=sysexbuffer[j]){
+				chk=~0;
 			}
 		}
+		if(chk==0){
+			 rtsyn_server_reset();
+		}
+	}
 
 /*
 		printf("SyeEx length=%x bytes \n", exlen);
@@ -499,19 +501,19 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 		}
 		printf("\n");
 */
-		if(parse_sysex_event(sysexbuffer+1,exlen-1,&ev)){
-			if(ev.type==ME_RESET && rtsyn_system_mode!=DEFAULT_SYSTEM_MODE){
-				ev.a=rtsyn_system_mode;
-				change_system_mode(rtsyn_system_mode);
-				rtsyn_play_event_time(&ev, event_time);
-			}else{
-				rtsyn_play_event_time(&ev, event_time);
-			}
-		}
-		if(ne=parse_sysex_event_multi(sysexbuffer+1,exlen-1, evm)){
-			for (i = 0; i < ne; i++){
-					rtsyn_play_event_time(&evm[i], event_time);
-			}
+	if(parse_sysex_event(sysexbuffer+1,exlen-1,&ev)){
+		if(ev.type==ME_RESET && rtsyn_system_mode!=DEFAULT_SYSTEM_MODE){
+			ev.a=rtsyn_system_mode;
+			change_system_mode(rtsyn_system_mode);
+			rtsyn_play_event_time(&ev, event_time);
+		}else{
+			rtsyn_play_event_time(&ev, event_time);
 		}
 	}
+	if(ne=parse_sysex_event_multi(sysexbuffer+1,exlen-1, evm)){
+		for (i = 0; i < ne; i++){
+			rtsyn_play_event_time(&evm[i], event_time);
+		}
+	}
+	
 }

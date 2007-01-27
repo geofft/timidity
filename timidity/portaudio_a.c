@@ -337,7 +337,8 @@ static int open_output(void)
 	}
 #ifdef PORTAUDIO_V19
 #ifdef AU_PORTAUDIO_DLL
-	PaHostApiIndex i, ApiCount;
+       {	
+        PaHostApiIndex i, ApiCount;
 	i = 0;
 	ApiCount = Pa_GetHostApiCount();
 	do{
@@ -349,6 +350,7 @@ static int open_output(void)
 	
 	DeviceIndex = HostApiInfo->defaultOutputDevice;
 	if(DeviceIndex==paNoDevice) goto error;
+        }
 #else
 	DeviceIndex = Pa_GetDefaultOutputDevice();
 	if(DeviceIndex==paNoDevice) goto error;
