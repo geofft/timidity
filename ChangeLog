@@ -4,6 +4,7 @@
 	* timidity/portaudio_a.c    small fix for compiling
 	* timidity/timidity.c       w32 cfg file sequence changed
 	                            option > exe dir > win dir
+	                            w32 set stdin&out binarymode
 	* timidity/w32_a.c          small fix for compiling
 	* windrv/Makefile.am        re-add add timidity.idl
 	* windrv/timiditydrv.c      re-add MIDIOUTCAPS2A(W)

@@ -5467,13 +5467,21 @@ MAIN_INTERFACE int timidity_play_main(int nfiles, char **files)
     if(opt_output_name)
     {
 	play_mode->name = opt_output_name;
-	if(!strcmp(opt_output_name, "-"))
+    if(!strcmp(opt_output_name, "-")){
 	    need_stdout = 1;
+#ifdef __W32__
+    	setmode( fileno(stdout), O_BINARY );
+#endif
+    }
     }
 
     for(i = 0; i < nfiles; i++)
-	if (!strcmp(files[i], "-"))
+	if (!strcmp(files[i], "-")){
 	    need_stdin = 1;
+#ifdef __W32__
+    	setmode( fileno(stdin), O_BINARY );
+#endif
+	}
 
     if(ctl->open(need_stdin, need_stdout))
     {
