@@ -163,20 +163,20 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/miditrace.Po ./$(DEPDIR)/mix.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mod.Po ./$(DEPDIR)/mod2midi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/modmid_a.Po ./$(DEPDIR)/mt19937ar.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/nas_a.Po ./$(DEPDIR)/optcode.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/oss_a.Po ./$(DEPDIR)/output.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/playmidi.Po ./$(DEPDIR)/portaudio_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/quantity.Po ./$(DEPDIR)/raw_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/rcp.Po ./$(DEPDIR)/readmidi.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/recache.Po ./$(DEPDIR)/resample.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/reverb.Po ./$(DEPDIR)/sbkconv.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sffile.Po ./$(DEPDIR)/sfitem.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/smfconv.Po ./$(DEPDIR)/smplfile.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sndfont.Po ./$(DEPDIR)/speex_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/sun_a.Po ./$(DEPDIR)/tables.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/timidity.Po ./$(DEPDIR)/version.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/vorbis_a.Po ./$(DEPDIR)/w32_a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/w32_gogo.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/nas_a.Po ./$(DEPDIR)/npipe_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/optcode.Po ./$(DEPDIR)/oss_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/output.Po ./$(DEPDIR)/playmidi.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/portaudio_a.Po ./$(DEPDIR)/quantity.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/raw_a.Po ./$(DEPDIR)/rcp.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/readmidi.Po ./$(DEPDIR)/recache.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/resample.Po ./$(DEPDIR)/reverb.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sbkconv.Po ./$(DEPDIR)/sffile.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sfitem.Po ./$(DEPDIR)/smfconv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/smplfile.Po ./$(DEPDIR)/sndfont.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/speex_a.Po ./$(DEPDIR)/sun_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tables.Po ./$(DEPDIR)/timidity.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/version.Po ./$(DEPDIR)/vorbis_a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/w32_a.Po ./$(DEPDIR)/w32_gogo.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32_libFLAC_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32_libOggFLAC_dll.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/w32_portaudio_dll.Po \
@@ -272,6 +272,8 @@ ENABLE_NCURSES_FALSE = @ENABLE_NCURSES_FALSE@
 ENABLE_NCURSES_TRUE = @ENABLE_NCURSES_TRUE@
 ENABLE_NETWORK_FALSE = @ENABLE_NETWORK_FALSE@
 ENABLE_NETWORK_TRUE = @ENABLE_NETWORK_TRUE@
+ENABLE_NPSYN_FALSE = @ENABLE_NPSYN_FALSE@
+ENABLE_NPSYN_TRUE = @ENABLE_NPSYN_TRUE@
 ENABLE_PLUGIN_FALSE = @ENABLE_PLUGIN_FALSE@
 ENABLE_PLUGIN_TRUE = @ENABLE_PLUGIN_TRUE@
 ENABLE_PORTMIDISYN_FALSE = @ENABLE_PORTMIDISYN_FALSE@
@@ -580,6 +582,7 @@ EXTRA_timidity_SOURCES = \
 	mfnode.h \
 	nas_a.c \
 	portaudio_a.c \
+	npipe_a.c \
 	sun_a.c \
 	vorbis_a.c \
 	flac_a.c \
@@ -842,6 +845,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modmid_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mt19937ar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nas_a.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/npipe_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/optcode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oss_a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/output.Po@am__quote@

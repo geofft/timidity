@@ -107,6 +107,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/motif_p.Po ./$(DEPDIR)/ncurs_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/portmidisyn_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_common.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/rtsyn_npipe.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_portmidi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_winmm.Po ./$(DEPDIR)/server_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/slang_c.Po ./$(DEPDIR)/soundspec.Po \
@@ -223,6 +224,8 @@ ENABLE_NCURSES_FALSE = @ENABLE_NCURSES_FALSE@
 ENABLE_NCURSES_TRUE = @ENABLE_NCURSES_TRUE@
 ENABLE_NETWORK_FALSE = @ENABLE_NETWORK_FALSE@
 ENABLE_NETWORK_TRUE = @ENABLE_NETWORK_TRUE@
+ENABLE_NPSYN_FALSE = @ENABLE_NPSYN_FALSE@
+ENABLE_NPSYN_TRUE = @ENABLE_NPSYN_TRUE@
 ENABLE_PLUGIN_FALSE = @ENABLE_PLUGIN_FALSE@
 ENABLE_PLUGIN_TRUE = @ENABLE_PLUGIN_TRUE@
 ENABLE_PORTMIDISYN_FALSE = @ENABLE_PORTMIDISYN_FALSE@
@@ -515,10 +518,12 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_dib.c \
 	w32g_dib.h \
 	winsyn_c.c \
+	npsyn_c.d \
 	rtsyn.h \
 	rtsyn_common.c \
 	rtsyn_winmm.c \
 	rtsyn_portmidi.c \
+	rtsyn_npipe.c\
 	portmidisyn_c.c
 
 @ENABLE_WRD_TRUE@WRD_OBJS = \
@@ -646,6 +651,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ncurs_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/portmidisyn_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_npipe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_portmidi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_winmm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/server_c.Po@am__quote@
