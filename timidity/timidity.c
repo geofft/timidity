@@ -2993,7 +2993,7 @@ static inline int parse_opt_C(const char *arg)
 static inline int parse_opt_c(char *arg)
 {
 #ifdef __W32__
-	if(got_a_configuration == 1) retrun 0;
+	if(got_a_configuration == 1) return 0;
 #endif
 	if (read_config_file(arg, 0))
 		return 1;

@@ -1,4 +1,9 @@
-2007-02-9  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-02-09  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* interface.h.in:       Windows Named Pipe
+	* timidity/timidity.c:  fix typo
+
+2007-02-09  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	* configure.in
 	  interface/Makefile.am

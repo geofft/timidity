@@ -52,6 +52,9 @@
 /* Define if you have PortMIDI synthesizer mode interface. */
 #undef IA_PORTMIDISYN
 
+/* Define if you have Windows named pipe synthesizer mode interface. */
+#undef IA_NPSYN
+
 #if defined(IA_W32GUI) || defined(IA_W32G_SYN)
 #ifndef __W32READDIR__
 #define __W32READDIR__
