@@ -94,7 +94,7 @@ static double active_sensing_time=0;
 
 //timer interrupt
 
-
+/*
 #define EX_RESET_NO 7
 static char sysex_resets[EX_RESET_NO][11]={
 		'\xf0','\x7e','\x7f','\x09','\x00','\xf7','\x00','\x00','\x00','\x00','\x00',
@@ -104,6 +104,7 @@ static char sysex_resets[EX_RESET_NO][11]={
 		'\xf0','\x41','\x10','\x42','\x12','\x00','\x00','\x7f','\x00','\x01','\xf7',
 		'\xf0','\x41','\x10','\x42','\x12','\x00','\x00','\x7f','\x01','\x00','\xf7',
 		'\xf0','\x43','\x10','\x4c','\x00','\x00','\x7E','\x00','\xf7','\x00','\x00' };
+*/
 /*
 #define EX_RESET_NO 9
 static char sysex_resets[EX_RESET_NO][11]={
@@ -254,9 +255,6 @@ void rtsyn_play_event_time(MidiEvent *ev, double event_time){
 	int32 max_compute;
 	MidiEvent nev;
 
-	gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
-	if(gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel) ){
-
 		max_compute = rtsyn_latency * 1000.0;
 		max_compute = (stream_max_compute > max_compute) ? stream_max_compute : max_compute;
 		if ( (event_time - last_event_time) > (double)max_compute/1000.0){
@@ -279,21 +277,19 @@ void rtsyn_play_event_time(MidiEvent *ev, double event_time){
 					play_event(&nev);
 					aq_fill_nonblocking();
 				}
-				rtsyn_seq_set_time(ev,event_time);
-				play_event(ev);
-				aq_fill_nonblocking();
-				last_event_time = (event_time  > last_event_time) ? event_time : last_event_time ;
-		
-			}else{
-				rtsyn_seq_set_time(ev, event_time);
-				play_event(ev);
-				aq_fill_nonblocking();
-				last_event_time = (event_time  > last_event_time) ? event_time : last_event_time ;
 			}
-		}
+				gch = GLOBAL_CHANNEL_EVENT_TYPE(ev->type);
+				if(gch || !IS_SET_CHANNELMASK(quietchannels, ev->channel) ){
+					rtsyn_seq_set_time(ev,event_time);
+					play_event(ev);
+					aq_fill_nonblocking();
+					last_event_time = (event_time  > last_event_time) ? event_time : last_event_time ;
+				}
+			}
+//		}
 //		}
 		rtsyn_played = 1;
-	}
+
 
 }
 void rtsyn_play_event(MidiEvent *ev){
@@ -312,8 +308,9 @@ void rtsyn_server_reset(void){
 		free_instruments(0);
 	}
 	aq_flush(1);
-	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
-	play_mode->open_output();	// but w32_a.c does not have it.
+//	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
+//	play_mode->open_output();	// but w32_a.c does not have it.
+        play_mode->acntl(PM_REQ_FLUSH, NULL);
 
 	readmidi_read_init();
 	playmidi_stream_init();
@@ -479,9 +476,14 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 	
 	event_time = event_time + rtsyn_latency;
 
+	if( (sysexbuffer[0] != '\xf0') && (sysexbuffer[0] != '\xf7') ) return ;
+
+/* // this is bad check  someone send SysEx f0xxxxxxxxxxx without xf7 format.
 	if(   ((sysexbuffer[0] != '\xf0') && (sysexbuffer[0] != '\xf7')) ||
 	((sysexbuffer[0] == '\xf0') && (sysexbuffer[exlen-1] != '\xf7'))  ) return ;
+*/
 
+/*
 	for(i=0;i<EX_RESET_NO;i++){
 		chk=0;
 		for(j=0;(j<exlen)&&(j<11);j++){
@@ -493,7 +495,7 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 			 rtsyn_server_reset();
 		}
 	}
-
+*/
 /*
 		printf("SyeEx length=%x bytes \n", exlen);
 		for(i=0;i<exlen;i++){
@@ -502,6 +504,7 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 		printf("\n");
 */
 	if(parse_sysex_event(sysexbuffer+1,exlen-1,&ev)){
+		if(ev.type==ME_RESET)  rtsyn_server_reset();
 		if(ev.type==ME_RESET && rtsyn_system_mode!=DEFAULT_SYSTEM_MODE){
 			ev.a=rtsyn_system_mode;
 			change_system_mode(rtsyn_system_mode);

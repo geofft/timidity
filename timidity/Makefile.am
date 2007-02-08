@@ -139,6 +139,7 @@ EXTRA_timidity_SOURCES = \
 	mfnode.h \
 	nas_a.c \
 	portaudio_a.c \
+	npipe_a.c \
 	sun_a.c \
 	vorbis_a.c \
 	flac_a.c \

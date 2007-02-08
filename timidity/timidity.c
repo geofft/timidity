@@ -297,7 +297,7 @@ static const struct option longopts[] = {
 	{ "realtime-priority",      required_argument, NULL, TIM_OPT_RT_PRIO },
 	{ "sequencer-ports",        required_argument, NULL, TIM_OPT_SEQ_PORTS },
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 #endif
 	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
@@ -367,7 +367,7 @@ static const struct option longopts[] = {
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
-#define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
+#define INTERACTIVE_INTERFACE_IDS "kmqagrwAWNP"
 
 /* main interfaces (To be used another main) */
 #if defined(main) || defined(ANOTHER_MAIN) || defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
@@ -454,7 +454,7 @@ static inline int parse_opt_background(const char *);
 static inline int parse_opt_rt_prio(const char *);
 static inline int parse_opt_seq_ports(const char *);
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 static inline int parse_opt_rtsyn_latency(const char *);
 #endif
 static inline int parse_opt_j(const char *);
@@ -606,8 +606,16 @@ static BOOL WINAPI handler(DWORD dw)
 	{
     	rtsyn_midiports_close();
 	}
-#endif	
-    printf ("***BREAK" NLS); fflush(stdout);
+#endif
+
+
+#if defined(IA_NPSYN)
+	if( ctl->id_character == 'N')
+	{
+		return FALSE;  //why FALSE need?  It must close by intr++;
+	}
+#endif
+	printf ("***BREAK" NLS); fflush(stdout);
     intr++;
     return TRUE;
 }
@@ -2657,6 +2665,16 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	}
 	return 0;
 }
+MAIN_INTERFACE int set_tim_opt_short_cfg(int c, char *optarg)
+{
+	int err = 0;
+	
+	switch (c) {
+	case 'c':
+		return parse_opt_c(optarg);
+	}
+	return 0;
+}
 
 /* -------- getopt_long -------- */
 MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
@@ -2769,7 +2787,7 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case TIM_OPT_SEQ_PORTS:
 		return parse_opt_seq_ports(arg);
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	case TIM_OPT_RTSYN_LATENCY:
 		return parse_opt_rtsyn_latency(arg);
 #endif
@@ -2897,6 +2915,24 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		abort();
 	}
 }
+MAIN_INTERFACE int set_tim_opt_long_cfg(int c, char *optarg, int index)
+{
+	const struct option *the_option = &(longopts[index]);
+	char *arg;
+	
+	if (c == '?')	/* getopt_long failed parsing */
+		parse_opt_fail(optarg);
+	else if (c < TIM_OPT_FIRST)
+		return set_tim_opt_short_cfg(c, optarg);
+	if (! strncmp(the_option->name, "no-", 3))
+		arg = "no";		/* `reverse' switch */
+	else
+		arg = optarg;
+	switch (c) {
+	case TIM_OPT_CONFIG_FILE:
+		return parse_opt_c(arg);
+	}
+}
 
 static inline int parse_opt_A(const char *arg)
 {
@@ -2956,6 +2992,9 @@ static inline int parse_opt_C(const char *arg)
 
 static inline int parse_opt_c(char *arg)
 {
+#ifdef __W32__
+	if(got_a_configuration == 1) retrun 0;
+#endif
 	if (read_config_file(arg, 0))
 		return 1;
 	got_a_configuration = 1;
@@ -3652,7 +3691,7 @@ static int parse_opt_h(const char *arg)
 "             --sequencer-ports=n (for alsaseq only)",
 "               Set the number of opened sequencer ports (default is 4)",
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN)
 "             --rtsyn-latency=sec (for rtsyn only)",
 "               Set the realtime latency (sec)",
 "                 (default is 0.2 sec, minimum is 0.04 sec)",
@@ -4219,7 +4258,7 @@ static inline int parse_opt_rtsyn_latency(const char *arg)
 	return 0;
 }
 #endif
-#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN)
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) ||defined(IA_NPSYN) || defined(IA_W32G_SYN)
 static inline int parse_opt_rtsyn_latency(const char *arg)
 {
 	double latency;
@@ -5751,12 +5790,22 @@ int main(int argc, char **argv)
 			argv[c] = p;
 		}
 #endif /* IA_W32GUI || IA_W32G_SYN */
-#ifdef __WIN32__
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN)
 	opt_sf_close_each_file = 0;
-#else
-	if ((err = timidity_pre_load_configuration()) != 0)
-		return err;
+#endif 
+	optind = longind = 0;
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+	optreset = 1;
 #endif
+#ifdef __W32__
+	while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
+		if ((err = set_tim_opt_long_cfg(c, optarg, longind)) != 0)
+			break;
+#endif
+	if (got_a_configuration != 1){	
+		if ((err = timidity_pre_load_configuration()) != 0)
+			return err;
+	}
 	optind = longind = 0;
 #if defined(__CYGWIN__) || defined(__MINGW32__)
 	optreset = 1;
@@ -5764,11 +5813,6 @@ int main(int argc, char **argv)
 	while ((c = getopt_long(argc, argv, optcommands, longopts, &longind)) > 0)
 		if ((err = set_tim_opt_long(c, optarg, longind)) != 0)
 			break;
-#ifdef __WIN32__
-	if (got_a_configuration != 1)
-		if ((err = timidity_pre_load_configuration()) != 0)
-			return err;
-#endif
 	err += timidity_post_load_configuration();
 	/* If there were problems, give up now */
 	if (err || (optind >= argc
@@ -5820,7 +5864,7 @@ int main(int argc, char **argv)
 	files  = argv + optind;
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
-			&& ctl->id_character != 'W' && ctl->id_character != 'P')
+			&& ctl->id_character != 'W' && ctl->id_character != 'N' && ctl->id_character != 'P')
 		files = expand_file_archives(files, &nfiles);
 	if (nfiles > 0)
 		files_nbuf = files[0];
@@ -5877,7 +5921,7 @@ int main(int argc, char **argv)
 		free(wrdt_open_opts);
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
-			&& ctl->id_character != 'W' && ctl->id_character != 'P') {
+			&& ctl->id_character != 'W' && ctl->id_character != 'N'  && ctl->id_character != 'P') {
 		free(files_nbuf);
 		free(files);
 	}

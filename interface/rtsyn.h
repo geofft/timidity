@@ -132,6 +132,8 @@ void rtsyn_play_calculate(void);
 /*  Interface dependent functions (see rtsyn_winmm.c rtsyn_portmidi.c)        */
 /*                                                                            */
 /******************************************************************************/
+#if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_W32G_SYN) 
+
 #define MAX_PORT 4
 extern int rtsyn_portnumber;
 extern unsigned int portID[MAX_PORT];
@@ -144,12 +146,33 @@ void rtsyn_synth_stop(void);
 int rtsyn_play_some_data (void);
 void rtsyn_midiports_close(void);
 
-
 #if defined(IA_WINSYN) || defined(IA_W32G_SYN)
 int rtsyn_buf_check(void);
 #endif
 
+#endif /* IA_WINSYN IA_PORTMIDISYN IA_W32G_SYN */
 
+#ifdef IA_NPSYN
+#define RTSYN_NP_DATA 1
+#define RTSYN_NP_LONGDATA 2
+typedef struct rtsyn_np_evbuf_t{
+	uint32 wMsg;
+	union {
+		uint32 port;
+		uint32  exlen;
+	};
+	union {
+		uint32	dwParam1;
+	};
+	uint32	dwParam2;
+}  RtsynNpEvBuf;
+
+void rtsyn_np_set_pipe_name(char*);
+int rtsyn_np_synth_start(void);
+void rtsyn_np_synth_stop(void);
+int rtsyn_np_play_some_data (void);
+void rtsyn_np_pipe_close();
+#endif
 
 #ifdef USE_WINSYN_TIMER_I
 

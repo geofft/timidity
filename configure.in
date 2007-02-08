@@ -712,6 +712,7 @@ dnl nas(n):     Network Audio System
 dnl arts(R):	aRts
 dnl esd(e):     EsounD
 dnl portaudio(p) PortAudio
+dnl npipe(N)   Windows named pipe;
 dnl vorbis(v):  Ogg Vorbis
 dnl flac(F):    FLAC / OggFLAC
 dnl speex(S):   Ogg Speex
@@ -719,7 +720,7 @@ dnl gogo(g):    MP3 GOGO
 dnl jack(j):    JACK
 dnl ao(O):      Libao
 
-audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis flac gogo portaudio jack ao'
+audio_targets='default oss alsa sun hpux irix mme sb_dsp w32 alib nas arts esd vorbis flac gogo portaudio npipe jack ao'
 
 AC_ARG_WITH(nas-library,
   [  --with-nas-library=library NAS absolute library path(Don't use -laudio)])
@@ -744,6 +745,7 @@ AC_ARG_ENABLE(audio,
                               arts:      aRts
                               esd:       EsounD - Enlightened Sound Daemon
                               portaudio: PortAudio
+                              npipe:     Named Pipe(windows)
                               jack:      JACK
                               ao:        Libao
                               vorbis:    Ogg Vorbis
@@ -770,7 +772,7 @@ AC_ARG_WITH(default-output,
   [  --with-default-output=<mode>  Specify default output mode (optional):
                                 (default|alsa|alib|arts|nas|
                                 esd|wav|au|aiff|list|vorbis|flac|speex|
-                                gogo|portaudio|jack|ao)],
+                                gogo|portaudio|npipe|jack|ao)],
   [ if test "$enable_audio" != no; then
     DEFAULT_PLAYMODE=$withval
     eval "au_enable_$DEFAULT_PLAYMODE=yes"
@@ -1152,7 +1154,7 @@ else
   AC_MSG_RESULT(no)
 fi
 
-dnl portaudio E
+dnl portaudio
 AC_MSG_CHECKING(enable_audio=portaudio)
 if test "x$au_enable_portaudio" = xyes; then
   AC_MSG_RESULT(yes)
@@ -1168,6 +1170,17 @@ if test "x$au_enable_portaudio" = xyes; then
 else
   AC_MSG_RESULT(no)
 fi
+
+dnl npipe (windows named pipe)
+AC_MSG_CHECKING(enable_audio=npipe)
+if test "x$au_enable_npipe" = xyes; then
+  AC_MSG_RESULT(yes)
+  	SYSEXTRAS="$SYSEXTRAS npipe_a.c"
+  	EXTRADEFS="$EXTRADEFS -DAU_NPIPE"
+else
+  AC_MSG_RESULT(no)
+fi
+
 
 dnl JACK
 AC_MSG_CHECKING(enable_audio=jack)
@@ -1332,6 +1345,7 @@ case ".$DEFAULT_PLAYMODE" in
   .arts)     TIMIDITY_OUTPUT_ID=R ;;
   .esd)      TIMIDITY_OUTPUT_ID=e ;;
   .portaudio)      TIMIDITY_OUTPUT_ID=p ;;  
+  .npipe)    TIMIDITY_OUTPUT_ID=N ;;
   .wav)      TIMIDITY_OUTPUT_ID=w ;;
   .au)       TIMIDITY_OUTPUT_ID=u ;;
   .aiff)     TIMIDITY_OUTPUT_ID=a ;;
@@ -1350,7 +1364,7 @@ AC_MSG_RESULT($DEFAULT_PLAYMODE/$TIMIDITY_OUTPUT_ID)
 # Interface Section
 #
 
-interface_targets='dynamic ncurses slang motif tcltk emacs vt100 xaw xskin gtk alsaseq winsyn winsyng portmidisyng'
+interface_targets='dynamic ncurses slang motif tcltk emacs vt100 xaw xskin gtk alsaseq winsyn winsyng portmidisyng npsyn'
 
 AC_ARG_ENABLE(interface,
   [  --enable-interface=[interface_list]
@@ -1769,6 +1783,16 @@ CONFIG_INTERFACE(portmidisyn,PORTMIDISYN,P,
                                                           (default is no)],
   ,
   [ INTERFACE_SRCS="$INTERFACE_SRCS portmidisyn_c.c rtsyn_common.c rtsyn_portmidi.c" ])
+
+dnl TiMidity Windows synthesizer server
+AM_CONDITIONAL(ENABLE_NPSYN, false)
+CONFIG_INTERFACE(npsyn,NPSYN,W,
+  [  --enable-npsyn        Enable Windows Named Pipe Synthesizer interface
+                                                          (default is no)],
+  ,
+  [ NPSYN="yes"; INTERFACE_SRCS="$INTERFACE_SRCS npsyn_c.c rtsyn_common.c rtsyn_npipe.c" ])
+
+
 
 dnl TiMidity Windows GUI synthesizer server
 AM_CONDITIONAL(ENABLE_W32G_SYN, false)

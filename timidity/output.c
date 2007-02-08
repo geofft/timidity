@@ -100,6 +100,10 @@ extern PlayMode portaudio_win_wmme_play_mode;
 #endif
 #endif /* AU_PORTAUDIO */
 
+#ifdef AU_NPIPE
+extern PlayMode npipe_play_mode;
+#endif /* AU_NPIPE */
+
 #ifdef AU_JACK
 extern PlayMode jack_play_mode;
 #endif /* AU_NAS */
@@ -163,6 +167,10 @@ PlayMode *play_mode_list[] = {
   &portaudio_win_wmme_play_mode,
 #endif
 #endif /* AU_PORTAUDIO */
+
+#if defined(AU_NPIPE)
+  &npipe_play_mode,
+#endif /*AU_NPIPE*/
 
 #if defined(AU_JACK)
   &jack_play_mode,

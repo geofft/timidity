@@ -93,6 +93,7 @@ const GUID CLSID_tim_synth = {0x0FEC4C35,0xA705,0x41d7,{0xA3,0xBB,0xD5,0x87,0xA2
 
 #include "config.h"
 #include "sysdep.h"
+#include "output.h"
 
 #include "timiwp_timidity.h"
 
@@ -107,6 +108,7 @@ static volatile int stop_thread = 0;
 static volatile int stop_rtthread = 0;
 static HANDLE hCalcThread = NULL;
 static HANDLE hRtsynThread = NULL;
+static DWORD processPriority;
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved ){
 	if (fdwReason == DLL_PROCESS_ATTACH){
@@ -142,9 +144,25 @@ STDAPI_(LONG) DriverProc(DWORD dwDriverId, HDRVR hdrvr, UINT msg, LONG lParam1, 
  
 	switch(msg) {
 	case DRV_REMOVE:
+		if (modm_closed == 0){
+			int maxloop=500;
+			
+			stop_thread = 1;    //why thread can't stop by this????
+			while( stop_thread != 0 && maxloop-- > 0) Sleep(10);
+			if(stop_thread == 0) {
+				stop_rtthread = 1;
+				while( stop_rtthread != 0 && maxloop-- > 0) Sleep(10);
+			}
+			if(stop_thread != 0) TerminateThread(hCalcThread, FALSE);
+			if(stop_rtthread != 0) TerminateThread(hRtsynThread, FALSE);
+			CloseHandle(hRtsynThread);
+			CloseHandle(hCalcThread);
+			SetPriorityClass(GetCurrentProcess(), processPriority);
+		}
 		DeleteCriticalSection(&mim_section);
 		return 1;
 	case DRV_LOAD:
+		processPriority = GetPriorityClass(GetCurrentProcess());
 		InitializeCriticalSection(&mim_section);
 		return 1;
 	case DRV_CLOSE:
@@ -377,7 +395,6 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 	
 	MIDIHDR *IIMidiHdr;	
 	UINT evbpoint;
-	static DWORD processPriority;
 	
 	int exlen = 0;
 	char *sysexbuffer = NULL ;
@@ -392,8 +409,6 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 			hRtsynThread=(HANDLE)_beginthreadex(NULL,0,threadfunc2,0,0,&thrdaddr);
 			modm_closed = 0;
 		}
-		
-	
 		SetPriorityClass(GetCurrentProcess(), processPriority);
 		return MMSYSERR_NOERROR;
 		break;
@@ -451,17 +466,19 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 	case MODM_CLOSE:
 		if ( stop_rtthread != 0 || stop_thread != 0 ) return MIDIERR_STILLPLAYING;
 		--OpenCount;
-		if( OpenCount == 0){
-			int maxloop=1000;
+/*
+		if( ( OpenCount == 0) && (play_mode->id_character != 'd') ){
+			int maxloop=100;
 			
 			stop_thread = 1;
-			while( stop_thread != 0 && maxloop-- > 0) Sleep(1);
+			while( stop_thread != 0 && maxloop-- > 0) Sleep(10);
 			if(stop_thread == 0) {
 				stop_rtthread = 1;
-				while( stop_rtthread != 0 && maxloop-- > 0) Sleep(1);
+				while( stop_rtthread != 0 && maxloop-- > 0) Sleep(10);
 			}
-			if(stop_rtthread != 0) TerminateThread(hRtsynThread, GetExitCodeThread(hRtsynThread,&Exit));
-			if(stop_thread != 0) TerminateThread(hCalcThread, GetExitCodeThread(hCalcThread,&Exit));
+			if(stop_thread != 0) TerminateThread(hCalcThread, FALSE);
+			if(stop_rtthread != 0) TerminateThread(hRtsynThread, FALSE);
+			
 			if(maxloop == 0){
 				DeleteCriticalSection(&mim_section);
 				InitializeCriticalSection(&mim_section);
@@ -473,11 +490,12 @@ STDAPI_(LONG) modMessage(UINT uDeviceID, UINT uMsg, DWORD dwUser, DWORD dwParam1
 			SetPriorityClass(GetCurrentProcess(), processPriority);
 			modm_closed=1;
 		}else{ 
+*/
 			if(OpenCount < 0){
 				OpenCount = 0;
 				return MMSYSERR_NOTENABLED;
 			}
-		}
+//		}
 		return MMSYSERR_NOERROR;
 		break;
 	default:

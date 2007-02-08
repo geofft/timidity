@@ -463,7 +463,8 @@ void initialize_gauss_table(int n)
 
 void free_gauss_table(void)
 {
-	free(gauss_table[0]);
+	if(gauss_table[0] != 0)
+	  free(gauss_table[0]);
 	gauss_table[0] = NULL;
 }
 

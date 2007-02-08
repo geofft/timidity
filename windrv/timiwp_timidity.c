@@ -199,7 +199,6 @@ int timiwp_main_ini(int argc, char **argv)
 
 }
 
-
 int timiwp_main_close(void)
 {
 	int i;
@@ -225,10 +224,6 @@ int timiwp_main_close(void)
 	if (user_mailaddr)
 		free(user_mailaddr);
 #endif
-#ifdef IA_DYNAMIC
-	if (dynamic_lib_root)
-		free(dynamic_lib_root);
-#endif
 #if 0
 	if (pcm_alternate_file)
 		free(pcm_alternate_file);
@@ -242,20 +237,25 @@ int timiwp_main_close(void)
 		free(output_text_code);
 	if (wrdt_open_opts)
 		free(wrdt_open_opts);
-
-	for(i =0 ; i < nfiles ;i++) free(files[i]);
-	free(files);
+	if (nfiles > 0
+			&& ctl->id_character != 'r' && ctl->id_character != 'A'
+			&& ctl->id_character != 'W' && ctl->id_character != 'N'  && ctl->id_character != 'P') {
+		free(files_nbuf);
+		free(files);
+	}
 #endif
+//#if 0
 	free_soft_queue();
 	free_instruments(0);
 	free_soundfonts();
 	free_cache_data();
+	free_wrd();
+	free_readmidi();
+
 	free_global_mblock();
-	free_all_midi_file_info();
-	free_userdrum();
-	free_userinst();
 	tmdy_free_config();
 	free_reverb_buffer();
+
 	free_effect_buffers();
 	free(voice);
 	free_gauss_table();
