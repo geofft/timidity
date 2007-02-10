@@ -431,7 +431,7 @@ EXTRA_libinterface_a_SOURCES = \
 	w32g_dib.c \
 	w32g_dib.h \
 	winsyn_c.c \
-	npsyn_c.d \
+	npsyn_c.c \
 	rtsyn.h \
 	rtsyn_common.c \
 	rtsyn_winmm.c \
@@ -725,7 +725,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mac_trace.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mac_wrdwindow.Po ./$(DEPDIR)/motif_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motif_i.Po ./$(DEPDIR)/motif_p.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ncurs_c.Po ./$(DEPDIR)/portmidisyn_c.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ncurs_c.Po ./$(DEPDIR)/npsyn_c.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/portmidisyn_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_common.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_npipe.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rtsyn_portmidi.Po \
@@ -802,6 +803,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motif_i.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motif_p.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ncurs_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/npsyn_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/portmidisyn_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsyn_npipe.Po@am__quote@
