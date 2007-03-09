@@ -100,6 +100,9 @@ extern VOLATILE int intr;
 extern double rtsyn_latency;   /* = RTYSN_LATENCY */
 extern int rtsyn_system_mode;
 
+extern int32 rtsyn_start_sample;
+extern int rtsyn_sample_time_mode; //bool 1 ture 0 false
+
 /* reset synth    */
 void rtsyn_gm_reset(void);
 void rtsyn_gs_reset(void);
@@ -118,6 +121,7 @@ void rtsyn_close(void);
 double rtsyn_set_latency(double latency);
 void rtsyn_play_event(MidiEvent *ev);
 void rtsyn_play_event_time(MidiEvent *ev, double event_time);
+void rtsyn_tmr_reset(void);
 void rtsyn_server_reset(void);
 void rtsyn_reset(void);
 void rtsyn_stop_playing(void);
@@ -155,6 +159,7 @@ int rtsyn_buf_check(void);
 #ifdef IA_NPSYN
 #define RTSYN_NP_DATA 1
 #define RTSYN_NP_LONGDATA 2
+
 typedef struct rtsyn_np_evbuf_t{
 	uint32 wMsg;
 	union {

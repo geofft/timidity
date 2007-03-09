@@ -8854,7 +8854,8 @@ void playmidi_tmr_reset(void)
     int i;
 
     aq_flush(0);
-    current_sample = 0;
+    if(ctl->id_character != 'N')
+        current_sample = 0;
     buffered_count = 0;
     buffer_pointer = common_buffer;
     for(i = 0; i < MAX_CHANNELS; i++)

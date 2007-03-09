@@ -609,12 +609,12 @@ static BOOL WINAPI handler(DWORD dw)
 #endif
 
 
-#if defined(IA_NPSYN)
-	if( ctl->id_character == 'N')
-	{
-		return FALSE;  //why FALSE need?  It must close by intr++;
-	}
-#endif
+//#if defined(IA_NPSYN)
+//	if( ctl->id_character == 'N')
+//	{
+//		return FALSE;  //why FALSE need?  It must close by intr++;
+//	}
+//#endif
 	printf ("***BREAK" NLS); fflush(stdout);
     intr++;
     return TRUE;
@@ -5886,7 +5886,13 @@ int main(int argc, char **argv)
 	w32g_uninitialize();
 	w32g_free_doc();
 #else
+#ifdef IA_NPSYN
+	timeBeginPeriod( 1 );
+#endif 
 	main_ret = timidity_play_main(nfiles, files);
+#ifdef IA_NPSYN
+	timeEndPeriod( 1 );
+#endif 
 #ifdef IA_W32G_SYN
 	if (CoInitializeOK)
 		CoUninitialize();

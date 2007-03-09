@@ -79,10 +79,11 @@ extern void reset_midi(int playing);
 
 int rtsyn_system_mode = DEFAULT_SYSTEM_MODE;
 double rtsyn_latency = RTSYN_LATENCY;   //ratency (sec)
+int32 rtsyn_start_sample;
+int rtsyn_sample_time_mode = 0;
 
 static int rtsyn_played = 0;
 static double rtsyn_start_time;
-static int32 rtsyn_start_sample;
 static double last_event_time;
 static double last_calc_time;
 static int set_time_first=2;
@@ -229,7 +230,8 @@ void rtsyn_init(void){
 	auto_reduce_polyphony = 0;
 	opt_sf_close_each_file = 0;
 	
-	aq_set_soft_queue(rtsyn_latency*(double)1.01, 0.0);
+	if(ctl->id_character != 'N')
+	  aq_set_soft_queue(rtsyn_latency*(double)1.01, 0.0);
 	i = current_keysig + ((current_keysig < 8) ? 7 : -9), j = 0;
 	while (i != 7)
 		i += (i < 7) ? 5 : -7, j++;
@@ -247,6 +249,13 @@ void rtsyn_close(void){
 	free_instruments(0);
 	playmidi_stream_free();
 	free_global_mblock();
+}
+
+rtsyn_play_event_sample(MidiEvent *ev, int32 event_sample_time){
+	ev->time=event_sample_time;
+	play_event(ev);
+	if(rtsyn_sample_time_mode != 1)
+	  aq_fill_nonblocking();
 }
 
 void rtsyn_play_event_time(MidiEvent *ev, double event_time){
@@ -296,12 +305,7 @@ void rtsyn_play_event(MidiEvent *ev){
 	rtsyn_play_event_time(ev, get_current_calender_time());
 }
 
-
-void rtsyn_reset(void){
-		rtsyn_server_reset();
-}
-
-void rtsyn_server_reset(void){
+void rtsyn_wot_reset(void){
 	int i;
 	kill_all_voices();
 	if (free_instruments_afterwards){
@@ -318,11 +322,27 @@ void rtsyn_server_reset(void){
 	reset_midi(1);
 	reduce_voice_threshold = 0; // * Disable auto reduction voice *
 	auto_reduce_polyphony = 0;
-	
-	rtsyn_start_time=get_current_calender_time();
-	rtsyn_start_sample=current_sample;
-	last_event_time=rtsyn_start_time + rtsyn_latency;
-	last_calc_time  = rtsyn_start_time;
+}
+
+void rtsyn_tmr_reset(void){
+    	if(ctl->id_character == 'N')
+        	current_sample = 0;	
+		rtsyn_start_time=get_current_calender_time();
+		rtsyn_start_sample=current_sample;
+		last_event_time=rtsyn_start_time + rtsyn_latency;
+		last_calc_time  = rtsyn_start_time;
+}
+
+void rtsyn_reset(void){
+	rtsyn_wot_reset();
+	rtsyn_tmr_reset();
+}
+
+void rtsyn_server_reset(void){
+	rtsyn_wot_reset();
+	if(rtsyn_sample_time_mode !=1){
+		rtsyn_tmr_reset();
+	}
 }
 
 void rtsyn_stop_playing(void)
@@ -379,8 +399,10 @@ void rtsyn_play_calculate(){
 	
 int rtsyn_play_one_data (int port, int32 dwParam1, double event_time){
 	MidiEvent ev;
-
-	event_time = event_time + rtsyn_latency;
+	
+	if(rtsyn_sample_time_mode != 1){
+		event_time += rtsyn_latency;
+	}
 	ev.type = ME_NONE;
 	ev.channel = dwParam1 & 0x0000000f;
 	ev.channel = ev.channel+port*16;
@@ -432,9 +454,19 @@ int rtsyn_play_one_data (int port, int32 dwParam1, double event_time){
 			printf("MIDI Time Code Qtr\n");
 		if ((dwParam1 & 0x000000ff) == 0xf3)
 			//Song Select(Song #) (not need)
-		if ((dwParam1 & 0x000000ff) == 0xf6)
-			//Tune request (not need)
-			printf("Tune request\n");
+#endif
+		if ((dwParam1 & 0x000000ff) == 0xf6){
+			//Tune request  but use to make TiMidity++  to calculate.
+			if(rtsyn_sample_time_mode == 1){
+				ev.type = ME_NONE;
+				rtsyn_play_event_sample(&ev, event_time);
+				aq_fill_nonblocking();
+				//aq_soft_flush();
+			}else{
+				//printf("Tune request\n");
+			}
+		}
+#if 0
 		if ((dwParam1 & 0x000000ff) == 0xf8)
 			//Timing Clock (not need)
 			printf("Timing Clock\n");
@@ -454,8 +486,12 @@ int rtsyn_play_one_data (int port, int32 dwParam1, double event_time){
 			active_sensing_time = get_current_calender_time();
 		}
 		if ((dwParam1 & 0x000000ff) == 0xff) {
-			//System Reset
-			printf("System Reset\n");
+			//System Reset  use for TiMidity++  timer  reset
+			if(rtsyn_sample_time_mode == 1){
+				rtsyn_tmr_reset();
+			}else{
+				//printf("System Reset\n");
+			}
 		}
 		break;
 	default:
@@ -463,7 +499,11 @@ int rtsyn_play_one_data (int port, int32 dwParam1, double event_time){
 		break;
 	}
 	if (ev.type != ME_NONE) {
-		rtsyn_play_event_time(&ev, event_time);
+		if(rtsyn_sample_time_mode != 1){
+				rtsyn_play_event_time(&ev, event_time);
+		}else{
+				rtsyn_play_event_sample(&ev, event_time);
+		}
 	}
 	return 0;
 }
@@ -474,7 +514,9 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 	MidiEvent ev;
 	MidiEvent evm[260];
 	
-	event_time = event_time + rtsyn_latency;
+	if(rtsyn_sample_time_mode != 1){
+		event_time += rtsyn_latency;
+	}
 
 	if( (sysexbuffer[0] != '\xf0') && (sysexbuffer[0] != '\xf7') ) return ;
 
@@ -508,14 +550,26 @@ void rtsyn_play_one_sysex (char *sysexbuffer, int exlen, double event_time ){
 		if(ev.type==ME_RESET && rtsyn_system_mode!=DEFAULT_SYSTEM_MODE){
 			ev.a=rtsyn_system_mode;
 			change_system_mode(rtsyn_system_mode);
-			rtsyn_play_event_time(&ev, event_time);
+			if(rtsyn_sample_time_mode != 1){
+				rtsyn_play_event_time(&ev, event_time);
+			}else{
+				rtsyn_play_event_sample(&ev, event_time);
+			}
 		}else{
-			rtsyn_play_event_time(&ev, event_time);
+			if(rtsyn_sample_time_mode != 1){
+				rtsyn_play_event_time(&ev, event_time);
+			}else{
+				rtsyn_play_event_sample(&ev, event_time);
+			}
 		}
 	}
 	if(ne=parse_sysex_event_multi(sysexbuffer+1,exlen-1, evm)){
 		for (i = 0; i < ne; i++){
-			rtsyn_play_event_time(&evm[i], event_time);
+			if(rtsyn_sample_time_mode != 1){
+				rtsyn_play_event_time(&(evm[i]), event_time);
+			}else{
+				rtsyn_play_event_sample(&(evm[i]), event_time);
+			}
 		}
 	}
 	

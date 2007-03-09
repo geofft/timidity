@@ -221,23 +221,35 @@ int rtsyn_np_play_some_data(void)
 			exlen = evbuf[evbpoint].exlen;
 			sysexbuffer = evbuf[evbpoint].exbuffer;			
 			LeaveCriticalSection(&mim_np_section);
-			if((first_ev == 1)  || ( pre_time > dwParam2)){
-				pre_time=dwParam2;
-				timeoffset=dwParam2;
-				mim_start_time = get_current_calender_time();
-				first_ev=0;
+			
+			if(rtsyn_sample_time_mode !=1){
+				if((first_ev == 1)  || ( pre_time > dwParam2)){
+					pre_time=dwParam2;
+					timeoffset=dwParam2;
+					mim_start_time = get_current_calender_time();
+					first_ev=0;
+				}
+				if(dwParam2 !=0){
+			    	 event_time= mim_start_time+((double)(dwParam2-timeoffset))*(double)1.0/(double)1000.0;
+				}else{
+					event_time = get_current_calender_time();
+				}
 			}
-			if(dwParam2 !=0){
-			     event_time= mim_start_time+((double)(dwParam2-timeoffset))*(double)1.0/(double)1000.0;
-			}else{
-				event_time = get_current_calender_time();
-			}
+			
 			switch (wMsg) {
 			case RTSYN_NP_DATA:
-				rtsyn_play_one_data (port, dwParam1, event_time);
+				if(rtsyn_sample_time_mode !=1){
+					rtsyn_play_one_data(port, dwParam1, event_time);
+				}else{
+					rtsyn_play_one_data(port, dwParam1, dwParam2);
+				}
 				break;
 			case RTSYN_NP_LONGDATA:
-				rtsyn_play_one_sysex (sysexbuffer,exlen, event_time);
+				if(rtsyn_sample_time_mode !=1){
+					rtsyn_play_one_sysex(sysexbuffer,exlen, event_time);
+				}else{
+					rtsyn_play_one_sysex(sysexbuffer,exlen, dwParam2);
+				}
 				free(sysexbuffer);
 				break;
 			}
@@ -298,6 +310,7 @@ static void parse_ev(char* buffer, int *len){
 			exlen=npevbuf->exlen;
 			bp = sp+sizeof(RtsynNpEvBuf);
 			
+			dwParam2=npevbuf->dwParam2;
 		    if (*len >= sizeof(RtsynNpEvBuf)+exlen){
 				exbuffer= (char *)malloc( sizeof(char) * exlen);
 				memmove(exbuffer,sp+sizeof(RtsynNpEvBuf), exlen);
@@ -351,11 +364,13 @@ static int read_pipe_data()
 	npipe_len=0;   // not good fix
 	memset(npipe_buffer+npipe_len, 0, PIPE_BUFFER_SIZE-npipe_len);
 	if(length <=  PIPE_BUFFER_SIZE - npipe_len){
-		ReadFile(hPipe, npipe_buffer+npipe_len,length, &n, &overlapped);
-		last_error = GetLastError();
-		if(last_error == ERROR_IO_PENDING){
-			GetOverlappedResult(hPipe, &overlapped,&n,TRUE) ;
+		if( length > 0 ){
+			ReadFile(hPipe, npipe_buffer+npipe_len,length, &n, &overlapped);
 			last_error = GetLastError();
+			if(last_error == ERROR_IO_PENDING){
+				GetOverlappedResult(hPipe, &overlapped,&n,TRUE) ;
+				last_error = GetLastError();
+			}
 		}
 	}else{
 	  	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Named Pipe buffer overlow");

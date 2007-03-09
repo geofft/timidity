@@ -83,7 +83,6 @@ static int peek_character = -1;
 extern int volatile stream_max_compute;	// play_event() ÇÃ compute_data() Ç≈åvéZÇãñÇ∑ç≈ëÂéûä‘
 static int seq_quit=~0;
 
-
 static int ctl_open(int using_stdin, int using_stdout);
 static void ctl_close(void);
 static int ctl_read(int32 *valp);
@@ -227,18 +226,23 @@ static int ctl_pass_playing_list(int n, char *args[])
 int ctl_pass_playing_list2(int n, char *args[])
 #endif
 { 
-	if(n != 1){
-		ctl.cmsg(CMSG_WARNING, VERB_NORMAL, "Usage: timidity -iN [Named Pipe Name]\n");
+	if( (n < 1) || (n > 2) ){
+		ctl.cmsg(CMSG_WARNING, VERB_NORMAL, "Usage: timidity -iN [Named Pipe Name] SampeTimeMode(1 or 0) \n");
 	 	return 1;
 	}
 	
 	rtsyn_np_set_pipe_name(args[0]);
+	if( n==1 ){
+		rtsyn_sample_time_mode = 0;
+	}else{
+		rtsyn_sample_time_mode = atoi(args[1]);
+	}
 
 #if !defined(IA_W32G_SYN) && !defined(USE_GTK_GUI)
 	ctl.cmsg(CMSG_WARNING, VERB_NORMAL, 
 		"TiMidity starting in Windows Named Pipe Synthesizer mode\n");
 	ctl.cmsg(CMSG_WARNING, VERB_NORMAL, 
-		"Usage: timidity -iN [Named Pipe Name]\n");
+		"Usage: timidity -iN [Named Pipe Name] SampeTimeMode(1 or 0) \n");
 	ctl.cmsg(CMSG_WARNING, VERB_NORMAL, "\n");
 	ctl.cmsg(CMSG_WARNING, VERB_NORMAL, 
 		"N (Normal mode) M(GM mode) S(GS mode) X(XG mode) \n");
@@ -379,7 +383,8 @@ static void doit(void)
 			}
 		}
 		rtsyn_np_play_some_data();
-		rtsyn_play_calculate();
+		if(rtsyn_sample_time_mode == 0)
+			rtsyn_play_calculate();
 		if(intr) seq_quit=~0;
 		sleep(1);
 	}

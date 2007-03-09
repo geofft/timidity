@@ -67,6 +67,8 @@
 //#define PIPE_BUFFER_SIZE (AUDIO_BUFFER_SIZE * 8)
 #define PIPE_BUFFER_SIZE (88200)
 static HANDLE hPipe=NULL;
+  OVERLAPPED pipe_ovlpd;
+  HANDLE hPipeEvent;
 static volatile int pipe_close=-1;
 static volatile int clear_pipe=-1;
 
@@ -81,7 +83,7 @@ static int acntl(int request, void *arg);
 
 PlayMode dpm = {
     DEFAULT_RATE,
-	PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
+	PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_CAN_TRACE,
     -1,
     {0,0,0,0,0},
     "Windows Named Pipe", 'N',
@@ -96,9 +98,7 @@ PlayMode dpm = {
 
 static int npipe_output_open(const char *pipe_name)
 {
-  char PipeName[256];
-  OVERLAPPED pipe_ovlpd;
-  HANDLE hPipeEvent;  
+  char PipeName[256];  
   DWORD ret;
   DWORD n;
   int i;
@@ -128,7 +128,7 @@ static int npipe_output_open(const char *pipe_name)
         return -1;
    }
 //	WaitForSingleObject(pipe_ovlpd.hPipeEvent, 1000);
-	CloseHandle(hPipeEvent);
+
 	return 0;
 }
 
@@ -145,6 +145,7 @@ static int open_output(void)
   			return -1;
   }
   dpm.fd = 1;
+//  clear_pipe = 0;
   return 0;
 }
 
@@ -155,7 +156,8 @@ static int output_data(char *buf, int32 bytes)
 	int32 retnum;
 	retnum = bytes;
 	DWORD length;
-	
+	char *clear_data;
+		
 	if (hPipe == NULL) return -1;
 	if ( ( 0 == PeekNamedPipe(hPipe,NULL,0,NULL,&length,NULL)) &&
 		 (GetLastError()==ERROR_BAD_PIPE) )  return -1;
@@ -167,29 +169,49 @@ static int output_data(char *buf, int32 bytes)
 	}
 	
 	if (0 != PeekNamedPipe(hPipe,NULL,0,NULL,&length,NULL)){
-		if( (bytes <= PIPE_BUFFER_SIZE-length) && (clear_pipe == -1) ){
-			ret=WriteFile(hPipe,buf,bytes,&n,NULL);
-			if( (GetLastError() != ERROR_SUCCESS) &&
-				(GetLastError() != ERROR_BAD_PIPE) ){      //why BAD_PIPE occurs here?
-	      		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "npipe_a_error %s: %ld",
+		if(clear_pipe == -1){
+			if(bytes <= PIPE_BUFFER_SIZE-length){
+				ret=WriteFile(hPipe,buf,bytes,&n,&pipe_ovlpd);
+				if( (GetLastError() != ERROR_SUCCESS) &&
+					(GetLastError() != ERROR_IO_PENDING) &&
+					(GetLastError() != ERROR_BAD_PIPE) ){      //why BAD_PIPE occurs here?
+	      			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "npipe_a_error %s: %ld",
 		    		dpm.name, GetLastError());
-				if(hPipe != NULL) CloseHandle(hPipe);
-		 		hPipe=NULL;
-				dpm.fd = -1;
-					
-				return -1;
-    		}
+					if(hPipe != NULL) CloseHandle(hPipe);
+		 			hPipe=NULL;
+					dpm.fd = -1;					
+					return -1;
+				}
+			}else{
+				ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "npipe_a_errror overflow");
+			}
 		}else{
-			clear_pipe= -1 ;
+			if(length < audio_buffer_size){
+				clear_data = (char*)safe_malloc(audio_buffer_size-length);
+				memset(clear_data, 0, audio_buffer_size-length);
+				WriteFile(hPipe,clear_data,audio_buffer_size-length,&n,&pipe_ovlpd);
+				free(clear_data);
+				if( (GetLastError() != ERROR_SUCCESS) &&
+					(GetLastError() != ERROR_IO_PENDING) &&
+					(GetLastError() != ERROR_BAD_PIPE) ){      //why BAD_PIPE occurs here?
+	      			ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "npipe_a_error %s: %ld",
+		    		dpm.name, GetLastError());
+					if(hPipe != NULL) CloseHandle(hPipe);
+		 			hPipe=NULL;
+					dpm.fd = -1;
+					return -1;
+				}
+				clear_pipe =-1;
+			}
 		}
 	}
-
 	return retnum;
 }
 
 static void close_output(void)
 {
 	if(dpm.fd != -1){
+		CloseHandle(hPipeEvent);
 		CloseHandle(hPipe);
 		hPipe=NULL;
     	dpm.fd = -1;
@@ -205,7 +227,7 @@ static int acntl(int request, void *arg)
     return 0;
   case PM_REQ_DISCARD:
   case PM_REQ_FLUSH:
-  		clear_pipe=0;
+//		clear_pipe=0;
   	return 0;
 
   }

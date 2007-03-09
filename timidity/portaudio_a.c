@@ -196,22 +196,28 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 
 /* Cast data passed through stream to our structure type. */
 //    pa_data_t pa_data = (pa_data_t*)userData;
+	
+	int32 samplesToGo;
+	char *bufpoint;
     char *out = (char*)outputBuffer;
 	unsigned long datalength = framesPerBuffer*data_nbyte*stereo;
 	char * buflimit = pa_data.buf+bytesPerInBuffer*2;
 	
+	samplesToGo=pa_data.samplesToGo;
+	bufpoint=pa_data.bufpoint;
+	
 	if(conv16_32){
-		if(pa_data.samplesToGo < datalength  ){		
-			for(i=0;i<pa_data.samplesToGo/2;i++){
+		if(samplesToGo < datalength  ){		
+			for(i=0;i<samplesToGo/2;i++){
 				*out++ = 0;
 				*out++ = 0;
-				*out++ = *(pa_data.bufpoint)++;
-				*out++ = *(pa_data.bufpoint)++;
-				if( buflimit <= pa_data.bufpoint ){
-					pa_data.bufpoint=pa_data.buf;
+				*out++ = *(bufpoint)++;
+				*out++ = *(bufpoint)++;
+				if( buflimit <= bufpoint ){
+					bufpoint=pa_data.buf;
 				}
 			}
-			pa_data.samplesToGo=0;
+			samplesToGo=0;
 			for(;i<datalength/2;i++){
 				*out++ = 0;
 				*out++ = 0;
@@ -223,47 +229,49 @@ int paCallback(  void *inputBuffer, void *outputBuffer,
 			for(i=0;i<datalength/2;i++){
 				*out++ = 0;
 				*out++ = 0;
-				*out++=*(pa_data.bufpoint)++;
-				*out++=*(pa_data.bufpoint)++;
-				if( buflimit <= pa_data.bufpoint ){
-					pa_data.bufpoint=pa_data.buf;
+				*out++=*(bufpoint)++;
+				*out++=*(bufpoint)++;
+				if( buflimit <= bufpoint ){
+					bufpoint=pa_data.buf;
 				}
 			}
-			pa_data.samplesToGo -= datalength;
+			samplesToGo -= datalength;
 		}
 	}else{
-		if(pa_data.samplesToGo < datalength  ){
-			if(pa_data.bufpoint+pa_data.samplesToGo <= buflimit){
-				memcpy(out, pa_data.bufpoint, pa_data.samplesToGo);
-				pa_data.bufpoint += pa_data.samplesToGo;
+		if(samplesToGo < datalength  ){
+			if(bufpoint+samplesToGo <= buflimit){
+				memcpy(out, bufpoint, samplesToGo);
+				bufpoint += samplesToGo;
 			}else{
 				int32 send;
-				send = buflimit-pa_data.bufpoint;
-				if (send !=0) memcpy(out, pa_data.bufpoint, send);
+				send = buflimit-bufpoint;
+				if (send !=0) memcpy(out, bufpoint, send);
 				out +=send;
-				memcpy(out, pa_data.buf, pa_data.samplesToGo -send);
-				pa_data.bufpoint = pa_data.buf+pa_data.samplesToGo -send;
-				out += pa_data.samplesToGo -send;
+				memcpy(out, pa_data.buf, samplesToGo -send);
+				bufpoint = pa_data.buf+samplesToGo -send;
+				out += samplesToGo -send;
 			}
-			memset(out, 0x0, datalength-pa_data.samplesToGo);
-			pa_data.samplesToGo=0;
+			memset(out, 0x0, datalength-samplesToGo);
+			samplesToGo=0;
 			finished = 0;
 		}else{
-			if(pa_data.bufpoint + datalength <= buflimit){
-				memcpy(out, pa_data.bufpoint, datalength);
-				pa_data.bufpoint += datalength;
+			if(bufpoint + datalength <= buflimit){
+				memcpy(out, bufpoint, datalength);
+				bufpoint += datalength;
 			}else{
 				int32 send;
-				send = buflimit-pa_data.bufpoint;
-				if (send !=0) memcpy(out, pa_data.bufpoint, send);
+				send = buflimit-bufpoint;
+				if (send !=0) memcpy(out, bufpoint, send);
 				out += send;
 				memcpy(out, pa_data.buf, datalength -send);
-				pa_data.bufpoint = pa_data.buf+datalength -send;
+				bufpoint = pa_data.buf+datalength -send;
 			}
-			pa_data.samplesToGo -= datalength;
+			samplesToGo -= datalength;
 		}
 	}
-    return finished ;
+	pa_data.samplesToGo=samplesToGo;
+	pa_data.bufpoint=bufpoint;
+	return finished ;
 
 }
 
@@ -517,6 +525,8 @@ error2:
 static int output_data(char *buf, int32 nbytes)
 {
 	unsigned int i;
+	int32 samplesToGo;
+	char *bufepoint;
 
     if(pa_active == 0) return -1; 
 	
@@ -525,19 +535,25 @@ static int output_data(char *buf, int32 nbytes)
 //	if(pa_data.samplesToGo > DATA_BLOCK_SIZE){ 
 //		Sleep(  (pa_data.samplesToGo - DATA_BLOCK_SIZE)/dpm.rate/4  );
 //	}
-	if (pa_data.buf+bytesPerInBuffer*2 >= pa_data.bufepoint + nbytes){
-		memcpy(pa_data.bufepoint, buf, nbytes);
-		pa_data.bufepoint += nbytes;
+	samplesToGo=pa_data.samplesToGo;
+	bufepoint=pa_data.bufepoint;
+
+	if (pa_data.buf+bytesPerInBuffer*2 >= bufepoint + nbytes){
+		memcpy(bufepoint, buf, nbytes);
+		bufepoint += nbytes;
 		//buf += nbytes;
 	}else{
-		int32 send = pa_data.buf+bytesPerInBuffer*2 - pa_data.bufepoint;
-		if (send != 0) memcpy(pa_data.bufepoint, buf, send);
+		int32 send = pa_data.buf+bytesPerInBuffer*2 - bufepoint;
+		if (send != 0) memcpy(bufepoint, buf, send);
 		buf += send;
 		memcpy(pa_data.buf, buf, nbytes - send);
-		pa_data.bufepoint = pa_data.buf + nbytes - send;
+		bufepoint = pa_data.buf + nbytes - send;
 		//buf += nbytes-send;
 	}
-	pa_data.samplesToGo += nbytes;
+	samplesToGo += nbytes;
+
+	pa_data.samplesToGo=samplesToGo;
+	pa_data.bufepoint=bufepoint;
 
 /*
 	if(firsttime==1){
@@ -630,6 +646,8 @@ static int acntl(int request, void *arg)
     	pa_data.bufpoint=pa_data.bufepoint;
     	err = Pa_AbortStream( stream );
     	if( (err!=paStreamIsStopped) && (err!=paNoError) ) goto error;
+    	err = Pa_StartStream( stream );
+    	if(err!=paNoError) goto error;
 		return 0;
 
 		//break;
