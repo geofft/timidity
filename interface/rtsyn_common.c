@@ -239,6 +239,7 @@ void rtsyn_init(void){
 	current_freq_table = j;
 	
 	rtsyn_reset();
+	play_mode->open_output();
 	rtsyn_system_mode=DEFAULT_SYSTEM_MODE;
 	change_system_mode(rtsyn_system_mode);
 	reset_midi(0);
@@ -314,7 +315,7 @@ void rtsyn_wot_reset(void){
 	aq_flush(1);
 //	play_mode->close_output();	// PM_REQ_PLAY_START wlll called in playmidi_stream_init()
 //	play_mode->open_output();	// but w32_a.c does not have it.
-        play_mode->acntl(PM_REQ_FLUSH, NULL);
+	play_mode->acntl(PM_REQ_FLUSH, NULL);
 
 	readmidi_read_init();
 	playmidi_stream_init();
