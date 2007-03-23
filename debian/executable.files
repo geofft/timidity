@@ -1,0 +1,8 @@
+./debian/rules
+./interface/tkpanel.tcl
+./interface/tkmidity.ptcl
+./autoconf/missing
+./autoconf/install-sh
+./autoconf/mkinstalldirs
+./autoconf/depcomp
+./configure

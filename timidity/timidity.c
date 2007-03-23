@@ -40,30 +40,20 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif  /* TIME_WITH_SYS_TIME */
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif /* NAVE_SYS_STAT_H */
 #include <fcntl.h> /* for open */
-
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif
-
-#ifndef __bool_true_false_are_defined
-# ifdef bool
-#  undef bool
-# endif
-# ifdef ture
-#  undef ture
-# endif
-# ifdef false
-#  undef false
-# endif
-# define bool int
-# define false ((bool)0)
-# define true (!false)
-# define __bool_true_false_are_defined true
-#endif /* C99 _Bool hack */
 
 #ifdef BORLANDC_EXCEPTION
 #include <excpt.h>
@@ -5466,14 +5456,14 @@ extern int volatile save_playlist_once_before_exit_flag;
 static int CoInitializeOK = 0;
 #endif
 
-static inline bool directory_p(const char* path)
+static inline int directory_p(const char* path)
 {
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
     return is_directory(path);
 #else
     struct stat st;
     if(stat(path, &st) != -1) return S_ISDIR(st.st_mode);
-    return false;
+    return 0;
 #endif
 }
 

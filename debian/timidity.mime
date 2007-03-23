@@ -1,0 +1,4 @@
+audio/midi; /usr/bin/timidity -ia %s; test=test -n "$DISPLAY"; description=A MIDI file; nametemplate=%s.mid; priority=7
+audio/midi; /usr/bin/timidity -id %s; description=A MIDI file; nametemplate=%s.mid; priority=5
+audio/x-midi; /usr/bin/timidity -ia %s; test=test -n "$DISPLAY"; description=A MIDI file; nametemplate=%s.mid; priority=7
+audio/x-midi; /usr/bin/timidity -id %s; description=A MIDI file; nametemplate=%s.mid; priority=5

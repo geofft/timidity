@@ -1,0 +1,2 @@
+?package(timidity):needs="x11" section="Apps/Sound" \
+	title="TiMidity++" command="timidity -ia" hints="Player"

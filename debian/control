@@ -1,0 +1,54 @@
+Source: timidity
+Section: sound
+Priority: optional
+Maintainer: Henrique de Moraes Holschuh <hmh@debian.org>
+Build-Depends: debhelper (>= 4), libasound2-dev [!kfreebsd-i386 !kfreebsd-amd64 !hurd-i386], libaudiofile-dev, libesd0-dev, libarts1-dev, libjack0.100.0-dev, libaudio-dev, libvorbis-dev (>= 1.0.0-3), libspeex-dev (>= 1.0), liboggflac-dev (>= 1.1.2-1), libflac-dev (>= 1.1.2-1), libncurses-dev, libslang2-dev, libx11-dev, libxext-dev, libxmu-dev, libxpm-dev, libxt-dev, x-dev, libxaw7-dev, tcl8.4-dev, tk8.4-dev, libgtk2.0-dev, autotools-dev
+Standards-Version: 3.6.2
+
+Package: timidity
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: pmidi
+Recommends: freepats
+Description: Software sound renderer (MIDI sequencer, MOD player)
+ TiMidity++ is a very high quality software-only MIDI sequencer and MOD player.
+ It uses sound fonts (GUS-compatible or SF2-compatible) to render MIDI files,
+ which are not included in this package.
+ .
+   * Plays MIDI files without any external MIDI instruments at all
+   * Understands SMF, RCP/R36/G18/G36, MFI, RMI (MIDI)
+   * Autodetects and supports GM/GS/XG MIDI
+   * Understands MOD, XM, S3M, IT, 699, AMF, DSM, FAR, GDM,
+     IMF, MED, MTM, STM, STX, ULT, UNI (MOD)
+   * Does MOD to MIDI conversion (including playback)
+   * Outputs audio into various audio file formats: WAV, au, AIFF,
+     Ogg (Vorbis, FLAC, Speex)
+   * Supports NAS, eSound, ARtS, JACK, ALSA and OSS drivers
+   * Uses Gravis Ultrasound compatible patch files and SoundFont2 patch
+     files as the voice data for MIDI instruments
+   * Supports playing from archives (zip, lzh, tar...) and playing remote
+     data from the network
+   * Timidity++ can be used as an ALSA sequencer device
+ .
+ Homepage: http://timidity.sourceforge.net/
+
+Package: timidity-interfaces-extra
+Architecture: any
+Depends: ${shlibs:Depends}, timidity (= ${Source-Version})
+Replaces: timidity (<< 2.12.0)
+Description: TiMidity++ extra user interfaces
+ TiMidity++ is a very high quality software-only MIDI sequencer and MOD 
+ player.
+ .
+ This package provides extra TiMidity++ user interfaces, which have
+ limited functionality when compared to those in the main package.
+ .
+ Interfaces in this package: VT100, Tcl/Tk, Slang, XSkin, GTK2
+
+Package: timidity-el
+Architecture: all
+Depends: emacsen-common, timidity (= ${Source-Version})
+Description: An Emacs front end to Timidity++
+ The timidity.el Emacs-Lisp program is a front-end to the TiMidity++ software-
+ only MIDI sequencer and MOD player.  You can play MIDI amd MOD files directly
+ from Emacs with this package.

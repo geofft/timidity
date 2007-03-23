@@ -1,0 +1,62 @@
+TiMidity++ for Debian
+$Id: README.Debian,v 1.3 2004/08/07 14:33:59 hmh Exp $
+-----------------------------------------------------------
+
+Installing Patchsets/soundfonts 
+for TiMidity (requisite for MIDI playing)
+-----------------------------------------
+
+For MIDI playing and sequencing, TiMidity _REQUIRES_ a patchset (or Sound
+Font), which is a table with the waveforms produced by the instruments.  There
+are no good quality patch sets or sound fonts available that are compatible
+with the DFSG, AFAIK.  The incomplete (as of this writing) FreePats set is the
+only DFSG-compliant set of patches available, and the default minimal config
+file will try to use that.  See the freepats package for more details.
+
+You have to find a sound font or patch set, and configure /etc/timidity.cfg
+for that patchset.
+
+Good soundfonts in .sf2 format are often available from sound-card makers.
+TiMidity can use those.  There are also patchsets available for download in the
+Internet, that TiMidity can use.
+
+You can find more information about patchsets and soundfonts in the
+TiMidity homepage and mailinglist.  The homepage is at
+http://timidity.sourceforge.net/
+
+
+Fine-tining TiMidity for your system's CPU power
+------------------------------------------------
+
+TiMidity can, and will use your CPU time to do its level best to get
+marvelous sound out of whatever you give it to work with.
+
+If you find TiMidity too slow, simply configure it to use faster methods
+of rendering sounds.  You can put command line options in timidity.cfg
+by prefixing them with "opt".  Thus, you could use the following, to 
+reduce CPU usage to a minimum:
+
+opt no-anti-alias
+opt ext WPVSETOZ
+opt fast-decay
+opt interpolation linear
+opt poliphony 16
+opt ext Fchorus=d
+opt ext Freverb=d
+opt ext Fvlpf=d
+opt ext Fresampl=d
+
+Also, reduce the sampling-frequency as much as you can.
+
+Usually, playing with -EFresampl (ext Fresampl) is enough to reduce
+a lot of the CPU usage.
+
+
+The timidity.cfg file
+---------------------
+
+See timidity.cfg(5) for all the details.  Command line options can be specified
+prefixing them with "opt".  You'll probably want to "source <otherconfigfile>"
+to load in config files distributed along with patchsets.
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>

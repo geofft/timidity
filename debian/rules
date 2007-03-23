@@ -1,0 +1,188 @@
+#!/usr/bin/make -f
+# debian/rules for TiMidity++ 2.12.x
+#
+# GNU copyright 1997 by Joey Hess.
+# Copyright (c) 2003 by Henrique de Moraes Holschuh
+# Published under the GNU GPL license
+# Based on previous work by Martin Mitchell <martin@debian.org>
+#
+# $Id: rules,v 1.24 2004/10/01 15:18:25 hmh Exp $
+
+export MAINPKG=timidity
+export TMPPKG := $(CURDIR)/debian/tmp
+export PKGDIR := $(CURDIR)/debian/$(MAINPKG)
+
+# Autotools
+export DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+export DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+export DEB_BUILD_ARCH_OS ?= $(shell dpkg-architecture -q-qDEB_BUILD_ARCH_OS)
+
+# FOR AUTOCONF 2.52 AND NEWER ONLY
+CONFFLAGS =
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+  CONFFLAGS += --build $(DEB_HOST_GNU_TYPE)
+else
+  CONFFLAGS += --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+endif
+
+# DEB_BUILD_OPTIONS
+DEBUGFLAGS=-g
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	DEBUGFLAGS += -O0
+else
+        DEBUGFLAGS += -O2
+endif
+
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+	CONFFLAGS += --enable-debug
+endif
+
+# audio and interface
+ifeq ($(DEB_BUILD_ARCH_OS), linux)
+audio = default,oss,nas,arts,esd,jack,vorbis,flac,speex,alsa
+interface = ncurses,emacs,xaw,alsaseq
+else
+audio = default,oss,nas,arts,esd,jack,vorbis,flac,speex
+interface = ncurses,emacs,xaw
+endif
+
+
+##
+##  The rules
+##
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	rm -f autoconf/config.sub autoconf/config.guess
+	ln -s /usr/share/misc/config.sub autoconf/config.sub
+	ln -s /usr/share/misc/config.guess autoconf/config.guess
+
+	CFLAGS="-fno-strict-aliasing -Wall -pipe $(DEBUGFLAGS)" \
+	./configure $(CONFFLAGS) \
+	 --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info \
+	 --sysconfdir=/etc --with-default-path=/etc/timidity \
+	 --with-lispdir=/usr/share/emacs/site-lisp/timidity-el \
+	 --with-x \
+	 --with-tcl-includes=/usr/include/tcl8.4 \
+	 --with-tk-includes=/usr/include/tcl8.4 \
+	 --enable-audio=$(audio) \
+	 --with-default-output=default \
+	 --enable-interface=$(interface) \
+	 --enable-dynamic=slang,tcltk,vt100,xskin,gtk \
+	 --enable-server --enable-network --enable-spectrogram --enable-wrd
+	$(MAKE)
+
+	touch build-stamp
+
+clean:	configure
+	dh_testdir
+	dh_testroot
+	-find -type f -perm +111 ! -name 'rules' -exec chmod 644 {} \;
+	-xargs -t -r chmod +x < debian/executable.files
+	rm -f build-stamp
+	-$(MAKE) clean
+	-$(MAKE) distclean
+	rm -f common.makefile TiMidity-uj.ad TiMidity.ad
+	rm -f interface/tclIndex
+	rm -f doc/timidity.1 doc/timidity.cfg.5
+	rm -f autoconf/config.sub autoconf/config.guess
+	rm -rf autom4te.cache
+	rm -f config.log Makefile
+	-xargs -t -r rm -f < debian/deletable.files
+	dh_clean
+
+configure:
+	sh ./autogen.sh
+
+install:
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	$(MAKE) DESTDIR=$(TMPPKG) install
+
+	#XAW interface
+	mkdir -p $(TMPPKG)/etc/X11/app-defaults
+	install -m 644 TiMidity.ad $(TMPPKG)/etc/X11/app-defaults/TiMidity
+	mkdir -p $(TMPPKG)/etc/X11/ja_JP.eucJP/app-defaults
+	install -m 644 TiMidity-uj.ad $(TMPPKG)/etc/X11/ja_JP.eucJP/app-defaults/TiMidity
+
+	if [ -r debian/timidity.cfg ] ; then \
+		mkdir -p $(TMPPKG)/etc/timidity && \
+		install -m 644 debian/timidity.cfg $(TMPPKG)/etc/timidity ;\
+	fi
+
+	# Lintian and Linda overrides
+	( cd debian && \
+	for i in *.linda ; do [ -r "$$i" ] && { \
+		mkdir -p "$${i%%.linda}/usr/share/linda/overrides" ;\
+		install  -m 644 "$$i" "$${i%%.linda}/usr/share/linda/overrides/$${i%%.linda}" ;\
+	} ; done ; true )
+	( cd debian && \
+	for i in *.lintian ; do [ -r "$$i" ] && { \
+		mkdir -p "$${i%%.lintian}/usr/share/lintian/overrides" ;\
+		install  -m 644 "$$i" "$${i%%.lintian}/usr/share/lintian/overrides/$${i%%.lintian}" ;\
+	} ; done ; true )
+
+	dh_install --fail-missing --sourcedir=$(TMPPKG)
+
+# Build architecture-independent files here.
+binary-indep: build install
+	dh_testdir -i
+	dh_testroot -i
+#	dh_installdebconf -i
+	dh_installdocs -i
+	dh_installexamples -i
+	dh_installmenu -i
+#	dh_installlogrotate -i
+	dh_installemacsen -i
+#	dh_installpam -i
+#	dh_installmime -i
+#	dh_installinit -i
+#	dh_installcron -i
+#	dh_installinfo -i
+	dh_installman -i
+	dh_installchangelogs -i
+	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+#	dh_perl -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir -a
+	dh_testroot -a
+#	dh_installdebconf -a
+	dh_installdocs -a
+	dh_installexamples -a
+	dh_installmenu -a
+#	dh_installlogrotate -a
+#	dh_installemacsen -a
+#	dh_installpam -a
+	dh_installmime -a
+	dh_installinit -a -- defaults 99
+#	dh_installcron -a
+	dh_installman -a
+#	dh_installinfo -a
+	dh_installchangelogs -a -k ChangeLog upstream
+	dh_strip -a
+	dh_link -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+#	dh_makeshlibs -a
+#	dh_perl -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

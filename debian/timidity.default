@@ -1,0 +1,14 @@
+# Defaults for TiMidity++ scripts
+# sourced by /etc/init.d/timidity
+# installed at /etc/default/timidity by the maintainer scripts
+# $Id: timidity.default,v 1.3 2004/08/07 14:33:26 hmh Exp $
+
+#
+# This is a POSIX shell fragment
+#
+
+# Enable MIDI sequencer (ALSA), default is disabled
+#TIM_ALSASEQ=true
+
+# Setting overrides (of /etc/timidity.conf) for the ALSA sequencer daemon
+TIM_ALSASEQPARAMS="-B2,8 -Os"

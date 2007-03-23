@@ -4,7 +4,7 @@ timidity.cfg \- configure file of TiMidity++
 .SH DESCRIPTION
 The file \fBtimidity.cfg\fP describes the runtime environments of
 timidity(1): that are the path of sound font, instruments
-configurations or else.
+configurations, etc.
 .br
 \fBTiMidity++\fP looks for the configuration file \fBtimidity.cfg\fP
 at startup, before processing any options.  If it can't be accessed,
@@ -30,7 +30,7 @@ $variable
 ${variable} # same as $variable
 .sp
 For the moment, the command which newly defines variables is not
-prepared.  The undifined variable is transposed to null string.
+prepared.  The undefined variable is transposed to null string.
 .br
 The variable defined as a regular variable is the next only one.
 .TP
@@ -89,7 +89,7 @@ that follow are set and displayed as the numbers from \fB1\fP to
 .BI "bank " "[MapID1] number"
 Selects the tone bank to modify.  Patch mappings that follow will
 affect this tone bank.  You can indicate specific map as a target, by
-specifing any ofthe following to \fIMapID1\fP: \fBgm2\fP, \fBsc55\fP,
+specifying any of the following to \fIMapID1\fP: \fBgm2\fP, \fBsc55\fP,
 \fBsc88\fP, \fBsc88pro\fP, \fBsc8850\fP, \fBxg\fP and \fBxgsfx64\fP.
 .TP
 .BI "drumset " "[MapID2] number"
@@ -363,7 +363,7 @@ These comments are displayed in the indicator line when
 .TP
 .BI "#extension timeout " "program second"
 Specifies the time\-out value of the \fIprogram\fP.  If any notes
-played with the tone number \fIprogram\fP are suspended more than
+played with the tone number \fIprogram\fP are suspended for more than
 \fIsecond\fP seconds, \fBTiMidity++\fP kills the notes.
 .TP
 .BI "#extension copydrumset " drumset
@@ -471,8 +471,6 @@ will read from the output of cat fild.mid.
 .SH FILES
 .TP
 .B /etc/timidity.cfg
-.TP
-.B /usr/local/share/timidity/timidity.cfg
 .SH SEE ALSO
 timidity(1), lsmidiprog(1), mididump(1), patinfo(1), sf2text(1), wav2pat(1)
 .SH COPYRIGHT

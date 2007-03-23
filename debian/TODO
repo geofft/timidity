@@ -1,0 +1,16 @@
+$Id: TODO,v 1.14 2004/09/30 01:04:04 hmh Exp $
+
+High priority:
+ - safe timidity sequencer (cheuid)
+ - verify mime handling
+ - fix upstream crap of a build system, that is overriding all of
+   our cflags/cppflags.
+
+ - autobuild logs show problems with the Tk Interface build
+ - mipsel autobuild fails due to retarded link of X crap in
+   "calcnewt" that is a build-time exec tool
+
+Low priority:
+ - Realtime scheduling
+ - slow-cpu version of timidity (linear interpol, etc)
+ - sequencer: ALSASEQ variable, set it?

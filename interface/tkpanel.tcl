@@ -1,4 +1,4 @@
-#!/usr/local/bin/wishx -f
+#!/usr/bin/wish -f
 #
 # TiMidity++ -- MIDI to WAVE converter and player
 # Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>

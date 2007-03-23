@@ -1,0 +1,498 @@
+timidity (2.13.2-7.2) unstable; urgency=low
+
+  * Non-maintainer upload with maintainer permission.
+  * Don't enable alsa on non-linux architectures.
+  * Don't build-depend on libasound2-dev on kfreebsd-i386,
+  * kfreebsd-amd64 and hurd-i386 (closes: #327689)
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 11 Mar 2007 01:29:56 +0100
+
+timidity (2.13.2-7.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * High-urgency upload for RC bugfix.
+  * Build-depend on libx11-dev, libxext-dev, libxmu-dev, libxpm-dev,
+    libxt-dev, x-dev instead of on the obsolete xlibs-dev (closes: #346962).
+  * Build-depend on libxaw7-dev instead of libxaw8-dev -- according to the
+    XSF, libxaw8-dev is expected to be dropped in Xorg 7.0.
+
+ -- Steve Langasek <vorlon@debian.org>  Sun,  8 Jan 2006 23:06:19 -0800
+
+timidity (2.13.2-7) unstable; urgency=low
+
+  * Update libjack-dev dependencies (closes: #317227)
+  * Update libflac-dev dependencies (closes: #325947)
+  * Fix support for seekable FLAC streams by using the correct API
+    (flac_a.c) for metadata, which does NOT have callbacks on seekable
+    streams.  Not that it matters much, as apparently TiMidity++ never
+    tries to produce seekable FLAC streams currently
+  * Build against libslang2-dev (closes: #315238)
+  * Build against new libxaw8-dev, instead of libxaw7-dev
+  * Execute libarts1 transition by rebuilding, no changes
+  * Remove redeclaration of voices in interface/xaw_i.c:264, patch from
+    Ubuntu (closes: #324400)
+  * Bump standards version to 3.6.2 (no changes)
+  * This upload addresses all bugs in the intended 6.1 NMU by
+    Loïc Minier <lool@dooz.org>, even if it fixes them diferently.
+    Therefore, it closes: #326454
+  * s/antialias/anti-alias/ in timidity.cfg (closes: #310307)
+  * Fix spelling errors in some manpages, thanks to A Costa
+    (closes: #300337, #309888)
+  * Remove references to some old cruft utilities from manpage
+    (closes: #292415)
+  * Add a midrange sample config option set (closes: #305918)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Sat,  3 Sep 2005 16:23:40 -0300
+
+timidity (2.13.2-6) unstable; urgency=medium
+
+  * Rebuild against libflac 1.1.1-5.  This does NOT fix the whole
+    fucked-up soname issue, since oggflac's still broken.  But it will
+    make the package installable for the time being (closes: #289251)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Thu, 20 Jan 2005 17:08:57 -0200
+
+timidity (2.13.2-5) unstable; urgency=high
+
+  * The arts_free() fixes are now considered stable (although aRts
+    support is still much worse than ALSA support, and it has some ugly
+    open bugs), so set urgency=high on this upload
+  * Fix gcc 3.4 FTBFS problem, thanks to Andreas Jochens <aj@andaco.de>
+    for the patch (closes: #280267)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Thu, 11 Nov 2004 11:54:26 -0200
+
+timidity (2.13.2-4) unstable; urgency=low
+
+  * aRts arts_free() fixes, chapter II: do not call arts_free() at all
+    during normal program operation.  Install atexit() handler to
+    call arts_free() on clean exits.  Thanks to Georg Wittenburg
+    <georg.wittenburg@gmx.net> for feedback on how 2.13.2-3 worked out.
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Thu,  4 Nov 2004 21:15:23 -0200
+
+timidity (2.13.2-3) unstable; urgency=low
+
+  * It seems that doing some QA work and submiting a patch to the upstream
+    BTS can really wake them up :)
+  * upstream CVS: Fix NULL pointer derreference on empty sample names
+  * Minor updates to package descriptions in the control file
+  * Add primary watch file entry based on prdownloads.sf.net, since the
+    ftp servers for sf.net are not realiable at all
+  * Drop all aRts functionality that requires arts_free().  See Debian
+    bug #247793, TiMidity++ bug #25, KDE bug #84514.  aRts users, you better
+    give me some feedback about how well 2.13.2-3 works with aRts, otherwise 
+    I will seriously consider killing aRts support altogether for the next
+    stable release (closes: #239982)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Sun, 31 Oct 2004 11:21:18 -0300
+
+timidity (2.13.2-2) unstable; urgency=high
+
+  * upstream CVS: Fix division by zero on module loading (closes: #268730)
+  * upstream CVS: Minor fixes
+  * Fix bad behaviour when playing modules, if a bad period is found,
+    Patch based on Eric's patch on upstream BTS report #34.  Forwarded
+    to upstream BTS as report #37
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Wed, 20 Oct 2004 15:11:31 -0300
+
+timidity (2.13.2-1) unstable; urgency=high
+
+  * New upstream source:
+    * timidity.c: one s/strcat/strncat/.
+  * Quote properly all M4 stuff in autoconf/
+  * This should get us in sync with upstream, in a very safe way :P
+  * Urgency high because there are only obvious trivial changes
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Tue, 12 Oct 2004 19:23:28 -0300
+
+timidity (2.13.1-1) unstable; urgency=low
+
+  * New upstream source:
+    * check_midi_file() in readmidi.c is now synchronized with the
+      file format classification mechanism (closes: #216270)
+    * Detect output device AFTER processing getlong options (closes: #245244)
+    * Support OGG Speex encoder
+    * Support OGG FLAC encoder
+    * New app-defaults file for XAW interface
+    * Lots of MIDI rendering fixes
+    * Fixes some potential buffer/string overflows
+  * Added libspeex-dev, liboggflac-dev, libflac-dev to Build-Depends
+  * Readded GTK interface, now using GTK 2.0 (closes: #241136)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Fri,  1 Oct 2004 12:58:34 -0300
+
+timidity (2.13.0.final-2) unstable; urgency=medium
+
+  * Update build-deps a bit:
+    + remove libgtk1.2-dev, since we disabled the GTK frontend because
+      of glib1.2/glib2.0 clashes caused by libarts1, and the stupid idea
+      of not using symbol versioning in these libs on the first place
+    + rename nas-dev to libaudio-dev
+  * Fix bashism on initscript (really closes: #267300)
+  * Add watch file for uscan/DEHS
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Wed, 29 Sep 2004 00:32:54 -0300
+
+timidity (2.13.0.final-1) unstable; urgency=medium
+
+  * Merged in new upstream release (closes: #255735)
+    + Ogg Vorbis output module fixed (closes: #190316)
+  * Fix build of Tcl/Tk frontend (closes: #237487)
+  * Document in README.Debian how to reduce timidity's CPU usage, now
+    that interpolation is completely runtime-configured
+  * Recommends: freepats, now that it is packaged (closes: #239163)
+  * Add a default minimal config for MIDI that attempts to use FreePats
+    (closes: #237667, #254640, #258515)
+  * In the minimal config, add commented-out options to get timidity
+    to use much less CPU power (closes: #237506, #238207)
+  * Move config file from /etc/timidity.cfg to /etc/timidity/timidity.cfg
+  * Remove /usr/local timidity.cfg path from manpages (closes: #263904)
+  * Fix -Or -> -OR typo in manpages (closes: #239978)
+  * Start alsa sequencer very late, note that this change might only hold
+    for new installs (closes: #243087)
+  * Fix initscript pmidi test (closes: #239977)
+  * Make sure to use Alsa sound output by default when using the initscript
+    (closes: #242287)
+  * The GTK interface is broken in 2.13.0, so I am removing it, and
+    making sure nothing is left in the non-upstream docs (closes: #237487)
+  * Install XAW interface app-default files into the proper directories
+  * Fix file selector color in XAW interface when not playing in trace mode
+    (closes: #243727)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Sat,  7 Aug 2004 16:16:04 -0300
+
+timidity (2.13.0-rc1-CVS20040221-2) unstable; urgency=low
+
+  * Remove bashism from initscript (closes: #236593);
+  * Rebuild against a libjack that is in the archive. Oops! (closes: #236751).
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Mon,  8 Mar 2004 19:37:05 -0300
+
+timidity (2.13.0-rc1-CVS20040221-1) unstable; urgency=low
+
+  * Merged in CVS changes up to 2004-02-21:
+    + TiMidity++ will identify itself as 2.13.0-rc1,
+    + Huge stack of added functionality and bug fixes,
+    + Support ARtS and JACK output,
+    + Use Gauss method for resampling;
+  * Build-depends on JACK and ARtS libraries, as well as Tcl/Tk 8.4;
+  * Rework package descriptions a bit more;
+  * Rework copyright file;
+  * Revise debian/rules, and switch to debhelper compatibility mode version 4;
+  * Reworked packaging is compliant to Debian policy 3.6.1;
+  * New timidity-interfaces-extra package with the reduced-functionality
+    interfaces;
+  * ALSA sequencer fully integrated (closes: #203099);
+  * Install english documentation in binary package (closes: #188778);
+  * Upstream has now manpages with the new upstream URL, and documents the
+    SF2 patch files (called "SoundFonts" by upstream) (closes: #188140);
+  * Remove /etc/timidity.cfg, since we simply have nothing useful to ship
+    in there right now (closes: #233961);
+  * Document in README.Debian that the user needs a patchset and a proper
+    /etc/timidity.cfg if he is to get any sound out of MIDI files;
+  * Add logic to clean up upstream utter mess of executable files and
+    old cruft in the tarball.
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Mon, 23 Feb 2004 12:11:39 -0300
+
+timidity (2.11.3-1) unstable; urgency=high
+
+  * New upstream source (closes: #161678);
+  * Release this, so that it enters testing ASAP, and we can
+    move on with a CVS package
+  * Switch mime handling to the XAW interface for now (closes: #153912)
+  * Switch menu handling to the XAW interface, and fix menu entry
+    (closes: #158111)
+  * Update copyright file with new upstream locations and package state
+    (closes: #167241)
+  * This version works as a ALSA sound server (against ALSA 0.9, anyway)
+    (closes: #203555)
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Thu, 25 Dec 2003 16:47:02 -0200
+
+timidity (2.11.2-3) unstable; urgency=low
+
+  * Switch to autotools-dev link behaviour (closes: #225046)
+  * Rebuild autotools toolchain on CVS export
+  * Use AM_MAINTAINER_MODE to avoid trouble with autotools chain
+  * Fix acinclude.m4 CONFIG_INTERFACE to work with automake 1.7
+  * Add -fno-strict-aliasing to CFLAGS
+  * Support DEB_BUILD_OPTIONS
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Thu, 25 Dec 2003 12:07:00 -0200
+
+timidity (2.11.2-2) unstable; urgency=low
+
+  * The "I am back from the bitbucket!" release. 
+    This one is just a quick new-maintainer-around upload, with some minor 
+    cleanup;
+  * New maintainer (closes: #222958);
+  * Acknowledging NMUs:
+    + closes: #127375, #130238, #135493, #98151, #150747, #103097
+    + closes: #97894, #150947, #143409, #126994, #106530, #132847
+    + closes: #185357, #184842, #150746, #135493, #149320, #166869;
+  * Remove full-stops from short descriptions, and version debhelper deps
+    correctly
+
+ -- Henrique de Moraes Holschuh <hmh@debian.org>  Sun, 14 Dec 2003 16:56:21 -0200
+
+timidity (2.11.2-1.5) unstable; urgency=low
+
+  * NMU from Minneapolis BSP.
+  * NEWS: Commented out refrences to timidity-patches in the configuration
+    file.  Uncomment these if you need to use them. (Closes: #166869)
+  * Removed suggestion on nonexistant timidity-patches.
+
+ -- Scott M. Dier <sdier@debian.org>  Sat, 13 Dec 2003 21:31:48 -0600
+
+timidity (2.11.2-1.4) unstable; urgency=low
+
+  * NMU to fix further breakage caused by libvorbis0 -> libvorbis0a
+    (closes: #185357)
+  * Build-depend on libvorbis-dev (>= 1.0.0-3)
+
+ -- Andrew Suffield <asuffield@debian.org>  Wed, 26 Mar 2003 10:36:59 +0000
+
+timidity (2.11.2-1.3) unstable; urgency=low
+
+  * NMU to fix breakage caused by libvorbis0 split.
+
+ -- Christopher L Cheney <ccheney@debian.org>  Tue, 30 Jul 2002 00:00:00 -0500
+
+timidity (2.11.2-1.2) unstable; urgency=low
+
+  * Non-maintainer Upload
+  * Fixed Emacs el (Closes: #150947)
+
+ -- Aubin Paul <aubin@debian.org>  Tue, 25 Jun 2002 10:28:35 -0400
+
+timidity (2.11.2-1.1) unstable; urgency=low
+
+  * Non-maintainer upload
+  * Re-enabled Xaw interface (Closes: #150747)
+  * Added dependency on timidity-patches (Closes: #150746)
+  * Moved arch independent files from Xaw into /usr/share
+  * Fixed broken 'make distclean'
+
+ -- Aubin Paul <aubin@debian.org>  Mon, 24 Jun 2002 09:43:46 -0400
+
+timidity (2.11.2-1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Updated to build against and for alsa9 (Closes: #97894)
+  * Updated to use alsa/asoundllib (Closes: #106530, #143409)
+  * Fixed config file (Closes: #103097)
+  * Added menu item (Closes: #127375, #130238)
+  * New upstream releases (Closes: #135493, #149320)
+  * Removed Motif and Xaw interfaces (Closes: #98151)
+  * Rebuilt all Makefile.in and configure scripts
+
+ -- Aubin Paul <aubin@debian.org>  Wed, 19 Jun 2002 15:02:49 -0400
+
+timidity (2.10.4-2.2) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * /etc/emacs/site-start.d/50timidity-el.el is now a conffile.
+  (Closes: #132847)
+
+ -- Daniel Burrows <dburrows@debian.org>  Sat,  2 Mar 2002 23:45:05 -0500
+
+timidity (2.10.4-2.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Build-depend on libasound1-dev on m68k (closes: #106530) and hppa
+    (closes: #126994).
+  * Provide a real alternative for the slang-dev6 build-dependency.
+
+ -- Colin Watson <cjwatson@debian.org>  Sun, 30 Dec 2001 14:05:43 +0000
+
+timidity (2.10.4-2) unstable; urgency=low
+
+  * Update build deps for ia64. (closes: #105176)
+  * Update to standards version 3.5.5.
+
+ -- Martin Mitchell <martin@debian.org>  Sun, 22 Jul 2001 00:16:38 +1000
+
+timidity (2.10.4-1) unstable; urgency=low
+
+  * New upstream release. (closes: #74557)
+  * Update to standards version 3.5.2.
+  * Update build dependencies. (closes: #90720)
+  * Change default patches path to /usr/share/timidty/patches.
+
+ -- Martin Mitchell <martin@debian.org>  Sat,  7 Apr 2001 12:56:20 +1000
+
+timidity (2.10.2-1) unstable; urgency=low
+
+  * New upstream release. (closes: #77433)
+  * Update copyright information. (closes: #77434)
+  * Update to standards version 3.2.1.
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 29 Jan 2001 00:19:51 +1100
+
+timidity (2.10.0-2) unstable; urgency=low
+
+  * Add arch-dependent build deps for alsa. (closes: #72085)
+
+ -- Martin Mitchell <martin@debian.org>  Sun,  8 Oct 2000 13:28:58 +1100
+
+timidity (2.10.0-1) unstable; urgency=low
+
+  * New upstream release. (closes: #66851)
+  * Add Ogg Vorbis and alsa sequencer client options.
+  * Remove automake depth-first bug workaround.
+  * Add emacs support in separate package. (closes: #47157, #60759)
+
+ -- Martin Mitchell <martin@debian.org>  Sun, 27 Aug 2000 20:49:46 +1100
+
+timidity (2.9.3-1) unstable; urgency=low
+
+  * New upstream release. (closes: #62564, #64091)
+
+ -- Martin Mitchell <martin@debian.org>  Wed, 17 May 2000 01:51:53 +1000
+
+timidity (2.9.2-1) unstable; urgency=low
+
+  * New upstream release. (closes: #61851)
+  * Include server support. (closes: #49444)
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 17 Apr 2000 00:29:29 +1000
+
+timidity (2.9.1-1) frozen unstable; urgency=low
+
+  * New upstream bugfix release. (closes: #61036, #56806, #60718, #51218)
+  * Update to standards version 3.1.1.
+
+ -- Martin Mitchell <martin@debian.org>  Sat, 25 Mar 2000 00:34:32 +1100
+
+timidity (2.7.0-1) unstable; urgency=low
+
+  * New upstream release. (closes: #48175, #47650)
+  * Enable cspline interpolation support. (closes: #47372)
+  * Documentation update in timidity.cfg manpage. (closes: #47371)
+
+ -- Martin Mitchell <martin@debian.org>  Wed, 27 Oct 1999 19:19:16 +1000
+
+timidity (2.6.1-1) unstable; urgency=low
+
+  * New upstream release. (closes: #46559, #38836, #43678, #45039)
+
+ -- Martin Mitchell <martin@debian.org>  Mon,  4 Oct 1999 19:52:40 +1000
+
+timidity (2.4.1-1) unstable; urgency=low
+
+  * New upstream release. (closes: #43252, #41370)
+
+ -- Martin Mitchell <martin@debian.org>  Sun, 22 Aug 1999 13:27:13 +1000
+
+timidity (2.0.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Martin Mitchell <martin@debian.org>  Sun,  9 May 1999 05:10:23 +1000
+
+timidity (0.2k-4) unstable; urgency=low
+
+  * Fix segfault when called with no args. (#31435)
+  * Apply patch from upstream for latest gtk.
+
+ -- Martin Mitchell <martin@debian.org>  Wed, 13 Jan 1999 22:26:48 +1100
+
+timidity (0.2k-3) unstable; urgency=low
+
+  * Recompile with latest gtk/glib.
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 28 Dec 1998 15:24:51 +1100
+
+timidity (0.2k-2) unstable; urgency=low
+
+  * Fix problems with playing compressed files with characters which
+    require escaping. (#30563)
+
+ -- Martin Mitchell <martin@debian.org>  Fri, 11 Dec 1998 01:12:02 +1100
+
+timidity (0.2k-1) unstable; urgency=low
+
+  * New upstream release. (#25039)
+  * Update to standards version 2.5.0.
+  * Update copyright information.
+
+ -- Martin Mitchell <martin@debian.org>  Thu, 10 Dec 1998 00:27:23 +1100
+
+timidity (0.2i-9) frozen unstable; urgency=low
+
+  * Recompile for libslang1.
+
+ -- Martin Mitchell <martin@debian.org>  Tue, 20 Oct 1998 01:11:18 +1000
+
+timidity (0.2i-8) unstable; urgency=low
+
+  * Recompile for libncurses4.
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 12 Oct 1998 17:19:58 +1000
+
+timidity (0.2i-7) unstable; urgency=low
+
+  * Use update-mime to install mime types. (#26341)
+
+ -- Martin Mitchell <martin@debian.org>  Thu, 10 Sep 1998 02:54:07 +1000
+
+timidity (0.2i-6) unstable; urgency=low
+
+  * Update to standards version 2.4.1.
+  * Fix compile errors for powerpc.
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 31 Aug 1998 16:55:26 +1000
+
+timidity (0.2i-5) frozen unstable; urgency=low
+
+  * Updated to standards version 2.4.0.0.
+  * Include extra comments in /etc/timidity.cfg to explain defaults. (#16626)
+  * Add MIME entries in /etc/mailcap. (#17760)
+  * Add patch from Thomas Sailer to standardize non-blocking call. (#20907)
+    Patch at: http://www.ife.ee.ethz.ch/~sailer/linux/audiopci.html
+
+ -- Martin Mitchell <martin@debian.org>  Mon, 13 Apr 1998 23:15:20 +1000
+
+timidity (0.2i-4) unstable; urgency=low
+
+  * New maintainer.
+  * Updated to standards version 2.3.0.1.
+  * Include patches for compilation on alpha. (#13023)
+
+ -- Martin Mitchell <martin@debian.org>  Fri, 12 Dec 1997 19:39:54 +1100
+
+timidity (0.2i-3.1) unstable; urgency=low
+
+  * Non-maintainer release.
+  * Libc6 compile.
+
+ -- Martin Mitchell <martin@debian.org>  Fri,  7 Nov 1997 14:31:43 +1100
+
+timidity (0.2i-3) contrib; urgency=low
+
+  * Added motif (-im) and slang (-is) interface support.
+  * Made dumb terminal mode the default interface.
+  * Remove {depends,tclIndex,tkmidity.tcl} in clean rule.
+  * Minor packaging changes.
+  * Uses wish instead of wishx for tcl interface (fixes #6445).
+  * No longer treats instrument 16 as percussion by default.
+  * Minor directory re-organization.
+  
+ -- Klee Dienes <klee@debian.org>  Thu, 16 Jan 1997 12:51:17 -0500
+
+timidity (0.2i-2) contrib; urgency=low
+
+  * Minor packaging changes.
+
+ -- Klee Dienes <klee@debian.org>  Sat, 2 Nov 1996 17:08:25 -0700
+
+timidity (0.2i-1) contrib; urgency=low
+
+  * Initial release.
+
+ -- Klee Dienes <klee@debian.org>  Thu, 5 Sep 1996 04:36:32 -0700
+
+

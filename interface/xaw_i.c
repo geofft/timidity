@@ -261,7 +261,7 @@ int amplitude = DEFAULT_AMPLIFICATION;
 String bitmapdir = XAW_BITMAP_DIR;
 Boolean arrangetitle,savelist;
 static char **current_flist = NULL;
-static int voices = 0, last_voice = 0, voices_num_width;
+static last_voice = 0, voices_num_width;
 static int maxentry_on_a_menu = 0,submenu_n = 0;
 #define OPTIONS_WINDOW 1
 #define FLIST_WINDOW 2

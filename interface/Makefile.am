@@ -247,7 +247,7 @@ clean:
 
 tclIndex: $(TCLSRCS)
 	rm -f tclIndex
-	echo 'auto_mkindex . *.tcl; exit' | $(WISH)
+	echo "auto_mkindex . *.tcl" | tclsh
 
 if ENABLE_TCLTK
 install_tk = install.tk

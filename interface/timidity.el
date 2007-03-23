@@ -35,7 +35,7 @@
 
 ;; Configuration parameters.
 ; Absolute path of timidity.
-(defvar timidity-prog-path "/usr/local/bin/timidity")
+(defvar timidity-prog-path "/usr/bin/timidity")
 
 ; String list for timidity program options.
 (defvar timidity-default-options nil)

@@ -178,9 +178,6 @@ flac_seekable_stream_encoder_write_callback(const FLAC__SeekableStreamEncoder *e
 				   const FLAC__byte buffer[],
 				   unsigned bytes, unsigned samples,
 				   unsigned current_frame, void *client_data);
-static void flac_seekable_stream_encoder_metadata_callback(const FLAC__SeekableStreamEncoder *encoder,
-						  const FLAC__StreamMetadata *metadata,
-						  void *client_data);
 
 /* preset */
 void flac_set_compression_level(int compression_level)
@@ -435,6 +432,7 @@ static int flac_output_open(const char *fname, const char *comment)
   else
 #endif /* AU_OGGFLAC */
   if (flac_options.seekable) {
+    /* FLAC SEEKABLE STREAM */
     if ((ctx->encoder.flac.s_stream = FLAC__seekable_stream_encoder_new()) == NULL) {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "cannot create FLAC stream");
       flac_session_close();
@@ -475,10 +473,6 @@ static int flac_output_open(const char *fname, const char *comment)
       FLAC__seekable_stream_encoder_set_metadata(ctx->encoder.flac.s_stream, metadata, num_metadata);
 
     /* set callback */
-/*    FLAC__seekable_stream_encoder_set_metadata_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_metadata_callback); /* */
-#ifndef __BORLANDC__
-    FLAC__stream_encoder_set_metadata_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_metadata_callback); /* */
-#endif
     FLAC__seekable_stream_encoder_set_write_callback(ctx->encoder.flac.s_stream, flac_seekable_stream_encoder_write_callback);
 
     ctx->state.s_flac = FLAC__seekable_stream_encoder_init(ctx->encoder.flac.s_stream);
@@ -488,9 +482,8 @@ static int flac_output_open(const char *fname, const char *comment)
       flac_session_close();
       return -1;
     }
-	}
-	else
-  {
+  } else {
+    /* NON SEEKABLE STREAM */
     if ((ctx->encoder.flac.stream = FLAC__stream_encoder_new()) == NULL) {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "cannot create FLAC stream");
       flac_session_close();
@@ -689,11 +682,6 @@ flac_seekable_stream_encoder_write_callback(const FLAC__SeekableStreamEncoder *e
     return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   else
     return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-}
-static void flac_seekable_stream_encoder_metadata_callback(const FLAC__SeekableStreamEncoder *encoder,
-						  const FLAC__StreamMetadata *metadata,
-						  void *client_data)
-{
 }
 
 static int output_data(char *buf, int32 nbytes)

@@ -1,0 +1,33 @@
+$Id: copyright,v 1.4 2003/12/27 13:31:44 hmh Exp $
+
+This package was assembled by Henrique de Moraes Holschuh <hmh@debian.org>,
+based on previous work by Martin Mitchell <martin@debian.org>.
+
+The Debian packaging of TiMidity++ is:
+  Copyright (c) 2003 by Henrique de Moraes Holschuh <hmh@debian.org>,
+  Copyright (c) 2002 by Martin Mitchell <martin@debian.org>,
+  and distributed in the same license as the upstream source it applies to.
+
+Upstream sources are at: http://www.timidity.jp/
+Sourceforge project at:  http://timidity.sourceforge.net/
+
+The changes were fairly minimal, and consisted of adding various
+debian/* files to the distribution, as well as minor changes to the
+configuration files.
+
+This package was formerly maintained by Klee Dienes <klee@debian.org>,
+and Martin Mitchell <martin@debian.org>.
+
+Authors:
+  Tuukka Toivonen <tt@cgs.fi>, Masanao Izumo <mo@goice.co.jp> and others.
+
+Copyright: 
+   Copyright (C) 1999-2002 Masanao Izumo <mo@goice.co.jp>
+   Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 2, or (at your option) any
+   later version.
+
+The GPL may be found in /usr/share/common-licenses/GPL on a Debian system.
