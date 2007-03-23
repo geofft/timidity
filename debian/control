@@ -1,7 +1,8 @@
 Source: timidity
 Section: sound
 Priority: optional
-Maintainer: Henrique de Moraes Holschuh <hmh@debian.org>
+Maintainer: Debian Multimedia Team <debian-multimedia@lists.debian.org>
+Uploaders: Joost Yervante Damad <andete@debian.org>
 Build-Depends: debhelper (>= 4), libasound2-dev [!kfreebsd-i386 !kfreebsd-amd64 !hurd-i386], libaudiofile-dev, libesd0-dev, libarts1-dev, libjack0.100.0-dev, libaudio-dev, libvorbis-dev (>= 1.0.0-3), libspeex-dev (>= 1.0), liboggflac-dev (>= 1.1.2-1), libflac-dev (>= 1.1.2-1), libncurses-dev, libslang2-dev, libx11-dev, libxext-dev, libxmu-dev, libxpm-dev, libxt-dev, x-dev, libxaw7-dev, tcl8.4-dev, tk8.4-dev, libgtk2.0-dev, autotools-dev
 Standards-Version: 3.6.2
 

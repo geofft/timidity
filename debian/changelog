@@ -1,3 +1,9 @@
+timidity (2.13.2-8) unstable; urgency=low
+
+  * New maintainer (Closes: #415829)
+ 
+ -- Joost Yervante Damad <andete@debian.org>  Fri, 23 Mar 2007 19:49:25 +0100
+
 timidity (2.13.2-7.2) unstable; urgency=low
 
   * Non-maintainer upload with maintainer permission.
