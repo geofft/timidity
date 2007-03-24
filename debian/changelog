@@ -1,8 +1,29 @@
+timidity (2.13.2-9) unstable; urgency=low
+
+  * Apply patch from version 2.13.2-7.3 which crossed my upload and
+    fixes bug #414929.
+  * Fix changelog to properly include 2.13.2-7.3 entry.
+
+ -- Joost Yervante Damad <andete@debian.org>  Fri, 23 Mar 2007 19:55:50 +0100
+
 timidity (2.13.2-8) unstable; urgency=low
 
   * New maintainer (Closes: #415829)
  
  -- Joost Yervante Damad <andete@debian.org>  Fri, 23 Mar 2007 19:49:25 +0100
+
+timidity (2.13.2-7.3) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * High-urgency upload for RC bugfix.
+  * Call start-stop-daemon with --oknodo when stopping timidity in the
+    init script, so that a stopped daemon isn't treated as an error on
+    upgrade.  Closes: #414929.
+  * Also, don't use --exec with start-stop-daemon --stop, as this will
+    fail to find a running daemon if the on-disk binary has been moved
+    out from under us for any reason; use --name instead.
+
+ -- Steve Langasek <vorlon@debian.org>  Thu, 22 Mar 2007 16:05:48 -0700
 
 timidity (2.13.2-7.2) unstable; urgency=low
 

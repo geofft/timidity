@@ -52,8 +52,8 @@ case "$1" in
 	;;
   stop)
   	echo -n "Stopping $DESC: "
-	if start-stop-daemon --stop --quiet --pidfile ${PIDFILE} \
-	   --exec ${DAEMON} --retry 10 ; then
+       if start-stop-daemon --stop --quiet --oknodo --pidfile ${PIDFILE} \
+          --name $(basename ${DAEMON}) --retry 10 ; then
 		echo "timidity."
 	else
 		echo "(failed)."
