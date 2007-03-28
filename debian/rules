@@ -115,6 +115,9 @@ install: build
 		install -m 644 debian/timidity.cfg $(TMPPKG)/etc/timidity ;\
 	fi
 
+	# fix permissions
+	chmod a+x  $(TMPPKG)/usr/lib/timidity/tk*.tcl
+
 	# Lintian and Linda overrides
 	( cd debian && \
 	for i in *.linda ; do [ -r "$$i" ] && { \

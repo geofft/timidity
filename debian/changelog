@@ -1,4 +1,4 @@
-timidity (2.13.2-10) UNRELEASED; urgency=low
+timidity (2.13.2-10) unstable; urgency=low
 
   * fix error message (Closes: #335295)
   * fix typos in manpages (Closes: #409588, #409590)
@@ -7,6 +7,9 @@ timidity (2.13.2-10) UNRELEASED; urgency=low
   * mention 8MBGMSFX.SF2 in README.Debian (Closes: #350984)
   * don't url_unexpand_home_dir when opening a file with
     common.c:open_file (Closes: #327042)
+  [lintian fixes]
+  * make timidity binNMUable
+  * make /usr/lib/timidity/tk*.tcl scripts executable
 
  -- Joost Yervante Damad <andete@debian.org>  Sat, 24 Mar 2007 08:09:43 +0100
 
