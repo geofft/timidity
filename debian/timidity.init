@@ -7,6 +7,9 @@
 #               Distributed under the GPL version 2
 #
 
+# use lsb-base
+# . /lib/lsb/init-functions
+
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/bin/timidity
 DESC="TiMidity++ ALSA midi emulation"

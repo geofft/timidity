@@ -13,12 +13,13 @@ with the DFSG, AFAIK.  The incomplete (as of this writing) FreePats set is the
 only DFSG-compliant set of patches available, and the default minimal config
 file will try to use that.  See the freepats package for more details.
 
-You have to find a sound font or patch set, and configure /etc/timidity.cfg
+You have to find a sound font or patch set, and configure /etc/timidity/timidity.cfg
 for that patchset.
 
 Good soundfonts in .sf2 format are often available from sound-card makers.
-TiMidity can use those.  There are also patchsets available for download in the
-Internet, that TiMidity can use.
+For example the Soundblaster Live! driver CD contains the 8MBGMSFX.SF2 file.
+TiMidity can use those.  There are also patchsets available for download on the
+Internet that are usable for TiMidity.
 
 You can find more information about patchsets and soundfonts in the
 TiMidity homepage and mailinglist.  The homepage is at
@@ -36,7 +37,7 @@ of rendering sounds.  You can put command line options in timidity.cfg
 by prefixing them with "opt".  Thus, you could use the following, to 
 reduce CPU usage to a minimum:
 
-opt no-anti-alias
+opt anti-alias=d
 opt ext WPVSETOZ
 opt fast-decay
 opt interpolation linear

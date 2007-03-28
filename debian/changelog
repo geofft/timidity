@@ -1,3 +1,15 @@
+timidity (2.13.2-10) UNRELEASED; urgency=low
+
+  * fix error message (Closes: #335295)
+  * fix typos in manpages (Closes: #409588, #409590)
+  * fix location of configfile in manpage (Closes: #360403)
+  * use opt anti-alias=d instead of opt no-anti-alias (Closes: #396004)
+  * mention 8MBGMSFX.SF2 in README.Debian (Closes: #350984)
+  * don't url_unexpand_home_dir when opening a file with
+    common.c:open_file (Closes: #327042)
+
+ -- Joost Yervante Damad <andete@debian.org>  Sat, 24 Mar 2007 08:09:43 +0100
+
 timidity (2.13.2-9) unstable; urgency=low
 
   * Apply patch from version 2.13.2-7.3 which crossed my upload and
