@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 
 Package: timidity
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, lsb-base (>= 3.0-6)
 Suggests: pmidi
 Recommends: freepats
 Description: Software sound renderer (MIDI sequencer, MOD player)

@@ -7,14 +7,25 @@
 #               Distributed under the GPL version 2
 #
 
-# use lsb-base
-# . /lib/lsb/init-functions
+### BEGIN INIT INFO
+# Provides: timidity
+# Required-Start: $local_fs
+# Required-Stop: $local_fs
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop timidity
+# Description:  TiMidity++ is a very high quality software-only MIDI sequencer
+#        and MOD player.
+### END INIT INFO
 
+. /lib/lsb/init-functions
+
+NAME="timidity"
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/bin/timidity
+DAEMON=/usr/bin/${NAME}
 DESC="TiMidity++ ALSA midi emulation"
 PMIDI=/usr/bin/pmidi
-PIDFILE=/var/run/timidity.pid
+PIDFILE=/var/run/${NAME}.pid
 
 set -e
 
@@ -24,20 +35,25 @@ test -x ${PMIDI} && pmidi_enabled="true" || pmidi_enabled="false";
 TIM_ALSASEQ=
 TIM_ALSASEQPARAMS="-B2,8"
 [ -r /etc/default/timidity ] && . /etc/default/timidity
-[ "${TIM_ALSASEQ}" != "true" ] && exit 0
+if [ "${TIM_ALSASEQ}" != "true" ]; then
+	echo "Timidity is not yet configured." >&2
+	echo "Enable Alsa Sequencer first by editing /etc/default/timidity." >&2
+	exit 0
+fi
 PARAMS="${TIM_ALSASEQPARAMS} -iAD"
 
 START="--start --quiet --exec ${DAEMON} --pidfile ${PIDFILE} -- ${PARAMS}"
 
 case "$1" in
   start)
-	echo -n "Starting ${DESC}: "
+	log_daemon_msg "Starting" "${NAME}"
 	[ -d /proc/asound ] || {
-  		echo "(ALSA is not active, cannot start)"
+		log_end_msg 1
+  		echo "(ALSA is not active, cannot start)" >&2
 		exit 0
 	}
 	if start-stop-daemon ${START} >/dev/null; then
-		echo "timidity."
+		log_end_msg 0
   		if [ $pmidi_enabled = "true" ] ; then
   			sleep 1
   			echo -n "Emulating midi on ports: ";
@@ -45,21 +61,21 @@ case "$1" in
 		fi
 	else
 		if start-stop-daemon --test ${START}  >/dev/null 2>&1; then
-			echo "(failed)."
+			log_end_msg 1
 			exit 1
 		else
-			echo "already running."
+			echo  " (already running) "
 			exit 0
 		fi
 	fi
 	;;
   stop)
-  	echo -n "Stopping $DESC: "
-       if start-stop-daemon --stop --quiet --oknodo --pidfile ${PIDFILE} \
+	echo -n "Stopping" "${NAME}"
+	if start-stop-daemon --stop --quiet --oknodo --pidfile ${PIDFILE} \
           --name $(basename ${DAEMON}) --retry 10 ; then
-		echo "timidity."
+		log_end_msg 0
 	else
-		echo "(failed)."
+		log_end_msg 1
 		exit 1
 	fi
 	;;

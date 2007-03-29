@@ -114,6 +114,10 @@ install: build
 		mkdir -p $(TMPPKG)/etc/timidity && \
 		install -m 644 debian/timidity.cfg $(TMPPKG)/etc/timidity ;\
 	fi
+	
+	# install an icon for menu
+	mkdir -p $(TMPPKG)/usr/share/pixmaps
+	install -m 644 debian/timidity.xpm $(TMPPKG)/usr/share/pixmaps
 
 	# fix permissions
 	chmod a+x  $(TMPPKG)/usr/lib/timidity/tk*.tcl

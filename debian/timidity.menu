@@ -1,2 +1,3 @@
 ?package(timidity):needs="x11" section="Apps/Sound" \
-	title="TiMidity++" command="timidity -ia" hints="Player"
+	title="TiMidity++" command="timidity -ia" hints="Player" \
+	icon="/usr/share/pixmaps/timidity.xpm"
