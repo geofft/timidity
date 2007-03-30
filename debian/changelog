@@ -1,6 +1,10 @@
-timidity (2.13.2-11) UNRELEASED; urgency=low
+timidity (2.13.2-11) unstable; urgency=low
 
   * add menu icon (Closes: #299394)
+    Icon is based on interface/w32g_icon.ico which is part
+    of the source distribution and available under the same license
+    as timidity
+  [lintian fixes]
   * use /lib/lsb/init-functions
   * add INIT INFO section to init.d script
 
