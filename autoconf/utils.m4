@@ -242,7 +242,7 @@ AC_DEFUN([EXTRACT_CPPFLAGS],
 [for f in $3; do
     case ".$f" in
 	.-I?*|.-D?*)	$1="[$]$1 $f" ;;
-	*)		$2="[$]$1 $f" ;;
+	*)		$2="[$]$2 $f" ;;
     esac
 done
 ])

@@ -1,3 +1,10 @@
+timidity (2.13.2-12) unstable; urgency=low
+
+  * honor CFLAGS (Closes: #421502)
+  * stop with 01 iso 99 (Closes: #418873)
+
+ -- Joost Yervante Damad <andete@debian.org>  Sat, 12 May 2007 16:04:06 +0200
+
 timidity (2.13.2-11) unstable; urgency=low
 
   * add menu icon (Closes: #299394)
