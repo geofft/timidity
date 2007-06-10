@@ -1,3 +1,10 @@
+timidity (2.13.2-13) UNRELEASED; urgency=low
+
+  * Make work with flac 1.1.4 API (Closes: #426669, #427593)
+  * Fix lintian warning about Source-Version
+
+ -- Joost Yervante Damad <andete@debian.org>  Sun, 10 Jun 2007 09:52:13 +0200
+
 timidity (2.13.2-12) unstable; urgency=low
 
   * honor CFLAGS (Closes: #421502)

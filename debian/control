@@ -3,7 +3,7 @@ Section: sound
 Priority: optional
 Maintainer: Debian Multimedia Team <debian-multimedia@lists.debian.org>
 Uploaders: Joost Yervante Damad <andete@debian.org>
-Build-Depends: debhelper (>= 4), libasound2-dev [!kfreebsd-i386 !kfreebsd-amd64 !hurd-i386], libaudiofile-dev, libesd0-dev, libarts1-dev, libjack0.100.0-dev, libaudio-dev, libvorbis-dev (>= 1.0.0-3), libspeex-dev (>= 1.0), liboggflac-dev (>= 1.1.2-1), libflac-dev (>= 1.1.2-1), libncurses-dev, libslang2-dev, libx11-dev, libxext-dev, libxmu-dev, libxpm-dev, libxt-dev, x-dev, libxaw7-dev, tcl8.4-dev, tk8.4-dev, libgtk2.0-dev, autotools-dev,  dpkg-dev (>= 1.13.19)
+Build-Depends: debhelper (>= 4), libasound2-dev [!kfreebsd-i386 !kfreebsd-amd64 !hurd-i386], libaudiofile-dev, libesd0-dev, libarts1-dev, libjack0.100.0-dev, libaudio-dev, libvorbis-dev (>= 1.0.0-3), libspeex-dev (>= 1.0), libflac-dev (>= 1.1.4-1), libncurses-dev, libslang2-dev, libx11-dev, libxext-dev, libxmu-dev, libxpm-dev, libxt-dev, x-dev, libxaw7-dev, tcl8.4-dev, tk8.4-dev, libgtk2.0-dev, autotools-dev,  dpkg-dev (>= 1.13.19)
 Standards-Version: 3.7.2
 
 Package: timidity
@@ -35,7 +35,7 @@ Description: Software sound renderer (MIDI sequencer, MOD player)
 
 Package: timidity-interfaces-extra
 Architecture: any
-Depends: ${shlibs:Depends}, timidity (= ${Source-Version})
+Depends: ${shlibs:Depends}, timidity (= ${binary:Version})
 Replaces: timidity (<< 2.12.0)
 Description: TiMidity++ extra user interfaces
  TiMidity++ is a very high quality software-only MIDI sequencer and MOD 

@@ -301,9 +301,7 @@ static const struct option longopts[] = {
 	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
 	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
 	{ "flac-complevel",         required_argument, NULL, TIM_OPT_FLAC_COMPLEVEL },
-#ifdef AU_OGGFLAC
 	{ "oggflac",                no_argument,       NULL, TIM_OPT_FLAC_OGGFLAC },
-#endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
 #ifdef AU_SPEEX
 	{ "speex-quality",          required_argument, NULL, TIM_OPT_SPEEX_QUALITY },
@@ -439,9 +437,7 @@ static inline int parse_opt_output_swab(const char *);
 static inline int parse_opt_flac_verify(const char *);
 static inline int parse_opt_flac_padding(const char *);
 static inline int parse_opt_flac_complevel(const char *);
-#ifdef AU_OGGFLAC
 static inline int parse_opt_flac_oggflac(const char *);
-#endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
 #ifdef AU_SPEEX
 static inline int parse_opt_speex_quality(const char *);
@@ -2779,10 +2775,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_flac_padding(arg);
 	case TIM_OPT_FLAC_COMPLEVEL:
 		return parse_opt_flac_complevel(arg);
-#ifdef AU_OGGFLAC
 	case TIM_OPT_FLAC_OGGFLAC:
 		return parse_opt_flac_oggflac(arg);
-#endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
 #ifdef AU_SPEEX
 	case TIM_OPT_SPEEX_QUALITY:
@@ -3632,10 +3626,8 @@ static inline int parse_opt_h(const char *arg)
 "               Write a PADDING block of length n",
 "             --flac-complevel=n (for Ogg FLAC only)",
 "               Set compression level n:[0..8]",
-#ifdef AU_OGGFLAC
 "             --oggflac (for Ogg FLAC only)",
 "               Output OggFLAC stream (experimental)",
-#endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
 #ifdef AU_SPEEX
 "             --speex-quality=n (for Ogg Speex only)",
@@ -4371,7 +4363,6 @@ static inline int parse_opt_flac_complevel(const char *arg)
 	return 0;
 }
 
-#ifdef AU_OGGFLAC
 extern void flac_set_option_oggflac(int);
 
 static inline int parse_opt_flac_oggflac(const char *arg)
@@ -4379,7 +4370,6 @@ static inline int parse_opt_flac_oggflac(const char *arg)
 	flac_set_option_oggflac(1);
 	return 0;
 }
-#endif /* AU_OGGFLAC */
 #endif /* AU_FLAC */
 
 #ifdef AU_SPEEX
