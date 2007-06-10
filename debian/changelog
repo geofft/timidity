@@ -1,4 +1,4 @@
-timidity (2.13.2-13) UNRELEASED; urgency=low
+timidity (2.13.2-13) unstable; urgency=low
 
   * Make work with flac 1.1.4 API (Closes: #426669, #427593)
   * Fix lintian warning about Source-Version
