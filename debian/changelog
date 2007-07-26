@@ -1,3 +1,14 @@
+timidity (2.13.2-14) unstable; urgency=low
+
+  * Add note to README.Debian about how to get a systemwide timidity
+    sequencer to work together with the pulseaudio system (Closes: #428353)
+  * lintian fixes: first run configure before doing make clean in the
+    debian/rules clean target
+  * use neat exponentional backup select in interface/alsaseq_c.c
+    with thanks to  "C. " <chunkeey@web.de> (Closes: #433643)
+
+ -- Joost Yervante Damad <andete@debian.org>  Thu, 26 Jul 2007 20:40:14 +0200
+
 timidity (2.13.2-13) unstable; urgency=low
 
   * Make work with flac 1.1.4 API (Closes: #426669, #427593)

@@ -1,5 +1,4 @@
 TiMidity++ for Debian
-$Id: README.Debian,v 1.3 2004/08/07 14:33:59 hmh Exp $
 -----------------------------------------------------------
 
 Installing Patchsets/soundfonts 
@@ -61,3 +60,40 @@ prefixing them with "opt".  You'll probably want to "source <otherconfigfile>"
 to load in config files distributed along with patchsets.
 
  -- Henrique de Moraes Holschuh <hmh@debian.org>
+
+ Pulseaudio
+ ----------
+
+If you use a systemwide pulseaudio daemon, and you also want to run the timidity
+sequencer systemwide, make sure the root user uses the correct alsa pulseaudio
+configuration.  This can be done by creating a file /etc/asound.conf with the
+following content:
+
+#-- begin --
+pcm.pulse {
+            type pulse
+}
+
+ctl.pulse {
+             type pulse
+}
+
+pcm.!default {
+    type pulse
+}
+ctl.!default {
+    type pulse
+}
+#-- end --
+
+And also add the root user to the pulse-access group:
+
+# adduser root pulse-access
+
+This will cause timidity to use pulseaudio. This is only an example; more
+advanced setups might require more or different configuration. Please
+consult the pulseaudio documentation.
+
+Alternatively you could run timidity in daemon mode as user.
+
+ -- Joost Yervante Damad <andete@debian.org>

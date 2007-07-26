@@ -51,8 +51,14 @@ endif
 ##  The rules
 ##
 
-build: build-stamp
+build: doconfigure build-stamp
 build-stamp:
+	dh_testdir
+	$(MAKE)
+	touch build-stamp
+
+doconfigure: doconfigure-stamp
+doconfigure-stamp:
 	dh_testdir
 	rm -f autoconf/config.sub autoconf/config.guess
 	ln -s /usr/share/misc/config.sub autoconf/config.sub
@@ -71,25 +77,23 @@ build-stamp:
 	 --enable-interface=$(interface) \
 	 --enable-dynamic=slang,tcltk,vt100,xskin,gtk \
 	 --enable-server --enable-network --enable-spectrogram --enable-wrd
-	$(MAKE)
+	touch doconfigure-stamp
 
-	touch build-stamp
-
-clean:	configure
+clean:	configure doconfigure
 	dh_testdir
 	dh_testroot
 	-find -type f -perm +111 ! -name 'rules' -exec chmod 644 {} \;
 	-xargs -t -r chmod +x < debian/executable.files
 	rm -f build-stamp
-	-$(MAKE) clean
-	-$(MAKE) distclean
+	$(MAKE) clean
+	$(MAKE) distclean
 	rm -f common.makefile TiMidity-uj.ad TiMidity.ad
 	rm -f interface/tclIndex
 	rm -f doc/timidity.1 doc/timidity.cfg.5
 	rm -f autoconf/config.sub autoconf/config.guess
 	rm -rf autom4te.cache
 	rm -f config.log Makefile
-	-xargs -t -r rm -f < debian/deletable.files
+	rm -f doconfigure-stamp
 	dh_clean
 
 configure:
