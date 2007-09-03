@@ -1,3 +1,9 @@
+timidity (2.13.2-15) unstable; urgency=low
+
+  * Fix off-by-one crash error in panning reverb (Closes: #440543)
+
+ -- Joost Yervante Damad <andete@debian.org>  Mon, 03 Sep 2007 12:15:58 +0200
+
 timidity (2.13.2-14) unstable; urgency=low
 
   * Add note to README.Debian about how to get a systemwide timidity
