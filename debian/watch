@@ -1,3 +1,3 @@
-version=2
-http://prdownloads.sourceforge.net/timidity/ (?:.*/)?TiMidity\+\+-?_?([\w+\d+\.]+|\d+)(\.tar|\.tgz)(\.gz|\.bz2|) debian false
-ftp://ftp2.sf.net/pub/sourceforge/t/ti/timidity/TiMidity\+\+-?_?([\w+\d+\.]+|\d+)(\.tar|\.tgz)(\.gz|\.bz2|)
+version=3
+opts=uversionmangle=s/(tar|gz|tgz|bz2|\.\.)//g \
+http://sf.net/timidity/TiMidity\+\+-?_?([\w+\d+\.]+|\d+)(\.tar|\.tgz)(\.gz|\.bz2|) debian false

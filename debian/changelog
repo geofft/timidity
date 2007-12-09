@@ -1,3 +1,12 @@
+timidity (2.13.2-16) unstable; urgency=low
+
+  * timidity is no longer team-maintained, back to just me
+  * next version won't be in the debian-multimedia SVN
+  * fix watch file (Closes: #449654), with thanks to Raphael Geissert!
+  * menu file Apps -> Applications
+
+ -- Joost Yervante Damad <andete@debian.org>  Sun, 09 Dec 2007 14:36:13 +0100
+
 timidity (2.13.2-15) unstable; urgency=low
 
   * Fix off-by-one crash error in panning reverb (Closes: #440543)
