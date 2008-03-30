@@ -65,6 +65,16 @@
 /* From glib-1.1.13:gstrfuncs.c
  * Modified by Masanao Izumo <mo@goice.co.jp>
  */
+#ifndef VA_COPY
+# if (defined (__GNUC__) && defined (__PPC__) && (defined (_CALL_SYSV) || defined (__WIN32__))) || defined (__WATCOMC__)
+#  define VA_COPY(ap1, ap2)	  (*(ap1) = *(ap2))
+# elif defined (VA_COPY_AS_ARRAY)
+#  define VA_COPY(ap1, ap2)	  memmove ((ap1), (ap2), sizeof (va_list))
+# else /* va_list is a pointer */
+#  define VA_COPY(ap1, ap2)	  ((ap1) = (ap2))
+# endif /* va_list is a pointer */
+#endif /* !VA_COPY */
+
 static int printf_string_upper_bound (const char* format,
 			     va_list      args)
 {
@@ -201,30 +211,38 @@ static int printf_string_upper_bound (const char* format,
   return len;
 }
 
-void vsnprintf(char *buff, size_t bufsiz, const char *fmt, va_list ap)
+int vsnprintf(char *buff, size_t bufsiz, const char *fmt, va_list ap)
 {
     MBlockList pool;
     char *tmpbuf = buff;
+    int ret;
+    va_list ap2;
 
+    VA_COPY(ap2, ap);
     init_mblock(&pool);
     tmpbuf = new_segment(&pool, printf_string_upper_bound(fmt, ap));
-    vsprintf(tmpbuf, fmt, ap);
-    strncpy(buff, tmpbuf, bufsiz-1);
+    ret = vsprintf(tmpbuf, fmt, ap2);
+    strncpy(buff, tmpbuf, bufsiz);
     buff[bufsiz-1] = '\0';
     reuse_mblock(&pool);
+    va_end(ap2);
+    return ret;
 }
 #endif /* HAVE_VSNPRINTF */
 
 
 #ifndef HAVE_SNPRINTF
-void snprintf(char *buff, size_t bufsiz, const char *fmt, ...)
+int snprintf(char *buff, size_t bufsiz, const char *fmt, ...)
 {
+    int ret;
     va_list ap;
+
     va_start(ap, fmt);
-    vsnprintf(buff, bufsiz, fmt, ap);
+    ret = vsnprintf(buff, bufsiz, fmt, ap);
     va_end(ap);
+    return ret;
 }
-#endif /* HAVE_VSNPRINTF */
+#endif /* HAVE_SNPRINTF */
 
 #ifndef HAVE_STRERROR
 #ifndef HAVE_ERRNO_H

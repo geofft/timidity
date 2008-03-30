@@ -1,3 +1,9 @@
+2008-3-31  Keishi Suenaga <skeishi@yahoo.co.jp>
+        a patch from Yair K.
+	* configure.in
+	  utils/support.c
+	  utils/support.h        fix-snprintf-crash
+	
 2008-3-30  Keishi Suenaga <skeishi@yahoo.co.jp>
 	patches from Yair K.
 	* libarc/arc_tar.c       fix-archive-add-crash

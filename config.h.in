@@ -438,6 +438,12 @@
 /* Define to 1 if you use PDcurses */
 #undef USE_PDCURSES
 
+/* A 'va_copy' style function */
+#undef VA_COPY
+
+/* 'va_lists' cannot be copies as values */
+#undef VA_COPY_AS_ARRAY
+
 /* Version number of package */
 #undef VERSION
 
