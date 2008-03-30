@@ -97,7 +97,7 @@ ArchiveEntryNode *next_tar_entry(void)
 	return NULL;
     sizeb = (((size) + (TARBLKSIZ-1)) & ~(TARBLKSIZ-1));
 
-    if(arc_handler.isfile)
+    if((arc_handler.isfile) || (size > MAX_SAFE_MALLOC_SIZE))
     {
 	arc_handler.pos += TARHDRSIZ;
 	entry->comptype = ARCHIVEC_STORED;

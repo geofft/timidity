@@ -1,3 +1,18 @@
+2008-3-30  Keishi Suenaga <skeishi@yahoo.co.jp>
+	patches from Yair K.
+	* libarc/arc_tar.c       fix-archive-add-crash
+	* timidity/reverb.c      fix-reverb-crash-from-Debian
+	* timidity/miditrace.c   fix-soundspec-in-trace-mode
+	* autoconf/utils.m4
+	  configure.in
+	  timidity/Makefile.am
+	  timidity/midi_a.c
+	  timidity/output.c
+	  timidity/reverb.c
+	  timidity/reverb.h
+	  timidity/sun_a.c
+	  timidity/sysdep.h       for support OpenBSD
+
 2008-3-28  Stas Sergeev <stsp@aknet.ru>
 	* timidity/midi_a.c	 remove gnuc extensions
 

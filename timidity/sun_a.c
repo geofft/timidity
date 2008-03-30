@@ -54,7 +54,7 @@
 #include "output.h"
 #include "controls.h"
 
-#if defined(__NetBSD__) /* NetBSD */
+#if defined(__NetBSD__) || defined(__OpenBSD__)
 #ifdef LITTLE_ENDIAN
 #define AUDIO_LINEAR_TAG	AUDIO_ENCODING_SLINEAR_LE
 #else
@@ -70,7 +70,11 @@
 #define SUNAUDIO_AENC_SIGWORD	AENC_SIGWORDB
 #endif
 
+#ifndef __NetBSD__
 #define AUDIO_DEV    "/dev/audio"
+#else
+#define AUDIO_DEV    "/dev/sound"
+#endif
 #define AUDIO_CTLDEV "/dev/audioctl"
 
 
@@ -92,6 +96,8 @@ PlayMode dpm = {
     "Sun audio device",
 #elif defined(__NetBSD__)
     "NetBSD audio device",
+#elif defined(__OpenBSD__)
+    "OpenBSD audio device",
 #else
     AUDIO_DEV,
 #endif
@@ -296,6 +302,18 @@ int output_data(char *buff, int32 nbytes)
 
 
 #if !defined(I_FLUSH) || !defined(FLUSHW)
+#if defined(AUDIO_FLUSH)  /* BSD extension */
+static int sun_discard_playing(void)
+{
+    if(ioctl(dpm.fd, AUDIO_FLUSH, NULL) < 0)
+    {
+       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: (ioctl) %s",
+                 dpm.name, strerror(errno));
+       return -1;
+    }
+    return 0;
+}
+#else
 static void null_proc(){}
 static int sun_discard_playing(void)
 {
@@ -308,6 +326,7 @@ static int sun_discard_playing(void)
     signal(SIGALRM, orig_alarm_handler);
     return open_output();
 }
+#endif /* AUDIO_FLASH */
 #else
 static int sun_discard_playing(void)
 {
@@ -328,10 +347,25 @@ static int acntl(int request, void *arg)
 
     switch(request)
     {
+       case PM_REQ_GETQSIZ:
+	if(ioctl(audioctl_fd, AUDIO_GETINFO, &auinfo) < 0)
+	    return -1;
+	return auinfo.play.buffer_size;
+
+#if defined(__NetBSD__) || defined(__OpenBSD__)
+      case PM_REQ_GETFRAGSIZ:
+	if(ioctl(audioctl_fd, AUDIO_GETINFO, &auinfo) < 0)
+	    return -1;
+	return auinfo.blocksize;
+#endif
+
+      case PM_REQ_OUTPUT_FINISH:
+	return ioctl(audioctl_fd, AUDIO_DRAIN, NULL);
+
       case PM_REQ_GETFILLED:
 	if(ioctl(audioctl_fd, AUDIO_GETINFO, &auinfo) < 0)
 	    return -1;
-#ifdef __NetBSD__
+#if defined(__NetBSD__) || defined(__OpenBSD__)
 	*((int *)arg) = auinfo.play.seek;
 #else
 	if(auinfo.play.samples == play_samples_offset)

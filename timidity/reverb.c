@@ -203,7 +203,7 @@ static inline int isprime(int val)
 }
 
 /*! delay */
-static void free_delay(delay *delay)
+static void free_delay(simple_delay *delay)
 {
 	if(delay->buf != NULL) {
 		free(delay->buf);
@@ -211,7 +211,7 @@ static void free_delay(delay *delay)
 	}
 }
 
-static void set_delay(delay *delay, int32 size)
+static void set_delay(simple_delay *delay, int32 size)
 {
 	if(size < 1) {size = 1;} 
 	free_delay(delay);
@@ -1542,7 +1542,7 @@ static void do_ch_freeverb(int32 *buf, int32 count, InfoFreeverb *rev)
 	int32 outl, outr, input;
 	comb *combL = rev->combL, *combR = rev->combR;
 	allpass *allpassL = rev->allpassL, *allpassR = rev->allpassR;
-	delay *pdelay = &(rev->pdelay);
+	simple_delay *pdelay = &(rev->pdelay);
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		alloc_freeverb_buf(rev);
@@ -1605,7 +1605,7 @@ static void free_ch_reverb_delay(InfoDelay3 *info)
 static void do_ch_reverb_panning_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
 	int32 i, l, r;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
 	int32 index0 = info->index[0], level0i = info->leveli[0],
@@ -1629,8 +1629,8 @@ static void do_ch_reverb_panning_delay(int32 *buf, int32 count, InfoDelay3 *info
 		buf[i] += r;
 		buf[++i] += l;
 
-		if (++index0 == buf_size) {index0 = 0;}
-		if (++buf_index == buf_size) {buf_index = 0;}
+		if (index0++ == buf_size) {index0 = 0;}
+		if (buf_index++ == buf_size) {buf_index = 0;}
 	}
 	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
 	info->index[0] = index0;
@@ -1641,7 +1641,7 @@ static void do_ch_reverb_panning_delay(int32 *buf, int32 count, InfoDelay3 *info
 static void do_ch_reverb_normal_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
 	int32 i;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
 	int32 index0 = info->index[0], level0i = info->leveli[0],
@@ -1695,7 +1695,7 @@ static void do_ch_plate_reverb(int32 *buf, int32 count, InfoPlateReverb *info)
 {
 	int32 i;
 	int32 x, xd, val, outl, outr, temp1, temp2, temp3;
-	delay *pd = &(info->pd), *od1l = &(info->od1l), *od2l = &(info->od2l),
+	simple_delay *pd = &(info->pd), *od1l = &(info->od1l), *od2l = &(info->od2l),
 		*od3l = &(info->od3l), *od4l = &(info->od4l), *od5l = &(info->od5l),
 		*od6l = &(info->od6l), *od1r = &(info->od1r), *od2r = &(info->od2r),
 		*od3r = &(info->od3r), *od4r = &(info->od4r), *od5r = &(info->od5r),
@@ -2051,7 +2051,7 @@ static void free_ch_3tap_delay(InfoDelay3 *info)
 static void do_ch_3tap_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
 	int32 i, x;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
 	int32 index0 = info->index[0], index1 = info->index[1], index2 = info->index[2];
@@ -2092,7 +2092,7 @@ static void do_ch_3tap_delay(int32 *buf, int32 count, InfoDelay3 *info)
 static void do_ch_cross_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
 	int32 i, l, r;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
 	int32 index0 = info->index[0], level0i = info->leveli[0],
@@ -2130,7 +2130,7 @@ static void do_ch_cross_delay(int32 *buf, int32 count, InfoDelay3 *info)
 static void do_ch_normal_delay(int32 *buf, int32 count, InfoDelay3 *info)
 {
 	int32 i, x;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
 	int32 index0 = info->index[0], level0i = info->leveli[0],
@@ -2839,7 +2839,7 @@ void do_hexa_chorus(int32 *buf, int32 count, EffectList *ef)
 {
 	InfoHexaChorus *info = (InfoHexaChorus *)ef->info;
 	lfo *lfo = &(info->lfo0);
-	delay *buf0 = &(info->buf0);
+	simple_delay *buf0 = &(info->buf0);
 	int32 *ebuf = buf0->buf, size = buf0->size, index = buf0->index;
 	int32 spt0 = info->spt0, spt1 = info->spt1, spt2 = info->spt2,
 		spt3 = info->spt3, spt4 = info->spt4, spt5 = info->spt5,
@@ -3452,7 +3452,7 @@ static void do_delay_lcr(int32 *buf, int32 count, EffectList *ef)
 {
 	int32 i, x;
 	InfoDelayLCR *info = (InfoDelayLCR *)ef->info;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	filter_lowpass1 *lpf = &(info->lpf);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 buf_index = delayL->index, buf_size = delayL->size;
@@ -3555,7 +3555,7 @@ static void do_delay_lr(int32 *buf, int32 count, EffectList *ef)
 {
 	int32 i, x;
 	InfoDelayLR *info = (InfoDelayLR *)ef->info;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	filter_lowpass1 *lpf = &(info->lpf);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 indexl = delayL->index, sizel = delayL->size,
@@ -3632,7 +3632,7 @@ static void do_echo(int32 *buf, int32 count, EffectList *ef)
 {
 	int32 i, x, y;
 	InfoEcho *info = (InfoEcho *)ef->info;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	filter_lowpass1 *lpf = &(info->lpf);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 indexl = delayL->index, sizel = delayL->size,
@@ -3710,7 +3710,7 @@ static void do_cross_delay(int32 *buf, int32 count, EffectList *ef)
 {
 	int32 i, lfb, rfb, lout, rout;
 	InfoCrossDelay *info = (InfoCrossDelay *)ef->info;
-	delay *delayL = &(info->delayL), *delayR = &(info->delayR);
+	simple_delay *delayL = &(info->delayL), *delayR = &(info->delayR);
 	filter_lowpass1 *lpf = &(info->lpf);
 	int32 *bufL = delayL->buf, *bufR = delayR->buf;
 	int32 indexl = delayL->index, sizel = delayL->size,

@@ -442,7 +442,7 @@ endif
 version.$(OBJEXT): version.c ../configure
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(CFLAGS) -c $(srcdir)/version.c
 
-$(srcdir)/resample.c: newton_table.c
+resample.c: newton_table.c
 
 if VCPP
 newton_table.c: calcnewt$(EXEEXT)

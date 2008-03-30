@@ -56,8 +56,8 @@ enum trace_argtypes
     ARG_VOID,
     ARG_INT,
     ARG_INT_INT,
-    ARG_VP,
     ARG_CE,
+    ARGTIME_VP,
 };
 
 typedef struct _MidiTraceList
@@ -131,7 +131,7 @@ static void run_midi_trace(MidiTraceList *p)
       case ARG_INT_INT:
 	p->f.f2(p->a.args[0], p->a.args[1]);
 	break;
-      case ARG_VP:
+      case ARGTIME_VP:
 	p->f.fv(p->a.v);
 	break;
       case ARG_CE:
@@ -144,7 +144,7 @@ static MidiTraceList *midi_trace_setfunc(MidiTraceList *node)
 {
     MidiTraceList *p;
 
-    if(!ctl->trace_playing || node->start < 0)
+    if(!ctl->trace_playing || node->start < 0 || node->argtype == ARGTIME_VP)
     {
 	run_midi_trace(node);
 	return NULL;
@@ -224,7 +224,7 @@ void push_midi_time_vp(int32 start, void (*f)(void *), void *vp)
 	return;
     memset(&node, 0, sizeof(node));
     node.start = start;
-    node.argtype = ARG_VP;
+    node.argtype = ARGTIME_VP;
     node.f.fv = f;
     node.a.v = vp;
     midi_trace_setfunc(&node);

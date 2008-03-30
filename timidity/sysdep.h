@@ -107,7 +107,8 @@ typedef unsigned short uint16;
 /* DEC MMS has 64 bit long words */
 /* Linux-Axp has also 64 bit long words */
 #if defined(DEC) || defined(__alpha__) \
-		|| defined(__ia64__) || defined (__x86_64__) || defined(__ppc64__)
+		|| defined(__ia64__) || defined (__x86_64__) \
+		|| defined(__ppc64__) || defined(__s390x__)
 typedef          int   int32;
 typedef unsigned int  uint32;
 typedef          long  int64;

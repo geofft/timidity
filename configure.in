@@ -821,6 +821,9 @@ if test "x$au_enable_default" = xyes; then
   *-*-netbsd*)
     au_enable_sun=yes
     ;;
+  *-*-openbsd*)
+    au_enable_sun=yes
+    ;;
   *-*-cygwin*)
     au_enable_w32=yes
     ;;
@@ -1355,6 +1358,7 @@ case ".$DEFAULT_PLAYMODE" in
   .speex)    TIMIDITY_OUTPUT_ID=S ;;
   .gogo)     TIMIDITY_OUTPUT_ID=g ;;
   .jack)     TIMIDITY_OUTPUT_ID=j ;;
+  .ao)       TIMIDITY_OUTPUT_ID=O ;;
   *)         TIMIDITY_OUTPUT_ID= ;;
 esac
 AC_MSG_RESULT($DEFAULT_PLAYMODE/$TIMIDITY_OUTPUT_ID)
@@ -1558,8 +1562,21 @@ CONFIG_INTERFACE(slang,SLANG,s,
     ])
     AC_CHECK_HEADERS(slang/slang.h slang.h)
   ],
-  [ LIBS="$LIBS -lslang"
-    INTERFACE_SRCS="$INTERFACE_SRCS slang_c.c"
+  [ case "$target" in
+       *openbsd*)
+        AC_CHECK_LIB(termcap,initscr,
+                     [ LIBS="$LIBS -lslang -ltermcap"
+                       INTERFACE_SRCS="$INTERFACE_SRCS slang_c.c"
+                     ]
+                     [ AC_MSG_WARN(slang interface is not enabled)
+                       enable_slang=no
+                     ])
+        ;;
+       *)
+        LIBS="$LIBS -lslang"
+        INTERFACE_SRCS="$INTERFACE_SRCS slang_c.c"
+       ;;
+    esac
   ],
   [ s_so_libs="-lslang"
     AC_CHECK_LIB(termcap,initscr,s_so_libs="$s_so_libs -ltermcap")

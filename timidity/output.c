@@ -205,7 +205,7 @@ PlayMode *play_mode_list[] = {
 #endif /* __MACOS__ */
   &midi_play_mode,
   &modmidi_play_mode,
-  0
+  NULL
 };
 
 PlayMode *play_mode = NULL;

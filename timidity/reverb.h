@@ -51,7 +51,7 @@ extern void free_effect_buffers(void);
 /*! simple delay */
 typedef struct {
 	int32 *buf, size, index;
-} delay;
+} simple_delay;
 
 /*! Pink Noise Generator */
 typedef struct {
@@ -335,7 +335,7 @@ typedef struct {
 
 /*! HEXA-CHORUS */
 typedef struct {
-	delay buf0;
+	simple_delay buf0;
 	lfo lfo0;
 	double dry, wet, level;
 	int32 pdelay, depth;	/* in samples */
@@ -350,7 +350,7 @@ typedef struct {
 
 /*! Plate Reverb */
 typedef struct {
-	delay pd, od1l, od2l, od3l, od4l, od5l, od6l, od7l,
+	simple_delay pd, od1l, od2l, od3l, od4l, od5l, od6l, od7l,
 		od1r, od2r, od3r, od4r, od5r, od6r, od7r,
 		td1, td2, td1d, td2d;
 	lfo lfo1, lfo1d;
@@ -366,7 +366,7 @@ typedef struct {
 typedef struct {
 	int32 spt0, spt1, spt2, spt3, rpt0, rpt1, rpt2, rpt3;
 	int32 ta, tb, HPFL, HPFR, LPFL, LPFR, EPFL, EPFR;
-	delay buf0_L, buf0_R, buf1_L, buf1_R, buf2_L, buf2_R, buf3_L, buf3_R;
+	simple_delay buf0_L, buf0_R, buf1_L, buf1_R, buf2_L, buf2_R, buf3_L, buf3_R;
 	double fbklev, nmixlev, cmixlev, monolev, hpflev, lpflev, lpfinp, epflev, epfinp, width, wet;
 	int32 fbklevi, nmixlevi, cmixlevi, monolevi, hpflevi, lpflevi, lpfinpi, epflevi, epfinpi, widthi, weti;
 } InfoStandardReverb;
@@ -376,7 +376,7 @@ typedef struct {
 #define numallpasses 4
 
 typedef struct {
-	delay pdelay;
+	simple_delay pdelay;
 	double roomsize, roomsize1, damp, damp1, wet, wet1, wet2, width;
 	comb combL[numcombs], combR[numcombs];
 	allpass allpassL[numallpasses], allpassR[numallpasses];
@@ -386,7 +386,7 @@ typedef struct {
 
 /*! 3-Tap Stereo Delay Effect */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	int32 size[3], index[3];
 	double level[3], feedback, send_reverb;
 	int32 leveli[3], feedbacki, send_reverbi;
@@ -394,7 +394,7 @@ typedef struct {
 
 /*! Stereo Chorus Effect */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	lfo lfoL, lfoR;
 	int32 wpt0, spt0, spt1, hist0, hist1;
 	int32 rpt0, depth, pdelay;
@@ -404,7 +404,7 @@ typedef struct {
 
 /*! Chorus */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	lfo lfoL, lfoR;
 	int32 wpt0, spt0, spt1, hist0, hist1;
 	int32 rpt0, depth, pdelay;
@@ -423,7 +423,7 @@ typedef struct {
 
 /*! Delay L,C,R */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	int32 index[3], size[3];	/* L,C,R */
 	double rdelay, ldelay, cdelay, fdelay;	/* in ms */
 	double dry, wet, feedback, clevel, high_damp;
@@ -433,7 +433,7 @@ typedef struct {
 
 /*! Delay L,R */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	int32 index[2], size[2];	/* L,R */
 	double rdelay, ldelay, fdelay1, fdelay2;	/* in ms */
 	double dry, wet, feedback, high_damp;
@@ -443,7 +443,7 @@ typedef struct {
 
 /*! Echo */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	int32 index[2], size[2];	/* L1,R1 */
 	double rdelay1, ldelay1, rdelay2, ldelay2;	/* in ms */
 	double dry, wet, lfeedback, rfeedback, high_damp, level;
@@ -453,7 +453,7 @@ typedef struct {
 
 /*! Cross Delay */
 typedef struct {
-	delay delayL, delayR;
+	simple_delay delayL, delayR;
 	double lrdelay, rldelay;	/* in ms */
 	double dry, wet, feedback, high_damp;
 	int32 dryi, weti, feedbacki, input_select;
