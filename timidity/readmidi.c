@@ -3435,6 +3435,7 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
     int me, type, a, b, c;
     int i;
     int32 smf_at_time;
+    int note_seen = (! opt_preserve_silence);
 
     smf_at_time = readmidi_set_track(trackno, rewindp);
 
@@ -3738,6 +3739,12 @@ static int read_smf_track(struct timidity_file *tf, int trackno, int rewindp)
 		b = tf_getc(tf) & 0x7F;
 		if(b)
 		{
+		     if (! note_seen && smf_at_time > 0)
+		     {
+			MIDIEVENT(0, ME_NOTEON, lastchan, a, 0);
+			MIDIEVENT(0, ME_NOTEOFF, lastchan, a, 0);
+			note_seen = 1;
+		     }
 		    MIDIEVENT(smf_at_time, ME_NOTEON, lastchan, a,b);
 		}
 		else /* b == 0 means Note Off */

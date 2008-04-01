@@ -479,6 +479,7 @@ extern Voice *voice;
 
 /* --module */
 extern int opt_default_module;
+extern int opt_preserve_silence;
 
 enum {
 	MODULE_TIMIDITY_DEFAULT = 0x0,

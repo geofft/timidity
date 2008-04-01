@@ -218,6 +218,7 @@ int opt_modulation_envelope = 0;
 int opt_pan_delay = 0;	/* phase difference between left ear and right ear. */
 int opt_user_volume_curve = 0;
 int opt_default_module = MODULE_TIMIDITY_DEFAULT;
+int opt_preserve_silence = 0;
 
 int voices=DEFAULT_VOICES, upper_voices;
 

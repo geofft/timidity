@@ -1,3 +1,10 @@
+2008-4-1  Keishi Suenaga <skeishi@yahoo.co.jp>
+		a patch by Milan Zamazal
+	* timidity/playmidi.c
+	  timidity/playmidi.h
+	  timidity/readmidi.c
+	  timidity/timidity.c   add preserve-silence option
+
 2008-3-31  Keishi Suenaga <skeishi@yahoo.co.jp>
         a patch from Yair K.
 	* configure.in

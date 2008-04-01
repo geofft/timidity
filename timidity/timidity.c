@@ -210,6 +210,7 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
+	TIM_OPT_PRESERVE_SILENCE,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -365,6 +366,7 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
+	{ "preserve-silence",       no_argument,       NULL, TIM_OPT_PRESERVE_SILENCE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWNP"
@@ -514,6 +516,7 @@ static inline int parse_opt_x(char *);
 static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
+static inline int parse_opt_preserve_silence(const char *);
 static inline int parse_opt_default_module(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
@@ -2909,6 +2912,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
+	case TIM_OPT_PRESERVE_SILENCE:
+		return parse_opt_preserve_silence(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
@@ -3758,6 +3763,8 @@ static int parse_opt_h(const char *arg)
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
 "     (a)     --[no-]polyphony-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
+"             --preserve-silence",
+"               Do not drop initial silence. Default: drop initial silence",
 "  -Q n[,...] --mute=n[,...]",
 "               Ignore channel n (0: ignore all, -n: resume channel n)",
 "     (t)     --temper-mute=n[,...]",
@@ -4985,6 +4992,12 @@ static inline int parse_opt_default_module(const char *arg)
 	if (opt_default_module < 0)
 		opt_default_module = 0;
 	return 0;
+}
+
+static inline int parse_opt_preserve_silence(const char *arg)
+{
+        opt_preserve_silence = 1;
+       return 0;
 }
 
 __attribute__((noreturn))
