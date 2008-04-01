@@ -1,18 +1,18 @@
-2008-4-1  Keishi Suenaga <skeishi@yahoo.co.jp>
+2008-4-2  Keishi Suenaga <skeishi@yahoo.co.jp>
 		patchs by Yair K.
 	* timidity/common.c
 	  common.makefile.in
 	  configure.in
 	  doc/C/README.xaw
 	  interface/arrow.xbm
-	  interface/bitmaps/arrow.xbm
-	  interface/bitmaps/check.xbm
-	  interface/bitmaps/fast.xbm
-	  interface/bitmaps/keydown.xbm
-	  interface/bitmaps/keyup.xbm
-	  interface/bitmaps/off.xbm
-	  interface/bitmaps/on.xbm
-	  interface/bitmaps/slow.xbm
+	  interface/bitmaps/arrow.xbm     add
+	  interface/bitmaps/check.xbm     add
+	  interface/bitmaps/fast.xbm      add
+	  interface/bitmaps/keydown.xbm   add
+	  interface/bitmaps/keyup.xbm     add
+	  interface/bitmaps/off.xbm       add
+	  interface/bitmaps/on.xbm        add
+	  interface/bitmaps/slow.xbm      add
 	  interface/check.xbm
 	  interface/Makefile.am
 	  interface/off.xbm
@@ -20,10 +20,10 @@
 	  interface/xaw_c.c
 	  interface/xaw.h
 	  interface/xaw_i.c
-	  interface/xdnd.c
-	  interface/xdnd.h
-	  interface/x_trace.c
-	  interface/x_trace.h
+	  interface/xdnd.c     add
+	  interface/xdnd.h     add
+	  interface/x_trace.c  add
+	  interface/x_trace.h  add
 	  Makefile.am
 	  Makefile.in
 	  script/unix2dos.sh
@@ -41,10 +41,10 @@
 	  file timidity/speex_a.c
 	  file timidity/vorbis_a.c
 	  timidity/wave_a.c
-	  TiMidity.ad
-	  TiMidity.ad.in
-	  TiMidity-uj.ad
-	  TiMidity-uj.ad.in  some improvements of XAW interface.
+	  TiMidity.ad        add
+	  TiMidity.ad.in     remove
+	  TiMidity-uj.ad     add
+	  TiMidity-uj.ad.in  remove         some improvements of XAW interface.
 
 2008-4-1  Keishi Suenaga <skeishi@yahoo.co.jp>
 		a patch by Milan Zamazal
