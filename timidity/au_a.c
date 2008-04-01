@@ -74,7 +74,7 @@ static int write_u32(uint32 value);
 #define dpm au_play_mode
 
 PlayMode dpm = {
-    8000, PE_MONO|PE_ULAW, PF_PCM_STREAM,
+    8000, PE_MONO|PE_ULAW, PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "Sun audio file", 'u',

@@ -50,10 +50,14 @@ EXTRA_libinterface_a_SOURCES = \
 	vt100.h \
 	vt100.c \
 	vt100_c.c \
+	x_trace.c \
+	x_trace.h \
 	xaw.h \
 	xaw_c.c \
 	xaw_i.c \
 	xaw_redef.c \
+	xdnd.c \
+	xdnd.h \
 	xskin.h \
 	xskin_c.c \
 	xskin_i.c \
@@ -140,6 +144,10 @@ WRD_OBJS = \
 	VTPrsTbl.$(OBJEXT) \
 	x_mag.$(OBJEXT) \
 	x_sherry.$(OBJEXT)
+endif
+
+if ENABLE_XDND
+XDND_SO = xdnd.${so}
 endif
 
 if MSYS
@@ -276,7 +284,13 @@ install.tk: $(ALLTCLF) install.bitmaps
 	test -d $(DESTDIR)$(TCL_DIR) || mkdir -p $(DESTDIR)$(TCL_DIR)
 	for f in $(ALLTCLF) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(TCL_DIR);; esac; done
 
-install.xaw: install.bitmaps
+install.xaw:
+if XAW_INSTALL_RESOURCE_FILES
+	test -d ${DESTDIR}${XAWRES} || mkdir -p ${DESTDIR}${XAWRES}
+	test -d ${DESTDIR}${XAWRES_JA} || mkdir -p ${DESTDIR}${XAWRES_JA}
+	cp ${top_srcdir}/TiMidity.ad ${DESTDIR}${XAWRES}/TiMidity
+	cp ${top_srcdir}/TiMidity-uj.ad ${DESTDIR}${XAWRES_JA}/TiMidity
+endif
 
 install.bitmaps:
 	cd bitmaps; $(MAKE) install.bitmaps
@@ -401,8 +415,8 @@ if_emacs.$(so): emacs_c.$(so) support.$(so)
 if_vt100.$(so): vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so)
 	$(SHLD) -o $@ vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so) $(T_so_libs)
 
-if_xaw.$(so): xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so)
-	$(SHLD) -o $@ xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so) $(a_so_libs)
+if_xaw.$(so): xaw_c.$(so) support.$(so) xaw_i.$(so) x_trace.${so} timer.$(so) ${XDND_SO}
+	$(SHLD) -o $@ xaw_c.$(so) support.$(so) xaw_i.$(so) x_trace.${so} timer.$(so) ${XDND_SO} $(a_so_libs)
 
 if_xskin.$(so): xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so)
 	$(SHLD) -o $@ xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so) $(i_so_libs)

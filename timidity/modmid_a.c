@@ -32,7 +32,7 @@ static int acntl(int request, void *arg);
 PlayMode modmidi_play_mode = {
     DEFAULT_RATE,
     PE_16BIT|PE_SIGNED,
-    PF_PCM_STREAM,
+    PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "MOD -> MIDI file conversion", 'M',

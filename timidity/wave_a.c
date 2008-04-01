@@ -76,7 +76,7 @@ PlayMode dpm = {
 #else
     PE_16BIT|PE_SIGNED|PE_BYTESWAP,
 #endif
-    PF_PCM_STREAM,
+    PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "RIFF WAVE file", 'w',

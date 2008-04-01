@@ -83,7 +83,7 @@ static int acntl(int request, void *arg);
 #define dpm vorbis_play_mode
 
 PlayMode dpm = {
-    44100, PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
+    44100, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "Ogg Vorbis", 'v',

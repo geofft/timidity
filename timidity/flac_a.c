@@ -87,7 +87,7 @@ static int acntl(int request, void *arg);
 #define dpm flac_play_mode
 
 PlayMode dpm = {
-  DEFAULT_RATE, PE_SIGNED|PE_16BIT, PF_PCM_STREAM,
+  DEFAULT_RATE, PE_SIGNED|PE_16BIT, PF_PCM_STREAM|PF_FILE_OUTPUT,
   -1,
   {0}, /* default: get all the buffer fragments you can */
 #ifndef AU_OGGFLAC

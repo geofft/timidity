@@ -15,10 +15,10 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
 
     xaw.h: written by Yoshishige Arai (ryo2@on.rim.or.jp) 12/8/98
-
+           modified by Yair Kalvariski (cesium2@gmail.com)
     */
 #ifndef _XAW_H_
 #define _XAW_H_
@@ -29,12 +29,25 @@
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+#include "timidity.h"
 
-/* Define to use libXaw3d */
+/* Define to use Xaw3d */
 /* #define XAW3D */
 
-/* Define to use Japanese and so on */
-#define I18N
+/* Define to use libXaw3d's tip widget (requires version 1.5E) */
+/* #define HAVE_XAW3D_TIP */
+
+/* Define to use neXtaw */
+/* #define NEXTAW */
+
+/* Define to use XawPlus */
+/* #define XAWPLUS */
+
+/* Define to use code for old xaw versions (Xaw6 and such) */
+/* #define OLDXAW */
+
+/* Define to use Timidity's implmentation of submenus */
+/* #define TimNmenu */
 
 /* Define to use scrollable Text widget instead of Label widget */
 /* #define WIDGET_IS_LABEL_WIDGET */
@@ -42,23 +55,115 @@
 /*** Initial dot file name at home directory ***/
 #define INITIAL_CONFIG ".xtimidity"
 
+/*
+ * SET CORRECT PATHS AND CAPABILITIES.
+ */
+
+#ifdef XAW3D
+#define XAWINCDIR(x) <X11/Xaw3d/x>
+#include XAWINCDIR(Xaw3dP.h)
+#elif defined(NEXTAW)
+#define XAWINCDIR(x) <X11/neXtaw/x>
+#include XAWINCDIR(XawVersion.h)
+#elif defined(XAWPLUS)
+#define XAWINCDIR(x) <X11/XawPlus/x>
+#else
+#define XAWINCDIR(x) <X11/Xaw/x>
+#include <X11/Xmu/Converters.h>
+#include XAWINCDIR(XawInit.h)
+#ifndef XawVersion
+#define OLDXAW
+#else
+#if XawVersion < 7000L
+#define OLDXAW
+#endif /* XawVersion < 7000L */
+#endif /* !XawVersion */
+#ifndef OLDXAW
+#define XAW
+#endif /* !OLDXAW */
+#endif
+
+#if (defined (XAW3D) && !defined(HAVE_XAW3D_TIP)) || defined(OLDXAW) || \
+     defined(XAWPLUS) || defined(NEXTAW)
+/*
+ * XtNmenuItem in SmeBSBObject Widgets is not supported in
+ * Xaw3d v1.5, Xaw6, XawPlus and neXtaw.
+ */
+#define TimNmenu
+#endif /* (XAW3D && !HAVE_XAW3D_TIP) || OLDXAW || XAWPLUS || NEXTAW */
+
+#if (defined(XAW3D) && defined(HAVE_XAW3D_TIP)) \
+      || (defined(XAW) && !(defined(OLDXAW))) || defined(XAWPLUS)
+/* Tooltips support exists only in Xaw7 (and above), Xaw3d 1.5E and XawPlus */
+#define HAVE_TIP
+#endif /* (XAW3D && HAVE_XAW3D_TIP) || (XAW && !OLDXAW) || XAWPLUS */
+
+#if defined(NEXTAW) || defined(XAWPLUS) \
+      || (defined(XAW3D) && defined(XAW_ARROW_SCROLLBARS))
+/*
+ * StartScroll does not exist when Xaw3d is compiled with XAW_ARROW_SCROLLBARS,
+ * or when neXtaw or XawPlus is used. A replacement is defined to avoid
+ * warnings, and to allow for scrolling with the wheel buttons.
+ */
+#define USEOWNSTARTSCROLL
+#endif /* NEXTAW || XAWPLUS || (XAW3D && XAW_ARROW_SCROLLBARS) */
+
+#if defined(XAW3D) || defined(XAWPLUS)
+  /*
+   * Xaw3D 1.5/1.5E crashes on XtVaSetValues to XtNvalue in Dialogwidget,
+   * where the string is used in place, internationalization is on,
+   * and a new string is set - it tries to free the wrong pointer.
+   * The Fedora package includes a one-line patch for this problem, but
+   * we can't rely on the user's Xaw3D package being patched.
+   * XawPlus has the same bug.
+   */
+#define CLEARVALUE
+#endif /* XAW3D || XAWPLUS */
+
+#if defined(NEXTAW) || defined(XAW3D) || defined(XAWPLUS)
+  /*
+   * These toolkits crash on XtDestroyWidget(w), when
+   * w == popup_sformat if this hack isn't used.
+   */
+#define RECFMTGROUPDESTHACK
+#endif /* NEXTAW || XAW3D || XAWPLUS */
+
+#if defined(NEXTAW) || defined(XAWPLUS)
+#define DONTUSEOVALTOGGLES
+#endif /* NEXTAW || XAWPLUS */
+
+#if defined(XAW) || defined(OLDXAW)
+  /*
+   * libXaw has a bug: it doesn't set length=width-minimumThumb, but
+   * length=width so the thumb may become invisible when it reaches the
+   * end of the scrollbar. (Other toolkits always substracts minimumThumb
+   * from length, so we can't use the same codepath).
+   */
+#define SCROLLBARLENGTHBUG
+#endif /* XAW || OLDXAW */
+
+#if defined(NEXTAW) || defined(XAWPLUS) || defined(XAW3D)
+ /*
+  * These toolkits won't scroll textarea when sentence is wrapped.
+  * We'll redraw to get it to scroll.
+  */
+#define BYPASSTEXTSCROLLBUG
+#endif /* NEXTAW || XAW3D || XAWPLUS */
 
 /*
  * CONSTANTS FOR XAW MENUS
  */
 #define MAXVOLUME MAX_AMPLIFICATION
-#define MAX_XAW_MIDI_CHANNELS 16
+#define MAX_XAW_MIDI_CHANNELS MAX_CHANNELS
 
 #define APP_CLASS "TiMidity"
 #define APP_NAME "timidity"
 
+#define PIPE_LENGTH 300
 #ifndef PATH_MAX
 #define PATH_MAX 512
 #endif
 #define MAX_DIRECTORY_ENTRY BUFSIZ
-#define LF 0x0a
-#define SPACE 0x20
-#define TAB 0x09
 
 #define MODUL_N 0
 #define PORTA_N 1
@@ -76,8 +181,6 @@
 #define CHPRESSURE_BIT (1<<CHPRESSURE_N)
 #define OVERLAPV_BIT (1<<OVERLAPV_N)
 #define TXTMETA_BIT (1<<TXTMETA_N)
-
-#include "timidity.h"
 
 #ifdef MODULATION_WHEEL_ALLOW
 #define INIT_OPTIONS0 MODUL_BIT
@@ -99,9 +202,16 @@
 
 #ifdef REVERB_CONTROL_ALLOW
 #define INIT_OPTIONS3 REVERB_BIT
+#define DEFAULT_REVERB 1
+#else
+#ifdef FREEVERB_CONTROL_ALLOW
+#define INIT_OPTIONS3 REVERB_BIT
+#define DEFAULT_REVERB 3
 #else
 #define INIT_OPTIONS3 0
-#endif
+#define DEFAULT_REVERB 1
+#endif /* FREEVERB_CONTROL_ALLOW */
+#endif /* REVERB_CONTROL_ALLOW */
 
 #ifdef GM_CHANNEL_PRESSURE_ALLOW
 #define INIT_OPTIONS4 CHPRESSURE_BIT
@@ -130,5 +240,10 @@
 #endif
 
 #define XAW_UPDATE_TIME 0.1
+
+#ifndef XawFmt8Bit
+#define XawFmt8Bit FMT8BIT
+#endif
+/* Only defined since X11R6 */
 
 #endif /* _XAW_H_ */

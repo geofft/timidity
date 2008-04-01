@@ -685,6 +685,9 @@ am__leading_dot
 MAINTAINER_MODE_TRUE
 MAINTAINER_MODE_FALSE
 MAINT
+XAW_INSTALL_RESOURCE_FILES_TRUE
+XAW_INSTALL_RESOURCE_FILES_FALSE
+xawresdir
 EMACS
 lispdir
 CC
@@ -738,6 +741,8 @@ LIBOGGFLAC_CFLAGS
 LIBOGGFLAC_LIBS
 NEEDDLOPEN_TRUE
 NEEDDLOPEN_FALSE
+ENABLE_XDND_TRUE
+ENABLE_XDND_FALSE
 ENABLE_NCURSES_TRUE
 ENABLE_NCURSES_FALSE
 n_so_libs
@@ -1477,6 +1482,7 @@ Optional Features:
   --enable-dynamic        Enable dynamic link interface   (default is no)
   --enable-dynamic=dynamic_list
                           Comma separated dynamic interface list
+  --enable-xdnd           Enable xdnd support             (default is no)
   --enable-ncurses        Enable ncurses interface        (default is no)
   --enable-slang          Enable slang interface          (default is no)
   --enable-motif          Enable motif interface          (default is no)
@@ -1517,9 +1523,18 @@ Optional Packages:
   --with-libraries=DIR    Specify library directories (colon separated)
   --with-default-path=DIR Where timidity.cfg is  (PREFIX/share/timidity)
   --with-module-dir=DIR   Where to install interfaces (PREFIX/lib/timidity)
+  --with-xaw-resource-prefix=DIR What prefix to install XAW's resource files to
+     (optinal)
   --with-lispdir          Override the default lisp directory
   --with-elf              create ELF shared object instead of AOUT
   --with-x                use the X Window System
+  --with-xawlib=lib      Try to link to these xaw widget libraries by the
+                            order specified by the comma separated value list:
+                             xaw: X11's libXaw
+                             xaw3d: Xaw3d
+                             neXtaw: neXtaw
+                             XawPlus: XawPlus
+                             default is --with-xawlib=xaw3d,xaw
   --with-tcl-includes=DIR Tcl include file path
   --with-tcl-libs=DIR     Tcl library file path
   --with-tk-includes=DIR  Tk include file path
@@ -2730,6 +2745,23 @@ tmplibdir="`eval \"echo ${pkglibdir}\"`"
 cat >>confdefs.h <<_ACEOF
 #define PKGLIBDIR "$tmplibdir"
 _ACEOF
+
+
+
+# Check whether --with-xaw-resource-prefix was given.
+if test "${with_xaw_resource_prefix+set}" = set; then
+  withval=$with_xaw_resource_prefix; xawresdir=$withval
+fi
+
+
+
+if test "x$xawresdir" != "x"; then
+  XAW_INSTALL_RESOURCE_FILES_TRUE=
+  XAW_INSTALL_RESOURCE_FILES_FALSE='#'
+else
+  XAW_INSTALL_RESOURCE_FILES_TRUE='#'
+  XAW_INSTALL_RESOURCE_FILES_FALSE=
+fi
 
 
 
@@ -6614,6 +6646,15 @@ fi
 fi
 
 
+
+# Check whether --with-xawlib was given.
+if test "${with_xawlib+set}" = set; then
+  withval=$with_xawlib;  with_xawlib="$withval"
+else
+   with_xawlib="xaw3d,xaw"
+fi
+
+
 # Checks for X
 if test "x$with_x" = xyes; then
   if test "x$have_x" = xno; then
@@ -7204,71 +7245,10 @@ _ACEOF
 fi
 done
 
-  { echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lXaw3d" >&5
-echo $ECHO_N "checking for XawInitializeWidgetSet in -lXaw3d... $ECHO_C" >&6; }
-if test "${ac_cv_lib_Xaw3d_XawInitializeWidgetSet+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lXaw3d  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char XawInitializeWidgetSet ();
-int
-main ()
-{
-return XawInitializeWidgetSet ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_Xaw3d_XawInitializeWidgetSet=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_Xaw3d_XawInitializeWidgetSet=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xaw3d_XawInitializeWidgetSet" >&5
-echo "${ECHO_T}$ac_cv_lib_Xaw3d_XawInitializeWidgetSet" >&6; }
-if test $ac_cv_lib_Xaw3d_XawInitializeWidgetSet = yes; then
-  have_xaw=3d
-else
-   { echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lXaw" >&5
+  for i in `echo $with_xawlib | sed 's/,/ /g'`; do
+  case "$i" in
+  "xaw")
+    { echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lXaw" >&5
 echo $ECHO_N "checking for XawInitializeWidgetSet in -lXaw... $ECHO_C" >&6; }
 if test "${ac_cv_lib_Xaw_XawInitializeWidgetSet+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -7335,8 +7315,675 @@ else
   have_xaw=no
 fi
 
+    ;;
+  "xaw3d")
+    { echo "$as_me:$LINENO: checking for ANSI C header files" >&5
+echo $ECHO_N "checking for ANSI C header files... $ECHO_C" >&6; }
+if test "${ac_cv_header_stdc+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <float.h>
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_header_stdc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_header_stdc=no
 fi
 
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+if test $ac_cv_header_stdc = yes; then
+  # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <string.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "memchr" >/dev/null 2>&1; then
+  :
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <stdlib.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "free" >/dev/null 2>&1; then
+  :
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
+  if test "$cross_compiling" = yes; then
+  :
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <ctype.h>
+#include <stdlib.h>
+#if ((' ' & 0x0FF) == 0x020)
+# define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
+# define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
+#else
+# define ISLOWER(c) \
+		   (('a' <= (c) && (c) <= 'i') \
+		     || ('j' <= (c) && (c) <= 'r') \
+		     || ('s' <= (c) && (c) <= 'z'))
+# define TOUPPER(c) (ISLOWER(c) ? ((c) | 0x40) : (c))
+#endif
+
+#define XOR(e, f) (((e) && !(f)) || (!(e) && (f)))
+int
+main ()
+{
+  int i;
+  for (i = 0; i < 256; i++)
+    if (XOR (islower (i), ISLOWER (i))
+	|| toupper (i) != TOUPPER (i))
+      return 2;
+  return 0;
+}
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+ac_cv_header_stdc=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_stdc" >&5
+echo "${ECHO_T}$ac_cv_header_stdc" >&6; }
+if test $ac_cv_header_stdc = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define STDC_HEADERS 1
+_ACEOF
+
+fi
+
+# On IRIX 5.3, sys/types and inttypes.h are conflicting.
+
+
+
+
+
+
+
+
+
+for ac_header in sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
+		  inttypes.h stdint.h unistd.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  eval "$as_ac_Header=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_Header=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+{ echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lXaw3d" >&5
+echo $ECHO_N "checking for XawInitializeWidgetSet in -lXaw3d... $ECHO_C" >&6; }
+if test "${ac_cv_lib_Xaw3d_XawInitializeWidgetSet+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXaw3d  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XawInitializeWidgetSet ();
+int
+main ()
+{
+return XawInitializeWidgetSet ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_Xaw3d_XawInitializeWidgetSet=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_Xaw3d_XawInitializeWidgetSet=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xaw3d_XawInitializeWidgetSet" >&5
+echo "${ECHO_T}$ac_cv_lib_Xaw3d_XawInitializeWidgetSet" >&6; }
+if test $ac_cv_lib_Xaw3d_XawInitializeWidgetSet = yes; then
+   have_xaw=3d;
+          if test "${ac_cv_header_X11_Xaw3d_Tip_h+set}" = set; then
+  { echo "$as_me:$LINENO: checking for X11/Xaw3d/Tip.h" >&5
+echo $ECHO_N "checking for X11/Xaw3d/Tip.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_X11_Xaw3d_Tip_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xaw3d_Tip_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xaw3d_Tip_h" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking X11/Xaw3d/Tip.h usability" >&5
+echo $ECHO_N "checking X11/Xaw3d/Tip.h usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <X11/Xaw3d/Tip.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking X11/Xaw3d/Tip.h presence" >&5
+echo $ECHO_N "checking X11/Xaw3d/Tip.h presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <X11/Xaw3d/Tip.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: present but cannot be compiled" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xaw3d/Tip.h: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: X11/Xaw3d/Tip.h: in the future, the compiler will take precedence" >&2;}
+    ( cat <<\_ASBOX
+## ------------------------------- ##
+## Report this to root@mput.dip.jp ##
+## ------------------------------- ##
+_ASBOX
+     ) | sed "s/^/$as_me: WARNING:     /" >&2
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for X11/Xaw3d/Tip.h" >&5
+echo $ECHO_N "checking for X11/Xaw3d/Tip.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_X11_Xaw3d_Tip_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_header_X11_Xaw3d_Tip_h=$ac_header_preproc
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xaw3d_Tip_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xaw3d_Tip_h" >&6; }
+
+fi
+if test $ac_cv_header_X11_Xaw3d_Tip_h = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_XAW3D_TIP 1
+_ACEOF
+
+fi
+
+
+
+else
+  have_xaw=no
+
+fi
+
+    ;;
+  "neXtaw")
+    { echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lneXtaw" >&5
+echo $ECHO_N "checking for XawInitializeWidgetSet in -lneXtaw... $ECHO_C" >&6; }
+if test "${ac_cv_lib_neXtaw_XawInitializeWidgetSet+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lneXtaw  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XawInitializeWidgetSet ();
+int
+main ()
+{
+return XawInitializeWidgetSet ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_neXtaw_XawInitializeWidgetSet=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_neXtaw_XawInitializeWidgetSet=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_neXtaw_XawInitializeWidgetSet" >&5
+echo "${ECHO_T}$ac_cv_lib_neXtaw_XawInitializeWidgetSet" >&6; }
+if test $ac_cv_lib_neXtaw_XawInitializeWidgetSet = yes; then
+  have_xaw=next
+else
+  have_xaw=no
+fi
+
+    ;;
+  "XawPlus")
+
+{ echo "$as_me:$LINENO: checking for XpmCreatePixmapFromData in -lXpm" >&5
+echo $ECHO_N "checking for XpmCreatePixmapFromData in -lXpm... $ECHO_C" >&6; }
+if test "${ac_cv_lib_Xpm_XpmCreatePixmapFromData+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXpm  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XpmCreatePixmapFromData ();
+int
+main ()
+{
+return XpmCreatePixmapFromData ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_Xpm_XpmCreatePixmapFromData=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_Xpm_XpmCreatePixmapFromData=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xpm_XpmCreatePixmapFromData" >&5
+echo "${ECHO_T}$ac_cv_lib_Xpm_XpmCreatePixmapFromData" >&6; }
+if test $ac_cv_lib_Xpm_XpmCreatePixmapFromData = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBXPM 1
+_ACEOF
+
+  LIBS="-lXpm $LIBS"
+
+fi
+
+    { echo "$as_me:$LINENO: checking for XawInitializeWidgetSet in -lXawPlus" >&5
+echo $ECHO_N "checking for XawInitializeWidgetSet in -lXawPlus... $ECHO_C" >&6; }
+if test "${ac_cv_lib_XawPlus_XawInitializeWidgetSet+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXawPlus  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XawInitializeWidgetSet ();
+int
+main ()
+{
+return XawInitializeWidgetSet ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_XawPlus_XawInitializeWidgetSet=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_XawPlus_XawInitializeWidgetSet=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_XawPlus_XawInitializeWidgetSet" >&5
+echo "${ECHO_T}$ac_cv_lib_XawPlus_XawInitializeWidgetSet" >&6; }
+if test $ac_cv_lib_XawPlus_XawInitializeWidgetSet = yes; then
+  have_xaw=plus
+else
+  have_xaw=no
+fi
+
+    ;;
+  *)
+    have_xaw=no
+    ;;
+  esac
+  if test "x$have_xaw" != "xno"; then break; fi
+  done
   { echo "$as_me:$LINENO: checking for XmCreateForm in -lXm" >&5
 echo $ECHO_N "checking for XmCreateForm in -lXm... $ECHO_C" >&6; }
 if test "${ac_cv_lib_Xm_XmCreateForm+set}" = set; then
@@ -8047,75 +8694,6 @@ if test "$ac_res" != no; then
 fi
 
 fi
-
-# On IRIX 5.3, sys/types and inttypes.h are conflicting.
-
-
-
-
-
-
-
-
-
-for ac_header in sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
-		  inttypes.h stdint.h unistd.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-{ echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-
-#include <$ac_header>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  eval "$as_ac_Header=yes"
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	eval "$as_ac_Header=no"
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
-
 
 
 
@@ -11118,13 +11696,15 @@ fi
 
 
 
+
 for ac_func in \
   alarm \
   dup2 \
   floor \
   getcwd \
-  getopt \
   gethostbyname \
+  getopt \
+  getpid \
   gettimeofday \
   getwd \
   isatty \
@@ -16167,6 +16747,31 @@ else
 fi
 
 
+# Check whether --enable-xdnd was given.
+if test "${enable_xdnd+set}" = set; then
+  enableval=$enable_xdnd;  if test "$enableval" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define XDND 1
+_ACEOF
+
+    XDND_SRCS="xdnd.c"
+    enable_xdnd=yes
+    fi
+
+fi
+
+
+
+if test "x$enable_xdnd" = "xyes"; then
+  ENABLE_XDND_TRUE=
+  ENABLE_XDND_FALSE='#'
+else
+  ENABLE_XDND_TRUE='#'
+  ENABLE_XDND_FALSE=
+fi
+
+
 
 
 
@@ -17499,7 +18104,7 @@ if test "${enable_xaw+set}" = set; then
 echo "$as_me: error: xaw: --with-x option must be specified" >&2;}
    { (exit 1); exit 1; }; }
     fi
-    if test "x$have_xaw" != "xyes" -a "x$have_xaw" != "x3d"; then
+    if test "x$have_xaw" = "xno"; then
       { echo "$as_me:$LINENO: WARNING: X Athena Widget library is not found." >&5
 echo "$as_me: WARNING: X Athena Widget library is not found." >&2;}
       enable_xaw=no
@@ -17530,17 +18135,36 @@ fi
     fi
     lib_xmu_opt=-lXmu
     lib_xt_opt=-lXt
-    if test "x$have_xaw" = x3d; then
+    case "$have_xaw" in
+      "yes")
+        lib_xaw_opt=-lXaw
+	;;
+      "3d")
 
 cat >>confdefs.h <<\_ACEOF
 #define XAW3D 1
 _ACEOF
 
-      lib_xaw_opt=-lXaw3d
-    else
-      lib_xaw_opt=-lXaw
-    fi
-    INTERFACE_SRCS="$INTERFACE_SRCS xaw_c.c xaw_i.c"
+        lib_xaw_opt=-lXaw3d
+	;;
+      "plus")
+
+cat >>confdefs.h <<\_ACEOF
+#define XAWPLUS 1
+_ACEOF
+
+        lib_xaw_opt="-lXpm -lXawPlus"
+	;;
+      "next")
+
+cat >>confdefs.h <<\_ACEOF
+#define NEXTAW 1
+_ACEOF
+
+        lib_xaw_opt=-lneXtaw
+	;;
+    esac
+    INTERFACE_SRCS="$INTERFACE_SRCS xaw_c.c xaw_i.c x_trace.c $XDND_SRCS"
 
   ;;
 xdynamic)
@@ -20206,7 +20830,7 @@ SHLD="$SHLD $SHLDFLAGS"
 
 
 
-ac_config_files="$ac_config_files Makefile autoconf/Makefile common.makefile configs/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.eucJP/Makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile windrv/Makefile utils/Makefile script/Makefile TiMidity.ad TiMidity-uj.ad"
+ac_config_files="$ac_config_files Makefile autoconf/Makefile common.makefile configs/Makefile doc/Makefile doc/C/Makefile doc/ja_JP.eucJP/Makefile interface/Makefile interface/motif_bitmaps/Makefile interface/bitmaps/Makefile interface/pixmaps/Makefile libarc/Makefile libunimod/Makefile timidity/Makefile windrv/Makefile utils/Makefile script/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -20311,6 +20935,13 @@ echo "$as_me: error: conditional \"MAINTAINER_MODE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${XAW_INSTALL_RESOURCE_FILES_TRUE}" && test -z "${XAW_INSTALL_RESOURCE_FILES_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"XAW_INSTALL_RESOURCE_FILES\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"XAW_INSTALL_RESOURCE_FILES\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -20336,6 +20967,13 @@ if test -z "${NEEDDLOPEN_TRUE}" && test -z "${NEEDDLOPEN_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"NEEDDLOPEN\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"NEEDDLOPEN\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_XDND_TRUE}" && test -z "${ENABLE_XDND_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_XDND\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"ENABLE_XDND\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -21168,8 +21806,6 @@ do
     "windrv/Makefile") CONFIG_FILES="$CONFIG_FILES windrv/Makefile" ;;
     "utils/Makefile") CONFIG_FILES="$CONFIG_FILES utils/Makefile" ;;
     "script/Makefile") CONFIG_FILES="$CONFIG_FILES script/Makefile" ;;
-    "TiMidity.ad") CONFIG_FILES="$CONFIG_FILES TiMidity.ad" ;;
-    "TiMidity-uj.ad") CONFIG_FILES="$CONFIG_FILES TiMidity-uj.ad" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -21302,6 +21938,9 @@ am__leading_dot!$am__leading_dot$ac_delim
 MAINTAINER_MODE_TRUE!$MAINTAINER_MODE_TRUE$ac_delim
 MAINTAINER_MODE_FALSE!$MAINTAINER_MODE_FALSE$ac_delim
 MAINT!$MAINT$ac_delim
+XAW_INSTALL_RESOURCE_FILES_TRUE!$XAW_INSTALL_RESOURCE_FILES_TRUE$ac_delim
+XAW_INSTALL_RESOURCE_FILES_FALSE!$XAW_INSTALL_RESOURCE_FILES_FALSE$ac_delim
+xawresdir!$xawresdir$ac_delim
 EMACS!$EMACS$ac_delim
 lispdir!$lispdir$ac_delim
 CC!$CC$ac_delim
@@ -21326,9 +21965,6 @@ EGREP!$EGREP$ac_delim
 RANLIB!$RANLIB$ac_delim
 LN_S!$LN_S$ac_delim
 XMKMF!$XMKMF$ac_delim
-X_CFLAGS!$X_CFLAGS$ac_delim
-X_PRE_LIBS!$X_PRE_LIBS$ac_delim
-X_LIBS!$X_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -21370,6 +22006,9 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+X_CFLAGS!$X_CFLAGS$ac_delim
+X_PRE_LIBS!$X_PRE_LIBS$ac_delim
+X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 NEEDGETOPT_TRUE!$NEEDGETOPT_TRUE$ac_delim
@@ -21396,6 +22035,8 @@ LIBOGGFLAC_CFLAGS!$LIBOGGFLAC_CFLAGS$ac_delim
 LIBOGGFLAC_LIBS!$LIBOGGFLAC_LIBS$ac_delim
 NEEDDLOPEN_TRUE!$NEEDDLOPEN_TRUE$ac_delim
 NEEDDLOPEN_FALSE!$NEEDDLOPEN_FALSE$ac_delim
+ENABLE_XDND_TRUE!$ENABLE_XDND_TRUE$ac_delim
+ENABLE_XDND_FALSE!$ENABLE_XDND_FALSE$ac_delim
 ENABLE_NCURSES_TRUE!$ENABLE_NCURSES_TRUE$ac_delim
 ENABLE_NCURSES_FALSE!$ENABLE_NCURSES_FALSE$ac_delim
 n_so_libs!$n_so_libs$ac_delim
@@ -21462,11 +22103,6 @@ ENABLE_WRD_FALSE!$ENABLE_WRD_FALSE$ac_delim
 W32G_GUI_TRUE!$W32G_GUI_TRUE$ac_delim
 W32G_GUI_FALSE!$W32G_GUI_FALSE$ac_delim
 WINDRV_TRUE!$WINDRV_TRUE$ac_delim
-WINDRV_FALSE!$WINDRV_FALSE$ac_delim
-MSYS_TRUE!$MSYS_TRUE$ac_delim
-MSYS_FALSE!$MSYS_FALSE$ac_delim
-VCPP_TRUE!$VCPP_TRUE$ac_delim
-VCPP_FALSE!$VCPP_FALSE$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -21508,6 +22144,11 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+WINDRV_FALSE!$WINDRV_FALSE$ac_delim
+MSYS_TRUE!$MSYS_TRUE$ac_delim
+MSYS_FALSE!$MSYS_FALSE$ac_delim
+VCPP_TRUE!$VCPP_TRUE$ac_delim
+VCPP_FALSE!$VCPP_FALSE$ac_delim
 POCC_TRUE!$POCC_TRUE$ac_delim
 POCC_FALSE!$POCC_FALSE$ac_delim
 BORLANDC_TRUE!$BORLANDC_TRUE$ac_delim
@@ -21543,7 +22184,7 @@ pkglibdir!$pkglibdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 33; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 38; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

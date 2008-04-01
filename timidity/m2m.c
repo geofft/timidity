@@ -1536,7 +1536,7 @@ void m2m_output_midi_file(void)
 
 
 
-void convert_mod_to_midi_file(MidiEvent * ev)
+int convert_mod_to_midi_file(MidiEvent * ev)
 {
 
     int i;
@@ -1554,7 +1554,7 @@ void convert_mod_to_midi_file(MidiEvent * ev)
     {
 	ctl->cmsg(CMSG_INFO, VERB_NORMAL,
 		  "Aborting!  This doesn't look like a MOD file!");
-	return;
+	return 1;
     }
 
     read_m2m_cfg_file();
@@ -1568,4 +1568,5 @@ void convert_mod_to_midi_file(MidiEvent * ev)
 	if (track_events[i])
 	    free(track_events[i]);
     }
+    return 0;
 }

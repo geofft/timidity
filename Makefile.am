@@ -36,9 +36,7 @@ EXTRA_DIST = \
 	ChangeLog.1 \
 	ChangeLog.2 \
 	INSTALL.ja \
-	README.ja \
-	TiMidity-uj.ad.in \
-	TiMidity.ad.in
+	README.ja
 
 TOOLSDIR = timidity-tools
 UMPDIR = ump

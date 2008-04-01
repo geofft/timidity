@@ -76,6 +76,9 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
+/* Define to 1 if you have the `getpid' function. */
+#undef HAVE_GETPID
+
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
@@ -117,6 +120,9 @@
 
 /* Define to 1 if you have the `xpg4' library (-lxpg4). */
 #undef HAVE_LIBXPG4
+
+/* Define to 1 if you have the `Xpm' library (-lXpm). */
+#undef HAVE_LIBXPM
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -352,6 +358,9 @@
 /* Define to 1 if you have the <X11/Xmu/ExtAgent.h> header file. */
 #undef HAVE_X11_XMU_EXTAGENT_H
 
+/* Define to 1 if you have the <X11/Xaw3d/Tip.h> header file. */
+#undef HAVE_XAW3D_TIP
+
 /* Define to 1 if you have the `XmuRegisterExternalAgent' function. */
 #undef HAVE_XMUREGISTEREXTERNALAGENT
 
@@ -360,6 +369,9 @@
 
 /* Define to 1 if you are NOT in debug mode */
 #undef NDEBUG
+
+/* Define to 1 if you use libneXtaw. */
+#undef NEXTAW
 
 /* Define to 1 if you do not have <string.h>. */
 #undef NO_STRING_H
@@ -459,6 +471,12 @@
 
 /* Define to 1 if you have libXaw3d. */
 #undef XAW3D
+
+/* Define to 1 if you use libXawPlus. */
+#undef XAWPLUS
+
+/* Define to 1 if you want xdnd support. */
+#undef XDND
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING

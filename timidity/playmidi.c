@@ -61,7 +61,7 @@
 #include "freq.h"
 #include "quantity.h"
 
-extern void convert_mod_to_midi_file(MidiEvent * ev);
+extern int convert_mod_to_midi_file(MidiEvent * ev);
 
 #define ABORT_AT_FATAL 1 /*#################*/
 #define MYCHECK(s) do { if(s == 0) { printf("## L %d\n", __LINE__); abort(); } } while(0)
@@ -8248,16 +8248,17 @@ static int play_midi(MidiEvent *eventlist, int32 samples)
     static int play_count = 0;
 
     if (play_mode->id_character == 'M') {
-	int cnt;
+	int cnt, err;
 
-	convert_mod_to_midi_file(eventlist);
+	err = convert_mod_to_midi_file(eventlist);
 
 	play_count = 0;
 	cnt = free_global_mblock();	/* free unused memory */
 	if(cnt > 0)
 	    ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		      "%d memory blocks are free", cnt);
-	return RC_NONE;
+	if (err) return RC_ERROR;
+	return RC_TUNE_END;
     }
 
     sample_count = samples;

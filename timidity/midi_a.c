@@ -97,7 +97,7 @@ static int ticks_per_quarter_note;
 #define dmp midi_play_mode
 
 PlayMode dmp = {
-    DEFAULT_RATE, 0, PF_MIDI_EVENT,
+    DEFAULT_RATE, 0, PF_MIDI_EVENT|PF_FILE_OUTPUT,
     -1,
     {0, 0, 0, 0, 0},
     "Write MIDI file", 'm',

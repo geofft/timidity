@@ -135,6 +135,8 @@ ENABLE_WRD_FALSE = @ENABLE_WRD_FALSE@
 ENABLE_WRD_TRUE = @ENABLE_WRD_TRUE@
 ENABLE_XAW_FALSE = @ENABLE_XAW_FALSE@
 ENABLE_XAW_TRUE = @ENABLE_XAW_TRUE@
+ENABLE_XDND_FALSE = @ENABLE_XDND_FALSE@
+ENABLE_XDND_TRUE = @ENABLE_XDND_TRUE@
 ENABLE_XSKIN_FALSE = @ENABLE_XSKIN_FALSE@
 ENABLE_XSKIN_TRUE = @ENABLE_XSKIN_TRUE@
 ESD_CFLAGS = @ESD_CFLAGS@
@@ -215,6 +217,8 @@ WINDRV_FALSE = @WINDRV_FALSE@
 WINDRV_TRUE = @WINDRV_TRUE@
 WISH = @WISH@
 W_so_libs = @W_so_libs@
+XAW_INSTALL_RESOURCE_FILES_FALSE = @XAW_INSTALL_RESOURCE_FILES_FALSE@
+XAW_INSTALL_RESOURCE_FILES_TRUE = @XAW_INSTALL_RESOURCE_FILES_TRUE@
 XMKMF = @XMKMF@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -280,6 +284,7 @@ target_vendor = @target_vendor@
 tcltk_dep = @tcltk_dep@
 timidity_LDFLAGS = @timidity_LDFLAGS@
 w_so_libs = @w_so_libs@
+xawresdir = @xawresdir@
 
 ACLOCAL_AMFLAGS = -I autoconf
 M4DIR = autoconf
@@ -300,9 +305,7 @@ EXTRA_DIST = \
 	ChangeLog.1 \
 	ChangeLog.2 \
 	INSTALL.ja \
-	README.ja \
-	TiMidity-uj.ad.in \
-	TiMidity.ad.in
+	README.ja
 
 
 TOOLSDIR = timidity-tools
@@ -311,7 +314,7 @@ subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
 CONFIG_HEADER = config.h interface.h
-CONFIG_CLEAN_FILES = common.makefile TiMidity.ad TiMidity-uj.ad
+CONFIG_CLEAN_FILES = common.makefile
 DIST_SOURCES =
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
@@ -320,9 +323,9 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	installdirs-recursive install-recursive uninstall-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
-	COPYING ChangeLog INSTALL Makefile.am NEWS TODO \
-	TiMidity-uj.ad.in TiMidity.ad.in aclocal.m4 common.makefile.in \
-	config.h.in configure configure.in interface.h.in
+	COPYING ChangeLog INSTALL Makefile.am NEWS TODO aclocal.m4 \
+	common.makefile.in config.h.in configure configure.in \
+	interface.h.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: config.h interface.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -376,10 +379,6 @@ $(srcdir)/interface.h.in: @MAINTAINER_MODE_TRUE@ $(top_srcdir)/configure.in $(AC
 distclean-hdr:
 	-rm -f config.h stamp-h1 interface.h stamp-h2
 common.makefile: $(top_builddir)/config.status common.makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-TiMidity.ad: $(top_builddir)/config.status TiMidity.ad.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-TiMidity-uj.ad: $(top_builddir)/config.status TiMidity-uj.ad.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 uninstall-info-am:
 

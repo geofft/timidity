@@ -68,6 +68,10 @@ SHLIB_DIR = $(pkglibdir)
 # Where to install timidity.el
 ELISP_DIR = $(lispdir)
 
+# Where to install TiMidity.ad
+XAWRES = ${xawresdir}/app-defaults
+XAWRES_JA = ${xawresdir}/ja_JP.eucJP/app-defaults
+
 # If you want to change TCL_DIR, please do follows.
 # * Add -DTKPROGPATH=\"$(TCL_DIR)/tkmidity.tcl\" to CPPFLAGS.
 # * Make a symbolic link $(PKGLIBDIR)/bitmaps to $(TCL_DIR)/bitmaps

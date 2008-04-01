@@ -69,7 +69,7 @@ PlayMode dpm = {
 #else
     PE_SIGNED|PE_16BIT,
 #endif
-    PF_PCM_STREAM,
+    PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "AIFF file", 'a',

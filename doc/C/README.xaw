@@ -5,35 +5,109 @@ Xaw interface of TiMidity prepares a GUI only with Athena Widget sets
 and Xt libraries that are standard toolkits of X Window System.
 
 
-* WHAT'S NEW int 1.3
+* WHAT'S NEW in 2.0
 
-- Imported shortcut key translations 
-- Added Trace window including keyboard displaying
-- Enabled to configure resources of X
-- Supported Drag and Drop used on OffiX application
-- Added function to load and/or delete MIDI file entries
-- Enabled to modify some of extended option settings
-- Enabled to save the current playing lists into ~/.xtimidity
-- Menu and dialog messages were Internationalized 
-- Resource files were attached
+- Support for loading and saving playlists.
+- Vastly improved file dialog (Separate file/directory panes, filtering, etc.).
+- Scroll wheel support.
+- Supports Drag and Drop via the XDND protocol.
+- Tooltips for buttons are implemented.
+- Can mute individual channels in trace mode.
+- Fixed time thumb. Now it can also be used to change the position in the midi.
+- Support displaying more than 16 channels.
+- Many many bugs fixed and other small improvments.
 
+* INSTALLATION
+
+The xaw interface is compiled by passing either "--enable-interface=xaw"
+or "--enable-dynamic=xaw" as parameters for the configure script.
+TiMidity++ ordianary install will than contain the xaw interface.
+
+The are several ways to configure the xaw interface before compilation:
+
+A) Some parameters can be passed to GNU configure to modify the xaw
+interface. Namely:
+
+--with-xawlib=<comma delimetered list of toolkit names>
+--with-xaw-resource-prefix=<prefix to resource dir>
+--enable-xdnd, --disable-xdnd
+--enable-offix, --disable-offix
+
+--with-xawlib:
+
+TiMidity++ supports multiple Xaw toolkits. By default it searches for them
+in this order: xaw3d, xaw. If you wish to force compilation
+with a specific toolkit, provide the --with-xawlib=<name> parameter to
+configure, e.g.:
+
+  ./configure --enable-interface=xaw --with-xawlib=xaw
+
+or even:
+
+  ./configure --enable-interface=xaw --with-xawlib=neXtaw,xaw3d,XawPlus,xaw
+
+  to force a different search order.
+
+--enable-xdnd, --enable-offix, --disable-xdnd, --disable-offix
+
+Enable/Disable support for XDND/Offix drag and drop protocols. By default
+both are disabled.
+
+--with-xaw-resource-prefix=<prefix>
+
+Optional parameter. If passed, timidity will try to install the resource files
+to <prefix>/app-defaults/ and <prefix>/ja_JP.EUCJP/app-defaults.
+
+B) The xaw.h and x_trace.h files can be edited as well to change some options:
+
+If you want to use Label Widget for lyrics as in version 1.1,
+remove /* */ so that this line is visible:
+
+  #define WIDGET_IS_LABEL_WIDGET
+
+Although $(HOME)/.xtimidity will be regarded as an initial personal
+configuration file, you can rename it by changing the line;
+
+  #define INITIAL_CONFIG ".xtimidity"
+
+If you'd like to see more/less than 16 channels in one screen when in
+trace mode, change
+
+  #define D_VISIBLE_CHANNELS 16
+
+in x_trace.h.
+
+(There's a way to change that after compilation: changing the traceHeight
+resource will change the number of visible channels in one screen.)
+
+!!! NOTE !!!
+Don't forget to make clean before build if these files are edited.
 
 * USAGE
 
-New Xaw interface has following file menu;
+Xaw interface shows the following file menu:
 
   LOAD
     Load a new MIDI file.
+
+  SAVE
+    Save the currently shown MIDI file.
+
+  LOAD PLAYLIST
+    Loads a playlist.
+
+  SAVE PLAYLIST
+    Saves a playlist.
 
   SAVE CONFIG
     Save the current settings and modes e.g. shuffle,
     repeat, auto-start and auto-exit flags to ~/.xtimidity .
 
   HIDE/UNHIDE MESSAGES
-    Toggles displaying status text widget showing messages.
+    Toggles displaying text widget showing messages and lyrics.
 
   HIDE/UNHIDE TRACE
-    Toggles displaying status of trace canvas.
+    Toggles trace canvas.
 
   SHUFFLE
     Toggles shuffle flag.
@@ -68,18 +142,32 @@ The shortcut key actions on each window are as follows:
 <Main Window>
 	[Enter] or [r]	: Start Playing
 	[Space]		: Pause / Start Again
+	[a]		: Show about window
+	[l]		: Show file list
 	[s]		: Stop Playing
 	[q]		: Quit TiMidity++
 	[p] or [Left]	: Previous File
 	[n] or [Right]	: Next File
 	[v] or [Down]	: Volume Down (10%)
 	[V] or [Up]	: Volume Up (10%)
+	[<]		: Slower tempo
+	[>]		: Faster tempo
+	[-]		: Lower pitch
+	[+]		: Raise pitch
+	[Alt + F], [z]	: Show main menu
 	[Alt + N]	: Load Files
+	[Ctrl + V]	: Save File
+	[Alt + L]	: Load Playlist
+	[Alt + P]	: Save Playlist
 	[Alt + S]	: Save settings to ~/.xtimidity
 	[Ctrl + M]	: Hide/Show Messages
 	[Ctrl + T]	: Hide/Show Trace canvas
 	[Ctrl + S]	: Toggles Shuffle state
 	[Ctrl + R]	: Toggles Repeat state
+	[Ctrl + D]	: Toggles Tooltips
+	[Ctrl + O]	: Show options window
+	[g]		: Turns on/off spectrogram (if timidity was compiled
+			  with --enable-spectrogram)
 
 <File List Window>
 	[p] or [Up]	: Move the cursor to the previous file
@@ -90,74 +178,44 @@ The shortcut key actions on each window are as follows:
 	[V]		: Volume Up (10%)
 	[Enter] or [R]	: Start Playing the selected file
 	[d]		: Delete the selected file entry
+	[A]		: Delete all entries
 	[Space]		: Pause / Start Again
 	[s]		: Stop Playing
 	[q]		: Quit TiMidity++
 	[c]		: Close the window
+	[ESC]		: Close the window
 
 <Extend Mode Window>
 	[c]		: Close the window
+	[ESC]		: Close the window
 	[q]		: Quit TiMidity++
 
 <Dialog in Load File Window>
-	[Tab]		: File or directory completion
-	[Enter]		: Select the directory entries.
-	[Escape] or [CTRL]+[g] : Cancel and close the window
-	[Ctrl-a]	: Move the cursor to the top
-	[Ctrl-e]	: Move the cursor to the line-end
-	[Ctrl-k]	: Delete strings after the cursor
+	[Tab]			: File or directory completion
+	[Enter]			: Select the directory entries
+	[Alt-Enter]		: Selects all visible files
+	[Escape] or [CTRL]+[g]	: Cancel and close the window
+	[Ctrl-a]		: Move the cursor to the top
+	[Ctrl-e]		: Move the cursor to the line-end
+	[Ctrl-k]		: Delete strings after the cursor
+	[Ctrl-`]		: Turn on filter
+By entering a string containing a wildcard in the dialog, the filter will
+be turned on, only displaying the matching files (case-insensitive). e.g.
+*.mid shows all filenames ending in '.mid', '.MID', etc.
+[AB]* shows all filenames beginning with 'a','A','b' or 'B'.
+[!c]* shows all filenames not starting with 'c'.
 
-From version 1.1, trace canvas is realized and renewed overall in
-1.3.  Specify the interface option flag 't' in command line like as
-'timidity -iat' when you execute TiMidity(see timidity man page).
+* TRACE MODE
+Specify the interface option flag 't' in command line like as
+'timidity -iat' when you execute TiMidity (see timidity man page).
 You can see a funny movements of volume, expression, panning,
 pitchbending, reverb, chorus and voices et cetera of each channel on the
 trace canvas.  Click left mouse button on the trace screen and you can
 toggle trace screen between 'pitchbend and instrument' or 'tonebank,
-reverb and chorus'.
-
-
-* INSTALLATION
-
-TiMidity++ uses Xaw3d by default while compiling when it exists on your
-system because GNU configure is employed.  If you feel like to use Xaw,
-edit common.makefile manually to delete all of '-DXAW3D' definitions
-from CPPFLAGS and/or CFLAGS and correct -lXaw3d to -lXaw after
-configure.
-If you want to use Label Widget as before, make the following line
-enable at interface/xaw.h to remove /* */.
-
- #define WIDGET_IS_LABEL_WIDGET
-
-And make clean before build.  If you are using X servers compiled
-without X_LOCALE on the system that doesn't support locale, rewrite
-the folloing line;
-
- #define I18N
-
-to '#undef I18N' before compiling TiMidity++.
-Although $(HOME)/.xtimidity will be regarded as an initial personal
-configuration file, you can rename it by correcting the line;
-
- #define INITIAL_CONFIG ".xtimidity"
-
-in xaw.h manually.
-
-!!! NOTE !!!
-Some resource files were attached to TiMidity++1.3.6 or later.
-If you create a resource file of another locale except English or 
-Japanese, please mail it to Yoshishige Arai <ryo2@on.rim.or.jp> or
-to Masanao Izumo <mo@goice.co.jp>.
-After building TiMidity++, put TiMidity.ad into the resources directory
-such as;
- $(X11R6)/lib/X11/app-defaults
-And put TiMidity-uj.ad, which is the Japanese-EUC resource file into;
- $(X11R6)/lib/X11/$(LANG)/app-defaults
-For example, those are as follows if the Japanese-EUC locale of your
-system is ja_JP.EUC as FreeBSD;
- # cp TiMidity.ad /usr/X11R6/lib/X11/app-defaults/TiMidity 
- # cp TiMidity-uj.ad /usr/X11R6/lib/X11/app-defaults/ja_JP.EUC/TiMidity
-
+reverb and chorus'. Click right mouse button and you can (un)mute a channel.
+Wheel or 'j' key can scroll the trace to see more channels than the usual
+16 channels. If the trace is too tall for your resolution, simply set
+the traceHeight resource to a lower value.
 
 * RESOURCES
 
@@ -170,12 +228,10 @@ Application class name is 'TiMidity', so specity resources in
   TiMidity*buttonbackground: gold
   TiMidity*labelfont: -adobe-helvetica-bold-o-*-*-14-*-75-75-*-*-*-*
 
-typical resources are listed below.
+Application specific resources supported by TiMidity are listed below:
 
 Name                Class                   Default
 ----------------------------------------------------------
-bitmapDir           BitmapDir               "DEFAULT_PATH/bitmaps"
-  directory bitmaps is put.
 arrangeTitle        ArrangeTitle            False
   Show MIDI titles on the title bar of the main window.
 background          Background              gray65
@@ -184,34 +240,150 @@ menubutton          MenuButtonBackground    #CCFF33
   Menu button color.
 textbackground      TextBackground          gray85
   Background color of Text Widget.
-togglebackground    ToggleBackground        MediumBlue
-  Background color of toggle buttons.
+toggleforeground    ToggleForeground        MediumBlue
+  Foreground color of toggle buttons.
+buttonforeground    ButtonForeground        blue
+  Foreground color of command buttons and other transient windows. 
 buttonbackground    ButtonBackground        gray76
   Background color of command buttons and other transient windows. 
+text2background     Text2Background         gray80
+  Background color of labels in file dialogs.
+
+labelfont           FontSet      -adobe-helvetica-bold-r-*-*-14-*-75-75-*-*-*-*
+  Label widget font.
+volumefont          FontSet      -adobe-helvetica-bold-r-*-*-12-*-75-75-*-*-*-*
+  Volume Label font.
+textfontset         FontSet      -*-*-medium-r-normal--14-*-*-*-*-*-*-*
+  Text font for message box and so on.
+ttitlefont          FontSet      -*-fixed-medium-r-normal--14-*-*-*-*-*-*-*
+  MIDI title font at the bottom of trace window.
+textHeight          TextHeight   120
+  Height of the lyric widget (is 30 if WIDGET_IS_LABEL_WIDGET is defined).
+menuWidth           MenuWidth    200
+  Width of popup menu.
+moreString          String       More...
+  Label of submenus on the pop-up menu.
+labelfile           LabelFile    file...
+  Title of main menu.
+noplaying           String       [ No Playing File ]
+  String appended to title when no file is being played.
+popup_confirm_title String       Dialog
+  Title of confirm boxes.
+
+These resources are used only in trace mode:
+
+Name                Class                   Default
+----------------------------------------------------------
+tracefont           FontSet      -*-*-medium-r-normal--14-*-*-*-*-*-*-*
+  Trace window font.
+traceWidth          TraceWidth     627
+  Width of trace widget.
+traceHeight         TraceHeight    332
+  Height of trace widget.
 tracebackground     TraceBackground         gray90
   Background color of trace canvas.
-labelfont           LabelFont       -adobe-helvetica-bold-r-*-*-14-*-75-75-*-*-*-*
-  Label widget font.
-volumefont          VolumeFont      -adobe-helvetica-bold-r-*-*-12-*-75-75-*-*-*-*
-  Volume Label font.
-tracefont           TraceFont       -*-*-medium-r-normal--14-*-*-*-*-*-*-*
-  Trace window font.
-textfontset         TextFontSet     -*-*-medium-r-normal--14-*-*-*-*-*-*-*
-  Text font for message box and so on.
-ttitlefont          TtitleFont      -*-fixed-medium-r-normal--14-*-*-*-*-*-*-*
-  MIDI title font at the bottom of trace window.
+velforeground       VelForeground           orange
+  Color of bar in 'vel' (velocity) column for 'normal' channels.
+veldrumforeground   VelDrumForeground       red
+  Color of bar in 'vel' column, when the channel is a drum channel.
+volforeground       VolForeground           LightPink
+  Color of bar in 'vol' column.
+expforeground       ExpForeground           aquamarine
+  Color of bar in 'expr' column.
+panforeground       PanForeground           blue
+  Color of triangle in pan column. 
+rimcolor            RimColor                gray20
+  Color of the border between channel bars.
+boxcolor            BoxColor                gray76
+  Color of the channel bars.
+captioncolor        CaptionColor            DarkSlateGrey
+  Color of text in the trace widget.
+whitekeycolor       WhiteKeyColor           white
+  Color of white keys in keyboard.
+blackkeycolor       BlackKeyColor           black
+  Color of black keys in keyboard.
+playingkeycolor     PlayingKeyColor         maroon1
+  Color of played key in keyboard.
+sustainedkeycolor   SustainedKeyColor       red4
+  Color of sustained key in keyboard.
+reverbcolor         ReverbColor             PaleGoldenrod
+  Color of bar in reverb column.
+choruscolor         ChorusColor             yellow
+  Color of bar in chorus column.
+untitled            String       <No title>
+  String used in foot when no file is being played.
 
-Note that you have to specify FontSet style for font resources 
-of TiMdifity*textfontset and/or TiMidity*ttitlefont if you are using
-executables compiled with -DI18N on the internationalized X server.
+Note that all font resource are of type FontSet.
+Also traceWidth setting does not work yet.
 
+!!! NOTE !!!
+Some resource files were attached to TiMidity++1.3.6 or later.
+If you create a resource file of another locale except English or 
+Japanese, please mail it to the timidity mailing list
+<timidity-talk@lists.sourceforge.net>.
+After building TiMidity++, put TiMidity.ad into the resources directory
+such as;
+ $(X11R6)/lib/X11/app-defaults
+And put TiMidity-uj.ad, which is the Japanese-EUC resource file into;
+ $(X11R6)/lib/X11/$(LANG)/app-defaults
+For example, those are as follows if the Japanese-EUC locale of your
+system is ja_JP.EUC as FreeBSD;
+ # cp TiMidity.ad /usr/X11R6/lib/X11/app-defaults/TiMidity 
+ # cp TiMidity-uj.ad /usr/X11R6/lib/X11/app-defaults/ja_JP.EUC/TiMidity
+
+* SETTINGS FILE
+ ~/.xtimidity contains settings which are used by the xaw interface.
+ When "SAVE CONFIG" is selected, timidity will save the current configuration
+ to the file.
+
+ The file has a simple format. Each line begins with "set", than an option name,
+ followed by the option's value.
+ The options are:
+
+Name                Allowed Values          Default
+----------------------------------------------------------
+RepeatPlay           0/1                    0
+  Repeat playing the playlist after the last file was played.
+ShufflePlay          0/1                    0
+  Play the playlist in a random order.
+ExtOptions           0-63                   Depends on compliation options.
+  Enable various sequencer extensional modes (see options window for list).
+ChorusOption         0/1                    Depends on compliation options.
+  Enable chorus.
+CurVol               0-800                  70
+  Initial value of volume.
+Showdotfiles         0/1                    0
+  Show files and directories beginning with '.' in the file dialog.
+DefaultDir           a valid dir name.      The user's home directory.
+  The directory first displayed in the file dialog.
+Disp:trace           0/1                    0
+  Always start in trace mode.
+Disp:text            0/1                    1
+  Display the lyrics/messages widget at startup.
+Tooltips             0/1                    1 [1]
+  Display tooltips for buttons.
+Autostart            0/1                    1
+  Start playing immediately when the interface is started.
+AutoExit             0/1                    0
+  Exit after playing has stopped.
+ConfirmExit          0/1                    0
+  Confirm exit from interface if user tries to close it.
+SaveList             0/1                    1
+  Save playing list to ~/.xtimidity when quiting. If Autostart is 1,
+  it will begin playing immediately when timidity is next started.
+File                 a valid file name.     None
+  This file will be loaded at next start. If SaveList is 1, the previous
+  playlist will be saved using this option. This option may occur multiple
+  times in ~/.xtimidity.
+
+[1] When timidity is compiled with xaw3d, tooltips are by default off.
+    Tooltips can not be enabled when the neXtaw toolkit is used.
 
 * REPORTS
 
 Please send problems concerning Xaw interface, feature requests,
-bug reports or comments to either Yoshishige Arai <ryo2@on.rim.or.jp>
-or to the TiMidity mailing list <timidity@goice.co.jp>.
-
+bug reports or comments to the TiMidity mailing list
+<timidity-talk@lists.sourceforge.net>.
 
   Regards,
 

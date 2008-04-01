@@ -155,6 +155,11 @@ AC_ARG_WITH(module-dir,
 tmplibdir="`eval \"echo ${pkglibdir}\"`"
 AC_DEFINE_UNQUOTED(PKGLIBDIR,"$tmplibdir",place to install modules)
 
+AC_ARG_WITH(xaw-resource-prefix,
+  [  --with-xaw-resource-prefix=DIR What prefix to install XAW's resource files to
+     (optinal)], [xawresdir=$withval], [])
+AM_CONDITIONAL(XAW_INSTALL_RESOURCE_FILES, test "x$xawresdir" != "x")
+AC_SUBST(xawresdir)
 
 # Checks for programs.
 AM_PATH_LISPDIR
@@ -337,6 +342,16 @@ fi
 AC_CHECK_FUNCS(gethostbyname,,[ AC_CHECK_LIB(nsl,gethostbyname) ])
 AC_PATH_XTRA
 
+AC_ARG_WITH(xawlib,
+  [  --with-xawlib=lib      Try to link to these xaw widget libraries by the
+                            order specified by the comma separated value list:
+                             xaw: X11's libXaw
+                             xaw3d: Xaw3d
+                             neXtaw: neXtaw
+                             XawPlus: XawPlus
+                             default is --with-xawlib=xaw3d,xaw],
+  [ with_xawlib="$withval" ], [ with_xawlib="xaw3d,xaw" ])
+
 # Checks for X
 if test "x$with_x" = xyes; then
   if test "x$have_x" = xno; then
@@ -382,8 +397,34 @@ fail;
   AC_CHECK_LIB(Xt,XtVaAppInitialize,have_xt=yes; LIBS="-lXt $LIBS",have_xt=no)
   AC_CHECK_LIB(Xmu,XmuInternAtom,LIBS="-lXmu $LIBS")
   AC_CHECK_FUNCS(XmuRegisterExternalAgent)
-  AC_CHECK_LIB(Xaw3d,XawInitializeWidgetSet,have_xaw=3d,
-   [ AC_CHECK_LIB(Xaw,XawInitializeWidgetSet,have_xaw=yes,have_xaw=no) ])
+  for i in `echo $with_xawlib | sed 's/,/ /g'`; do
+  case "$i" in
+  "xaw")
+    AC_CHECK_LIB(Xaw,XawInitializeWidgetSet,have_xaw=yes,have_xaw=no)
+    ;;
+  "xaw3d") 
+    AC_CHECK_LIB(Xaw3d,XawInitializeWidgetSet,
+      [ have_xaw=3d;
+          AC_CHECK_HEADER(X11/Xaw3d/Tip.h,
+          AC_DEFINE(HAVE_XAW3D_TIP,1,Define to 1 if you have the <X11/Xaw3d/Tip.h> header file.),
+          )
+      ],
+      have_xaw=no
+    )
+    ;;
+  "neXtaw")
+    AC_CHECK_LIB(neXtaw,XawInitializeWidgetSet,have_xaw=next,have_xaw=no)
+    ;;
+  "XawPlus")
+    AC_CHECK_LIB(Xpm,XpmCreatePixmapFromData)
+    AC_CHECK_LIB(XawPlus,XawInitializeWidgetSet,have_xaw=plus,have_xaw=no)
+    ;;
+  *)
+    have_xaw=no
+    ;;
+  esac
+  if test "x$have_xaw" != "xno"; then break; fi
+  done
   AC_CHECK_LIB(Xm,XmCreateForm,have_xm=yes,have_xm=no)
   AC_CHECK_FUNCS(XShmCreatePixmap)
   LIBS=$KEEPLIBS
@@ -544,8 +585,9 @@ AC_CHECK_FUNCS( \
   dup2 \
   floor \
   getcwd \
-  getopt \
   gethostbyname \
+  getopt \
+  getpid \
   gettimeofday \
   getwd \
   isatty \
@@ -1551,6 +1593,17 @@ fi
 
 AM_CONDITIONAL(NEEDDLOPEN, test "$NEEDDLOPEN" = "yes")
 
+dnl xdnd support
+AC_ARG_ENABLE(xdnd,
+  [  --enable-xdnd           Enable xdnd support             (default is no)],
+  [ if test "$enableval" = "yes"; then
+    AC_DEFINE(XDND,1,Define to 1 if you want xdnd support.)
+    XDND_SRCS="xdnd.c"
+    enable_xdnd=yes
+    fi
+  ])
+AM_CONDITIONAL(ENABLE_XDND, test "x$enable_xdnd" = "xyes")
+
 dnl
 dnl Each interface section
 dnl
@@ -1764,7 +1817,7 @@ CONFIG_INTERFACE(xaw,XAW,a,
   [ if test "x$with_x" != xyes; then
 	AC_MSG_ERROR(xaw: --with-x option must be specified)
     fi
-    if test "x$have_xaw" != "xyes" -a "x$have_xaw" != "x3d"; then
+    if test "x$have_xaw" = "xno"; then
       AC_MSG_WARN(X Athena Widget library is not found.)
       enable_xaw=no
     fi ],
@@ -1777,13 +1830,24 @@ CONFIG_INTERFACE(xaw,XAW,a,
     fi
     lib_xmu_opt=-lXmu
     lib_xt_opt=-lXt
-    if test "x$have_xaw" = x3d; then
-      AC_DEFINE(XAW3D,1,Define to 1 if you have libXaw3d.)
-      lib_xaw_opt=-lXaw3d
-    else
-      lib_xaw_opt=-lXaw
-    fi
-    INTERFACE_SRCS="$INTERFACE_SRCS xaw_c.c xaw_i.c"
+    case "$have_xaw" in
+      "yes")
+        lib_xaw_opt=-lXaw
+	;;
+      "3d")
+        AC_DEFINE(XAW3D,1,Define to 1 if you use libXaw3d.)
+        lib_xaw_opt=-lXaw3d
+	;;
+      "plus")
+        AC_DEFINE(XAWPLUS,1,Define to 1 if you use libXawPlus.)
+        lib_xaw_opt="-lXpm -lXawPlus"
+	;;
+      "next")
+        AC_DEFINE(NEXTAW,1,Define to 1 if you use libneXtaw.)
+        lib_xaw_opt=-lneXtaw
+	;;
+    esac
+    INTERFACE_SRCS="$INTERFACE_SRCS xaw_c.c xaw_i.c x_trace.c $XDND_SRCS"
   ],
   [ if test "x$have_xext" = xyes; then
       a_so_libs="-lXext -lX11"
@@ -2181,7 +2245,5 @@ AC_CONFIG_FILES([
   windrv/Makefile
   utils/Makefile
   script/Makefile
-  TiMidity.ad
-  TiMidity-uj.ad
 ])
 AC_OUTPUT

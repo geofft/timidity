@@ -73,7 +73,7 @@ static int acntl(int request, void *arg);
 #define dpm raw_play_mode
 
 PlayMode dpm = {
-    DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM,
+    DEFAULT_RATE, PE_16BIT|PE_SIGNED, PF_PCM_STREAM|PF_FILE_OUTPUT,
     -1,
     {0,0,0,0,0},
     "Raw waveform data", 'r',

@@ -157,6 +157,8 @@ ENABLE_WRD_FALSE = @ENABLE_WRD_FALSE@
 ENABLE_WRD_TRUE = @ENABLE_WRD_TRUE@
 ENABLE_XAW_FALSE = @ENABLE_XAW_FALSE@
 ENABLE_XAW_TRUE = @ENABLE_XAW_TRUE@
+ENABLE_XDND_FALSE = @ENABLE_XDND_FALSE@
+ENABLE_XDND_TRUE = @ENABLE_XDND_TRUE@
 ENABLE_XSKIN_FALSE = @ENABLE_XSKIN_FALSE@
 ENABLE_XSKIN_TRUE = @ENABLE_XSKIN_TRUE@
 ESD_CFLAGS = @ESD_CFLAGS@
@@ -238,6 +240,8 @@ WINDRV_FALSE = @WINDRV_FALSE@
 WINDRV_TRUE = @WINDRV_TRUE@
 WISH = @WISH@
 W_so_libs = @W_so_libs@
+XAW_INSTALL_RESOURCE_FILES_FALSE = @XAW_INSTALL_RESOURCE_FILES_FALSE@
+XAW_INSTALL_RESOURCE_FILES_TRUE = @XAW_INSTALL_RESOURCE_FILES_TRUE@
 XMKMF = @XMKMF@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -303,6 +307,7 @@ target_vendor = @target_vendor@
 tcltk_dep = @tcltk_dep@
 timidity_LDFLAGS = @timidity_LDFLAGS@
 w_so_libs = @w_so_libs@
+xawresdir = @xawresdir@
 #INSTALL = @INSTALL@
 
 # Where to install the patches, config files.
@@ -317,6 +322,10 @@ SHLIB_DIR = $(pkglibdir)
 
 # Where to install timidity.el
 ELISP_DIR = $(lispdir)
+
+# Where to install TiMidity.ad
+XAWRES = ${xawresdir}/app-defaults
+XAWRES_JA = ${xawresdir}/ja_JP.eucJP/app-defaults
 
 # If you want to change TCL_DIR, please do follows.
 # * Add -DTKPROGPATH=\"$(TCL_DIR)/tkmidity.tcl\" to CPPFLAGS.
@@ -363,10 +372,14 @@ EXTRA_libinterface_a_SOURCES = \
 	vt100.h \
 	vt100.c \
 	vt100_c.c \
+	x_trace.c \
+	x_trace.h \
 	xaw.h \
 	xaw_c.c \
 	xaw_i.c \
 	xaw_redef.c \
+	xdnd.c \
+	xdnd.h \
 	xskin.h \
 	xskin_c.c \
 	xskin_i.c \
@@ -454,6 +467,8 @@ EXTRA_libinterface_a_SOURCES = \
 @ENABLE_WRD_TRUE@	x_mag.$(OBJEXT) \
 @ENABLE_WRD_TRUE@	x_sherry.$(OBJEXT)
 
+
+@ENABLE_XDND_TRUE@XDND_SO = xdnd.${so}
 
 @MSYS_TRUE@@W32G_GUI_FALSE@WRD_WINCON_OBJS = wrdt_wcon.$(OBJEXT)
 
@@ -752,9 +767,10 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/wrdt_mac.Po ./$(DEPDIR)/wrdt_tty.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/wrdt_w32g.Po ./$(DEPDIR)/wrdt_wcon.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/wrdt_x.Po ./$(DEPDIR)/x_mag.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/x_sherry.Po ./$(DEPDIR)/x_wrdwindow.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/xaw_c.Po ./$(DEPDIR)/xaw_i.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/xaw_redef.Po ./$(DEPDIR)/xskin_c.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/x_sherry.Po ./$(DEPDIR)/x_trace.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/x_wrdwindow.Po ./$(DEPDIR)/xaw_c.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/xaw_i.Po ./$(DEPDIR)/xaw_redef.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/xdnd.Po ./$(DEPDIR)/xskin_c.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/xskin_i.Po ./$(DEPDIR)/xskin_loadBMP.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/xskin_spectrum.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -845,10 +861,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wrdt_x.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x_mag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x_sherry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x_trace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x_wrdwindow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xaw_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xaw_i.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xaw_redef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xdnd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xskin_c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xskin_i.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xskin_loadBMP.Po@am__quote@
@@ -1192,7 +1210,11 @@ install.tk: $(ALLTCLF) install.bitmaps
 	test -d $(DESTDIR)$(TCL_DIR) || mkdir -p $(DESTDIR)$(TCL_DIR)
 	for f in $(ALLTCLF) ''; do case ".$$f" in .);; *) $(INSTALL_DATA) $$f $(DESTDIR)$(TCL_DIR);; esac; done
 
-install.xaw: install.bitmaps
+install.xaw:
+@XAW_INSTALL_RESOURCE_FILES_TRUE@	test -d ${DESTDIR}${XAWRES} || mkdir -p ${DESTDIR}${XAWRES}
+@XAW_INSTALL_RESOURCE_FILES_TRUE@	test -d ${DESTDIR}${XAWRES_JA} || mkdir -p ${DESTDIR}${XAWRES_JA}
+@XAW_INSTALL_RESOURCE_FILES_TRUE@	cp ${top_srcdir}/TiMidity.ad ${DESTDIR}${XAWRES}/TiMidity
+@XAW_INSTALL_RESOURCE_FILES_TRUE@	cp ${top_srcdir}/TiMidity-uj.ad ${DESTDIR}${XAWRES_JA}/TiMidity
 
 install.bitmaps:
 	cd bitmaps; $(MAKE) install.bitmaps
@@ -1281,8 +1303,8 @@ install.el: $(ELFILES)
 @NEEDDLOPEN_TRUE@if_vt100.$(so): vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so)
 @NEEDDLOPEN_TRUE@	$(SHLD) -o $@ vt100_c.$(so) support.$(so) vt100.$(so) bitset.$(so) timer.$(so) $(T_so_libs)
 
-@NEEDDLOPEN_TRUE@if_xaw.$(so): xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so)
-@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ xaw_c.$(so) support.$(so) xaw_i.$(so) timer.$(so) $(a_so_libs)
+@NEEDDLOPEN_TRUE@if_xaw.$(so): xaw_c.$(so) support.$(so) xaw_i.$(so) x_trace.${so} timer.$(so) ${XDND_SO}
+@NEEDDLOPEN_TRUE@	$(SHLD) -o $@ xaw_c.$(so) support.$(so) xaw_i.$(so) x_trace.${so} timer.$(so) ${XDND_SO} $(a_so_libs)
 
 @NEEDDLOPEN_TRUE@if_xskin.$(so): xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so)
 @NEEDDLOPEN_TRUE@	$(SHLD) -o $@ xskin_c.$(so) support.$(so) xskin_i.$(so) xskin_loadBMP.$(so) xskin_spectrum.$(so) url_buff.$(so) $(i_so_libs)
