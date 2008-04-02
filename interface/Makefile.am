@@ -90,10 +90,6 @@ EXTRA_libinterface_a_SOURCES = \
 	soundspec.h \
 	x_sherry.c \
 	x_sherry.h \
-	check.xbm \
-	arrow.xbm \
-	on.xbm \
-	off.xbm \
 	server_c.c \
 	server_defs.h \
 	alsaseq_c.c \

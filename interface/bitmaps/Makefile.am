@@ -19,13 +19,21 @@
 include $(top_srcdir)/common.makefile.in
 
 BITMAPS = \
+	arrow.xbm \
 	back.xbm \
+	check.xbm \
+	fast.xbm \
 	fwrd.xbm \
+	keydown.xbm \
+	keyup.xbm \
+	off.xbm \
+	on.xbm \
 	next.xbm \
 	pause.xbm \
 	play.xbm \
 	prev.xbm \
 	quit.xbm \
+	slow.xbm \
 	stop.xbm \
 	random.xbm \
 	repeat.xbm \

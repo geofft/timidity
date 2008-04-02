@@ -342,13 +342,21 @@ DEF_SHLIB_DIR = -DSHLIB_DIR=\"$(SHLIB_DIR)\"
 BITMAP_DIR = $(TCL_DIR)/bitmaps
 
 BITMAPS = \
+	arrow.xbm \
 	back.xbm \
+	check.xbm \
+	fast.xbm \
 	fwrd.xbm \
+	keydown.xbm \
+	keyup.xbm \
+	off.xbm \
+	on.xbm \
 	next.xbm \
 	pause.xbm \
 	play.xbm \
 	prev.xbm \
 	quit.xbm \
+	slow.xbm \
 	stop.xbm \
 	random.xbm \
 	repeat.xbm \

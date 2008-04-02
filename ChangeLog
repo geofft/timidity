@@ -1,3 +1,12 @@
+008-4-3  Keishi Suenaga <skeishi@yahoo.co.jp>
+               patchs by Yair K.
+	* interface/Makefile.am
+	  bitmaps/Makefile.am
+	  interface/arrow.xbm            remove 
+	  interface/check.xbm            remove 
+	  interface/off.xbm              remove 
+	  interface/on.xbm               remove
+
 2008-4-2  Keishi Suenaga <skeishi@yahoo.co.jp>
 		patchs by Yair K.
 	* timidity/common.c
