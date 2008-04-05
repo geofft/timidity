@@ -1,48 +1,49 @@
 ! TiMidity.ad -- app-defaults file for TiMidity++ XAW interface
 ! Created by Yoshishige Arai <ryo2@on.rim.or.jp>
 ! Modified by Chisato Yamauchi <cyamauch@hst.phyas.aichi-edu.ac.jp>
+! Modified by Yair Kalvariski <cesium2@gmail.com>
 
 TiMidity*international: True
 TiMidity*inputMethod: none
 TiMidity*gradientBar: True
 TiMidity*highlightThickness: 1
-TiMidity*LabelFile: file...
-TiMidity*moreString: More...
-TiMidity*noPlaying: [ No Playing File ]
-TiMidity*file_simplemenu.load.label: Load (Meta-N)
+TiMidity*LabelFile: ファイル...
+TiMidity*moreString: もっと見る...
+TiMidity*noPlaying: [ 再生ファイルなし ]
+TiMidity*file_simplemenu.load.label: ファイルのロード (Meta-N)
 TiMidity*file_simplemenu.load.underline: 0
-TiMidity*file_simplemenu.save.label: Save (Ctrl-V)
+TiMidity*file_simplemenu.save.label: ファイルのセーブ (Ctrl-V)
 TiMidity*file_simplemenu.save.underline: 2
-TiMidity*file_simplemenu.load_playlist.label: Load Playlist (Meta-L)
+TiMidity*file_simplemenu.load_playlist.label: プレイリストのロード (Meta-L)
 TiMidity*file_simplemenu.load_playlist.underline: 3
-TiMidity*file_simplemenu.save_playlist.label: Save Playlist (Meta-P)
+TiMidity*file_simplemenu.save_playlist.label: プレイリストのセーブ (Meta-P)
 TiMidity*file_simplemenu.save_playlist.underline: 5
-TiMidity*file_simplemenu.saveconfig.label: Save Config (Meta-S)
+TiMidity*file_simplemenu.saveconfig.label: 設定保存 (Meta-S)
 TiMidity*file_simplemenu.saveconfig.underline: 0
-TiMidity*file_simplemenu.hidetext.label: (Un)Hide Messages (Ctrl-M)
+TiMidity*file_simplemenu.hidetext.label: メッセージの表示/非表示 (Ctrl-M)
 TiMidity*file_simplemenu.hidetext.underline: 9
-TiMidity*file_simplemenu.hidetrace.label: (Un)Hide Trace (Ctrl-T)
+TiMidity*file_simplemenu.hidetrace.label: トレース画面の表示/非表示 (Ctrl-T)
 TiMidity*file_simplemenu.hidetrace.underline: 9
-TiMidity*file_simplemenu.shuffle.label: Shuffle (Ctrl-S)
+TiMidity*file_simplemenu.shuffle.label: シャッフル (Ctrl-S)
 TiMidity*file_simplemenu.shuffle.underline: 1
-TiMidity*file_simplemenu.repeat.label: Repeat (Ctrl-R)
+TiMidity*file_simplemenu.repeat.label: リピート (Ctrl-R)
 TiMidity*file_simplemenu.repeat.underline: 0
-TiMidity*file_simplemenu.autostart.label: Auto Start
+TiMidity*file_simplemenu.autostart.label: 自動演奏
 TiMidity*file_simplemenu.autostart.underline: 1
-TiMidity*file_simplemenu.autoquit.label: Auto Exit
+TiMidity*file_simplemenu.autoquit.label: 自動終了
 TiMidity*file_simplemenu.autoquit.underline: 5
-TiMidity*file_simplemenu.filelist.label: File List (Ctrl-F)
+TiMidity*file_simplemenu.filelist.label: 演奏ファイルリスト (Ctrl-F)
 TiMidity*file_simplemenu.filelist.underline: 0
-TiMidity*file_simplemenu.modes.label: Extend Modes (Ctrl-O)
+TiMidity*file_simplemenu.modes.label: 拡張設定モード (Ctrl-O)
 TiMidity*file_simplemenu.modes.underline: 8
-TiMidity*file_simplemenu.about.label: About
+TiMidity*file_simplemenu.about.label: TiMidity++ について
 TiMidity*file_simplemenu.about.underline: 0
-TiMidity*file_simplemenu.quit.label: Quit (Meta-Q, Q)
+TiMidity*file_simplemenu.quit.label: 終了 (Meta-Q, Q)
 TiMidity*file_simplemenu.quit.underline: 0
 TiMidity*file_simplemenu.translations: #override\n\
 	<Key>n:		MenuPopdown() do-menu(100)\n\
 	~Meta<Key>l:	MenuPopdown() do-menu(100)\n\
-        <Key>v:		MenuPopdown() do-menu(101)\n\
+	<Key>v:		MenuPopdown() do-menu(101)\n\
 	Meta<Key>l:	MenuPopdown() do-menu(102)\n\
 	<Key>d:		MenuPopdown() do-menu(102)\n\
 	<Key>p:		MenuPopdown() do-menu(103)\n\
@@ -60,26 +61,26 @@ TiMidity*file_simplemenu.translations: #override\n\
 	<Key>q:		MenuPopdown() do-quit()\n\
 	<Key>Escape:	MenuPopdown()\n\
 	<Motion>:	highlight()
-TiMidity*load_dialog.label: File Name
-TiMidity*load_dialog.add.label: Add ALL
-TiMidity*load_dialog.load_button.label: Filter
-TiMidity*flist_cmdbox.fplaybutton.label: Play
-TiMidity*flist_cmdbox.fdeletebutton.label: Delete
-TiMidity*flist_cmdbox.fdelallbutton.label: Delete ALL
-TiMidity*OK.label: OK
-TiMidity*Cancel.label: Cancel
-TiMidity*modul_box.modul_lbl.label: Modulation control
-TiMidity*porta_box.porta_lbl.label: Portamento control
-TiMidity*nrpnv_box.nrpnv_lbl.label: NRPN Vibration
-TiMidity*reverb_box.reverb_lbl.label: Reverb control
-TiMidity*chorus_box.chorus_lbl.label: Chorus control
-TiMidity*chpressure_box.chpressure_lbl.label: Channel Pressure control
-TiMidity*overlapvoice_box.overlapv_lbl.label: Allow Multiple Same Notes
-TiMidity*txtmeta_box.txtmeta_lbl.label: Tracing All Text Meta Events
-TiMidity*sbox_ratelabel.label: Rate
-TiMidity*closebutton.label: Close
+TiMidity*load_dialog.label: ファイル名
+TiMidity*load_dialog.add.label: すべてを追加
+TiMidity*load_dialog.load_button.label: フィルター
+TiMidity*flist_cmdbox.fplaybutton.label: 演奏
+TiMidity*flist_cmdbox.fdeletebutton.label: 削除
+TiMidity*flist_cmdbox.fdelallbutton.label: すべてを削除
+TiMidity*OK.label: 確認
+TiMidity*Cancel.label: キャンセル
+TiMidity*modul_box.modul_lbl.label: モジュレーションコントロール
+TiMidity*porta_box.porta_lbl.label: ポルタメントコントロール
+TiMidity*nrpnv_box.nrpnv_lbl.label: NRPN ビブラート
+TiMidity*reverb_box.reverb_lbl.label: リバーブエフェクトコントロール
+TiMidity*chorus_box.chorus_lbl.label: コーラスエフェクトコントロール
+TiMidity*chpressure_box.chpressure_lbl.label: チャンネルプレッシャー
+TiMidity*overlapvoice_box.overlapv_lbl.label: 同一音の重複を許す
+TiMidity*txtmeta_box.txtmeta_lbl.label: すべてのテキストメタイベントをトレース
+TiMidity*sbox_ratelabel.label: 速度
+TiMidity*closebutton.label: 閉じる
 TiMidity*base_form.translations: #override\n\
-        Ctrl ~Shift<Key>v:	do-menu(101)\n\
+	Ctrl ~Shift<Key>v:	do-menu(101)\n\
 	~Ctrl Meta<Key>s:	do-menu(104)\n\
 	Ctrl<Key>m:		do-menu(105)\n\
 	Ctrl<Key>t:		do-menu(106)\n\
@@ -165,20 +166,20 @@ TiMidity*button_box*Toggle.horizDistance: 1
 TiMidity*button_box*Toggle.vertDistance: 1
 TiMidity*random_button.horizDistance: 4
 TiMidity*play_button.vertDistance: 9
-TiMidity*play_button.tip: Play
-TiMidity*pause_button.tip: Pause
-TiMidity*stop_button.tip: Stop
-TiMidity*prev_button.tip: Previous
-TiMidity*back_button.tip: Back
-TiMidity*fwd_button.tip: Forward
-TiMidity*next_button.tip: Next
-TiMidity*quit_button.tip: Quit
-TiMidity*random_button.tip: Shuffle
-TiMidity*repeat_button.tip: Repeat
-TiMidity*fast_b.tip: Increase tempo
-TiMidity*slow_b.tip: Decrease Tempo
-TiMidity*pitchup_b.tip: Raise pitch
-TiMidity*pitchdown_b.tip: Lower pitch
+TiMidity*play_button.tip: 演奏
+TiMidity*pause_button.tip: 休止
+TiMidity*stop_button.tip: 停止
+TiMidity*prev_button.tip: 前に
+TiMidity*back_button.tip: 戻る
+TiMidity*fwd_button.tip: 進む
+TiMidity*next_button.tip: 次に
+TiMidity*quit_button.tip: 終了
+TiMidity*random_button.tip: シャッフル
+TiMidity*repeat_button.tip: リピート
+TiMidity*fast_b.tip: テンポ速く
+TiMidity*slow_b.tip: テンポ遅く
+TiMidity*pitchup_b.tip: ピッチ高く
+TiMidity*pitchdown_b.tip: ピッチ低く
 TiMidity*volume_label.borderWidth: 0
 TiMidity*volume_box*horizDistance: 0
 TiMidity*volume_box*vertDistance: 0
@@ -232,7 +233,7 @@ TiMidity*Scrollbar.baseTranslations: #override\n\
 	<Btn5Down>:	StartScroll(Forward)
 TiMidity*Text.baseTranslations: #override\n\
 	~Shift<Key>Delete:	delete-next-character()\n\
-        Ctrl<Key>V:		insert-selection(CLIPBOARD)                
+	Ctrl<Key>V:		insert-selection(CLIPBOARD)
 TiMidity*TransientShell.Box.baseTranslations: #override\n\
 	~Ctrl<Key>c:	do-closeparent()\n\
 	<Key>Escape:	do-closeparent()\n\
@@ -256,12 +257,12 @@ TiMidity*dialog_sfile*load_dialog.add.Sensitive: False
 TiMidity*dialog_list*load_dialog.add.Sensitive: False
 TiMidity*dialog_lfile.title: TiMidity <Load File>
 TiMidity*dialog_sfile.title: TiMidity <Save File>
-TiMidity*popup_slabel.label: Select output format
-TiMidity*popup_olabel.label: Output device
+TiMidity*popup_slabel.label: 出力フォーマットを選択
+TiMidity*popup_olabel.label: 出力デバイス
 TiMidity*popup_file.title: TiMidity <File List>
 TiMidity*popup_file*filelist.translations: #override\n\
 	<Btn1Up>(2+):		do-fselect()\n\
-        <Btn3Up>:		do-stop()
+	<Btn3Up>:		do-stop()
 TiMidity*flist_cmdbox.width: 272
 TiMidity*flist_cmdbox.height: 24
 TiMidity*flist_cmdbox.borderWidth: 0
@@ -302,7 +303,7 @@ TiMidity*popup_optform.translations: #override\n\
 	<Key>KP_Enter:		do-optionsclose()\n\
 	<Key>Return:		do-optionsclose()
 TiMidity*popup_about.title: Information
-TiMidity*popup_confirm: Dialog
+TiMidity*popup_confirm_title: Dialog
 TiMidity*popup_warning.title: Information
 TiMidity*popup_sformat.title: Dialog
 TiMidity*popup_cform.translations: #override\n\
@@ -355,11 +356,11 @@ TiMidity*fbox_toggle0.accelerators: #override\n\
 	<Key>Down:	do-down()\n\
 	<Btn4Down>:	do-up()\n\
 	<Btn5Down>:	do-down()
-TiMidity*confirmexit.label: Do you wish to exit?
-TiMidity*warnoverwrite.label: Do you wish to overfile this file?
-TiMidity*saveplaylisterror.label: Could not save playlist!
-TiMidity*waitforwav.label: Please wait. This may take several minutes.
-TiMidity*warnrecording.label: Cannot record - a file is already being recorded.
+TiMidity*confirmexit.label: 終了しますか？
+TiMidity*warnoverwrite.label: このファイルを上書きしますか？
+TiMidity*saveplaylisterror.label: プレイリストを保存できません！
+TiMidity*waitforwav.label: しばらくお待ちください。
+TiMidity*warnrecording.label: 記録できません。すでに記録済みです。
 TiMidity*foreground: #c0c0c0
 TiMidity*background: #171717
 TiMidity*BoxColor: #666666
@@ -408,26 +409,26 @@ TiMidity*popup_file*background: #666666
 TiMidity*popup_option*background: #666666
 TiMidity*popup_about*background: #666666
 TiMidity*popup_confirm*background: #666666
-TiMidity*fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
-TiMidity*Dialog*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*MenuButton*fontSet: -adobe-helvetica-bold-r-normal--14-*-*-*-*-*-*-*,*
-TiMidity*textfontset: -*-fixed-medium-r-normal--14-*-*-*-*-*-*-*
-TiMidity*SmeBSB.fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*Command*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*List*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*Dialog*List*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*Label*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,*
+TiMidity*fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*Dialog*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*MenuButton*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*textfontset: -*-fixed-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*
+TiMidity*SmeBSB.fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*Command*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*List*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*Dialog*List*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*Label*fontSet: -adobe-helvetica-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
 TiMidity*cwd_label.fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*Text*fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
-TiMidity*file_menubutton.file_simplemenu*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*title_menubutton.title_simplemenu*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
+TiMidity*Text*fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*file_menubutton.file_simplemenu*fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*title_menubutton.title_simplemenu*fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
 TiMidity*time_label.fontSet: -adobe-helvetica-bold-r-normal--14-*-*-*-*-*-*-*,*
 TiMidity*time_label*cwd_info.fontSet: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*volume_box*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*tune_box*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*,*
-TiMidity*load_dialog.label.fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,*
-TiMidity*popup_abox*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,*
-TiMidity*popup_cform*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,*
+TiMidity*volume_box*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*tune_box*fontSet: -adobe-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*load_dialog.label.fontSet: -*-fixed-medium-r-normal--14-*-*-*-*-*-iso8859-1,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*popup_abox*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
+TiMidity*popup_cform*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
 TiMidity*popup_sform*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
 TiMidity*popup_optform*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
-TiMidity*popup_wbox*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,*
+TiMidity*popup_wbox*fontSet: -adobe-helvetica-bold-o-normal--14-*-*-*-*-*-*-*,-*-fixed-medium-r-normal--14-*-*-*-*-*-*-*,*
