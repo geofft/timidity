@@ -1,3 +1,8 @@
+2008-04-06  Keishi Suenaga <skeishi@yahoo.co.jp>
+	* timidity/common.c
+	  timidity/speex_a.c     fix compliation
+	* timidity/midi_a.c      BorlancC patch
+
 2008-04-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Remove short option -Od(n) for output

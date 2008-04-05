@@ -26,6 +26,7 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
+#include <stdlib.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -33,11 +34,13 @@
 #include <fcntl.h>
 #endif
 
-#include <speex.h>
-#include <speex_header.h>
+#include <speex/speex.h>
+#include <speex/speex_header.h>
+#include <speex/speex_stereo.h>
 #include <ogg/ogg.h>
 
 #include "timidity.h"
+#include "common.h"
 #include "output.h"
 #include "controls.h"
 #include "timer.h"

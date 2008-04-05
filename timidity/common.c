@@ -1093,16 +1093,6 @@ void code_convert(char *in, char *out, int outsiz, char *icode, char *ocode)
 #endif
 }
 
-static int is_playlist(char *file)
-{
-  FILE *f; char sig[20], *ret;
-  if ((f = fopen(file, "r")) == NULL) return 0;
-  ret = fgets(sig, 20, f); 
-  fclose(f);
-  if ((!ret) || (strcmp(sig, "timidity playlist:\n"))) return 0;
-  return 1;
-}
-
 /* EAW -- insert stuff from playlist files
  *
  * Tue Apr 6 1999: Modified by Masanao Izumo <mo@goice.co.jp>
@@ -1148,7 +1138,7 @@ static char **expand_file_lists(char **files, int *nfiles_in_out)
 	/* extract the file extension */
 	pfile = strrchr(files[i], '.');
 
-	if(*files[i] == '@' || (pfile != NULL && strstr(testext, pfile)) || is_playlist(files[i]))
+	if(*files[i] == '@' || (pfile != NULL && strstr(testext, pfile)))
 	{
 	    /* Playlist file */
             if(*files[i] == '@')
