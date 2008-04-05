@@ -1,5 +1,5 @@
 # TiMidity++ -- MIDI to WAVE converter and player
-# Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+# Copyright (C) 1999-2008 Masanao Izumo <iz@onicos.co.jp>
 # Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -56,6 +56,8 @@ EXTRA_libinterface_a_SOURCES = \
 	xaw_c.c \
 	xaw_i.c \
 	xaw_redef.c \
+	TiMidity.ad \
+	TiMidity-uj.ad \
 	xdnd.c \
 	xdnd.h \
 	xskin.h \
@@ -284,8 +286,8 @@ install.xaw:
 if XAW_INSTALL_RESOURCE_FILES
 	test -d ${DESTDIR}${XAWRES} || mkdir -p ${DESTDIR}${XAWRES}
 	test -d ${DESTDIR}${XAWRES_JA} || mkdir -p ${DESTDIR}${XAWRES_JA}
-	cp ${top_srcdir}/TiMidity.ad ${DESTDIR}${XAWRES}/TiMidity
-	cp ${top_srcdir}/TiMidity-uj.ad ${DESTDIR}${XAWRES_JA}/TiMidity
+	cp ${top_srcdir}/interface/TiMidity.ad ${DESTDIR}${XAWRES}/TiMidity
+	cp ${top_srcdir}/interface/TiMidity-uj.ad ${DESTDIR}${XAWRES_JA}/TiMidity
 endif
 
 install.bitmaps:

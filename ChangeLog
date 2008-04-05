@@ -1,153 +1,113 @@
-008-4-3  Keishi Suenaga <skeishi@yahoo.co.jp>
-               patchs by Yair K.
-	* interface/Makefile.am
-	  bitmaps/Makefile.am
-	  interface/arrow.xbm            remove 
-	  interface/check.xbm            remove 
-	  interface/off.xbm              remove 
-	  interface/on.xbm               remove
+2008-04-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-2008-4-2  Keishi Suenaga <skeishi@yahoo.co.jp>
-		patchs by Yair K.
-	* timidity/common.c
-	  common.makefile.in
-	  configure.in
-	  doc/C/README.xaw
-	  interface/arrow.xbm
-	  interface/bitmaps/arrow.xbm     add
-	  interface/bitmaps/check.xbm     add
-	  interface/bitmaps/fast.xbm      add
-	  interface/bitmaps/keydown.xbm   add
-	  interface/bitmaps/keyup.xbm     add
-	  interface/bitmaps/off.xbm       add
-	  interface/bitmaps/on.xbm        add
-	  interface/bitmaps/slow.xbm      add
-	  interface/check.xbm
-	  interface/Makefile.am
-	  interface/off.xbm
-	  interface/on.xbm
-	  interface/xaw_c.c
-	  interface/xaw.h
-	  interface/xaw_i.c
-	  interface/xdnd.c     add
-	  interface/xdnd.h     add
-	  interface/x_trace.c  add
-	  interface/x_trace.h  add
-	  Makefile.am
-	  Makefile.in
-	  script/unix2dos.sh
-	  timidity/aiff_a.c
-	  timidity/au_a.c
-	  timidity/common.c
-	  timidity/flac_a.c
-	  timidity/gogo_a.c
-	  timidity/m2m.c
-	  timidity/midi_a.c
-	  timidity/modmid_a.c
-	  timidity/output.h
-	  timidity/playmidi.c
-	  file timidity/raw_a.c
-	  file timidity/speex_a.c
-	  file timidity/vorbis_a.c
-	  timidity/wave_a.c
-	  TiMidity.ad        add
-	  TiMidity.ad.in     remove
-	  TiMidity-uj.ad     add
-	  TiMidity-uj.ad.in  remove         some improvements of XAW interface.
+	* timidity/timidity.c: Remove short option -Od(n) for output
+	  device ID because -O? option is assigned for output format
+	* TiMidity(-uj).ad, interface/Makefile.am: Fix trivial typo,
+	  translate into Japanese, and move to interface directory
+	TODO: update man page of timidity.1
+	      --output-devices=n
+	      --preserve-silence
+	TODO: update ja_JP.eucJP/README.xaw
 
-2008-4-1  Keishi Suenaga <skeishi@yahoo.co.jp>
-		a patch by Milan Zamazal
-	* timidity/playmidi.c
-	  timidity/playmidi.h
-	  timidity/readmidi.c
-	  timidity/timidity.c   add preserve-silence option
+2008-04-03  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-2008-3-31  Keishi Suenaga <skeishi@yahoo.co.jp>
-        a patch from Yair K.
-	* configure.in
-	  utils/support.c
-	  utils/support.h        fix-snprintf-crash
-	
-2008-3-30  Keishi Suenaga <skeishi@yahoo.co.jp>
+	patchs by Yair K.
+	* interface/Makefile.am, bitmaps/Makefile.am, interface/arrow.xbm,
+	  interface/check.xbm, interface/off.xbm, interface/on.xbm: remove
+
+2008-04-02  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	patchs by Yair K.
+	* timidity/common.c, common.makefile.in, configure.in,
+	  doc/C/README.xaw, interface/arrow.xbm, interface/check.xbm,
+	  interface/Makefile.am, interface/off.xbm, interface/on.xbm,
+	  interface/xaw_c.c, interface/xaw.h, interface/xaw_i.c,
+	  Makefile.am, Makefile.in, script/unix2dos.sh, timidity/aiff_a.c,
+	  timidity/au_a.c, timidity/common.c, timidity/flac_a.c,
+	  timidity/gogo_a.c, timidity/m2m.c, timidity/midi_a.c,
+	  timidity/modmid_a.c, imidity/output.h, timidity/playmidi.c,
+	  timidity/raw_a.c, timidity/speex_a.c, timidity/vorbis_a.c,
+	  timidity/wave_a.c: some improvements of XAW interface.
+	* interface/bitmaps/arrow.xbm, interface/bitmaps/check.xbm,
+	  interface/bitmaps/fast.xbm, interface/bitmaps/keydown.xbm,
+	  interface/bitmaps/keyup.xbm, interface/bitmaps/off.xbm,
+	  interface/bitmaps/on.xbm, interface/bitmaps/slow.xbm,
+	  interface/xdnd.c, interface/xdnd.h, interface/x_trace.c,
+	  interface/x_trace.h, TiMidity.ad, TiMidity-uj.ad: add
+	* TiMidity.ad.in, TiMidity-uj.ad.in: remove
+
+2008-04-01  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	a patch by Milan Zamazal
+	* timidity/playmidi.c, timidity/playmidi.h, timidity/readmidi.c,
+	  timidity/timidity.c: add preserve-silence option
+
+2008-03-31  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	a patch from Yair K.
+	* configure.in, utils/support.c, utils/support.h: fix-snprintf-crash
+
+2008-03-30  Keishi Suenaga <skeishi@yahoo.co.jp>
+
 	patches from Yair K.
-	* libarc/arc_tar.c       fix-archive-add-crash
-	* timidity/reverb.c      fix-reverb-crash-from-Debian
-	* timidity/miditrace.c   fix-soundspec-in-trace-mode
-	* autoconf/utils.m4
-	  configure.in
-	  timidity/Makefile.am
-	  timidity/midi_a.c
-	  timidity/output.c
-	  timidity/reverb.c
-	  timidity/reverb.h
-	  timidity/sun_a.c
-	  timidity/sysdep.h       for support OpenBSD
+	* libarc/arc_tar.c: fix archive add crash
+	* timidity/reverb.c: fix reverb crash from Debian
+	* timidity/miditrace.c: fix soundspec in trace mode
+	* autoconf/utils.m4, configure.in, timidity/Makefile.am,
+	  timidity/midi_a.c, timidity/output.c, timidity/reverb.c,
+	  timidity/reverb.h, timidity/sun_a.c, timidity/sysdep.h:
+	  for support OpenBSD
 
-2008-3-28  Stas Sergeev <stsp@aknet.ru>
-	* timidity/midi_a.c	 remove gnuc extensions
+2008-03-28  Stas Sergeev <stsp@aknet.ru>
 
-2007-3-10  Keishi Suenaga <skeishi@yahoo.co.jp>
+	* timidity/midi_a.c: remove gnuc extensions
 
-	* interface/npsyn_c.c
-	  interface/rtsyn.h
-	  interface/rtsyn_common.c
-	  interface/rtsyn_npipe.c
-	  timidity/npipe_a.c
-	  timidity/playmidi.c
-	  timidity/portaudio_a.c
-	  timidity/timidity.c
-	  utils/timer.c:          Windows Named Pipe interface.
-	  
-2007-02-09  Keishi Suenaga <skeishi@yahoo.co.jp>
+2007-03-10  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* interface.h.in:       Windows Named Pipe
-	* timidity/timidity.c:  fix typo
+	* interface/npsyn_c.c, interface/rtsyn.h, interface/rtsyn_common.c,
+	  interface/rtsyn_npipe.c, timidity/npipe_a.c, timidity/playmidi.c,
+	  timidity/portaudio_a.c, timidity/timidity.c, utils/timer.c:
+	  Windows Named Pipe interface.
 
 2007-02-09  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* configure.in
-	  interface/Makefile.am
-	  interface/npsyn_c.c (add)
-	  interface/rtsyn.h
-	  interface/rtsyn_common.c
-	  interface/rtsyn_npipe.c (add)
-	  timidity/Makefile.am
-	  timidity/npipe_a.c (add)
-	  timidity/output.c
-	  timidity/timidity.c       
-	  timidity/controls.c:      Windows Named Pipe Interface(new)
-	* timidity/resample.c       small fix frreing gauss_table.
-	* windrv/timiditydrv.c
-	* windrv/timiwp_timidity.c: fix for WindowsMediaPlayer.
+	* interface.h.in: Windows Named Pipe interface
+	* timidity/timidity.c: fix typo
+
+2007-02-09  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* configure.in, interface/Makefile.am, interface/rtsyn.h,
+	  interface/rtsyn_common.c, timidity/Makefile.am, timidity/output.c,
+	  timidity/timidity.c, timidity/controls.c:
+	  Windows Named Pipe interface (new)
+	* interface/npsyn_c.c, interface/rtsyn_npipe.c, timidity/npipe_a.c:
+	  (add)
+	* timidity/resample.c: small fix freeing gauss_table.
+	* windrv/timiditydrv.c, windrv/timiwp_timidity.c:
+	  fix for WindowsMediaPlayer.
 
 2007-01-28  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* interface/rtsyn_common.c: fix sysex check 
-	* timidity/portaudio_a.c    small fix for compiling
-	* timidity/timidity.c       w32 cfg file sequence changed
-	                            option > exe dir > win dir
-	                            w32 set stdin&out binarymode
-	* timidity/w32_a.c          small fix for compiling
-	* windrv/Makefile.am        re-add add timidity.idl
-	* windrv/timiditydrv.c      re-add MIDIOUTCAPS2A(W)
-	* windrv/timiditydrv.idl    re-add
+	* interface/rtsyn_common.c: fix sysex check
+	* timidity/portaudio_a.c, timidity/w32_a.c: small fix for compiling
+	* timidity/timidity.c: w32 cfg file sequence changed
+	  (option > exe dir > win dir).  w32 set stdin&out binarymode
+	* windrv/Makefile.am, windrv/timiditydrv.idl: re-add timidity.idl
+	* windrv/timiditydrv.c: re-add MIDIOUTCAPS2A(W)
 
 2007-01-14  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-    * timidity/flac_a.c
-      timidity/gogo_a.c
-      timidity/speex_a.c
-      timidity/vorbis_a.c
-      timidity/wave_a.c
-      timidity/output_a.c: fix for autofilename
+	* timidity/flac_a.c, timidity/gogo_a.c, timidity/speex_a.c,
+	  timidity/vorbis_a.c, timidity/wave_a.c, timidity/output_a.c:
+	  fix for autofilename
 
 2007-01-13  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-    * timidity/wave_a.c: fix for server interface.
+	* timidity/wave_a.c: fix for server interface.
 
 2007-01-12  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-    * timidity/wave_a.c: fix for autofilname.
+	* timidity/wave_a.c: fix for autofilename.
 
 2007-01-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

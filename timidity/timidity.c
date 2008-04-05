@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2007 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2008 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -165,6 +165,7 @@ enum {
 	TIM_OPT_RT_PRIO,
 	TIM_OPT_SEQ_PORTS,
 	TIM_OPT_RTSYN_LATENCY,
+	TIM_OPT_OUTPUT_DEVICE,
 	TIM_OPT_REALTIME_LOAD,
 	TIM_OPT_ADJUST_KEY,
 	TIM_OPT_VOICE_QUEUE,
@@ -178,7 +179,6 @@ enum {
 	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
-	TIM_OPT_OUTPUT_DEVICE,
 	TIM_OPT_FLAC_VERIFY,
 	TIM_OPT_FLAC_PADDING,
 	TIM_OPT_FLAC_COMPLEVEL,
@@ -196,6 +196,7 @@ enum {
 	TIM_OPT_POLY_REDUCE,
 	TIM_OPT_MUTE,
 	TIM_OPT_TEMPER_MUTE,
+	TIM_OPT_PRESERVE_SILENCE,
 	TIM_OPT_AUDIO_BUFFER,
 	TIM_OPT_CACHE_SIZE,
 	TIM_OPT_SAMPLE_FREQ,
@@ -210,7 +211,6 @@ enum {
 	TIM_OPT_FREQ_TABLE,
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
-	TIM_OPT_PRESERVE_SILENCE,
 	/* last entry */
 	TIM_OPT_LAST = TIM_OPT_PURE_INT
 };
@@ -301,6 +301,9 @@ static const struct option longopts[] = {
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 #endif
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	{ "output-device",          required_argument, NULL, TIM_OPT_OUTPUT_DEVICE },
+#endif
 	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
 	{ "realtime-load",          optional_argument, NULL, TIM_OPT_REALTIME_LOAD },
 	{ "adjust-key",             required_argument, NULL, TIM_OPT_ADJUST_KEY },
@@ -322,9 +325,6 @@ static const struct option longopts[] = {
 	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "no-output-swab",         no_argument,       NULL, TIM_OPT_OUTPUT_SWAB },
 	{ "output-swab",            optional_argument, NULL, TIM_OPT_OUTPUT_SWAB },
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	{ "output-device",          required_argument, NULL, TIM_OPT_OUTPUT_DEVICE },
-#endif
 #ifdef AU_FLAC
 	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
 	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
@@ -349,6 +349,7 @@ static const struct option longopts[] = {
 	{ "polyphony-reduction",    optional_argument, NULL, TIM_OPT_POLY_REDUCE },
 	{ "mute",                   required_argument, NULL, TIM_OPT_MUTE },
 	{ "temper-mute",            required_argument, NULL, TIM_OPT_TEMPER_MUTE },
+	{ "preserve-silence",       no_argument,       NULL, TIM_OPT_PRESERVE_SILENCE },
 	{ "audio-buffer",           required_argument, NULL, TIM_OPT_AUDIO_BUFFER },
 	{ "cache-size",             required_argument, NULL, TIM_OPT_CACHE_SIZE },
 	{ "sampling-freq",          required_argument, NULL, TIM_OPT_SAMPLE_FREQ },
@@ -366,7 +367,6 @@ static const struct option longopts[] = {
 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
-	{ "preserve-silence",       no_argument,       NULL, TIM_OPT_PRESERVE_SILENCE },
 	{ NULL,                     no_argument,       NULL, '\0'     }
 };
 #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWNP"
@@ -459,6 +459,9 @@ static inline int parse_opt_seq_ports(const char *);
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 static inline int parse_opt_rtsyn_latency(const char *);
 #endif
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+static inline int parse_opt_output_device(const char *);
+#endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
 static inline int parse_opt_k(const char *);
@@ -472,9 +475,6 @@ static inline int parse_opt_output_signed(const char *);
 static inline int parse_opt_output_bitwidth(const char *);
 static inline int parse_opt_output_format(const char *);
 static inline int parse_opt_output_swab(const char *);
-#if defined(AU_PORTAUDIO) || defined(AU_W32)
-static inline int parse_opt_output_device(const char *);
-#endif
 #ifdef AU_FLAC
 static inline int parse_opt_flac_verify(const char *);
 static inline int parse_opt_flac_padding(const char *);
@@ -498,6 +498,7 @@ static inline int parse_opt_p(const char *);
 static inline int parse_opt_p1(const char *);
 static inline int parse_opt_Q(const char *);
 static inline int parse_opt_Q1(const char *);
+static inline int parse_opt_preserve_silence(const char *);
 static inline int parse_opt_q(const char *);
 static inline int parse_opt_R(const char *);
 static inline int parse_opt_S(const char *);
@@ -516,7 +517,6 @@ static inline int parse_opt_x(char *);
 static inline void expand_escape_string(char *);
 static inline int parse_opt_Z(char *);
 static inline int parse_opt_Z1(const char *);
-static inline int parse_opt_preserve_silence(const char *);
 static inline int parse_opt_default_module(const char *);
 __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
@@ -604,26 +604,21 @@ CRITICAL_SECTION critSect;
 static BOOL WINAPI handler(DWORD dw)
 {
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN)
-	if( ctl->id_character == 'W' 
-		|| ctl->id_character == 'P' )
-	{
-    	rtsyn_midiports_close();
-	}
+	if (ctl->id_character == 'W' || ctl->id_character == 'P')
+		rtsyn_midiports_close();
 #endif
-
-
-//#if defined(IA_NPSYN)
-//	if( ctl->id_character == 'N')
-//	{
-//		return FALSE;  //why FALSE need?  It must close by intr++;
-//	}
-//#endif
-	printf ("***BREAK" NLS); fflush(stdout);
-    intr++;
-    return TRUE;
+#if 0
+#if defined(IA_NPSYN)
+	if (ctl->id_character == 'N')
+		return FALSE;	/* why FALSE need?  It must close by intr++; */
+#endif
+#endif
+	printf ("***BREAK" NLS);
+	fflush(stdout);
+	intr++;
+	return TRUE;
 }
 #endif
-
 
 int effect_lr_mode = -1;
 /* 0: left delay
@@ -2668,6 +2663,7 @@ MAIN_INTERFACE int set_tim_opt_short(int c, char *optarg)
 	}
 	return 0;
 }
+
 MAIN_INTERFACE int set_tim_opt_short_cfg(int c, char *optarg)
 {
 	int err = 0;
@@ -2794,6 +2790,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case TIM_OPT_RTSYN_LATENCY:
 		return parse_opt_rtsyn_latency(arg);
 #endif
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	case TIM_OPT_OUTPUT_DEVICE:
+		return parse_opt_output_device(arg);
+#endif
 	case TIM_OPT_REALTIME_LOAD:
 		return parse_opt_j(arg);
 	case TIM_OPT_ADJUST_KEY:
@@ -2838,10 +2838,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_output_format(arg);
 	case TIM_OPT_OUTPUT_SWAB:
 		return parse_opt_output_swab(arg);
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	case TIM_OPT_OUTPUT_DEVICE:
-		return parse_opt_output_device(arg);
-#endif
 #ifdef AU_FLAC
 	case TIM_OPT_FLAC_VERIFY:
 		return parse_opt_flac_verify(arg);
@@ -2882,6 +2878,8 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Q(arg);
 	case TIM_OPT_TEMPER_MUTE:
 		return parse_opt_Q1(arg);
+	case TIM_OPT_PRESERVE_SILENCE:
+		return parse_opt_preserve_silence(arg);
 	case TIM_OPT_AUDIO_BUFFER:
 		return parse_opt_q(arg);
 	case TIM_OPT_CACHE_SIZE:
@@ -2912,14 +2910,13 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_Z1(arg);
 	case TIM_OPT_MODULE:
 		return parse_opt_default_module(arg);
-	case TIM_OPT_PRESERVE_SILENCE:
-		return parse_opt_preserve_silence(arg);
 	default:
 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
 				"[BUG] Inconceivable case branch %d", c);
 		abort();
 	}
 }
+
 MAIN_INTERFACE int set_tim_opt_long_cfg(int c, char *optarg, int index)
 {
 	const struct option *the_option = &(longopts[index]);
@@ -2998,7 +2995,8 @@ static inline int parse_opt_C(const char *arg)
 static inline int parse_opt_c(char *arg)
 {
 #ifdef __W32__
-	if(got_a_configuration == 1) return 0;
+	if (got_a_configuration == 1)
+		return 0;
 #endif
 	if (read_config_file(arg, 0))
 		return 1;
@@ -3701,6 +3699,11 @@ static int parse_opt_h(const char *arg)
 "               Set the realtime latency (sec)",
 "                 (default is 0.2 sec, minimum is 0.04 sec)",
 #endif
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+"             --output-device=n (for portaudio only)",
+"               Set the output device ID",
+"                 (n=-1 shows available device list)",
+#endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",
 "  -K n       --adjust-key=n",
@@ -3763,12 +3766,12 @@ static int parse_opt_h(const char *arg)
 "               Allow n-voice polyphony.  Optional auto polyphony reduction",
 "     (a)     --[no-]polyphony-reduction",
 "               Toggle automatic polyphony reduction.  Enabled by default",
-"             --preserve-silence",
-"               Do not drop initial silence. Default: drop initial silence",
 "  -Q n[,...] --mute=n[,...]",
 "               Ignore channel n (0: ignore all, -n: resume channel n)",
 "     (t)     --temper-mute=n[,...]",
 "               Quiet temperament type n (0..3: preset, 4..7: user-defined)",
+"             --preserve-silence",
+"               Do not drop initial silence.  Default: drop initial silence",
 "  -q sec/n   --audio-buffer=sec/n",
 "               Specify audio buffer in seconds",
 "                 sec: Maxmum buffer, n: Filled to start (default is 5.0/100%%)",
@@ -4003,11 +4006,6 @@ static int parse_opt_h(const char *arg)
 "  `A'          A-Law encoding" NLS
 "  `x'          byte-swapped output" NLS, fp);
 	fputs(NLS, fp);
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	fputs("Output device options (append to -O? option):" NLS
-"  `d(n)'       Output device ID (blank shows available device list)" NLS, fp);
-	fputs(NLS, fp);
-#endif
 	fputs("Alternative output format long options:" NLS
 "  --output-stereo" NLS
 "  --output-mono" NLS
@@ -4021,12 +4019,6 @@ static int parse_opt_h(const char *arg)
 "  --output-alaw" NLS
 "  --[no-]output-swab" NLS, fp);
 	fputs(NLS, fp);
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	fputs("Alternative output device long options:" NLS
-"  --output-device=n  (n=-1 shows available device list)" NLS, fp);
-	fputs(NLS, fp);
-#endif
-
 	fputs("Available WRD interfaces (-W, --wrd option):" NLS, fp);
 	for (wlpp = wrdt_list; (wlp = *wlpp) != NULL; wlpp++)
 		fprintf(fp, "  -W%c          %s" NLS, wlp->id, wlp->name);
@@ -4277,6 +4269,49 @@ static inline int parse_opt_rtsyn_latency(const char *arg)
 }
 #endif
 
+#if defined(AU_PORTAUDIO)
+static inline int parse_opt_output_device(const char *arg)
+{
+	int ret;
+	
+	if (arg == NULL)
+		return 1;
+	if ((play_mode->id_character == 'p')
+			|| (play_mode->id_character == 'P')
+			|| (play_mode->id_character == 'o')) {
+		ret = sscanf(arg, "%d", &opt_pa_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_pa_device_id == -1) {
+			opt_pa_device_id = -2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
+#if defined(AU_W32)
+static inline int parse_opt_output_device(const char *arg)
+{
+	int ret;
+	
+	if (arg == NULL)
+		return 1;
+	if (play_mode->id_character == 'd') {
+		ret = sscanf(arg, "%d", &opt_wmme_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_wmme_device_id == -1) {
+			opt_wmme_device_id = -2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
+
 static inline int parse_opt_j(const char *arg)
 {
 	opt_realtime_playing = y_or_n_p(arg);
@@ -4404,42 +4439,6 @@ static inline int parse_opt_O(const char *arg)
 			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
 			break;
-#if defined(AU_PORTAUDIO) || defined(AU_W32)
-		case 'd':
-#ifdef AU_PORTAUDIO
-			if (play_mode->id_character == 'p'
-					|| play_mode->id_character == 'P'
-					|| play_mode->id_character == 'o') {
-				int ret;
-				
-				ret = sscanf(arg + 1, "%d", &opt_pa_device_id);
-				if (ret != 0 && ret != EOF)
-					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
-						arg++;
-				else {
-					opt_pa_device_id = -2;
-					play_mode->open_output();
-					return 1;
-				}
-			}
-#endif
-#ifdef AU_W32
-			if (play_mode->id_character == 'd') {
-				int ret;
-				
-				ret = sscanf(arg + 1, "%d", &opt_wmme_device_id);
-				if (ret != 0 && ret != EOF)
-					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
-						arg++;
-				else {
-					opt_wmme_device_id = -2;
-					play_mode->open_output();
-					return 1;
-				}
-			}
-#endif
-			break;
-#endif
 		default:
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Unknown format modifier `%c'", *arg);
@@ -4524,45 +4523,6 @@ static inline int parse_opt_output_swab(const char *arg)
 	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
 	return 0;
 }
-
-#if defined(AU_PORTAUDIO) || defined(AU_W32)
-static inline int parse_opt_output_device(const char *arg)
-{
-	if (arg == NULL)
-		return 1;
-#ifdef AU_PORTAUDIO
-	if ((play_mode->id_character == 'p')
-			|| (play_mode->id_character == 'P')
-			|| (play_mode->id_character == 'o')) {
-		int ret;
-		
-		ret = sscanf(arg, "%d", &opt_pa_device_id);
-		if (ret == 0 || ret == EOF)
-			return 1;
-		if (opt_pa_device_id == -1) {
-			opt_pa_device_id = -2;
-			play_mode->open_output();
-			return 1;
-		}
-	}
-#endif
-#ifdef AU_W32
-	if (play_mode->id_character == 'd') {
-		int ret;
-		
-		ret = sscanf(arg, "%d", &opt_wmme_device_id);
-		if (ret == 0 || ret == EOF)
-			return 1;
-		if (opt_wmme_device_id == -1) {
-			opt_wmme_device_id = -2;
-			play_mode->open_output();
-			return 1;
-		}
-	}
-#endif
-	return 0;
-}
-#endif
 
 #ifdef AU_FLAC
 extern void flac_set_option_verify(int);
@@ -4711,6 +4671,12 @@ static inline int parse_opt_Q1(const char *arg)
 			return 1;
 		temper_type_mute |= 1 << prog;
 	}
+	return 0;
+}
+
+static inline int parse_opt_preserve_silence(const char *arg)
+{
+	opt_preserve_silence = 1;
 	return 0;
 }
 
@@ -4992,12 +4958,6 @@ static inline int parse_opt_default_module(const char *arg)
 	if (opt_default_module < 0)
 		opt_default_module = 0;
 	return 0;
-}
-
-static inline int parse_opt_preserve_silence(const char *arg)
-{
-        opt_preserve_silence = 1;
-       return 0;
 }
 
 __attribute__((noreturn))
@@ -5877,7 +5837,8 @@ int main(int argc, char **argv)
 	files  = argv + optind;
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
-			&& ctl->id_character != 'W' && ctl->id_character != 'N' && ctl->id_character != 'P')
+			&& ctl->id_character != 'W' && ctl->id_character != 'N'
+			&& ctl->id_character != 'P')
 		files = expand_file_archives(files, &nfiles);
 	if (nfiles > 0)
 		files_nbuf = files[0];
@@ -5900,11 +5861,11 @@ int main(int argc, char **argv)
 	w32g_free_doc();
 #else
 #ifdef IA_NPSYN
-	timeBeginPeriod( 1 );
+	timeBeginPeriod(1);
 #endif 
 	main_ret = timidity_play_main(nfiles, files);
 #ifdef IA_NPSYN
-	timeEndPeriod( 1 );
+	timeEndPeriod(1);
 #endif 
 #ifdef IA_W32G_SYN
 	if (CoInitializeOK)
@@ -5940,7 +5901,8 @@ int main(int argc, char **argv)
 		free(wrdt_open_opts);
 	if (nfiles > 0
 			&& ctl->id_character != 'r' && ctl->id_character != 'A'
-			&& ctl->id_character != 'W' && ctl->id_character != 'N'  && ctl->id_character != 'P') {
+			&& ctl->id_character != 'W' && ctl->id_character != 'N'
+			&& ctl->id_character != 'P') {
 		free(files_nbuf);
 		free(files);
 	}
