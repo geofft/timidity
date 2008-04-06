@@ -165,7 +165,6 @@ enum {
 	TIM_OPT_RT_PRIO,
 	TIM_OPT_SEQ_PORTS,
 	TIM_OPT_RTSYN_LATENCY,
-	TIM_OPT_OUTPUT_DEVICE,
 	TIM_OPT_REALTIME_LOAD,
 	TIM_OPT_ADJUST_KEY,
 	TIM_OPT_VOICE_QUEUE,
@@ -179,6 +178,7 @@ enum {
 	TIM_OPT_OUTPUT_BITWIDTH,
 	TIM_OPT_OUTPUT_FORMAT,
 	TIM_OPT_OUTPUT_SWAB,
+	TIM_OPT_OUTPUT_DEVICE,
 	TIM_OPT_FLAC_VERIFY,
 	TIM_OPT_FLAC_PADDING,
 	TIM_OPT_FLAC_COMPLEVEL,
@@ -301,9 +301,6 @@ static const struct option longopts[] = {
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 	{ "rtsyn-latency",          required_argument, NULL, TIM_OPT_RTSYN_LATENCY },
 #endif
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	{ "output-device",          required_argument, NULL, TIM_OPT_OUTPUT_DEVICE },
-#endif
 	{ "no-realtime-load",       no_argument,       NULL, TIM_OPT_REALTIME_LOAD },
 	{ "realtime-load",          optional_argument, NULL, TIM_OPT_REALTIME_LOAD },
 	{ "adjust-key",             required_argument, NULL, TIM_OPT_ADJUST_KEY },
@@ -325,6 +322,9 @@ static const struct option longopts[] = {
 	{ "output-alaw",            no_argument,       NULL, TIM_OPT_OUTPUT_FORMAT },
 	{ "no-output-swab",         no_argument,       NULL, TIM_OPT_OUTPUT_SWAB },
 	{ "output-swab",            optional_argument, NULL, TIM_OPT_OUTPUT_SWAB },
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	{ "output-device",          required_argument, NULL, TIM_OPT_OUTPUT_DEVICE },
+#endif
 #ifdef AU_FLAC
 	{ "flac-verify",            no_argument,       NULL, TIM_OPT_FLAC_VERIFY },
 	{ "flac-padding",           required_argument, NULL, TIM_OPT_FLAC_PADDING },
@@ -459,9 +459,6 @@ static inline int parse_opt_seq_ports(const char *);
 #if defined(IA_WINSYN) || defined(IA_PORTMIDISYN) || defined(IA_NPSYN) || defined(IA_W32G_SYN) || defined(IA_W32GUI)
 static inline int parse_opt_rtsyn_latency(const char *);
 #endif
-#if defined(AU_PORTAUDIO) || defined(AU_W32)
-static inline int parse_opt_output_device(const char *);
-#endif
 static inline int parse_opt_j(const char *);
 static inline int parse_opt_K(const char *);
 static inline int parse_opt_k(const char *);
@@ -475,6 +472,9 @@ static inline int parse_opt_output_signed(const char *);
 static inline int parse_opt_output_bitwidth(const char *);
 static inline int parse_opt_output_format(const char *);
 static inline int parse_opt_output_swab(const char *);
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+static inline int parse_opt_output_device(const char *);
+#endif
 #ifdef AU_FLAC
 static inline int parse_opt_flac_verify(const char *);
 static inline int parse_opt_flac_padding(const char *);
@@ -2790,10 +2790,6 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 	case TIM_OPT_RTSYN_LATENCY:
 		return parse_opt_rtsyn_latency(arg);
 #endif
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-	case TIM_OPT_OUTPUT_DEVICE:
-		return parse_opt_output_device(arg);
-#endif
 	case TIM_OPT_REALTIME_LOAD:
 		return parse_opt_j(arg);
 	case TIM_OPT_ADJUST_KEY:
@@ -2838,6 +2834,10 @@ MAIN_INTERFACE int set_tim_opt_long(int c, char *optarg, int index)
 		return parse_opt_output_format(arg);
 	case TIM_OPT_OUTPUT_SWAB:
 		return parse_opt_output_swab(arg);
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+	case TIM_OPT_OUTPUT_DEVICE:
+		return parse_opt_output_device(arg);
+#endif
 #ifdef AU_FLAC
 	case TIM_OPT_FLAC_VERIFY:
 		return parse_opt_flac_verify(arg);
@@ -3699,11 +3699,6 @@ static int parse_opt_h(const char *arg)
 "               Set the realtime latency (sec)",
 "                 (default is 0.2 sec, minimum is 0.04 sec)",
 #endif
-#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
-"             --output-device=n (for portaudio only)",
-"               Set the output device ID",
-"                 (n=-1 shows available device list)",
-#endif
 "  -j         --[no-]realtime-load",
 "               Realtime load instrument (toggle on/off)",
 "  -K n       --adjust-key=n",
@@ -3730,6 +3725,10 @@ static int parse_opt_h(const char *arg)
 "                   n+1 point Gauss-like interpolation, n=1-34 (default 25)",
 "  -O mode    --output-mode=mode",
 "               Select output mode and format (see below for list)",
+#if defined(AU_PORTAUDIO) || defined(AU_WIN32)
+"     d n     --output-device=n (for portaudio only)",
+"               Set the output device ID (n=-1 shows available device list)",
+#endif
 #ifdef AU_FLAC
 "             --flac-verify (for Ogg FLAC only)",
 "               Verify a correct encoding",
@@ -4269,49 +4268,6 @@ static inline int parse_opt_rtsyn_latency(const char *arg)
 }
 #endif
 
-#if defined(AU_PORTAUDIO)
-static inline int parse_opt_output_device(const char *arg)
-{
-	int ret;
-	
-	if (arg == NULL)
-		return 1;
-	if ((play_mode->id_character == 'p')
-			|| (play_mode->id_character == 'P')
-			|| (play_mode->id_character == 'o')) {
-		ret = sscanf(arg, "%d", &opt_pa_device_id);
-		if (ret == 0 || ret == EOF)
-			return 1;
-		if (opt_pa_device_id == -1) {
-			opt_pa_device_id = -2;
-			play_mode->open_output();
-			return 1;
-		}
-	}
-	return 0;
-}
-#endif
-#if defined(AU_W32)
-static inline int parse_opt_output_device(const char *arg)
-{
-	int ret;
-	
-	if (arg == NULL)
-		return 1;
-	if (play_mode->id_character == 'd') {
-		ret = sscanf(arg, "%d", &opt_wmme_device_id);
-		if (ret == 0 || ret == EOF)
-			return 1;
-		if (opt_wmme_device_id == -1) {
-			opt_wmme_device_id = -2;
-			play_mode->open_output();
-			return 1;
-		}
-	}
-	return 0;
-}
-#endif
-
 static inline int parse_opt_j(const char *arg)
 {
 	opt_realtime_playing = y_or_n_p(arg);
@@ -4383,6 +4339,9 @@ static inline int parse_opt_O(const char *arg)
 	/* output mode */
 	PlayMode *pmp, **pmpp;
 	int found = 0;
+#if defined(AU_PORTAUDIO) || defined(AU_W32)
+	int ret;
+#endif
 	
 	for (pmpp = play_mode_list; (pmp = *pmpp) != NULL; pmpp++)
 		if (pmp->id_character == *arg) {
@@ -4439,6 +4398,38 @@ static inline int parse_opt_O(const char *arg)
 			pmp->encoding ^= PE_BYTESWAP;	/* toggle */
 			pmp->encoding &= ~(PE_ULAW | PE_ALAW);
 			break;
+#ifdef AU_PORTAUDIO
+		case 'd':
+			if (play_mode->id_character == 'p'
+					|| play_mode->id_character == 'P'
+					|| play_mode->id_character == 'o') {
+				ret = sscanf(arg + 1, "%d", &opt_pa_device_id);
+				if (ret != 0 && ret != EOF)
+					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
+						arg++;
+				else {
+					opt_pa_device_id = -2;
+					play_mode->open_output();
+					return 1;
+				}
+			}
+			break;
+#endif
+#ifdef AU_W32
+		case 'd':
+			if (play_mode->id_character == 'd') {
+				ret = sscanf(arg + 1, "%d", &opt_wmme_device_id);
+				if (ret != 0 && ret != EOF)
+					while (*(arg + 1) >= '0' && *(arg + 1) <= '9')
+						arg++;
+				else {
+					opt_wmme_device_id = -2;
+					play_mode->open_output();
+					return 1;
+				}
+			}
+			break;
+#endif
 		default:
 			ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 					"Unknown format modifier `%c'", *arg);
@@ -4523,6 +4514,49 @@ static inline int parse_opt_output_swab(const char *arg)
 	play_mode->encoding &= ~(PE_ULAW | PE_ALAW);
 	return 0;
 }
+
+#if defined(AU_PORTAUDIO)
+static inline int parse_opt_output_device(const char *arg)
+{
+	int ret;
+	
+	if (arg == NULL)
+		return 1;
+	if (play_mode->id_character == 'p'
+			|| play_mode->id_character == 'P'
+			|| play_mode->id_character == 'o') {
+		ret = sscanf(arg, "%d", &opt_pa_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_pa_device_id == -1) {
+			opt_pa_device_id = -2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
+#if defined(AU_W32)
+static inline int parse_opt_output_device(const char *arg)
+{
+	int ret;
+	
+	if (arg == NULL)
+		return 1;
+	if (play_mode->id_character == 'd') {
+		ret = sscanf(arg, "%d", &opt_wmme_device_id);
+		if (ret == 0 || ret == EOF)
+			return 1;
+		if (opt_wmme_device_id == -1) {
+			opt_wmme_device_id = -2;
+			play_mode->open_output();
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
 
 #ifdef AU_FLAC
 extern void flac_set_option_verify(int);

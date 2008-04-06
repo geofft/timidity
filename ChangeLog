@@ -1,11 +1,17 @@
+2008-04-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Revert short -Od(n) option for output
+	  device ID
+
 2008-04-06  Keishi Suenaga <skeishi@yahoo.co.jp>
-	* timidity/w32_libFLAC_dll.c
-	  timidity/w32_libFLAC_dll_g.h support new flac dll(1.2.1)
-	  
+
+	* timidity/w32_libFLAC_dll.c, timidity/w32_libFLAC_dll_g.h:
+	  support new flac dll(1.2.1)
+
 2008-04-06  Keishi Suenaga <skeishi@yahoo.co.jp>
-	* timidity/common.c
-	  timidity/speex_a.c     fix compliation
-	* timidity/midi_a.c      BorlancC patch
+
+	* timidity/common.c, timidity/speex_a.c: fix compliation
+	* timidity/midi_a.c: BorlancC patch
 
 2008-04-05  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
