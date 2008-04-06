@@ -3,6 +3,8 @@
 #ifndef __libFLAC_dll_g_h__
 #define __libFLAC_dll_g_h__
 
+#if defined(LEGACY_FLAC)
+
 #include "w32_libFLAC_dll_i.h"
 
 /***************************************************************
@@ -361,5 +363,60 @@ extern void g_free_libFLAC_dll ( void );
 #endif
 /***************************************************************/
 
+	
+#else  /* defined(LEGACY_FLAC) */
+	
+	
+	 extern const char * const *  *g_FLAC__StreamEncoderInitStatusString;
+	 extern const char * const *  *g_FLAC__StreamEncoderStateString;
+	 extern const char * const *  *g_FLAC__StreamDecoderStateString;
+
+	 extern const char * const *  *g_FLAC__StreamDecoderErrorStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderInitStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderLengthStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderReadStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderSeekStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderTellStatusString;
+	 extern const char * const *  *g_FLAC__StreamDecoderWriteStatusString;
+	 extern const char * const *  *g_FLAC__StreamEncoderSeekStatusString;
+	 extern const char * const *  *g_FLAC__StreamEncoderTellStatusString;
+	 extern const char * const *  *g_FLAC__StreamEncoderWriteStatusString;
+	 extern const char * const *  *g_FLAC__StreamEncoderReadStatusString;
+
+	 extern const char * const *  *g_FLAC__ChannelAssignmentString;
+	 extern const char * const *  *g_FLAC__EntropyCodingMethodTypeString;
+	 extern const char * const *  *g_FLAC__FrameNumberTypeString;
+	 extern const char * const *  *g_FLAC__MetadataTypeString;
+	 extern const char * const *  *g_FLAC__Metadata_ChainStatusString;
+	 extern const char * const *  *g_FLAC__Metadata_SimpleIteratorStatusString;
+	 extern const char * const *  *g_FLAC__StreamMetadata_Picture_TypeString;
+	 extern const char * const *  *g_FLAC__SubframeTypeString;
+
+#define FLAC__StreamEncoderInitStatusString *g_FLAC__StreamEncoderInitStatusString
+#define FLAC__StreamEncoderStateString *g_FLAC__StreamEncoderStateString
+#define FLAC__StreamDecoderStateString *g_FLAC__StreamDecoderStateString
+
+#define FLAC__StreamDecoderErrorStatusString *g_FLAC__StreamDecoderErrorStatusString
+#define FLAC__StreamDecoderInitStatusString *g_FLAC__StreamDecoderInitStatusString
+#define FLAC__StreamDecoderLengthStatusString *g_FLAC__StreamDecoderLengthStatusString
+#define FLAC__StreamDecoderReadStatusString *g_FLAC__StreamDecoderReadStatusString
+#define FLAC__StreamDecoderSeekStatusString *g_FLAC__StreamDecoderSeekStatusString
+#define FLAC__StreamDecoderTellStatusString  *g_FLAC__StreamDecoderTellStatusString 
+#define FLAC__StreamDecoderWriteStatusString  *g_FLAC__StreamDecoderWriteStatusString 
+#define FLAC__StreamEncoderSeekStatusString *g_FLAC__StreamEncoderSeekStatusString
+#define FLAC__StreamEncoderTellStatusString *g_FLAC__StreamEncoderTellStatusString
+#define FLAC__StreamEncoderWriteStatusString *g_FLAC__StreamEncoderWriteStatusString
+#define FLAC__StreamEncoderReadStatusString *g_FLAC__StreamEncoderReadStatusString
+
+#define FLAC__ChannelAssignmentString *g_FLAC__ChannelAssignmentString
+#define FLAC__EntropyCodingMethodTypeString *g_FLAC__EntropyCodingMethodTypeString
+#define FLAC__FrameNumberTypeString *g_FLAC__FrameNumberTypeString
+#define FLAC__MetadataTypeString *g_FLAC__MetadataTypeString
+#define FLAC__Metadata_ChainStatusString  *g_FLAC__Metadata_ChainStatusString 
+#define FLAC__Metadata_SimpleIteratorStatusString  *g_FLAC__Metadata_SimpleIteratorStatusString 
+#define FLAC__StreamMetadata_Picture_TypeString *g_FLAC__StreamMetadata_Picture_TypeString
+#define FLAC__SubframeTypeString *g_FLAC__SubframeTypeString
+	
+#endif  /* defined(LEGACY_FLAC) */
 #endif  /* __libFLAC_dll_g_h__ */
 

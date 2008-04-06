@@ -1,4 +1,8 @@
 2008-04-06  Keishi Suenaga <skeishi@yahoo.co.jp>
+	* timidity/w32_libFLAC_dll.c
+	  timidity/w32_libFLAC_dll_g.h support new flac dll(1.2.1)
+	  
+2008-04-06  Keishi Suenaga <skeishi@yahoo.co.jp>
 	* timidity/common.c
 	  timidity/speex_a.c     fix compliation
 	* timidity/midi_a.c      BorlancC patch
