@@ -38,6 +38,8 @@
 #include "playmidi.h"
 #include "miditrace.h"
 
+static int opt_ao_device_id = -2;
+
 static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
 static void close_output(void);
 static int output_data(char *buf, int32 nbytes);
@@ -62,7 +64,7 @@ PlayMode dpm = {
 static ao_device *ao_device_ctx;
 static ao_sample_format ao_sample_format_ctx;
 
-void show_ao_device_info(FILE *fp)
+static void show_ao_device_info(FILE *fp)
 {
   int driver_count;
   ao_info **devices;
@@ -70,20 +72,15 @@ void show_ao_device_info(FILE *fp)
 
   ao_initialize();
 
-  fputs("Output device name (ao only):" NLS
-"  -o device    ", fp);
-
   devices  = ao_driver_info_list(&driver_count);
   if (driver_count < 1) {
 	  fputs("*no device found*" NLS, fp);
   }
   else {
-	  fputs("[ ", fp);
 	  for(i = 0; i < driver_count; i++) {
 		  if (devices[i]->type == AO_TYPE_LIVE)
-			  fprintf(fp, "%s ", devices[i]->short_name);
+			  fprintf(fp, "%d %s \n", ao_driver_id(devices[i]->short_name), devices[i]->short_name);
 	  }
-	  fputs("]", fp);
   }
   ao_shutdown();
 }
@@ -91,17 +88,48 @@ void show_ao_device_info(FILE *fp)
 
 static int open_output(void)
 {
-  int driver_id;
+  int driver_id, ret;
+
+  int driver_count;
+  ao_info **devices;
+  int i;
+  char buf[256];
 
   ao_initialize();
 
-  if (dpm.name == NULL) {
+  opt_ao_device_id = -2;
+  devices  = ao_driver_info_list(&driver_count);
+  if (driver_count > 0) {
+    for(i = 0; i < driver_count; i++) {
+      if(  (devices[i]->type == AO_TYPE_LIVE) 
+      && (dpm.name != NULL) && (strcmp(dpm.name, devices[i]->short_name) == 0)  ){
+        opt_ao_device_id = ao_driver_id(dpm.name);
+      }
+      
+    }
+  }
+
+  if (opt_ao_device_id == -2){
+    if(dpm.name != NULL)
+      ret = sscanf(dpm.name, "%d", &opt_ao_device_id);
+    if ( dpm.name == NULL || ret == 0 || ret == EOF)
+      opt_ao_device_id = -2;
+    }
+    if (opt_ao_device_id == -1){
+      ao_shutdown();
+      show_ao_device_info(stdout);
+      return -1;
+    }
+
+
+
+  if (opt_ao_device_id==-2) {
     driver_id = ao_default_driver_id();
   }
   else {
     ao_info *device;
 
-    driver_id = ao_driver_id(dpm.name);
+    driver_id = opt_ao_device_id;
     if ((device = ao_driver_info(driver_id)) == NULL) {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "%s: driver is not supported.",
 		dpm.name);

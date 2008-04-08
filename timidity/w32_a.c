@@ -43,7 +43,7 @@ extern void *safe_malloc(size_t count);
 
 extern CRITICAL_SECTION critSect;
 
-int opt_wmme_device_id = -1;
+static int opt_wmme_device_id = -2;
 
 UINT uDeviceID;
 
@@ -224,8 +224,14 @@ static int open_output(void)
     WAVEOUTCAPS     woc;
     MMRESULT        Result;
     UINT            DeviceID;
-
-	if (opt_wmme_device_id == -2){
+	int ret;
+	
+	if( dpm.name != NULL)
+		ret = sscanf(dpm.name, "%d", &opt_wmme_device_id);
+	if ( dpm.name == NULL || ret == 0 || ret == EOF)
+		opt_wmme_device_id = -2;
+	
+	if (opt_wmme_device_id == -1){
 		print_device_list();
 		return -1;
 	}
@@ -295,7 +301,7 @@ static int open_output(void)
 
 		hDevice = 0;
 
-	if (opt_wmme_device_id == -1){
+	if (opt_wmme_device_id == -2){
 		uDeviceID = WAVE_MAPPER;
     }else{
     	uDeviceID= (UINT)opt_wmme_device_id;

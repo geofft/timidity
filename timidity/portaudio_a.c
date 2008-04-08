@@ -64,7 +64,7 @@
 #include "playmidi.h"
 #include "miditrace.h"
 
-int opt_pa_device_id = -1;
+static int opt_pa_device_id = -2;
 
 #define DATA_BLOCK_SIZE     (27648*4) /* WinNT Latency is 600 msec read pa_dsound.c */
 #define SAMPLE_RATE         (44100)
@@ -296,8 +296,13 @@ static int open_output_win_wmme(void)
 static int open_output(void)
 {
 	double rate;
-	int n, nrates, include_enc, exclude_enc;
+	int n, nrates, include_enc, exclude_enc, ret;
 	PaSampleFormat SampleFormat, nativeSampleFormats;
+	
+	if( dpm.name != NULL)
+		ret = sscanf(dpm.name, "%d", &opt_pa_device_id);
+	if (dpm.name == NULL || ret == 0 || ret == EOF)
+		opt_pa_device_id = -2;
 	
 #ifdef AU_PORTAUDIO_DLL
 #if PORTAUDIO_V19
@@ -339,7 +344,7 @@ static int open_output(void)
 		pa_active = 1;
 	}
 
-	if (opt_pa_device_id == -2){
+	if (opt_pa_device_id == -1){
 		print_device_list();
 		goto error2;
 	}
@@ -366,7 +371,7 @@ static int open_output(void)
 	DeviceInfo = Pa_GetDeviceInfo( DeviceIndex);
 	if(DeviceInfo==NULL) goto error;
 
-	if(opt_pa_device_id != -1){
+	if(opt_pa_device_id != -2){
 		const PaDeviceInfo *id_DeviceInfo;
     	id_DeviceInfo=Pa_GetDeviceInfo((PaDeviceIndex)opt_pa_device_id);
 		if(id_DeviceInfo==NULL) goto error;
@@ -440,7 +445,7 @@ static int open_output(void)
 	return 0;
 	
 #else
-	if(opt_pa_device_id != -1){
+	if(opt_pa_device_id == -2){
 		DeviceID = Pa_GetDefaultOutputDeviceID();
 	    if(DeviceID==paNoDevice) goto error2;
 	}else{
