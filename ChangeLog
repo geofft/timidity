@@ -1,9 +1,11 @@
+2008-04-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/timidity.c: Fix atavism (reversion) and change a bit
+
 2008-04-08  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* timidity/ao_a.c
-	  timidity/portaudio_a.c
-	  timidity/timidity.c
-      timidity/w32_a.c    select audio device only in -o option
+	* timidity/ao_a.c, timidity/portaudio_a.c, timidity/timidity.c,
+	  timidity/w32_a.c: select audio device only in -o option
 
 2008-04-06  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
