@@ -327,7 +327,7 @@ if BORLANDC
 w32g_res.res: w32g_res.h w32g_rec.h w32g_res.rc \
 	w32g_btn.bmp w32g_icon.ico w32g_sleep.bmp w32g_subbtn.bmp
 	perl -pe 's/(^FONT.*".*").*$$/$$1/' w32g_res.rc >w32g_res_bc.rc
-	brcc32 -ic:/borland/bcc55/include w32g_res_bc.rc
+	brcc32 -iC:/Borland/BDS/4.0/include w32g_res_bc.rc
 	mv w32g_res_bc.RES w32g_res.res
 	rm w32g_res_bc.rc
 else

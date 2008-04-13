@@ -279,11 +279,11 @@ case "$target" in
            *" -MDd "*) NODEF="-nodefaultlib:libcmt.lib -nodefaultlib:libcmtd.lib -nodefaultlib:msvcrt.lib -nodefaultlib:libc.lib -nodefaultlib:libcd.lib"  ;;
            *) CFLAGS="$CFLAGS -MT"; NODEF="-nodefaultlib:msvcrt.lib -nodefaultlib:msvcrtd.lib -nodefaultlib:libcmtd.lib -nodefaultlib:libc.lib -nodefaultlib:libcd.lib"  ;;
          esac
-         VCPP_LDFLAGS="-nologo -incremental:no  $NODEF kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
+         VCPP_LDFLAGS="-nologo -incremental:no  $NODEF kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib  wsock32.lib user32.lib shell32.lib"
          CFLAGS="$CFLAGS -nologo -Zp16 -W3 -GX  -Ob2"
          EXTRADEFS="$EXTRADEFS -DNDEBUG -D_WINDOWS -DWIN32 -DMBCS -D_MT -YX  -FD -c"
          ;;
-      "xgcc"*) test -n "$SHLD" || SHLD="gcc -mdll"; MINGWGCC=yes ;;
+      "x*gcc"*) test -n "$SHLD" || SHLD="gcc -mdll"; MINGWGCC=yes ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
@@ -477,8 +477,14 @@ AC_CHECK_HEADERS( \
   sys/stat.h \
   sys/sysctl.h \
   termios.h \
-  unistd.h \
   X11/Xlib.h])
+
+if test "x$DMC" != xyes ; then
+AC_CHECK_HEADERS([ \
+  unistd.h \
+  ])
+fi
+
 AC_CHECK_HEADERS(\
   [X11/extensions/XShm.h X11/Xmu/ExtAgent.h],[],[],[
 #ifdef HAVE_X11_XLIB_H
@@ -498,7 +504,9 @@ AC_C_VOLATILE
 AC_C_STRINGIZE
 AC_C_PROTOTYPES
 AC_STRUCT_TM
+if test "x$DMC" != xyes ; then
 AC_TYPE_SIZE_T
+fi
 if test "x$POCC" != xyes ; then
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
@@ -572,9 +580,13 @@ fi
 
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
+if test "x$DMC" != xyes ; then
 AC_FUNC_FORK
+fi
 AC_FUNC_MEMCMP
+if test "x$DMC" != xyes ; then
 AC_FUNC_MMAP
+fi
 AC_FUNC_SETVBUF_REVERSED
 AC_TYPE_SIGNAL
 if test "x$VCPP" != xyes && test "x$BORLANDC" != xyes && test "x$WATCOM_C" != "xyes" && test "x$POCC" != "xyes"; then
@@ -651,7 +663,7 @@ if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes;
   AC_DEFINE(snprintf,_snprintf,[for VC])
   AC_DEFINE(HAVE_SOCKET,1)
   AC_DEFINE(HAVE_VSNPRINTF,1)
-  AC_DEFINE(vsnprintf,_vsnprintf,[for VC])
+dnl  AC_DEFINE(vsnprintf,_vsnprintf,[for VC])
   AC_DEFINE(TIMID_VERSION,[$(PACKAGE_VERSION)],[for windows gui])
 fi
 
@@ -1338,8 +1350,10 @@ AC_MSG_CHECKING(enable_audio=vorbis)
 if test "x$au_enable_vorbis" = xyes; then
   AC_MSG_RESULT([yes, configuring vorbis])
   if test "x$MSYS" = "xyes" && test "x$MINGWGCC" != "xyes" ; then
+    AC_CHECK_HEADER(vorbis/vorbisenc.h,, [ 
     EXTRADEFS="-DAU_VORBIS_DLL $EXTRADEFS"
 	SYSEXTRAS="$SYSEXTRAS w32g_vorbisenc_dll.c w32g_vorbis_dll.c w32g_ogg_dll.c"
+    ])
   else
   XIPH_PATH_OGG([
     XIPH_PATH_VORBIS([
@@ -1369,16 +1383,22 @@ if test "x$MSYS" = xyes ; then
   if test "x$au_enable_flac" = xyes; then
     AC_MSG_RESULT([yes, configuring flac])
     SYSEXTRAS="$SYSEXTRAS flac_a.c w32_libFLAC_dll.c w32_libOggFLAC_dll.c"
-    AM_PATH_LIBFLAC([
+    AC_CHECK_HEADER(FLAC/all.h, [ 
       EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_FLAC_DLL"
-      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
-      LIBS="$LIBS $LIBFLAC_LIBS"
     ])
-    AM_PATH_LIBOGGFLAC([
+    AC_CHECK_HEADER(OggFLAC/all.h, [ 
       EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC -DAU_OGGFLAC_DLL"
-      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
-      LIBS="$LIBS $LIBOGGFLAC_LIBS"
     ])
+dnl    AM_PATH_LIBFLAC([
+dnl      EXTRADEFS="$EXTRADEFS -DAU_FLAC -DAU_FLAC_DLL"
+dnl      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBFLAC_CFLAGS)
+dnl      LIBS="$LIBS $LIBFLAC_LIBS"
+dnl    ])
+dnl    AM_PATH_LIBOGGFLAC([
+dnl      EXTRADEFS="$EXTRADEFS -DAU_OGGFLAC -DAU_OGGFLAC_DLL"
+dnl      EXTRACT_CPPFLAGS(CPPFLAGS,CFLAGS,$LIBOGGFLAC_CFLAGS)
+dnl      LIBS="$LIBS $LIBOGGFLAC_LIBS"
+dnl    ])
   else
     AC_MSG_RESULT(no)
   fi
@@ -1431,10 +1451,12 @@ if test "x$au_enable_gogo" = xyes; then
   else
     AC_MSG_WARN(May be gogo is not supported.  You need hack the gogo_a.c)
   fi
-  have_gogo=yes
+  AC_CHECK_HEADER(gogo/gogo.h, [ 
+    have_gogo=yes
+  ])
   SYSEXTRAS="$SYSEXTRAS gogo_a.c w32_gogo.c"
   EXTRADEFS="$EXTRADEFS -DAU_GOGO -DAU_GOGO_DLL"
-  EXTRALIBS="$EXTRALIBS -lgogo"
+dnl  EXTRALIBS="$EXTRALIBS -lgogo"
 else
   AC_MSG_RESULT(no)
 fi

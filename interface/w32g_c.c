@@ -491,7 +491,7 @@ static int ctl_refine_playlist(void)
     return RC_NONE;
 }
 
-static int w32g_ext_control(int rc, int32 value)
+static int w32g_ext_control(int rc, ptr_size_t value)
 {
     switch(rc)
     {
@@ -544,13 +544,14 @@ static int w32g_ext_control(int rc, int32 value)
     return RC_NONE;
 }
 
-static int ctl_read(int32 *valp)
+static int ctl_read(int32  *valp)
 {
     int rc;
-
-    rc = w32g_get_rc(valp, play_pause_flag);
+    ptr_size_t buf;
+    rc = w32g_get_rc(&buf, play_pause_flag);
+    *valp=(int32)buf;
     if(rc >= RC_EXT_BASE)
-	return w32g_ext_control(rc, *valp);
+	return w32g_ext_control(rc, buf);
     return rc;
 }
 
@@ -668,7 +669,7 @@ static int ctl_pass_playing_list(int number_of_files, char *list_of_files[])
 {
 	static int init_flag = 1;
     int rc;
-    int32 value;
+    ptr_size_t value;
     extern void timidity_init_aq_buff(void);
     int errcnt;
 

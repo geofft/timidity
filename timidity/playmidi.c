@@ -8731,7 +8731,7 @@ static void ctl_prog_event(int ch)
     ce.type = CTLE_PROGRAM;
     ce.v1 = ch;
     ce.v2 = prog;
-    ce.v3 = (long)channel_instrum_name(ch);
+    ce.v3 = (ptr_size_t)channel_instrum_name(ch);
     ce.v4 = (bank |
 	     (channel[ch].bank_lsb << 8) |
 	     (channel[ch].bank_msb << 16));

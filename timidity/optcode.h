@@ -127,7 +127,7 @@ static inline int32 imuldiv28(int32 a, int32 b)
     return result;
 }
 
-#elif defined(_MSC_VER) || defined(__DMC__) || defined(__WATCOMC__)
+#elif ( defined(_MSC_VER) || defined(__DMC__) || defined(__WATCOMC__) ) && !defined(_AMD64_)
 inline int32 imuldiv8(int32 a, int32 b) {
 	_asm {
 		mov eax, a

@@ -1,3 +1,22 @@
+2008-04-13  Keishi Suenaga <skeishi@yahoo.co.jp>
+	* configure.in
+	  doc/ja_JP.eucJP/README.w32
+	  interface/Makefile.am
+	  timidity/sysdep.h
+	  doc/C/README.w32:    update files about Compile for Windows.
+	* interface/w32g.h
+	  interface/w32g_c.c
+	  interface/w32g_i.c
+	  interface/w32g_pref.c
+	  interface/w32g_ut2.c
+	  interface/w32g_utl.c
+	  timidity/controls.h
+	  timidity/optcode.h
+	  timidity/playmidi.c
+	  timidity/sysdep.h
+	  timidity/w32_a.c
+	  timidity/reverb.c:  suport for WIN64 with AMD64
+
 2008-04-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/timidity.c: Fix atavism (reversion) and change a bit

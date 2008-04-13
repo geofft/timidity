@@ -145,6 +145,15 @@ typedef UInt64 uint64;
 #endif /* 64bit arch */
 #endif /* C99 */
 
+/*  pointer size is not long in   WIN64 */
+#if defined(WIN32)  && defined(_AMD64_) 
+typedef long long  ptr_size_t;
+typedef unsigned long long  u_ptr_size_t; 
+#else
+typedef long  ptr_size_t; 
+typedef unsigned long  u_ptr_size_t; 
+#endif 
+
 
 /* Instrument files are little-endian, MIDI files big-endian, so we
    need to do some conversions. */
@@ -369,9 +378,15 @@ int usleep(unsigned int useconds); /* shut gcc warning up */
 #ifndef __POCC__
 #define open _open
 #define close _close
-#define write _write
+//#define write _write
 #define lseek _lseek
 #define unlink _unlink
+#if _MSC_VER < 1500    /* 1500(VC9)  */
+#define write _write
+#ifdef HAVE_VSNPRINTF
+#define vsnprintf _vsnprintf 
+#endif
+#endif
 #pragma warning( 4 : 4305 4244 )
 #else
 #ifndef EPERM

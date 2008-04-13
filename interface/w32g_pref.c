@@ -19,7 +19,6 @@
 
 	w32g_pref.c: Written by Daisuke Aoki <dai@y7.net>
 */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
@@ -30,7 +29,7 @@
 #include <stddef.h>
 #include <windows.h>
 #undef RC_NONE
-
+#define DWL_MSGRESULT DWLP_MSGRESULT
 #include <commctrl.h>
 #ifndef NO_STRING_H
 #include <string.h>
@@ -1228,7 +1227,7 @@ static char **cb_info_IDC_COMBO_BANDWIDTH;
 static char *cb_info_IDC_COMBO_OUTPUT_MODE_jp[]= {
 	"以下のファイルに出力",(char *)0,
 #if defined(__CYGWIN32__) || defined(__MINGW32__)
-	"ファイル名を自動で決定し、ソ\ースと同じフォルダに出力",(char *)1,
+//	"ファイル名を自動で決定し、ソ\ースと同じフォルダに出力",(char *)1,
 #else
 	"ファイル名を自動で決定し、ソースと同じフォルダに出力",(char *)1,
 #endif

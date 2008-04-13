@@ -122,7 +122,7 @@ enum {
 
 typedef struct _CtlEvent {
     int type;		/* See above */
-    long v1, v2, v3, v4;/* Event value */
+    ptr_size_t v1, v2, v3, v4;/* Event value */
 } CtlEvent;
 
 

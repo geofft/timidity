@@ -1,7 +1,7 @@
 TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 
 £±¡¥Msys´Ä¶­²¼¤Ç Mingw ¤Ç¥³¥ó¥Ñ¥¤¥ë
-£²¡¥Msys´Ä¶­²¼¤Ç Boraland C++ ¤Ç¥³¥ó¥Ñ¥¤¥ë
+£²¡¥Msys´Ä¶­²¼¤Ç Turbo C++ ¤Ç¥³¥ó¥Ñ¥¤¥ë
 £³¡¥Msys´Ä¶­²¼¤Ç OpenWatcom ¤Ç¥³¥ó¥Ñ¥¤¥ë
 £´¡¥Msys´Ä¶­²¼¤Ç Visual C++ ¤Ç¥³¥ó¥Ñ¥¤¥ë
 £µ¡¥Msys´Ä¶­²¼¤Ç Digital Mars ¤Ç¥³¥ó¥Ñ¥¤¥ë(timiditydrv.dll¤¬¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤Ê¤¤¡Ë
@@ -10,9 +10,6 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 £±¡¥Msys´Ä¶­²¼¤ÇMingw¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËMingw¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£±¡ËMingw¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://sourceforge.net/projects/mingw/¡¡http://mingw.sourceforge.net/MinGWiki/))
-	ÆüËÜ¸ìÈÇ¤Î¥¤¥ó¥¹¥È¡¼¥ë¤Ë¤ÏMingw-jp(http://sourceforge.jp/projects/mingw-jp)¤ò»È¤¦¤È¤è¤¤¡£
-	¾¯¤Ê¤¯¤È¤â¥ê¥½¡¼¥¹¥³¥ó¥Ñ¥¤¥é¤ÏMingw-jp¤Î¤â¤Î¤Ç¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£
-	¤³¤Î¥ê¥½¡¼¥¹¥³¥ó¥Ñ¥¤¥é¤ò»È¤¦¤Ë¤ÏWindows¤Î´Ä¶­ÊÑ¿ô¤Ç¡¡CLANG=C-SJIS¡¡¤ÈÀßÄê¤·¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£¡ÊMSYS¤Î´Ä¶­ÊÑ¿ô¤Ç¤Ï¤À¤á¡Ë
 ¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£²¡Ý£°¡Ëdll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ëÊýË¡
 		¡Êpexports¤Ïmingw-utils-0.3.tar.gz¤Ë´Þ¤Þ¤ì¤Æ¤¤¤ë¡Ë
@@ -21,7 +18,7 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 	£²¡Ý£±¡Ëpcurses
 		"pdcurses-2.6.0-2003.07.21-1.exe"¤òMingw¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤­¤ÆÀßÄê¤¹¤ë¡£
     £²¡Ý£²¡Ëoggvorbis(http://www.vorbis.com/)
-    	"OggVorbis-win32sdk-1.0.1.zip¡É¤ò¤È¤Ã¤Æ¤¯¤ë
+    	"http://www.vorbis.com/files/1.0.1/windows/OggVorbis-win32sdk-1.0.1.zip¡É¤ò¤È¤Ã¤Æ¤¯¤ë
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
     	include\ogg\os_type.h¤Î£²£¹¹ÔÌÜ¤ò½ñ¤­´¹¤¨¤ë
 			(os_types.h)
@@ -42,23 +39,22 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 			set C_INCLUDE_PATH=/usr/local/gogo/include:%C_INCLUDE_PATH%
 			set LD_LIBRARY_PATH=/usr/local/gogo/lib:%LD_LIBRARY_PATH%
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.0-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î58¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
-			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+			58 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
 				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
 		µ¯Æ°ÍÑ¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò¤Ä¤±¤¿¤¹
 			REM FLAC
-			set PATH=\usr\local\flac-1.1.0-win\bin;;%PATH%
-			set C_INCLUDE_PATH=/usr/local/flac-1.1.0-win/include:%C_INCLUDE_PATH%
-			set LD_LIBRARY_PATH=/usr/local/flac-1.1.0-win/bin:%LD_LIBRARY_PATH%	
+			set PATH=\usr\local\flac-1.2.1-devel-win\lib;;%PATH%
+			set C_INCLUDE_PATH=/usr/local/flac-1.2.1-devel-win/include:%C_INCLUDE_PATH%
+			set LD_LIBRARY_PATH=/usr/local/flac-1.2.1-devel-win/bin:%LD_LIBRARY_PATH%	
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		portaudio v1.19¤ò¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë
-		asio¤Ë¤Ä¤¤¤Æ¤Ïcallasio¡Êhttp://www.audiomulch.com/~rossb/code/calliasio/)¤ÎHP¤Ë¾ðÊó¤¬¤¢¤ë¡£
-		portaudio.dll¤ò¤½¤ì¤¾¤ìpa_asio.dll¡¢pa_win_ds.dll¡¢pa_win_wmme.dll¤Î¤è¤¦¤ËÌ¾Á°¤ò¤«¤¨¤È¤¯¡£
-		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+		portaudio v1.19¤«¤é¤È¤Ã¤¿portaudio.h¤È
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		¥¤¥ó¥¯¥ë¡¼¥É¥Ñ¥¹¤Ë portaudio.h ¤ò¤¤¤ì
+		¥é¥¤¥Ö¥é¥ê¥Ñ¥¹¤Ë portaudio.dll ¤ò libportaudio.dll ¤ÈÌ¾Á°¤òÊÑ¤¨¤¿Êª¤òÆþ¤ì¤ë¡£
+		
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
         3-1)timw32g.exe
             (configure)
@@ -106,30 +102,28 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
              strip timiditydrv.dll
 
 
-£²¡¥Msys´Ä¶­²¼¤ÇBoraland C++¤Ç¥³¥ó¥Ñ¥¤¥ë
-¡Ê£±¡ËBorland C¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
-	£±¡ËBorlandC¤Î¥»¥Ã¥È¥¢¥Ã¥×
-		C++Buldercompiler(http://www.borland.com/products/downloads/download_cbuilder.html#)¤ò¥À¥¦¥ó¥í¡¼¥É¤·¤Æ¤¯¤ë¡£
-		readme.tet¤Ë¤·¤¿¤¬¤Ã¤Æbcc32.cfg ¤Èilink 32.cfg¤ò¤Ä¤¯¤ë
+£²¡¥Msys´Ä¶­²¼¤ÇTurbo C++¤Ç¥³¥ó¥Ñ¥¤¥ë
+¡Ê£±¡ËTurbo C++ ¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
+	£±¡ËTurboC++¤Î¥»¥Ã¥È¥¢¥Ã¥×
+		
+		http://www.codegear.com/jp/downloads/free/turbo ¤«¤é Turbo C++ Explorer ¤ò¥À¥¦¥ó¥í¡¼¥É¤·¤Æ¤¯¤ë¡£
+		bcc32.cfg ¤Èilink 32.cfg¤ò¤Ä¤¯¤ë
 		(bcc32.cfg)
-			-I"C:\Borland\Bcc55\include"
-			-L"C:\Borland\Bcc55\lib;C:\Borland\Bcc55\lib\PSDK"
+			-IC:\Borland\BDS\4.0\include
+			-LC:\Borland\BDS\4.0\lib
+			-LC:\Borland\BDS\4.0\lib\psdk
 			-DWINVER=0x0400
 			-D_WIN32_WINNT=0x0400
 		(ilink32.cfg )
-			-L"C:\Borland\Bcc55\lib;C:\Borland\Bcc55\lib\PSDK"
+			-LC:\Borland\BDS\4.0\lib;C:\Borland\BDS\4.0\lib\psdk
+			
+		¡ÊÃí°Õ¡Ëilink32.cfg ¤Ç»ØÄê¤·¤¿¥Ñ¥¹¤ÎÃæ¤Ë "-"¤¬¤¢¤ë¤È ilink32 ¤¬¸íÆ°ºî¤¹¤ë¤Î¤Ç "_" Åù¤ËÊÑ¹¹¤¹¤ëÉ¬Í×¤¢¤ê¡£
 	£²¡ËMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://sourceforge.net/projects/mingw/¡¡http://mingw.sourceforge.net/MinGWiki/))
 		"/etc/fstab"¤«¤éMINGW¤Î¥Ñ¥¹¤ÎÀßÄê¤Î¹Ô¤ò¾Ã¤¹
-		"msys.bat"¤«¤é"bcc_env.bat"¤ò¸Æ¤Ö¤è¤¦¤Ë¤¹¤ë¡£
+		"msys.bat"¤ò½ñ¤­´¹¤¨¤ë
 		(msys.bat¤ÎÀèÆ¬¹Ô¡Ë
-			call c:\borland\bcc55\bin\bcc_env.bat
-		(bcc_env.bat¤ÎÆâÍÆ¡Ë
-			@echo off
-			set PATH=c:\borland\bcc55\bin;%PATH%
+			set PATH=C:\Borland\BDS\4.0\bin;%PATH%
 			
-			Set INCLUDE=c:\usr\local\pdcurses_bcc\include;%INCLUDE%
-				¡ÊÂ³¤¯¡Ë
-				 ----
 
 ¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£²¡Ý£°¡Ý£±¡Ëdll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ëÊýË¡
@@ -140,57 +134,44 @@ TiMidity++ ¤òWindowsÍÑ¤Ë¥³¥ó¥Ñ¥¤¥ë¤¹¤ëÊýË¡
 	£²¡Ý£±¡Ëpcurses
 		"pdcurses-2.6.0-src.tar.bz2"¤òMingw¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¡£
 		pccurses.lib¤Ïlibpdcuses.lib¤ËÌ¾Á°¤òÊÑ¤¨¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£
-		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+		bcc32.cfg¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
     £²¡Ý£²¡Ëoggvorbis(http://www.vorbis.com/)
     	"OggVorbis-win32sdk-1.0.1.zip¡É¤ò¤È¤Ã¤Æ¤¯¤ë
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
-		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+		bcc32.cfg¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
     £²¡Ý£³¡Ë¸á¸å¤Î¥³¡¼¥À¡¼(http://www.marinecat.net/mct_top.htm)
     	Gogo.dll ¤ò¸á¸å¤Î¥³¡¼¥À¡¼¤«¤égogo.h¤ò¥½¡¼¥¹¥Õ¥¡¥¤¥ë¤«¤é¤È¤ê¤À¤¹¡£
     	dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
     		move gogo.h gogo\include\gogo
     		move gogo.dll libgogo.a gogo\lib
-		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
+		bcc32.cfg¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.0-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î58¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
-			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+			58 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
 				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
-		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
-			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
-		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+		VC¤ÎLIB¥Õ¥¡¥¤¥ë¤«¤éBC¤ÎLIB¥Õ¥¡¥¤¥ë¤òºî¤ë¡£
+		bcc32.cfg¤Èilink32.cfg¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à¡£		
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
-		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+		portaudio v1.19¤«¤é¤È¤Ã¤¿portaudio.h¤È
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		¥¤¥ó¥¯¥ë¡¼¥É¥Ñ¥¹¤Ë portaudio.h ¤ò¤¤¤ì¤ë¡Ê¥Ø¥Ã¥À¥Õ¥¡¥¤¥ë¤À¤±¤¬É¬Í×¡Ë
 
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-        3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
+        3-0) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_bc
                 (configureÃæ¤Î -o xxxx ¤Ï£Â£Ã£Ã¤¬¼õ¤±ÉÕ¤±¤Ê¤¤¤¿¤á)
-        3-0-2)rm_float.sh ¤ò timidity/timidity ¥Ç¥£¥ì¥¯¥È¥ê¤ÎÃæ¤Çµ¯Æ°¤¹¤ë¡£
-                ¿ôÃÍÄê¿ô¤Î¤¢¤È¤Î f , F, l and L ¤ò¼è¤ê½ü¤¯¥¹¥¯¥ê¥×¥È(  123.45f -> 123.45 )
-<rm_float.sh>
--------------------- from here -----------------------
-#!/bin/sh
-
-for foo in `ls *.c` `ls *.h`;do
-perl -pe 's/(%[0-9]*\.[0-9]+f)/$1f/g' $foo|perl -pe 's/(\.[0-9]+)f/$1/g' - |perl -pe 's/(\.[0-9]+)F/$1/g' - |perl -pe 's/(\.[0-9]+)l/$1/g' - |perl -pe 's/(\.[0-9]+)L/$1/g' - |perl -pe 's/(0x[0-9a-f]+)l/$1/g' - |perl -pe 's/(0x[0-9a-f]+)L/$1/g' - >$foo.rm
-mv $foo.rm $foo
-done
--------------------- to here -------------------------
                 
         3-1)timw32g.exe
             (configure)
-             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
+             CC="bcc32" CPP="cpp32" CFLAGS="" ./configure_bc  --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
+            CC="bcc32" CPP="cpp32" CFLAGS="" \
             ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
@@ -198,7 +179,7 @@ done
              mv timidity.exe twsyng.exe
         3-3)twsynsrv.exe
             (configure)
-             CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS=""\
+             CC="bcc32" CPP="cpp32" CFLAGS=""\
              ./configure_bc --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              add config.h following line
@@ -208,14 +189,14 @@ done
              mv timidity.exe twsynsrv.exe
        3-4)timidity.exe
             (configure)
-            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
+            CC="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc --enable-interface=vt100,winsyn,ncurses --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
              make
        3-5)timiditydrv.dll
             (configure)
-            CC="bcc32" CXX="bcc32" CPP="cpp32" CFLAGS="" \
+            CC="bcc32" CPP="cpp32" CFLAGS="" \
              ./configure_bc  --enable-winsyn --enable-windrv --enable-spline=linear \
              --enable-audio=w32,portaudio
             (make)
@@ -248,7 +229,9 @@ done
 				 ----
 ¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£²¡Ý£°¡Ëdll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ëÊýË¡
-		mlib -n -b out.lib in.dll
+		pexports xxxx.dll >xxxx.def
+    	lib -def:xxxx.def -machine:IX86
+    	pexports¤Ï mingwutils ¤Ë´Þ¤Þ¤ì¤Æ¤¤¤ë¡£
 	£²¡Ý£±¡Ëpcurses
 		"pdcurses-2.5.0"¤òGnuWin32(http://sourceforge.net/projects/gnuwin32/)¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤¯¤ë
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
@@ -277,21 +260,22 @@ done
     		move gogo.dll libgogo.a gogo\lib
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î35¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î58¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
-			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+			58 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
 				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__) \
 				|| !defined(__WATCOMC__) || !defined(__DMC__)
-		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
-			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
 		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
-		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+		portaudio.h¤ò¤È¤ê¤À¤¹¡£
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		portaudio.dll ¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+		¡Êportaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡Ë
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
         3-0)wcc386_w.sh & wpp386_w.sh( scripts/¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤¢¤ë )
             Wcc386 ¤ÏGNU¤Îauto Tool¤ÈÃç¤¬°­¤¤¤Î¤Ç¥é¥Ã¥Ñ¡¼¤ò¤Ä¤¯¤Ã¤¿¡£
@@ -299,28 +283,28 @@ done
             wcc386.exe¤Î¤«¤ï¤ê¤Ëwcc386_w.sh¤ò¸Æ¤Ó½Ð¤·¤Æ»È¤¦¡£
         3-1)timw32g.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh"  CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
            ./configure --enable-network --enable-w32gui --enable-spline=gauss \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
-            --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
+            --disable-oggtest --disable-vorbistest --disable-libFLACtest
             (make)
              make
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh"  CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
-            --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
+            --disable-oggtest --disable-vorbistest --disable-libFLACtest
              (make)
              make
              mv timidity.exe twsyng.exe
         3-3)twsynsrv.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh"  CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-network --enable-winsyng --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
-            --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
+            --disable-oggtest --disable-vorbistest --disable-libFLACtest
             add config.h following line
                 #define TWSYNSRV 1
              (make)
@@ -328,15 +312,15 @@ done
              mv timidity.exe twsynsrv.exe
         3-4)timidity.exe
             (configure)
-            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh"  CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
             ./configure --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
             --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio \
-            --disable-oggtest --disable-vorbistest --disable-libFLACtest --disable-libOggFLACtest
+            --disable-oggtest --disable-vorbistest --disable-libFLACtest
             (make)
             make
        3-5)timiditydrv.dll
             (configure)
-            CC="wcc386_w.sh" CXX="wpp386_w.sh" CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
+            CC="wcc386_w.sh"  CPP="wcc386_w.sh -p"  CFLAGS="-d0 -obll+riemcht" \
              ./configure  --enable-winsyn --enable-windrv --enable-spline=linear \
              --enable-audio=w32,portaudio
             (make)
@@ -345,16 +329,9 @@ done
 £´¡¥Msys´Ä¶­²¼¤ÇVisual C++¤Ç¥³¥ó¥Ñ¥¤¥ë
 ¡Ê£±¡ËVisual C++¤ÈMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×
 	£±¡ËVisualC++¤Î¥»¥Ã¥È¥¢¥Ã¥×
-		Microsoft Visual C++ Toolkit 2003
-		Microsoft.NET SDK
+        Visual C++ 2008 Express Edition(http://www.microsoft.com/japan/msdn/vstudio/express/default.aspx)
 		Microsoft Platform SDK
 		¤ò¥À¥¦¥ó¥í¡¼¥É¤·¤Æ¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë¡£
-======= CAUTION !! ===========
-Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤Ê¤¤¡£
-ÇÛÉÛ¤¹¤ë¥Ð¥¤¥Ê¥ê¤Ï¡¢"Visual C++" ¤« "Visual Studio"¤ÇºîÀ®¤¹¤ëÉ¬Í×¤¬¤¢¤ë¡£
-¤½¤ÎºÝ¤Ï¡¢-MT ¥ª¥×¥·¥ç¥ó¤Ç¤Ï¤Ê¤¯ -MD ¥ª¥×¥·¥ç¥ó¤ò»È¤¤¡¢libcmt.lib ¤Ç¤Ï¤Ê¤¯¡¡msvcrt.lib¤ò¥ê¥ó¥¯¤¹¤ë¤³¤È
-============================== 
-		
 	£²¡ËMSYS¤Î¥»¥Ã¥È¥¢¥Ã¥×(http://sourceforge.net/projects/mingw/¡¡http://mingw.sourceforge.net/MinGWiki/))
 		"/etc/fstab"¤«¤éMINGW¤Î¥Ñ¥¹¤ÎÀßÄê¤Î¹Ô¤ò¾Ã¤¹
 		"msys.bat"¤«¤é"vcc_env.bat"¤ò¸Æ¤Ö¤è¤¦¤Ë¤¹¤ë¡£
@@ -362,15 +339,17 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
 			call vcc_env.bat
 		(vcc_env.bat¤ÎÆâÍÆ¡Ë
 			@echo off
-			call i:\"Program Files\Microsoft Visual C++ Toolkit 2003"\vcvars32.bat
-			call i:\"Program Files\Microsoft SDK"\SetEnv.Bat /RETAIL
-			call i:\"Program Files\Microsoft.NET\SDK\v1.1\bin"\sdkvars.bat
-
+			call c:\"Program Files\Microsoft Platform SDK"\SetEnv.Cmd /2000 /RETAIL
+			call c:"\Program Files\Microsoft Visual Studio 9.0"\Common7\Tools\vsvars32.bat
 			Set INCLUDE=c:\DXSDK\include;%INCLUDE%
 			Set LIB=c:\DXSDK\lib;%LIB%
 				¡ÊÂ³¤¯¡Ë
 				 ----
 ¡Ê£²¡Ë»ÈÍÑ¤µ¤ì¤ë¥é¥¤¥Ö¥é¥êÃ£¤Î¥»¥Ã¥È¥¢¥Ã¥×
+    £²¡Ý£°¡ËDLL¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ëÊýË¡
+    		pexports xxxx.dll >xxxx.def
+    		lib -def:xxxx.def  -machine:x86
+    		pexports ¤Ï mungwutils ¤Ë´Þ¤Þ¤ì¤Æ¤¤¤ë¡£
 	£²¡Ý£±¡Ëpcurses
 		"pdcurses-2.6.0-src.tar.bz2"¤òMingw¤Î¥µ¥¤¥È¤«¤é¤È¤Ã¤Æ¤­¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¡£
 		pccurses.lib¤Ïlibpdcuses.lib¤ËÌ¾Á°¤òÊÑ¤¨¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡£
@@ -385,18 +364,14 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
 		flac-1.1.0-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
-			(export.h)
-			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
-				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
-		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
-			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
-		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+		portaudio.h¤ò¤È¤ê¤À¤¹¡£
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		portaudio.dll ¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+		¡Êportaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡Ë
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
         3-1)timw32g.exe
             (configure)
@@ -491,21 +466,21 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
     		move gogo.dll libgogo.a gogo\lib
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		include\*\export.h¤Î35¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î58¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
-			35 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+			58 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
 				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__) \
 				|| !defined(__WATCOMC__) || !defined(__DMC__)
-		include\FLAC\ordinals.h¤Î42¹ÔÌÜ¤òÊÑ¹¹
-			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+				
 		dll¥Õ¥¡¥¤¥ë¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤ò¤Ä¤¯¤ë
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
-		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
+		portaudio.h¤ò¤È¤ê¤À¤¹¡£
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		portaudio.dll ¤«¤é¥¤¥ó¥Ý¡¼¥È¥é¥¤¥Ö¥é¥ê¤òºî¤ë¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+		¡Êportaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡Ë
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
         3-0-1) unix->dos¤Î²þ¹Ô¥³¡¼¥ÉÊÑ´¹¡ÊLF->CRLF)
            $sh script/unix2dos.sh
@@ -517,7 +492,7 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
 
         3-1)timw32g.exe
             (configure)
-            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+            CC="dmc -Jm -w -mn -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-w32gui --enable-spline=gauss \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
@@ -525,7 +500,7 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              mv timidity.exe timw32g.exe
         3-2)twsyng.exe
             (configure)
-            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+            CC="dmc -Jm -w -mn -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
              (make)
@@ -533,7 +508,7 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              mv timidity.exe twsyng.exe
         3-3)twsynsrv.exe
             (configure)
-            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+            CC="dmc -Jm -w -mn -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-network --enable-winsyng --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             add config.h ¤ÎºÇ¸å¤Ë°Ê²¼¤Î¹Ô¤òÄÉ²Ã¡£
@@ -543,14 +518,14 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              mv timidity.exe twsynsrv.exe
         3-4)timidity.exe
             (configure)
-            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+            CC="dmc -Jm -w -mn -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-interface=ncurses,vt100,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
             make
        3-5)timiditydrv.dll
             (configure)
-            CC="dmc -Jm -w -mn -5 -o" CXX="dmc -Jm -w -mn -cpp -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
+            CC="dmc -Jm -w -mn -5 -o" CPP="fpcpp -D__NT__ -I/i/dm/include" \
              ./configure_dm --enable-interface=windrv,winsyn --enable-network --enable-spline=linear \
              --enable-audio=w32,vorbis,gogo,ogg,flac,portaudio
             (make)
@@ -591,22 +566,24 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
     		move gogo.dll libgogo.a gogo\lib
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à		
 	£²¡Ý4¡Ëflac(http://flac.sourceforge.net/)
-		flac-1.1.2-devel-win.zip¤ò¤È¤Ã¤Æ¤¯¤ë¡£
-		Change include\*\export.h¤Î£²£³¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
+		"http://downloads.sourceforge.net/flac/flac-1.2.1-devel-win.zip" ¤ò¤È¤Ã¤Æ¤¯¤ë¡£
+		Change include\*\export.h¤Î58¹ÔÌÜ¤ò¤¹¤Ù¤Æ°Ê²¼¤Î¤è¤¦¤ËÊÑ¹¹
 			(export.h)
-			23 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
-				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__)
-		include\FLAC\ordinals.h¤Î£³£¹¹ÔÌÜ¤òÊÑ¹¹
-			39 #if defined(_MSC_VER) || defined(__BORLANDC__)
+			58 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER) \
+				|| !defined(__BORLANDC__) || !defined(__CYGWIN32__) || !defined(__MINGW32__) \
+				|| !defined(__WATCOMC__) || !defined(__DMC__)
+
 		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
 	£²¡Ý£µ¡Ëportaudio(http://www.portaudio.com/)
-		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬
+		¥³¥ó¥Ñ¥¤¥ë¤Î»ÅÊý¤Ï¤ï¤«¤é¤Ê¤¤¤¬		portaudio.h¤ò¤È¤ê¤À¤¹¡£
+		http://sourceforge.net/project/showfiles.php?group_id=81968 ¤Î Csound5.08.2-gnu-win32-f.exe  ¤«¤éÈ´¤­½Ð¤·¤¿ portaudio.dll ¤òÍÑ°Õ¤¹¤ë¡£
+		µ¯Æ°¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤Ë¥¨¥ó¥È¥ê¤ò½ñ¤­¹þ¤à
+		¡Êportaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡Ë
 		portaudio.h¤µ¤¨¤¢¤ì¤ÐTiMidity++¤Ï¥³¥ó¥Ñ¥¤¥ë¤Ç¤­¤ë¡£
-	£²¡Ý£¶¡Ëportmidi(http://www-2.cs.cmu.edu/~music/portmusic/)
-		¡Ê¤³¤³¤Ç¤Ï»È¤ï¤Ê¤¤¡Ë
 ¡Ê£³¡ËTiMIdity++¤Î¥³¥ó¥Ñ¥¤¥ë
-		3-0) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_pocc
+		3-0-1) perl -pe 's/CC\s-o\s\S\S*\s/CC /g' configure >configure_pocc
                 (configureÃæ¤Î -o xxxx ¤Ï Pelles C ¤¬¼õ¤±ÉÕ¤±¤Ê¤¤¤¿¤á)
+        3-0-2) Á´¤Æ¤Î¥½¡¼¥¹¤Î´Á»ú¥³¡¼¥É¤òSJIS¡£²þ¹Ô¥³¡¼¥É¤òCR/LF¤ËÊÑ´¹¤·¤Æ¤ª¤¯¡£
         3-1)timw32g.exe
             (configure)
             CC="cc" CPP="pocc.exe -E"  CFLAGS="-MT" ./configure_pocc  \
@@ -649,4 +626,4 @@ Microsoft Visual C++ Toolkit 2003¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¤¿¥Ð¥¤¥Ê¥ê¤Ï¥é¥¤¥»¥ó¥¹¾åÇÛÉÛ¤Ç¤­¤
              make
 
 
-2006.12.23 Ëö±Ê¡¡·½»Ê(skeishi@mutt.freemail.ne.jp)
+2008.4.10 Ëö±Ê¡¡·½»Ê(skeishi@yahoo.co.jp)

@@ -582,8 +582,8 @@ void w32gMailslotThread(void)
 				MailslotArgcArgv.argc = nfiles;
 				MailslotArgcArgv.argv = files;
 				// files ‚Í•Ê‚Ì‚Æ‚±‚ë‚Å‰ð•ú‚µ‚Ä‚­‚ê‚é
-				w32g_send_rc(RC_EXT_LOAD_FILES_AND_PLAY,(int32)&MailslotArgcArgv);
-//				w32g_send_rc(RC_EXT_LOAD_FILE,(int32)files[0]);
+				w32g_send_rc(RC_EXT_LOAD_FILES_AND_PLAY,(ptr_size_t)&MailslotArgcArgv);
+//				w32g_send_rc(RC_EXT_LOAD_FILE,(ptr_size_t))files[0]);
 				continue;
 			}
 			if(strcasecmp(buffer,MC_PLAYLIST_CLEAR)==0){

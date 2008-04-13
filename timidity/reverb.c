@@ -65,7 +65,7 @@ static double REV_INP_LEV = 1.0;
 static int32 direct_buffer[AUDIO_BUFFER_SIZE * 2];
 static int32 direct_bufsize = sizeof(direct_buffer);
 
-#if OPT_MODE != 0 && ( defined(_MSC_VER) || defined(__WATCOMC__)|| defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380)) )
+#if OPT_MODE != 0 && !defined(_AMD64_) && ( defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380)) )
 void set_dry_signal(int32 *buf, int32 count)
 {
 	int32 *dbuf = direct_buffer;
@@ -108,8 +108,8 @@ void set_dry_signal(register int32 *buf, int32 n)
 #endif
 
 /* XG has "dry level". */
-#if OPT_MODE != 0	/* fixed-point implementation */
-#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380))
+#if OPT_MODE != 0 	/* fixed-point implementation */
+#if  !defined(_AMD64_) && (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380)) )
 void set_dry_signal_xg(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = direct_buffer;
@@ -925,7 +925,7 @@ static int32  reverb_effect_buffer[AUDIO_BUFFER_SIZE * 2];
 static int32  reverb_effect_bufsize = sizeof(reverb_effect_buffer);
 
 #if OPT_MODE != 0
-#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) &&(__BORLANDC__ >= 1380) )
+#if !defined(_AMD64_) && ( defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) &&(__BORLANDC__ >= 1380) ) )
 void set_ch_reverb(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = reverb_effect_buffer;
@@ -1957,7 +1957,7 @@ void do_ch_delay(int32 *buf, int32 count)
 }
 
 #if OPT_MODE != 0
-#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380) )
+#if !defined(_AMD64_) && ( defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 1380) ) )
 void set_ch_delay(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = delay_effect_buffer;
@@ -2269,7 +2269,7 @@ void init_ch_chorus(void)
 }
 
 #if OPT_MODE != 0	/* fixed-point implementation */
-#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) )
+#if !defined(_AMD64_) && ( defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) ) )
 void set_ch_chorus(int32 *buf, int32 count, int32 level)
 {
 	int32 *dbuf = chorus_effect_buffer;
@@ -2398,7 +2398,7 @@ void do_multi_eq_xg(int32* buf, int32 count)
 }
 
 #if OPT_MODE != 0
-#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) )
+#if !defined(_AMD64_) && ( defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DMC__) || ( defined(__BORLANDC__) && (__BORLANDC__ >= 1380) ) )
 void set_ch_eq_gs(int32 *buf, int32 count)
 {
 	int32 *dbuf = eq_buffer;

@@ -1307,7 +1307,7 @@ int w32gLoadDefaultPlaylist(void)
 {
 	if(AutoloadPlaylist) {
     w32g_lock_open_file = 1;
-    w32g_send_rc(RC_EXT_LOAD_PLAYLIST, (int32)DefaultPlaylistPath);
+    w32g_send_rc(RC_EXT_LOAD_PLAYLIST, (ptr_size_t)DefaultPlaylistPath);
 	}
 	return 0;
 }
@@ -1316,7 +1316,7 @@ int w32gSaveDefaultPlaylist(void)
 {
 	if(AutosavePlaylist) {
     w32g_lock_open_file = 1;
-    w32g_send_rc(RC_EXT_SAVE_PLAYLIST, (int32)DefaultPlaylistPath);
+    w32g_send_rc(RC_EXT_SAVE_PLAYLIST, (ptr_size_t)DefaultPlaylistPath);
 	}
 	return 0;
 }

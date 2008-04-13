@@ -250,8 +250,8 @@ typedef struct _TmColors {
 /* w32g_i.c */
 extern int w32g_open(void);
 extern void w32g_close(void);
-extern void w32g_send_rc(int rc, int32 value);
-extern int w32g_get_rc(int32 *value, int wait_if_empty);
+extern void w32g_send_rc(int rc, ptr_size_t value);
+extern int w32g_get_rc(ptr_size_t *value, int wait_if_empty);
 extern void w32g_lock(void);
 extern void w32g_unlock(void);
 extern void MainWndScrollbarProgressUpdate(int sec);
@@ -259,10 +259,10 @@ extern void PutsConsoleWnd(char *str);
 extern void w32g_ctle_play_start(int sec);
 extern void SettingWndApply(void);
 extern int w32g_lock_open_file;
-extern void w32g_i_init();
+extern void w32g_i_init(void);
 extern void CanvasChange(int mode);
 extern HINSTANCE hInst;
-extern void w32g_show_console();
+extern void w32g_show_console(void);
 extern void MPanelStartLoad(char *filename);
 
 

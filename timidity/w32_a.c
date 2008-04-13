@@ -308,9 +308,9 @@ static int open_output(void)
 	}
 
     if (AllowSynchronousWaveforms)
-        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
+        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD_PTR) OnPlaybackEvent, 0, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
     else
-        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD) OnPlaybackEvent, 0, CALLBACK_FUNCTION);
+        Result = waveOutOpen(&hDevice, uDeviceID, (LPWAVEFORMATEX) &wf, (DWORD_PTR) OnPlaybackEvent, 0, CALLBACK_FUNCTION);
 
     if (Result)
     {
