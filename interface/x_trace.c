@@ -80,6 +80,7 @@ typedef struct {
   Pixel barcol[MAX_TRACE_CHANNELS];
   Pixmap layer[2], gradient_pixmap[T2COLUMN];
   GC gcs, gct, gc_xcopy, gradient_gc[T2COLUMN];
+  int init;
   Window trace;
   Boolean g_cursor_is_in;
   Display *disp;
@@ -259,18 +260,16 @@ static int getdisplayinfo(RGBInfo *rgb) {
 
 static void drawBar(int ch, int len, int xofs, int column, Pixel color) {
   static Pixel column1color0;
-  /* static Pixmap gradient_pixmap[T2COLUMN];
-   static GC gradient_gc[T2COLUMN]; */
   static XColor x_boxcolor;
   static XGCValues gv;
   static RGBInfo rgb;
-  static int gradient_set[T2COLUMN], depth, init = 1;
+  static int gradient_set[T2COLUMN], depth;
   int col, i, screen;
   XColor x_color;
 
   ch -= VISLOW;
   screen = DefaultScreen(disp);
-  if (init) {
+  if (!Panel->init) {
     for(i=0;i<T2COLUMN;i++) gradient_set[i] = 0;
     depth = getdisplayinfo(&rgb);
     if ((16 <= depth) && (gradient_bar)) {
@@ -279,7 +278,7 @@ static void drawBar(int ch, int len, int xofs, int column, Pixel color) {
       gv.fill_style = FillTiled;
       gv.fill_rule = WindingRule;
     }
-    init = 0;
+    Panel->init = 0;
   }
   if ((16 <= depth) && (gradient_bar)) {
     if (column < T2COLUMN) {
@@ -970,6 +969,7 @@ void initTrace(Display *dsp, Window trace, char *title, tconfig *cfg) {
   Panel->trace = trace;
   Panel->title = title;
   Panel->cfg = cfg;
+  Panel->init = 1;
   plane = 0;
   Panel->g_cursor_is_in = False;
   disp = dsp;
@@ -1103,14 +1103,20 @@ void initTrace(Display *dsp, Window trace, char *title, tconfig *cfg) {
   XFreeGC(disp, gc);
 }
 
-void uninitTrace(void) {
+void uninitTrace(Boolean free_server_resources) {
   int i;
 
-  free(Panel); free(keyG);
-  XFreePixmap(disp, layer[0]); XFreePixmap(disp, layer[1]);
-  for (i=0; i<T2COLUMN; i++) {
-    XFreePixmap(disp, gradient_pixmap[i]);
-    XFreeGC(disp, gradient_gc[i]);
+  if (free_server_resources) {
+    XFreePixmap(disp, layer[0]); XFreePixmap(disp, layer[1]);
+#if 0
+    if (!Panel->init) for (i=0; i<T2COLUMN; i++) {
+      XFreePixmap(disp, gradient_pixmap[i]);
+      XFreeGC(disp, gradient_gc[i]);
+    }
+#endif
+    XFreeGC(disp, gcs); XFreeGC(disp, gct); XFreeGC(disp, gc_xcopy); 
   }
-  XFreeGC(disp, gcs); XFreeGC(disp, gct); XFreeGC(disp, gc_xcopy); 
+
+  for (i=0; i<MAX_TRACE_CHANNELS; i++) free(Panel->inst_name[i]);
+  free(Panel); free(keyG);
 }

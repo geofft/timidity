@@ -1,3 +1,17 @@
+2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* interface/w32g_pref.c:  WIN64 with AMD64 small fix
+
+2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
+	  patchs by Yair K.
+	* interface/xaw_i.c
+	  interface/x_trace.c
+	  interface/x_trace.h:  xaw SIGSEGV fix.
+
+2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
+	  a patch by Stas Sergeev 
+	* interface/alsaseq_c.c:  idle time patch.
+ 
 2008-04-13  Keishi Suenaga <skeishi@yahoo.co.jp>
 	* configure.in
 	  doc/ja_JP.eucJP/README.w32
@@ -15,7 +29,7 @@
 	  timidity/playmidi.c
 	  timidity/sysdep.h
 	  timidity/w32_a.c
-	  timidity/reverb.c:  suport for WIN64 with AMD64
+	  timidity/reverb.c:  support for WIN64 with AMD64
 
 2008-04-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 

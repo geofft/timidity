@@ -36,7 +36,7 @@
 #include <string.h>
 #else
 #include <strings.h>
-#endif /* NO_STRING_H */
+#endif /* !NO_STRING_H */
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif /* HAVE_SYS_TYPES_H */
@@ -115,7 +115,7 @@
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode)   (((mode)&0xF000) == 0x4000)
-#endif /* S_ISDIR */
+#endif /* !S_ISDIR */
 
 #define DEFAULT_REG_WIDTH	400 /* default width when not in trace mode */
 
@@ -334,7 +334,7 @@ static outputs *record, *play;
 static Boolean recording = False;
 static String *flist = NULL;
 static int max_num = INIT_FLISTNUM;
-static int total_time = 0, curr_time, halt = 0;
+static int total_time = 0, curr_time = 0, halt = 0;
 
 typedef enum {
   NORESPONSE = -1,
@@ -1746,7 +1746,7 @@ filemenuCB(Widget w, XtPointer client_data, XtPointer call_data) {
         * trace_vport should be unmanaged before calling XResizeWindow, with
         * XtNtop set to XawChainTop else xaw tends to place it on the wrong
         * place (typically where lyric_t used to be before calling
-        * XResizeWindow). After the resize, we'll remange trace_vport, and
+        * XResizeWindow). After the resize, we'll remanage trace_vport, and
         * set XtNtop to XawChainBottom (useful in case of resizing).
         */
         XtUnmanageChild(trace_vport);
@@ -1930,7 +1930,7 @@ free_vars(void) {
 #endif
 
   XtUnmapWidget(toplevel);
-  if (ctl->trace_playing) uninitTrace();
+  if (ctl->trace_playing) uninitTrace(True);
   XFreePixmap(disp, check_mark); XFreePixmap(disp, arrow_mark);
   XFreePixmap(disp, on_mark); XFreePixmap(disp, off_mark);
   XtVaGetValues(b_box, XtNchildren,&wl, XtNnumChildren,&n, NULL);
@@ -2383,7 +2383,7 @@ setDirList(ldPointer ld, char *curr_dir) {
     XawListChange(load_dlist, ddirlist, d_num, 0, True);
     XtVaSetValues(load_dlist, XtNwidth,0, XtNheight,0, NULL);
     free(olddirlist);
-    /* According to CLI p. 49, we must keep the list usable
+    /* According to Xt CLI p. 49, we must keep the list usable
      * until it is replaced, so we use a local pointer first,
      * and free the previous list only after it has been replaced.
      */
@@ -3496,7 +3496,7 @@ createTraceWidgets(void) {
   XtSetKeyboardFocus(slow_b, base_f);
   XtSetKeyboardFocus(keyup_b, base_f);
   XtSetKeyboardFocus(keydown_b, base_f);
-#endif /* XawTraversal */
+#endif /* !XawTraversal */
 }
 
 static void
@@ -3635,7 +3635,7 @@ createButtons(void) {
   XtSetKeyboardFocus(quit_b, base_f);
   XtSetKeyboardFocus(random_b, base_f);
   XtSetKeyboardFocus(repeat_b, base_f);
-#endif /* XawTraversal */
+#endif /* !XawTraversal */
 }
 
 static void
@@ -4709,7 +4709,7 @@ createOutputSelectionWidgets(Widget popup, Widget parent,
                                       XtNradioData,(XtPointer)list,
 #ifndef DONTUSEOVALTOGGLES
                                       XtNshapeStyle,XmuShapeOval,
-#endif /* DONTUSEOVALTOGGLES */
+#endif /* !DONTUSEOVALTOGGLES */
                                       XtNborderColor,togglecolor,
                                       XtNinternalWidth,3, XtNinternalHeight,1,
                                       XtNwidth,17, XtNheight,17, NULL);
@@ -4739,7 +4739,7 @@ createOutputSelectionWidgets(Widget popup, Widget parent,
                                         XtNfromVert,fbox_toggle[j-1],
 #ifndef DONTUSEOVALTOGGLES
                                         XtNshapeStyle,XmuShapeOval,
-#endif /* DONTUSEOVALTOGGLES */
+#endif /* !DONTUSEOVALTOGGLES */
                                         XtNinternalWidth,3, XtNinternalHeight,1,
                                         XtNwidth,17, XtNheight,17, XtNlabel,"",
 					XtNtranslations,ToggleTrans,

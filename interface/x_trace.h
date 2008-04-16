@@ -79,7 +79,7 @@ extern void initTrace(Display *, Window, char *, tconfig *);
 extern void redrawCaption(Boolean);
 extern void redrawTrace(Boolean);
 extern void scrollTrace(int);
-extern void toggleTracePlane(Boolean draw);
-extern void uninitTrace(void);
+extern void toggleTracePlane(Boolean);
+extern void uninitTrace(Boolean);
 
 #endif /* _X_TRACE_I_H */

@@ -29,7 +29,6 @@
 #include <stddef.h>
 #include <windows.h>
 #undef RC_NONE
-#define DWL_MSGRESULT DWLP_MSGRESULT
 #include <commctrl.h>
 #ifndef NO_STRING_H
 #include <string.h>
