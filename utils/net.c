@@ -74,11 +74,23 @@ SOCKET open_socket(char *host, unsigned short port)
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
+#ifdef AI_ADDRCONFIG
+    /* By default, only look up addresses using address types for
+     * which a local interface is configured (i.e. no IPv6 if no IPv6
+     * interfaces. */
     hints.ai_flags = AI_ADDRCONFIG;
+#endif
 
     snprintf(service, sizeof(service), "%d", port);
 
     s = getaddrinfo(host, service, &hints, &result);
+#ifdef AI_ADDRCONFIG
+    if (s == EAI_BADFLAGS) {
+        /* Retry with no flags if AI_ADDRCONFIG was rejected. */
+        hints.ai_flags = 0;
+        s = getaddrinfo(host, service, &hints, &result);
+    }
+#endif
 
     if (s)
         return (SOCKET)-1;

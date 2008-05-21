@@ -1,3 +1,7 @@
+2008-05-22  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* utils/net.c: Fix for AI_ADDRCONFIG unsupported
+
 2008-05-21  Yair K. <cesium2@gmail.com>
 
 	* interface/server_c.c, libarc/url_ftp.c, libarc/url_http.c,
