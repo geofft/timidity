@@ -224,7 +224,9 @@ TiMidity*trace.translations: #override\n\
 	<LeaveNotify>:		do-revcaption()\n\
 	<Expose>:		draw-trace()
 TiMidity*trace_vport.borderWidth: 1
+TiMidity*trace_vport.useRight: True
 TiMidity*popup_optform*Box*borderWidth: 0
+TiMidity*Viewport.useBottom: True
 TiMidity*List.baseTranslations: #override\n\
 	<Btn4Down>:	do-scroll(-1)\n\
 	<Btn5Down>:	do-scroll(1)

@@ -291,8 +291,17 @@ URL url_news_open(char *name)
     buff[sizeof(buff) - 1] = '\0';
 
     host = buff;
-    for(p = host; *p && *p != ':' && *p != '/'; p++)
-	;
+    if (host[0] == '[')
+    {
+        if (!(p = strchr(host, ']')))
+            return NULL;
+        *p = '\0';
+        ++host;
+        ++p;
+    } else
+        for(p = host; *p && *p != ':' && *p != '/'; p++)
+	    ;
+
     if(*p == ':')
     {
 	*p++ = '\0'; /* terminate `host' string */

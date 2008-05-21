@@ -50,6 +50,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #ifndef NO_STRING_H
 #include <string.h>
 #else
@@ -235,7 +236,7 @@ static int tmr_running, notmr_running;
 enum { PROTO_SEQ, PROTO_MIDI };
 static int proto;
 static int is_system_prefix, rstatus;
-static struct sockaddr_in control_client;
+static struct sockaddr_storage control_client;
 static double low_time_at = DEFAULT_LOW_TIMEAT;
 static double high_time_at = DEFAULT_HIGH_TIMEAT;
 static FILE *outfp = NULL;
@@ -313,44 +314,82 @@ static void ctl_event(CtlEvent *e)
 
 static int pasv_open(int *port)
 {
-    int sfd;
-    struct sockaddr_in server;
+    int sfd, s;
+    struct addrinfo hints, *result, *rp;
+    char service[NI_MAXSERV];
 
-    if((sfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    snprintf(service, sizeof(service), "%d", *port);
+    
+    s = getaddrinfo(NULL, service, &hints, &result);
+    if (s)
     {
-	perror("socket");
-	return -1;
+        fprintf(stderr, "getaddrinfo %s", gai_strerror(s));
+        return -1;
     }
 
-    memset(&server, 0, sizeof(server));
-    server.sin_port        = htons(*port);
-    server.sin_family      = AF_INET;
-    server.sin_addr.s_addr = htonl(INADDR_ANY);
+    for (rp = result; rp != NULL; rp = rp->ai_next)
+    {
+        if (rp->ai_family != AF_INET && rp->ai_family != AF_INET6)
+             continue;
+
+        sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+
+        if (sfd == -1)
+            continue;
 
 #ifdef SO_REUSEADDR
-    {
-	int on = 1;
-	setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (caddr_t)&on, sizeof(on));
-    }
+        {
+            int on = 1;
+            setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (caddr_t)&on, sizeof(on));
+        }
 #endif /* SO_REUSEADDR */
 
-    ctl.cmsg(CMSG_INFO, VERB_DEBUG, "Bind TCP/IP port=%d", *port);
-    if(bind(sfd, (struct sockaddr *)&server, sizeof(server)) < 0)
+        ctl.cmsg(CMSG_INFO, VERB_DEBUG, "Bind TCP/IP port=%d", *port);
+        if (bind(sfd, rp->ai_addr, rp->ai_addrlen) != 0) {
+            perror("bind");
+            close(sfd);
+        } else
+            break;
+
+        close(sfd);
+    }
+
+    if (rp == NULL)
     {
-	perror("bind");
-	close(sfd);
+	fprintf(stderr, "Could not bind\n");
+	freeaddrinfo(result);
 	return -1;
     }
+
+    freeaddrinfo(result);
+
     if(*port == 0)
     {
+	struct sockaddr_storage server;
 	socklen_t len = sizeof(server);
+
 	if(getsockname(sfd, (struct sockaddr *)&server, &len) < 0)
 	{
 	    perror("getsockname");
 	    close(sfd);
 	    return -1;
 	}
-	*port = ntohs(server.sin_port);
+
+        /* Not quite protocol independent */
+        switch (((struct sockaddr *) &server)->sa_family)
+        {
+            case AF_INET:
+                *port = ntohs(((struct sockaddr_in *) &server)->sin_port);
+                break;
+            case AF_INET6:
+                *port = ntohs(((struct sockaddr_in6 *) &server)->sin6_port);
+                break;
+        }
     }
 
     /* Set it up to wait for connections. */
@@ -865,7 +904,7 @@ static int cmd_help(int argc, char **argv)
 static int cmd_open(int argc, char **argv)
 {
     int sock;
-    struct sockaddr_in in;
+    struct sockaddr_storage in;
     socklen_t addrlen;
     int port;
 
@@ -899,11 +938,30 @@ static int cmd_open(int argc, char **argv)
     }
     close(sock);
 
-    if(control_port && control_client.sin_addr.s_addr != in.sin_addr.s_addr) {
-	close(data_fd);
-	data_fd = -1;
-	return send_status(513, "Security violation:  Address mismatch");
-    }
+     /* Not quite protocol independent */
+     if(control_port) switch (((struct sockaddr *) &control_client)->sa_family)
+     {
+         case AF_INET:
+            if (((struct sockaddr_in *) &control_client)->sin_addr.s_addr !=
+                ((struct sockaddr_in *) &in)->sin_addr.s_addr)
+            {
+              close(data_fd);
+              data_fd = -1;
+              return send_status(513, "Security violation: Address mismatch" );
+            }
+            break;
+         case AF_INET6:
+            if (memcmp(
+                ((struct sockaddr_in6 *) &control_client)->sin6_addr.s6_addr,
+                ((struct sockaddr_in6 *) &in)->sin6_addr.s6_addr, 16))
+            {
+              close(data_fd);
+              data_fd = -1;
+              return send_status(513, "Security violation: Address mismatch" );
+            }
+            break;
+     }
+
 
     data_buffer_len = 0;
     do_sysex(NULL, 0); /* Initialize SysEx buffer */

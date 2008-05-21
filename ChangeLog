@@ -1,35 +1,43 @@
+2008-05-21  Yair K. <cesium2@gmail.com>
+
+	* interface/server_c.c, libarc/url_ftp.c, libarc/url_http.c,
+	  libarc/url_news.c, timidity/timidity.c, utils/net.c:
+	  add ipv6 support.
+	* timidity/sysdep.h: include more possible LP64 defines.
+	* timidity/readmidi.c: fix for broken karaoke files produced
+	  by abc2mid.
+	* interface/xaw_i.c, interface/xaw.h: make compatible with
+	  xaw3d v1.5, style changes.
+	* interface/TiMidity(-uj).ad: move useButtom, useRight resources
+	  from xaw_i.c to here.
+	* timidity/oss_a.c: use 0x7fff arg to get maximum number of
+	  fragments.  modernize ioctls a bit.
+
 2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	* interface/w32g_pref.c:  WIN64 with AMD64 small fix
+	* interface/w32g_pref.c: WIN64 with AMD64 small fix
 
 2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
-	  patchs by Yair K.
-	* interface/xaw_i.c
-	  interface/x_trace.c
-	  interface/x_trace.h:  xaw SIGSEGV fix.
+
+	patches by Yair K.
+	* interface/xaw_i.c, interface/x_trace.c, interface/x_trace.h:
+	  xaw SIGSEGV fix.
 
 2008-04-16  Keishi Suenaga <skeishi@yahoo.co.jp>
-	  a patch by Stas Sergeev 
-	* interface/alsaseq_c.c:  idle time patch.
- 
+
+	a patch by Stas Sergeev
+	* interface/alsaseq_c.c: idle time patch.
+
 2008-04-13  Keishi Suenaga <skeishi@yahoo.co.jp>
-	* configure.in
-	  doc/ja_JP.eucJP/README.w32
-	  interface/Makefile.am
-	  timidity/sysdep.h
-	  doc/C/README.w32:    update files about Compile for Windows.
-	* interface/w32g.h
-	  interface/w32g_c.c
-	  interface/w32g_i.c
-	  interface/w32g_pref.c
-	  interface/w32g_ut2.c
-	  interface/w32g_utl.c
-	  timidity/controls.h
-	  timidity/optcode.h
-	  timidity/playmidi.c
-	  timidity/sysdep.h
-	  timidity/w32_a.c
-	  timidity/reverb.c:  support for WIN64 with AMD64
+
+	* configure.in, doc/C/README.w32, doc/ja_JP.eucJP/README.w32,
+	  interface/Makefile.am, timidity/sysdep.h:
+	  update files about Compile for Windows.
+	* interface/w32g.h, interface/w32g_c.c, interface/w32g_i.c,
+	  interface/w32g_pref.c, interface/w32g_ut2.c, interface/w32g_utl.c,
+	  timidity/controls.h, timidity/optcode.h, timidity/playmidi.c,
+	  timidity/sysdep.h, timidity/w32_a.c, timidity/reverb.c:
+	  support for WIN64 with AMD64
 
 2008-04-08  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
@@ -68,13 +76,13 @@
 
 2008-04-03  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	patchs by Yair K.
+	patches by Yair K.
 	* interface/Makefile.am, bitmaps/Makefile.am, interface/arrow.xbm,
 	  interface/check.xbm, interface/off.xbm, interface/on.xbm: remove
 
 2008-04-02  Keishi Suenaga <skeishi@yahoo.co.jp>
 
-	patchs by Yair K.
+	patches by Yair K.
 	* timidity/common.c, common.makefile.in, configure.in,
 	  doc/C/README.xaw, interface/arrow.xbm, interface/check.xbm,
 	  interface/Makefile.am, interface/off.xbm, interface/on.xbm,

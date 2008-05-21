@@ -58,7 +58,9 @@
 SOCKET open_socket(char *host, unsigned short port)
 {
     SOCKET fd;
-    struct sockaddr_in in;
+    struct addrinfo hints, *result, *rp;
+    char service[NI_MAXSERV];
+    int s;
 
 #if defined(WINSOCK)
     static int first = 1;
@@ -69,27 +71,36 @@ SOCKET open_socket(char *host, unsigned short port)
     }
 #endif
 
-    memset(&in, 0, sizeof(in));
-    if((in.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_ADDRCONFIG;
+
+    snprintf(service, sizeof(service), "%d", port);
+
+    s = getaddrinfo(host, service, &hints, &result);
+
+    if (s)
+        return (SOCKET)-1;
+
+    for (rp = result; rp != NULL; rp = rp->ai_next)
     {
-	struct hostent *hp;
-	if((hp = gethostbyname(host)) == NULL)
-	    return (SOCKET)-1;
-	memcpy(&in.sin_addr, hp->h_addr, hp->h_length);
-    }
-    in.sin_port = htons(port);
-    in.sin_family = AF_INET;
+        if (rp->ai_family != AF_INET && rp->ai_family != AF_INET6)
+            continue;
 
-    if((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
-	return (SOCKET)-1;
+        fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 
-    if(connect(fd, (struct sockaddr *)&in, sizeof(in)) == SOCKET_ERROR)
-    {
-	closesocket(fd);
-	return (SOCKET)-1;
+        if (fd != -1 && connect(fd, rp->ai_addr, rp->ai_addrlen) != -1)
+            break;
+
+        if (fd != -1) {
+            close(fd);
+            fd = -1;
+        }
     }
 
-    return fd;
+    freeaddrinfo(result);
+    return (SOCKET) fd;
 }
 
 #if !defined(__W32__) || defined(__CYGWIN32__)

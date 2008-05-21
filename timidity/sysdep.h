@@ -108,7 +108,9 @@ typedef unsigned short uint16;
 /* Linux-Axp has also 64 bit long words */
 #if defined(DEC) || defined(__alpha__) \
 		|| defined(__ia64__) || defined (__x86_64__) \
-		|| defined(__ppc64__) || defined(__s390x__)
+		|| defined(__ppc64__) || defined(__s390x__) \
+                || defined(__mips64__) || defined(__LP64__) \
+                || defined(_LP64)
 typedef          int   int32;
 typedef unsigned int  uint32;
 typedef          long  int64;

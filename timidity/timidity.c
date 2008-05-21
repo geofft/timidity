@@ -1519,6 +1519,8 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	/* #extension HTTPproxy hostname:port */
 	else if(strcmp(w[0], "HTTPproxy") == 0)
 	{
+            char r_bracket, l_bracket;
+
 	    if(words < 2)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -1530,7 +1532,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    /* If network is not supported, this extension is ignored. */
 #ifdef SUPPORT_SOCKET
 	    url_http_proxy_host = safe_strdup(w[1]);
-	    if((cp = strchr(url_http_proxy_host, ':')) == NULL)
+	    if((cp = strrchr(url_http_proxy_host, ':')) == NULL)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "%s: line %d: Syntax error", name, line);
@@ -1546,11 +1548,30 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
+
+            l_bracket = url_http_proxy_host[0];
+            r_bracket = url_http_proxy_host[strlen(url_http_proxy_host) - 1];
+
+            if (l_bracket == '[' || r_bracket == ']')
+            {
+                if (l_bracket != '[' || r_bracket != ']')
+                {
+                    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+                              "%s: line %d: Malformed IPv6 address",
+                              name, line);
+                    CHECKERRLIMIT;
+                    continue;
+                }
+                url_http_proxy_host++;
+                url_http_proxy_host[strlen(url_http_proxy_host) - 1] = '\0';
+            } 
 #endif
 	}
 	/* #extension FTPproxy hostname:port */
 	else if(strcmp(w[0], "FTPproxy") == 0)
 	{
+            char l_bracket, r_bracket;
+ 
 	    if(words < 2)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -1562,7 +1583,7 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 	    /* If network is not supported, this extension is ignored. */
 #ifdef SUPPORT_SOCKET
 	    url_ftp_proxy_host = safe_strdup(w[1]);
-	    if((cp = strchr(url_ftp_proxy_host, ':')) == NULL)
+	    if((cp = strrchr(url_ftp_proxy_host, ':')) == NULL)
 	    {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "%s: line %d: Syntax error", name, line);
@@ -1578,6 +1599,23 @@ MAIN_INTERFACE int read_config_file(char *name, int self)
 		CHECKERRLIMIT;
 		continue;
 	    }
+
+            l_bracket = url_ftp_proxy_host[0];
+            r_bracket = url_ftp_proxy_host[strlen(url_ftp_proxy_host) - 1];
+
+            if (l_bracket == '[' || r_bracket == ']')
+            {
+                if (l_bracket != '[' || r_bracket != ']')
+                {
+                    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+                              "%s: line %d: Malformed IPv6 address",
+                              name, line);
+                    CHECKERRLIMIT;
+                    continue;
+                }
+                url_ftp_proxy_host++;
+                url_ftp_proxy_host[strlen(url_ftp_proxy_host) - 1] = '\0';
+            }
 #endif
 	}
 	/* #extension mailaddr somebody@someware.domain.com */

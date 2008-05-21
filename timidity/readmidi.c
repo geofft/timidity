@@ -468,9 +468,9 @@ static char *dumpstring(int type, int32 len, char *label, int allocp,
     si[len]='\0';
 
     if(type == 1 &&
-       current_read_track == 1 &&
        current_file_info->format == 1 &&
-       strncmp(si, "@KMIDI", 6) == 0)
+       (strncmp(si, "@K", 2) == 0)) 
+/* Karaoke string should be "@KMIDI KARAOKE FILE" */
 	karaoke_format = 1;
 
     code_convert(si, so, s_maxlen, NULL, NULL);
@@ -5337,7 +5337,7 @@ char *get_midi_title(char *filename)
 		    }
 		    if(karaoke_format != -1)
 		    {
-			if(trk == 1 && strncmp(si, "@KMIDI", 6) == 0)
+			if(trk == 1 && strncmp(si, "@K", 2) == 0)
 			    karaoke_format = 1;
 			else if(karaoke_format == 1 && trk == 2)
 			    karaoke_format = 2;

@@ -85,7 +85,7 @@ PlayMode dpm = {
     PE_16BIT|PE_SIGNED,
     PF_PCM_STREAM|PF_CAN_TRACE|PF_BUFF_FRAGM_OPT,
     -1,
-    {0}, /* default: get all the buffer fragments you can */
+    {0x7fff,0,0,0,0}, /* default: get all the buffer fragments you can */
     "dsp device", 'd',
 #ifdef OSS_DEVICE
     OSS_DEVICE,
@@ -155,11 +155,11 @@ static int open_output(void)
        the other one. */
 
     i = tmp = (dpm.encoding & PE_16BIT) ? AFMT_S16_NE : AFMT_U8;
-    if(ioctl(fd, SNDCTL_DSP_SAMPLESIZE, &tmp) < 0 || tmp != i)
+    if(ioctl(fd, SNDCTL_DSP_SETFMT, &tmp) < 0 || tmp != i)
     {
 	/* Try the other one */
 	i = tmp = (dpm.encoding & PE_16BIT) ? AFMT_U8 : AFMT_S16_NE;
-	if(ioctl(fd, SNDCTL_DSP_SAMPLESIZE, &tmp) < 0 || tmp != i)
+	if(ioctl(fd, SNDCTL_DSP_SETFMT, &tmp) < 0 || tmp != i)
 	{
 	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		      "%s doesn't support 16- or 8-bit sample width",
@@ -176,12 +176,12 @@ static int open_output(void)
     /* Try stereo or mono, whichever the user wants. If it fails, try
        the other. */
 
-    i = tmp = (dpm.encoding & PE_MONO) ? 0 : 1;
-    if((ioctl(fd, SNDCTL_DSP_STEREO, &tmp) < 0) || tmp != i)
+    i = tmp = (dpm.encoding & PE_MONO) ? 1 : 2;
+    if((ioctl(fd, SNDCTL_DSP_CHANNELS, &tmp) < 0) || tmp != i)
     {
-	i = tmp = (dpm.encoding & PE_MONO) ? 1 : 0;
+	i = tmp = (dpm.encoding & PE_MONO) ? 2 : 1;
 
-	if((ioctl(fd, SNDCTL_DSP_STEREO, &tmp) < 0) || tmp != i)
+	if((ioctl(fd, SNDCTL_DSP_CHANNELS, &tmp) < 0) || tmp != i)
 	{
 	    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		      "%s doesn't support mono or stereo samples",
@@ -189,10 +189,10 @@ static int open_output(void)
 	    close(fd);
 	    return -1;
 	}
-	if(tmp == 0) dpm.encoding |= PE_MONO;
+	if(tmp == 1) dpm.encoding |= PE_MONO;
 	else dpm.encoding &= ~PE_MONO;
 	ctl->cmsg(CMSG_WARNING, VERB_VERBOSE, "Sound adjusted to %sphonic",
-		  (tmp==0) ? "mono" : "stereo");
+		  (tmp==1) ? "mono" : "stereo");
 	warnings = 1;
     }
 

@@ -237,6 +237,14 @@ URL url_ftp_open(char *name)
 		*passwd++ = '\0';
 	}
 
+        if (host[0] == '[')
+        {
+            if (!(p = strchr(host, ']')))
+                return NULL;
+            *p = '\0';
+            ++host;
+        } 
+
 #ifdef DEBUG
 	fprintf(stderr, "open(host=`%s', port=`%d')\n", host, port);
 #endif /* DEBUG */

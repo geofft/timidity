@@ -61,7 +61,6 @@
 
 #ifdef XAW3D
 #define XAWINCDIR(x) <X11/Xaw3d/x>
-#include XAWINCDIR(Xaw3dP.h)
 #elif defined(NEXTAW)
 #define XAWINCDIR(x) <X11/neXtaw/x>
 #include XAWINCDIR(XawVersion.h)
@@ -97,16 +96,6 @@
 /* Tooltips support exists only in Xaw7 (and above), Xaw3d 1.5E and XawPlus */
 #define HAVE_TIP
 #endif /* (XAW3D && HAVE_XAW3D_TIP) || (XAW && !OLDXAW) || XAWPLUS */
-
-#if defined(NEXTAW) || defined(XAWPLUS) \
-      || (defined(XAW3D) && defined(XAW_ARROW_SCROLLBARS))
-/*
- * StartScroll does not exist when Xaw3d is compiled with XAW_ARROW_SCROLLBARS,
- * or when neXtaw or XawPlus is used. A replacement is defined to avoid
- * warnings, and to allow for scrolling with the wheel buttons.
- */
-#define USEOWNSTARTSCROLL
-#endif /* NEXTAW || XAWPLUS || (XAW3D && XAW_ARROW_SCROLLBARS) */
 
 #if defined(XAW3D) || defined(XAWPLUS)
   /*

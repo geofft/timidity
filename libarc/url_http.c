@@ -136,8 +136,15 @@ URL url_http_open(char *name)
 	p = name;
 	if(strncmp(p, "http://", 7) == 0)
 	    p += 7;
-	for(q = p; *q && *q != ':' && *q != '/'; q++)
-	    ;
+        if (p[0] == '[')
+        {
+            if (!(q = strchr(p, ']')))
+                return NULL;
+            *q = '\0';
+            ++p;
+        } else
+	    for(q = p; *q && *q != ':' && *q != '/'; q++)
+	        ;
 	len = q - p;
 	if(len >= sizeof(wwwserver) - 1) { /* What?? */
 	    strcpy(wwwserver, "localhost");
@@ -161,8 +168,18 @@ URL url_http_open(char *name)
 	memcpy(buff, name, n + 1);
 
 	host = buff;
-	for(p = host; *p && *p != ':' && *p != '/'; p++)
-	    ;
+
+        if (host[0] == '[')
+        {
+            if (!(p = strchr(host, ']')))
+                return NULL;
+            *p = '\0';
+            ++host;
+            ++p;
+        } else
+            for(p = host; *p && *p != ':' && *p != '/'; p++)
+                ;
+
 	if(*p == ':')
 	{
 	    char *pp;

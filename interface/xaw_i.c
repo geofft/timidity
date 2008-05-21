@@ -331,7 +331,7 @@ static Dimension curr_width, curr_height, base_height, lyric_height,
 static int max_files = 0,
            init_options = DEFAULT_OPTIONS, init_chorus = DEFAULT_CHORUS;
 static outputs *record, *play;
-static Boolean recording = False;
+static Boolean recording = False, use_own_start_scroll = False;
 static String *flist = NULL;
 static int max_num = INIT_FLISTNUM;
 static int total_time = 0, curr_time = 0, halt = 0;
@@ -572,10 +572,8 @@ static Widget seekTransientShell(Widget);
 static void sndspecACT(Widget, XEvent *, String *, Cardinal *);
 static void soundkeyACT(Widget, XEvent *, String *, Cardinal *);
 static void speedACT(Widget, XEvent *, String *, Cardinal *);
-#ifdef USEOWNSTARTSCROLL
 static void simulateArrowsCB(Widget, XtPointer, XtPointer);
 static void StartScrollACT(Widget, XEvent *, String *, Cardinal *);
-#endif /* USEOWNSTARTSCROLL */
 static void stopCB(Widget, XtPointer, XtPointer);
 static char *strmatch(char *, char *);
 static void tempoCB(Widget, XtPointer, XtPointer);
@@ -1145,22 +1143,23 @@ setSizeHints(Dimension height) {
   XSizeHints *xsh;
 
   xsh = XAllocSizeHints();
-  if (xsh != NULL) {
-    xsh->flags = PMaxSize/* | PMinSize*/;
-    if (Cfg.disptrace == False) {
-      xsh->max_width = root_width;
-      xsh->min_height = base_height;
-    } else {
-      xsh->max_width = TRACE_WIDTH+8;
-      xsh->min_height = base_height + trace_v_height;
-    }
-    xsh->min_width = DEFAULT_REG_WIDTH;
-    if (XtIsManaged(lyric_t)) xsh->max_height = root_height;
-    else xsh->max_height = height;
-    XSetWMNormalHints(disp, XtWindow(toplevel), xsh);
-    XFree(xsh);
+  if (xsh == NULL) return;
+
+  xsh->flags = PMaxSize/* | PMinSize*/;
+  if (Cfg.disptrace == False) {
+    xsh->max_width = root_width;
+    xsh->min_height = base_height;
+  } else {
+    xsh->max_width = TRACE_WIDTH+8;
+    xsh->min_height = base_height + trace_v_height;
   }
- return;
+  xsh->min_width = DEFAULT_REG_WIDTH;
+  if (XtIsManaged(lyric_t)) xsh->max_height = root_height;
+  else xsh->max_height = height;
+
+  XSetWMNormalHints(disp, XtWindow(toplevel), xsh);
+  XFree(xsh);
+  return;
 }
 
 static void
@@ -1316,12 +1315,10 @@ createDialog(Widget w, ldPointer ld) {
              XtNorientation,XtorientHorizontal, NULL);
   load_vportdir = XtVaCreateManagedWidget("vdport",viewportWidgetClass,
              load_pane, XtNallowHoriz,True, XtNallowVert,True,
-             XtNbackground,textbgcolor, XtNuseBottom,True,
-             XtNpreferredPaneSize,ldwidth/5, NULL);
+             XtNbackground,textbgcolor, XtNpreferredPaneSize,ldwidth/5, NULL);
   load_vport = XtVaCreateManagedWidget("vport",viewportWidgetClass,
              load_pane, XtNallowHoriz,True, XtNallowVert,True,
-             XtNbackground,textbgcolor, XtNuseBottom,True,
-             XtNpreferredPaneSize,ldwidth*4/5, NULL);
+             XtNbackground,textbgcolor, XtNpreferredPaneSize,ldwidth*4/5, NULL);
   load_dlist = XtVaCreateManagedWidget("dirs",listWidgetClass,load_vportdir,
              XtNverticalList,True, XtNforceColumns,True,
              XtNbackground,textbgcolor, XtNdefaultColumns,1, NULL);
@@ -1419,15 +1416,9 @@ popdownLoadfile(Widget w, XtPointer client_data, XtPointer call_data) {
   ldPointer ld = (ldPointer)client_data;
 
   p = XawDialogGetValueString(load_d);
+  if ((!strncmp(p, "http:", 5)) || (!strncmp(p, "ftp:", 4))) goto lfiledown;
   if ((p2 = expandDir(p, NULL, basepath)) != NULL) p = p2;
-  if (IsEffectiveFile(p)) {
-    a_pipe_write("X %s", p);
-#ifdef CLEARVALUE
-    clearValue(load_d);
-#endif /* CLEARVALUE */
-    XtVaSetValues(load_d, XtNvalue,"", NULL);
-    XtPopdown(popup_load);
-  } else {
+  if (!IsEffectiveFile(p)) {
     char *s = strrchr(p, '/');
 
     if (s == NULL) return;
@@ -1443,6 +1434,13 @@ popdownLoadfile(Widget w, XtPointer client_data, XtPointer call_data) {
       s++;
     }
   }
+lfiledown:
+  a_pipe_write("X %s", p);
+#ifdef CLEARVALUE
+  clearValue(load_d);
+#endif /* CLEARVALUE */
+  XtVaSetValues(load_d, XtNvalue,"", NULL);
+  XtPopdown(popup_load);
 }
 
 static void
@@ -1656,26 +1654,26 @@ scrollListACT(Widget w, XEvent *e, String *v, Cardinal *n) {
     arg[0] = XtNewString("Forward");
     XtCallActionProc(scrollbar, (String)"StartScroll", e, arg, ONE);
     XtFree(arg[0]);
-#ifdef USEOWNSTARTSCROLL
-    XtCallActionProc(scrollbar, (String)"NotifyThumb", e, NULL, ZERO);
-#else
-    arg[0] = XtNewString("Proportional");
-    XtCallActionProc(scrollbar, (String)"NotifyScroll", e, arg, ONE);
-    XtFree(arg[0]);
-#endif /* USEOWNSTARTSCROLL */
+    if (use_own_start_scroll) {
+      XtCallActionProc(scrollbar, (String)"NotifyThumb", e, NULL, ZERO);
+    } else {
+      arg[0] = XtNewString("Proportional");
+      XtCallActionProc(scrollbar, (String)"NotifyScroll", e, arg, ONE);
+      XtFree(arg[0]);
+    }
     XtCallActionProc(scrollbar, (String)"EndScroll", e, NULL, ZERO);
   } else {
     String arg[1];
     arg[0] = XtNewString("Backward");
     XtCallActionProc(scrollbar, (String)"StartScroll", e, arg, ONE);
     XtFree(arg[0]);
-#ifdef USEOWNSTARTSCROLL
-    XtCallActionProc(scrollbar, (String)"NotifyThumb", e, NULL, ZERO);
-#else
-    arg[0] = XtNewString("Proportional");
-    XtCallActionProc(scrollbar, (String)"NotifyScroll", e, arg, ONE);
-    XtFree(arg[0]);
-#endif /* USEOWNSTARTSCROLL */
+    if (use_own_start_scroll) {
+      XtCallActionProc(scrollbar, (String)"NotifyThumb", e, NULL, ZERO);
+    } else {
+      arg[0] = XtNewString("Proportional");
+      XtCallActionProc(scrollbar, (String)"NotifyScroll", e, arg, ONE);
+      XtFree(arg[0]);
+    }
     XtCallActionProc(scrollbar, (String)"EndScroll", e, NULL, ZERO);
   }
 }
@@ -2675,7 +2673,7 @@ a_readconfig (Config *Cfg, char **home) {
           break;
         case S_MidiFile:
           p = s+k;
-          if ((dot_nfile < INIT_FLISTNUM) && (IsEffectiveFile(p)) ) {
+          if (dot_nfile < INIT_FLISTNUM) {
             dotfile_flist[dot_nfile] = safe_strdup(p);
             dot_nfile++;
           }
@@ -2703,44 +2701,33 @@ static void
 a_saveconfig(char *file, Boolean save_list) {
   FILE *fp;
 
-  if (*file != '\0') {
-    if ((fp = fopen(file, "w")) != NULL) {
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_RepeatPlay],
-                Cfg.repeat?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ShufflePlay],
-                Cfg.shuffle?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ExtOptions], init_options);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ChorusOption], init_chorus);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_CurVol], amplitude);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_Showdotfiles],
-                 Cfg.showdotfiles?1:0);
-      fprintf(fp, SPREFIX "%s %s\n", cfg_items[S_DefaultDirectory],
-                 Cfg.DefaultDir);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_DispTrace],
-                 Cfg.disptrace?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_DispText],
-                 Cfg.disptext?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_Tooltips],
-                 Cfg.tooltips?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_AutoStart],
-                 Cfg.autostart?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_AutoExit],
-                 Cfg.autoexit?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ConfirmExit],
-                 Cfg.confirmexit?1:0);
-      fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_SaveList],
-                 Cfg.save_list?1:0);
-      fclose(fp);
-      if (save_list) {
-        /* TODO: We're doing this dance via the pipe because no structure
-         * in xaw_i.c contains full filenames (including paths).
-         * Changing this would require changing xaw_c.c as well.
-         */
-        a_pipe_write("s %s", dotfile);
-      }
-    } else {
-      fprintf(stderr, "cannot open initializing file '%s'.\n", file);
-    }
+  if (*file == '\0') return;
+  if ((fp = fopen(file, "w")) == NULL) {
+    fprintf(stderr, "cannot open initializing file '%s'.\n", file);
+    return;
+  }
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_RepeatPlay], Cfg.repeat?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ShufflePlay], Cfg.shuffle?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ExtOptions], init_options);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ChorusOption], init_chorus);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_CurVol], amplitude);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_Showdotfiles],
+          Cfg.showdotfiles?1:0);
+  fprintf(fp, SPREFIX "%s %s\n", cfg_items[S_DefaultDirectory], Cfg.DefaultDir);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_DispTrace], Cfg.disptrace?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_DispText], Cfg.disptext?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_Tooltips], Cfg.tooltips?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_AutoStart], Cfg.autostart?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_AutoExit], Cfg.autoexit?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_ConfirmExit], Cfg.confirmexit?1:0);
+  fprintf(fp, SPREFIX "%s %d\n", cfg_items[S_SaveList], Cfg.save_list?1:0);
+  fclose(fp);
+  if (save_list) {
+    /* TODO: We're doing this dance via the pipe because no structure
+     * in xaw_i.c contains full filenames (including paths).
+     * Changing this would require changing xaw_c.c as well.
+     */
+    a_pipe_write("s %s", dotfile);
   }
 }
 
@@ -3297,9 +3284,8 @@ createFlist(void) {
                     XtNorientation,XtorientVertical, NULL);
     file_vport = XtVaCreateManagedWidget("file_vport",viewportWidgetClass,
                     popup_fform, XtNallowHoriz,True, XtNallowVert,True,
-                    XtNuseBottom,True, XtNbackground,textbgcolor,
                     XtNleft,XawChainLeft, XtNright,XawChainRight,
-                    XtNbottom,XawChainBottom, NULL);
+                    XtNbottom,XawChainBottom, XtNbackground,textbgcolor, NULL);
     file_list = XtVaCreateManagedWidget("filelist",listWidgetClass,file_vport,
                     XtNbackground,textbgcolor, XtNverticalList,True,
                     XtNdefaultColumns,1, XtNforceColumns,True, NULL);
@@ -3462,9 +3448,6 @@ createTraceWidgets(void) {
           XtNleft,XawChainLeft, XtNright,XawChainLeft,
           XtNfromVert,(XtIsManaged(lyric_t))?lyric_t:t_box,
           XtNallowHoriz,True, XtNallowVert,True,
-#ifndef WIDGET_IS_LABEL_WIDGET
-          XtNuseBottom,True, XtNuseRight,True,
-#endif
           XtNwidth,TRACE_WIDTH+8, XtNheight,trace_v_height, NULL);
   trace = XtVaCreateManagedWidget("trace",widgetClass,trace_vport,
           XtNheight,app_resources.tracecfg.trace_height,
@@ -3511,6 +3494,12 @@ createBars(void) {
   int m, m2;
 #endif /* !SCROLLBARLENGTHBUG */
   barfloat thumb;
+
+  Cardinal num_actions;
+  XtActionList action_list;
+  static XtActionsRec startscroll_act[] = {
+    {"StartScroll", StartScrollACT}
+  };
 
   v_box = XtVaCreateManagedWidget("volume_box",formWidgetClass,base_f,
             XtNorientation,XtorientHorizontal, XtNheight,36,
@@ -3579,6 +3568,20 @@ createBars(void) {
   XtVaSetValues(tune_bar,
                   XtNlength,DEFAULT_REG_WIDTH-(k+l+30+tune_hd)-m2, NULL);
 #endif /* SCROLLBARLENGTHBUG */
+
+ /*
+  * StartScroll does not exist when Xaw3d is compiled with XAW_ARROW_SCROLLBARS,
+  * or when neXtaw or XawPlus is used. Thus, a runtime check sees if it exists.
+  * If it does not, A replacement is defined to avoid warnings, and to allow
+  * for scrolling with the wheel buttons.
+  * Note that this check could work only after the scrollbar class is inited.
+  */
+  XtGetActionList(scrollbarWidgetClass, &action_list, &num_actions);
+  j = (int)num_actions;
+  for (i = 0; i < j; i++)
+    if (!strcasecmp(action_list[i].string, "StartScroll")) return;
+  XtAppAddActions(app_con, startscroll_act, XtNumber(startscroll_act));
+  use_own_start_scroll = True;
 }
 
 static void
@@ -3726,6 +3729,9 @@ a_init_interface(int pipe_in) {
     {"do-tuneset", tunesetACT},
     {"do-resize", resizeToplevelACT},
     {"do-scroll", scrollListACT},
+#ifndef WIDGET_IS_LABEL_WIDGET
+    {"do-deltext", deleteTextACT},
+#endif
     {"do-scroll-lyrics", scrollTextACT},
 #ifdef TimNmenu
     {"checkRightAndPopupSubmenu", checkRightAndPopupSubmenuACT},
@@ -3748,16 +3754,10 @@ a_init_interface(int pipe_in) {
     {"do-up", upACT},
     {"do-down", downACT},
     {"do-record", recordACT},
-    {"changetrace", scrollTraceACT},
-#ifndef WIDGET_IS_LABEL_WIDGET
-    {"do-deltext", deleteTextACT},
-#endif
-#ifdef USEOWNSTARTSCROLL
-    {"StartScroll", StartScrollACT},
-#endif /* USEOWNSTARTSCROLL */
+    {"changetrace", scrollTraceACT}
   };
 
- XtResource xaw_resources[] = {
+  XtResource xaw_resources[] = {
 #define offset(entry) XtOffset(struct _app_resources*, entry)
 #define toffset(entry) XtOffset(struct _app_resources*, tracecfg.entry)
   {"arrangeTitle", "ArrangeTitle", XtRBoolean, sizeof(Boolean),
@@ -3851,10 +3851,10 @@ a_init_interface(int pipe_in) {
    "TiMidity <Load Playlist>"},
   {"save_" LISTDIALOGBASENAME ".title", XtCString, XtRString,
    sizeof(String), offset(save_LISTDIALOGBASENAME_title), XtRString,
-   "TiMidity <Save Playlist>"},
+   "TiMidity <Save Playlist>"}
 #undef offset
 #undef toffset
-};
+  };
 
   String fallback_resources[] = {
     "*international: True",
@@ -3987,6 +3987,7 @@ a_init_interface(int pipe_in) {
     "*trace.vertDistance: 2",
     "*trace.borderWidth: 1",
     "*trace_vport.borderWidth: 1",
+    "*trace_vport.useRight: True",
     "*popup_optform*Box*borderWidth: 0",
     "*load_dialog.label.fontSet: -*--14-*",
     "*popup_abox*fontSet: -adobe-helvetica-bold-o-*-*-14-*-*-*-*-*-*-*,*",
@@ -4125,6 +4126,7 @@ a_init_interface(int pipe_in) {
         <BtnDown>:		hide-menu()\\n\
         <ConfigureNotify>:	do-resize()",
 
+    "*Viewport.useBottom: True",
     "*List.baseTranslations: #override\\n\
         <Btn4Down>:   do-scroll(-1)\\n\
         <Btn5Down>:   do-scroll(1)",
@@ -4260,7 +4262,7 @@ a_init_interface(int pipe_in) {
     "*saveplaylisterror.label: Could not save playlist!",
     "*waitforwav.label: Please wait. This may take several minutes.",
     "*warnrecording.label: Cannot record - a file is already being recorded",
-    NULL,
+    NULL
   };
   int argc = 1, i;
   char *argv = APP_NAME;
@@ -4271,7 +4273,8 @@ a_init_interface(int pipe_in) {
   toplevel = XtVaAppInitialize(&app_con, APP_CLASS, NULL, ZERO, &argc, &argv,
                          fallback_resources, NULL);
   XtGetApplicationResources(toplevel, (XtPointer)&app_resources,
-                         xaw_resources, XtNumber(xaw_resources), NULL, 0);
+                            xaw_resources, XtNumber(xaw_resources), NULL, 0);
+  umask(022);
   a_readconfig(&Cfg, &home);
   if (Cfg.disptrace) ctl->trace_playing = 1;
   amplitude =
@@ -4343,13 +4346,12 @@ a_init_interface(int pipe_in) {
 #ifndef WIDGET_IS_LABEL_WIDGET
   lyric_t = XtVaCreateWidget("lyric_text",asciiTextWidgetClass,base_f,
             XtNwrap,XawtextWrapWord, XtNeditType,XawtextAppend,
-            XtNborderWidth,1,
             XtNwidth,(ctl->trace_playing)?TRACE_WIDTH+8:DEFAULT_REG_WIDTH,
 #else
   lyric_t = XtVaCreateWidget("lyric_text",labelWidgetClass,base_f,
             XtNforeground,textcolor, XtNbackground,menubcolor,
 #endif
-            XtNfontSet,app_resources.text_font,
+            XtNborderWidth,1, XtNfontSet,app_resources.text_font,
             XtNtop,XawChainTop, XtNright,XawChainRight,
             XtNheight,app_resources.text_height, XtNfromVert,t_box, NULL);
   if (Cfg.disptext == True) XtManageChild(lyric_t);
@@ -4427,6 +4429,9 @@ a_init_interface(int pipe_in) {
     resizeToplevelACT(toplevel, NULL, NULL, NULL);
   } else {
     toggleMark(file_menu[ID_HIDETRACE-100].widget, True);
+#ifdef XAWPLUS
+    resizeToplevelACT(toplevel, NULL, NULL, NULL);
+#endif /* XAWPLUS */
   }
 #ifdef HAVE_TIP
   if (Cfg.tooltips == True) xawTipSet(True);
@@ -4509,9 +4514,9 @@ extern WidgetClass vendorShellWidgetClass;
 extern VendorShellClassRec vendorShellClassRec;
 static void
 xaw_vendor_setup(void) {
-    memcpy(&vendorShellClassRec, &xaw_vendorShellClassRec,
-           sizeof(VendorShellClassRec));
-    vendorShellWidgetClass = (WidgetClass)&xaw_vendorShellWidgetClass;
+  memcpy(&vendorShellClassRec, &xaw_vendorShellClassRec,
+         sizeof(VendorShellClassRec));
+  vendorShellWidgetClass = (WidgetClass)&xaw_vendorShellWidgetClass;
 }
 #else
 static void
@@ -4528,7 +4533,6 @@ clearValue(Widget w) {
 }
 #endif /* CLEARVALUE */
 
-#ifdef USEOWNSTARTSCROLL
 static void
 simulateArrowsCB(Widget w, XtPointer client_data, XtPointer call_data) {
   long offset = (long)call_data;
@@ -4537,7 +4541,6 @@ simulateArrowsCB(Widget w, XtPointer client_data, XtPointer call_data) {
   Dimension len;
 
   XtVaGetValues(w, XtNtopOfThumb,&thumb.f, XtNlength,&len, NULL);
-  if (abs(offset) >= len) return;
   thumb.f += (float)offset/(float)len;
   if (thumb.f < 0) thumb.f = 0;
   else if (thumb.f > 1) thumb.f = 1;
@@ -4565,7 +4568,6 @@ StartScrollACT(Widget w, XEvent *e, String *v, Cardinal *n) {
   }
   XtCallCallbacks(w, XtNscrollProc, (XtPointer)call_data);
 }
-#endif /* USEOWNSTARTSCROLL */
 
 /* XawScrollbarSetThumb is buggy. */
 static void
@@ -4795,6 +4797,7 @@ TipDisable(Widget w) {
 static void
 xawtipsetACT(Widget w, XEvent *e, String *v, Cardinal *n) {
   int state = atoi(*v);
+
   if (state == -1) Cfg.tooltips ^= True;
   else Cfg.tooltips = (Boolean)state;
   xawTipSet(Cfg.tooltips);
