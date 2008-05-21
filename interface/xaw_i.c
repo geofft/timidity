@@ -4541,6 +4541,7 @@ simulateArrowsCB(Widget w, XtPointer client_data, XtPointer call_data) {
   Dimension len;
 
   XtVaGetValues(w, XtNtopOfThumb,&thumb.f, XtNlength,&len, NULL);
+  if (abs(offset) >= len) return;
   thumb.f += (float)offset/(float)len;
   if (thumb.f < 0) thumb.f = 0;
   else if (thumb.f > 1) thumb.f = 1;

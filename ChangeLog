@@ -1,3 +1,7 @@
+2008-05-22  Yair K. <cesium2@gmail.com>
+
+	* interface/xaw_i.c: reinstate one line.
+
 2008-05-22  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* utils/net.c: Fix for AI_ADDRCONFIG unsupported
