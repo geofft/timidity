@@ -1,3 +1,12 @@
+2008-12-06  Keishi Suenaga <skeishi@yahoo.co.jp>
+
+	* configure.in: Fix mingw detection and replace wsock32 by ws2_32.
+	* timidity/w32_libOggFLAC_dll.c: Small fix.
+	* utils/getaddrinfo.c(new file)
+	  utils/Makefile.am
+	  utils/net.c
+      utils/net.h: Windows 2000 compatible network.
+      
 2008-05-22  Yair K. <cesium2@gmail.com>
 
 	* interface/xaw_i.c: reinstate one line.

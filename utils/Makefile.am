@@ -50,6 +50,7 @@ EXTRA_libutils_a_SOURCES = \
 	support.c \
 	net.c \
 	net.h \
+	getaddrinfo.c \
 	mac_util.c \
 	mac_util.h \
 	mac_readdir.c \
@@ -62,7 +63,7 @@ GETOPT_OBJS = getopt.$(OBJEXT)
 endif
 
 if ENABLE_NETWORK
-NET_OBJS = net.$(OBJEXT)
+NET_OBJS = net.$(OBJEXT) getaddrinfo.$(OBJEXT)
 endif
 
 if ENABLE_SOUND_SPEC

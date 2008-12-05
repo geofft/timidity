@@ -55,6 +55,18 @@
 #endif /* SOCKET_ERROR */
 #endif
 
+#if (defined WIN32) && (_WIN32_WINNT < 0x0501)
+typedef int (WSAAPI * GETADDRINFO) (const char FAR *, const char FAR *,
+                                          const struct addrinfo FAR *,
+                                          struct addrinfo FAR * FAR *);
+
+typedef void (WSAAPI * FREEADDRINFO) ( struct addrinfo FAR * );
+extern GETADDRINFO ws2_getaddrinfo;
+extern FREEADDRINFO ws2_freeaddrinfo;
+#define getaddrinfo ws2_getaddrinfo
+#define freeaddrinfo ws2_freeaddrinfo
+#endif
+
 SOCKET open_socket(char *host, unsigned short port)
 {
     SOCKET fd;
@@ -282,4 +294,5 @@ int socket_fflush(FILE *fp)
 {
     return 0;
 }
+
 #endif

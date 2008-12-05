@@ -237,7 +237,7 @@ case "$target" in
 #        test -n "$SHLD" || SHLD="tlink32 -Tpd"
         test -n "$SHLD" || SHLD="BCC32 -WD"
         BORLANDC=yes
-        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib wsock32.lib user32.lib shell32.lib cw32mt.lib"
+        BORLANDC_LDFLAGS="kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib ws2_32.lib user32.lib shell32.lib cw32mt.lib"
         BORLANDC_START='C0X32.OBJ'
         CFLAGS="$CFLAGS  -tWM -VM"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
@@ -250,14 +250,14 @@ case "$target" in
            *" -MD "*)  NODEF="-nodefaultlib:crtmt.lib -nodefaultlib:crt.lib -defaultlib:pocrt.lib"  ;;
            *) CFLAGS="$CFLAGS -MT"; NODEF="-nodefaultlib:pocrt.lib -nodefaultlib:crtmt.lib -defaultlib:crt.lib" ;;
          esac
-        POCC_LDFLAGS="$NODEF winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib oldnames.lib"
+        POCC_LDFLAGS="$NODEF winmm.lib ws2_32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib oldnames.lib"
         CFLAGS="$CFLAGS -Ze -D__POCC__OLDNAMES"
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
         ;;
       "xdmc "*|xdmc) 
         test -n "$SHLD" || SHLD="dmc -WD"
         DMC=yes
-        DMC_LDFLAGS="winmm.lib wsock32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib"
+        DMC_LDFLAGS="winmm.lib ws2_32.lib user32.lib kernel32.lib shell32.lib gdi32.lib comctl32.lib comdlg32.lib ole32.lib advapi32.lib"
         CFLAGS="$CFLAGS  -mn -j0"
         DLLFLAG=" "
         EXTRADEFS="$EXTRADEFS -D_WINDOWS -DWIN32"
@@ -267,7 +267,7 @@ case "$target" in
          CFLAGS="$CFLAGS -br -bm -5s -zk0 -zp=16 -w=4 -D_WINDOWS -DWIN32 -DINCLUDE_WINDOWS_H"
          DLLFLAG=" "
          WATCOM_LDFLAGS=
-         EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib user32.lib shell32.lib"
+         EXTRALIBS="$EXTRALIBS kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ws2_32.lib user32.lib shell32.lib"
          ;;
       "xcl "*|xcl) 
          test -n "$SHLD" || SHLD="link -dll"
@@ -279,11 +279,11 @@ case "$target" in
            *" -MDd "*) NODEF="-nodefaultlib:libcmt.lib -nodefaultlib:libcmtd.lib -nodefaultlib:msvcrt.lib -nodefaultlib:libc.lib -nodefaultlib:libcd.lib"  ;;
            *) CFLAGS="$CFLAGS -MT"; NODEF="-nodefaultlib:msvcrt.lib -nodefaultlib:msvcrtd.lib -nodefaultlib:libcmtd.lib -nodefaultlib:libc.lib -nodefaultlib:libcd.lib"  ;;
          esac
-         VCPP_LDFLAGS="-nologo -incremental:no  $NODEF kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib  wsock32.lib user32.lib shell32.lib"
+         VCPP_LDFLAGS="-nologo -incremental:no  $NODEF kernel32.lib winspool.lib comdlg32.lib advapi32.lib oleaut32.lib uuid.lib  ws2_32.lib user32.lib shell32.lib"
          CFLAGS="$CFLAGS -nologo -Zp16 -W3 -GX  -Ob2"
          EXTRADEFS="$EXTRADEFS -DNDEBUG -D_WINDOWS -DWIN32 -DMBCS -D_MT -YX  -FD -c"
          ;;
-      "x*gcc"*) test -n "$SHLD" || SHLD="gcc -mdll"; MINGWGCC=yes ;;
+      x*gcc*) test -n "$SHLD" || SHLD="gcc -mdll"; MINGWGCC=yes ;;
       *) test -n "$SHLD" || SHLD="unknown" ;;
     esac
     so="dll"
@@ -766,14 +766,14 @@ if test "x$MSYS" = xyes ; then
     ;;
   esac
   if test "x$VCPP" = xyes || test "x$BORLANDC" = xyes || test "x$WATCOM_C" = xyes || test "x$DMC" = xyes || test "x$POCC" = xyes; then
-    EXTRALIBS="$EXTRALIBS  wsock32.lib"
+    EXTRALIBS="$EXTRALIBS  ws2_32.lib"
     EXTRADEFS="$EXTRADEFS -DWINSOCK" 
   else
     AC_CHECK_FUNC(socket,,
-     WAPI_CHECK_LIB(wsock32,WSAStartup,
+     WAPI_CHECK_LIB(ws2_32,WSAStartup,
   	   [#include <winsock.h>],
   	   [WSAStartup(0,0);],
-       [ EXTRALIBS="$EXTRALIBS -lwsock32"
+       [ EXTRALIBS="$EXTRALIBS -lws2_32"
         EXTRADEFS="$EXTRADEFS -DWINSOCK" ]
      )
     )
