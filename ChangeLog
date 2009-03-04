@@ -1,3 +1,9 @@
+2009-03-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* interface/ncurs_c.c, timidity/readmidi.c:
+	  Fix to fit with MAX_CHANNELS > 32
+	* timidity/playmidi.c (find_voice): Beautify
+
 2008-12-06  Keishi Suenaga <skeishi@yahoo.co.jp>
 
 	* configure.in: Fix mingw detection and replace wsock32 by ws2_32.

@@ -729,38 +729,37 @@ static void display_intonation(int mode)
 
 static void ctl_ncurs_mode_init(void)
 {
-    int i;
-
-    display_channels = LINES - 8;
-    if(display_channels > MAX_CHANNELS)
-	display_channels = MAX_CHANNELS;
-    if(current_file_info != NULL && current_file_info->max_channel < 16)
-	display_channels = 16;
-
-    display_play_system(play_system_mode);
-    display_intonation(opt_pure_intonation);
-    switch(ctl_ncurs_mode)
-    {
-      case NCURS_MODE_MAIN:
-	touchwin(msgwin);
-	wrefresh(msgwin);
-	break;
-      case NCURS_MODE_TRACE:
-	touchwin(dftwin);
-	for(i = 0; i < MAX_CHANNELS; i++)
-	    init_trace_window_chan(i);
-	N_ctl_refresh();
-	break;
-      case NCURS_MODE_HELP:
-	break;
-      case NCURS_MODE_LIST:
-	touchwin(listwin);
-	ctl_list_mode(NC_LIST_NOW);
-	break;
-      case NCURS_MODE_DIR:
-	ctl_cmd_L_dir(0);
-	break;
-    }
+	int i;
+	
+	if (current_file_info != NULL)
+		display_channels = (current_file_info->max_channel / 16) * 16 + 16;
+	else
+		display_channels = LINES - 8;
+	if (display_channels > LINES - 8)
+		display_channels = LINES - 8;
+	display_play_system(play_system_mode);
+	display_intonation(opt_pure_intonation);
+	switch (ctl_ncurs_mode) {
+	case NCURS_MODE_MAIN:
+		touchwin(msgwin);
+		wrefresh(msgwin);
+		break;
+	case NCURS_MODE_TRACE:
+		touchwin(dftwin);
+		for (i = 0; i < MAX_CHANNELS; i++)
+			init_trace_window_chan(i);
+		N_ctl_refresh();
+		break;
+	case NCURS_MODE_HELP:
+		break;
+	case NCURS_MODE_LIST:
+		touchwin(listwin);
+		ctl_list_mode(NC_LIST_NOW);
+		break;
+	case NCURS_MODE_DIR:
+		ctl_cmd_L_dir(0);
+		break;
+	}
 }
 
 static void display_key_helpmsg(void)

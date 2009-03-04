@@ -2833,7 +2833,7 @@ int parse_sysex_event_multi(uint8 *val, int32 len, MidiEvent *evm)
 							0, val[7], (val[0] == 0x7f));
 					num_events++;
 				} else {
-					for (i = j = 0; i < MAX_CHANNELS; i++)
+					for (i = j = 0; i < 32; i++)
 						if (channel_tt & 1 << i) {
 							SETMIDIEVENT(evm[j], 0, ME_TEMPER_TYPE,
 									MERGE_CHANNEL_PORT(i),
@@ -3866,15 +3866,17 @@ static void move_channels(int *chidx)
 				if (chidx[ch = e->event.channel] != -1)
 					ch = e->event.channel = chidx[ch];
 				else {	/* -1 */
-					newch = ch % REDUCE_CHANNELS;
-					while (newch < ch && newch < MAX_CHANNELS) {
-						if (chidx[newch] == -1) {
-							ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-									"channel %d => %d", ch, newch);
-							ch = e->event.channel = chidx[ch] = newch;
-							break;
+					if (ch >= MAX_CHANNELS) {
+						newch = ch % REDUCE_CHANNELS;
+						while (newch < ch && newch < MAX_CHANNELS) {
+							if (chidx[newch] == -1) {
+								ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
+										"channel %d => %d", ch, newch);
+								ch = e->event.channel = chidx[ch] = newch;
+								break;
+							}
+							newch += REDUCE_CHANNELS;
 						}
-						newch += REDUCE_CHANNELS;
 					}
 					if (chidx[ch] == -1) {
 						if (ch < MAX_CHANNELS)

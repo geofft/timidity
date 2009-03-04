@@ -2143,13 +2143,13 @@ static int find_voice(MidiEvent *e)
 					finish_note(i);	/* drop sustain */
 				else
 					kill_note(i);
-			} else if (mono_check
-					|| (altassign && find_altassign(altassign, voice[i].note)))
+			} else if (mono_check)
 				kill_note(i);
-			else if (voice[i].note == note &&
-				 (channel[ch].assign_mode == 0
-					|| (channel[ch].assign_mode == 1
-					&& voice[i].proximate_flag == 0)))
+			else if (altassign && find_altassign(altassign, voice[i].note))
+				kill_note(i);
+			else if (voice[i].note == note && (channel[ch].assign_mode == 0
+					|| channel[ch].assign_mode == 1
+					&& voice[i].proximate_flag == 0))
 				kill_note(i);
 		}
 	for (i = 0; i < upper_voices; i++)
