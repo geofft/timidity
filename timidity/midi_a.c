@@ -374,7 +374,7 @@ static void midout_timesig(int chn, int a, int b, int32 time)
 
 static int do_event(MidiEvent * ev)
 {
-    int ch, co, va, type;
+    int ch, type;
 
     ch = ev->channel;
 
