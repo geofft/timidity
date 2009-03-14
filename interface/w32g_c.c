@@ -616,10 +616,13 @@ static void AddStartupMessage(const char *message)
 
 static void ShowStartupMessage(void)
 {
-	if (startup_message == NULL || startup_message == startup_message_tail)
+	if (startup_message == NULL)
 		return;
-	*startup_message_tail = '\0';
-	w32g_msg_box(startup_message, "TiMidity Error", MB_OK);
+	if (startup_message != startup_message_tail)
+	{
+		*startup_message_tail = '\0';
+		w32g_msg_box(startup_message, "TiMidity Error", MB_OK);
+	}
 	free(startup_message);
 	startup_message = NULL;
 }
