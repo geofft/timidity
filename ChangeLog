@@ -1,3 +1,11 @@
+2009-03-15  Kentaro Sato <kentaro@ranvis.com>
+
+	* interface/w32g_c.c: Display errors reported on startup.
+	* interface/w32g_utl.c: Add configuration fallbacks.
+	* timidity/midi_a.c: Remove unused local variables.
+	* timidity/sndfont.c:
+	  CFG_FOR_SF_SUPPORT_FFT can be externally defined. (cfgforsf)
+
 2009-03-04  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* interface/ncurs_c.c, timidity/readmidi.c:
