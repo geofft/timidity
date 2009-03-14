@@ -1638,7 +1638,9 @@ static void convert_vibrato(SampleList *vp, LayerTable *tbl)
 
 #include "freq.h"
 
+#ifndef CFG_FOR_SF_SUPPORT_FFT
 #define CFG_FOR_SF_SUPPORT_FFT	1
+#endif
 
 static FILE *x_out;
 static char x_sf_file_name[1024];
