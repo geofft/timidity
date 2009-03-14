@@ -72,6 +72,8 @@ static int mark_apply_setting = 0;
 PanelInfo *Panel = NULL;
 static void CanvasUpdateInterval(void);
 static void ctl_panel_refresh(void);
+static void AddStartupMessage(const char *message);
+static void ShowStartupMessage(void);
 
 char *w32g_output_dir = NULL;
 int w32g_auto_output_mode = 0;
@@ -121,6 +123,7 @@ static int ctl_open(int using_stdin, int using_stdout)
 	return 0;
     ctl.opened = 1;
     set_trace_loop_hook(CanvasUpdateInterval);
+    ShowStartupMessage();
 
     /* Initialize Panel */
     Panel = (PanelInfo *)safe_malloc(sizeof(PanelInfo));
@@ -571,11 +574,54 @@ static int cmsg(int type, int verbosity_level, char *fmt, ...)
     if((type==CMSG_TEXT || type==CMSG_INFO || type==CMSG_WARNING) &&
        ctl.verbosity<verbosity_level)
 	return 0;
-    if(type == CMSG_FATAL)
+    if (type == CMSG_ERROR)
+	AddStartupMessage(buffer);
+    else if (type == CMSG_FATAL) {
+	ShowStartupMessage();
 	w32g_msg_box(buffer, "TiMidity Error", MB_OK);
+    }
     PutsConsoleWnd(buffer);
     PutsConsoleWnd("\n");
     return 0;
+}
+
+static char *startup_message = NULL, *startup_message_tail;
+
+static void AddStartupMessage(const char *message)
+{
+	static int remaining;
+	int length;
+	if (ctl.opened)
+		return;
+	length = strlen(message);
+	if (startup_message == NULL)
+	{
+		remaining = 2048;	/* simple */
+		startup_message = malloc(remaining);
+		if (startup_message == NULL)
+			return;
+		startup_message_tail = startup_message;
+		remaining--;
+	}
+	length = min(length, remaining);
+	strncpy(startup_message_tail, message, length);
+	remaining -= length;
+	startup_message_tail += length;
+	if (remaining > 0)
+	{
+		*startup_message_tail++ = '\n';
+		remaining--;
+	}
+}
+
+static void ShowStartupMessage(void)
+{
+	if (startup_message == NULL || startup_message == startup_message_tail)
+		return;
+	*startup_message_tail = '\0';
+	w32g_msg_box(startup_message, "TiMidity Error", MB_OK);
+	free(startup_message);
+	startup_message = NULL;
 }
 
 static void ctl_panel_refresh(void)
