@@ -542,7 +542,8 @@ ApplySettingTiMidity(SETTING_TIMIDITY *st)
     set_ctl(st->opt_ctl);
     opt_realtime_playing = SetFlag(st->opt_realtime_playing);
     reduce_voice_threshold = st->reduce_voice_threshold;
-    set_play_mode(st->opt_playmode);
+    if (*st->opt_playmode != '\0')
+	set_play_mode(st->opt_playmode);
     strncpy(OutputName,st->OutputName,MAXPATH);
 #if 0
     if(OutputName[0] && !is_device_output_ID(play_mode->id_character))
@@ -854,6 +855,15 @@ void w32g_initialize(void)
     DocFileExt = S_DocFileExt;
     OutputName = S_OutputName;
 	w32g_output_dir = S_w32g_output_dir;
+    switch (PRIMARYLANGID(GetUserDefaultLangID()))
+    {
+    case LANG_JAPANESE:
+	PlayerLanguage = LANGUAGE_JAPANESE;
+	break;
+    default:
+	PlayerLanguage = LANGUAGE_ENGLISH;
+	break;
+    }
   
     IniFile[0] = '\0';
     ConfigFile[0] = '\0';
