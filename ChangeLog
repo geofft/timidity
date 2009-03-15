@@ -1,5 +1,12 @@
 2009-03-15  Kentaro Sato <kentaro@ranvis.com>
 
+	* timidity/miditrace.c:
+	  Fix for Mac sound spectrum being out of sync in trace mode.
+	* timidity/reverb.c:
+	  Revert r1.69 change for panning delay that caused off-by-one.
+
+2009-03-15  Kentaro Sato <kentaro@ranvis.com>
+
 	* interface/w32g_c.c: Display errors reported on startup.
 	* interface/w32g_utl.c: Add configuration fallbacks.
 	* timidity/midi_a.c: Remove unused local variables.
