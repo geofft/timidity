@@ -1629,8 +1629,8 @@ static void do_ch_reverb_panning_delay(int32 *buf, int32 count, InfoDelay3 *info
 		buf[i] += r;
 		buf[++i] += l;
 
-		if (index0++ == buf_size) {index0 = 0;}
-		if (buf_index++ == buf_size) {buf_index = 0;}
+		if (++index0 == buf_size) {index0 = 0;}
+		if (++buf_index == buf_size) {buf_index = 0;}
 	}
 	memset(reverb_effect_buffer, 0, sizeof(int32) * count);
 	info->index[0] = index0;
