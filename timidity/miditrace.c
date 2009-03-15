@@ -144,7 +144,11 @@ static MidiTraceList *midi_trace_setfunc(MidiTraceList *node)
 {
     MidiTraceList *p;
 
+#ifdef __MACOS__
+    if(!ctl->trace_playing || node->start < 0)
+#else
     if(!ctl->trace_playing || node->start < 0 || node->argtype == ARGTIME_VP)
+#endif
     {
 	run_midi_trace(node);
 	return NULL;
