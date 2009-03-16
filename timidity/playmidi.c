@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2005 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2009 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -3349,20 +3349,16 @@ static void adjust_master_volume(void)
 
 int midi_drumpart_change(int ch, int isdrum)
 {
-    if(IS_SET_CHANNELMASK(drumchannel_mask, ch))
-    return 0;
-    if(isdrum)
-    {
-	SET_CHANNELMASK(drumchannels, ch);
-	SET_CHANNELMASK(current_file_info->drumchannels, ch);
-    }
-    else
-    {
-	UNSET_CHANNELMASK(drumchannels, ch);
-	UNSET_CHANNELMASK(current_file_info->drumchannels, ch);
-    }
-
-    return 1;
+	if (IS_SET_CHANNELMASK(drumchannel_mask, ch))
+		return 0;
+	if (isdrum) {
+		SET_CHANNELMASK(drumchannels, ch);
+		SET_CHANNELMASK(current_file_info->drumchannels, ch);
+	} else {
+		UNSET_CHANNELMASK(drumchannels, ch);
+		UNSET_CHANNELMASK(current_file_info->drumchannels, ch);
+	}
+	return 1;
 }
 
 void midi_program_change(int ch, int prog)
@@ -3462,7 +3458,7 @@ void midi_program_change(int ch, int prog)
 			channel[ch].mapID = XG_SFX126_MAP;
 			dr = ISDRUMCHANNEL(ch);
 			break;
-		case 127:	/* Drumset */
+		case 127:	/* Drum kit */
 			midi_drumpart_change(ch, 1);
 			channel[ch].mapID = XG_DRUM_MAP;
 			dr = ISDRUMCHANNEL(ch);
@@ -3473,8 +3469,7 @@ void midi_program_change(int ch, int prog)
 		newbank = channel[ch].bank_lsb;
 		break;
 	case GM2_SYSTEM_MODE:	/* GM2 */
-		if ((channel[ch].bank_msb & 0xFE) == 0x78)	/* 0x78/0x79 */
-		{
+		if ((channel[ch].bank_msb & 0xfe) == 0x78) {	/* 0x78/0x79 */
 			midi_drumpart_change(ch, channel[ch].bank_msb == 0x78);
 			dr = ISDRUMCHANNEL(ch);
 		}

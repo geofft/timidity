@@ -1,3 +1,9 @@
+2009-03-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
+
+	* timidity/readmidi.c (gloom_list):
+	  Fix for GM2 drumch on program change
+	* timidity/playmidi.c (midi_drumpart_change): Beautify
+
 2009-03-15  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/miditrace.c:

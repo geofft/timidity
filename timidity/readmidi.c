@@ -1,6 +1,6 @@
 /*
     TiMidity++ -- MIDI to WAVE converter and player
-    Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+    Copyright (C) 1999-2009 Masanao Izumo <iz@onicos.co.jp>
     Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
 
     This program is free software; you can redistribute it and/or modify
@@ -4109,117 +4109,114 @@ static MidiEvent *groom_list(int32 divisions, int32 *eventsp, int32 *samplesp)
 	    }
 	    break;
 
-	  case ME_PROGRAM:
-	    if(ISDRUMCHANNEL(ch))
-		newbank = current_program[ch];
-	    else
-		newbank = current_set[ch];
-	    newprog = meep->event.a;
-	    switch(play_system_mode)
-	    {
-	      case GS_SYSTEM_MODE:
-		switch(bank_lsb[ch])
-		{
-		  case 0:	/* No change */
-		    break;
-		  case 1:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(GS ch=%d SC-55 MAP)", ch);
-		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_55_TONE_MAP
-				 : SC_55_DRUM_MAP);
-		    break;
-		  case 2:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(GS ch=%d SC-88 MAP)", ch);
-		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_88_TONE_MAP
-				 : SC_88_DRUM_MAP);
-		    break;
-		  case 3:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(GS ch=%d SC-88Pro MAP)", ch);
-		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_88PRO_TONE_MAP
-				 : SC_88PRO_DRUM_MAP);
-		    break;
-		  case 4:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(GS ch=%d SC-8820/SC-8850 MAP)", ch);
-		    mapID[ch] = (!ISDRUMCHANNEL(ch) ? SC_8850_TONE_MAP
-				 : SC_8850_DRUM_MAP);
-		    break;
-		  default:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(GS: ch=%d Strange bank LSB %d)",
-			      ch, bank_lsb[ch]);
-		    break;
-		}
-		newbank = bank_msb[ch];
-		break;
-
-	      case XG_SYSTEM_MODE: /* XG */
-		switch(bank_msb[ch])
-		{
-		  case 0: /* Normal */
-		    if(ch == 9  && bank_lsb[ch] == 127 && mapID[ch] == XG_DRUM_MAP) {
-		      /* FIXME: Why this part is drum?  Is this correct? */
-		      ctl->cmsg(CMSG_WARNING, VERB_NORMAL,
-				"Warning: XG bank 0/127 is found. It may be not correctly played.");
-		      ;
-		    } else {
-		      ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(XG ch=%d Normal voice)",
-				ch);
-		      midi_drumpart_change(ch, 0);
-		      mapID[ch] = XG_NORMAL_MAP;
-		    }
-		    break;
-		  case 64: /* SFX voice */
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(XG ch=%d SFX voice)",
-			      ch);
-		    midi_drumpart_change(ch, 0);
-		    mapID[ch] = XG_SFX64_MAP;
-		    break;
-		  case 126: /* SFX kit */
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(XG ch=%d SFX kit)", ch);
-		    midi_drumpart_change(ch, 1);
-		    mapID[ch] = XG_SFX126_MAP;
-		    break;
-		  case 127: /* Drum kit */
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(XG ch=%d Drum kit)", ch);
-		    midi_drumpart_change(ch, 1);
-		    mapID[ch] = XG_DRUM_MAP;
-		    break;
-		  default:
-		    ctl->cmsg(CMSG_INFO, VERB_DEBUG,
-			      "(XG: ch=%d Strange bank MSB %d)",
-			      ch, bank_msb[ch]);
-		    break;
-		}
-		newbank = bank_lsb[ch];
-		break;
-
-	      case GM2_SYSTEM_MODE:
-		ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(GM2 ch=%d)", ch);
-		mapID[ch] = (!ISDRUMCHANNEL(ch) ? GM2_TONE_MAP : GM2_DRUM_MAP);
-		newbank = bank_lsb[ch];
-		break;
-
-	      default:
-		newbank = bank_msb[ch];
-		break;
-	    }
-
-	    if(ISDRUMCHANNEL(ch))
-		current_set[ch] = newprog;
-	    else
-	    {
-		if(special_tonebank >= 0)
-		    newbank = special_tonebank;
-		if(current_program[ch] == SPECIAL_PROGRAM)
-		    skip_this_event = 1;
-		current_set[ch] = newbank;
-	    }
-	    current_program[ch] = newprog;
-	    break;
+			case ME_PROGRAM:
+				if (ISDRUMCHANNEL(ch))
+					newbank = current_program[ch];
+				else
+					newbank = current_set[ch];
+				newprog = meep->event.a;
+				switch (play_system_mode) {
+				case GS_SYSTEM_MODE:	/* GS */
+					switch (bank_lsb[ch]) {
+					case 0:		/* No change */
+						break;
+					case 1:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(GS ch=%d SC-55 MAP)", ch);
+						mapID[ch] = (ISDRUMCHANNEL(ch)) ? SC_55_DRUM_MAP
+								: SC_55_TONE_MAP;
+						break;
+					case 2:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(GS ch=%d SC-88 MAP)", ch);
+						mapID[ch] = (ISDRUMCHANNEL(ch)) ? SC_88_DRUM_MAP
+								: SC_88_TONE_MAP;
+						break;
+					case 3:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(GS ch=%d SC-88Pro MAP)", ch);
+						mapID[ch] = (ISDRUMCHANNEL(ch)) ? SC_88PRO_DRUM_MAP
+								: SC_88PRO_TONE_MAP;
+						break;
+					case 4:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(GS ch=%d SC-8820/SC-8850 MAP)", ch);
+						mapID[ch] = (ISDRUMCHANNEL(ch)) ? SC_8850_DRUM_MAP
+								: SC_8850_TONE_MAP;
+						break;
+					default:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(GS: ch=%d Strange bank LSB %d)",
+								ch, bank_lsb[ch]);
+						break;
+					}
+					newbank = bank_msb[ch];
+					break;
+				case XG_SYSTEM_MODE:	/* XG */
+					switch (bank_msb[ch]) {
+					case 0:		/* Normal */
+						if (ch == 9 && bank_lsb[ch] == 127
+								&& mapID[ch] == XG_DRUM_MAP)
+							/* FIXME: Why this part is drum?  Is this correct? */
+							ctl->cmsg(CMSG_WARNING, VERB_NORMAL,
+									"Warning: XG bank 0/127 is found. "
+									"It may be not correctly played.");
+						else {
+							ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+									"(XG ch=%d Normal voice)", ch);
+							midi_drumpart_change(ch, 0);
+							mapID[ch] = XG_NORMAL_MAP;
+						}
+						break;
+					case 64:	/* SFX voice */
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(XG ch=%d SFX voice)", ch);
+						midi_drumpart_change(ch, 0);
+						mapID[ch] = XG_SFX64_MAP;
+						break;
+					case 126:	/* SFX kit */
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(XG ch=%d SFX kit)", ch);
+						midi_drumpart_change(ch, 1);
+						mapID[ch] = XG_SFX126_MAP;
+						break;
+					case 127:	/* Drum kit */
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(XG ch=%d Drum kit)", ch);
+						midi_drumpart_change(ch, 1);
+						mapID[ch] = XG_DRUM_MAP;
+						break;
+					default:
+						ctl->cmsg(CMSG_INFO, VERB_DEBUG,
+								"(XG: ch=%d Strange bank MSB %d)",
+								ch, bank_msb[ch]);
+						break;
+					}
+					newbank = bank_lsb[ch];
+					break;
+				case GM2_SYSTEM_MODE:	/* GM2 */
+					ctl->cmsg(CMSG_INFO, VERB_DEBUG, "(GM2 ch=%d)", ch);
+					if ((bank_msb[ch] & 0xfe) == 0x78)	/* 0x78/0x79 */
+						midi_drumpart_change(ch, bank_msb[ch] == 0x78);
+					mapID[ch] = (ISDRUMCHANNEL(ch)) ? GM2_DRUM_MAP
+							: GM2_TONE_MAP;
+					newbank = bank_lsb[ch];
+					break;
+				default:
+					newbank = bank_msb[ch];
+					break;
+				}
+				if (ISDRUMCHANNEL(ch))
+					current_set[ch] = newprog;
+				else {
+					if (special_tonebank >= 0)
+						newbank = special_tonebank;
+					if (current_program[ch] == SPECIAL_PROGRAM)
+						skip_this_event = 1;
+					current_set[ch] = newbank;
+				}
+				current_program[ch] = newprog;
+				break;
 
 	  case ME_NOTEON:
 	    if(counting_time)
