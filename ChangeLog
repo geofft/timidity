@@ -1,3 +1,11 @@
+2009-10-xx  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c, timidity/reverb.[ch],
+	  doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1:
+	  Added Freeverb parameter options to --reverb.
+	* timidity/freq.c, timidity/sndfont.c:
+	  Reduced warnings.
+
 2009-03-16  TAMUKI Shoichi <tamuki@linet.gr.jp>
 
 	* timidity/readmidi.c (gloom_list):
