@@ -1,4 +1,4 @@
-2009-10-xx  Kentaro Sato <kentaro@ranvis.com>
+2009-10-04  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c, timidity/reverb.[ch],
 	  doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1:
