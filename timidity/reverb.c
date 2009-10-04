@@ -55,6 +55,8 @@
 #define CLIP_AMP_MIN (-1L << (32 - GUARD_BITS))
 #endif /* SYS_EFFECT_CLIP */
 
+FLOAT_T reverb_predelay_factor = 1.0;
+
 static double REV_INP_LEV = 1.0;
 #define MASTER_CHORUS_LEVEL 1.7
 #define MASTER_DELAY_LEVEL 3.25
@@ -1347,10 +1349,13 @@ static void init_freeverb_comb(comb *comb)
 	memset(comb->buf, 0, sizeof(int32) * comb->size);
 }
 
+FLOAT_T freeverb_scaleroom = 0.28;
+FLOAT_T freeverb_offsetroom = 0.7;
+
 #define scalewet 0.06
 #define scaledamp 0.4
-#define scaleroom 0.28
-#define offsetroom 0.7
+#define scaleroom freeverb_scaleroom
+#define offsetroom freeverb_offsetroom
 #define initialroom 0.5
 #define initialdamp 0.5
 #define initialwet 1 / scalewet
@@ -1447,7 +1452,7 @@ static void update_freeverb(InfoFreeverb *rev)
 	rev->wet1i = TIM_FSCALE(rev->wet1, 24);
 	rev->wet2i = TIM_FSCALE(rev->wet2, 24);
 
-	set_delay(&(rev->pdelay), (int32)((double)reverb_status_gs.pre_delay_time * play_mode->rate / 1000.0));
+	set_delay(&(rev->pdelay), (int32)((FLOAT_T)reverb_status_gs.pre_delay_time * reverb_predelay_factor * play_mode->rate / 1000.0));
 }
 
 static void init_freeverb(InfoFreeverb *rev)

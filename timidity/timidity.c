@@ -211,7 +211,7 @@ enum {
 	TIM_OPT_PURE_INT,
 	TIM_OPT_MODULE,
 	/* last entry */
-	TIM_OPT_LAST = TIM_OPT_PURE_INT
+	TIM_OPT_LAST = TIM_OPT_MODULE
 };
 
 #ifdef IA_WINSYN
@@ -426,6 +426,7 @@ static inline int set_default_program(int);
 static inline int parse_opt_delay(const char *);
 static inline int parse_opt_chorus(const char *);
 static inline int parse_opt_reverb(const char *);
+static int parse_opt_reverb_freeverb(const char *arg, char type);
 static inline int parse_opt_voice_lpf(const char *);
 static inline int parse_opt_noise_shaping(const char *);
 static inline int parse_opt_resample(const char *);
@@ -518,6 +519,8 @@ __attribute__((noreturn))
 static inline int parse_opt_fail(const char *);
 static inline int set_value(int *, int, int, int, char *);
 static inline int set_val_i32(int32 *, int32, int32, int32, char *);
+static int parse_val_float_t(FLOAT_T *param, const char *arg, FLOAT_T low, FLOAT_T high, const char *name);
+static inline int set_val_float_t(FLOAT_T *param, FLOAT_T i, FLOAT_T low, FLOAT_T high, const char *name);
 static inline int set_channel_flag(ChannelBitMask *, int32, char *);
 static inline int y_or_n_p(const char *);
 static inline int set_flag(int32 *, int32, const char *);
@@ -3444,27 +3447,66 @@ static inline int parse_opt_reverb(const char *arg)
 		break;
 	case '3':
 	case 'f':	/* freeverb */
-		if ((p = strchr(arg, ',')) != NULL) {
-			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
-					"Reverb level"))
-				return 1;
-			opt_reverb_control = -opt_reverb_control - 256;
-		} else
-			opt_reverb_control = 3;
-		break;
+		return parse_opt_reverb_freeverb(arg, 'f');
 	case '4':
 	case 'G':	/* global freeverb */
-		if ((p = strchr(arg, ',')) != NULL) {
-			if (set_value(&opt_reverb_control, atoi(++p), 1, 0x7f,
-					"Reverb level"))
-				return 1;
-			opt_reverb_control = -opt_reverb_control - 384;
-		} else
-			opt_reverb_control = 4;
-		break;
+		return parse_opt_reverb_freeverb(arg, 'G');
 	default:
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid reverb parameter.");
 		return 1;
+	}
+	return 0;
+}
+
+static int parse_opt_reverb_freeverb(const char *arg, char type)
+{
+	const char *p;
+	
+	if ((p = strchr(arg, ',')) != NULL)
+		p++;
+	else
+		p = "";
+	/* reverb level */
+	if (*p && *p != ',') {
+		if (set_value(&opt_reverb_control, atoi(p), 1, 0x7f,
+				"Reverb level"))
+			return 1;
+		if (type == 'f')
+			opt_reverb_control = -opt_reverb_control - 256;
+		else
+			opt_reverb_control = -opt_reverb_control - 384;
+	} else
+		opt_reverb_control = (type == 'f') ? 3 : 4;
+	if ((p = strchr(p, ',')) == NULL)
+		return 0;
+	p++;
+	/* ranges 0..10 below determined just to reject an extreme value */
+	/* scaleroom */
+	if (*p && *p != ',') {
+		if (parse_val_float_t(&freeverb_scaleroom, p, 0, 10,
+				"Freeverb scaleroom"))
+			return 1;
+	}
+	if ((p = strchr(p, ',')) == NULL)
+		return 0;
+	p++;
+	/* offsetroom */
+	if (*p && *p != ',') {
+		if (parse_val_float_t(&freeverb_offsetroom, p, 0, 10,
+				"Freeverb offsetroom"))
+			return 1;
+	}
+	if ((p = strchr(p, ',')) == NULL)
+		return 0;
+	p++;
+	/* predelay factor */
+	if (*p && *p != ',') {
+		int value;
+
+		if (set_val_i32(&value, atoi(p), 0, 1000,
+				"Freeverb predelay factor"))
+			return 1;
+		reverb_predelay_factor = value / 100.0;
 	}
 	return 0;
 }
@@ -4963,6 +5005,33 @@ static inline int set_value(int *param, int i, int low, int high, char *name)
 
 static inline int set_val_i32(int32 *param,
 		int32 i, int32 low, int32 high, char *name)
+{
+	if (i < low || i > high) {
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
+				"%s must be between %ld and %ld", name, low, high);
+		return 1;
+	}
+	*param = i;
+	return 0;
+}
+
+static int parse_val_float_t(FLOAT_T *param,
+		const char *arg, FLOAT_T low, FLOAT_T high, const char *name)
+{
+	FLOAT_T value;
+	char *errp;
+
+	value = strtod(arg, &errp);
+	if (arg == errp) {
+		/* only when nothing was parsed */
+		ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "Invalid %s", name);
+		return 1;
+	}
+	return set_val_float_t(param, value, low, high, name);
+}
+
+static inline int set_val_float_t(FLOAT_T *param,
+		FLOAT_T i, FLOAT_T low, FLOAT_T high, const char *name)
 {
 	if (i < low || i > high) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,

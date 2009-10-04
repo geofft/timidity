@@ -348,7 +348,11 @@ change メッセージを受け取っても変更されません。
 ンです。
 .RE
 .TP
-.BI reverb= (d|n|g|f|G)[,level] ", \-\-reverb=" (d|n|g|f|G)[,level]
+.BI reverb= (d|n|g)[,level] ", \-\-reverb=" (d|n|g)[,level]
+.TP
+.BI reverb= (f|G)[,level,scaleroom,offsetroom,predelay]
+.TP
+.BI "\-\-reverb=" (f|G)[,level,scaleroom,offsetroom,predelay]
 .RS
 .TP
 .B d, 0
@@ -368,6 +372,19 @@ Freeverb MIDI リバーブ制御を有効にします(デフォルト)。
 .LP
 \fIlevel\fP はリバーブレベル \fB0\fP から \fB127\fP を指定するオプショ
 ンです。
+.br
+Freeverbを有効にした場合には，追加のオプションとして \fIscaleroom\fP，
+\fIoffsetroom\fP および \fIpredelay\fP を指定できます。
+\fIscaleroom\fP と \fIoffsetroom\fP は以下のリバーブのルームサイズの
+計算に対する変数です
+.br
+roomsize = C * \fIscaleroom\fP + \fIoffsetroom\fP
+.br
+ここで C はリバーブのキャラクタを表します。
+\fIpredelay\fP はリバーブのプリディレイに対する倍率を百分率で指定しま
+す。
+いずれのパラメータも省略可能です。
+デフォルトはそれぞれ \fB0.28\fP，\fB0.7\fP，\fB100\fP です。
 .RE
 .TP
 .BI vlpf= (d|c|m) ", \-\-voice\-lpf=" (d|c|m)

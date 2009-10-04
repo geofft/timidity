@@ -39,6 +39,9 @@
 #define DEFAULT_REVERB_SEND_LEVEL 40
 
 extern int opt_reverb_control;
+extern FLOAT_T reverb_predelay_factor;
+extern FLOAT_T freeverb_scaleroom;
+extern FLOAT_T freeverb_offsetroom;
 
 extern void set_dry_signal(int32 *, int32);
 extern void set_dry_signal_xg(int32 *, int32, int32);

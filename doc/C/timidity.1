@@ -328,7 +328,11 @@ The optional parameter \fIlevel\fP specifies the chorus level \fB0\fP
 to \fB127\fP.
 .RE
 .TP
-.BI reverb= (d|n|g|f|G)[,level] ", \-\-reverb=" (d|n|g|f|G)[,level]
+.BI reverb= (d|n|g)[,level] ", \-\-reverb=" (d|n|g)[,level]
+.TP
+.BI reverb= (f|G)[,level,scaleroom,offsetroom,predelay]
+.TP
+.BI "\-\-reverb=" (f|G)[,level,scaleroom,offsetroom,predelay]
 .RS
 .TP
 .B d, 0
@@ -345,10 +349,23 @@ Global reverb effect.
 Freeverb MIDI reverb effect control (default).
 .TP
 .B G, 4
-Global freeverb effect.
+Global Freeverb effect.
 .LP
 The optional parameter \fIlevel\fP specifies the reverb level \fB0\fP
 to \fB127\fP.
+.br
+For Freeverb effect, additional parameters \fIscaleroom\fP,
+\fIoffsetroom\fP and \fIpredelay\fP can be specified.
+\fIscaleroom\fP and \fIoffsetroom\fP specify variables for the room
+size calculated as
+.br
+roomsize = C * \fIscaleroom\fP + \fIoffsetroom\fP
+.br
+where C is the reverberation character.
+\fIpredelay\fP specifies the factor for pre-delay time of
+reverberation in percent.
+Any of the optional parameters can be omitted.
+Default values are \fB0.28\fP, \fB0.7\fP and \fB100\fP respectively.
 .RE
 .TP
 .BI vlpf= (d|c|m) ", \-\-voice\-lpf=" (d|c|m)
