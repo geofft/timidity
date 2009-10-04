@@ -56,6 +56,7 @@
 #include "sfitem.h"
 #include "output.h"
 #include "filter.h"
+#include "freq.h"
 #include "resample.h"
 #include "interface.h"
 

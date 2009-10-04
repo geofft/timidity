@@ -330,7 +330,7 @@ float freq_fourier(Sample *sp, int *chord)
     uint32 length, length0;
     int32 maxoffset, minoffset, minoffset1, minoffset2;
     int32 minbin, maxbin;
-    int32 bin, bestbin, largest_peak;
+    int32 bin, largest_peak;
     int32 i, j, n, total;
     unsigned int rate;
     int pitch, bestpitch, minpitch, maxpitch, maxpitch2;
@@ -339,9 +339,7 @@ float freq_fourier(Sample *sp, int *chord)
     int16 amp, oldamp, maxamp;
     int32 maxpos;
     double sum, weightsum, maxsum;
-    double sum_bestfreq;
     double f0_inv;
-    int num_maxsum;
     float freq, newfreq, bestfreq, freq_inc;
     float minfreq, maxfreq, minfreq2, maxfreq2;
     float min_guessfreq, max_guessfreq;
@@ -624,8 +622,6 @@ float freq_fourier(Sample *sp, int *chord)
 	/* look for harmonics */
 	for (freq = minfreq2; freq <= maxfreq2; freq += freq_inc)
 	{
-	    double ratio;
-	
     	    n = total = 0;
     	    sum = weightsum = 0;
 
