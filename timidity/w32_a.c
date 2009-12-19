@@ -157,6 +157,7 @@ volatile int data_block_num = 64;
 
 #define DATA_BLOCK_SIZE     (4 * AUDIO_BUFFER_SIZE)
 #define DATA_BLOCK_NUM      (dpm.extra_param[0])
+static int data_block_trunc_size;
 
 struct MMBuffer
 {
@@ -268,21 +269,9 @@ static int open_output(void)
     wf.nSamplesPerSec = dpm.rate;
 
     i = dpm.rate;
-    j = 1;
-
-    if (!IsMono)
-    {
-        i *= 2;
-        j *= 2;
-    }
-
-	if (dpm.encoding & PE_24BIT) {
-		i *= 3;
-		j *= 3;
-	} else if (dpm.encoding & PE_16BIT) {
-        i *= 2;
-        j *= 2;
-    }
+    j = get_encoding_sample_size(dpm.encoding);
+    i *= j;
+    data_block_trunc_size = DATA_BLOCK_SIZE - (DATA_BLOCK_SIZE % j);
 
     wf.nAvgBytesPerSec = i;
     wf.nBlockAlign     = j;
@@ -341,15 +330,7 @@ static int open_output(void)
 
 /** Calculate the buffer delay. **/
 
-    BufferDelay = AUDIO_BUFFER_SIZE;
-
-    if (NOT (dpm.encoding & PE_MONO))
-        BufferDelay *= 2;
-
-	if (dpm.encoding & PE_24BIT)
-		BufferDelay *= 3;
-    else if (dpm.encoding & PE_16BIT)
-        BufferDelay *= 2;
+    BufferDelay = AUDIO_BUFFER_SIZE * get_encoding_sample_size(dpm.encoding);
 
     BufferDelay = (BufferDelay * 1000) / dpm.rate;
 
@@ -449,10 +430,10 @@ static int output_data(char * Data, int32 Size)
             continue;
         }
 
-        if (s <= DATA_BLOCK_SIZE)
+        if (s <= data_block_trunc_size)
             n = s;
         else
-            n = DATA_BLOCK_SIZE;
+            n = data_block_trunc_size;
 
         CopyMemory(b->Data, d, n);
 
@@ -513,14 +494,8 @@ static int acntl(int request, void *arg)
     {
         case PM_REQ_GETQSIZ:
             *(int *)arg = (DATA_BLOCK_NUM-1) * AUDIO_BUFFER_SIZE;
+            *(int *)arg *= get_encoding_sample_size(dpm.encoding);
 
-            if (NOT (dpm.encoding & PE_MONO))
-                *(int *)arg *= 2;
-
-			if (dpm.encoding & PE_24BIT)
-                *(int *)arg *= 3;
-            else if (dpm.encoding & PE_16BIT)
-                *(int *)arg *= 2;
             return 0;
 
         case PM_REQ_DISCARD:

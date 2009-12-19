@@ -551,6 +551,17 @@ const char *output_encoding_string(int enc)
     /*NOTREACHED*/
 }
 
+int get_encoding_sample_size(int32 enc)
+{
+	int size = (enc & PE_MONO) ? 1 : 2;
+
+	if (enc & PE_24BIT)
+		size *= 3;
+	else if (enc & PE_16BIT)
+		size *= 2;
+	return size;
+}
+
 /* mode
   0,1: Default mode.
   2: Remove the directory path of input_filename, then add output_dir.
