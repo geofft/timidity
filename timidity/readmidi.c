@@ -215,7 +215,7 @@ void readmidi_add_event(MidiEvent *a_event)
     MidiEventList *newev;
     int32 at;
 
-    if(event_count++ == MAX_MIDI_EVENT)
+    if(event_count == MAX_MIDI_EVENT)
     {
 	if(!readmidi_error_flag)
 	{
@@ -225,6 +225,7 @@ void readmidi_add_event(MidiEvent *a_event)
 	}
 	return;
     }
+    event_count++;
 
     at = a_event->time;
     newev = alloc_midi_event();
