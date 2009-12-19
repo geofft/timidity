@@ -460,6 +460,7 @@ void DeleteTasktrayIcon(HWND hwnd)
 	nid.cbSize = sizeof ( NOTIFYICONDATA );
 	nid.hWnd = w32g_syn.nid_hWnd; 
 	nid.uID = w32g_syn.nid_uID; 
+	nid.uFlags = 0;
 	for ( i = 1; i <= 10; i ++ ) {
 		bRes = Shell_NotifyIcon ( NIM_DELETE, &nid );
 		if ( bRes == TRUE )
