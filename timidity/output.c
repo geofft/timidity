@@ -472,6 +472,22 @@ int validate_encoding(int enc, int include_enc, int exclude_enc)
     return enc;
 }
 
+int32 apply_encoding(int32 old_enc, int32 new_enc)
+{
+	const int32 mutex_flags[] = {
+		PE_16BIT | PE_24BIT | PE_ULAW | PE_ALAW,
+		PE_BYTESWAP | PE_ULAW | PE_ALAW,
+		PE_SIGNED | PE_ULAW | PE_ALAW,
+	};
+	int i;
+
+	for (i = 0; i < sizeof mutex_flags / sizeof mutex_flags[0]; i++) {
+		if (new_enc & mutex_flags[i])
+			old_enc &= ~mutex_flags[i];
+	}
+	return old_enc | new_enc;
+}
+
 const char *output_encoding_string(int enc)
 {
     if(enc & PE_MONO)

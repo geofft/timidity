@@ -5421,7 +5421,7 @@ MAIN_INTERFACE int timidity_post_load_configuration(void)
     else {
         /* apply changes made for null play mode to actual play mode */
         if(null_play_mode.encoding != 0) {
-            play_mode->encoding |= null_play_mode.encoding;
+            play_mode->encoding = apply_encoding(play_mode->encoding, null_play_mode.encoding);
         }
         if(null_play_mode.rate != 0) {
             play_mode->rate = null_play_mode.rate;

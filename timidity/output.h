@@ -176,6 +176,7 @@ extern void s32toalaw(int32 *lp, int32 c);
 
 extern int32 general_output_convert(int32 *buf, int32 count);
 extern int validate_encoding(int enc, int include_enc, int exclude_enc);
+extern int32 apply_encoding(int32 old_enc, int32 new_enc);
 extern const char *output_encoding_string(int enc);
 
 extern char *create_auto_output_name(const char *input_filename, char *ext_str, char *output_dir, int mode);
