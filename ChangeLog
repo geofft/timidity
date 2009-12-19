@@ -1,7 +1,15 @@
+2009-12-19  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/readmidi.c: Fixed crash when loading long music.
+	* timidity/timidity.c: Fixed corruption of the default device
+	  encoding on some occasion.
+	* timidity/w32_a.c: Fixed Windows audio driver 24-bit output.
+	* interface/w32g_syn.c: Better tray icon removal.
+
 2009-10-04  Kentaro Sato <kentaro@ranvis.com>
 
-	* timidity/timidity.c, timidity/reverb.[ch],
-	  doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1:
+	* doc/C/timidity.1, doc/ja_JP.eucJP/timidity.1,
+	  timidity/reverb.[ch], timidity/timidity.c:
 	  Added Freeverb parameter options to --reverb.
 	* timidity/freq.c, timidity/sndfont.c:
 	  Reduced warnings.
