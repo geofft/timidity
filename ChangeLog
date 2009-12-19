@@ -1,9 +1,10 @@
 2009-12-19  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c: Fixed crash when loading long music.
-	* timidity/timidity.c: Fixed corruption of the default device
-	  encoding on some occasion.
-	* timidity/w32_a.c: Fixed Windows audio driver 24-bit output.
+	* timidity/output.[ch], timidity/timidity.c:
+	  Fixed corruption of the default device encoding on some occasion.
+	* timidity/output.[ch], timidity/w32_a.c:
+	  Fixed Windows audio driver 24-bit output.
 	* interface/w32g_syn.c: Better tray icon removal.
 
 2009-10-04  Kentaro Sato <kentaro@ranvis.com>
