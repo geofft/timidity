@@ -350,13 +350,15 @@ static int acntl(int request, void *arg)
        case PM_REQ_GETQSIZ:
 	if(ioctl(audioctl_fd, AUDIO_GETINFO, &auinfo) < 0)
 	    return -1;
-	return auinfo.play.buffer_size;
+	*((int *)arg) = auinfo.play.buffer_size;
+	return 0;
 
 #if defined(__NetBSD__) || defined(__OpenBSD__)
       case PM_REQ_GETFRAGSIZ:
 	if(ioctl(audioctl_fd, AUDIO_GETINFO, &auinfo) < 0)
 	    return -1;
-	return auinfo.blocksize;
+	*((int *)arg) = auinfo.blocksize;
+	return 0;
 #endif
 
       case PM_REQ_OUTPUT_FINISH:

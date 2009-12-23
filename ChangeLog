@@ -1,3 +1,8 @@
+2009-12-23  Yair K. <cesium2@gmail.com>
+
+	* timidity/sun_a.c (acntl):
+	  Fix for message PM_REQ_GETQSIZ, PM_REQ_GETFRAGSIZ.
+
 2009-12-19  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c: Fixed crash when loading long music.
