@@ -1628,7 +1628,7 @@ static inline int next_stage(int v)
 {
 	int stage, ch, eg_stage;
 	int32 offset, val;
-	FLOAT_T rate;
+	FLOAT_T rate, temp_rate;
 	Voice *vp = &voice[v];
 
 	stage = vp->envelope_stage++;
@@ -1640,6 +1640,20 @@ static inline int next_stage(int v)
 	ch = vp->channel;
 	/* there is some difference between GUS patch and Soundfont at envelope. */
 	eg_stage = get_eg_stage(v, stage);
+
+	/* HACK -- force ramps to occur over 20 msec windows to avoid pops */
+	/* Do not apply to attack envelope */
+	if (eg_stage > EG_ATTACK)
+	{
+		temp_rate = control_ratio * (labs(vp->envelope_volume - offset) /
+					(play_mode->rate * 0.02));
+		if (temp_rate < 1)
+			temp_rate = 1;
+		if (rate < 0)
+			temp_rate = -temp_rate;
+		if (fabs(temp_rate) < fabs(rate))
+			rate = temp_rate;
+	}
 
 	/* envelope generator (see also playmidi.[ch]) */
 	if (ISDRUMCHANNEL(ch))
@@ -1706,6 +1720,21 @@ static inline int next_stage(int v)
 		} else if(rate > offset - vp->envelope_volume) {	/* fastest attack */
 			rate = offset - vp->envelope_volume + 1;
 		} else if (rate < 1) {rate =  1;}	/* slowest attack */
+	}
+
+	/* HACK -- force ramps to occur over 20 msec windows to avoid pops */
+	/* Do not apply to attack envelope */
+	/* Must check again in case the above conditions shortened it */
+	if (eg_stage > EG_ATTACK)
+	{
+		temp_rate = control_ratio * (labs(vp->envelope_volume - offset) /
+					(play_mode->rate * 0.02));
+		if (temp_rate < 1)
+			temp_rate = 1;
+		if (rate < 0)
+			temp_rate = -temp_rate;
+		if (fabs(temp_rate) < fabs(rate))
+			rate = temp_rate;
 	}
 
 	vp->envelope_increment = (int32)rate;
@@ -1845,9 +1874,9 @@ static inline void compute_mix_smoothing(Voice *vp)
 #endif
 {
 	int32 max_win, delta;
-	
-	/* reduce popping -- ramp the amp over a <= 0.5 msec window */
-	max_win = play_mode->rate * 0.0005;
+
+	/* reduce popping -- ramp the amp over a 20 msec window */
+	max_win = (play_mode->rate * 0.02) / control_ratio;
 	delta = FROM_FINAL_VOLUME(vp->left_mix) - vp->old_left_mix;
 	if (labs(delta) > max_win) {
 		vp->left_mix_inc = delta / max_win;
