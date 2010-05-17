@@ -3132,9 +3132,21 @@ int parse_sysex_event(uint8 *val, int32 len, MidiEvent *ev)
 	return 0;
     }
     
+    /* val[1] can have values other than 0x10 for the XG ON event, which
+     * work on real XG hardware.  I have several midi that use 0x1f instead
+     * of 0x10.  playmidi.h lists 0x10 - 0x13 as MU50/80/90/100.  I don't
+     * know what real world Device Number 0x1f would correspond to, but the
+     * XG spec says the entire 0x1n range is valid, and 0x1f works on real
+     * hardware, so I have modified the check below to accept the entire
+     * 0x1n range.
+     *
+     * I think there are/were some hacks somewhere in playmidi.c (?) to work
+     * around non- 0x10 values, but this fixes the root of the problem, which
+     * allows the server mode to handle XG initialization properly as well.
+     */
     if(len >= 8 &&
        val[0] == 0x43 &&
-       val[1] == 0x10 &&
+       (val[1] >= 0x10 && val[1] <= 0x1f) &&
        val[2] == 0x4C)
     {
 	int addr = (val[3] << 16) | (val[4] << 8) | val[5];
