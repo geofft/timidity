@@ -1,6 +1,6 @@
 2010-05-17  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* playmidi.c: Allow Device Numbers other than 0x10 for
+	* readmidi.c: Allow Device Numbers other than 0x10 for
 	  XG SYSTEM ON SYSEX events
 	* mix.c: Fix existing anti-popping minimum volume ramps for
 	  expression, volume, pans, etc..
