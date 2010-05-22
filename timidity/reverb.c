@@ -2021,9 +2021,9 @@ static void init_ch_3tap_delay(InfoDelay3 *info)
 {
 	int32 i, x;
 
-	info->size[0] = delay_status_gs.sample_c;
-	info->size[1] = delay_status_gs.sample_l;
-	info->size[2] = delay_status_gs.sample_r;
+	for (i = 0; i < 3; i++) {
+		info->size[i] = delay_status_gs.sample[i];
+	}
 	x = info->size[0];	/* find maximum value */
 	for (i = 1; i < 3; i++) {
 		if (info->size[i] > x) {x = info->size[i];}
@@ -2031,17 +2031,13 @@ static void init_ch_3tap_delay(InfoDelay3 *info)
 	x += 1;	/* allowance */
 	set_delay(&(info->delayL), x);
 	set_delay(&(info->delayR), x);
-	for (i = 0; i < 3; i++) {	/* set start-point */
-		info->index[i] = x - info->size[i];
-	}
-	info->level[0] = delay_status_gs.level_ratio_c * MASTER_DELAY_LEVEL;
-	info->level[1] = delay_status_gs.level_ratio_l * MASTER_DELAY_LEVEL;
-	info->level[2] = delay_status_gs.level_ratio_r * MASTER_DELAY_LEVEL;
-	info->feedback = delay_status_gs.feedback_ratio;
-	info->send_reverb = delay_status_gs.send_reverb_ratio * REV_INP_LEV;
 	for (i = 0; i < 3; i++) {
+		info->index[i] = (x - info->size[i]) % x;	/* set start-point */
+		info->level[i] = delay_status_gs.level_ratio[i] * MASTER_DELAY_LEVEL;
 		info->leveli[i] = TIM_FSCALE(info->level[i], 24);
 	}
+	info->feedback = delay_status_gs.feedback_ratio;
+	info->send_reverb = delay_status_gs.send_reverb_ratio * REV_INP_LEV;
 	info->feedbacki = TIM_FSCALE(info->feedback, 24);
 	info->send_reverbi = TIM_FSCALE(info->send_reverb, 24);
 }

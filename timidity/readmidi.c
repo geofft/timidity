@@ -5507,12 +5507,12 @@ void recompute_delay_status_gs(void)
 	p->time_center = delay_time_center_table[p->time_c > 0x73 ? 0x73 : p->time_c];
 	p->time_ratio_left = (double)p->time_l / 24;
 	p->time_ratio_right = (double)p->time_r / 24;
-	p->sample_c = p->time_center * play_mode->rate / 1000.0f;
-	p->sample_l = p->sample_c * p->time_ratio_left;
-	p->sample_r = p->sample_c * p->time_ratio_right;
-	p->level_ratio_c = (double)p->level * (double)p->level_center / (127.0f * 127.0f);
-	p->level_ratio_l = (double)p->level * (double)p->level_left / (127.0f * 127.0f);
-	p->level_ratio_r = (double)p->level * (double)p->level_right / (127.0f * 127.0f);
+	p->sample[0] = p->time_center * play_mode->rate / 1000.0f;
+	p->sample[1] = p->sample[0] * p->time_ratio_left;
+	p->sample[2] = p->sample[0] * p->time_ratio_right;
+	p->level_ratio[0] = p->level * p->level_center / (127.0f * 127.0f);
+	p->level_ratio[1] = p->level * p->level_left / (127.0f * 127.0f);
+	p->level_ratio[2] = p->level * p->level_right / (127.0f * 127.0f);
 	p->feedback_ratio = (double)(p->feedback - 64) * (0.763f * 2.0f / 100.0f);
 	p->send_reverb_ratio = (double)p->send_reverb * (0.787f / 100.0f);
 

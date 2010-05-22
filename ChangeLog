@@ -1,9 +1,14 @@
+2010-05-23  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/readmidi.c, timidity/reverb.[ch]:
+	  Fix ch_3tap_delay crash.
+
 2010-05-17  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
-	* readmidi.c: Allow Device Numbers other than 0x10 for
-	  XG SYSTEM ON SYSEX events
-	* mix.c: Fix existing anti-popping minimum volume ramps for
-	  expression, volume, pans, etc..
+	* timidity/readmidi.c: Allow Device Numbers other than 0x10 for
+	  XG SYSTEM ON SYSEX events.
+	* timidity/mix.c: Fix existing anti-popping minimum volume ramps
+	  for expression, volume, pans, etc.
 	  Extend anti-popping minimum volume ramps to envelope amp changes.
 
 2009-12-23  Yair K. <cesium2@gmail.com>

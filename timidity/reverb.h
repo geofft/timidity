@@ -573,9 +573,9 @@ EXTERN struct delay_status_gs_t
     double time_ratio_left, time_ratio_right;		/* in pct */
 
 	/* for pre-calculation */
-	int32 sample_c, sample_l, sample_r;
-	double level_ratio_c, level_ratio_l, level_ratio_r,
-		feedback_ratio, send_reverb_ratio;
+	int32 sample[3];	/* center, left, right */
+	double level_ratio[3];	/* center, left, right */
+	double feedback_ratio, send_reverb_ratio;
 
 	filter_lowpass1 lpf;
 	InfoDelay3 info_delay;
