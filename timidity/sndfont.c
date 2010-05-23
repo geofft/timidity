@@ -232,20 +232,29 @@ static SFInsts *find_soundfont(char *sf_file)
 
 static SFInsts *new_soundfont(char *sf_file)
 {
-    SFInsts *sf;
+	SFInsts *sf, *prev;
 
-    sf_file = FILENAME_NORMALIZE(sf_file);
-    for(sf = sfrecs; sf != NULL; sf = sf->next)
-	if(sf->fname == NULL)
-	    break;
-    if(sf == NULL)
-	sf = (SFInsts *)safe_malloc(sizeof(SFInsts));
-    memset(sf, 0, sizeof(SFInsts));
-    init_mblock(&sf->pool);
-    sf->fname = SFStrdup(sf, FILENAME_NORMALIZE(sf_file));
-    sf->def_order = DEFAULT_SOUNDFONT_ORDER;
-    sf->amptune = 1.0;
-    return sf;
+	sf_file = FILENAME_NORMALIZE(sf_file);
+	for(sf = sfrecs, prev = NULL; sf != NULL; prev = sf, sf = sf->next)
+	{
+		if(sf->fname == NULL)
+		{
+			/* remove the record from the chain to reuse */
+			if (prev != NULL)
+				prev->next = sf->next;
+			else if (sfrecs == sf)
+				sfrecs = sf->next;
+			break;
+		}
+	}
+	if(sf == NULL)
+		sf = (SFInsts *)safe_malloc(sizeof(SFInsts));
+	memset(sf, 0, sizeof(SFInsts));
+	init_mblock(&sf->pool);
+	sf->fname = SFStrdup(sf, FILENAME_NORMALIZE(sf_file));
+	sf->def_order = DEFAULT_SOUNDFONT_ORDER;
+	sf->amptune = 1.0;
+	return sf;
 }
 
 void add_soundfont(char *sf_file,

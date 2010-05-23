@@ -2,6 +2,8 @@
 
 	* timidity/readmidi.c, timidity/reverb.[ch]:
 	  Fix ch_3tap_delay crash.
+	* timidity/sndfont.c:
+	  Fix infinite loop on reusing soundfont struct.
 
 2010-05-17  Eric A. Welsh <ewelsh@ccb.wustl.edu>
 
