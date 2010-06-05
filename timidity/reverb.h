@@ -467,7 +467,7 @@ typedef struct {
 typedef struct {
 	int8 lofi_type, pan, pre_filter, post_filter;
 	double level, dry, wet;
-	int32 bit_mask, dryi, weti;
+	int32 bit_mask, level_shift, dryi, weti;
 	filter_biquad pre_fil, post_fil;
 } InfoLoFi1;
 
@@ -475,7 +475,7 @@ typedef struct {
 typedef struct {
 	int8 wp_sel, disc_type, hum_type, ms, pan, rdetune, lofi_type, fil_type;
 	double wp_level, rnz_lev, discnz_lev, hum_level, dry, wet, level;
-	int32 bit_mask, wp_leveli, rnz_levi, discnz_levi, hum_keveki, dryi, weti;
+	int32 bit_mask, level_shift, wp_leveli, rnz_levi, discnz_levi, hum_keveki, dryi, weti;
 	filter_biquad fil, wp_lpf, hum_lpf, disc_lpf;
 } InfoLoFi2;
 
@@ -483,7 +483,7 @@ typedef struct {
 typedef struct {
 	int8 output_gain, word_length, filter_type, bit_assign, emphasis;
 	double dry, wet;
-	int32 bit_mask, dryi, weti;
+	int32 bit_mask, level_shift, dryi, weti;
 	filter_biquad lpf, srf;
 } InfoLoFi;
 

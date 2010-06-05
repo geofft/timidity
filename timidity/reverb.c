@@ -3760,12 +3760,17 @@ static void conv_gs_lofi1(struct insertion_effect_gs_t *st, EffectList *ef)
 	InfoLoFi1 *info = (InfoLoFi1 *)ef->info;
 
 	info->pre_filter = st->parameter[0];
-	info->lofi_type = st->parameter[1];
+	info->lofi_type = 1 + clip_int(st->parameter[1], 0, 8);
 	info->post_filter = st->parameter[2];
-	info->dry = calc_dry_gs(st->parameter[15]);
-	info->wet = calc_wet_gs(st->parameter[15]);
+	info->dry = calc_dry_gs(st->parameter[15] & 0x7F);
+	info->wet = calc_wet_gs(st->parameter[15] & 0x7F);
 	info->pan = st->parameter[18];
-	info->level = (double)st->parameter[19] / 127.0;
+	info->level = (st->parameter[19] & 0x7F) / 127.0;
+}
+
+static inline int32 apply_lofi(int32 input, int32 bit_mask, int32 level_shift)
+{
+	return (input + level_shift) & bit_mask;
 }
 
 static void do_lofi1(int32 *buf, int32 count, EffectList *ef)
@@ -3773,9 +3778,11 @@ static void do_lofi1(int32 *buf, int32 count, EffectList *ef)
 	int32 i, x, y;
 	InfoLoFi1 *info = (InfoLoFi1 *)ef->info;
 	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+	const int32 level_shift = info->level_shift;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
-		info->bit_mask = ~((1L << (info->lofi_type + 22 - GUARD_BITS)) - 1L);
+		info->bit_mask = ~0L << (info->lofi_type * 2);
+		info->level_shift = ~info->bit_mask >> 1;
 		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
 		info->weti = TIM_FSCALE(info->wet * info->level, 24);
 		return;
@@ -3786,11 +3793,11 @@ static void do_lofi1(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		x = buf[i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = buf[++i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 	}
 }
@@ -3799,7 +3806,7 @@ static void conv_gs_lofi2(struct insertion_effect_gs_t *st, EffectList *ef)
 {
 	InfoLoFi2 *info = (InfoLoFi2 *)ef->info;
 
-	info->lofi_type = clip_int(st->parameter[0], 1, 6);
+	info->lofi_type = 1 + clip_int(st->parameter[0], 0, 5);
 	info->fil_type = clip_int(st->parameter[1], 0, 2);
 	info->fil.freq = cutoff_freq_table_gs[st->parameter[2]];
 	info->rdetune = st->parameter[3];
@@ -3814,10 +3821,10 @@ static void conv_gs_lofi2(struct insertion_effect_gs_t *st, EffectList *ef)
 	info->hum_lpf.freq = lpf_table_gs[st->parameter[12]];
 	info->hum_level = (double)st->parameter[13] / 127.0;
 	info->ms = clip_int(st->parameter[14], 0, 1);
-	info->dry = calc_dry_gs(st->parameter[15]);
-	info->wet = calc_wet_gs(st->parameter[15]);
+	info->dry = calc_dry_gs(st->parameter[15] & 0x7F);
+	info->wet = calc_wet_gs(st->parameter[15] & 0x7F);
 	info->pan = st->parameter[18];
-	info->level = (double)st->parameter[19] / 127.0;
+	info->level = (st->parameter[19] & 0x7F) / 127.0;
 }
 
 static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
@@ -3826,6 +3833,7 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 	InfoLoFi2 *info = (InfoLoFi2 *)ef->info;
 	filter_biquad *fil = &(info->fil);
 	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+	const int32 level_shift = info->level_shift;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		fil->q = 1.0;
@@ -3835,7 +3843,8 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 			fil->freq = -1;	/* bypass */
 			calc_filter_biquad_low(fil);
 		}
-		info->bit_mask = ~((1L << (info->lofi_type + 22 - GUARD_BITS)) - 1L);
+		info->bit_mask = ~0L << (info->lofi_type * 2);
+		info->level_shift = ~info->bit_mask >> 1;
 		info->dryi = TIM_FSCALE(info->dry * info->level, 24);
 		info->weti = TIM_FSCALE(info->wet * info->level, 24);
 		return;
@@ -3845,12 +3854,12 @@ static void do_lofi2(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		x = buf[i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		do_filter_biquad(&y, fil->a1, fil->a2, fil->b1, fil->b02, &fil->x1l, &fil->x2l, &fil->y1l, &fil->y2l);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = buf[++i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		do_filter_biquad(&y, fil->a1, fil->a2, fil->b1, fil->b02, &fil->x1r, &fil->x2r, &fil->y1r, &fil->y2r);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 	}
@@ -3878,12 +3887,14 @@ static void do_lofi(int32 *buf, int32 count, EffectList *ef)
 	InfoLoFi *info = (InfoLoFi *)ef->info;
 	filter_biquad *lpf = &(info->lpf), *srf = &(info->srf);
 	int32 bit_mask = info->bit_mask, dryi = info->dryi,	weti = info->weti;
+	const int32 level_shift = info->level_shift;
 
 	if(count == MAGIC_INIT_EFFECT_INFO) {
 		srf->q = 1.0;
 		calc_filter_biquad_low(srf);
 		calc_filter_biquad_low(lpf);
 		info->bit_mask = ~((1L << (info->bit_assign + 22 - GUARD_BITS)) - 1L);
+		info->level_shift = ~info->bit_mask >> 1;
 		info->dryi = TIM_FSCALE(info->dry * pow(10.0, (double)info->output_gain / 20.0), 24);
 		info->weti = TIM_FSCALE(info->wet * pow(10.0, (double)info->output_gain / 20.0), 24);
 		return;
@@ -3894,13 +3905,13 @@ static void do_lofi(int32 *buf, int32 count, EffectList *ef)
 	for (i = 0; i < count; i++)
 	{
 		x = buf[i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		do_filter_biquad(&y, srf->a1, srf->a2, srf->b1, srf->b02, &srf->x1l, &srf->x2l, &srf->y1l, &srf->y2l);
 		do_filter_biquad(&y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1l, &lpf->x2l, &lpf->y1l, &lpf->y2l);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
 
 		x = buf[++i];
-		y = x & bit_mask;
+		y = apply_lofi(x, bit_mask, level_shift);
 		do_filter_biquad(&y, srf->a1, srf->a2, srf->b1, srf->b02, &srf->x1r, &srf->x2r, &srf->y1r, &srf->y2r);
 		do_filter_biquad(&y, lpf->a1, lpf->a2, lpf->b1, lpf->b02, &lpf->x1r, &lpf->x2r, &lpf->y1r, &lpf->y2r);
 		buf[i] = imuldiv24(x, dryi) + imuldiv24(y, weti);
