@@ -1,3 +1,10 @@
+2010-06-05  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/reverb.[ch]:
+	  Fix insertion effect Lo-Fi making loud noise.
+	* timidity/mix.c: Workaround for Moog VCF making loud noise.
+	* timidity/playmidi.c: Remove obsolete filter frequency cap.
+
 2010-05-23  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/readmidi.c, timidity/reverb.[ch]:
