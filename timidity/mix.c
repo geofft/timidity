@@ -208,7 +208,8 @@ static inline int do_voice_filter(int v, resample_t *sp, mix_t *lp, int32 count)
 	}
 }
 
-#define MOOG_RESONANCE_MAX 0.897638f
+//#define MOOG_RESONANCE_MAX 0.897638f
+#define MOOG_RESONANCE_MAX 0.88f
 
 static inline void recalc_voice_resonance(int v)
 {
