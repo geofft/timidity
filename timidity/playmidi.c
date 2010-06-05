@@ -1221,7 +1221,6 @@ void recompute_voice_filter(int v)
 
 	if (freq > play_mode->rate / 2) {freq = play_mode->rate / 2;}
 	else if(freq < 5) {freq = 5;}
-	else if(freq > 20000) {freq = 20000;}
 	fc->freq = (int32)freq;
 
 	fc->reso_dB = fc->orig_reso_dB + channel[ch].resonance_dB + reso;
