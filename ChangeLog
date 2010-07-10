@@ -1,3 +1,8 @@
+2010-07-10  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/sndfont.c: Correct sf2 broken loop point
+	  to avoid infinite loop on resampling.
+
 2010-06-05  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/reverb.[ch]:
