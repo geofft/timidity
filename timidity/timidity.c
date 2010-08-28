@@ -5702,6 +5702,23 @@ int w32gSaveDefaultPlaylist(void);
 extern int volatile save_playlist_once_before_exit_flag;
 #endif /* IA_W32GUI */
 
+#if defined(__W32__) && !defined(WINDRV)
+typedef BOOL (WINAPI *SetDllDirectoryAProc)(LPCSTR lpPathName);
+
+/*! Remove the current directory for the search path of LoadLibrary. Returns 0 if failed. */
+static int w32_reset_dll_directory(void)
+{
+	HMODULE module;
+	SetDllDirectoryAProc setDllDirectory;
+	if ((module = GetModuleHandle(TEXT("Kernel32.dll"))) == NULL)
+		return 0;
+	if ((setDllDirectory = (SetDllDirectoryAProc)GetProcAddress(module, TEXT("SetDllDirectoryA"))) == NULL)
+		return 0;
+	/* Microsoft Security Advisory 2389418 */
+	return (*setDllDirectory)("") != 0;
+}
+#endif
+
 #if defined ( IA_W32GUI ) || defined ( IA_W32G_SYN )
 static int CoInitializeOK = 0;
 #endif
@@ -5747,6 +5764,9 @@ int main(int argc, char **argv)
 	memcpy(stdout, fopen(REDIRECT_STDOUT, "a+"), sizeof(FILE));
 	printf("TiMidity++ start\n");
 	fflush(stdout);
+#endif
+#if defined(__W32__) && !defined(WINDRV)
+	(void)w32_reset_dll_directory();
 #endif
 #ifdef main
 {

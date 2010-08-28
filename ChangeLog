@@ -1,6 +1,13 @@
+2010-08-28  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c: Remove the current directory for
+	  the search path of LoadLibrary(), which is invoked when using
+	  output formats that depends on a DLL. (Windows executable)
+	  Quick fix for Microsoft Security Advisory 2269637.
+
 2010-07-10  Kentaro Sato <kentaro@ranvis.com>
 
-	* timidity/sndfont.c: Correct sf2 broken loop point
+	* timidity/sndfont.c: Correct soundfont broken loop point
 	  to avoid infinite loop on resampling.
 
 2010-06-05  Kentaro Sato <kentaro@ranvis.com>
