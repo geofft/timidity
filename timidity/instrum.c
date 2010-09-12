@@ -1121,6 +1121,8 @@ Instrument *load_instrument(int dr, int b, int prog)
 	/* preload soundfont */
 	ip = load_soundfont_inst(0, font_bank, font_preset, font_keynote);
 	if (ip != NULL) {
+		if (bank->tone[prog].name == NULL) /* this should not be NULL to play the instrument */
+			bank->tone[prog].name = safe_strdup(""); /* file name looks better but not available */
 		if (bank->tone[prog].comment)
 			free(bank->tone[prog].comment);
 		bank->tone[prog].comment = safe_strdup(ip->instname);

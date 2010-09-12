@@ -2,6 +2,8 @@
 
 	* timidity/timidity.c (set_val_float_t):
 	  Fix an error message for the bad floating point values.
+	* timidity/instrum.c: Fix a bug that ignores non-standard drumsets
+	  when a soundfont is specified with "soundfont" directive.
 
 2010-08-28  Kentaro Sato <kentaro@ranvis.com>
 
