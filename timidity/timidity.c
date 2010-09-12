@@ -5035,7 +5035,7 @@ static inline int set_val_float_t(FLOAT_T *param,
 {
 	if (i < low || i > high) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-				"%s must be between %ld and %ld", name, low, high);
+				"%s must be between %.1f and %.1f", name, low, high);
 		return 1;
 	}
 	*param = i;

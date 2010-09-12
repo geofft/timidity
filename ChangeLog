@@ -1,3 +1,8 @@
+2010-09-12  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/timidity.c (set_val_float_t):
+	  Fix an error message for the bad floating point values.
+
 2010-08-28  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c: Remove the current directory for
