@@ -1336,35 +1336,45 @@ void recompute_bank_parameter(int ch, int note)
 Instrument *play_midi_load_instrument(int dr, int bk, int prog)
 {
 	ToneBank **bank = (dr) ? drumset : tonebank;
+	ToneBankElement *tone;
 	Instrument *ip;
 	int load_success = 0;
 
 	if (bank[bk] == NULL)
 		alloc_instrument_bank(dr, bk);
 
-	if (bank[bk]->tone[prog].name) {
+	tone = &bank[bk]->tone[prog];
+	/* tone->name is NULL if "soundfont" directive is used, and ip is NULL when not preloaded */
+	/* dr: not sure but only drumsets are concerned at the moment */
+	if (dr && !tone->name && ((ip = tone->instrument) == MAGIC_LOAD_INSTRUMENT || ip == NULL)
+		  && (ip = load_instrument(dr, bk, prog)) != NULL) {
+		tone->instrument = ip;
+		tone->name = safe_strdup(DYNAMIC_INSTRUMENT_NAME);
+		load_success = 1;
+	} else if (tone->name) {
 		/* Instrument is found. */
-		if ((ip = bank[bk]->tone[prog].instrument) == MAGIC_LOAD_INSTRUMENT
+		if ((ip = tone->instrument) == MAGIC_LOAD_INSTRUMENT
 #ifndef SUPPRESS_CHANNEL_LAYER
 			|| ip == NULL	/* see also readmidi.c: groom_list(). */
 #endif
-		) {ip = bank[bk]->tone[prog].instrument = load_instrument(dr, bk, prog);}
+		) {ip = tone->instrument = load_instrument(dr, bk, prog);}
 		if (ip == NULL || IS_MAGIC_INSTRUMENT(ip)) {
-			bank[bk]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+			tone->instrument = MAGIC_ERROR_INSTRUMENT;
 		} else {
 			load_success = 1;
 		}
 	} else {
 		/* Instrument is not found.
 		   Try to load the instrument from bank 0 */
-		if ((ip = bank[0]->tone[prog].instrument) == NULL
+		ToneBankElement *tone0 = &bank[0]->tone[prog];
+		if ((ip = tone0->instrument) == NULL
 			|| ip == MAGIC_LOAD_INSTRUMENT)
-			ip = bank[0]->tone[prog].instrument = load_instrument(dr, 0, prog);
+			ip = tone0->instrument = load_instrument(dr, 0, prog);
 		if (ip == NULL || IS_MAGIC_INSTRUMENT(ip)) {
-			bank[0]->tone[prog].instrument = MAGIC_ERROR_INSTRUMENT;
+			tone0->instrument = MAGIC_ERROR_INSTRUMENT;
 		} else {
-			copy_tone_bank_element(&bank[bk]->tone[prog], &bank[0]->tone[prog]);
-			bank[bk]->tone[prog].instrument = ip;
+			copy_tone_bank_element(tone, tone0);
+			tone->instrument = ip;
 			load_success = 1;
 		}
 	}

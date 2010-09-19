@@ -1879,8 +1879,8 @@ static char **GetMidiINDrivers ( void )
 			MidiINDrivers[i] = NULL;
 			break;
 		}
-		MidiINDrivers[max+1] = NULL;
 	}
+	MidiINDrivers[max+1] = NULL;
 	return MidiINDrivers;
 }
 

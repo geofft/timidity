@@ -163,7 +163,7 @@ extern void set_multi_eq_type_xg(int);
 extern void realloc_effect_xg(struct effect_xg_t *st);
 extern void recompute_effect_xg(struct effect_xg_t *st);
 
-extern void recompute_userdrum(int bank, int prog);
+extern Instrument *recompute_userdrum(int bank, int prog);
 extern void free_userdrum();
 
 extern void recompute_userinst(int bank, int prog);

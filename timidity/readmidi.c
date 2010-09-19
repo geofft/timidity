@@ -159,7 +159,6 @@ UserDrumset *userdrum_last = (UserDrumset *)NULL;
 
 void init_userdrum();
 UserDrumset *get_userdrum(int bank, int prog);
-void recompute_userdrum(int bank, int prog);
 void recompute_userdrum_altassign(int bank,int group);
 
 typedef struct _UserInstrument {
@@ -5824,22 +5823,35 @@ void init_userdrum()
 }
 
 /*! recompute GS user drumset. */
-void recompute_userdrum(int bank, int prog)
+Instrument *recompute_userdrum(int bank, int prog)
 {
 	UserDrumset *p;
+	Instrument *ip = NULL;
 
 	p = get_userdrum(bank, prog);
 
 	free_tone_bank_element(&drumset[bank]->tone[prog]);
 	if(drumset[p->source_prog]) {
-		if(drumset[p->source_prog]->tone[p->source_note].name) {
-			copy_tone_bank_element(&drumset[bank]->tone[prog], &drumset[p->source_prog]->tone[p->source_note]);
+		ToneBankElement *source_tone = &drumset[p->source_prog]->tone[p->source_note];
+
+		if(source_tone->name == NULL /* NULL if "soundfont" directive is used */
+			  && source_tone->instrument == NULL) {
+			if((ip = load_instrument(1, p->source_prog, p->source_note)) == NULL) {
+				ip = MAGIC_ERROR_INSTRUMENT;
+			}
+			source_tone->instrument = ip;
+		}
+		if(source_tone->name) {
+			copy_tone_bank_element(&drumset[bank]->tone[prog], source_tone);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", p->source_prog, p->source_note, bank, prog);
 		} else if(drumset[0]->tone[p->source_note].name) {
 			copy_tone_bank_element(&drumset[bank]->tone[prog], &drumset[0]->tone[p->source_note]);
 			ctl->cmsg(CMSG_INFO,VERB_NOISY,"User Drumset (%d %d -> %d %d)", 0, p->source_note, bank, prog);
+		} else {
+			ctl->cmsg(CMSG_WARNING, VERB_NORMAL, "Referring user drum set %d, note %d not found - this instrument will not be heard as expected", bank, prog);
 		}
 	}
+	return ip;
 }
 
 /*! get pointer to requested GS user drumset.

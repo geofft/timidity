@@ -1,3 +1,16 @@
+2010-09-19  Kentaro Sato <kentaro@ranvis.com>
+
+	* timidity/instrum.[ch]: Fix a bug created at the previous commit
+	  that prevents alternate instruments from loading occasionally.
+	* timidity/instrum.c, timidity/readmidi.[ch]:
+	  Fix a bug that ignores user drum source instrument when
+	  "soundfont" directive is used.
+	* timidity/playmidi.c: Fix a bug that ignores non-standard drumsets
+	  when a soundfont is specified with "soundfont" directive and
+	  the instrument is loaded as needed.
+	* interface/w32g_pref.c: Fix potential uninitialized pointers access.
+	* interface/w32g_syn.c: Add access keys to some of twsyng menuitems.
+
 2010-09-12  Kentaro Sato <kentaro@ranvis.com>
 
 	* timidity/timidity.c (set_val_float_t):

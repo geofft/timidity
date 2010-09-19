@@ -578,13 +578,13 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 				hMenuSynPriority = CreateMenu ();
 				if (PlayerLanguage == LANGUAGE_JAPANESE) {
 					if ( w32g_syn_status == run ) {
-						AppendMenu ( hMenu, MF_STRING, IDM_STOP, "シンセ停止");
+						AppendMenu ( hMenu, MF_STRING, IDM_STOP, "シンセ停止(&S)");
 					} else if ( w32g_syn_status == stop ) {
-						AppendMenu ( hMenu, MF_STRING, IDM_START, "シンセ開始");
+						AppendMenu ( hMenu, MF_STRING, IDM_START, "シンセ開始(&S)");
 					} else if ( w32g_syn_status == quit ) { 
 						AppendMenu ( hMenu, MF_STRING | MF_GRAYED, IDM_START, "終了中……");
 					}
-					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "システムリセット");
+					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "システムリセット(&R)");
 					switch ( rtsyn_system_mode ) {
 					case GM_SYSTEM_MODE:
 						AppendMenu ( hMenuReset, MF_STRING | MF_CHECKED, IDM_GM_SYSTEM_RESET, "GM リセット");
@@ -645,22 +645,22 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuProcessPriority, "プロセスプライオリティ設定" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuSynPriority, "シンセスレッドプライオリティ設定" );
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
-					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "設定");
-					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "コンソール");
+					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "設定(&P)...");
+					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "コンソール(&C)");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "バージョン情報");
-					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "TiMidity++ について");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "TiMidity++ について(&A)");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
-					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "終了");
+					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "終了(&X)");
 				} else {
 					if ( w32g_syn_status == run ) {
-						AppendMenu ( hMenu, MF_STRING, IDM_STOP, "Stop synthesizer");
+						AppendMenu ( hMenu, MF_STRING, IDM_STOP, "&Stop synthesizer");
 					} else if ( w32g_syn_status == stop ) {
-						AppendMenu ( hMenu, MF_STRING, IDM_START, "Start synthesizer");
+						AppendMenu ( hMenu, MF_STRING, IDM_START, "&Start synthesizer");
 					} else if ( w32g_syn_status == quit ) { 
 						AppendMenu ( hMenu, MF_STRING | MF_GRAYED, IDM_START, "Quitting...");
 					}
-					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "System Reset");
+					AppendMenu ( hMenu, MF_STRING, IDM_SYSTEM_RESET, "System &Reset");
 					switch ( rtsyn_system_mode ) {
 					case GM_SYSTEM_MODE:
 						AppendMenu ( hMenuReset, MF_STRING | MF_CHECKED, IDM_GM_SYSTEM_RESET, "GM Reset");
@@ -721,13 +721,13 @@ SynWinProc(HWND hwnd, UINT uMess, WPARAM wParam, LPARAM lParam)
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuProcessPriority, "Change process priority" );
 					AppendMenu ( hMenu, MF_POPUP, (UINT)hMenuSynPriority, "Change synthesizer thread priority" );
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
-					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "Preference");
-					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "Console");
+					AppendMenu ( hMenu, MF_STRING, IDM_PREFERENCE, "&Preferences...");
+					AppendMenu ( hMenu, MF_STRING, IDM_CONSOLE_WND, "&Console");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
 					AppendMenu ( hMenu, MF_STRING, IDM_VERSION, "Version Info");
-					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "About TiMidity++");
+					AppendMenu ( hMenu, MF_STRING, IDM_TIMIDITY, "&About TiMidity++");
 					AppendMenu ( hMenu, MF_SEPARATOR, 0, 0 );
-					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "Quit");
+					AppendMenu ( hMenu, MF_STRING, IDM_QUIT, "E&xit");
 				}
 				GetCursorPos ( &point );
 				// ポップアップメニューがきちんと消えるための操作。 

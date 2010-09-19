@@ -141,6 +141,8 @@ typedef struct {
 #define MAGIC_ERROR_INSTRUMENT ((Instrument *)(-2))
 #define IS_MAGIC_INSTRUMENT(ip) ((ip) == MAGIC_LOAD_INSTRUMENT || (ip) == MAGIC_ERROR_INSTRUMENT)
 
+#define DYNAMIC_INSTRUMENT_NAME ""
+
 typedef struct _AlternateAssign {
     /* 128 bit vector:
      * bits[(note >> 5) & 0x3] & (1 << (note & 0x1F))
